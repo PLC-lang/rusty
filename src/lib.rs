@@ -18,7 +18,11 @@
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::fs;
+use std::io::Write;
+use std::str::FromStr;
 
+use clap::ArgEnum;
+use codegen::CodeGen;
 use glob::glob;
 use std::path::Path;
 
@@ -44,6 +48,8 @@ mod ast;
 pub mod cli;
 mod codegen;
 pub mod diagnostics;
+pub mod expression_path;
+mod hardware_binding;
 pub mod index;
 mod lexer;
 mod linker;
@@ -69,6 +75,24 @@ pub enum FormatOption {
     IR,
 }
 
+#[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
+pub enum ConfigFormat {
+    JSON,
+    TOML,
+}
+
+impl FromStr for ConfigFormat {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "json" => Ok(ConfigFormat::JSON),
+            "toml" => Ok(ConfigFormat::TOML),
+            _ => Err(format!("Invalid option {}", s)),
+        }
+    }
+}
+
 pub struct CompileOptions {
     pub format: FormatOption,
     pub output: String,
@@ -81,6 +105,18 @@ pub struct LinkOptions {
     pub sysroot: Option<String>,
 }
 
+struct ConfigurationOptions {
+    format: ConfigFormat,
+    output: String,
+}
+
+/// A struct representing the result of a compilation
+#[derive(Default)]
+pub struct CompileResult {
+    pub index: Index,
+    pub objects: Vec<FilePath>,
+}
+
 /// SourceContainers offer source-code to be compiled via the load_source function.
 /// Furthermore it offers a location-String used when reporting diagnostics.
 pub trait SourceContainer {
@@ -90,6 +126,7 @@ pub trait SourceContainer {
     fn get_location(&self) -> &str;
 }
 
+#[derive(Clone)]
 pub struct FilePath {
     pub path: String,
 }
@@ -188,29 +225,25 @@ fn create_source_code<T: Read>(
     Ok(buffer)
 }
 
-pub fn get_target_triple(triple: Option<String>) -> TargetTriple {
+pub fn get_target_triple(triple: Option<&str>) -> TargetTriple {
     triple
-        .as_ref()
-        .map(|it| TargetTriple::create(it))
+        .map(TargetTriple::create)
         .unwrap_or_else(TargetMachine::get_default_triple)
 }
 
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
-fn compile_to_obj<T: SourceContainer>(
-    sources: Vec<T>,
-    includes: Vec<T>,
-    encoding: Option<&'static Encoding>,
+fn persist_to_obj(
+    codegen: CodeGen,
     output: &str,
     reloc: RelocMode,
-    triple: TargetTriple,
-    diagnostician: Diagnostician,
+    triple: &TargetTriple,
 ) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
-    let target = Target::from_triple(&triple).map_err(|it| {
+    let target = Target::from_triple(triple).map_err(|it| {
         Diagnostic::codegen_error(
             &format!("Invalid target-tripple '{:}' - {:?}", triple, it),
             SourceRange::undefined(),
@@ -218,7 +251,7 @@ fn compile_to_obj<T: SourceContainer>(
     })?;
     let machine = target
         .create_target_machine(
-            &triple,
+            triple,
             //TODO : Add cpu features as optionals
             "generic", //TargetMachine::get_host_cpu_name().to_string().as_str(),
             "",        //TargetMachine::get_host_cpu_features().to_string().as_str(),
@@ -231,155 +264,89 @@ fn compile_to_obj<T: SourceContainer>(
             Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
         });
 
-    let c = Context::create();
-    let code_generator = compile_module(&c, sources, includes, encoding, diagnostician)?;
     machine.and_then(|it| {
-        it.write_to_file(&code_generator.module, FileType::Object, Path::new(output))
+        it.write_to_file(&codegen.module, FileType::Object, Path::new(output))
             .map_err(|it| Diagnostic::llvm_error(output, &it))
     })
 }
 
-/// Compiles a given source string to a static object and saves the output.
+/// Persists a given LLVM module to a static object and saves the output.
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
-/// * `encoding` - The encoding to parse the files, None for UTF-8
+/// * `codegen` - The generated LLVM module to persist
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
-pub fn compile_to_static_obj<T: SourceContainer>(
-    sources: Vec<T>,
-    includes: Vec<T>,
-    encoding: Option<&'static Encoding>,
+pub fn persist_as_static_obj(
+    codegen: CodeGen,
     output: &str,
-    target: Option<String>,
-    diagnostician: Diagnostician,
+    target: &TargetTriple,
 ) -> Result<(), Diagnostic> {
-    compile_to_obj(
-        sources,
-        includes,
-        encoding,
-        output,
-        RelocMode::Default,
-        get_target_triple(target),
-        diagnostician,
-    )
+    persist_to_obj(codegen, output, RelocMode::Default, target)
 }
 
-/// Compiles a given source string to a shared position independent object and saves the output.
+/// Persists a given LLVM module to a shared postiion indepedent object and saves the output.
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
-/// * `encoding` - The encoding to parse the files, None for UTF-8
+/// * `codegen` - The generated LLVM module to persist
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
-pub fn compile_to_shared_pic_object<T: SourceContainer>(
-    sources: Vec<T>,
-    includes: Vec<T>,
-    encoding: Option<&'static Encoding>,
+pub fn persist_to_shared_pic_object(
+    codegen: CodeGen,
     output: &str,
-    target: Option<String>,
-    diagnostician: Diagnostician,
+    target: &TargetTriple,
 ) -> Result<(), Diagnostic> {
-    compile_to_obj(
-        sources,
-        includes,
-        encoding,
-        output,
-        RelocMode::PIC,
-        get_target_triple(target),
-        diagnostician,
-    )
+    persist_to_obj(codegen, output, RelocMode::PIC, target)
 }
 
-/// Compiles a given source string to a dynamic non PIC object and saves the output.
+/// Persists the given LLVM module to a dynamic non PIC object and saves the output.
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
-/// * `encoding` - The encoding to parse the files, None for UTF-8
+/// * `codegen` - The generated LLVM module to persits
 /// * `output` - the location on disk to save the output
-/// * `target` - an optional llvm target triple
-///     If not provided, the machine's triple will be used.
-pub fn compile_to_shared_object<T: SourceContainer>(
-    sources: Vec<T>,
-    includes: Vec<T>,
-    encoding: Option<&'static Encoding>,
+/// * `target` - llvm target triple
+pub fn persist_to_shared_object(
+    codegen: CodeGen,
     output: &str,
-    target: Option<String>,
-    diagnostician: Diagnostician,
+    target: &TargetTriple,
 ) -> Result<(), Diagnostic> {
-    compile_to_obj(
-        sources,
-        includes,
-        encoding,
-        output,
-        RelocMode::DynamicNoPic,
-        get_target_triple(target),
-        diagnostician,
-    )
+    persist_to_obj(codegen, output, RelocMode::DynamicNoPic, target)
 }
 
 ///
-/// Compiles the given source into a bitcode file
+/// Persists the given LLVM module into a bitcode file
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
+/// * `codegen` - the genated LLVM module to persist
 /// * `output` - the location on disk to save the output
-pub fn compile_to_bitcode<T: SourceContainer>(
-    sources: Vec<T>,
-    includes: Vec<T>,
-    encoding: Option<&'static Encoding>,
-    output: &str,
-    diagnostician: Diagnostician,
-) -> Result<(), Diagnostic> {
+pub fn persist_to_bitcode(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
     let path = Path::new(output);
-    let c = Context::create();
-    let code_generator = compile_module(&c, sources, includes, encoding, diagnostician)?;
-    code_generator.module.write_bitcode_to_path(path);
-    Ok(())
+    if codegen.module.write_bitcode_to_path(path) {
+        Ok(())
+    } else {
+        Err(Diagnostic::codegen_error(
+            "Could not write bitcode to file",
+            SourceRange::undefined(),
+        ))
+    }
 }
 
 ///
-/// Compiles the given source into LLVM IR and saves it to the given output location
+/// Persits the given LLVM module into LLVM IR and saves it to the given output location
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
-/// * `encoding` - The encoding to parse the files, None for UTF-8
+/// * `codegen` - The generated LLVM module to be persisted
 /// * `output`  - The location to save the generated ir file
-pub fn compile_to_ir<T: SourceContainer>(
-    sources: Vec<T>,
-    includes: Vec<T>,
-    encoding: Option<&'static Encoding>,
-    output: &str,
-    diagnostician: Diagnostician,
-) -> Result<(), Diagnostic> {
-    let ir = compile_to_string(sources, includes, encoding, diagnostician)?;
+pub fn persist_to_ir(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
+    let ir = codegen.module.print_to_string().to_string();
     fs::write(output, ir)
         .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
-}
-
-///
-/// Compiles the given source into LLVM IR and returns it
-///
-/// # Arguments
-///
-/// * `sources` - the source to be compiled
-/// * `encoding` - The encoding to parse the files, None for UTF-8
-pub fn compile_to_string<T: SourceContainer>(
-    sources: Vec<T>,
-    includes: Vec<T>,
-    encoding: Option<&'static Encoding>,
-    diagnostician: Diagnostician,
-) -> Result<String, Diagnostic> {
-    let c = Context::create();
-    let code_gen = compile_module(&c, sources, includes, encoding, diagnostician)?;
-    Ok(code_gen.module.print_to_string().to_string())
 }
 
 ///
@@ -396,8 +363,8 @@ pub fn compile_module<'c, T: SourceContainer>(
     includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     mut diagnostician: Diagnostician,
-) -> Result<codegen::CodeGen<'c>, Diagnostic> {
-    let mut full_index = Index::new();
+) -> Result<(Index, CodeGen<'c>), Diagnostic> {
+    let mut full_index = Index::default();
     let mut id_provider = IdProvider::default();
 
     let mut all_units = Vec::new();
@@ -460,7 +427,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     for unit in annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
-    Ok(code_generator)
+    Ok((full_index, code_generator))
 }
 
 type Units = Vec<(usize, Vec<Diagnostic>, CompilationUnit)>;
@@ -471,7 +438,7 @@ fn parse_and_index<T: SourceContainer>(
     diagnostician: &mut Diagnostician,
     linkage: LinkageType,
 ) -> Result<(Index, Units), Diagnostic> {
-    let mut index = Index::new();
+    let mut index = Index::default();
     let mut units = Vec::new();
 
     for container in source {
@@ -538,11 +505,23 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         .output_name()
         .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
     let out_format = parameters.output_format_or_default();
+
+    let config_options = parameters
+        .hardware_config
+        .as_ref()
+        .map(|config| ConfigurationOptions {
+            format: parameters
+                .config_format()
+                .expect("Never none for valid parameters"),
+            output: config.to_owned(),
+        });
+
     let compile_options = CompileOptions {
         output,
         target: parameters.target,
         format: out_format,
     };
+
     let link_options = if !parameters.skip_linking {
         Some(LinkOptions {
             libraries: parameters.libraries,
@@ -553,28 +532,55 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         None
     };
 
-    build(
+    let target = get_target_triple(compile_options.target.as_deref());
+    let compile_result = build(
         files,
         includes,
-        compile_options,
-        link_options,
+        &compile_options,
         parameters.encoding,
-    )
+        &target,
+    )?;
+
+    if let Some(link_options) = link_options {
+        link(
+            &compile_options.output,
+            compile_options.format,
+            &compile_result.objects,
+            link_options.library_pathes,
+            link_options.libraries,
+            &target,
+            link_options.sysroot,
+        )?;
+    }
+
+    if let Some(config) = config_options {
+        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
+        let generated_conf =
+            hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
+
+        File::create(config.output)
+            .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
+            .map_err(|it| Diagnostic::GeneralError {
+                err_no: diagnostics::ErrNo::general__io_err,
+                message: it.to_string(),
+            })?;
+    }
+
+    Ok(())
 }
 
-/// The driver function for the compilation
+/// The builder function for the compilation
 /// Sorts files that need compilation
 /// Parses, validates and generates code for the given source files
-/// Links all provided object files with the compilation result
-/// Links any provided libraries
-/// Returns the location of the output file
+/// Persists the generated code to output location
+/// Returns a compilation result with the index, and a list of object files
 pub fn build(
     files: Vec<FilePath>,
     includes: Vec<FilePath>,
-    compile_options: CompileOptions,
-    link_options: Option<LinkOptions>,
+    compile_options: &CompileOptions,
     encoding: Option<&'static Encoding>,
-) -> Result<(), Diagnostic> {
+    target: &TargetTriple,
+) -> Result<CompileResult, Diagnostic> {
     let mut objects = vec![];
     let mut sources = vec![];
     files.into_iter().for_each(|it| {
@@ -585,67 +591,45 @@ pub fn build(
         }
     });
 
-    if !sources.is_empty() {
-        compile(
-            &compile_options.output,
-            compile_options.format,
-            sources,
-            includes,
-            encoding,
-            compile_options.target.clone(),
-        )?;
-        objects.push(compile_options.output.as_str().into());
-    }
+    let context = Context::create();
+    let diagnostician = Diagnostician::default();
+    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
+    objects.push(persist(
+        codegen,
+        &compile_options.output,
+        compile_options.format,
+        target,
+    )?);
 
-    if let Some(link_options) = link_options {
-        link(
-            &compile_options.output,
-            compile_options.format,
-            objects,
-            link_options.library_pathes,
-            link_options.libraries,
-            compile_options.target,
-            link_options.sysroot,
-        )?;
-    }
-
-    Ok(())
+    Ok(CompileResult { index, objects })
 }
 
-pub fn compile(
+pub fn persist(
+    input: codegen::CodeGen,
     output: &str,
     out_format: FormatOption,
-    sources: Vec<FilePath>,
-    includes: Vec<FilePath>,
-    encoding: Option<&'static Encoding>,
-    target: Option<String>,
-) -> Result<(), Diagnostic> {
-    let diagnostician = Diagnostician::default();
+    target: &TargetTriple,
+) -> Result<FilePath, Diagnostic> {
     match out_format {
         FormatOption::Static | FormatOption::Relocatable => {
-            compile_to_static_obj(sources, includes, encoding, output, target, diagnostician)
+            persist_as_static_obj(input, output, target)
         }
-        FormatOption::Shared => {
-            compile_to_shared_object(sources, includes, encoding, output, target, diagnostician)
-        }
-        FormatOption::PIC => {
-            compile_to_shared_pic_object(sources, includes, encoding, output, target, diagnostician)
-        }
-        FormatOption::Bitcode => {
-            compile_to_bitcode(sources, includes, encoding, output, diagnostician)
-        }
-        FormatOption::IR => compile_to_ir(sources, includes, encoding, output, diagnostician),
+        FormatOption::Shared => persist_to_shared_object(input, output, target),
+        FormatOption::PIC => persist_to_shared_pic_object(input, output, target),
+        FormatOption::Bitcode => persist_to_bitcode(input, output),
+        FormatOption::IR => persist_to_ir(input, output),
     }?;
-    Ok(())
+
+    Ok(output.into())
 }
 
 pub fn link(
     output: &str,
     out_format: FormatOption,
-    objects: Vec<FilePath>,
+    objects: &[FilePath],
     library_pathes: Vec<String>,
     libraries: Vec<String>,
-    target: Option<String>,
+    target: &TargetTriple,
     sysroot: Option<String>,
 ) -> Result<(), Diagnostic> {
     let linkable_formats = vec![
@@ -655,15 +639,14 @@ pub fn link(
         FormatOption::PIC,
     ];
     if linkable_formats.contains(&out_format) {
-        let triple = get_target_triple(target);
-        let mut linker = triple
+        let mut linker = target
             .as_str()
             .to_str()
             .map_err(|e| Diagnostic::param_error(&e.to_string()))
             .and_then(|triple| linker::Linker::new(triple).map_err(|e| e.into()))?;
         linker.add_lib_path(".");
 
-        for path in &objects {
+        for path in objects {
             linker.add_obj(&path.path);
         }
 
@@ -707,7 +690,7 @@ mod tests {
                 .unwrap()
         );
 
-        let triple = get_target_triple(Some("x86_64-pc-linux-gnu".into()));
+        let triple = get_target_triple(Some("x86_64-pc-linux-gnu"));
         assert_eq!(triple.as_str().to_str().unwrap(), "x86_64-pc-linux-gnu");
     }
 

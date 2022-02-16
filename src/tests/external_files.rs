@@ -1,6 +1,6 @@
 use crate::{
-    compile_to_string,
     diagnostics::{Diagnostic, Diagnostician},
+    test_utils::tests::compile_to_string,
     SourceCode,
 };
 

@@ -692,6 +692,7 @@ fn pre_processing_generates_inline_structs_global() {
                 },
                 location: (54..55).into(),
                 initializer: None,
+                address: None,
             },],
         },
         new_struct_type
@@ -770,6 +771,7 @@ fn pre_processing_generates_inline_structs() {
                 },
                 location: (67..68).into(),
                 initializer: None,
+                address: None,
             }],
         },
         new_struct_type
@@ -1150,6 +1152,7 @@ fn pre_processing_nested_array_in_struct() {
                 },
                 location: SourceRange::undefined(),
                 initializer: None,
+                address: None,
             }],
         },
         initializer: None,
@@ -1759,7 +1762,7 @@ fn global_vars_for_structs() {
     );
 
     // THEN there should be a global variable for the struct
-    let global_var = index.find_global_variable("__main_x__init");
+    let global_var = index.find_global_initializer("__main_x__init");
     assert_eq!(true, global_var.is_some());
 }
 

@@ -280,6 +280,7 @@ fn invalid_variable_name_error_recovery() {
                         location: SourceRange::undefined(),
                     },
                     initializer: None,
+                    address: None,
                     location: SourceRange::undefined(),
                 },],
                 variable_block_type: VariableBlockType::Local,

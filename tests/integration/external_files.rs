@@ -3,10 +3,7 @@
 use std::{env, fs};
 
 use encoding_rs::Encoding;
-use rusty::{
-    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object,
-    compile_to_static_obj, diagnostics::Diagnostician, FilePath,
-};
+use rusty::{build, get_target_triple, CompileOptions, FilePath};
 
 use crate::get_test_file;
 
@@ -16,51 +13,69 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     let out_name = format!("{}.out", &name);
     out.push(out_name);
     let out = out.into_os_string().into_string().unwrap();
-    compile_to_ir(
+    let target = get_target_triple(None);
+    build(
         vec![FilePath { path: path.clone() }],
         vec![],
+        &CompileOptions {
+            format: rusty::FormatOption::IR,
+            output: out.clone(),
+            target: None,
+        },
         encoding,
-        &out,
-        Diagnostician::default(),
+        &target,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_bitcode(
+    build(
         vec![FilePath { path: path.clone() }],
         vec![],
+        &CompileOptions {
+            format: rusty::FormatOption::Bitcode,
+            output: out.clone(),
+            target: None,
+        },
         encoding,
-        &out,
-        Diagnostician::default(),
+        &target,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_shared_object(
+    build(
         vec![FilePath { path: path.clone() }],
         vec![],
+        &CompileOptions {
+            format: rusty::FormatOption::Shared,
+            output: out.clone(),
+            target: None,
+        },
         encoding,
-        &out,
-        None,
-        Diagnostician::default(),
+        &target,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_shared_pic_object(
+    build(
         vec![FilePath { path: path.clone() }],
         vec![],
+        &CompileOptions {
+            format: rusty::FormatOption::PIC,
+            output: out.clone(),
+            target: None,
+        },
         encoding,
-        &out,
-        None,
-        Diagnostician::default(),
+        &target,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_static_obj(
+    build(
         vec![FilePath { path }],
         vec![],
+        &CompileOptions {
+            format: rusty::FormatOption::Static,
+            output: out.clone(),
+            target: None,
+        },
         encoding,
-        &out,
-        None,
-        Diagnostician::default(),
+        &target,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();

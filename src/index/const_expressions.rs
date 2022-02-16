@@ -202,6 +202,10 @@ impl ConstExpressions {
                 _ => Err(format!("Cannot extract int constant from {:#?}", it)),
             })
     }
+
+    pub fn import(&mut self, other: ConstExpressions) {
+        self.expressions.extend(other.expressions)
+    }
 }
 
 impl<'a> IntoIterator for &'a ConstExpressions {

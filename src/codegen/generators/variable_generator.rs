@@ -26,8 +26,13 @@ pub fn generate_global_variables<'ctx, 'b>(
 ) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
     let mut index = LlvmTypedIndex::default();
     let globals = global_index.get_globals();
+    let initializers = global_index.get_global_initializers();
     let enums = global_index.get_global_qualified_enums();
-    for (name, variable) in globals.into_iter().chain(enums.into_iter()) {
+    for (name, variable) in globals
+        .into_iter()
+        .chain(initializers.into_iter())
+        .chain(enums.into_iter())
+    {
         let global_variable = generate_global_variable(
             module,
             llvm,

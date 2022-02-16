@@ -56,6 +56,7 @@ fn exponent_literals_parsed_as_variables() {
                     location: SourceRange::undefined(),
                 },
                 initializer: None,
+                address: None,
                 location: SourceRange::undefined(),
             }],
         }],

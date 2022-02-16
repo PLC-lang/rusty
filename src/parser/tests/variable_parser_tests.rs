@@ -168,3 +168,58 @@ fn two_global_vars_can_be_parsed() {
 ]"#;
     assert_eq!(ast_string, expected_ast)
 }
+
+#[test]
+fn global_var_with_address() {
+    let src = "VAR_GLOBAL 
+            a AT %I* : INT; 
+            b AT %Q* : INT; 
+            c AT %M* : INT; 
+            aa AT %IX7 : INT; 
+            bb AT %QB5.5 : INT; 
+            cc AT %MD3.3.3 : INT; 
+    END_VAR ";
+    let (result, diag) = parse(src);
+
+    assert_eq!(diag, vec![]);
+
+    insta::assert_snapshot!(format!("{:?}", result));
+}
+
+#[test]
+fn pou_var_with_address() {
+    let src = "PROGRAM main
+    VAR 
+            a AT %I* : INT; 
+            b AT %Q* : INT; 
+            c,d AT %M* : INT; 
+            aa AT %IX7 : INT; 
+            bb AT %QB5.5 : INT; 
+            cc AT %MD3.3.3 : INT; 
+    END_VAR 
+    END_PROGRAM
+    ";
+    let (result, diag) = parse(src);
+
+    assert_eq!(diag, vec![]);
+
+    insta::assert_snapshot!(format!("{:?}", result));
+}
+
+#[test]
+fn struct_with_address() {
+    let src = "TYPE t : STRUCT
+            a AT %I* : INT; 
+            b AT %Q* : INT; 
+            c AT %M* : INT; 
+            aa AT %IX7 : INT; 
+            bb AT %QB5.5 : INT; 
+            cc AT %MD3.3.3 : INT; 
+    END_STRUCT
+    END_TYPE
+    ";
+    let (result, diag) = parse(src);
+
+    assert_eq!(diag, vec![]);
+    insta::assert_snapshot!(format!("{:?}", result));
+}
