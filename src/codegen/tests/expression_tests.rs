@@ -290,7 +290,7 @@ fn cast_lword_to_pointer() {
         FUNCTION baz : INT
             VAR 
                 ptr_x : POINTER TO INT; 
-                y : LWORD; 
+                y : LWORD;
             END_VAR;
 
             ptr_x := y;
@@ -299,6 +299,73 @@ fn cast_lword_to_pointer() {
     );
 
     //should result in normal number-comparisons
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn cast_between_pointer_types() {
+    let result = codegen(
+        r#"
+        PROGRAM baz
+            VAR 
+                ptr_x : POINTER TO BYTE; 
+                y : WORD;
+            END_VAR;
+
+            ptr_x := &y;
+        END_PROGRAM
+    "#,
+    );
+
+    //should result in bitcast conversion when assigning to ptr_x
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn unnecessary_casts_between_pointer_types() {
+    let result = codegen(
+        r#"
+        TYPE MyByte : BYTE; END_TYPE
+        
+        PROGRAM baz
+            VAR 
+                ptr : POINTER TO BYTE; 
+                b : BYTE;
+                si : SINT;
+                mb : MyByte;
+            END_VAR;
+
+            ptr := &b; //no cast necessary
+            ptr := &si; //no cast necessary
+            ptr := &mb; //no cast necessary
+        END_PROGRAM
+    "#,
+    );
+
+    //should not result in bitcast
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn access_string_via_byte_array() {
+    let result = codegen(
+        r#"
+        TYPE MyByte : BYTE; END_TYPE
+        
+        PROGRAM baz
+            VAR 
+                str: STRING[10];
+                ptr : POINTER TO BYTE; 
+                bytes : POINTER TO ARRAY[0..9] OF BYTE;
+            END_VAR;
+
+            ptr := &str; //bit-cast expected
+            bytes := &str;
+        END_PROGRAM
+    "#,
+    );
+
+    //should result in bitcasts
     insta::assert_snapshot!(result);
 }
 
