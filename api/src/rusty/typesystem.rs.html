@@ -833,8 +833,20 @@
 <span id="833">833</span>
 <span id="834">834</span>
 <span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem::size_of</span>, <span class="ident">ops::Range</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">mem::size_of</span>,
+    <span class="ident">ops</span>::{<span class="ident">Range</span>, <span class="ident">RangeInclusive</span>},
+};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">GenericBinding</span>, <span class="ident">Operator</span>, <span class="ident">PouType</span>, <span class="ident">TypeNature</span>},
@@ -951,14 +963,14 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TypeSize</span> {
-    <span class="ident">LiteralInteger</span>(<span class="ident">u32</span>),
+    <span class="ident">LiteralInteger</span>(<span class="ident">i64</span>),
     <span class="ident">ConstExpression</span>(<span class="ident">ConstId</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">TypeSize</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_literal</span>(<span class="ident">v</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TypeSize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_literal</span>(<span class="ident">v</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TypeSize</span> {
         <span class="ident">TypeSize::LiteralInteger</span>(<span class="ident">v</span>)
     }
 
@@ -969,7 +981,7 @@
     <span class="doccomment">/// tries to compile-time evaluate the size-expression to an i64</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_int_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i64</span>, <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TypeSize::LiteralInteger</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">v</span> <span class="kw">as</span> <span class="ident">i64</span>),
+            <span class="ident">TypeSize::LiteralInteger</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">v</span>),
             <span class="ident">TypeSize::ConstExpression</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">index</span>
                 .<span class="ident">get_const_expressions</span>()
                 .<span class="ident">get_constant_int_statement_value</span>(<span class="ident">id</span>)
@@ -1209,7 +1221,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Dimension</span> {
     <span class="kw">pub</span> <span class="ident">start_offset</span>: <span class="ident">TypeSize</span>,
     <span class="kw">pub</span> <span class="ident">end_offset</span>: <span class="ident">TypeSize</span>,
@@ -1226,6 +1238,12 @@
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">start_offset</span>.<span class="ident">as_int_value</span>(<span class="ident">index</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i128</span>;
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">end_offset</span>.<span class="ident">as_int_value</span>(<span class="ident">index</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i128</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">start</span>..<span class="ident">end</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_range_inclusive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">start_offset</span>.<span class="ident">as_int_value</span>(<span class="ident">index</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">end_offset</span>.<span class="ident">as_int_value</span>(<span class="ident">index</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">start</span>..<span class="op">=</span><span class="ident">end</span>)
     }
 }
 
@@ -1479,7 +1497,7 @@
             <span class="ident">name</span>: <span class="ident">STRING_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::String</span> {
-                <span class="ident">size</span>: <span class="ident">TypeSize::from_literal</span>(<span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>),
+                <span class="ident">size</span>: <span class="ident">TypeSize::from_literal</span>((<span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">into</span>()),
                 <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf8</span>,
             },
             <span class="ident">nature</span>: <span class="ident">TypeNature::String</span>,
@@ -1488,7 +1506,7 @@
             <span class="ident">name</span>: <span class="ident">WSTRING_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::String</span> {
-                <span class="ident">size</span>: <span class="ident">TypeSize::from_literal</span>(<span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>),
+                <span class="ident">size</span>: <span class="ident">TypeSize::from_literal</span>((<span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">into</span>()),
                 <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf16</span>,
             },
             <span class="ident">nature</span>: <span class="ident">TypeNature::String</span>,
@@ -1565,7 +1583,7 @@
         }
         <span class="ident">DataTypeInformation::Float</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">size</span> <span class="op">+</span> <span class="number">1000</span>,
         <span class="ident">DataTypeInformation::String</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">size</span> {
-            <span class="ident">TypeSize::LiteralInteger</span>(<span class="ident">size</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
+            <span class="ident">TypeSize::LiteralInteger</span>(<span class="ident">size</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">*</span><span class="ident">size</span>).<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
             <span class="ident">TypeSize::ConstExpression</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo!</span>(<span class="string">&quot;String rank with CONSTANTS&quot;</span>),
         },
         <span class="ident">DataTypeInformation::Enum</span> {

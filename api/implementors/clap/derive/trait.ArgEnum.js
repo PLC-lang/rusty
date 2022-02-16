@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["rusty"] = [{"text":"impl <a class=\"trait\" href=\"clap/derive/trait.ArgEnum.html\" title=\"trait clap::derive::ArgEnum\">ArgEnum</a> for <a class=\"enum\" href=\"rusty/enum.ConfigFormat.html\" title=\"enum rusty::ConfigFormat\">ConfigFormat</a>","synthetic":false,"types":["rusty::ConfigFormat"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

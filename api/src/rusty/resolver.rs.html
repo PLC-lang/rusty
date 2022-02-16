@@ -1743,6 +1743,9 @@
 <span id="1743">1743</span>
 <span id="1744">1744</span>
 <span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2600,6 +2603,9 @@
                             <span class="ident">resulting_type</span>: <span class="ident">DWORD_TYPE</span>.<span class="ident">into</span>(),
                         },
                     ),
+                    <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Template</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">unreachable!</span>(<span class="string">&quot;Templates cannot occur in direct access&quot;</span>)
+                    }
                 }
             }
             <span class="ident">AstStatement::BinaryExpression</span> {
@@ -3375,7 +3381,7 @@
                 } <span class="kw">else</span> {
                     <span class="ident">StringEncoding::Utf8</span>
                 },
-                <span class="ident">size</span>: <span class="ident">typesystem::TypeSize::LiteralInteger</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">1</span>),
+                <span class="ident">size</span>: <span class="ident">typesystem::TypeSize::LiteralInteger</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">+</span> <span class="number">1</span>),
             },
         });
     }

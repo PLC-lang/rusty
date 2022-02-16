@@ -353,6 +353,39 @@
 <span id="353">353</span>
 <span id="354">354</span>
 <span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
 <span class="kw">use</span> <span class="ident">logos::Filter</span>;
@@ -365,6 +398,7 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::AstId</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::SourceRange</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Diagnostic</span>;
 
@@ -642,7 +676,6 @@
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
     }
 }
-
 <span class="kw">fn</span> <span class="ident">parse_access_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DirectAccessType</span><span class="op">&gt;</span> {
     <span class="comment">//Percent is at position 0</span>
     <span class="comment">//Find the size from position 1</span>
@@ -660,6 +693,39 @@
         .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
 
     <span class="prelude-val">Some</span>(<span class="ident">access</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">parse_hardware_access_type</span>(
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">HardwareAccessType</span>, <span class="ident">DirectAccessType</span>)<span class="op">&gt;</span> {
+    <span class="comment">//Percent is at position 0</span>
+    <span class="kw">let</span> <span class="ident">hardware_type</span> <span class="op">=</span> <span class="ident">lexer</span>
+        .<span class="ident">slice</span>()
+        .<span class="ident">chars</span>()
+        .<span class="ident">nth</span>(<span class="number">1</span>)
+        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_ascii_lowercase</span>() {
+            <span class="string">&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Input</span>),
+            <span class="string">&#39;q&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Output</span>),
+            <span class="string">&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Memory</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        })
+        .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
+    <span class="comment">//Find the size from position 2</span>
+    <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">lexer</span>
+        .<span class="ident">slice</span>()
+        .<span class="ident">chars</span>()
+        .<span class="ident">nth</span>(<span class="number">2</span>)
+        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_ascii_lowercase</span>() {
+            <span class="string">&#39;x&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Bit</span>),
+            <span class="string">&#39;b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span>),
+            <span class="string">&#39;w&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span>),
+            <span class="string">&#39;d&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span>),
+            <span class="string">&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Template</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        })
+        .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
+
+    <span class="prelude-val">Some</span>((<span class="ident">hardware_type</span>, <span class="ident">access</span>))
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>

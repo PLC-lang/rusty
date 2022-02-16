@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Create an `Arg` from a usage string."><meta name="keywords" content="rust, rustlang, rust-lang, arg"><title>arg in clap - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../clap/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;clap-rs&#x2F;clap&#x2F;master&#x2F;assets&#x2F;clap.png' alt='logo'></div></a><div class="sidebar-elems"><h2 class="location">Other items in<br><a href="index.html">clap</a></h2><div id="sidebar-vars" data-name="arg" data-ty="macro" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Macro <a href="index.html">clap</a>::<wbr><a class="macro" href="#">arg</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/macros.rs.html#615-628" title="goto source code">[src]</a></span></h1><div class="docblock type-decl"><div class="example-wrap"><pre class="rust macro"><code><span class="macro">macro_rules!</span> <span class="ident">arg</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> : <span class="ident">ident</span> : $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span> : <span class="ident">tt</span>) <span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> { ... };
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span> : <span class="ident">tt</span>) <span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> { ... };
+}</code></pre></div>
+</div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Create an <a href="./struct.Arg.html"><code>Arg</code></a> from a usage string.</p>
+<p>Allows creation of basic settings for the <a href="./struct.Arg.html"><code>Arg</code></a>.</p>
+<p><strong>NOTE</strong>: Not all settings may be set using the usage string method. Some properties are
+only available via the builder pattern.</p>
+<h1 id="syntax" class="section-header"><a href="#syntax">Syntax</a></h1>
+<p>Usage strings typically following the form:</p>
+<div class="example-wrap"><pre class="language-notrust"><code>[explicit name] [short] [long] [value names] [...] [help string]</code></pre></div><h3 id="explicit-name" class="section-header"><a href="#explicit-name">Explicit Name</a></h3>
+<p>The name may be either a bare-word or a string, followed by a <code>:</code>, like <code>name:</code> or
+<code>&quot;name&quot;:</code>.</p>
+<p><em>Note:</em> This is an optional field, if it’s omitted the argument will use one of the additional
+fields as the name using the following priority order:</p>
+<ol>
+<li>Explicit Name</li>
+<li>Long</li>
+<li>Value Name</li>
+</ol>
+<p>See <a href="struct.Arg.html#method.name" title="crate::Arg::name"><code>Arg::name</code></a>.</p>
+<h3 id="short" class="section-header"><a href="#short">Short</a></h3>
+<p>A short flag is a <code>-</code> followed by either a bare-character or quoted character, like <code>-f</code> or
+<code>-'f'</code>.</p>
+<p>See <a href="struct.Arg.html#method.short" title="crate::Arg::short"><code>Arg::short</code></a>.</p>
+<h3 id="long" class="section-header"><a href="#long">Long</a></h3>
+<p>A long flag is a <code>--</code> followed by either a bare-word or a string, like <code>--foo</code> or
+<code>--&quot;foo&quot;</code>.</p>
+<p>See <a href="struct.Arg.html#method.long" title="crate::Arg::long"><code>Arg::long</code></a>.</p>
+<h3 id="values-value-notation" class="section-header"><a href="#values-value-notation">Values (Value Notation)</a></h3>
+<p>This is set by placing bare-word between:</p>
+<ul>
+<li><code>[]</code> like <code>[FOO]</code>
+<ul>
+<li>Positional argument: optional</li>
+<li>Named argument: optional value</li>
+</ul>
+</li>
+<li><code>&lt;&gt;</code> like <code>&lt;FOO&gt;</code>: required</li>
+</ul>
+<p>See <a href="struct.Arg.html#method.value_name" title="crate::Arg::value_name"><code>Arg::value_name</code></a>.</p>
+<h3 id="" class="section-header"><a href="#"><code>...</code></a></h3>
+<p><code>...</code> (three consecutive dots/periods) specifies that this argument may occur multiple
+times (not to be confused with multiple values per occurrence).</p>
+<p>See <a href="struct.Arg.html#method.multiple_occurrences" title="crate::Arg::multiple_occurrences"><code>Arg::multiple_occurrences</code></a>.</p>
+<h3 id="help-string" class="section-header"><a href="#help-string">Help String</a></h3>
+<p>The help string is denoted between a pair of single quotes <code>''</code> and may contain any
+characters.</p>
+<h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">App::new</span>(<span class="string">&quot;prog&quot;</span>)
+    .<span class="ident">args</span>(<span class="kw-2">&amp;</span>[
+        <span class="macro">arg!</span>(<span class="op">-</span><span class="op">-</span><span class="ident">config</span> <span class="op">&lt;</span><span class="ident">FILE</span><span class="op">&gt;</span> <span class="string">&quot;a required file for the configuration and no short&quot;</span>),
+        <span class="macro">arg!</span>(<span class="op">-</span><span class="ident">d</span> <span class="op">-</span><span class="op">-</span><span class="ident">debug</span> ... <span class="string">&quot;turns on debugging information and allows multiples&quot;</span>),
+        <span class="macro">arg!</span>([<span class="ident">input</span>] <span class="string">&quot;an optional input file to use&quot;</span>)
+])</code></pre></div>
+</div></details></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="clap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+    <script src="../main.js"></script>
+</body></html>

@@ -1317,8 +1317,42 @@
 <span id="1317">1317</span>
 <span id="1318">1318</span>
 <span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">lexer::IdProvider</span>, <span class="ident">typesystem::DataTypeInformation</span>};
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">iter</span>,
@@ -1354,12 +1388,22 @@
     <span class="ident">Final</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;direction&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HardwareAccessType</span> {
+    <span class="ident">Input</span>,
+    <span class="ident">Output</span>,
+    <span class="ident">Memory</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;type&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DirectAccessType</span> {
     <span class="ident">Bit</span>,
     <span class="ident">Byte</span>,
     <span class="ident">Word</span>,
     <span class="ident">DWord</span>,
+    <span class="ident">Template</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
@@ -1474,6 +1518,7 @@
             <span class="ident">DirectAccessType::Byte</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">8</span>,
             <span class="ident">DirectAccessType::Word</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">16</span>,
             <span class="ident">DirectAccessType::DWord</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">32</span>,
+            <span class="ident">DirectAccessType::Template</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;Should not test for template width&quot;</span>),
         }
     }
 }
@@ -1607,23 +1652,22 @@
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">data_type</span>: <span class="ident">DataTypeDeclaration</span>,
     <span class="kw">pub</span> <span class="ident">initializer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">SourceRange</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Variable</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Variable&quot;</span>);
+        <span class="ident">var</span>.<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;data_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data_type</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">initializer</span>.<span class="ident">is_some</span>() {
-            <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Variable&quot;</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;data_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data_type</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;initializer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">initializer</span>)
-                .<span class="ident">finish</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Variable&quot;</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;data_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data_type</span>)
-                .<span class="ident">finish</span>()
+            <span class="ident">var</span>.<span class="ident">field</span>(<span class="string">&quot;initializer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">initializer</span>);
         }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">address</span>.<span class="ident">is_some</span>() {
+            <span class="ident">var</span>.<span class="ident">field</span>(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">address</span>);
+        }
+        <span class="ident">var</span>.<span class="ident">finish</span>()
     }
 }
 
@@ -1968,6 +2012,13 @@
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
         <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
+    <span class="ident">HardwareAccess</span> {
+        <span class="ident">direction</span>: <span class="ident">HardwareAccessType</span>,
+        <span class="ident">access</span>: <span class="ident">DirectAccessType</span>,
+        <span class="ident">address</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
+        <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
+    },
     <span class="ident">BinaryExpression</span> {
         <span class="ident">operator</span>: <span class="ident">Operator</span>,
         <span class="ident">left</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
@@ -2266,6 +2317,19 @@
                 .<span class="ident">field</span>(<span class="string">&quot;access&quot;</span>, <span class="ident">access</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">index</span>)
                 .<span class="ident">finish</span>(),
+            <span class="ident">AstStatement::HardwareAccess</span> {
+                <span class="ident">direction</span>,
+                <span class="ident">access</span>,
+                <span class="ident">address</span>,
+                <span class="ident">location</span>,
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+                .<span class="ident">debug_struct</span>(<span class="string">&quot;HardwareAccess&quot;</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;direction&quot;</span>, <span class="ident">direction</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;access&quot;</span>, <span class="ident">access</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;address&quot;</span>, <span class="ident">address</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;location&quot;</span>, <span class="ident">location</span>)
+                .<span class="ident">finish</span>(),
             <span class="ident">AstStatement::MultipliedStatement</span> {
                 <span class="ident">multiplier</span>,
                 <span class="ident">element</span>,
@@ -2370,6 +2434,7 @@
             }
             <span class="ident">AstStatement::PointerAccess</span> { <span class="ident">reference</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">reference</span>.<span class="ident">get_location</span>(),
             <span class="ident">AstStatement::DirectAccess</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
+            <span class="ident">AstStatement::HardwareAccess</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">AstStatement::MultipliedStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">AstStatement::CaseCondition</span> { <span class="ident">condition</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>.<span class="ident">get_location</span>(),
             <span class="ident">AstStatement::ReturnStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -2398,6 +2463,7 @@
             <span class="ident">AstStatement::ArrayAccess</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::PointerAccess</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::DirectAccess</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">AstStatement::HardwareAccess</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::BinaryExpression</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::UnaryExpression</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,

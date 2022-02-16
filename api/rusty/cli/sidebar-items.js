@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CompileParameters",""]],"type":[["ParameterError",""]]});
+initSidebarItems({"fn":[["get_config_format",""]],"struct":[["CompileParameters",""]],"type":[["ParameterError",""]]});

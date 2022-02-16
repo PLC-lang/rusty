@@ -365,9 +365,18 @@
 <span id="365">365</span>
 <span id="366">366</span>
 <span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">HardwareAccessType</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Logos</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Token</span> {
@@ -620,6 +629,9 @@
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;OF&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordOf</span>,
 
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;AT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="ident">KeywordAt</span>,
+
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_CASE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDCASE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndCase</span>,
@@ -719,6 +731,12 @@
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;%(B|b|D|d|W|w|X|x)&quot;</span>, <span class="ident"><span class="kw">super</span>::parse_access_type</span>)]</span>
     <span class="ident">DirectAccess</span>(<span class="ident">DirectAccessType</span>),
+
+    <span class="attribute">#[<span class="ident">regex</span>(
+        <span class="string">r&quot;%(I|i|Q|q|M|m)(B|b|D|d|W|w|X|x|\*)&quot;</span>,
+        <span class="ident"><span class="kw">super</span>::parse_hardware_access_type</span>
+    )]</span>
+    <span class="ident">HardwareAccess</span>((<span class="ident">HardwareAccessType</span>, <span class="ident">DirectAccessType</span>)),
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;&#39;((\\$.)|[^$&#39;])*&#39;&quot;</span>)]</span>
     <span class="ident">LiteralString</span>,
