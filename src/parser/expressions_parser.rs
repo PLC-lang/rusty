@@ -129,9 +129,14 @@ fn parse_additive_expression(lexer: &mut ParseSession) -> AstStatement {
 fn parse_multiplication_expression(lexer: &mut ParseSession) -> AstStatement {
     parse_left_associative_expression!(
         lexer,
-        parse_unary_expression,
+        parse_exponent_expression,
         OperatorMultiplication | OperatorDivision | OperatorModulo,
     )
+}
+
+// Expoent **
+fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
+    parse_left_associative_expression!(lexer, parse_unary_expression, OperatorExponent,)
 }
 
 // UNARY -x, NOT x
@@ -191,6 +196,7 @@ fn to_operator(token: &Token) -> Option<Operator> {
         OperatorPlus => Some(Operator::Plus),
         OperatorMinus => Some(Operator::Minus),
         OperatorMultiplication => Some(Operator::Multiplication),
+        OperatorExponent => Some(Operator::Exponentiation),
         OperatorDivision => Some(Operator::Division),
         OperatorEqual => Some(Operator::Equal),
         OperatorNotEqual => Some(Operator::NotEqual),

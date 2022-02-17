@@ -1,0 +1,52 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 2658
+expression: ast
+
+---
+CompilationUnit {
+    global_vars: [],
+    units: [
+        POU {
+            name: "foo",
+            variable_blocks: [],
+            pou_type: Function,
+            return_type: Some(
+                DataTypeReference {
+                    referenced_type: "INT",
+                },
+            ),
+        },
+    ],
+    implementations: [
+        Implementation {
+            name: "foo",
+            type_name: "foo",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [
+                BinaryExpression {
+                    operator: Multiplication,
+                    left: Reference {
+                        name: "a",
+                    },
+                    right: BinaryExpression {
+                        operator: Exponentiation,
+                        left: Reference {
+                            name: "b",
+                        },
+                        right: Reference {
+                            name: "c",
+                        },
+                    },
+                },
+            ],
+            location: SourceRange {
+                range: 32..60,
+            },
+            overriding: false,
+            access: None,
+        },
+    ],
+    types: [],
+}

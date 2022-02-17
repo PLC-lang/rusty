@@ -1146,6 +1146,7 @@ pub enum Operator {
     Plus,
     Minus,
     Multiplication,
+    Exponentiation,
     Division,
     Equal,
     NotEqual,
