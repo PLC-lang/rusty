@@ -99,7 +99,7 @@ pub fn generate<'ink, 'b>(
     source_location: SourceRange,
 ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
     BUILTIN
-        .get(builtin)
+        .get(builtin.to_uppercase().as_str())
         .ok_or_else(|| {
             Diagnostic::codegen_error(
                 &format!("Cannot find builtin function {}", builtin),
