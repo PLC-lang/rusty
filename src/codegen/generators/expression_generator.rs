@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::{self, DirectAccessType, SourceRange},
+    builtins,
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
@@ -448,6 +449,19 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     operator.get_location(),
                 )
             })?;
+
+        //If the function is builtin, generate a basic value enum for it
+        if self.index.is_builtin(implementation.get_call_name()) {
+            return builtins::generate(
+                implementation.get_call_name(),
+                self,
+                parameters
+                    .as_ref()
+                    .map(|it| ast::flatten_expression_list(it))
+                    .unwrap_or_default(),
+                operator.get_location(),
+            );
+        }
 
         let (class_ptr, call_ptr) = match implementation {
             ImplementationIndexEntry {
@@ -912,6 +926,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         self.llvm
             .load_pointer(&accessor_ptr, "deref")
             .into_pointer_value()
+    }
+
+    pub fn ptr_as_value(&self, ptr: PointerValue<'a>) -> BasicValueEnum<'a> {
+        let int_type = self.llvm.context.i64_type();
+        if ptr.is_const() {
+            ptr.const_to_int(int_type)
+        } else {
+            self.llvm.builder.build_ptr_to_int(ptr, int_type, "")
+        }
+        .as_basic_value_enum()
     }
 
     /// automatically derefs an inout variable pointer so it can be used like a normal variable

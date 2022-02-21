@@ -459,3 +459,41 @@ fn nested_call_statements() {
     // WE expect a flat sequence of calls, no regions and branching
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn builtin_function_call_adr() {
+    // GIVEN some nested call statements
+    let result = codegen(
+        "
+		PROGRAM main
+        VAR
+            a : REF_TO DINT;
+            b : DINT;
+        END_VAR
+            a := ADR(b);
+		END_PROGRAM
+		",
+    );
+    // WHEN compiled
+    // We expect a direct conversion to lword and subsequent assignment (no call)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_ref() {
+    // GIVEN some nested call statements
+    let result = codegen(
+        "
+		PROGRAM main
+        VAR
+            a : REF_TO DINT;
+            b : DINT;
+        END_VAR
+            a := REF(b);
+		END_PROGRAM
+		",
+    );
+    // WHEN compiled
+    // We expect a direct conversion and subsequent assignment to pointer(no call)
+    insta::assert_snapshot!(result);
+}

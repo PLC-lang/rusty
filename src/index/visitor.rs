@@ -9,9 +9,7 @@ use crate::index::{Index, MemberInfo};
 use crate::lexer::IdProvider;
 use crate::typesystem::{self, *};
 
-pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
-    let mut index = Index::default();
-
+pub fn visit_index(mut index: Index, unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     //Create the typesystem
     let builtins = get_builtin_types();
     for data_type in builtins {
@@ -37,6 +35,12 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
         visit_implementation(&mut index, implementation);
     }
     index
+}
+
+/// Visits the ast, creating an index of the content. Appends builtin functions to that index
+pub fn visit(unit: &CompilationUnit, id_provider: IdProvider) -> Index {
+    let index = Index::create_with_builtins(id_provider.clone());
+    visit_index(index, unit, id_provider)
 }
 
 pub fn visit_pou(index: &mut Index, pou: &Pou) {
@@ -131,6 +135,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
             generics: pou.generics.clone(),
+            linkage: pou.linkage,
         },
         nature: TypeNature::Any,
     };
@@ -267,6 +272,7 @@ fn visit_data_type(
                 varargs: None,
                 source: StructSource::OriginalDeclaration,
                 generics: vec![],
+                linkage: ast::LinkageType::Internal,
             };
 
             let init = index

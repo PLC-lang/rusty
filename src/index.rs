@@ -6,7 +6,9 @@ use crate::{
         AstStatement, DirectAccessType, HardwareAccessType, Implementation, LinkageType, PouType,
         SourceRange, TypeNature,
     },
+    builtins,
     diagnostics::Diagnostic,
+    lexer::IdProvider,
     typesystem::{self, *},
 };
 
@@ -426,6 +428,11 @@ pub struct Index {
 }
 
 impl Index {
+    pub fn create_with_builtins(id_provider: IdProvider) -> Index {
+        let (unit, _) = builtins::parse_built_ins(id_provider.clone());
+        visitor::visit_index(Index::default(), &unit, id_provider)
+    }
+
     /// imports all entries from the given index into the current index
     ///
     /// imports all global_variables, member_variables, types and implementations
@@ -961,6 +968,13 @@ impl Index {
         inner_filter: fn(&VariableIndexEntry, &Index) -> bool,
     ) -> InstanceIterator {
         InstanceIterator::with_filter(self, inner_filter)
+    }
+
+    pub fn is_builtin(&self, function: &str) -> bool {
+        //Find a type for that function, see if that type is builtin
+        self.find_effective_type_info(function)
+            .map(DataTypeInformation::is_builtin)
+            .unwrap_or_default()
     }
 }
 

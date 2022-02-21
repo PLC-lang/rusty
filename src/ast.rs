@@ -211,6 +211,7 @@ pub struct Implementation {
 pub enum LinkageType {
     Internal,
     External,
+    BuiltIn,
 }
 
 #[derive(Debug, PartialEq)]
