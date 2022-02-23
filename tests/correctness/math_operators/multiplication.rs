@@ -1,4 +1,4 @@
-use crate::{compile_and_run, MainType};
+use crate::{compile_and_run, MainType, assert_almost_eq};
 use num::{Float, NumCast};
 
 //--------------------------------------------------------------
@@ -43,7 +43,7 @@ fn multiplication_vars_real_type() {
     let mut main = MainType::default();
 
     let res: f32 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 100.6);
+    assert_almost_eq!(100.6, res, f32::EPSILON);
 }
 
 #[test]

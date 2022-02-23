@@ -31,6 +31,7 @@ mod correctness {
         mod mixed;
         mod multiplication;
         mod substraction;
+        mod expt_tests;
     }
 }
 
