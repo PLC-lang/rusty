@@ -20,8 +20,7 @@ use crate::{
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
-        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
-    },
+        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE},
 };
 
 #[cfg(test)]
@@ -867,68 +866,7 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 visit_all_statements!(self, ctx, left, right);
-                let statement_type = {
-                    let left_type = self
-                        .annotation_map
-                        .get_type_hint(left, self.index)
-                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(left, self.index));
-                    let right_type = self
-                        .annotation_map
-                        .get_type_hint(right, self.index)
-                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(right, self.index));
-
-                    if left_type.get_type_information().is_numerical()
-                        && right_type.get_type_information().is_numerical()
-                    {
-                        let bigger_type = if left_type.get_type_information().is_bool()
-                            && right_type.get_type_information().is_bool()
-                        {
-                            left_type
-                        } else {
-                            let dint = self.index.get_type_or_panic(DINT_TYPE);
-                            get_bigger_type(
-                                get_bigger_type(left_type, right_type, self.index),
-                                dint,
-                                self.index,
-                            )
-                        };
-
-                        let target_name = if operator.is_bool_type() {
-                            BOOL_TYPE.to_string()
-                        } else {
-                            bigger_type.get_name().to_string()
-                        };
-
-                        let bigger_is_left = bigger_type != right_type;
-                        let bigger_is_right = bigger_type != left_type;
-
-                        if bigger_is_left || bigger_is_right {
-                            // if these types are different we need to update the 'other' type's annotation
-                            let bigger_type = bigger_type.clone(); // clone here, so we release the borrow on self
-                            if bigger_is_right {
-                                self.update_expected_types(&bigger_type, left);
-                            }
-                            if bigger_is_left {
-                                self.update_expected_types(&bigger_type, right);
-                            }
-                        }
-
-                        Some(target_name)
-                    } else if operator.is_bool_type() {
-                        Some(BOOL_TYPE.to_string())
-                    } else if left_type.get_type_information().is_pointer()
-                        || right_type.get_type_information().is_pointer()
-                    {
-                        let target_name = if left_type.get_type_information().is_pointer() {
-                            left_type.get_name()
-                        } else {
-                            right_type.get_name()
-                        };
-                        Some(target_name.to_string())
-                    } else {
-                        None
-                    }
-                };
+                let statement_type = self.visit_binary_expression(left, right, *operator);
 
                 if let Some(statement_type) = statement_type {
                     self.annotation_map
@@ -1238,6 +1176,103 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement_literals(ctx, statement);
             }
         }
+    }
+
+    fn visit_binary_expression(&mut self, left: &AstStatement, right: &AstStatement, operator: Operator) -> Option<String> {
+        let statement_type = {
+            let left_type = self
+                .annotation_map
+                .get_type_hint(left, self.index)
+                .unwrap_or_else(|| self.annotation_map.get_type_or_void(left, self.index));
+            let right_type = self
+                .annotation_map
+                .get_type_hint(right, self.index)
+                .unwrap_or_else(|| self.annotation_map.get_type_or_void(right, self.index));
+
+            if left_type.get_type_information().is_numerical()
+                && right_type.get_type_information().is_numerical()
+            {
+                let dint = self.index.get_type_or_panic(DINT_TYPE);
+                if operator == Operator::Exponentiation {
+                    //Convert left side to either REAL or LREAL
+                    let real = self.index.get_type_or_panic(REAL_TYPE);
+                    let left_converted = get_bigger_type(left_type, real, self.index);
+                    //Convert the right side to at least DINT
+                    let right_converted = get_bigger_type(right_type, dint, self.index);
+                    //Use the biggest type of the input for the left/end result
+                    let left_converted = get_bigger_type(left_converted, right_converted, self.index);
+                    //If left and right are both reals, use the bigger of the two for the right side
+                    let right_converted = if right_converted.get_type_information().is_float() {
+                       left_converted //Left is always atleast as big as right
+                    } else {
+                        right_converted
+                    };
+                    let left_is_different = left_converted != left_type;
+                    let right_is_different = right_converted != right_type;
+                    //Clone the values to avoid borrow issues. TODO : Why?
+                    let left_converted = left_converted.clone(); 
+                    let right_converted = right_converted.clone(); 
+                    if left_is_different {
+                        self.update_expected_types(&left_converted, left);
+                    }
+                    if right_is_different {
+                        self.update_expected_types(&right_converted, right);
+                    }
+                    //Return the left side as result
+                    Some(left_converted.get_name().to_string())
+
+                } else {
+                let bigger_type = if left_type.get_type_information().is_bool()
+                    && right_type.get_type_information().is_bool()
+                {
+                    left_type
+                } else {
+                    get_bigger_type(
+                        get_bigger_type(left_type, right_type, self.index),
+                        dint,
+                        self.index,
+                    )
+                };
+
+                let target_name = if operator.is_bool_type() {
+                    BOOL_TYPE.to_string()
+                } else {
+                    bigger_type.get_name().to_string()
+                };
+
+                let bigger_is_left = bigger_type != right_type;
+                let bigger_is_right = bigger_type != left_type;
+
+                if bigger_is_left || bigger_is_right {
+                    // if these types are different we need to update the 'other' type's annotation
+                    let bigger_type = bigger_type.clone(); // clone here, so we release the borrow on self
+                    if bigger_is_right {
+                        self.update_expected_types(&bigger_type, left);
+                    }
+                    if bigger_is_left {
+                        self.update_expected_types(&bigger_type, right);
+                    }
+                }
+
+                Some(target_name)
+
+                }
+            } else if operator.is_bool_type() {
+                Some(BOOL_TYPE.to_string())
+            } else if left_type.get_type_information().is_pointer()
+                || right_type.get_type_information().is_pointer()
+            {
+                let target_name = if left_type.get_type_information().is_pointer() {
+                    left_type.get_name()
+                } else {
+                    right_type.get_name()
+                };
+                Some(target_name.to_string())
+            } else {
+                None
+            }
+        };
+        statement_type
     }
     // Returns a possible generic for the current statement
     fn get_generic_candidate<'idx>(

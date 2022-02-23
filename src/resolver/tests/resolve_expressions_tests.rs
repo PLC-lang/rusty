@@ -7,7 +7,7 @@ use crate::{
     test_utils::tests::annotate,
     typesystem::{
         DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, REAL_TYPE,
-        SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, LREAL_TYPE,
     },
 };
 
@@ -68,6 +68,105 @@ fn binary_expressions_resolves_types_for_mixed_signed_ints() {
     } else {
         unreachable!()
     }
+}
+
+#[test]
+fn expt_binary_expression() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR 
+                a,b : DINT; 
+                c,d : REAL;
+                e,f : LREAL;
+            END_VAR
+            //DINTS
+            a ** b; //DINT * DINT -> hint : REAL * DINT result REAL
+            a ** d; //DINT * REAL -> hit : REAL * REAL result REAL
+            a ** f; //DINT * LREAL -> hit : LREAL * LREAL result LREAL
+
+            // REALS
+            c ** b; //REAL * DINT -> hint : REAL * DINT result REAL
+            c ** d; //REAL * REAL -> hint : REAL * REAL result REAL
+            c ** f; //REAL * LREAL -> hint : LREAL * LREAL result LREAL
+
+            // LREALS
+            e ** b; //LREAL * DINT -> hint : REAL * DINT result REAL
+            e ** d; //LREAL * REAL -> hint : LREAL * LREAL result LREAL
+            e ** f; //LREAL * LREAL -> hint : LREAL * LREAL result LREAL
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+    //DINT
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[0] {
+        assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(REAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[0], REAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[1] {
+        assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(REAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[1], REAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[2] {
+        assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(LREAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, right, LREAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[2], LREAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+
+    //REAL
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[3] {
+        assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[3], REAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[4] {
+        assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[4], REAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[5] {
+        assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, Some(LREAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, right, LREAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[5], LREAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+
+    //LREAL
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[6] {
+        assert_type_and_hint!(&annotations, &index, left, LREAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[6], LREAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[7] {
+        assert_type_and_hint!(&annotations, &index, left, LREAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, Some(LREAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, &statements[7], LREAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[8] {
+        assert_type_and_hint!(&annotations, &index, left, LREAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, LREAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[8], LREAL_TYPE, None);
+    } else {
+        unreachable!()
+    }
+
+
 }
 
 #[test]
