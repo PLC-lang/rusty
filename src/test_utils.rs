@@ -6,6 +6,7 @@ pub mod tests {
 
     use crate::{
         ast::{self, CompilationUnit},
+        builtins,
         diagnostics::{Diagnostic, Diagnostician},
         index::{self, Index},
         lexer::{self, IdProvider},
@@ -34,12 +35,17 @@ pub mod tests {
     }
 
     fn do_index(src: &str, id_provider: IdProvider) -> (CompilationUnit, Index) {
+        let mut index = Index::default();
+        //Import builtins
+        let (builtins, _) = builtins::parse_built_ins(id_provider.clone());
+        index.import(index::visitor::visit(&builtins, id_provider.clone()));
+
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone()),
             ast::LinkageType::Internal,
         );
         ast::pre_process(&mut unit, id_provider.clone());
-        let index = index::visitor::visit(&unit, id_provider);
+        index.import(index::visitor::visit(&unit, id_provider));
         (unit, index)
     }
 

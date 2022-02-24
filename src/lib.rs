@@ -440,7 +440,12 @@ fn parse_and_index<T: SourceContainer>(
     linkage: LinkageType,
 ) -> Result<(Index, Units), Diagnostic> {
     let mut index = Index::default();
+
     let mut units = Vec::new();
+
+    //parse the builtins into the index
+    let (builtins, _) = builtins::parse_built_ins(id_provider.clone());
+    index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
     for container in source {
         let location: String = container.get_location().into();

@@ -92,19 +92,7 @@ pub fn parse_built_ins(id_provider: IdProvider) -> (CompilationUnit, Vec<Diagnos
     parser::parse(lexer::lex_with_ids(&src, id_provider), LinkageType::BuiltIn)
 }
 
-pub fn generate<'ink, 'b>(
-    builtin: &str,
-    generator: &'b ExpressionCodeGenerator<'ink, 'b>,
-    params: Vec<&AstStatement>,
-    source_location: SourceRange,
-) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-    BUILTIN
-        .get(builtin.to_uppercase().as_str())
-        .ok_or_else(|| {
-            Diagnostic::codegen_error(
-                &format!("Cannot find builtin function {}", builtin),
-                source_location.clone(),
-            )
-        })
-        .and_then(|it| it.codegen(generator, params.as_slice(), source_location))
+/// Returns the requested functio from the builtin index or None
+pub fn get_builtin(name: &str) -> Option<&'static BuiltIn> {
+    BUILTIN.get(name.to_uppercase().as_str())
 }

@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::{self, DirectAccessType, SourceRange},
-    builtins,
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
@@ -451,14 +450,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             })?;
 
         //If the function is builtin, generate a basic value enum for it
-        if self.index.is_builtin(implementation.get_call_name()) {
-            return builtins::generate(
-                implementation.get_call_name(),
+        if let Some(builtin) = self
+            .index
+            .get_builtin_function(implementation.get_call_name())
+        {
+            return builtin.codegen(
                 self,
                 parameters
                     .as_ref()
                     .map(|it| ast::flatten_expression_list(it))
-                    .unwrap_or_default(),
+                    .unwrap_or_default()
+                    .as_slice(),
                 operator.get_location(),
             );
         }

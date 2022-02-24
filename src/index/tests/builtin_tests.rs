@@ -1,8 +1,11 @@
-use crate::{index::Index, lexer::IdProvider, test_utils::tests::index};
+use crate::{builtins, lexer::IdProvider, test_utils::tests::index};
 
 #[test]
 fn builtin_functions_added_to_index() {
-    let index = Index::create_with_builtins(IdProvider::default());
+    let provider = IdProvider::default();
+    let (builtins, _) = builtins::parse_built_ins(provider.clone());
+    let index = crate::index::visitor::visit(&builtins, provider);
+
     assert!(index.find_member("ADR", "in").is_some());
     assert!(index.find_member("REF", "in").is_some());
     assert!(index.find_implementation("ADR").is_some());
@@ -10,7 +13,7 @@ fn builtin_functions_added_to_index() {
 }
 
 #[test]
-fn default_visitor_creates_builtins() {
+fn test_indexer_has_builtins() {
     let (_, index) = index("");
     assert!(index.find_member("ADR", "in").is_some());
     assert!(index.find_member("REF", "in").is_some());

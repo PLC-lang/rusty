@@ -6,9 +6,8 @@ use crate::{
         AstStatement, DirectAccessType, HardwareAccessType, Implementation, LinkageType, PouType,
         SourceRange, TypeNature,
     },
-    builtins,
+    builtins::{self, BuiltIn},
     diagnostics::Diagnostic,
-    lexer::IdProvider,
     typesystem::{self, *},
 };
 
@@ -428,11 +427,6 @@ pub struct Index {
 }
 
 impl Index {
-    pub fn create_with_builtins(id_provider: IdProvider) -> Index {
-        let (unit, _) = builtins::parse_built_ins(id_provider.clone());
-        visitor::visit_index(Index::default(), &unit, id_provider)
-    }
-
     /// imports all entries from the given index into the current index
     ///
     /// imports all global_variables, member_variables, types and implementations
@@ -441,43 +435,41 @@ impl Index {
     /// into the current one
     pub fn import(&mut self, mut other: Index) {
         //global variables
-        for (name, mut e) in other.global_variables.drain(..) {
-            e.initial_value =
-                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+        for (name, e) in other.global_variables.drain(..) {
+            let e = self.transfer_constants(e, &mut other.constant_expressions);
             self.global_variables.insert(name, e);
         }
 
-        //enum_global_variables
-        for (name, mut e) in other.enum_global_variables.drain(..) {
-            e.initial_value =
-                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-            self.enum_global_variables.insert(name, e.clone());
-            self.enum_qualified_variables
-                .insert(e.qualified_name.to_lowercase(), e);
+        //enmu_variables use the qualified variables since name conflicts will be overriden in the enum_global
+        for (qualified_name, e) in other.enum_qualified_variables.drain(..) {
+            let e = self.transfer_constants(e, &mut other.constant_expressions);
+            dbg!(&e);
+            self.enum_global_variables
+                .insert(e.get_name().to_lowercase(), e.clone());
+            self.enum_qualified_variables.insert(qualified_name, e);
         }
 
         //initializers
-        for (name, mut e) in other.global_initializers.drain(..) {
-            e.initial_value =
-                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+        for (name, e) in other.global_initializers.drain(..) {
+            let e = self.transfer_constants(e, &mut other.constant_expressions);
             self.global_initializers.insert(name, e);
         }
 
         //member variables
         for (name, mut members) in other.member_variables.drain(..) {
             //enum qualified variables
-            for (_, mut e) in members.iter_mut() {
-                e.initial_value =
-                    self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            let mut new_members = IndexMap::default();
+            for (name, e) in members.drain(..) {
+                let e = self.transfer_constants(e, &mut other.constant_expressions);
+                new_members.insert(name, e);
             }
-            self.member_variables.insert(name, members);
+            self.member_variables.insert(name, new_members);
         }
 
         //types
         for (name, mut e) in other.type_index.types.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-
             match &mut e.information {
                 //import constant expressions in array-type-definitions
                 DataTypeInformation::Array { dimensions, .. } => {
@@ -511,6 +503,38 @@ impl Index {
         // self.constant_expressions.import(other.constant_expressions)
     }
 
+    fn transfer_constants(
+        &mut self,
+        mut variable: VariableIndexEntry,
+        import_from: &mut ConstExpressions,
+    ) -> VariableIndexEntry {
+        variable.initial_value = self.maybe_import_const_expr(import_from, &variable.initial_value);
+
+        let binding = if let Some(HardwareBinding {
+            direction,
+            access,
+            entries,
+            location,
+        }) = variable.get_hardware_binding()
+        {
+            let mut new_entries = vec![];
+            for entry in entries {
+                if let Some(e) = self.maybe_import_const_expr(import_from, &Some(*entry)) {
+                    new_entries.push(e);
+                }
+            }
+            Some(HardwareBinding {
+                direction: *direction,
+                access: *access,
+                entries: new_entries,
+                location: location.clone(),
+            })
+        } else {
+            None
+        };
+        variable.set_hardware_binding(binding)
+    }
+
     /// imports the corresponding const-expression (according to the given initializer-id) from the given ConstExpressions
     /// into self's const-expressions and returns the new Id
     fn maybe_import_const_expr(
@@ -520,7 +544,7 @@ impl Index {
     ) -> Option<ConstId> {
         initializer_id
             .as_ref()
-            .and_then(|it| import_from.remove(it))
+            .and_then(|it| import_from.clone(it))
             .map(|(init, target_type, scope)| {
                 self.get_mut_const_expressions()
                     .add_constant_expression(init, target_type, scope)
@@ -540,7 +564,7 @@ impl Index {
         let ts = match type_size {
             TypeSize::LiteralInteger(_) => Some(*type_size),
             TypeSize::ConstExpression(id) => import_from
-                .remove(id)
+                .clone(id)
                 .map(|(expr, target_type, scope)| {
                     self.get_mut_const_expressions().add_constant_expression(
                         expr,
@@ -970,11 +994,17 @@ impl Index {
         InstanceIterator::with_filter(self, inner_filter)
     }
 
-    pub fn is_builtin(&self, function: &str) -> bool {
+    /// If the provided name is a builtin function, returns it from the builtin index
+    pub fn get_builtin_function(&self, name: &str) -> Option<&'_ BuiltIn> {
         //Find a type for that function, see if that type is builtin
-        self.find_effective_type_info(function)
+        if let Some(true) = self
+            .find_effective_type_info(name)
             .map(DataTypeInformation::is_builtin)
-            .unwrap_or_default()
+        {
+            builtins::get_builtin(name)
+        } else {
+            None
+        }
     }
 }
 
