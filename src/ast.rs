@@ -1171,6 +1171,7 @@ impl Display for Operator {
             Operator::Division => "/",
             Operator::Equal => "=",
             Operator::Modulo => "MOD",
+            Operator::Exponentiation => "**",
             _ => unimplemented!(),
         };
         f.write_str(symbol)
