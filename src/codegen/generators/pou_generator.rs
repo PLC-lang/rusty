@@ -10,7 +10,7 @@ use crate::{
     codegen::llvm_index::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
-    resolver::AstAnnotations,
+    resolver::{AstAnnotations},
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -24,12 +24,15 @@ use crate::{
     ast::{Implementation, PouType, SourceRange},
     index::Index,
 };
-use inkwell::types::{BasicType, StructType};
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
     values::{BasicValueEnum, FunctionValue},
     AddressSpace,
+};
+use inkwell::{
+    types::{BasicType, StructType},
+    values::BasicValue,
 };
 
 pub struct PouGenerator<'ink, 'cg> {
@@ -53,7 +56,8 @@ pub fn generate_implementation_stubs<'ink>(
     for (name, implementation) in index.get_implementations() {
         let type_info = index.get_type_information_or_void(implementation.get_type_name());
         if !type_info.is_generic() {
-            let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
+            let curr_f =
+                pou_generator.generate_implementation_stub(name, implementation, module)?;
             llvm_index.associate_implementation(name, curr_f)?;
         }
     }
@@ -147,35 +151,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
     pub fn generate_implementation_stub(
         &self,
+        pou_name: &str,
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         let global_index = self.index;
-        //generate a function that takes a instance-struct parameter
-        let pou_name = implementation.get_call_name();
 
-        let mut parameters = vec![];
-        if implementation.get_implementation_type() == &ImplementationType::Method {
-            let class_name = implementation
-                .get_associated_class_name()
-                .expect("Method needs to have a class-name");
-            let instance_members_struct_type: StructType = self
-                .llvm_index
-                .get_associated_type(class_name)
-                .map(|it| it.into_struct_type())?;
-            parameters.push(
-                instance_members_struct_type
-                    .ptr_type(AddressSpace::Generic)
-                    .into(),
-            );
-        }
-
-        let instance_struct_type: StructType = self
-            .llvm_index
-            .get_associated_pou_type(implementation.get_type_name())
-            .map(|it| it.into_struct_type())?;
-        parameters.push(instance_struct_type.ptr_type(AddressSpace::Generic).into());
-
+        let parameters = self.create_parameters_for(pou_name, implementation)?;
         let return_type = match global_index.find_return_type(implementation.get_type_name()) {
             Some(r_type) => Some(self.llvm_index.get_associated_type(r_type.get_name())?),
             None => None,
@@ -189,8 +171,70 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let function_declaration =
             self.create_llvm_function_type(parameters, variadic, return_type)?;
 
-        let curr_f = module.add_function(pou_name, function_declaration, None);
+        let curr_f =
+            module.add_function(implementation.get_call_name(), function_declaration, None);
         Ok(curr_f)
+    }
+
+    fn create_parameters_for(
+        &self,
+        pou_name: &str,
+        implementation: &ImplementationIndexEntry,
+    ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
+        //helper function to create an instance-struct parameter
+        let create_instance_struct_parameter = || {
+            self.llvm_index
+                .get_associated_pou_type(implementation.get_type_name())
+                .map(|it| it.into_struct_type())
+                .map(|it| it.ptr_type(AddressSpace::Generic))
+        };
+
+        let parameters: Vec<BasicMetadataTypeEnum> = match implementation.implementation_type {
+            ImplementationType::Function => {
+                //functions dont take a single struct-instance parameter, they take a flattened list of parameters
+                let mut members = self
+                    .index
+                    .get_members(pou_name)
+                    .ok_or_else(|| {
+                        Diagnostic::codegen_error(
+                            format!("Cannot find parameters for {}", pou_name).as_str(),
+                            SourceRange::undefined(),
+                        )
+                    })?
+                    .values()
+                    .filter(|it| it.is_parameter())
+                    .collect::<Vec<_>>();
+
+                members.sort_by_key(|a| a.get_location_in_parent());
+                members
+                    .iter()
+                    .map(|it| {
+                        self.index
+                            .get_effective_type(it.get_type_name())
+                            .and_then(|it| self.llvm_index.get_associated_type(it.get_name()))
+                            .map(|it| it.into())
+                    })
+                    .collect::<Result<Vec<_>, Diagnostic>>()?
+            }
+            ImplementationType::Method => {
+                let class_name = implementation
+                    .get_associated_class_name()
+                    .expect("Method needs to have a class-name");
+                let instance_members_struct_type: StructType = self
+                    .llvm_index
+                    .get_associated_type(class_name)
+                    .map(|it| it.into_struct_type())?;
+                vec![
+                    instance_members_struct_type
+                        .ptr_type(AddressSpace::Generic)
+                        .into(),
+                    create_instance_struct_parameter()?.into(),
+                ]
+            }
+            _ => vec![create_instance_struct_parameter()?.into()],
+        };
+
+        Ok(parameters)
     }
 
     /// generates a function for the given pou
@@ -216,9 +260,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
         self.llvm.builder.position_at_end(block);
-
         let mut param_index = 0;
-
         if let PouType::Method { .. } = implementation.pou_type {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
             let class_members = self.index.get_container_members(class_name);
@@ -226,18 +268,29 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 param_index,
                 &mut local_index,
                 class_name,
+                &implementation.pou_type,
                 current_function,
                 &class_members,
             )?;
             param_index += 1;
         }
 
-        // generate loads for all the parameters
-        let pou_members = self.index.get_container_members(&implementation.type_name);
+        // generate loads for all the parametersa
+        let pou_members = if implementation.pou_type == PouType::Function {
+            self.index
+                .get_container_members(&implementation.type_name)
+                .into_iter()
+                .filter(|v| v.is_parameter() || v.is_return() || v.is_temp() || v.is_local())
+                .collect()
+        } else {
+            self.index.get_container_members(&implementation.type_name)
+        };
+
         self.generate_local_variable_accessors(
             param_index,
             &mut local_index,
             &implementation.type_name,
+            &implementation.pou_type,
             current_function,
             &pou_members,
         )?;
@@ -318,6 +371,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         arg_index: u32,
         index: &mut LlvmTypedIndex<'ink>,
         type_name: &str,
+        pou_type: &PouType,
         current_function: FunctionValue<'ink>,
         members: &[&VariableIndexEntry],
     ) -> Result<(), Diagnostic> {
@@ -333,13 +387,38 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     Pou::calc_return_name(type_name),
                     self.llvm.create_local_variable(type_name, &return_type),
                 )
-            } else if m.is_temp() {
+            } else if m.is_temp() || (pou_type == &PouType::Function && m.is_local()) {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (
                     parameter_name,
                     self.llvm.create_local_variable(parameter_name, &temp_type),
                 )
+            } else if pou_type == &PouType::Function {
+                let param = if m.is_parameter() {
+                    //parameter variable
+                    current_function
+                        .get_nth_param(var_count)
+                        .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?
+                } else {
+                    //local variable is accessed (TODO initialization)
+                    self.llvm
+                        .builder
+                        .build_alloca(index.get_associated_type(m.get_type_name())?, m.get_name())
+                        .as_basic_value_enum()
+                };
+
+
+                let param = {
+                    // store the function's parameter on the stack
+                    let stack_variable = self.llvm.builder.build_alloca(param.get_type(), "");
+                    self.llvm.builder.build_store(stack_variable, param);
+                    stack_variable
+                //is local correct?
+                };
+                var_count+=1;
+                (parameter_name, param)
             } else {
+                //load the value from the this-pointer
                 let ptr_value = current_function
                     .get_nth_param(arg_index)
                     .map(BasicValueEnum::into_pointer_value)

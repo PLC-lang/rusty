@@ -133,7 +133,7 @@ fn memcpy_for_struct_initialization_in_function() {
         "
 		FUNCTION func : INT
 		VAR
-			a : STRUCT x : INT := 0; END_STRUCT
+			a : STRUCT x : INT := 3; END_STRUCT
 		END_VAR
 		END_FUNCTION
 		",

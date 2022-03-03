@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2522
+assertion_line: 2565
 expression: result
 
 ---
@@ -8,18 +8,20 @@ expression: result
 source_filename = "main"
 
 %Main_interface = type { i16 }
-%Check_XX_RangeSigned_interface = type { i16, i16, i16 }
 
 @Main_instance = global %Main_interface zeroinitializer
 
-define i16 @Check_XX_RangeSigned(%Check_XX_RangeSigned_interface* %0) {
+define i16 @Check_XX_RangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
-  %value = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 0
-  %lower = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 1
-  %upper = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 2
+  %3 = alloca i16, align 2
+  store i16 %0, i16* %3, align 2
+  %4 = alloca i16, align 2
+  store i16 %1, i16* %4, align 2
+  %5 = alloca i16, align 2
+  store i16 %2, i16* %5, align 2
   %Check_XX_RangeSigned = alloca i16, align 2
   store i16 0, i16* %Check_XX_RangeSigned, align 2
-  %load_value = load i16, i16* %value, align 2
+  %load_value = load i16, i16* %3, align 2
   store i16 %load_value, i16* %Check_XX_RangeSigned, align 2
   %Check_XX_RangeSigned_ret = load i16, i16* %Check_XX_RangeSigned, align 2
   ret i16 %Check_XX_RangeSigned_ret

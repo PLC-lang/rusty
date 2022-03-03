@@ -7,16 +7,14 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%func_interface = type { [4 x i32] }
-
 @func.arr_var__init = unnamed_addr constant [4 x i32] [i32 1, i32 2, i32 3, i32 4]
 
-define i16 @func(%func_interface* %0) {
+define i16 @func() {
 entry:
-  %arr_var = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 0
+  %arr_var = alloca [4 x i32], align 4
   %func = alloca i16, align 2
-  %1 = bitcast [4 x i32]* %arr_var to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast ([4 x i32]* @func.arr_var__init to i8*), i64 mul nuw (i64 ptrtoint (i32* getelementptr (i32, i32* null, i32 1) to i64), i64 4), i1 false)
+  %0 = bitcast [4 x i32]* %arr_var to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast ([4 x i32]* @func.arr_var__init to i8*), i64 mul nuw (i64 ptrtoint (i32* getelementptr (i32, i32* null, i32 1) to i64), i64 4), i1 false)
   store i16 0, i16* %func, align 2
   %func_ret = load i16, i16* %func, align 2
   ret i16 %func_ret

@@ -219,8 +219,6 @@ fn function_is_indexed() {
     "#,
     );
 
-    index.find_effective_type("myFunction").unwrap();
-
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
     assert_eq!("INT", return_variable.data_type_name);

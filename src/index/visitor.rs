@@ -122,19 +122,22 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         )
     }
 
-    let datatype = typesystem::DataType {
-        name: pou.name.to_string(),
-        initial_value: None,
-        information: DataTypeInformation::Struct {
-            name: interface_name,
-            member_names,
-            varargs,
-            source: StructSource::Pou(pou.pou_type.clone()),
-            generics: pou.generics.clone(),
-        },
-        nature: TypeNature::Any,
-    };
-    index.register_pou_type(datatype);
+    // functions dont need a "this"-struct
+    //if pou.pou_type != PouType::Function {
+        let datatype = typesystem::DataType {
+            name: pou.name.to_string(),
+            initial_value: None,
+            information: DataTypeInformation::Struct {
+                name: interface_name,
+                member_names,
+                varargs,
+                source: StructSource::Pou(pou.pou_type.clone()),
+                generics: pou.generics.clone(),
+            },
+            nature: TypeNature::Any,
+        };
+        index.register_pou_type(datatype);
+    //}
 
     match pou.pou_type {
         PouType::Program => {

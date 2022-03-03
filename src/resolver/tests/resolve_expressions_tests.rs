@@ -2767,34 +2767,6 @@ fn int_compare_should_resolve_to_bool() {
 }
 
 #[test]
-fn string_compare_should_resolve_to_bool() {
-    //GIVEN a NULL assignment to a pointer
-    let (unit, mut index) = index(
-        r#"
-        FUNCTION STRING_EQUAL: BOOL 
-        VAR a,b : STRING; END_VAR
-
-        END_FUNCTION;
-
-        PROGRAM Main
-        VAR
-            a,b: STRING;
-        END_VAR 
-        a = b;
-        END_PROGRAM
-        "#,
-    );
-
-    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &mut index);
-    let a_eq_b = &unit.implementations[1].statements[0];
-    assert_eq!(
-        Some(&StatementAnnotation::value("BOOL")),
-        annotations.get(a_eq_b),
-    );
-}
-
-#[test]
 fn assigning_lword_to_ptr_will_annotate_correctly() {
     //GIVEN a NULL assignment to a pointer
     let (unit, mut index) = index(
@@ -3046,4 +3018,52 @@ fn and_statement_of_dints_results_in_dint() {
         DINT_TYPE,
         None
     );
+}
+
+#[test]
+fn implicit_compare_function_calls_should_be_annotated_properly() {
+    //GIVEN a custom string compare
+    let (unit, index) = index(
+        "
+        FUNCTION STRING_EQUAL : BOOL
+            VAR_INPUT op1, op2: STRING[1024] END_VAR
+        END_FUNCTION
+
+        PROGRAM PRG
+            VAR a,b : STRING; END_VAR
+            VAR result : BOOL; END_VAR
+            a = b;
+            result := a >= 'b';
+        END_PROGRAM",
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+
+    {
+        // a AND b should be treated as DINT
+        let a = annotations.get(&unit.implementations[1].statements[0]);
+        assert_eq!(
+            a,
+            Some(&StatementAnnotation::Function {
+                qualified_name: "STRING_EQUAL".to_string(),
+                return_type: "BOOL".to_string(),
+            })
+        );
+    }
+    {
+        if let AstStatement::Assignment { left: _ , right, .. } = &unit.implementations[1].statements[1] {
+            // a >= 'b'
+            let a = annotations.get(right);
+            assert_eq!(
+                a,
+                Some(&StatementAnnotation::Function {
+                    qualified_name: "STRING_EQUAL".to_string(),
+                    return_type: "BOOL".to_string(),
+                })
+            );
+        } else{
+            unreachable!("expected assignment")
+        }
+    }
 }

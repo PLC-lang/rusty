@@ -7,9 +7,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%func_interface = type {}
-
-define i16* @func(%func_interface* %0) {
+define i16* @func() {
 entry:
   %func = alloca i16*, align 8
   store i16* null, i16** %func, align 8

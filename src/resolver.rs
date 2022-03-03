@@ -867,7 +867,7 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 visit_all_statements!(self, ctx, left, right);
-                let statement_type = {
+                let statement_annotation = {
                     let left_type = self
                         .annotation_map
                         .get_type_hint(left, self.index)
@@ -880,6 +880,7 @@ impl<'i> TypeAnnotator<'i> {
                     if left_type.get_type_information().is_numerical()
                         && right_type.get_type_information().is_numerical()
                     {
+                        // NUMBER x NUMBER 
                         let bigger_type = if left_type.get_type_information().is_bool()
                             && right_type.get_type_information().is_bool()
                         {
@@ -913,26 +914,45 @@ impl<'i> TypeAnnotator<'i> {
                             }
                         }
 
-                        Some(target_name)
+                        Some(StatementAnnotation::Value {
+                            resulting_type: target_name,
+                        })
+                    } else if (left_type.get_type_information().is_numerical() || right_type.get_type_information().is_numerical()) 
+                            && (left_type.get_type_information().is_pointer() || right_type.get_type_information().is_pointer()) {
+                        // POINTER x NUMBER     or    NUMBER x POINTER    
+                        
+                        if operator.is_bool_type() {
+                             Some(StatementAnnotation::value(BOOL_TYPE))
+                        } else if left_type.get_type_information().is_pointer() {
+                             Some(StatementAnnotation::value(left_type.get_name()))
+                        } else {
+                             Some(StatementAnnotation::value(right_type.get_name()))
+                        }
                     } else if operator.is_bool_type() {
-                        Some(BOOL_TYPE.to_string())
+                        // non-numeric (<|>|=|>=|<=) non-numeric
+
+                        self.get_non_bool_expression_annotation(
+                            left_type.get_type_information(),
+                            operator,
+                        )
                     } else if left_type.get_type_information().is_pointer()
                         || right_type.get_type_information().is_pointer()
                     {
+                        // POINTER x POINTER
                         let target_name = if left_type.get_type_information().is_pointer() {
                             left_type.get_name()
                         } else {
                             right_type.get_name()
                         };
-                        Some(target_name.to_string())
+                        Some(StatementAnnotation::value(target_name))
                     } else {
                         None
                     }
                 };
 
-                if let Some(statement_type) = statement_type {
+                if let Some(statement_annotation) = statement_annotation {
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::new_value(statement_type));
+                        .annotate(statement, statement_annotation);
                 }
             }
             AstStatement::UnaryExpression {
@@ -1611,6 +1631,23 @@ impl<'i> TypeAnnotator<'i> {
             }
         }
         generic_map
+    }
+
+    /// returns the StatementAnnotation for the given boolean expression (e.g. a = b).
+    /// It respects that for some types we expect a compare method (e.g for String) rather
+    /// than scalar comparisons
+    pub(crate) fn get_non_bool_expression_annotation(
+        &self,
+        left_type: &typesystem::DataTypeInformation,
+        operator: &Operator,
+    ) -> Option<StatementAnnotation> {
+        let cmp_function_name =
+            crate::typesystem::get_equals_function_name_for(left_type.get_name(), operator);
+
+        cmp_function_name.map(|fn_name| StatementAnnotation::Function {
+            qualified_name: fn_name,
+            return_type: BOOL_TYPE.to_string(),
+        })
     }
 }
 

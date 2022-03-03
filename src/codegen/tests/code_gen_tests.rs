@@ -1351,14 +1351,14 @@ fn function_with_two_parameters_called_in_program() {
           bar : DINT;
           buz : BOOL;
         END_VAR
-        foo := 1;
+        foo := bar;
         END_FUNCTION
 
         PROGRAM prg 
         VAR
         x : DINT;
         END_VAR
-        x := foo(2, TRUE);
+        x := foo(2);//, TRUE);
         END_PROGRAM
         ",
     );
@@ -1655,6 +1655,48 @@ fn program_with_var_inout_called_in_program() {
     insta::assert_snapshot!(result);
 }
 
+
+#[test]
+fn function_with_var_inout() {
+    let result = codegen(
+        "
+        FUNCTION foo : INT
+        VAR_INPUT
+            in : INT;
+        END_VAR
+        VAR_IN_OUT
+            inout : INT;
+        END_VAR
+        foo := inout + 3;
+        END_PROGRAM
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn tmp_array_assignments_in_function() {
+    let result = codegen(
+        "FUNCTION main : INT
+        VAR
+            bArray : ARRAY[0..7] OF BOOL := [8(FALSE)];
+        END_VAR
+            bArray[2] := TRUE;
+            //bArray2[7] := TRUE;
+        END_FUNCTION
+
+        PROGRAM prg
+        VAR
+            bArray : ARRAY[0..7] OF BOOL := [8(FALSE)];
+        END_VAR
+            bArray;
+        END_PROGRAM
+        ");
+
+    insta::assert_snapshot!(result);
+}
+
 #[test]
 fn pass_inout_to_inout() {
     let result = codegen(
@@ -1763,8 +1805,8 @@ fn pointer_and_array_access_to_in_out() {
         VAR
             c : INT;
         END_VAR
-        c := a^;
-        c := b[0];
+        //c := a^;
+        //c := b[0];
         END_PROGRAM
         ",
     );

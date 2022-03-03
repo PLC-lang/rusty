@@ -7,18 +7,16 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%func_interface = type { i16, [4 x i32], i32*, float }
-
-define i16 @func(%func_interface* %0) {
+define i16 @func() {
 entry:
-  %int_var = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 0
-  %arr_var = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 1
-  %ptr_var = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 2
-  %float_var = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 3
+  %int_var = alloca i16, align 2
+  %arr_var = alloca [4 x i32], align 4
+  %ptr_var = alloca i32*, align 8
+  %float_var = alloca float, align 4
   %func = alloca i16, align 2
   store i16 0, i16* %int_var, align 2
-  %1 = bitcast [4 x i32]* %arr_var to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 mul nuw (i64 ptrtoint (i32* getelementptr (i32, i32* null, i32 1) to i64), i64 4), i1 false)
+  %0 = bitcast [4 x i32]* %arr_var to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 mul nuw (i64 ptrtoint (i32* getelementptr (i32, i32* null, i32 1) to i64), i64 4), i1 false)
   store i32* null, i32** %ptr_var, align 8
   store float 0.000000e+00, float* %float_var, align 4
   store i16 0, i16* %func, align 2

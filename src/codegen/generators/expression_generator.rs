@@ -1,31 +1,26 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::{self, DirectAccessType, SourceRange},
-    codegen::llvm_typesystem,
+    codegen::{generators::call_builder::InstanceCallStatementBuilder, llvm_typesystem},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::{
-        is_same_type_class, Dimension, StringEncoding, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
-    },
+    typesystem::{is_same_type_class, Dimension, StringEncoding, DINT_TYPE, LINT_TYPE},
 };
 use inkwell::{
     builder::Builder,
     types::BasicTypeEnum,
     values::{
-        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue,
-        PointerValue, StructValue, VectorValue,
+        ArrayValue, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue, StructValue,
+        VectorValue,
     },
-    AddressSpace, FloatPredicate, IntPredicate,
+    FloatPredicate, IntPredicate,
 };
 use std::collections::HashSet;
 
 use crate::{
     ast::{flatten_expression_list, AstStatement, Operator},
-    codegen::{
-        llvm_index::LlvmTypedIndex,
-        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
-    },
+    codegen::{llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
     typesystem::{DataType, DataTypeInformation},
 };
 
@@ -51,20 +46,12 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     string_len_provider: fn(type_length_declaration: usize, actual_length: usize) -> usize,
 }
 
-/// context information to generate a parameter
-struct ParameterContext<'a, 'b> {
-    assignment_statement: &'b AstStatement,
-    function_name: &'b str,
-    parameter_type: Option<&'b DataType>,
-    index: u32,
-    parameter_struct: PointerValue<'a>,
-}
-
 impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// creates a new expression generator
     ///
     /// - `llvm` dependencies used to generate llvm IR
     /// - `index` the index / global symbol table
+    /// - `annotations` the ast-annotations
     /// - `type_hint` an optional type hint for generating literals
     /// - `function_context` the current function to create blocks
     pub fn new(
@@ -227,14 +214,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         operator, left, ltype, right, rtype, expression,
                     )
                 } else {
-                    self.create_llvm_generic_binary_expression(operator, left, right, expression)
+                    self.create_llvm_generic_binary_expression(left, right, operator, expression)
                 }
             }
             AstStatement::CallStatement {
                 operator,
                 parameters,
                 ..
-            } => self.generate_call_statement(operator, parameters),
+            } => self.generate_call_statement(operator, parameters, expression),
             AstStatement::UnaryExpression {
                 operator, value, ..
             } => self.generate_unary_expression(operator, value),
@@ -412,6 +399,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         operator: &AstStatement,
         parameters: &Option<AstStatement>,
+        call_statement: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         //inner helper function
         fn try_find_implementation<'i>(
@@ -427,7 +415,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             })
         }
 
-        let function_context = self.get_function_context(operator)?;
         //find call name
         let implementation = self
             .annotations
@@ -437,7 +424,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             //If that fails, try to find an implementation from the reference name
             .or_else(|| {
                 if let AstStatement::Reference { name, .. } = operator {
-                    try_find_implementation(self.index, name, operator).ok()
+                    try_find_implementation(self.index, name, call_statement).ok()
                 } else {
                     None
                 }
@@ -449,342 +436,25 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 )
             })?;
 
-        let (class_ptr, call_ptr) = match implementation {
-            ImplementationIndexEntry {
-                implementation_type: ImplementationType::Function,
-                ..
-            } => {
-                let call_ptr = self
-                    .allocate_function_struct_instance(implementation.get_call_name(), operator)?;
-                (None, call_ptr)
-            }
-            ImplementationIndexEntry {
-                implementation_type: ImplementationType::Method,
-                ..
-            } => {
-                let class_ptr = self.generate_element_pointer(operator)?;
-                let call_ptr = self
-                    .allocate_function_struct_instance(implementation.get_call_name(), operator)?;
-                (Some(class_ptr), call_ptr)
-            }
-            ImplementationIndexEntry {
-                implementation_type: ImplementationType::Action,
-                ..
-            } if matches!(operator, AstStatement::Reference { .. }) => {
-                //Special handling for local actions, get the parameter from the function context
-                if let Some(call_ptr) = function_context.function.get_first_param() {
-                    (None, call_ptr.into_pointer_value())
-                } else {
-                    return Err(Diagnostic::codegen_error(
-                        &format!(
-                            "cannot find parameter for {}",
-                            implementation.get_call_name()
-                        ),
-                        operator.get_location(),
-                    ));
-                }
-            }
-            _ => {
-                let class_ptr = self.generate_element_pointer(operator)?;
-                (None, class_ptr)
-            }
-        };
+        let call_builder = InstanceCallStatementBuilder::new(
+            self.llvm,
+            self.index,
+            self.annotations,
+            self.llvm_index,
+            self.get_function_context(operator)?,
+        );
 
-        let (class_struct, instance, index_entry) = (class_ptr, call_ptr, implementation);
-        let function_name = index_entry.get_call_name();
-        //First go to the input block
-        let builder = &self.llvm.builder;
-        //Generate all parameters, this function may jump to the output block
-        let parameters_data = self.generate_input_function_parameters(
-            function_name,
-            class_struct,
-            instance,
-            parameters,
-        )?;
-
-        let function = self
-            .llvm_index
-            .find_associated_implementation(function_name) //using the non error option to control the output error
-            .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    &format!(
-                        "No callable implementation associated to {:?}",
-                        function_name
-                    ),
-                    operator.get_location(),
-                )
-            })?;
-        //If the target is a function, declare the struct locally
-        //Assign all parameters into the struct values
-        let call_result = builder
-            .build_call(function, &parameters_data, "call")
-            .try_as_basic_value();
-
-        //build output-parameters
-        self.generate_output_function_parameters(function_name, instance, parameters)?;
-
-        // we return an uninitialized int pointer for void methods :-/
-        // dont deref it!!
-        let value = call_result.either(Ok, |_| {
-            get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE).map(|int| {
-                int.ptr_type(AddressSpace::Const)
-                    .const_null()
-                    .as_basic_value_enum()
-            })
-        })?;
-
-        Ok(value)
-    }
-
-    /// generates a new instance of a function called `function_name` and returns a PointerValue to it
-    ///
-    /// - `function_name` the name of the function as registered in the index
-    /// - `context` the statement used to report a possible Diagnostic on
-    fn allocate_function_struct_instance(
-        &self,
-        function_name: &str,
-        context: &AstStatement,
-    ) -> Result<PointerValue<'a>, Diagnostic> {
-        let instance_name = format!("{}_instance", function_name);
-        let function_type = self
-            .llvm_index
-            .find_associated_pou_type(function_name) //Using find instead of get to control the compile error
-            .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    &format!("No type associated with '{:}'", instance_name),
-                    context.get_location(),
-                )
-            })?;
-
-        Ok(self
-            .llvm
-            .create_local_variable(&instance_name, &function_type))
-    }
-
-    /// generates the assignments of a function-call's parameters
-    /// the call parameters are passed to the function using a struct-instance with all the parameters
-    ///
-    /// - `function_name` the name of the function we're calling
-    /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
-    /// - `input_block` the block to generate the input-assignments into
-    /// - `output_block` the block to generate the output-assignments into
-    fn generate_input_function_parameters(
-        &self,
-        function_name: &str,
-        class_struct: Option<PointerValue<'a>>,
-        parameter_struct: PointerValue<'a>,
-        parameters: &Option<AstStatement>,
-    ) -> Result<Vec<BasicMetadataValueEnum<'a>>, Diagnostic> {
-        let mut result = class_struct
-            .map(|class_struct| {
-                vec![
-                    class_struct.as_basic_value_enum().into(),
-                    parameter_struct.as_basic_value_enum().into(),
-                ]
-            })
-            .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
-
-        let expressions = parameters
-            .as_ref()
-            .map(ast::flatten_expression_list)
-            .unwrap_or_else(std::vec::Vec::new);
-
-        for (index, exp) in expressions.iter().enumerate() {
-            let parameter = self.generate_single_input_parameter(&ParameterContext {
-                assignment_statement: exp,
-                function_name,
-                parameter_type: None,
-                index: index as u32,
-                parameter_struct,
-            })?;
-            if let Some(parameter) = parameter {
-                result.push(parameter.into());
-            };
-        }
-        Ok(result)
-    }
-
-    /// generates the output assignments of a function-call's parameters
-    /// the call parameters are passed to the function using a struct-instance with all the parameters
-    ///
-    /// - `function_name` the name of the function we're calling
-    /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
-    /// - `input_block` the block to generate the input-assignments into
-    fn generate_output_function_parameters(
-        &self,
-        function_name: &str,
-        parameter_struct: PointerValue,
-        parameters: &Option<AstStatement>,
-    ) -> Result<(), Diagnostic> {
-        let expressions = parameters
-            .as_ref()
-            .map(ast::flatten_expression_list)
-            .unwrap_or_else(std::vec::Vec::new);
-
-        for exp in expressions.iter() {
-            if let AstStatement::OutputAssignment { left, right, .. } = exp {
-                self.generate_output_parameter(function_name, parameter_struct, left, right)?;
-            }
-        }
-        Ok(())
-    }
-
-    /// generates an assignemnt of a single call's parameter
-    ///
-    /// - `assignment_statement' the parameter-assignment, either an AssignmentStatement, an OutputAssignmentStatement or an expression
-    /// - `function_name` the name of the callable
-    /// - `parameter_type` the datatype of the parameter
-    /// - `index` the index of the parameter (0 for first parameter, 1 for the next one, etc.)
-    /// - `parameter_struct' a pointer to a struct-instance that holds all function-parameters
-    /// - `input_block` the block to generate the input-assignments into
-    /// - `output_block` the block to generate the output-assignments into
-    fn generate_single_input_parameter(
-        &self,
-        param_context: &ParameterContext,
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
-        let assignment_statement = param_context.assignment_statement;
-
-        let parameter_value = match assignment_statement {
-            // explicit call parameter: foo(param := value)
-            AstStatement::Assignment { left, right, .. } => {
-                self.generate_formal_parameter(param_context, left, right)?;
-                None
-            }
-            // foo (param => value)
-            AstStatement::OutputAssignment { .. } => {
-                //ignore here
-                None
-            }
-            // foo(x)
-            _ => self.generate_nameless_parameter(param_context, assignment_statement)?,
-        };
-
-        Ok(parameter_value)
-    }
-
-    fn generate_nameless_parameter(
-        &self,
-        param_context: &ParameterContext,
-        expression: &AstStatement,
-    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
-        let builder = &self.llvm.builder;
-        let function_name = param_context.function_name;
-        let index = param_context.index;
-        let parameter_struct = param_context.parameter_struct;
-        let parameter_type = param_context.parameter_type;
-        if self.index.is_declared_parameter(function_name, index) {
-            let pointer_to_param = builder
-                .build_struct_gep(parameter_struct, index as u32, "")
-                .map_err(|_| {
-                    Diagnostic::codegen_error(
-                        &format!("Cannot build generate parameter: {:#?}", expression),
-                        expression.get_location(),
-                    )
-                })?;
-
-            let parameter = parameter_type
-                .or_else(|| {
-                    self.index
-                        .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_effective_type(var.get_type_name()))
-                })
-                .map(|var| var.get_type_information())
-                .unwrap_or_else(|| self.index.get_void_type().get_type_information());
-
-            if let DataTypeInformation::Pointer {
-                auto_deref: true, ..
-            } = parameter
-            {
-                //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-                let generated_exp = self
-                    .generate_element_pointer(expression)?
-                    .as_basic_value_enum();
-
-                builder.build_store(pointer_to_param, generated_exp);
-            } else {
-                self.generate_store(parameter, expression, pointer_to_param)?;
-            };
-
-            Ok(None)
+        let op = self.annotations.get(operator);
+        if matches!(op, Some(StatementAnnotation::Function { .. }))
+            && matches!(
+                implementation.get_implementation_type(),
+                ImplementationType::Function { .. }
+            )
+        {
+            call_builder.generate_function_call_statement(implementation, parameters, operator)
         } else {
-            Ok(Some(self.generate_expression(expression)?))
+            call_builder.generate_instance_call_statement(implementation, parameters, operator)
         }
-    }
-
-    fn generate_output_parameter(
-        &self,
-        function_name: &str,
-        parameter_struct: PointerValue,
-        left: &AstStatement,
-        right: &AstStatement,
-    ) -> Result<(), Diagnostic> {
-        let builder = &self.llvm.builder;
-
-        // (output => ) output assignments are optional, in this case  ignore codegen
-        if !matches!(right, AstStatement::EmptyStatement { .. }) {
-            if let AstStatement::Reference { name, .. } = left {
-                let parameter = self
-                    .index
-                    .find_member(function_name, name)
-                    .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
-                let index = parameter.get_location_in_parent();
-                let param_type = self
-                    .index
-                    .find_effective_type(parameter.get_type_name())
-                    .or_else(|| {
-                        self.index
-                            .find_input_parameter(function_name, index as u32)
-                            .and_then(|var| self.index.find_effective_type(var.get_type_name()))
-                    })
-                    .ok_or_else(|| {
-                        Diagnostic::unknown_type(parameter.get_type_name(), left.get_location())
-                    })?;
-                //load the function prameter
-                let pointer_to_param = builder
-                    .build_struct_gep(parameter_struct, index as u32, "")
-                    .expect(INTERNAL_LLVM_ERROR);
-
-                let l_value = self.generate_element_pointer(right)?;
-                let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
-                let value = cast_if_needed(
-                    self.llvm,
-                    self.index,
-                    self.llvm_index,
-                    self.get_type_hint_for(right)?,
-                    loaded_value,
-                    param_type,
-                    right,
-                )?;
-                builder.build_store(l_value, value);
-            }
-        }
-        Ok(())
-    }
-
-    fn generate_formal_parameter(
-        &self,
-        param_context: &ParameterContext,
-        left: &AstStatement,
-        right: &AstStatement,
-    ) -> Result<(), Diagnostic> {
-        let function_name = param_context.function_name;
-        let parameter_struct = param_context.parameter_struct;
-        if let AstStatement::Reference { name, .. } = left {
-            let parameter = self
-                .index
-                .find_member(function_name, name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
-            let index = parameter.get_location_in_parent();
-            let param_type = self.index.find_effective_type(parameter.get_type_name());
-            self.generate_single_input_parameter(&ParameterContext {
-                assignment_statement: right,
-                function_name,
-                parameter_type: param_type,
-                index,
-                parameter_struct,
-            })?;
-        };
-        Ok(())
     }
 
     /// generates an gep-statement and returns the resulting pointer and DataTypeInfo
@@ -1969,12 +1639,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// expressions
     fn create_llvm_generic_binary_expression(
         &self,
-        operator: &Operator,
         left: &AstStatement,
         right: &AstStatement,
+        operator: &Operator,
         binary_statement: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        if let Some(StatementAnnotation::Value { .. }) = self.annotations.get(binary_statement) {
+        let annotation = self.annotations.get(binary_statement);
+        if let Some(StatementAnnotation::Function { .. }) = annotation {
             // we trust that the validator only passed us valid parameters (so left & right should be same type)
             let call_statement = match operator {
                 // a <> b expression is handled as Not(Equal(a,b))

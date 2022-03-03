@@ -837,6 +837,10 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
         Operator::Equal => Some("EQUAL"),
         Operator::Less => Some("LESS"),
         Operator::Greater => Some("GREATER"),
+        //TODO
+        Operator::GreaterOrEqual => Some("EQUAL"),
+        Operator::LessOrEqual => Some("EQUAL"),
+        Operator::NotEqual => Some("EQUAL"),
         _ => None,
     };
 

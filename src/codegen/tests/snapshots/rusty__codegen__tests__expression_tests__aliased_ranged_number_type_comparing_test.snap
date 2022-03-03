@@ -7,12 +7,10 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%baz_interface = type { i16, i16 }
-
-define i16 @baz(%baz_interface* %0) {
+define i16 @baz() {
 entry:
-  %x = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 1
+  %x = alloca i16, align 2
+  %y = alloca i16, align 2
   %baz = alloca i16, align 2
   store i16 0, i16* %x, align 2
   store i16 0, i16* %y, align 2
