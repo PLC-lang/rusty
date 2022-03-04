@@ -294,8 +294,8 @@ checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 
 [[package]]
 name = "lld_rs"
-version = "120.0.0"
-source = "git+https://github.com/ghaith/lld-rs?branch=main#8cd17040e0906b68a533f1fc1022a460d5bef462"
+version = "130.0.0"
+source = "git+https://github.com/ghaith/lld-rs?tag=v130.0.0#8e7fe8a475c7dff332232aa816e4e41b33f0e553"
 dependencies = [
  "cc",
  "lazy_static",
