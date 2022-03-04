@@ -443,7 +443,6 @@ impl Index {
         //enmu_variables use the qualified variables since name conflicts will be overriden in the enum_global
         for (qualified_name, e) in other.enum_qualified_variables.drain(..) {
             let e = self.transfer_constants(e, &mut other.constant_expressions);
-            dbg!(&e);
             self.enum_global_variables
                 .insert(e.get_name().to_lowercase(), e.clone());
             self.enum_qualified_variables.insert(qualified_name, e);

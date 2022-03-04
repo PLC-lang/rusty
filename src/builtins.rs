@@ -83,13 +83,13 @@ impl BuiltIn {
     }
 }
 
-pub fn parse_built_ins(id_provider: IdProvider) -> (CompilationUnit, Vec<Diagnostic>) {
+pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
     let src = BUILTIN
         .iter()
         .map(|(_, it)| it.decl)
         .collect::<Vec<&str>>()
         .join(" ");
-    parser::parse(lexer::lex_with_ids(&src, id_provider), LinkageType::BuiltIn)
+    parser::parse(lexer::lex_with_ids(&src, id_provider), LinkageType::BuiltIn).0
 }
 
 /// Returns the requested functio from the builtin index or None

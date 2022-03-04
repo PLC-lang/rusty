@@ -444,7 +444,7 @@ fn parse_and_index<T: SourceContainer>(
     let mut units = Vec::new();
 
     //parse the builtins into the index
-    let (builtins, _) = builtins::parse_built_ins(id_provider.clone());
+    let builtins = builtins::parse_built_ins(id_provider.clone());
     index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
     for container in source {

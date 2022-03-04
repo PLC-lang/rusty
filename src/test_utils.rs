@@ -37,7 +37,7 @@ pub mod tests {
     fn do_index(src: &str, id_provider: IdProvider) -> (CompilationUnit, Index) {
         let mut index = Index::default();
         //Import builtins
-        let (builtins, _) = builtins::parse_built_ins(id_provider.clone());
+        let builtins = builtins::parse_built_ins(id_provider.clone());
         index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
         let (mut unit, ..) = parser::parse(
