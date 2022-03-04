@@ -25,7 +25,7 @@ entry:
   %x = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 1
   %func = alloca i32, align 4
   %1 = bitcast %fb_interface* %x to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb_interface* @fb__init to i8*), i64 0, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb_interface* @fb__init to i8*), i64 ptrtoint (%fb_interface* getelementptr (%fb_interface, %fb_interface* null, i32 1) to i64), i1 false)
   store i32 0, i32* %func, align 4
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret
@@ -42,8 +42,8 @@ entry:
   ret void
 }
 
-; Function Attrs: argmemonly nofree nosync nounwind willreturn
+; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nosync nounwind willreturn }
+attributes #0 = { argmemonly nofree nounwind willreturn }
 
