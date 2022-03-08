@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../rusty/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../rusty/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -732,6 +734,7 @@
 <span id="732">732</span>
 <span id="733">733</span>
 <span id="734">734</span>
+<span id="735">735</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -818,11 +821,11 @@
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">ConfigFormat</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;json&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">ConfigFormat::JSON</span>),
-            <span class="string">&quot;toml&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">ConfigFormat::TOML</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Invalid option {}&quot;</span>, <span class="ident">s</span>)),
+            <span class="string">&quot;json&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ConfigFormat::JSON</span>),
+            <span class="string">&quot;toml&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ConfigFormat::TOML</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Invalid option {}&quot;</span>, <span class="ident">s</span>)),
         }
     }
 }
@@ -855,9 +858,9 @@
 <span class="doccomment">/// Furthermore it offers a location-String used when reporting diagnostics.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SourceContainer</span> {
     <span class="doccomment">/// loads and returns the SourceEntry that contains the SourceCode and the path it was loaded from</span>
-    <span class="kw">fn</span> <span class="ident">load_source</span>(<span class="self">self</span>, <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SourceCode</span>, <span class="ident">String</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">load_source</span>(<span class="self">self</span>, <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SourceCode</span>, <span class="ident">String</span><span class="op">&gt;</span>;
     <span class="doccomment">/// returns the location of this source-container. Used when reporting diagnostics.</span>
-    <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span>;
+    <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span>;
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
@@ -866,34 +869,34 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FilePath</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">it</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">it</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">FilePath</span> { <span class="ident">path</span>: <span class="ident">it</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FilePath</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">FilePath</span> { <span class="ident">path</span>: <span class="ident">it</span>.<span class="ident">into</span>() }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">FilePath</span> {
-    <span class="kw">fn</span> <span class="ident">get_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">get_extension</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>).<span class="ident">last</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get_extension</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;o&quot;</span>
+    <span class="kw">fn</span> <span class="ident">is_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">get_extension</span>() <span class="op">==</span> <span class="string">&quot;o&quot;</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">SourceContainer</span> <span class="kw">for</span> <span class="ident">FilePath</span> {
-    <span class="kw">fn</span> <span class="ident">load_source</span>(<span class="self">self</span>, <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SourceCode</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">load_source</span>(<span class="self">self</span>, <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SourceCode</span>, <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_object</span>() {
             <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a source file&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>))
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">create_source_code</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file</span>, <span class="ident">encoding</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">create_source_code</span>(<span class="kw-2">&amp;mut</span> <span class="ident">file</span>, <span class="ident">encoding</span>)<span class="question-mark">?</span>;
 
             <span class="prelude-val">Ok</span>(<span class="ident">SourceCode</span> {
                 <span class="ident">source</span>,
@@ -902,7 +905,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>
     }
 }
@@ -918,17 +921,17 @@
 
 <span class="doccomment">/// tests can provide a SourceCode directly</span>
 <span class="kw">impl</span> <span class="ident">SourceContainer</span> <span class="kw">for</span> <span class="ident">SourceCode</span> {
-    <span class="kw">fn</span> <span class="ident">load_source</span>(<span class="self">self</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SourceCode</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">load_source</span>(<span class="self">self</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SourceCode</span>, <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SourceCode</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">SourceCode</span> {
             <span class="ident">source</span>: <span class="ident">src</span>.<span class="ident">into</span>(),
             <span class="ident">path</span>: <span class="string">&quot;external_file.st&quot;</span>.<span class="ident">into</span>(),
@@ -937,7 +940,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SourceCode</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">source</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">source</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">SourceCode</span> {
             <span class="ident">source</span>,
             <span class="ident">path</span>: <span class="string">&quot;external_file.st&quot;</span>.<span class="ident">into</span>(),
@@ -946,20 +949,20 @@
 }
 
 <span class="kw">fn</span> <span class="ident">create_source_code</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span><span class="op">&gt;</span>(
-    <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>,
+    <span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">T</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">String::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoder</span> <span class="op">=</span> <span class="ident">DecodeReaderBytesBuilder::new</span>()
         .<span class="ident">encoding</span>(<span class="ident">encoding</span>)
         .<span class="ident">build</span>(<span class="ident">reader</span>);
     <span class="ident">decoder</span>
-        .<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buffer</span>)
+        .<span class="ident">read_to_string</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buffer</span>)
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:}&quot;</span>, <span class="ident">err</span>))<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">buffer</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target_triple</span>(<span class="ident">triple</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetTriple</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target_triple</span>(<span class="ident">triple</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="ident">TargetTriple</span> {
     <span class="ident">triple</span>
         .<span class="ident">map</span>(<span class="ident">TargetTriple::create</span>)
         .<span class="ident">unwrap_or_else</span>(<span class="ident">TargetMachine::get_default_triple</span>)
@@ -973,7 +976,7 @@
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">reloc</span>: <span class="ident">RelocMode</span>,
     <span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">initialization_config</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>();
     <span class="ident">Target::initialize_all</span>(<span class="ident">initialization_config</span>);
 
@@ -1016,7 +1019,7 @@
     <span class="ident">codegen</span>: <span class="ident">CodeGen</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">persist_to_obj</span>(<span class="ident">codegen</span>, <span class="ident">output</span>, <span class="ident">RelocMode::Default</span>, <span class="ident">target</span>)
 }
 
@@ -1032,7 +1035,7 @@
     <span class="ident">codegen</span>: <span class="ident">CodeGen</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">persist_to_obj</span>(<span class="ident">codegen</span>, <span class="ident">output</span>, <span class="ident">RelocMode::PIC</span>, <span class="ident">target</span>)
 }
 
@@ -1047,7 +1050,7 @@
     <span class="ident">codegen</span>: <span class="ident">CodeGen</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">persist_to_obj</span>(<span class="ident">codegen</span>, <span class="ident">output</span>, <span class="ident">RelocMode::DynamicNoPic</span>, <span class="ident">target</span>)
 }
 
@@ -1058,7 +1061,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `codegen` - the genated LLVM module to persist</span>
 <span class="doccomment">/// * `output` - the location on disk to save the output</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_bitcode</span>(<span class="ident">codegen</span>: <span class="ident">CodeGen</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_bitcode</span>(<span class="ident">codegen</span>: <span class="ident">CodeGen</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">output</span>);
     <span class="kw">if</span> <span class="ident">codegen</span>.<span class="ident">module</span>.<span class="ident">write_bitcode_to_path</span>(<span class="ident">path</span>) {
         <span class="prelude-val">Ok</span>(())
@@ -1077,7 +1080,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `codegen` - The generated LLVM module to be persisted</span>
 <span class="doccomment">/// * `output`  - The location to save the generated ir file</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_ir</span>(<span class="ident">codegen</span>: <span class="ident">CodeGen</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_ir</span>(<span class="ident">codegen</span>: <span class="ident">CodeGen</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">ir</span> <span class="op">=</span> <span class="ident">codegen</span>.<span class="ident">module</span>.<span class="ident">print_to_string</span>().<span class="ident">to_string</span>();
     <span class="ident">fs::write</span>(<span class="ident">output</span>, <span class="ident">ir</span>)
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Diagnostic::io_write_error</span>(<span class="ident">output</span>, <span class="ident">err</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>()))
@@ -1097,7 +1100,7 @@
     <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">diagnostician</span>: <span class="ident">Diagnostician</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Index</span>, <span class="ident">CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Index</span>, <span class="ident">CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">full_index</span> <span class="op">=</span> <span class="ident">Index::default</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">id_provider</span> <span class="op">=</span> <span class="ident">IdProvider::default</span>();
 
@@ -1109,21 +1112,21 @@
         <span class="ident">sources</span>,
         <span class="ident">encoding</span>,
         <span class="kw-2">&amp;</span><span class="ident">id_provider</span>,
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">diagnostician</span>,
+        <span class="kw-2">&amp;mut</span> <span class="ident">diagnostician</span>,
         <span class="ident">LinkageType::Internal</span>,
     )<span class="question-mark">?</span>;
     <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">index</span>);
-    <span class="ident">all_units</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">units</span>);
+    <span class="ident">all_units</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">units</span>);
 
     <span class="kw">let</span> (<span class="ident">includes_index</span>, <span class="kw-2">mut</span> <span class="ident">includes_units</span>) <span class="op">=</span> <span class="ident">parse_and_index</span>(
         <span class="ident">includes</span>,
         <span class="ident">encoding</span>,
         <span class="kw-2">&amp;</span><span class="ident">id_provider</span>,
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">diagnostician</span>,
+        <span class="kw-2">&amp;mut</span> <span class="ident">diagnostician</span>,
         <span class="ident">LinkageType::External</span>,
     )<span class="question-mark">?</span>;
     <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">includes_index</span>);
-    <span class="ident">all_units</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">includes_units</span>);
+    <span class="ident">all_units</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">includes_units</span>);
 
     <span class="comment">// ### PHASE 1.1 resolve constant literal values</span>
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">full_index</span>, <span class="ident">_unresolvables</span>) <span class="op">=</span>
@@ -1149,7 +1152,7 @@
     }
 
     <span class="comment">//Merge the new indices with the full index</span>
-    <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">std::mem::take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">all_annotations</span>.<span class="ident">new_index</span>));
+    <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">all_annotations</span>.<span class="ident">new_index</span>));
 
     <span class="comment">// ### PHASE 3 ###</span>
     <span class="comment">// - codegen</span>
@@ -1161,6 +1164,7 @@
     <span class="kw">for</span> <span class="ident">unit</span> <span class="kw">in</span> <span class="ident">annotated_units</span> {
         <span class="ident">code_generator</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>, <span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>, <span class="kw-2">&amp;</span><span class="ident">llvm_index</span>)<span class="question-mark">?</span>;
     }
+
     <span class="prelude-val">Ok</span>((<span class="ident">full_index</span>, <span class="ident">code_generator</span>))
 }
 
@@ -1169,9 +1173,9 @@
     <span class="ident">source</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">id_provider</span>: <span class="kw-2">&amp;</span><span class="ident">IdProvider</span>,
-    <span class="ident">diagnostician</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Diagnostician</span>,
+    <span class="ident">diagnostician</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Diagnostician</span>,
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Index</span>, <span class="ident">Units</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Index</span>, <span class="ident">Units</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">Index::default</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">units</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
@@ -1187,7 +1191,7 @@
         );
 
         <span class="comment">//pre-process the ast (create inlined types)</span>
-        <span class="ident">ast::pre_process</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>());
+        <span class="ident">ast::pre_process</span>(<span class="kw-2">&amp;mut</span> <span class="ident">parse_result</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>());
         <span class="comment">//index the pou</span>
         <span class="ident">index</span>.<span class="ident">import</span>(<span class="ident">index::visitor::visit</span>(<span class="kw-2">&amp;</span><span class="ident">parse_result</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>()));
 
@@ -1198,7 +1202,7 @@
     <span class="prelude-val">Ok</span>((<span class="ident">index</span>, <span class="ident">units</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">create_file_paths</span>(<span class="ident">inputs</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FilePath</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">create_file_paths</span>(<span class="ident">inputs</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FilePath</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sources</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">for</span> <span class="ident">input</span> <span class="kw">in</span> <span class="ident">inputs</span> {
         <span class="kw">let</span> <span class="ident">paths</span> <span class="op">=</span> <span class="ident">glob</span>(<span class="ident">input</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
@@ -1228,7 +1232,7 @@
 <span class="doccomment">/// Links all provided object files with the compilation result</span>
 <span class="doccomment">/// Links any provided libraries</span>
 <span class="doccomment">/// Returns the location of the output file</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_with_params</span>(<span class="ident">parameters</span>: <span class="ident">CompileParameters</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_with_params</span>(<span class="ident">parameters</span>: <span class="ident">CompileParameters</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="ident">create_file_paths</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">includes</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">includes</span>.<span class="ident">is_empty</span>() {
         <span class="macro">vec!</span>[]
@@ -1314,7 +1318,7 @@
     <span class="ident">compile_options</span>: <span class="kw-2">&amp;</span><span class="ident">CompileOptions</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompileResult</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompileResult</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objects</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sources</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="ident">files</span>.<span class="ident">into_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
@@ -1343,15 +1347,15 @@
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">out_format</span>: <span class="ident">FormatOption</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FilePath</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FilePath</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">out_format</span> {
-        <span class="ident">FormatOption::Static</span> <span class="op">|</span> <span class="ident">FormatOption::Relocatable</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">FormatOption::Static</span> <span class="op">|</span> <span class="ident">FormatOption::Relocatable</span> =&gt; {
             <span class="ident">persist_as_static_obj</span>(<span class="ident">input</span>, <span class="ident">output</span>, <span class="ident">target</span>)
         }
-        <span class="ident">FormatOption::Shared</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">persist_to_shared_object</span>(<span class="ident">input</span>, <span class="ident">output</span>, <span class="ident">target</span>),
-        <span class="ident">FormatOption::PIC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">persist_to_shared_pic_object</span>(<span class="ident">input</span>, <span class="ident">output</span>, <span class="ident">target</span>),
-        <span class="ident">FormatOption::Bitcode</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">persist_to_bitcode</span>(<span class="ident">input</span>, <span class="ident">output</span>),
-        <span class="ident">FormatOption::IR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">persist_to_ir</span>(<span class="ident">input</span>, <span class="ident">output</span>),
+        <span class="ident">FormatOption::Shared</span> =&gt; <span class="ident">persist_to_shared_object</span>(<span class="ident">input</span>, <span class="ident">output</span>, <span class="ident">target</span>),
+        <span class="ident">FormatOption::PIC</span> =&gt; <span class="ident">persist_to_shared_pic_object</span>(<span class="ident">input</span>, <span class="ident">output</span>, <span class="ident">target</span>),
+        <span class="ident">FormatOption::Bitcode</span> =&gt; <span class="ident">persist_to_bitcode</span>(<span class="ident">input</span>, <span class="ident">output</span>),
+        <span class="ident">FormatOption::IR</span> =&gt; <span class="ident">persist_to_ir</span>(<span class="ident">input</span>, <span class="ident">output</span>),
     }<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="ident">output</span>.<span class="ident">into</span>())
@@ -1365,7 +1369,7 @@
     <span class="ident">libraries</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
     <span class="ident">sysroot</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">linkable_formats</span> <span class="op">=</span> <span class="macro">vec!</span>[
         <span class="ident">FormatOption::Static</span>,
         <span class="ident">FormatOption::Relocatable</span>,
@@ -1396,9 +1400,9 @@
         }
 
         <span class="kw">match</span> <span class="ident">out_format</span> {
-            <span class="ident">FormatOption::Static</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">linker</span>.<span class="ident">build_exectuable</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
-            <span class="ident">FormatOption::Relocatable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">linker</span>.<span class="ident">build_relocatable</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">linker</span>.<span class="ident">build_shared_obj</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
+            <span class="ident">FormatOption::Static</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_exectuable</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
+            <span class="ident">FormatOption::Relocatable</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_relocatable</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_shared_obj</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
         }
     }
     <span class="prelude-val">Ok</span>(())
@@ -1436,7 +1440,7 @@ END_PROGRAM
 &quot;</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="string">b&quot;\x50\x52\x4f\x47\x52\x41\x4d\x20\xe4\x0a\x28\x2a\x20\x43\xf6\x6d\x65\x6e\x74\x20\x2a\x29\x0a\x45\x4e\x44\x5f\x50\x52\x4f\x47\x52\x41\x4d\x0a&quot;</span>[..];
         <span class="comment">// let read = std::io::Read()</span>
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">create_source_code</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">source</span>, <span class="prelude-val">Some</span>(<span class="ident">encoding_rs::WINDOWS_1252</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">create_source_code</span>(<span class="kw-2">&amp;mut</span> <span class="ident">source</span>, <span class="prelude-val">Some</span>(<span class="ident">encoding_rs::WINDOWS_1252</span>)).<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="kw-2">&amp;</span><span class="ident">source</span>);
     }
@@ -1450,7 +1454,7 @@ END_PROGRAM
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="string">b&quot;\xff\xfe\x50\x00\x52\x00\x4f\x00\x47\x00\x52\x00\x41\x00\x4d\x00\x20\x00\xe4\x00\x0a\x00\x28\x00\x2a\x00\x20\x00\x43\x00\xf6\x00\x6d\x00\x6d\x00\x65\x00\x6e\x00\x74\x00\x20\x00\x2a\x00\x29\x00\x0a\x00\x45\x00\x4e\x00\x44\x00\x5f\x00\x50\x00\x52\x00\x4f\x00\x47\x00\x52\x00\x41\x00\x4d\x00\x0a\x00&quot;</span> [..];
 
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">create_source_code</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">source</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">create_source_code</span>(<span class="kw-2">&amp;mut</span> <span class="ident">source</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="kw-2">&amp;</span><span class="ident">source</span>);
     }
 
@@ -1462,11 +1466,10 @@ END_PROGRAM
 &quot;</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="string">b&quot;\x50\x52\x4f\x47\x52\x41\x4d\x20\xc3\xa4\x0a\x28\x2a\x20\x43\xc3\xb6\x6d\x65\x6e\x74\x20\x2a\x29\x0a\x45\x4e\x44\x5f\x50\x52\x4f\x47\x52\x41\x4d\x0a&quot;</span> [..];
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">create_source_code</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">source</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">create_source_code</span>(<span class="kw-2">&amp;mut</span> <span class="ident">source</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="kw-2">&amp;</span><span class="ident">source</span>);
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

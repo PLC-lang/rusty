@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;textwrap-0.14.2&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../textwrap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;textwrap-0.15.0&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../textwrap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../textwrap/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1845,294 +1847,6 @@
 <span id="1845">1845</span>
 <span id="1846">1846</span>
 <span id="1847">1847</span>
-<span id="1848">1848</span>
-<span id="1849">1849</span>
-<span id="1850">1850</span>
-<span id="1851">1851</span>
-<span id="1852">1852</span>
-<span id="1853">1853</span>
-<span id="1854">1854</span>
-<span id="1855">1855</span>
-<span id="1856">1856</span>
-<span id="1857">1857</span>
-<span id="1858">1858</span>
-<span id="1859">1859</span>
-<span id="1860">1860</span>
-<span id="1861">1861</span>
-<span id="1862">1862</span>
-<span id="1863">1863</span>
-<span id="1864">1864</span>
-<span id="1865">1865</span>
-<span id="1866">1866</span>
-<span id="1867">1867</span>
-<span id="1868">1868</span>
-<span id="1869">1869</span>
-<span id="1870">1870</span>
-<span id="1871">1871</span>
-<span id="1872">1872</span>
-<span id="1873">1873</span>
-<span id="1874">1874</span>
-<span id="1875">1875</span>
-<span id="1876">1876</span>
-<span id="1877">1877</span>
-<span id="1878">1878</span>
-<span id="1879">1879</span>
-<span id="1880">1880</span>
-<span id="1881">1881</span>
-<span id="1882">1882</span>
-<span id="1883">1883</span>
-<span id="1884">1884</span>
-<span id="1885">1885</span>
-<span id="1886">1886</span>
-<span id="1887">1887</span>
-<span id="1888">1888</span>
-<span id="1889">1889</span>
-<span id="1890">1890</span>
-<span id="1891">1891</span>
-<span id="1892">1892</span>
-<span id="1893">1893</span>
-<span id="1894">1894</span>
-<span id="1895">1895</span>
-<span id="1896">1896</span>
-<span id="1897">1897</span>
-<span id="1898">1898</span>
-<span id="1899">1899</span>
-<span id="1900">1900</span>
-<span id="1901">1901</span>
-<span id="1902">1902</span>
-<span id="1903">1903</span>
-<span id="1904">1904</span>
-<span id="1905">1905</span>
-<span id="1906">1906</span>
-<span id="1907">1907</span>
-<span id="1908">1908</span>
-<span id="1909">1909</span>
-<span id="1910">1910</span>
-<span id="1911">1911</span>
-<span id="1912">1912</span>
-<span id="1913">1913</span>
-<span id="1914">1914</span>
-<span id="1915">1915</span>
-<span id="1916">1916</span>
-<span id="1917">1917</span>
-<span id="1918">1918</span>
-<span id="1919">1919</span>
-<span id="1920">1920</span>
-<span id="1921">1921</span>
-<span id="1922">1922</span>
-<span id="1923">1923</span>
-<span id="1924">1924</span>
-<span id="1925">1925</span>
-<span id="1926">1926</span>
-<span id="1927">1927</span>
-<span id="1928">1928</span>
-<span id="1929">1929</span>
-<span id="1930">1930</span>
-<span id="1931">1931</span>
-<span id="1932">1932</span>
-<span id="1933">1933</span>
-<span id="1934">1934</span>
-<span id="1935">1935</span>
-<span id="1936">1936</span>
-<span id="1937">1937</span>
-<span id="1938">1938</span>
-<span id="1939">1939</span>
-<span id="1940">1940</span>
-<span id="1941">1941</span>
-<span id="1942">1942</span>
-<span id="1943">1943</span>
-<span id="1944">1944</span>
-<span id="1945">1945</span>
-<span id="1946">1946</span>
-<span id="1947">1947</span>
-<span id="1948">1948</span>
-<span id="1949">1949</span>
-<span id="1950">1950</span>
-<span id="1951">1951</span>
-<span id="1952">1952</span>
-<span id="1953">1953</span>
-<span id="1954">1954</span>
-<span id="1955">1955</span>
-<span id="1956">1956</span>
-<span id="1957">1957</span>
-<span id="1958">1958</span>
-<span id="1959">1959</span>
-<span id="1960">1960</span>
-<span id="1961">1961</span>
-<span id="1962">1962</span>
-<span id="1963">1963</span>
-<span id="1964">1964</span>
-<span id="1965">1965</span>
-<span id="1966">1966</span>
-<span id="1967">1967</span>
-<span id="1968">1968</span>
-<span id="1969">1969</span>
-<span id="1970">1970</span>
-<span id="1971">1971</span>
-<span id="1972">1972</span>
-<span id="1973">1973</span>
-<span id="1974">1974</span>
-<span id="1975">1975</span>
-<span id="1976">1976</span>
-<span id="1977">1977</span>
-<span id="1978">1978</span>
-<span id="1979">1979</span>
-<span id="1980">1980</span>
-<span id="1981">1981</span>
-<span id="1982">1982</span>
-<span id="1983">1983</span>
-<span id="1984">1984</span>
-<span id="1985">1985</span>
-<span id="1986">1986</span>
-<span id="1987">1987</span>
-<span id="1988">1988</span>
-<span id="1989">1989</span>
-<span id="1990">1990</span>
-<span id="1991">1991</span>
-<span id="1992">1992</span>
-<span id="1993">1993</span>
-<span id="1994">1994</span>
-<span id="1995">1995</span>
-<span id="1996">1996</span>
-<span id="1997">1997</span>
-<span id="1998">1998</span>
-<span id="1999">1999</span>
-<span id="2000">2000</span>
-<span id="2001">2001</span>
-<span id="2002">2002</span>
-<span id="2003">2003</span>
-<span id="2004">2004</span>
-<span id="2005">2005</span>
-<span id="2006">2006</span>
-<span id="2007">2007</span>
-<span id="2008">2008</span>
-<span id="2009">2009</span>
-<span id="2010">2010</span>
-<span id="2011">2011</span>
-<span id="2012">2012</span>
-<span id="2013">2013</span>
-<span id="2014">2014</span>
-<span id="2015">2015</span>
-<span id="2016">2016</span>
-<span id="2017">2017</span>
-<span id="2018">2018</span>
-<span id="2019">2019</span>
-<span id="2020">2020</span>
-<span id="2021">2021</span>
-<span id="2022">2022</span>
-<span id="2023">2023</span>
-<span id="2024">2024</span>
-<span id="2025">2025</span>
-<span id="2026">2026</span>
-<span id="2027">2027</span>
-<span id="2028">2028</span>
-<span id="2029">2029</span>
-<span id="2030">2030</span>
-<span id="2031">2031</span>
-<span id="2032">2032</span>
-<span id="2033">2033</span>
-<span id="2034">2034</span>
-<span id="2035">2035</span>
-<span id="2036">2036</span>
-<span id="2037">2037</span>
-<span id="2038">2038</span>
-<span id="2039">2039</span>
-<span id="2040">2040</span>
-<span id="2041">2041</span>
-<span id="2042">2042</span>
-<span id="2043">2043</span>
-<span id="2044">2044</span>
-<span id="2045">2045</span>
-<span id="2046">2046</span>
-<span id="2047">2047</span>
-<span id="2048">2048</span>
-<span id="2049">2049</span>
-<span id="2050">2050</span>
-<span id="2051">2051</span>
-<span id="2052">2052</span>
-<span id="2053">2053</span>
-<span id="2054">2054</span>
-<span id="2055">2055</span>
-<span id="2056">2056</span>
-<span id="2057">2057</span>
-<span id="2058">2058</span>
-<span id="2059">2059</span>
-<span id="2060">2060</span>
-<span id="2061">2061</span>
-<span id="2062">2062</span>
-<span id="2063">2063</span>
-<span id="2064">2064</span>
-<span id="2065">2065</span>
-<span id="2066">2066</span>
-<span id="2067">2067</span>
-<span id="2068">2068</span>
-<span id="2069">2069</span>
-<span id="2070">2070</span>
-<span id="2071">2071</span>
-<span id="2072">2072</span>
-<span id="2073">2073</span>
-<span id="2074">2074</span>
-<span id="2075">2075</span>
-<span id="2076">2076</span>
-<span id="2077">2077</span>
-<span id="2078">2078</span>
-<span id="2079">2079</span>
-<span id="2080">2080</span>
-<span id="2081">2081</span>
-<span id="2082">2082</span>
-<span id="2083">2083</span>
-<span id="2084">2084</span>
-<span id="2085">2085</span>
-<span id="2086">2086</span>
-<span id="2087">2087</span>
-<span id="2088">2088</span>
-<span id="2089">2089</span>
-<span id="2090">2090</span>
-<span id="2091">2091</span>
-<span id="2092">2092</span>
-<span id="2093">2093</span>
-<span id="2094">2094</span>
-<span id="2095">2095</span>
-<span id="2096">2096</span>
-<span id="2097">2097</span>
-<span id="2098">2098</span>
-<span id="2099">2099</span>
-<span id="2100">2100</span>
-<span id="2101">2101</span>
-<span id="2102">2102</span>
-<span id="2103">2103</span>
-<span id="2104">2104</span>
-<span id="2105">2105</span>
-<span id="2106">2106</span>
-<span id="2107">2107</span>
-<span id="2108">2108</span>
-<span id="2109">2109</span>
-<span id="2110">2110</span>
-<span id="2111">2111</span>
-<span id="2112">2112</span>
-<span id="2113">2113</span>
-<span id="2114">2114</span>
-<span id="2115">2115</span>
-<span id="2116">2116</span>
-<span id="2117">2117</span>
-<span id="2118">2118</span>
-<span id="2119">2119</span>
-<span id="2120">2120</span>
-<span id="2121">2121</span>
-<span id="2122">2122</span>
-<span id="2123">2123</span>
-<span id="2124">2124</span>
-<span id="2125">2125</span>
-<span id="2126">2126</span>
-<span id="2127">2127</span>
-<span id="2128">2128</span>
-<span id="2129">2129</span>
-<span id="2130">2130</span>
-<span id="2131">2131</span>
-<span id="2132">2132</span>
-<span id="2133">2133</span>
-<span id="2134">2134</span>
-<span id="2135">2135</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The textwrap library provides functions for word wrapping and</span>
 <span class="doccomment">//! indenting text.</span>
 <span class="doccomment">//!</span>
@@ -2142,47 +1856,35 @@
 <span class="doccomment">//! you want to format dynamic output nicely so it looks good in a</span>
 <span class="doccomment">//! terminal. A quick example:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ```no_run</span>
-<span class="doccomment">//! fn main() {</span>
-<span class="doccomment">//!     let text = &quot;textwrap: a small library for wrapping text.&quot;;</span>
-<span class="doccomment">//!     println!(&quot;{}&quot;, textwrap::fill(text, 18));</span>
-<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! # #[cfg(feature = &quot;smawk&quot;)] {</span>
+<span class="doccomment">//! let text = &quot;textwrap: a small library for wrapping text.&quot;;</span>
+<span class="doccomment">//! assert_eq!(textwrap::wrap(text, 18),</span>
+<span class="doccomment">//!            vec![&quot;textwrap: a&quot;,</span>
+<span class="doccomment">//!                 &quot;small library for&quot;,</span>
+<span class="doccomment">//!                 &quot;wrapping text.&quot;]);</span>
+<span class="doccomment">//! # }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! When you run this program, it will display the following output:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//! textwrap: a small</span>
-<span class="doccomment">//! library for</span>
-<span class="doccomment">//! wrapping text.</span>
-<span class="doccomment">//! ```</span>
+<span class="doccomment">//! The [`wrap`] function returns the individual lines, use [`fill`]</span>
+<span class="doccomment">//! is you want the lines joined with `&#39;\n&#39;` to form a `String`.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! If you enable the `hyphenation` Cargo feature, you can get</span>
 <span class="doccomment">//! automatic hyphenation for a number of languages:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ```no_run</span>
-<span class="doccomment">//! # #[cfg(feature = &quot;hyphenation&quot;)]</span>
-<span class="doccomment">//! use hyphenation::{Language, Load, Standard};</span>
-<span class="doccomment">//! use textwrap::{fill, Options};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # #[cfg(feature = &quot;hyphenation&quot;)]</span>
-<span class="doccomment">//! fn main() {</span>
-<span class="doccomment">//!     let text = &quot;textwrap: a small library for wrapping text.&quot;;</span>
-<span class="doccomment">//!     let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();</span>
-<span class="doccomment">//!     let options = Options::new(18).word_splitter(dictionary);</span>
-<span class="doccomment">//!     println!(&quot;{}&quot;, fill(text, &amp;options));</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # #[cfg(not(feature = &quot;hyphenation&quot;))]</span>
-<span class="doccomment">//! # fn main() { }</span>
 <span class="doccomment">//! ```</span>
+<span class="doccomment">//! #[cfg(feature = &quot;hyphenation&quot;)] {</span>
+<span class="doccomment">//! use hyphenation::{Language, Load, Standard};</span>
+<span class="doccomment">//! use textwrap::{wrap, Options, WordSplitter};</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The program will now output:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```text</span>
-<span class="doccomment">//! textwrap: a small</span>
-<span class="doccomment">//! library for wrap-</span>
-<span class="doccomment">//! ping text.</span>
+<span class="doccomment">//! let text = &quot;textwrap: a small library for wrapping text.&quot;;</span>
+<span class="doccomment">//! let dictionary = Standard::from_embedded(Language::EnglishUS).unwrap();</span>
+<span class="doccomment">//! let options = Options::new(18).word_splitter(WordSplitter::Hyphenation(dictionary));</span>
+<span class="doccomment">//! assert_eq!(wrap(text, &amp;options),</span>
+<span class="doccomment">//!            vec![&quot;textwrap: a small&quot;,</span>
+<span class="doccomment">//!                 &quot;library for wrap-&quot;,</span>
+<span class="doccomment">//!                 &quot;ping text.&quot;]);</span>
+<span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! See also the [`unfill`] and [`refill`] functions which allow you to</span>
@@ -2259,7 +1961,7 @@
 <span class="doccomment">//! The full dependency graph, where dashed lines indicate optional</span>
 <span class="doccomment">//! dependencies, is shown below:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! &lt;img src=&quot;https://raw.githubusercontent.com/mgeisler/textwrap/master/images/textwrap-0.14.2.svg&quot;&gt;</span>
+<span class="doccomment">//! &lt;img src=&quot;https://raw.githubusercontent.com/mgeisler/textwrap/master/images/textwrap-0.15.0.svg&quot;&gt;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Default Features</span>
 <span class="doccomment">//!</span>
@@ -2273,8 +1975,7 @@
 <span class="doccomment">//!   This feature can be disabled if you are happy to find words</span>
 <span class="doccomment">//!   separated by ASCII space characters only. People wrapping text</span>
 <span class="doccomment">//!   with emojis or East-Asian characters will want most likely want</span>
-<span class="doccomment">//!   to enable this feature. See the</span>
-<span class="doccomment">//!   [`word_separators::WordSeparator`] trait for details.</span>
+<span class="doccomment">//!   to enable this feature. See [`WordSeparator`] for details.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * `unicode-width`: enables correct width computation of non-ASCII</span>
 <span class="doccomment">//!   characters via the [unicode-width] crate. Without this feature,</span>
@@ -2294,6 +1995,29 @@
 <span class="doccomment">//!   This feature can be disabled if you only ever intend to use</span>
 <span class="doccomment">//!   [`wrap_algorithms::wrap_first_fit`].</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//! With Rust 1.59.0, the size impact of the above features on your</span>
+<span class="doccomment">//! binary is as follows:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! | Configuration                            |  Binary Size |    Delta |</span>
+<span class="doccomment">//! | :---                                     |         ---: |     ---: |</span>
+<span class="doccomment">//! | quick-and-dirty implementation           |       289 KB |     — KB |</span>
+<span class="doccomment">//! | textwrap without default features        |       301 KB |    12 KB |</span>
+<span class="doccomment">//! | textwrap with smawk                      |       317 KB |    28 KB |</span>
+<span class="doccomment">//! | textwrap with unicode-width              |       313 KB |    24 KB |</span>
+<span class="doccomment">//! | textwrap with unicode-linebreak          |       395 KB |   106 KB |</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The above sizes are the stripped sizes and the binary is compiled</span>
+<span class="doccomment">//! in release mode with this profile:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```toml</span>
+<span class="doccomment">//! [profile.release]</span>
+<span class="doccomment">//! lto = true</span>
+<span class="doccomment">//! codegen-units = 1</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! See the [binary-sizes demo] if you want to reproduce these</span>
+<span class="doccomment">//! results.</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! ## Optional Features</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! These Cargo features enable new functionality:</span>
@@ -2303,71 +2027,61 @@
 <span class="doccomment">//!   [`Options::with_termwidth`] constructor for details.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * `hyphenation`: enables language-sensitive hyphenation via the</span>
-<span class="doccomment">//!   [hyphenation] crate. See the [`word_splitters::WordSplitter`] trait for details.</span>
+<span class="doccomment">//!   [hyphenation] crate. See the [`word_splitters::WordSplitter`]</span>
+<span class="doccomment">//!   trait for details.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [unicode-linebreak]: https://docs.rs/unicode-linebreak/</span>
 <span class="doccomment">//! [unicode-width]: https://docs.rs/unicode-width/</span>
 <span class="doccomment">//! [smawk]: https://docs.rs/smawk/</span>
+<span class="doccomment">//! [binary-sizes demo]: https://github.com/mgeisler/textwrap/tree/master/examples/binary-sizes</span>
 <span class="doccomment">//! [textwrap-macros]: https://docs.rs/textwrap-macros/</span>
 <span class="doccomment">//! [terminal_size]: https://docs.rs/terminal_size/</span>
 <span class="doccomment">//! [hyphenation]: https://docs.rs/hyphenation/</span>
 
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/textwrap/0.14.2&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/textwrap/0.15.0&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span> <span class="comment">// See https://github.com/mgeisler/textwrap/issues/210</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::redundant_field_names</span>)]</span>
 
+<span class="comment">// Make `cargo test` execute the README doctests.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">doctest</span>)]</span>
+<span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;../README.md&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">readme_doctest</span> {}
+
 <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
 
 <span class="kw">mod</span> <span class="ident">indentation</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::indentation::dedent</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::indentation::indent</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::indentation</span>::{<span class="ident">dedent</span>, <span class="ident">indent</span>};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">word_separators</span>;
+<span class="kw">mod</span> <span class="ident">word_separators</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">word_separators::WordSeparator</span>;
+
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">word_splitters</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">word_splitters::WordSplitter</span>;
+
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">wrap_algorithms</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">wrap_algorithms::WrapAlgorithm</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">core</span>;
 
-<span class="comment">// These private macros lets us hide the actual WrapAlgorithm and</span>
-<span class="comment">// WordSeperator used in the function signatures below.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>)]</span>
-<span class="macro">macro_rules!</span> <span class="ident">DefaultWrapAlgorithm</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="ident">wrap_algorithms::OptimalFit</span>
-    };
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>))]</span>
-<span class="macro">macro_rules!</span> <span class="ident">DefaultWrapAlgorithm</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="ident">wrap_algorithms::FirstFit</span>
-    };
-}
-
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-linebreak&quot;</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">DefaultWordSeparator</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="ident">word_separators::UnicodeBreakProperties</span>
+    () =&gt; {
+        <span class="ident">WordSeparator::UnicodeBreakProperties</span>
     };
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-linebreak&quot;</span>))]</span>
 <span class="macro">macro_rules!</span> <span class="ident">DefaultWordSeparator</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="ident">word_separators::AsciiSpace</span>
+    () =&gt; {
+        <span class="ident">WordSeparator::AsciiSpace</span>
     };
 }
 
-<span class="doccomment">/// Holds settings for wrapping and filling text.</span>
+<span class="doccomment">/// Holds configuration options for wrapping and filling text.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Options</span><span class="op">&lt;</span>
-    <span class="lifetime">&#39;a</span>,
-    <span class="ident">WrapAlgo</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">wrap_algorithms::WrapAlgorithm</span><span class="op">&gt;</span>,
-    <span class="ident">WordSep</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_separators::WordSeparator</span><span class="op">&gt;</span>,
-    <span class="ident">WordSplit</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_splitters::WordSplitter</span><span class="op">&gt;</span>,
-<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The width in columns at which the text will be wrapped.</span>
     <span class="kw">pub</span> <span class="ident">width</span>: <span class="ident">usize</span>,
     <span class="doccomment">/// Indentation used for the first line of output. See the</span>
@@ -2382,62 +2096,42 @@
     <span class="kw">pub</span> <span class="ident">break_words</span>: <span class="ident">bool</span>,
     <span class="doccomment">/// Wrapping algorithm to use, see the implementations of the</span>
     <span class="doccomment">/// [`wrap_algorithms::WrapAlgorithm`] trait for details.</span>
-    <span class="kw">pub</span> <span class="ident">wrap_algorithm</span>: <span class="ident">WrapAlgo</span>,
+    <span class="kw">pub</span> <span class="ident">wrap_algorithm</span>: <span class="ident">WrapAlgorithm</span>,
     <span class="doccomment">/// The line breaking algorithm to use, see</span>
     <span class="doccomment">/// [`word_separators::WordSeparator`] trait for an overview and</span>
     <span class="doccomment">/// possible implementations.</span>
-    <span class="kw">pub</span> <span class="ident">word_separator</span>: <span class="ident">WordSep</span>,
+    <span class="kw">pub</span> <span class="ident">word_separator</span>: <span class="ident">WordSeparator</span>,
     <span class="doccomment">/// The method for splitting words. This can be used to prohibit</span>
     <span class="doccomment">/// splitting words on hyphens, or it can be used to implement</span>
-    <span class="doccomment">/// language-aware machine hyphenation. Please see the</span>
-    <span class="doccomment">/// [`word_splitters::WordSplitter`] trait for details.</span>
-    <span class="kw">pub</span> <span class="ident">word_splitter</span>: <span class="ident">WordSplit</span>,
+    <span class="doccomment">/// language-aware machine hyphenation.</span>
+    <span class="kw">pub</span> <span class="ident">word_splitter</span>: <span class="ident">WordSplitter</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">WrapAlgo</span>: <span class="ident">Clone</span>,
-    <span class="ident">WordSep</span>: <span class="ident">Clone</span>,
-    <span class="ident">WordSplit</span>: <span class="ident">Clone</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">width</span>: <span class="ident">options</span>.<span class="ident">width</span>,
             <span class="ident">initial_indent</span>: <span class="ident">options</span>.<span class="ident">initial_indent</span>,
             <span class="ident">subsequent_indent</span>: <span class="ident">options</span>.<span class="ident">subsequent_indent</span>,
             <span class="ident">break_words</span>: <span class="ident">options</span>.<span class="ident">break_words</span>,
-            <span class="ident">word_separator</span>: <span class="ident">options</span>.<span class="ident">word_separator</span>.<span class="ident">clone</span>(),
-            <span class="ident">wrap_algorithm</span>: <span class="ident">options</span>.<span class="ident">wrap_algorithm</span>.<span class="ident">clone</span>(),
+            <span class="ident">word_separator</span>: <span class="ident">options</span>.<span class="ident">word_separator</span>,
+            <span class="ident">wrap_algorithm</span>: <span class="ident">options</span>.<span class="ident">wrap_algorithm</span>,
             <span class="ident">word_splitter</span>: <span class="ident">options</span>.<span class="ident">word_splitter</span>.<span class="ident">clone</span>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Options</span><span class="op">&lt;</span>
-        <span class="lifetime">&#39;a</span>,
-        <span class="macro">DefaultWrapAlgorithm!</span>(),
-        <span class="macro">DefaultWordSeparator!</span>(),
-        <span class="ident">word_splitters::HyphenSplitter</span>,
-    <span class="op">&gt;</span>
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">width</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">width</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Options::new</span>(<span class="ident">width</span>)
     }
 }
 
-<span class="doccomment">/// Constructors for boxed Options, specifically.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="macro">DefaultWrapAlgorithm!</span>(), <span class="macro">DefaultWordSeparator!</span>(), <span class="ident">word_splitters::HyphenSplitter</span><span class="op">&gt;</span>
-{
-    <span class="doccomment">/// Creates a new [`Options`] with the specified width and static</span>
-    <span class="doccomment">/// dispatch using the [`word_splitters::HyphenSplitter`].</span>
-    <span class="doccomment">/// Equivalent to</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Creates a new [`Options`] with the specified width. Equivalent to</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use textwrap::word_splitters::{HyphenSplitter, WordSplitter};</span>
-    <span class="doccomment">/// # use textwrap::Options;</span>
+    <span class="doccomment">/// # use textwrap::{Options, WordSplitter, WordSeparator, WrapAlgorithm};</span>
     <span class="doccomment">/// # let width = 80;</span>
     <span class="doccomment">/// # let actual = Options::new(width);</span>
     <span class="doccomment">/// # let expected =</span>
@@ -2447,76 +2141,36 @@
     <span class="doccomment">///     subsequent_indent: &quot;&quot;,</span>
     <span class="doccomment">///     break_words: true,</span>
     <span class="doccomment">///     #[cfg(feature = &quot;unicode-linebreak&quot;)]</span>
-    <span class="doccomment">///     word_separator: textwrap::word_separators::UnicodeBreakProperties,</span>
+    <span class="doccomment">///     word_separator: WordSeparator::UnicodeBreakProperties,</span>
     <span class="doccomment">///     #[cfg(not(feature = &quot;unicode-linebreak&quot;))]</span>
-    <span class="doccomment">///     word_separator: textwrap::word_separators::AsciiSpace,</span>
+    <span class="doccomment">///     word_separator: WordSeparator::AsciiSpace,</span>
     <span class="doccomment">///     #[cfg(feature = &quot;smawk&quot;)]</span>
-    <span class="doccomment">///     wrap_algorithm: textwrap::wrap_algorithms::OptimalFit,</span>
+    <span class="doccomment">///     wrap_algorithm: WrapAlgorithm::new_optimal_fit(),</span>
     <span class="doccomment">///     #[cfg(not(feature = &quot;smawk&quot;))]</span>
-    <span class="doccomment">///     wrap_algorithm: textwrap::wrap_algorithms::FirstFit,</span>
-    <span class="doccomment">///     word_splitter: textwrap::word_splitters::HyphenSplitter,</span>
+    <span class="doccomment">///     wrap_algorithm: WrapAlgorithm::FirstFit,</span>
+    <span class="doccomment">///     word_splitter: WordSplitter::HyphenSplitter,</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// # ;</span>
     <span class="doccomment">/// # assert_eq!(actual.width, expected.width);</span>
     <span class="doccomment">/// # assert_eq!(actual.initial_indent, expected.initial_indent);</span>
     <span class="doccomment">/// # assert_eq!(actual.subsequent_indent, expected.subsequent_indent);</span>
     <span class="doccomment">/// # assert_eq!(actual.break_words, expected.break_words);</span>
+    <span class="doccomment">/// # assert_eq!(actual.word_splitter, expected.word_splitter);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that the default word separator and wrap algorithms</span>
     <span class="doccomment">/// changes based on the available Cargo features. The best</span>
-    <span class="doccomment">/// available algorithm is used by default.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Static dispatch means here, that the word splitter is stored as-is</span>
-    <span class="doccomment">/// and the type is known at compile-time. Thus the returned value</span>
-    <span class="doccomment">/// is actually a `Options&lt;AsciiSpace, HyphenSplitter&gt;`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Dynamic dispatch on the other hand, means that the word</span>
-    <span class="doccomment">/// separator and/or word splitter is stored as a trait object</span>
-    <span class="doccomment">/// such as a `Box&lt;dyn word_splitters::WordSplitter&gt;`. This way</span>
-    <span class="doccomment">/// the word splitter&#39;s inner type can be changed without changing</span>
-    <span class="doccomment">/// the type of this struct, which then would be just `Options` as</span>
-    <span class="doccomment">/// a short cut for `Options&lt;Box&lt;dyn</span>
-    <span class="doccomment">/// word_separators::WordSeparator&gt;, Box&lt;dyn</span>
-    <span class="doccomment">/// word_splitters::WordSplitter&gt;&gt;`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The value and type of the word splitter can be choose from the</span>
-    <span class="doccomment">/// start using the [`Options::with_word_splitter`] constructor or</span>
-    <span class="doccomment">/// changed afterwards using the [`Options::word_splitter`]</span>
-    <span class="doccomment">/// method. Whether static or dynamic dispatch is used, depends on</span>
-    <span class="doccomment">/// whether these functions are given a boxed</span>
-    <span class="doccomment">/// [`word_splitters::WordSplitter`] or not. Take for example:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use textwrap::Options;</span>
-    <span class="doccomment">/// use textwrap::word_splitters::{HyphenSplitter, NoHyphenation};</span>
-    <span class="doccomment">/// # use textwrap::word_splitters::WordSplitter;</span>
-    <span class="doccomment">/// # use textwrap::word_separators::AsciiSpace;</span>
-    <span class="doccomment">/// # let width = 80;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // uses HyphenSplitter with static dispatch</span>
-    <span class="doccomment">/// // the actual type: Options&lt;AsciiSpace, HyphenSplitter&gt;</span>
-    <span class="doccomment">/// let opt = Options::new(width);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // uses NoHyphenation with static dispatch</span>
-    <span class="doccomment">/// // the actual type: Options&lt;AsciiSpace, NoHyphenation&gt;</span>
-    <span class="doccomment">/// let opt = Options::new(width).word_splitter(NoHyphenation);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // uses HyphenSplitter with dynamic dispatch</span>
-    <span class="doccomment">/// // the actual type: Options&lt;AsciiSpace, Box&lt;dyn word_splitters::WordSplitter&gt;&gt;</span>
-    <span class="doccomment">/// let opt: Options&lt;_, _, _&gt; = Options::new(width).word_splitter(Box::new(HyphenSplitter));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // uses NoHyphenation with dynamic dispatch</span>
-    <span class="doccomment">/// // the actual type: Options&lt;AsciiSpace, Box&lt;dyn word_splitters::WordSplitter&gt;&gt;</span>
-    <span class="doccomment">/// let opt: Options&lt;_, _, _&gt; = Options::new(width).word_splitter(Box::new(NoHyphenation));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Notice that the last two variables have the same type, despite</span>
-    <span class="doccomment">/// the different `WordSplitter` in use. Thus dynamic dispatch</span>
-    <span class="doccomment">/// allows to change the word splitter at run-time without</span>
-    <span class="doccomment">/// changing the variables type.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">width</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Options::with_word_splitter</span>(<span class="ident">width</span>, <span class="ident">word_splitters::HyphenSplitter</span>)
+    <span class="doccomment">/// available algorithms are used by default.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">width</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Options</span> {
+            <span class="ident">width</span>,
+            <span class="ident">initial_indent</span>: <span class="string">&quot;&quot;</span>,
+            <span class="ident">subsequent_indent</span>: <span class="string">&quot;&quot;</span>,
+            <span class="ident">break_words</span>: <span class="bool-val">true</span>,
+            <span class="ident">word_separator</span>: <span class="macro">DefaultWordSeparator!</span>(),
+            <span class="ident">wrap_algorithm</span>: <span class="ident">WrapAlgorithm::new</span>(),
+            <span class="ident">word_splitter</span>: <span class="ident">WordSplitter::HyphenSplitter</span>,
+        }
     }
 
     <span class="doccomment">/// Creates a new [`Options`] with `width` set to the current</span>
@@ -2537,102 +2191,12 @@
     <span class="doccomment">/// **Note:** Only available when the `terminal_size` feature is</span>
     <span class="doccomment">/// enabled.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;terminal_size&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_termwidth</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_termwidth</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">termwidth</span>())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="macro">DefaultWrapAlgorithm!</span>(), <span class="macro">DefaultWordSeparator!</span>(), <span class="ident">WordSplit</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new [`Options`] with the specified width and</span>
-    <span class="doccomment">/// word splitter. Equivalent to</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # use textwrap::Options;</span>
-    <span class="doccomment">/// # use textwrap::word_splitters::{NoHyphenation, HyphenSplitter};</span>
-    <span class="doccomment">/// # const word_splitter: NoHyphenation = NoHyphenation;</span>
-    <span class="doccomment">/// # const width: usize = 80;</span>
-    <span class="doccomment">/// # let actual = Options::with_word_splitter(width, word_splitter);</span>
-    <span class="doccomment">/// # let expected =</span>
-    <span class="doccomment">/// Options {</span>
-    <span class="doccomment">///     width: width,</span>
-    <span class="doccomment">///     initial_indent: &quot;&quot;,</span>
-    <span class="doccomment">///     subsequent_indent: &quot;&quot;,</span>
-    <span class="doccomment">///     break_words: true,</span>
-    <span class="doccomment">///     #[cfg(feature = &quot;unicode-linebreak&quot;)]</span>
-    <span class="doccomment">///     word_separator: textwrap::word_separators::UnicodeBreakProperties,</span>
-    <span class="doccomment">///     #[cfg(not(feature = &quot;unicode-linebreak&quot;))]</span>
-    <span class="doccomment">///     word_separator: textwrap::word_separators::AsciiSpace,</span>
-    <span class="doccomment">///     #[cfg(feature = &quot;smawk&quot;)]</span>
-    <span class="doccomment">///     wrap_algorithm: textwrap::wrap_algorithms::OptimalFit,</span>
-    <span class="doccomment">///     #[cfg(not(feature = &quot;smawk&quot;))]</span>
-    <span class="doccomment">///     wrap_algorithm: textwrap::wrap_algorithms::FirstFit,</span>
-    <span class="doccomment">///     word_splitter: word_splitter,</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # ;</span>
-    <span class="doccomment">/// # assert_eq!(actual.width, expected.width);</span>
-    <span class="doccomment">/// # assert_eq!(actual.initial_indent, expected.initial_indent);</span>
-    <span class="doccomment">/// # assert_eq!(actual.subsequent_indent, expected.subsequent_indent);</span>
-    <span class="doccomment">/// # assert_eq!(actual.break_words, expected.break_words);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This constructor allows to specify the word splitter to be</span>
-    <span class="doccomment">/// used. It is like a short-cut for</span>
-    <span class="doccomment">/// `Options::new(w).word_splitter(s)`, but this function is a</span>
-    <span class="doccomment">/// `const fn`. The given word splitter may be in a [`Box`], which</span>
-    <span class="doccomment">/// then can be coerced into a trait object for dynamic dispatch:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use textwrap::Options;</span>
-    <span class="doccomment">/// use textwrap::word_splitters::{HyphenSplitter, NoHyphenation, WordSplitter};</span>
-    <span class="doccomment">/// # const width: usize = 80;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // This opt contains a boxed trait object as splitter.</span>
-    <span class="doccomment">/// // The type annotation is important, otherwise it will be not a trait object</span>
-    <span class="doccomment">/// let mut opt: Options&lt;_, _, Box&lt;dyn WordSplitter&gt;&gt;</span>
-    <span class="doccomment">///     = Options::with_word_splitter(width, Box::new(NoHyphenation));</span>
-    <span class="doccomment">/// // Its type is actually: `Options&lt;AsciiSpace, Box&lt;dyn word_splitters::WordSplitter&gt;&gt;`:</span>
-    <span class="doccomment">/// let opt_coerced: Options&lt;_, _, Box&lt;dyn WordSplitter&gt;&gt; = opt;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Thus, it can be overridden with a different word splitter.</span>
-    <span class="doccomment">/// opt = Options::with_word_splitter(width, Box::new(HyphenSplitter));</span>
-    <span class="doccomment">/// // Now, containing a `HyphenSplitter` instead.</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Since the word splitter is given by value, which determines</span>
-    <span class="doccomment">/// the generic type parameter, it can be used to produce both an</span>
-    <span class="doccomment">/// [`Options`] with static and dynamic dispatch, respectively.</span>
-    <span class="doccomment">/// While dynamic dispatch allows to change the type of the inner</span>
-    <span class="doccomment">/// word splitter at run time as seen above, static dispatch</span>
-    <span class="doccomment">/// especially can store the word splitter directly, without the</span>
-    <span class="doccomment">/// need for a box. This in turn allows it to be used in constant</span>
-    <span class="doccomment">/// and static context:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use textwrap::word_splitters::HyphenSplitter; use textwrap::{ Options};</span>
-    <span class="doccomment">/// use textwrap::word_separators::AsciiSpace;</span>
-    <span class="doccomment">/// use textwrap::wrap_algorithms::FirstFit;</span>
-    <span class="doccomment">/// # const width: usize = 80;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # #[cfg(all(not(feature = &quot;smawk&quot;), not(feature = &quot;unicode-linebreak&quot;)))] {</span>
-    <span class="doccomment">/// const FOO: Options&lt;FirstFit, AsciiSpace, HyphenSplitter&gt; =</span>
-    <span class="doccomment">///     Options::with_word_splitter(width, HyphenSplitter);</span>
-    <span class="doccomment">/// static BAR: Options&lt;FirstFit, AsciiSpace, HyphenSplitter&gt; = FOO;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_word_splitter</span>(<span class="ident">width</span>: <span class="ident">usize</span>, <span class="ident">word_splitter</span>: <span class="ident">WordSplit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Options</span> {
-            <span class="ident">width</span>,
-            <span class="ident">initial_indent</span>: <span class="string">&quot;&quot;</span>,
-            <span class="ident">subsequent_indent</span>: <span class="string">&quot;&quot;</span>,
-            <span class="ident">break_words</span>: <span class="bool-val">true</span>,
-            <span class="ident">word_separator</span>: <span class="macro">DefaultWordSeparator!</span>(),
-            <span class="ident">wrap_algorithm</span>: <span class="macro">DefaultWrapAlgorithm!</span>(),
-            <span class="ident">word_splitter</span>: <span class="ident">word_splitter</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Change [`self.initial_indent`]. The initial indentation is</span>
     <span class="doccomment">/// used on the very first line of output.</span>
     <span class="doccomment">///</span>
@@ -2642,7 +2206,7 @@
     <span class="doccomment">/// initial indentation and wrapping each paragraph by itself:</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use textwrap::{Options, wrap};</span>
+    <span class="doccomment">/// use textwrap::{wrap, Options};</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let options = Options::new(16).initial_indent(&quot;    &quot;);</span>
     <span class="doccomment">/// assert_eq!(wrap(&quot;This is a little example.&quot;, options),</span>
@@ -2651,7 +2215,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.initial_indent`]: #structfield.initial_indent</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initial_indent</span>(<span class="self">self</span>, <span class="ident">indent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initial_indent</span>(<span class="self">self</span>, <span class="ident">indent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Options</span> {
             <span class="ident">initial_indent</span>: <span class="ident">indent</span>,
             ..<span class="self">self</span>
@@ -2667,7 +2231,7 @@
     <span class="doccomment">/// single paragraph as a bullet list:</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use textwrap::{Options, wrap};</span>
+    <span class="doccomment">/// use textwrap::{wrap, Options};</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let options = Options::new(12)</span>
     <span class="doccomment">///     .initial_indent(&quot;* &quot;)</span>
@@ -2687,7 +2251,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.subsequent_indent`]: #structfield.subsequent_indent</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subsequent_indent</span>(<span class="self">self</span>, <span class="ident">indent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subsequent_indent</span>(<span class="self">self</span>, <span class="ident">indent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Options</span> {
             <span class="ident">subsequent_indent</span>: <span class="ident">indent</span>,
             ..<span class="self">self</span>
@@ -2714,7 +2278,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.break_words`]: #structfield.break_words</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">break_words</span>(<span class="self">self</span>, <span class="ident">setting</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">break_words</span>(<span class="self">self</span>, <span class="ident">setting</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Options</span> {
             <span class="ident">break_words</span>: <span class="ident">setting</span>,
             ..<span class="self">self</span>
@@ -2726,10 +2290,7 @@
     <span class="doccomment">/// See [`word_separators::WordSeparator`] for details on the choices.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.word_separator`]: #structfield.word_separator</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">word_separator</span><span class="op">&lt;</span><span class="ident">NewWordSep</span><span class="op">&gt;</span>(
-        <span class="self">self</span>,
-        <span class="ident">word_separator</span>: <span class="ident">NewWordSep</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">NewWordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">word_separator</span>(<span class="self">self</span>, <span class="ident">word_separator</span>: <span class="ident">WordSeparator</span>) -&gt; <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">Options</span> {
             <span class="ident">width</span>: <span class="self">self</span>.<span class="ident">width</span>,
             <span class="ident">initial_indent</span>: <span class="self">self</span>.<span class="ident">initial_indent</span>,
@@ -2747,10 +2308,7 @@
     <span class="doccomment">/// the choices.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.wrap_algorithm`]: #structfield.wrap_algorithm</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_algorithm</span><span class="op">&lt;</span><span class="ident">NewWrapAlgo</span><span class="op">&gt;</span>(
-        <span class="self">self</span>,
-        <span class="ident">wrap_algorithm</span>: <span class="ident">NewWrapAlgo</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">NewWrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_algorithm</span>(<span class="self">self</span>, <span class="ident">wrap_algorithm</span>: <span class="ident">WrapAlgorithm</span>) -&gt; <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">Options</span> {
             <span class="ident">width</span>: <span class="self">self</span>.<span class="ident">width</span>,
             <span class="ident">initial_indent</span>: <span class="self">self</span>.<span class="ident">initial_indent</span>,
@@ -2766,25 +2324,18 @@
     <span class="doccomment">/// [`word_splitters::WordSplitter`] is used to fit part of a word</span>
     <span class="doccomment">/// into the current line when wrapping text.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function may return a different type than `Self`. That is</span>
-    <span class="doccomment">/// the case when the given `splitter` is of a different type the</span>
-    <span class="doccomment">/// the currently stored one in the `splitter` field. Take for</span>
-    <span class="doccomment">/// example:</span>
+    <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use textwrap::word_splitters::{HyphenSplitter, NoHyphenation};</span>
-    <span class="doccomment">/// use textwrap::Options;</span>
-    <span class="doccomment">/// // The default type returned by `new`:</span>
-    <span class="doccomment">/// let opt: Options&lt;_, _, HyphenSplitter&gt; = Options::new(80);</span>
-    <span class="doccomment">/// // Setting a different word splitter changes the type</span>
-    <span class="doccomment">/// let opt: Options&lt;_, _, NoHyphenation&gt; = opt.word_splitter(NoHyphenation);</span>
+    <span class="doccomment">/// use textwrap::{Options, WordSplitter};</span>
+    <span class="doccomment">/// let opt = Options::new(80);</span>
+    <span class="doccomment">/// assert_eq!(opt.word_splitter, WordSplitter::HyphenSplitter);</span>
+    <span class="doccomment">/// let opt = opt.word_splitter(WordSplitter::NoHyphenation);</span>
+    <span class="doccomment">/// assert_eq!(opt.word_splitter, WordSplitter::NoHyphenation);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`self.word_splitter`]: #structfield.word_splitter</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">word_splitter</span><span class="op">&lt;</span><span class="ident">NewWordSplit</span><span class="op">&gt;</span>(
-        <span class="self">self</span>,
-        <span class="ident">word_splitter</span>: <span class="ident">NewWordSplit</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">NewWordSplit</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">word_splitter</span>(<span class="self">self</span>, <span class="ident">word_splitter</span>: <span class="ident">WordSplitter</span>) -&gt; <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="ident">Options</span> {
             <span class="ident">width</span>: <span class="self">self</span>.<span class="ident">width</span>,
             <span class="ident">initial_indent</span>: <span class="self">self</span>.<span class="ident">initial_indent</span>,
@@ -2810,11 +2361,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```no_run</span>
 <span class="doccomment">/// use textwrap::{termwidth, Options};</span>
-<span class="doccomment">/// use textwrap::word_splitters::NoHyphenation;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let width = termwidth() - 4; // Two columns on each side.</span>
 <span class="doccomment">/// let options = Options::new(width)</span>
-<span class="doccomment">///     .word_splitter(NoHyphenation)</span>
 <span class="doccomment">///     .initial_indent(&quot;  &quot;)</span>
 <span class="doccomment">///     .subsequent_indent(&quot;  &quot;);</span>
 <span class="doccomment">/// ```</span>
@@ -2822,7 +2371,7 @@
 <span class="doccomment">/// **Note:** Only available when the `terminal_size` Cargo feature is</span>
 <span class="doccomment">/// enabled.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;terminal_size&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">termwidth</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">termwidth</span>() -&gt; <span class="ident">usize</span> {
     <span class="ident">terminal_size::terminal_size</span>().<span class="ident">map_or</span>(<span class="number">80</span>, <span class="op">|</span>(<span class="ident">terminal_size::Width</span>(<span class="ident">w</span>), <span class="kw">_</span>)<span class="op">|</span> <span class="ident">w</span>.<span class="ident">into</span>())
 }
 
@@ -2858,12 +2407,9 @@
 <span class="doccomment">///     &quot;- Memory safety\n  without\n  garbage\n  collection.&quot;</span>
 <span class="doccomment">/// );</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span>, <span class="ident">Opt</span><span class="op">&gt;</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width_or_options</span>: <span class="ident">Opt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Opt</span><span class="op">&gt;</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width_or_options</span>: <span class="ident">Opt</span>) -&gt; <span class="ident">String</span>
 <span class="kw">where</span>
-    <span class="ident">WrapAlgo</span>: <span class="ident">wrap_algorithms::WrapAlgorithm</span>,
-    <span class="ident">WordSep</span>: <span class="ident">word_separators::WordSeparator</span>,
-    <span class="ident">WordSplit</span>: <span class="ident">word_splitters::WordSplitter</span>,
-    <span class="ident">Opt</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">Opt</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
     <span class="comment">// This will avoid reallocation in simple cases (no</span>
     <span class="comment">// indentation, no hyphenation).</span>
@@ -2873,7 +2419,7 @@
         <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
         }
-        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">line</span>);
+        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">line</span>);
     }
 
     <span class="ident">result</span>
@@ -2925,12 +2471,7 @@
 <span class="doccomment">/// assert_eq!(options.initial_indent, &quot;* &quot;);</span>
 <span class="doccomment">/// assert_eq!(options.subsequent_indent, &quot;  &quot;);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unfill</span>(
-    <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) <span class="op">-</span><span class="op">&gt;</span> (
-    <span class="ident">String</span>,
-    <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="macro">DefaultWrapAlgorithm!</span>(), <span class="macro">DefaultWordSeparator!</span>(), <span class="ident">word_splitters::HyphenSplitter</span><span class="op">&gt;</span>,
-) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unfill</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; (<span class="ident">String</span>, <span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="ident">trimmed</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">trim_end_matches</span>(<span class="string">&#39;\n&#39;</span>);
     <span class="kw">let</span> <span class="ident">prefix_chars</span>: <span class="kw-2">&amp;</span>[<span class="kw">_</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="string">&#39; &#39;</span>, <span class="string">&#39;-&#39;</span>, <span class="string">&#39;+&#39;</span>, <span class="string">&#39;*&#39;</span>, <span class="string">&#39;&gt;&#39;</span>, <span class="string">&#39;#&#39;</span>, <span class="string">&#39;/&#39;</span>];
 
@@ -2940,9 +2481,9 @@
         <span class="kw">let</span> <span class="ident">without_prefix</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">trim_start_matches</span>(<span class="ident">prefix_chars</span>);
         <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">line</span>[..<span class="ident">line</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">without_prefix</span>.<span class="ident">len</span>()];
 
-        <span class="kw">if</span> <span class="ident">idx</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">idx</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">options</span>.<span class="ident">initial_indent</span> <span class="op">=</span> <span class="ident">prefix</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">idx</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">idx</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="ident">options</span>.<span class="ident">subsequent_indent</span> <span class="op">=</span> <span class="ident">prefix</span>;
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">idx</span> <span class="op">&gt;</span> <span class="number">1</span> {
             <span class="kw">for</span> ((<span class="ident">idx</span>, <span class="ident">x</span>), <span class="ident">y</span>) <span class="kw">in</span> <span class="ident">prefix</span>.<span class="ident">char_indices</span>().<span class="ident">zip</span>(<span class="ident">options</span>.<span class="ident">subsequent_indent</span>.<span class="ident">chars</span>()) {
@@ -2959,7 +2500,7 @@
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unfilled</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">text</span>.<span class="ident">len</span>());
     <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">line</span>) <span class="kw">in</span> <span class="ident">trimmed</span>.<span class="ident">split</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">enumerate</span>() {
-        <span class="kw">if</span> <span class="ident">idx</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">idx</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">unfilled</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">line</span>[<span class="ident">options</span>.<span class="ident">initial_indent</span>.<span class="ident">len</span>()..]);
         } <span class="kw">else</span> {
             <span class="ident">unfilled</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
@@ -3025,15 +2566,9 @@
 <span class="doccomment">///   item.</span>
 <span class="doccomment">/// &quot;);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refill</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span>, <span class="ident">Opt</span><span class="op">&gt;</span>(
-    <span class="ident">filled_text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">new_width_or_options</span>: <span class="ident">Opt</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">refill</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Opt</span><span class="op">&gt;</span>(<span class="ident">filled_text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">new_width_or_options</span>: <span class="ident">Opt</span>) -&gt; <span class="ident">String</span>
 <span class="kw">where</span>
-    <span class="ident">WrapAlgo</span>: <span class="ident">wrap_algorithms::WrapAlgorithm</span>,
-    <span class="ident">WordSep</span>: <span class="ident">word_separators::WordSeparator</span>,
-    <span class="ident">WordSplit</span>: <span class="ident">word_splitters::WordSplitter</span>,
-    <span class="ident">Opt</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">Opt</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
     <span class="kw">let</span> <span class="ident">trimmed</span> <span class="op">=</span> <span class="ident">filled_text</span>.<span class="ident">trim_end_matches</span>(<span class="string">&#39;\n&#39;</span>);
     <span class="kw">let</span> (<span class="ident">text</span>, <span class="ident">options</span>) <span class="op">=</span> <span class="ident">unfill</span>(<span class="ident">trimmed</span>);
@@ -3099,7 +2634,7 @@
 <span class="doccomment">/// narrow column with room for only 10 characters looks like this:</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use textwrap::{wrap_algorithms::FirstFit, Options, wrap};</span>
+<span class="doccomment">/// # use textwrap::{WrapAlgorithm::FirstFit, Options, wrap};</span>
 <span class="doccomment">/// #</span>
 <span class="doccomment">/// # let lines = wrap(&quot;To be, or not to be: that is the question&quot;,</span>
 <span class="doccomment">/// #                  Options::new(10).wrap_algorithm(FirstFit));</span>
@@ -3123,11 +2658,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// # #[cfg(feature = &quot;smawk&quot;)] {</span>
-<span class="doccomment">/// # use textwrap::{Options, wrap};</span>
-<span class="doccomment">/// # use textwrap::wrap_algorithms::OptimalFit;</span>
+<span class="doccomment">/// # use textwrap::{Options, WrapAlgorithm, wrap};</span>
 <span class="doccomment">/// #</span>
-<span class="doccomment">/// # let lines = wrap(&quot;To be, or not to be: that is the question&quot;,</span>
-<span class="doccomment">/// #                  Options::new(10).wrap_algorithm(OptimalFit));</span>
+<span class="doccomment">/// # let lines = wrap(</span>
+<span class="doccomment">/// #     &quot;To be, or not to be: that is the question&quot;,</span>
+<span class="doccomment">/// #     Options::new(10).wrap_algorithm(WrapAlgorithm::new_optimal_fit())</span>
+<span class="doccomment">/// # );</span>
 <span class="doccomment">/// # assert_eq!(lines.join(&quot;\n&quot;) + &quot;\n&quot;, &quot;\</span>
 <span class="doccomment">/// To be,</span>
 <span class="doccomment">/// or not to</span>
@@ -3137,7 +2673,7 @@
 <span class="doccomment">/// # &quot;); }</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Please see the [`wrap_algorithms::WrapAlgorithm`] trait for details.</span>
+<span class="doccomment">/// Please see [`WrapAlgorithm`] for details on the choices.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
@@ -3214,15 +2750,9 @@
 <span class="doccomment">/// assert_eq!(wrap(&quot;  foo bar&quot;, 8), vec![&quot;  foo&quot;, &quot;bar&quot;]);</span>
 <span class="doccomment">/// assert_eq!(wrap(&quot;  foo bar&quot;, 4), vec![&quot;&quot;, &quot;foo&quot;, &quot;bar&quot;]);</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span>, <span class="ident">Opt</span><span class="op">&gt;</span>(
-    <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">width_or_options</span>: <span class="ident">Opt</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Opt</span><span class="op">&gt;</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">width_or_options</span>: <span class="ident">Opt</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">WrapAlgo</span>: <span class="ident">wrap_algorithms::WrapAlgorithm</span>,
-    <span class="ident">WordSep</span>: <span class="ident">word_separators::WordSeparator</span>,
-    <span class="ident">WordSplit</span>: <span class="ident">word_splitters::WordSplitter</span>,
-    <span class="ident">Opt</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">Opt</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
     <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">width_or_options</span>.<span class="ident">into</span>();
 
@@ -3258,11 +2788,11 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">words</span> <span class="kw">in</span> <span class="ident">wrapped_words</span> {
             <span class="kw">let</span> <span class="ident">last_word</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">words</span>.<span class="ident">last</span>() {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="ident">lines</span>.<span class="ident">push</span>(<span class="ident">Cow::from</span>(<span class="string">&quot;&quot;</span>));
                     <span class="kw">continue</span>;
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">word</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">word</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">word</span>) =&gt; <span class="ident">word</span>,
             };
 
             <span class="comment">// We assume here that all words are contiguous in `line`.</span>
@@ -3290,7 +2820,7 @@
             <span class="ident">result</span> <span class="op">+</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">line</span>[<span class="ident">idx</span>..<span class="ident">idx</span> <span class="op">+</span> <span class="ident">len</span>];
 
             <span class="kw">if</span> <span class="op">!</span><span class="ident">last_word</span>.<span class="ident">penalty</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">result</span>.<span class="ident">to_mut</span>().<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">last_word</span>.<span class="ident">penalty</span>);
+                <span class="ident">result</span>.<span class="ident">to_mut</span>().<span class="ident">push_str</span>(<span class="ident">last_word</span>.<span class="ident">penalty</span>);
             }
 
             <span class="ident">lines</span>.<span class="ident">push</span>(<span class="ident">result</span>);
@@ -3362,19 +2892,16 @@
 <span class="doccomment">///                 &quot;| example text, | columns.      | shorter than   |&quot;,</span>
 <span class="doccomment">///                 &quot;| which is      | Notice how    | the others.    |&quot;,</span>
 <span class="doccomment">///                 &quot;| wrapped into  | the final     |                |&quot;]);</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_columns</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span>, <span class="ident">Opt</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap_columns</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Opt</span><span class="op">&gt;</span>(
     <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">columns</span>: <span class="ident">usize</span>,
     <span class="ident">total_width_or_options</span>: <span class="ident">Opt</span>,
     <span class="ident">left_gap</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">middle_gap</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">right_gap</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
+) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">WrapAlgo</span>: <span class="ident">wrap_algorithms::WrapAlgorithm</span>,
-    <span class="ident">WordSep</span>: <span class="ident">word_separators::WordSeparator</span>,
-    <span class="ident">WordSplit</span>: <span class="ident">word_splitters::WordSplitter</span>,
-    <span class="ident">Opt</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">WrapAlgo</span>, <span class="ident">WordSep</span>, <span class="ident">WordSplit</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">Opt</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Options</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
     <span class="macro">assert!</span>(<span class="ident">columns</span> <span class="op">&gt;</span> <span class="number">0</span>);
 
@@ -3397,15 +2924,15 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="ident">left_gap</span>);
         <span class="kw">for</span> <span class="ident">column_no</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">columns</span> {
             <span class="kw">match</span> <span class="ident">wrapped_lines</span>.<span class="ident">get</span>(<span class="ident">line_no</span> <span class="op">+</span> <span class="ident">column_no</span> <span class="op">*</span> <span class="ident">lines_per_column</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">column_line</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">line</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">column_line</span>);
-                    <span class="ident">line</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="string">&quot; &quot;</span>.<span class="ident">repeat</span>(<span class="ident">column_width</span> <span class="op">-</span> <span class="ident">core::display_width</span>(<span class="kw-2">&amp;</span><span class="ident">column_line</span>)));
+                <span class="prelude-val">Some</span>(<span class="ident">column_line</span>) =&gt; {
+                    <span class="ident">line</span>.<span class="ident">push_str</span>(<span class="ident">column_line</span>);
+                    <span class="ident">line</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="string">&quot; &quot;</span>.<span class="ident">repeat</span>(<span class="ident">column_width</span> <span class="op">-</span> <span class="ident">core::display_width</span>(<span class="ident">column_line</span>)));
                 }
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="ident">line</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="string">&quot; &quot;</span>.<span class="ident">repeat</span>(<span class="ident">column_width</span>));
                 }
             }
-            <span class="kw">if</span> <span class="ident">column_no</span> <span class="op">=</span><span class="op">=</span> <span class="ident">columns</span> <span class="op">-</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">column_no</span> <span class="op">==</span> <span class="ident">columns</span> <span class="op">-</span> <span class="number">1</span> {
                 <span class="ident">line</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">last_column_padding</span>);
             } <span class="kw">else</span> {
                 <span class="ident">line</span>.<span class="ident">push_str</span>(<span class="ident">middle_gap</span>);
@@ -3433,21 +2960,20 @@
 <span class="doccomment">/// [`fill`] with these options:</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use textwrap::{core, Options};</span>
-<span class="doccomment">/// # use textwrap::{word_separators, word_splitters, wrap_algorithms};</span>
+<span class="doccomment">/// # use textwrap::{core, Options, WordSplitter, WordSeparator, WrapAlgorithm};</span>
 <span class="doccomment">/// # let width = 80;</span>
 <span class="doccomment">/// Options {</span>
 <span class="doccomment">///     width: width,</span>
 <span class="doccomment">///     initial_indent: &quot;&quot;,</span>
 <span class="doccomment">///     subsequent_indent: &quot;&quot;,</span>
 <span class="doccomment">///     break_words: false,</span>
-<span class="doccomment">///     word_separator: word_separators::AsciiSpace,</span>
-<span class="doccomment">///     wrap_algorithm: wrap_algorithms::FirstFit,</span>
-<span class="doccomment">///     word_splitter: word_splitters::NoHyphenation,</span>
+<span class="doccomment">///     word_separator: WordSeparator::AsciiSpace,</span>
+<span class="doccomment">///     wrap_algorithm: WrapAlgorithm::FirstFit,</span>
+<span class="doccomment">///     word_splitter: WordSplitter::NoHyphenation,</span>
 <span class="doccomment">/// };</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// The wrap algorithm is [`wrap_algorithms::FirstFit`] since this</span>
+<span class="doccomment">/// The wrap algorithm is [`WrapAlgorithm::FirstFit`] since this</span>
 <span class="doccomment">/// is the fastest algorithm — and the main reason to use</span>
 <span class="doccomment">/// `fill_inplace` is to get the string broken into newlines as fast</span>
 <span class="doccomment">/// as possible.</span>
@@ -3472,16 +2998,15 @@
 <span class="doccomment">/// Please see the [`linear`</span>
 <span class="doccomment">/// benchmark](https://github.com/mgeisler/textwrap/blob/master/benches/linear.rs)</span>
 <span class="doccomment">/// for details.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_inplace</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>, <span class="ident">width</span>: <span class="ident">usize</span>) {
-    <span class="kw">use</span> <span class="ident">word_separators::WordSeparator</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_inplace</span>(<span class="ident">text</span>: <span class="kw-2">&amp;mut</span> <span class="ident">String</span>, <span class="ident">width</span>: <span class="ident">usize</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">text</span>.<span class="ident">split</span>(<span class="string">&#39;\n&#39;</span>) {
-        <span class="kw">let</span> <span class="ident">words</span> <span class="op">=</span> <span class="ident">word_separators::AsciiSpace</span>
+        <span class="kw">let</span> <span class="ident">words</span> <span class="op">=</span> <span class="ident">WordSeparator::AsciiSpace</span>
             .<span class="ident">find_words</span>(<span class="ident">line</span>)
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">wrapped_words</span> <span class="op">=</span> <span class="ident">wrap_algorithms::wrap_first_fit</span>(<span class="kw-2">&amp;</span><span class="ident">words</span>, <span class="kw-2">&amp;</span>[<span class="ident">width</span>]);
+        <span class="kw">let</span> <span class="ident">wrapped_words</span> <span class="op">=</span> <span class="ident">wrap_algorithms::wrap_first_fit</span>(<span class="kw-2">&amp;</span><span class="ident">words</span>, <span class="kw-2">&amp;</span>[<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f64</span>]);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line_offset</span> <span class="op">=</span> <span class="ident">offset</span>;
         <span class="kw">for</span> <span class="ident">words</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">wrapped_words</span>[..<span class="ident">wrapped_words</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>] {
@@ -3511,8 +3036,6 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::word_splitters::WordSplitter</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">word_splitters</span>, <span class="ident">wrap_algorithms</span>};
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;hyphenation&quot;</span>)]</span>
     <span class="kw">use</span> <span class="ident">hyphenation</span>::{<span class="ident">Language</span>, <span class="ident">Load</span>, <span class="ident">Standard</span>};
@@ -3547,7 +3070,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">wrap</span>(
                 <span class="string">&quot;To be, or not to be, that is the question.&quot;</span>,
-                <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">wrap_algorithm</span>(<span class="ident">wrap_algorithms::FirstFit</span>)
+                <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">wrap_algorithm</span>(<span class="ident">WrapAlgorithm::FirstFit</span>)
             ),
             <span class="macro">vec!</span>[<span class="string">&quot;To be, or&quot;</span>, <span class="string">&quot;not to be,&quot;</span>, <span class="string">&quot;that is&quot;</span>, <span class="string">&quot;the&quot;</span>, <span class="string">&quot;question.&quot;</span>]
         );
@@ -3570,7 +3093,11 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">max_width</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;foo bar&quot;</span>, <span class="ident">usize::max_value</span>()), <span class="macro">vec!</span>[<span class="string">&quot;foo bar&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;foo bar&quot;</span>, <span class="ident">usize::MAX</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo bar&quot;</span>]);
+
+        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;Hello there! This is some English text. \
+                    It should not be wrapped given the extents below.&quot;</span>;
+        <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="ident">text</span>, <span class="ident">usize::MAX</span>), <span class="macro">vec!</span>[<span class="ident">text</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3609,18 +3136,17 @@
     <span class="kw">fn</span> <span class="ident">issue_129</span>() {
         <span class="comment">// The dash is an em-dash which takes up four bytes. We used</span>
         <span class="comment">// to panic since we tried to index into the character.</span>
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">1</span>).<span class="ident">word_separator</span>(<span class="ident">word_separators::AsciiSpace</span>);
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">1</span>).<span class="ident">word_separator</span>(<span class="ident">WordSeparator::AsciiSpace</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;x – x&quot;</span>, <span class="ident">options</span>), <span class="macro">vec!</span>[<span class="string">&quot;x&quot;</span>, <span class="string">&quot;–&quot;</span>, <span class="string">&quot;x&quot;</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">wide_character_handling</span>() {
         <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;Hello, World!&quot;</span>, <span class="number">15</span>), <span class="macro">vec!</span>[<span class="string">&quot;Hello, World!&quot;</span>]);
         <span class="macro">assert_eq!</span>(
             <span class="ident">wrap</span>(
                 <span class="string">&quot;Ｈｅｌｌｏ, Ｗｏｒｌｄ!&quot;</span>,
-                <span class="ident">Options::new</span>(<span class="number">15</span>).<span class="ident">word_separator</span>(<span class="ident">word_separators::AsciiSpace</span>)
+                <span class="ident">Options::new</span>(<span class="number">15</span>).<span class="ident">word_separator</span>(<span class="ident">WordSeparator::AsciiSpace</span>)
             ),
             <span class="macro">vec!</span>[<span class="string">&quot;Ｈｅｌｌｏ,&quot;</span>, <span class="string">&quot;Ｗｏｒｌｄ!&quot;</span>]
         );
@@ -3631,7 +3157,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">wrap</span>(
                 <span class="string">&quot;Ｈｅｌｌｏ, Ｗｏｒｌｄ!&quot;</span>,
-                <span class="ident">Options::new</span>(<span class="number">15</span>).<span class="ident">word_separator</span>(<span class="ident">word_separators::UnicodeBreakProperties</span>)
+                <span class="ident">Options::new</span>(<span class="number">15</span>).<span class="ident">word_separator</span>(<span class="ident">WordSeparator::UnicodeBreakProperties</span>)
             ),
             <span class="macro">vec!</span>[<span class="string">&quot;Ｈｅｌｌｏ, Ｗ&quot;</span>, <span class="string">&quot;ｏｒｌｄ!&quot;</span>]
         );
@@ -3654,7 +3180,6 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-width&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">indent_first_emoji</span>() {
         <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">initial_indent</span>(<span class="string">&quot;👉👉&quot;</span>);
         <span class="macro">assert_eq!</span>(
@@ -3762,34 +3287,20 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">simple_hyphens_static</span>() {
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">8</span>).<span class="ident">word_splitter</span>(<span class="ident">word_splitters::HyphenSplitter</span>);
+    <span class="kw">fn</span> <span class="ident">simple_hyphens</span>() {
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">8</span>).<span class="ident">word_splitter</span>(<span class="ident">WordSplitter::HyphenSplitter</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;foo bar-baz&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo bar-&quot;</span>, <span class="string">&quot;baz&quot;</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">simple_hyphens_dynamic</span>() {
-        <span class="kw">let</span> <span class="ident">options</span>: <span class="ident">Options</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">Options::new</span>(<span class="number">8</span>).<span class="ident">word_splitter</span>(<span class="ident">Box::new</span>(<span class="ident">word_splitters::HyphenSplitter</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;foo bar-baz&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo bar-&quot;</span>, <span class="string">&quot;baz&quot;</span>]);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">no_hyphenation_static</span>() {
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">8</span>).<span class="ident">word_splitter</span>(<span class="ident">word_splitters::NoHyphenation</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;foo bar-baz&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar-baz&quot;</span>]);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">no_hyphenation_dynamic</span>() {
-        <span class="kw">let</span> <span class="ident">options</span>: <span class="ident">Options</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">Options::new</span>(<span class="number">8</span>).<span class="ident">word_splitter</span>(<span class="ident">Box::new</span>(<span class="ident">word_splitters::NoHyphenation</span>));
+    <span class="kw">fn</span> <span class="ident">no_hyphenation</span>() {
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">8</span>).<span class="ident">word_splitter</span>(<span class="ident">WordSplitter::NoHyphenation</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;foo bar-baz&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>), <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar-baz&quot;</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;hyphenation&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">auto_hyphenation_double_hyphenation_static</span>() {
+    <span class="kw">fn</span> <span class="ident">auto_hyphenation_double_hyphenation</span>() {
         <span class="kw">let</span> <span class="ident">dictionary</span> <span class="op">=</span> <span class="ident">Standard::from_embedded</span>(<span class="ident">Language::EnglishUS</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>);
         <span class="macro">assert_eq!</span>(
@@ -3797,25 +3308,7 @@
             <span class="macro">vec!</span>[<span class="string">&quot;Internatio&quot;</span>, <span class="string">&quot;nalization&quot;</span>]
         );
 
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">word_splitter</span>(<span class="ident">dictionary</span>);
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">wrap</span>(<span class="string">&quot;Internationalization&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>),
-            <span class="macro">vec!</span>[<span class="string">&quot;Interna-&quot;</span>, <span class="string">&quot;tionaliza-&quot;</span>, <span class="string">&quot;tion&quot;</span>]
-        );
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;hyphenation&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">auto_hyphenation_double_hyphenation_dynamic</span>() {
-        <span class="kw">let</span> <span class="ident">dictionary</span> <span class="op">=</span> <span class="ident">Standard::from_embedded</span>(<span class="ident">Language::EnglishUS</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">options</span>: <span class="ident">Options</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_splitters::WordSplitter</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">word_splitter</span>(<span class="ident">Box::new</span>(<span class="ident">word_splitters::HyphenSplitter</span>));
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">wrap</span>(<span class="string">&quot;Internationalization&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>),
-            <span class="macro">vec!</span>[<span class="string">&quot;Internatio&quot;</span>, <span class="string">&quot;nalization&quot;</span>]
-        );
-
-        <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">word_splitter</span>(<span class="ident">Box::new</span>(<span class="ident">dictionary</span>));
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">word_splitter</span>(<span class="ident">WordSplitter::Hyphenation</span>(<span class="ident">dictionary</span>));
         <span class="macro">assert_eq!</span>(
             <span class="ident">wrap</span>(<span class="string">&quot;Internationalization&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>),
             <span class="macro">vec!</span>[<span class="string">&quot;Interna-&quot;</span>, <span class="string">&quot;tionaliza-&quot;</span>, <span class="string">&quot;tion&quot;</span>]
@@ -3832,7 +3325,7 @@
             <span class="macro">vec!</span>[<span class="string">&quot;participat&quot;</span>, <span class="string">&quot;ion is&quot;</span>, <span class="string">&quot;the key to&quot;</span>, <span class="string">&quot;success&quot;</span>]
         );
 
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">word_splitter</span>(<span class="ident">dictionary</span>);
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">word_splitter</span>(<span class="ident">WordSplitter::Hyphenation</span>(<span class="ident">dictionary</span>));
         <span class="macro">assert_eq!</span>(
             <span class="ident">wrap</span>(<span class="string">&quot;participation is the key to success&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>),
             <span class="macro">vec!</span>[<span class="string">&quot;partici-&quot;</span>, <span class="string">&quot;pation is&quot;</span>, <span class="string">&quot;the key to&quot;</span>, <span class="string">&quot;success&quot;</span>]
@@ -3842,10 +3335,10 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;hyphenation&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">split_len_hyphenation</span>() {
-        <span class="comment">// Test that hyphenation takes the width of the wihtespace</span>
+        <span class="comment">// Test that hyphenation takes the width of the whitespace</span>
         <span class="comment">// into account.</span>
         <span class="kw">let</span> <span class="ident">dictionary</span> <span class="op">=</span> <span class="ident">Standard::from_embedded</span>(<span class="ident">Language::EnglishUS</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">15</span>).<span class="ident">word_splitter</span>(<span class="ident">dictionary</span>);
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">15</span>).<span class="ident">word_splitter</span>(<span class="ident">WordSplitter::Hyphenation</span>(<span class="ident">dictionary</span>));
         <span class="macro">assert_eq!</span>(
             <span class="ident">wrap</span>(<span class="string">&quot;garbage   collection&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>),
             <span class="macro">vec!</span>[<span class="string">&quot;garbage   col-&quot;</span>, <span class="string">&quot;lection&quot;</span>]
@@ -3859,8 +3352,9 @@
         <span class="comment">// line is borrowed.</span>
         <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>::{<span class="ident">Borrowed</span>, <span class="ident">Owned</span>};
         <span class="kw">let</span> <span class="ident">dictionary</span> <span class="op">=</span> <span class="ident">Standard::from_embedded</span>(<span class="ident">Language::EnglishUS</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">word_splitter</span>(<span class="ident">dictionary</span>);
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">10</span>).<span class="ident">word_splitter</span>(<span class="ident">WordSplitter::Hyphenation</span>(<span class="ident">dictionary</span>));
         <span class="kw">let</span> <span class="ident">lines</span> <span class="op">=</span> <span class="ident">wrap</span>(<span class="string">&quot;Internationalization&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">lines</span>, <span class="macro">vec!</span>[<span class="string">&quot;Interna-&quot;</span>, <span class="string">&quot;tionaliza-&quot;</span>, <span class="string">&quot;tion&quot;</span>]);
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Borrowed</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">lines</span>[<span class="number">0</span>] {
             <span class="macro">assert!</span>(<span class="bool-val">false</span>, <span class="string">&quot;should not have been borrowed: {:?}&quot;</span>, <span class="ident">s</span>);
         }
@@ -3882,7 +3376,7 @@
             <span class="macro">vec!</span>[<span class="string">&quot;over-&quot;</span>, <span class="string">&quot;caffinated&quot;</span>]
         );
 
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">word_splitter</span>(<span class="ident">dictionary</span>);
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">word_splitter</span>(<span class="ident">WordSplitter::Hyphenation</span>(<span class="ident">dictionary</span>));
         <span class="macro">assert_eq!</span>(
             <span class="ident">wrap</span>(<span class="string">&quot;over-caffinated&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>),
             <span class="macro">vec!</span>[<span class="string">&quot;over-&quot;</span>, <span class="string">&quot;caffi-&quot;</span>, <span class="string">&quot;nated&quot;</span>]
@@ -3898,7 +3392,7 @@
     <span class="kw">fn</span> <span class="ident">break_words_wide_characters</span>() {
         <span class="comment">// Even the poor man&#39;s version of `ch_width` counts these</span>
         <span class="comment">// characters as wide.</span>
-        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">5</span>).<span class="ident">word_separator</span>(<span class="ident">word_separators::AsciiSpace</span>);
+        <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">5</span>).<span class="ident">word_separator</span>(<span class="ident">WordSeparator::AsciiSpace</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;Ｈｅｌｌｏ&quot;</span>, <span class="ident">options</span>), <span class="macro">vec!</span>[<span class="string">&quot;Ｈｅ&quot;</span>, <span class="string">&quot;ｌｌ&quot;</span>, <span class="string">&quot;ｏ&quot;</span>]);
     }
 
@@ -3936,14 +3430,14 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">fill</span>(
                 <span class="string">&quot;1 3 5 7\n1 3 5 7&quot;</span>,
-                <span class="ident">Options::new</span>(<span class="number">7</span>).<span class="ident">wrap_algorithm</span>(<span class="ident">wrap_algorithms::FirstFit</span>)
+                <span class="ident">Options::new</span>(<span class="number">7</span>).<span class="ident">wrap_algorithm</span>(<span class="ident">WrapAlgorithm::FirstFit</span>)
             ),
             <span class="string">&quot;1 3 5 7\n1 3 5 7&quot;</span>
         );
         <span class="macro">assert_eq!</span>(
             <span class="ident">fill</span>(
                 <span class="string">&quot;1 3 5 7\n1 3 5 7&quot;</span>,
-                <span class="ident">Options::new</span>(<span class="number">5</span>).<span class="ident">wrap_algorithm</span>(<span class="ident">wrap_algorithms::FirstFit</span>)
+                <span class="ident">Options::new</span>(<span class="number">5</span>).<span class="ident">wrap_algorithm</span>(<span class="ident">WrapAlgorithm::FirstFit</span>)
             ),
             <span class="string">&quot;1 3 5\n7\n1 3 5\n7&quot;</span>
         );
@@ -3992,79 +3486,65 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;smawk&quot;</span>))]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-linebreak&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">cloning_works</span>() {
-        <span class="kw">static</span> <span class="ident">OPT</span>: <span class="ident">Options</span><span class="op">&lt;</span>
-            <span class="ident">wrap_algorithms::FirstFit</span>,
-            <span class="ident">word_separators::AsciiSpace</span>,
-            <span class="ident">word_splitters::HyphenSplitter</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Options::with_word_splitter</span>(<span class="number">80</span>, <span class="ident">word_splitters::HyphenSplitter</span>);
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::clone_on_copy</span>)]</span>
-        <span class="kw">let</span> <span class="ident">opt</span> <span class="op">=</span> <span class="ident">OPT</span>.<span class="ident">clone</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">opt</span>.<span class="ident">width</span>, <span class="number">80</span>);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_empty</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">80</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">80</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_simple</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;foo bar baz&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">10</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">10</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;foo bar\nbaz&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_multiple_lines</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;Some text to wrap over multiple lines&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">12</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">12</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;Some text to\nwrap over\nmultiple\nlines&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_long_word</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;Internationalization is hard&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">10</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">10</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;Internationalization\nis hard&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_no_hyphen_splitting</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;A well-chosen example&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">10</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">10</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;A\nwell-chosen\nexample&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_newlines</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;foo bar\n\nbaz\n\n\n&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">10</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">10</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;foo bar\n\nbaz\n\n\n&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_newlines_reset_line_width</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;1 3 5\n1 3 5 7 9\n1 3 5 7 9 1 3&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">10</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">10</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;1 3 5\n1 3 5 7 9\n1 3 5 7 9\n1 3&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_leading_whitespace</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;  foo bar baz&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">10</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">10</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;  foo bar\nbaz&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">fill_inplace_trailing_whitespace</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;foo bar baz  &quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">10</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">10</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;foo bar\nbaz  &quot;</span>);
     }
 
@@ -4073,7 +3553,7 @@
         <span class="comment">// To avoid an unwanted indentation of &quot;baz&quot;, it is important</span>
         <span class="comment">// to replace the final &#39; &#39; with &#39;\n&#39;.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;foo  bar    baz&quot;</span>);
-        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">text</span>, <span class="number">10</span>);
+        <span class="ident">fill_inplace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">text</span>, <span class="number">10</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">text</span>, <span class="string">&quot;foo  bar   \nbaz&quot;</span>);
     }
 
@@ -4138,60 +3618,6 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">unfill_whitespace</span>() {
         <span class="macro">assert_eq!</span>(<span class="ident">unfill</span>(<span class="string">&quot;foo   bar&quot;</span>).<span class="number">0</span>, <span class="string">&quot;foo   bar&quot;</span>);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">trait_object_vec</span>() {
-        <span class="comment">// Create a vector of Options containing trait-objects.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vector</span>: <span class="ident">Vec</span><span class="op">&lt;</span>
-            <span class="ident">Options</span><span class="op">&lt;</span>
-                <span class="kw">_</span>,
-                <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_separators::WordSeparator</span><span class="op">&gt;</span>,
-                <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_splitters::WordSplitter</span><span class="op">&gt;</span>,
-            <span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="comment">// Expected result from each options</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-
-        <span class="kw">let</span> <span class="ident">opt_full_type</span>: <span class="ident">Options</span><span class="op">&lt;</span>
-            <span class="kw">_</span>,
-            <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_separators::WordSeparator</span><span class="op">&gt;</span>,
-            <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_splitters::WordSplitter</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">Options::new</span>(<span class="number">10</span>)
-                .<span class="ident">word_splitter</span>(<span class="ident">Box::new</span>(<span class="ident">word_splitters::HyphenSplitter</span>)
-                    <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_splitters::WordSplitter</span><span class="op">&gt;</span>)
-                .<span class="ident">word_separator</span>(<span class="ident">Box::new</span>(<span class="ident">word_separators::AsciiSpace</span>)
-                    <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_separators::WordSeparator</span><span class="op">&gt;</span>);
-        <span class="ident">vector</span>.<span class="ident">push</span>(<span class="ident">opt_full_type</span>);
-        <span class="ident">results</span>.<span class="ident">push</span>(<span class="macro">vec!</span>[<span class="string">&quot;over-&quot;</span>, <span class="string">&quot;caffinated&quot;</span>]);
-
-        <span class="comment">// Actually: Options&lt;Box&lt;AsciiSpace&gt;, Box&lt;dyn word_splitters::WordSplitter&gt;&gt;</span>
-        <span class="kw">let</span> <span class="ident">opt_abbreviated_type</span> <span class="op">=</span>
-            <span class="ident">Options::new</span>(<span class="number">10</span>)
-                .<span class="ident">break_words</span>(<span class="bool-val">false</span>)
-                .<span class="ident">word_splitter</span>(<span class="ident">Box::new</span>(<span class="ident">word_splitters::NoHyphenation</span>)
-                    <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_splitters::WordSplitter</span><span class="op">&gt;</span>)
-                .<span class="ident">word_separator</span>(<span class="ident">Box::new</span>(<span class="ident">word_separators::AsciiSpace</span>)
-                    <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_separators::WordSeparator</span><span class="op">&gt;</span>);
-        <span class="ident">vector</span>.<span class="ident">push</span>(<span class="ident">opt_abbreviated_type</span>);
-        <span class="ident">results</span>.<span class="ident">push</span>(<span class="macro">vec!</span>[<span class="string">&quot;over-caffinated&quot;</span>]);
-
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;hyphenation&quot;</span>)]</span>
-        {
-            <span class="kw">let</span> <span class="ident">dictionary</span> <span class="op">=</span> <span class="ident">Standard::from_embedded</span>(<span class="ident">Language::EnglishUS</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">opt_hyp</span> <span class="op">=</span> <span class="ident">Options::new</span>(<span class="number">8</span>)
-                .<span class="ident">word_splitter</span>(<span class="ident">Box::new</span>(<span class="ident">dictionary</span>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_splitters::WordSplitter</span><span class="op">&gt;</span>)
-                .<span class="ident">word_separator</span>(<span class="ident">Box::new</span>(<span class="ident">word_separators::AsciiSpace</span>)
-                    <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">word_separators::WordSeparator</span><span class="op">&gt;</span>);
-            <span class="ident">vector</span>.<span class="ident">push</span>(<span class="ident">opt_hyp</span>);
-            <span class="ident">results</span>.<span class="ident">push</span>(<span class="macro">vec!</span>[<span class="string">&quot;over-&quot;</span>, <span class="string">&quot;caffi-&quot;</span>, <span class="string">&quot;nated&quot;</span>]);
-        }
-
-        <span class="comment">// Test each entry</span>
-        <span class="kw">for</span> (<span class="ident">opt</span>, <span class="ident">expected</span>) <span class="kw">in</span> <span class="ident">vector</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">results</span>) {
-            <span class="macro">assert_eq!</span>(<span class="ident">wrap</span>(<span class="string">&quot;over-caffinated&quot;</span>, <span class="ident">opt</span>), <span class="ident">expected</span>);
-        }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4269,6 +3695,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;aho-corasick-0.7.18&#x2F;src&#x2F;packed&#x2F;teddy&#x2F;runtime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>runtime.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;aho-corasick-0.7.18&#x2F;src&#x2F;packed&#x2F;teddy&#x2F;runtime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../aho_corasick/index.html"><img class="rust-logo" src="../../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1309,7 +1311,7 @@
         <span class="ident">pats</span>: <span class="kw-2">&amp;</span><span class="ident">Patterns</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="comment">// This assert is a bit subtle, but it&#39;s an important guarantee.</span>
         <span class="comment">// Namely, if the maximum pattern ID seen by Teddy is the same as the</span>
         <span class="comment">// one in the patterns given, then we are guaranteed that every pattern</span>
@@ -1338,31 +1340,31 @@
         <span class="comment">// to do it again.</span>
         <span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">exec</span> {
-                <span class="ident">Exec::TeddySlim1Mask128</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddySlim1Mask128</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
-                <span class="ident">Exec::TeddySlim1Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddySlim1Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
-                <span class="ident">Exec::TeddyFat1Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddyFat1Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
-                <span class="ident">Exec::TeddySlim2Mask128</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddySlim2Mask128</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
-                <span class="ident">Exec::TeddySlim2Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddySlim2Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
-                <span class="ident">Exec::TeddyFat2Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddyFat2Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
-                <span class="ident">Exec::TeddySlim3Mask128</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddySlim3Mask128</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
-                <span class="ident">Exec::TeddySlim3Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddySlim3Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
-                <span class="ident">Exec::TeddyFat3Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Exec::TeddyFat3Mask256</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) =&gt; {
                     <span class="ident">e</span>.<span class="ident">find_at</span>(<span class="ident">pats</span>, <span class="self">self</span>, <span class="ident">haystack</span>, <span class="ident">at</span>)
                 }
             }
@@ -1372,26 +1374,26 @@
     <span class="doccomment">/// Returns the minimum length of a haystack that must be provided by</span>
     <span class="doccomment">/// callers to this Teddy searcher. Providing a haystack shorter than this</span>
     <span class="doccomment">/// will result in a panic, but will never violate memory safety.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minimum_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minimum_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="comment">// SAFETY: These values must be correct in order to ensure safety.</span>
         <span class="comment">// The Teddy runtime assumes their haystacks have at least these</span>
         <span class="comment">// lengths. Violating this will sacrifice memory safety.</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">exec</span> {
-            <span class="ident">Exec::TeddySlim1Mask128</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">16</span>,
-            <span class="ident">Exec::TeddySlim1Mask256</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">32</span>,
-            <span class="ident">Exec::TeddyFat1Mask256</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">16</span>,
-            <span class="ident">Exec::TeddySlim2Mask128</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">17</span>,
-            <span class="ident">Exec::TeddySlim2Mask256</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">33</span>,
-            <span class="ident">Exec::TeddyFat2Mask256</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">17</span>,
-            <span class="ident">Exec::TeddySlim3Mask128</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">18</span>,
-            <span class="ident">Exec::TeddySlim3Mask256</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">34</span>,
-            <span class="ident">Exec::TeddyFat3Mask256</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">34</span>,
+            <span class="ident">Exec::TeddySlim1Mask128</span>(<span class="kw">_</span>) =&gt; <span class="number">16</span>,
+            <span class="ident">Exec::TeddySlim1Mask256</span>(<span class="kw">_</span>) =&gt; <span class="number">32</span>,
+            <span class="ident">Exec::TeddyFat1Mask256</span>(<span class="kw">_</span>) =&gt; <span class="number">16</span>,
+            <span class="ident">Exec::TeddySlim2Mask128</span>(<span class="kw">_</span>) =&gt; <span class="number">17</span>,
+            <span class="ident">Exec::TeddySlim2Mask256</span>(<span class="kw">_</span>) =&gt; <span class="number">33</span>,
+            <span class="ident">Exec::TeddyFat2Mask256</span>(<span class="kw">_</span>) =&gt; <span class="number">17</span>,
+            <span class="ident">Exec::TeddySlim3Mask128</span>(<span class="kw">_</span>) =&gt; <span class="number">18</span>,
+            <span class="ident">Exec::TeddySlim3Mask256</span>(<span class="kw">_</span>) =&gt; <span class="number">34</span>,
+            <span class="ident">Exec::TeddyFat3Mask256</span>(<span class="kw">_</span>) =&gt; <span class="number">34</span>,
         }
     }
 
     <span class="doccomment">/// Returns the approximate total amount of heap used by this searcher, in</span>
     <span class="doccomment">/// units of bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">num_patterns</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">max_pattern_id</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>;
         <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternID</span><span class="op">&gt;</span><span class="op">&gt;</span>()
             <span class="op">+</span> <span class="ident">num_patterns</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">PatternID</span><span class="op">&gt;</span>()
@@ -1413,7 +1415,7 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
         <span class="ident">cand</span>: <span class="ident">__m128i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">is_all_zeroes128</span>(<span class="ident">cand</span>));
         <span class="macro">debug_assert_eq!</span>(<span class="number">8</span>, <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>());
 
@@ -1445,7 +1447,7 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
         <span class="ident">cand</span>: <span class="ident">__m256i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">cand</span>));
         <span class="macro">debug_assert_eq!</span>(<span class="number">8</span>, <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>());
 
@@ -1478,7 +1480,7 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
         <span class="ident">cand</span>: <span class="ident">__m256i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">cand</span>));
         <span class="macro">debug_assert_eq!</span>(<span class="number">16</span>, <span class="self">self</span>.<span class="ident">buckets</span>.<span class="ident">len</span>());
 
@@ -1538,11 +1540,11 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
         <span class="kw-2">mut</span> <span class="ident">cand</span>: <span class="ident">u64</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="comment">// N.B. While the bucket count is known from self.buckets.len(),</span>
         <span class="comment">// requiring it as a parameter makes it easier for the optimizer to</span>
         <span class="comment">// know its value, and thus produce more efficient codegen.</span>
-        <span class="macro">debug_assert!</span>(<span class="ident">bucket_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">8</span> <span class="op">|</span><span class="op">|</span> <span class="ident">bucket_count</span> <span class="op">=</span><span class="op">=</span> <span class="number">16</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">bucket_count</span> <span class="op">==</span> <span class="number">8</span> <span class="op">|</span><span class="op">|</span> <span class="ident">bucket_count</span> <span class="op">==</span> <span class="number">16</span>);
         <span class="kw">while</span> <span class="ident">cand</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">bit</span> <span class="op">=</span> <span class="ident">cand</span>.<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span>;
             <span class="ident">cand</span> <span class="op">&amp;=</span> <span class="op">!</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">bit</span>);
@@ -1565,7 +1567,7 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">bucket</span>: <span class="ident">usize</span>,
         <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="comment">// Forcing this function to not inline and be &quot;cold&quot; seems to help</span>
         <span class="comment">// the codegen for Teddy overall. Interestingly, this is good for a</span>
         <span class="comment">// 16% boost in the sherlock/packed/teddy/name/alt1 benchmark (among</span>
@@ -1577,7 +1579,7 @@
             <span class="ident">pati</span>: <span class="ident">PatternID</span>,
             <span class="ident">start</span>: <span class="ident">usize</span>,
             <span class="ident">end</span>: <span class="ident">usize</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Match</span> {
+        ) -&gt; <span class="ident">Match</span> {
             <span class="ident">Match::from_span</span>(<span class="ident">pati</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">start</span>, <span class="ident">end</span>)
         }
 
@@ -1640,7 +1642,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -1669,7 +1671,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">candidate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">candidate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">__m128i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">16</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">loadu128</span>(<span class="ident">haystack</span>, <span class="ident">at</span>);
@@ -1690,7 +1692,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -1719,7 +1721,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">candidate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">candidate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">__m256i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">32</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">loadu256</span>(<span class="ident">haystack</span>, <span class="ident">at</span>);
@@ -1740,7 +1742,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -1769,7 +1771,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">candidate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">candidate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">__m256i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">16</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">_mm256_broadcastsi128_si256</span>(<span class="ident">loadu128</span>(<span class="ident">haystack</span>, <span class="ident">at</span>));
@@ -1791,7 +1793,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -1801,7 +1803,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones128</span>();
         <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">16</span> {
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes128</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify128</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">c</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
@@ -1813,7 +1815,7 @@
             <span class="ident">at</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">16</span>;
             <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones128</span>();
 
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes128</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify128</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">c</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
@@ -1828,8 +1830,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">prev0</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m128i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+        <span class="ident">prev0</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m128i</span>,
+    ) -&gt; <span class="ident">__m128i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">16</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">loadu128</span>(<span class="ident">haystack</span>, <span class="ident">at</span>);
@@ -1853,7 +1855,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -1863,7 +1865,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones256</span>();
         <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">32</span> {
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify256</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">c</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
@@ -1875,7 +1877,7 @@
             <span class="ident">at</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">32</span>;
             <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones256</span>();
 
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify256</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">c</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
@@ -1890,8 +1892,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">prev0</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m256i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+        <span class="ident">prev0</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m256i</span>,
+    ) -&gt; <span class="ident">__m256i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">32</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">loadu256</span>(<span class="ident">haystack</span>, <span class="ident">at</span>);
@@ -1917,7 +1919,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -1927,7 +1929,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones256</span>();
         <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">16</span> {
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify_fat256</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">c</span>)
                 {
@@ -1940,7 +1942,7 @@
             <span class="ident">at</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">16</span>;
             <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones256</span>();
 
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify_fat256</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">c</span>)
                 {
@@ -1956,8 +1958,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">prev0</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m256i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+        <span class="ident">prev0</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m256i</span>,
+    ) -&gt; <span class="ident">__m256i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">16</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">_mm256_broadcastsi128_si256</span>(<span class="ident">loadu128</span>(<span class="ident">haystack</span>, <span class="ident">at</span>));
@@ -1984,7 +1986,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -1994,7 +1996,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>();
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">mut</span> <span class="ident">prev1</span>) <span class="op">=</span> (<span class="ident">ones128</span>(), <span class="ident">ones128</span>());
         <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">16</span> {
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev1</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev1</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes128</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify128</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">2</span>, <span class="ident">c</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
@@ -2007,7 +2009,7 @@
             <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones128</span>();
             <span class="ident">prev1</span> <span class="op">=</span> <span class="ident">ones128</span>();
 
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev1</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev1</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes128</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify128</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">2</span>, <span class="ident">c</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
@@ -2022,9 +2024,9 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">prev0</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m128i</span>,
-        <span class="ident">prev1</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m128i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+        <span class="ident">prev0</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m128i</span>,
+        <span class="ident">prev1</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m128i</span>,
+    ) -&gt; <span class="ident">__m128i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">16</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">loadu128</span>(<span class="ident">haystack</span>, <span class="ident">at</span>);
@@ -2054,7 +2056,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -2064,7 +2066,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>();
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">mut</span> <span class="ident">prev1</span>) <span class="op">=</span> (<span class="ident">ones256</span>(), <span class="ident">ones256</span>());
         <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">32</span> {
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev1</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev1</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify256</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">2</span>, <span class="ident">c</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
@@ -2077,7 +2079,7 @@
             <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones256</span>();
             <span class="ident">prev1</span> <span class="op">=</span> <span class="ident">ones256</span>();
 
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev1</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev1</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify256</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">2</span>, <span class="ident">c</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>);
@@ -2092,9 +2094,9 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">prev0</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m256i</span>,
-        <span class="ident">prev1</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m256i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+        <span class="ident">prev0</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m256i</span>,
+        <span class="ident">prev1</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m256i</span>,
+    ) -&gt; <span class="ident">__m256i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">32</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">loadu256</span>(<span class="ident">haystack</span>, <span class="ident">at</span>);
@@ -2125,7 +2127,7 @@
         <span class="ident">teddy</span>: <span class="kw-2">&amp;</span><span class="ident">Teddy</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="kw-2">mut</span> <span class="ident">at</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">minimum_len</span>());
         <span class="comment">// This assert helps eliminate bounds checks for bucket lookups in</span>
         <span class="comment">// Teddy::verify_bucket, which has a small (3-4%) performance boost.</span>
@@ -2135,7 +2137,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>();
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">mut</span> <span class="ident">prev1</span>) <span class="op">=</span> (<span class="ident">ones256</span>(), <span class="ident">ones256</span>());
         <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="number">16</span> {
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev1</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev1</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify_fat256</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">2</span>, <span class="ident">c</span>)
                 {
@@ -2149,7 +2151,7 @@
             <span class="ident">prev0</span> <span class="op">=</span> <span class="ident">ones256</span>();
             <span class="ident">prev1</span> <span class="op">=</span> <span class="ident">ones256</span>();
 
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev1</span>);
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidate</span>(<span class="ident">haystack</span>, <span class="ident">at</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev0</span>, <span class="kw-2">&amp;mut</span> <span class="ident">prev1</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_all_zeroes256</span>(<span class="ident">c</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span> <span class="ident">teddy</span>.<span class="ident">verify_fat256</span>(<span class="ident">pats</span>, <span class="ident">haystack</span>, <span class="ident">at</span> <span class="op">-</span> <span class="number">2</span>, <span class="ident">c</span>)
                 {
@@ -2165,9 +2167,9 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
-        <span class="ident">prev0</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m256i</span>,
-        <span class="ident">prev1</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">__m256i</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+        <span class="ident">prev0</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m256i</span>,
+        <span class="ident">prev1</span>: <span class="kw-2">&amp;mut</span> <span class="ident">__m256i</span>,
+    ) -&gt; <span class="ident">__m256i</span> {
         <span class="macro">debug_assert!</span>(<span class="ident">haystack</span>[<span class="ident">at</span>..].<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">16</span>);
 
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">_mm256_broadcastsi128_si256</span>(<span class="ident">loadu128</span>(<span class="ident">haystack</span>, <span class="ident">at</span>));
@@ -2194,7 +2196,7 @@
 
 <span class="kw">impl</span> <span class="ident">Mask128</span> {
     <span class="doccomment">/// Create a new SIMD mask from the mask produced by the Teddy builder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mask</span>: <span class="ident">compile::Mask</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Mask128</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mask</span>: <span class="ident">compile::Mask</span>) -&gt; <span class="ident">Mask128</span> {
         <span class="comment">// SAFETY: This is safe since [u8; 16] has the same representation</span>
         <span class="comment">// as __m128i.</span>
         <span class="kw">unsafe</span> {
@@ -2228,7 +2230,7 @@
 
 <span class="kw">impl</span> <span class="ident">Mask256</span> {
     <span class="doccomment">/// Create a new SIMD mask from the mask produced by the Teddy builder.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mask</span>: <span class="ident">compile::Mask</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Mask256</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mask</span>: <span class="ident">compile::Mask</span>) -&gt; <span class="ident">Mask256</span> {
         <span class="comment">// SAFETY: This is safe since [u8; 32] has the same representation</span>
         <span class="comment">// as __m256i.</span>
         <span class="kw">unsafe</span> {
@@ -2256,7 +2258,7 @@
 <span class="doccomment">/// corresponds to the start of the window), and `mask1` corresponds to a</span>
 <span class="doccomment">/// low/high mask for the first byte of all patterns that are being searched.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;ssse3&quot;</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">members1m128</span>(<span class="ident">chunk</span>: <span class="ident">__m128i</span>, <span class="ident">mask1</span>: <span class="ident">Mask128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m128i</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">members1m128</span>(<span class="ident">chunk</span>: <span class="ident">__m128i</span>, <span class="ident">mask1</span>: <span class="ident">Mask128</span>) -&gt; <span class="ident">__m128i</span> {
     <span class="kw">let</span> <span class="ident">lomask</span> <span class="op">=</span> <span class="ident">_mm_set1_epi8</span>(<span class="number">0xF</span>);
     <span class="kw">let</span> <span class="ident">hlo</span> <span class="op">=</span> <span class="ident">_mm_and_si128</span>(<span class="ident">chunk</span>, <span class="ident">lomask</span>);
     <span class="kw">let</span> <span class="ident">hhi</span> <span class="op">=</span> <span class="ident">_mm_and_si128</span>(<span class="ident">_mm_srli_epi16</span>(<span class="ident">chunk</span>, <span class="number">4</span>), <span class="ident">lomask</span>);
@@ -2275,7 +2277,7 @@
 <span class="doccomment">/// `chunk` is the same as the low 128 bits, which corresponds to a 16 byte</span>
 <span class="doccomment">/// window in the haystack.</span>
 <span class="attribute">#[<span class="ident">target_feature</span>(<span class="ident">enable</span> <span class="op">=</span> <span class="string">&quot;avx2&quot;</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">members1m256</span>(<span class="ident">chunk</span>: <span class="ident">__m256i</span>, <span class="ident">mask1</span>: <span class="ident">Mask256</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">__m256i</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">members1m256</span>(<span class="ident">chunk</span>: <span class="ident">__m256i</span>, <span class="ident">mask1</span>: <span class="ident">Mask256</span>) -&gt; <span class="ident">__m256i</span> {
     <span class="kw">let</span> <span class="ident">lomask</span> <span class="op">=</span> <span class="ident">_mm256_set1_epi8</span>(<span class="number">0xF</span>);
     <span class="kw">let</span> <span class="ident">hlo</span> <span class="op">=</span> <span class="ident">_mm256_and_si256</span>(<span class="ident">chunk</span>, <span class="ident">lomask</span>);
     <span class="kw">let</span> <span class="ident">hhi</span> <span class="op">=</span> <span class="ident">_mm256_and_si256</span>(<span class="ident">_mm256_srli_epi16</span>(<span class="ident">chunk</span>, <span class="number">4</span>), <span class="ident">lomask</span>);
@@ -2296,7 +2298,7 @@
     <span class="ident">chunk</span>: <span class="ident">__m128i</span>,
     <span class="ident">mask1</span>: <span class="ident">Mask128</span>,
     <span class="ident">mask2</span>: <span class="ident">Mask128</span>,
-) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">__m128i</span>, <span class="ident">__m128i</span>) {
+) -&gt; (<span class="ident">__m128i</span>, <span class="ident">__m128i</span>) {
     <span class="kw">let</span> <span class="ident">lomask</span> <span class="op">=</span> <span class="ident">_mm_set1_epi8</span>(<span class="number">0xF</span>);
     <span class="kw">let</span> <span class="ident">hlo</span> <span class="op">=</span> <span class="ident">_mm_and_si128</span>(<span class="ident">chunk</span>, <span class="ident">lomask</span>);
     <span class="kw">let</span> <span class="ident">hhi</span> <span class="op">=</span> <span class="ident">_mm_and_si128</span>(<span class="ident">_mm_srli_epi16</span>(<span class="ident">chunk</span>, <span class="number">4</span>), <span class="ident">lomask</span>);
@@ -2326,7 +2328,7 @@
     <span class="ident">chunk</span>: <span class="ident">__m256i</span>,
     <span class="ident">mask1</span>: <span class="ident">Mask256</span>,
     <span class="ident">mask2</span>: <span class="ident">Mask256</span>,
-) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">__m256i</span>, <span class="ident">__m256i</span>) {
+) -&gt; (<span class="ident">__m256i</span>, <span class="ident">__m256i</span>) {
     <span class="kw">let</span> <span class="ident">lomask</span> <span class="op">=</span> <span class="ident">_mm256_set1_epi8</span>(<span class="number">0xF</span>);
     <span class="kw">let</span> <span class="ident">hlo</span> <span class="op">=</span> <span class="ident">_mm256_and_si256</span>(<span class="ident">chunk</span>, <span class="ident">lomask</span>);
     <span class="kw">let</span> <span class="ident">hhi</span> <span class="op">=</span> <span class="ident">_mm256_and_si256</span>(<span class="ident">_mm256_srli_epi16</span>(<span class="ident">chunk</span>, <span class="number">4</span>), <span class="ident">lomask</span>);
@@ -2353,7 +2355,7 @@
     <span class="ident">mask1</span>: <span class="ident">Mask128</span>,
     <span class="ident">mask2</span>: <span class="ident">Mask128</span>,
     <span class="ident">mask3</span>: <span class="ident">Mask128</span>,
-) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">__m128i</span>, <span class="ident">__m128i</span>, <span class="ident">__m128i</span>) {
+) -&gt; (<span class="ident">__m128i</span>, <span class="ident">__m128i</span>, <span class="ident">__m128i</span>) {
     <span class="kw">let</span> <span class="ident">lomask</span> <span class="op">=</span> <span class="ident">_mm_set1_epi8</span>(<span class="number">0xF</span>);
     <span class="kw">let</span> <span class="ident">hlo</span> <span class="op">=</span> <span class="ident">_mm_and_si128</span>(<span class="ident">chunk</span>, <span class="ident">lomask</span>);
     <span class="kw">let</span> <span class="ident">hhi</span> <span class="op">=</span> <span class="ident">_mm_and_si128</span>(<span class="ident">_mm_srli_epi16</span>(<span class="ident">chunk</span>, <span class="number">4</span>), <span class="ident">lomask</span>);
@@ -2388,7 +2390,7 @@
     <span class="ident">mask1</span>: <span class="ident">Mask256</span>,
     <span class="ident">mask2</span>: <span class="ident">Mask256</span>,
     <span class="ident">mask3</span>: <span class="ident">Mask256</span>,
-) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">__m256i</span>, <span class="ident">__m256i</span>, <span class="ident">__m256i</span>) {
+) -&gt; (<span class="ident">__m256i</span>, <span class="ident">__m256i</span>, <span class="ident">__m256i</span>) {
     <span class="kw">let</span> <span class="ident">lomask</span> <span class="op">=</span> <span class="ident">_mm256_set1_epi8</span>(<span class="number">0xF</span>);
     <span class="kw">let</span> <span class="ident">hlo</span> <span class="op">=</span> <span class="ident">_mm256_and_si256</span>(<span class="ident">chunk</span>, <span class="ident">lomask</span>);
     <span class="kw">let</span> <span class="ident">hhi</span> <span class="op">=</span> <span class="ident">_mm256_and_si256</span>(<span class="ident">_mm256_srli_epi16</span>(<span class="ident">chunk</span>, <span class="number">4</span>), <span class="ident">lomask</span>);
@@ -2407,6 +2409,5 @@
     (<span class="ident">res0</span>, <span class="ident">res1</span>, <span class="ident">res2</span>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="aho_corasick" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
-    <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

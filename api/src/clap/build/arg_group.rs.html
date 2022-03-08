@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-3.0.14&#x2F;src&#x2F;build&#x2F;arg_group.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_group.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;clap-rs&#x2F;clap&#x2F;master&#x2F;assets&#x2F;clap.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;clap-3.1.5&#x2F;src&#x2F;build&#x2F;arg_group.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_group.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;clap-rs&#x2F;clap&#x2F;master&#x2F;assets&#x2F;clap.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html"><img src="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;clap-rs&#x2F;clap&#x2F;master&#x2F;assets&#x2F;clap.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -622,13 +624,6 @@
 <span id="622">622</span>
 <span id="623">623</span>
 <span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
 </pre><pre class="rust"><code><span class="comment">// Internal</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util</span>::{<span class="ident">Id</span>, <span class="ident">Key</span>};
 
@@ -668,8 +663,8 @@
 <span class="doccomment">/// the arguments from the specified group is present at runtime.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use clap::{App, arg, ArgGroup, ErrorKind};</span>
-<span class="doccomment">/// let result = App::new(&quot;app&quot;)</span>
+<span class="doccomment">/// # use clap::{Command, arg, ArgGroup, ErrorKind};</span>
+<span class="doccomment">/// let result = Command::new(&quot;cmd&quot;)</span>
 <span class="doccomment">///     .arg(arg!(--&quot;set-ver&quot; &lt;ver&gt; &quot;set the version manually&quot;).required(false))</span>
 <span class="doccomment">///     .arg(arg!(--major           &quot;auto increase major&quot;))</span>
 <span class="doccomment">///     .arg(arg!(--minor           &quot;auto increase minor&quot;))</span>
@@ -677,7 +672,7 @@
 <span class="doccomment">///     .group(ArgGroup::new(&quot;vers&quot;)</span>
 <span class="doccomment">///          .args(&amp;[&quot;set-ver&quot;, &quot;major&quot;, &quot;minor&quot;, &quot;patch&quot;])</span>
 <span class="doccomment">///          .required(true))</span>
-<span class="doccomment">///     .try_get_matches_from(vec![&quot;app&quot;, &quot;--major&quot;, &quot;--patch&quot;]);</span>
+<span class="doccomment">///     .try_get_matches_from(vec![&quot;cmd&quot;, &quot;--major&quot;, &quot;--patch&quot;]);</span>
 <span class="doccomment">/// // Because we used two args in the group it&#39;s an error</span>
 <span class="doccomment">/// assert!(result.is_err());</span>
 <span class="doccomment">/// let err = result.unwrap_err();</span>
@@ -686,8 +681,8 @@
 <span class="doccomment">/// This next example shows a passing parse of the same scenario</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use clap::{App, arg, ArgGroup};</span>
-<span class="doccomment">/// let result = App::new(&quot;app&quot;)</span>
+<span class="doccomment">/// # use clap::{Command, arg, ArgGroup};</span>
+<span class="doccomment">/// let result = Command::new(&quot;cmd&quot;)</span>
 <span class="doccomment">///     .arg(arg!(--&quot;set-ver&quot; &lt;ver&gt; &quot;set the version manually&quot;).required(false))</span>
 <span class="doccomment">///     .arg(arg!(--major           &quot;auto increase major&quot;))</span>
 <span class="doccomment">///     .arg(arg!(--minor           &quot;auto increase minor&quot;))</span>
@@ -695,7 +690,7 @@
 <span class="doccomment">///     .group(ArgGroup::new(&quot;vers&quot;)</span>
 <span class="doccomment">///          .args(&amp;[&quot;set-ver&quot;, &quot;major&quot;, &quot;minor&quot;,&quot;patch&quot;])</span>
 <span class="doccomment">///          .required(true))</span>
-<span class="doccomment">///     .try_get_matches_from(vec![&quot;app&quot;, &quot;--major&quot;]);</span>
+<span class="doccomment">///     .try_get_matches_from(vec![&quot;cmd&quot;, &quot;--major&quot;]);</span>
 <span class="doccomment">/// assert!(result.is_ok());</span>
 <span class="doccomment">/// let matches = result.unwrap();</span>
 <span class="doccomment">/// // We may not know which of the args was used, so we can test for the group...</span>
@@ -720,7 +715,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> <span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_id</span>(<span class="ident">id</span>: <span class="ident">Id</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_id</span>(<span class="ident">id</span>: <span class="ident">Id</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ArgGroup</span> {
             <span class="ident">id</span>,
             ..<span class="ident">ArgGroup::default</span>()
@@ -735,12 +730,12 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, ArgGroup};</span>
+    <span class="doccomment">/// # use clap::{Command, ArgGroup};</span>
     <span class="doccomment">/// ArgGroup::new(&quot;config&quot;)</span>
     <span class="doccomment">/// # ;</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">ArgGroup::default</span>().<span class="ident">name</span>(<span class="ident">n</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">ArgGroup::default</span>().<span class="ident">id</span>(<span class="ident">n</span>)
     }
 
     <span class="doccomment">/// Sets the group name.</span>
@@ -748,15 +743,21 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, ArgGroup};</span>
+    <span class="doccomment">/// # use clap::{Command, ArgGroup};</span>
     <span class="doccomment">/// ArgGroup::default().name(&quot;config&quot;)</span>
     <span class="doccomment">/// # ;</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">into</span>();
         <span class="self">self</span>.<span class="ident">id</span> <span class="op">=</span> <span class="ident">Id::from</span>(<span class="self">self</span>.<span class="ident">name</span>);
         <span class="self">self</span>
+    }
+
+    <span class="doccomment">/// Deprecated, replaced with [`ArgGroup::id`]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `ArgGroup::id`&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">id</span>(<span class="ident">n</span>)
     }
 
     <span class="doccomment">/// Adds an [argument] to this group by name</span>
@@ -764,8 +765,8 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup};</span>
-    <span class="doccomment">/// let m = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup};</span>
+    <span class="doccomment">/// let m = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -781,7 +782,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [argument]: crate::Arg</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arg</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg_id</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arg</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arg_id</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">arg_id</span>.<span class="ident">into</span>());
         <span class="self">self</span>
     }
@@ -791,8 +792,8 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup};</span>
-    <span class="doccomment">/// let m = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup};</span>
+    <span class="doccomment">/// let m = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -807,7 +808,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [arguments]: crate::Arg</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ns</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ns</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">ns</span> {
             <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">arg</span>(<span class="ident">n</span>);
         }
@@ -822,8 +823,8 @@
     <span class="doccomment">/// group</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup};</span>
-    <span class="doccomment">/// let m = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup};</span>
+    <span class="doccomment">/// let m = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -839,8 +840,8 @@
     <span class="doccomment">/// an error if more than one of the args in the group was used.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup, ErrorKind};</span>
-    <span class="doccomment">/// let result = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup, ErrorKind};</span>
+    <span class="doccomment">/// let result = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -857,7 +858,7 @@
     <span class="doccomment">/// [`Arg`]: crate::Arg</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">multiple</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
@@ -867,7 +868,7 @@
     <span class="doccomment">/// This is unless conflicting with another argument.  A required group will be displayed in</span>
     <span class="doccomment">/// the usage string of the application in the format `&lt;arg|arg2|arg3&gt;`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// **NOTE:** This setting only applies to the current [`App`] / [`Subcommand`]s, and not</span>
+    <span class="doccomment">/// **NOTE:** This setting only applies to the current [`Command`] / [`Subcommand`]s, and not</span>
     <span class="doccomment">/// globally.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// **NOTE:** By default, [`ArgGroup::multiple`] is set to `false` which when combined with</span>
@@ -875,14 +876,11 @@
     <span class="doccomment">/// Use of more than one arg is an error.&quot; Vice setting `ArgGroup::multiple(true)` which</span>
     <span class="doccomment">/// states, &#39;*At least* one arg from this group must be used. Using multiple is OK.&quot;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// **NOTE:** An argument is considered present when there is a</span>
-    <span class="doccomment">/// [`Arg::default_value`](crate::Arg::default_value)</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup, ErrorKind};</span>
-    <span class="doccomment">/// let result = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup, ErrorKind};</span>
+    <span class="doccomment">/// let result = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -899,10 +897,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Subcommand`]: crate::Subcommand</span>
     <span class="doccomment">/// [`ArgGroup::multiple`]: ArgGroup::multiple()</span>
-    <span class="doccomment">/// [`App`]: crate::App</span>
+    <span class="doccomment">/// [`Command`]: crate::Command</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">required</span> <span class="op">=</span> <span class="ident">yes</span>;
         <span class="self">self</span>
     }
@@ -913,16 +911,13 @@
     <span class="doccomment">/// [argument requirement rules], you can name other arguments or groups that must be present</span>
     <span class="doccomment">/// when any one of the arguments from this group is used.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// **NOTE:** An argument is considered present when there is a</span>
-    <span class="doccomment">/// [`Arg::default_value`](crate::Arg::default_value)</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// **NOTE:** The name provided may be an argument or group name</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup, ErrorKind};</span>
-    <span class="doccomment">/// let result = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup, ErrorKind};</span>
+    <span class="doccomment">/// let result = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -942,7 +937,7 @@
     <span class="doccomment">/// [required group]: ArgGroup::required()</span>
     <span class="doccomment">/// [argument requirement rules]: crate::Arg::requires()</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">requires</span>.<span class="ident">push</span>(<span class="ident">id</span>.<span class="ident">into</span>());
         <span class="self">self</span>
     }
@@ -955,14 +950,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// **NOTE:** The names provided may be an argument or group name</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// **NOTE:** An argument is considered present when there is a</span>
-    <span class="doccomment">/// [`Arg::default_value`](crate::Arg::default_value)</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup, ErrorKind};</span>
-    <span class="doccomment">/// let result = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup, ErrorKind};</span>
+    <span class="doccomment">/// let result = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -984,7 +976,7 @@
     <span class="doccomment">/// [required group]: ArgGroup::required()</span>
     <span class="doccomment">/// [argument requirement rules]: crate::Arg::requires_all()</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ns</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">requires_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ns</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">ns</span> {
             <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">requires</span>(<span class="ident">n</span>);
         }
@@ -999,14 +991,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// **NOTE:** The name provided may be an argument, or group name</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// **NOTE:** An argument is considered present when there is a</span>
-    <span class="doccomment">/// [`Arg::default_value`](crate::Arg::default_value)</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup, ErrorKind};</span>
-    <span class="doccomment">/// let result = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup, ErrorKind};</span>
+    <span class="doccomment">/// let result = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -1024,7 +1013,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [argument exclusion rules]: crate::Arg::conflicts_with()</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflicts_with</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflicts_with</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">conflicts</span>.<span class="ident">push</span>(<span class="ident">id</span>.<span class="ident">into</span>());
         <span class="self">self</span>
     }
@@ -1036,14 +1025,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// **NOTE:** The names provided may be an argument, or group name</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// **NOTE:** An argument is considered present when there is a</span>
-    <span class="doccomment">/// [`Arg::default_value`](crate::Arg::default_value)</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// # use clap::{App, Arg, ArgGroup, ErrorKind};</span>
-    <span class="doccomment">/// let result = App::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">/// # use clap::{Command, Arg, ArgGroup, ErrorKind};</span>
+    <span class="doccomment">/// let result = Command::new(&quot;myprog&quot;)</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///         .short(&#39;f&#39;))</span>
     <span class="doccomment">///     .arg(Arg::new(&quot;color&quot;)</span>
@@ -1065,7 +1051,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [argument exclusion rules]: crate::Arg::conflicts_with_all()</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflicts_with_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ns</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">conflicts_with_all</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ns</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="ident">ns</span> {
             <span class="self">self</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">conflicts_with</span>(<span class="ident">n</span>);
         }
@@ -1074,7 +1060,8 @@
 
     <span class="doccomment">/// Deprecated, replaced with [`ArgGroup::new`]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `ArgGroup::new`&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">n</span>)
     }
 
@@ -1084,13 +1071,14 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Maybe clap::Parser would fit your use case? (Issue #3087)&quot;</span>
     )]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yaml</span>(<span class="ident">yaml</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">Yaml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yaml</span>(<span class="ident">yaml</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">Yaml</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">yaml</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ArgGroup</span> {
             <span class="ident">id</span>: <span class="ident">g</span>.<span class="ident">id</span>.<span class="ident">clone</span>(),
             <span class="ident">name</span>: <span class="ident">g</span>.<span class="ident">name</span>,
@@ -1107,11 +1095,11 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;yaml&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">Yaml</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Deprecated in [Issue #3087](https://github.com/clap-rs/clap/issues/3087), maybe [`clap::Parser`][crate::Parser] would fit your use case?</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">Yaml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">Yaml</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">y</span>.<span class="ident">as_hash</span>().<span class="ident">expect</span>(<span class="string">&quot;ArgGroup::from::&lt;Yaml&gt; expects a table&quot;</span>);
         <span class="comment">// We WANT this to panic on error...so expect() is good.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">ArgGroup::default</span>();
-        <span class="kw">let</span> <span class="ident">group_settings</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">b</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">let</span> <span class="ident">group_settings</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">b</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">let</span> <span class="ident">name_yaml</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">keys</span>().<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;failed to get name&quot;</span>);
             <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="ident">name_yaml</span>
                 .<span class="ident">as_str</span>()
@@ -1128,24 +1116,24 @@
 
         <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">group_settings</span> {
             <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">k</span>.<span class="ident">as_str</span>().<span class="ident">unwrap</span>() {
-                <span class="string">&quot;required&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">required</span>(<span class="ident">v</span>.<span class="ident">as_bool</span>().<span class="ident">unwrap</span>()),
-                <span class="string">&quot;multiple&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">multiple</span>(<span class="ident">v</span>.<span class="ident">as_bool</span>().<span class="ident">unwrap</span>()),
-                <span class="string">&quot;args&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">arg</span>),
-                <span class="string">&quot;arg&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&quot;required&quot;</span> =&gt; <span class="ident">a</span>.<span class="ident">required</span>(<span class="ident">v</span>.<span class="ident">as_bool</span>().<span class="ident">unwrap</span>()),
+                <span class="string">&quot;multiple&quot;</span> =&gt; <span class="ident">a</span>.<span class="ident">multiple</span>(<span class="ident">v</span>.<span class="ident">as_bool</span>().<span class="ident">unwrap</span>()),
+                <span class="string">&quot;args&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">arg</span>),
+                <span class="string">&quot;arg&quot;</span> =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ys</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">as_str</span>() {
                         <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">arg</span>(<span class="ident">ys</span>);
                     }
                     <span class="ident">a</span>
                 }
-                <span class="string">&quot;requires&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">requires</span>),
-                <span class="string">&quot;conflicts_with&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">yaml_vec_or_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">conflicts_with</span>),
-                <span class="string">&quot;name&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&quot;requires&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">requires</span>),
+                <span class="string">&quot;conflicts_with&quot;</span> =&gt; <span class="macro">yaml_vec_or_str!</span>(<span class="ident">a</span>, <span class="ident">v</span>, <span class="ident">conflicts_with</span>),
+                <span class="string">&quot;name&quot;</span> =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ys</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">as_str</span>() {
-                        <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">name</span>(<span class="ident">ys</span>);
+                        <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">id</span>(<span class="ident">ys</span>);
                     }
                     <span class="ident">a</span>
                 }
-                <span class="ident">s</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+                <span class="ident">s</span> =&gt; <span class="macro">panic!</span>(
                     <span class="string">&quot;Unknown ArgGroup setting &#39;{}&#39; in YAML file for \
                      ArgGroup &#39;{}&#39;&quot;</span>,
                     <span class="ident">s</span>, <span class="ident">a</span>.<span class="ident">name</span>
@@ -1248,7 +1236,7 @@ requires:
 }
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ArgGroup</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ArgGroup</span> {
             <span class="ident">id</span>: <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">clone</span>(),
             <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">name</span>,
@@ -1261,6 +1249,5 @@ requires:
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

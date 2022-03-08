@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;resolver&#x2F;const_evaluator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>const_evaluator.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;resolver&#x2F;const_evaluator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>const_evaluator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../rusty/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../rusty/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -712,7 +714,7 @@
 };
 
 <span class="macro">macro_rules!</span> <span class="ident">cannot_eval_error</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>:<span class="ident">expr</span>) =&gt; {
         <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
             <span class="string">&quot;Cannot evaluate {:?} {:} {:?}&quot;</span>,
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>
@@ -721,16 +723,16 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">arithmetic_expression</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>) {
             (   <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">lvalue</span>, <span class="ident">location</span>: <span class="ident">loc_left</span>, ..},
-                <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralInteger</span>{
                     <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>, <span class="ident">value</span>: <span class="ident">lvalue</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">loc_left</span>.<span class="ident">get_start</span>() .. <span class="ident">loc_right</span>.<span class="ident">get_start</span>())
                 })
             },
             (   <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">lvalue</span>, <span class="ident">location</span>: <span class="ident">loc_left</span>, ..},
-                <span class="ident">AstStatement::LiteralReal</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralReal</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) =&gt; {
                     <span class="kw">let</span> <span class="ident">rvalue</span> <span class="op">=</span> <span class="ident">rvalue</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>()
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralReal</span>{
@@ -738,7 +740,7 @@
                 })
             },
             (   <span class="ident">AstStatement::LiteralReal</span>{<span class="ident">value</span>: <span class="ident">lvalue</span>, <span class="ident">location</span>: <span class="ident">loc_left</span>, ..},
-                <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) =&gt; {
                     <span class="kw">let</span> <span class="ident">lvalue</span> <span class="op">=</span> <span class="ident">lvalue</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>()
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralReal</span>{
@@ -746,7 +748,7 @@
                 })
             },
             (   <span class="ident">AstStatement::LiteralReal</span>{<span class="ident">value</span>: <span class="ident">lvalue</span>, <span class="ident">location</span>: <span class="ident">loc_left</span>, ..},
-                <span class="ident">AstStatement::LiteralReal</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralReal</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) =&gt; {
                     <span class="kw">let</span> <span class="ident">lvalue</span> <span class="op">=</span> <span class="ident">lvalue</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>()
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">rvalue</span> <span class="op">=</span> <span class="ident">rvalue</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>()
@@ -755,51 +757,51 @@
                     <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>, <span class="ident">value</span>: (<span class="ident">lvalue</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> <span class="ident">rvalue</span>).<span class="ident">to_string</span>(), <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">loc_left</span>.<span class="ident">get_start</span>() .. <span class="ident">loc_right</span>.<span class="ident">get_start</span>())
                 })
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>),
         }
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">bitwise_expression</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>) {
             (   <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">lvalue</span>, <span class="ident">location</span>: <span class="ident">loc_left</span>, ..},
-                <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralInteger</span>{
                     <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>, <span class="ident">value</span>: <span class="ident">lvalue</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">loc_left</span>.<span class="ident">get_start</span>() .. <span class="ident">loc_right</span>.<span class="ident">get_start</span>())
                 })
             },
             (   <span class="ident">AstStatement::LiteralBool</span>{<span class="ident">value</span>: <span class="ident">lvalue</span>, <span class="ident">location</span>: <span class="ident">loc_left</span>, ..},
-                <span class="ident">AstStatement::LiteralBool</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralBool</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralBool</span>{
                     <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>, <span class="ident">value</span>: <span class="ident">lvalue</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">loc_left</span>.<span class="ident">get_start</span>() .. <span class="ident">loc_right</span>.<span class="ident">get_start</span>())
                 })
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>),
         }
     };
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">compare_expression</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">tt</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">match</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>) {
             (   <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">lvalue</span>, <span class="ident">location</span>: <span class="ident">loc_left</span>, ..},
-                <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralInteger</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralBool</span>{
                     <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>, <span class="ident">value</span>: <span class="ident">lvalue</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">loc_left</span>.<span class="ident">get_start</span>() .. <span class="ident">loc_right</span>.<span class="ident">get_start</span>())
                 })
             },
             (   <span class="ident">AstStatement::LiteralReal</span>{..},
-                <span class="ident">AstStatement::LiteralReal</span>{..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralReal</span>{..}) =&gt; {
                 <span class="prelude-val">Err</span>(<span class="string">&quot;Cannot compare Reals without epsilon&quot;</span>.<span class="ident">into</span>())
             },
             (   <span class="ident">AstStatement::LiteralBool</span>{<span class="ident">value</span>: <span class="ident">lvalue</span>, <span class="ident">location</span>: <span class="ident">loc_left</span>, ..},
-                <span class="ident">AstStatement::LiteralBool</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">AstStatement::LiteralBool</span>{<span class="ident">value</span>: <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">loc_right</span>, ..}) =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralBool</span>{
                     <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resulting_id</span>, <span class="ident">value</span>: <span class="ident">lvalue</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> <span class="ident">rvalue</span>, <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">loc_left</span>.<span class="ident">get_start</span>() .. <span class="ident">loc_right</span>.<span class="ident">get_start</span>())
                 })
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">cannot_eval_error!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">left</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op_text</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">right</span>),
         }
     }
 }
@@ -815,21 +817,21 @@
 }
 
 <span class="kw">impl</span> <span class="ident">UnresolvableConstant</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">ConstId</span>, <span class="ident">reason</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">ConstId</span>, <span class="ident">reason</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">UnresolvableConstant</span> {
             <span class="ident">id</span>,
             <span class="ident">reason</span>: <span class="ident">reason</span>.<span class="ident">to_string</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">incomplete_initialzation</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">ConstId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">incomplete_initialzation</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">ConstId</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">UnresolvableConstant::new</span>(
             <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="string">&quot;Incomplete initialization - cannot evaluate const expressions&quot;</span>,
         )
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_initial_value</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">ConstId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_initial_value</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">ConstId</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">UnresolvableConstant::new</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="string">&quot;No initial value&quot;</span>)
     }
 }
@@ -837,7 +839,7 @@
 <span class="doccomment">/// returns true, if the given expression needs to be evaluated.</span>
 <span class="doccomment">/// literals must not be further evaluated and can be known at</span>
 <span class="doccomment">/// compile time</span>
-<span class="kw">fn</span> <span class="ident">needs_evaluation</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">needs_evaluation</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">expr</span> {
         <span class="ident">AstStatement::LiteralBool</span> { .. }
         <span class="op">|</span> <span class="ident">AstStatement::LiteralInteger</span> { .. }
@@ -846,25 +848,25 @@
         <span class="op">|</span> <span class="ident">AstStatement::LiteralDateAndTime</span> { .. }
         <span class="op">|</span> <span class="ident">AstStatement::LiteralTimeOfDay</span> { .. }
         <span class="op">|</span> <span class="ident">AstStatement::LiteralTime</span> { .. }
-        <span class="op">|</span> <span class="ident">AstStatement::LiteralString</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        <span class="op">|</span> <span class="ident">AstStatement::LiteralString</span> { .. } =&gt; <span class="bool-val">false</span>,
         <span class="kw-2">&amp;</span><span class="ident">AstStatement::LiteralArray</span> {
             <span class="ident">elements</span>: <span class="prelude-val">Some</span>(<span class="ident">elements</span>),
             ..
-        } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">elements</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+        } =&gt; <span class="kw">match</span> <span class="ident">elements</span>.<span class="ident">as_ref</span>() {
+            <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } =&gt; {
                 <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">needs_evaluation</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">needs_evaluation</span>(<span class="ident">elements</span>.<span class="ident">as_ref</span>()),
+            <span class="kw">_</span> =&gt; <span class="ident">needs_evaluation</span>(<span class="ident">elements</span>.<span class="ident">as_ref</span>()),
         },
-        <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } =&gt; {
             <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">needs_evaluation</span>)
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+        <span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
     }
 }
 
 <span class="doccomment">/// returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate_constants</span>(<span class="kw-2">mut</span> <span class="ident">index</span>: <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Index</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UnresolvableConstant</span><span class="op">&gt;</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate_constants</span>(<span class="kw-2">mut</span> <span class="ident">index</span>: <span class="ident">Index</span>) -&gt; (<span class="ident">Index</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UnresolvableConstant</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unresolvable</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UnresolvableConstant</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">let</span> <span class="ident">constants</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_const_expressions</span>();
 
@@ -911,7 +913,7 @@
                             <span class="ident">signed</span>: <span class="bool-val">false</span>,
                             ..
                         }),
-                    ) <span class="op">=</span><span class="op">&gt;</span> {
+                    ) =&gt; {
                         <span class="comment">// since we store literal-ints as i128 we need to truncate all of them down to their</span>
                         <span class="comment">// original size to avoid negative numbers</span>
                         <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="number">2_i128</span>.<span class="ident">pow</span>(<span class="kw-2">*</span><span class="ident">size</span>) <span class="op">-</span> <span class="number">1</span>; <span class="comment">// bitmask for this type&#39;s size</span>
@@ -932,7 +934,7 @@
                     }
 
                     <span class="comment">// we were able to evaluate a valid statement</span>
-                    (<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">literal</span>)), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    (<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">literal</span>)), <span class="kw">_</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">literal</span> <span class="op">=</span> <span class="ident">cast_if_necessary</span>(
                             <span class="ident">literal</span>,
                             <span class="kw-2">&amp;</span><span class="ident">index</span>
@@ -948,13 +950,13 @@
                     }
 
                     <span class="comment">// we could not evaluate a valid statement - maybe later?</span>
-                    (<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    (<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), <span class="kw">_</span>) =&gt; {
                         <span class="ident">failed_tries</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                         <span class="ident">remaining_constants</span>.<span class="ident">push_back</span>(<span class="ident">candidate</span>) <span class="comment">//try again later</span>
                     }
 
                     <span class="comment">// there was an error during evaluation</span>
-                    (<span class="prelude-val">Err</span>(<span class="ident">err_msg</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    (<span class="prelude-val">Err</span>(<span class="ident">err_msg</span>), <span class="kw">_</span>) =&gt; {
                         <span class="comment">//error during resolving</span>
                         <span class="ident">index</span>
                             .<span class="ident">get_mut_const_expressions</span>()
@@ -987,14 +989,14 @@
     <span class="ident">literal</span>: <span class="ident">AstStatement</span>,
     <span class="ident">target_type_name</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
+) -&gt; <span class="ident">AstStatement</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data_type</span>) <span class="op">=</span> <span class="ident">target_type_name</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>)) {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">literal</span> {
             <span class="ident">AstStatement::LiteralInteger</span> {
                 <span class="ident">value</span>,
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">if</span> <span class="ident">data_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_float</span>() {
                     <span class="kw">return</span> <span class="ident">AstStatement::LiteralReal</span> {
                         <span class="ident">value</span>: <span class="macro">format!</span>(<span class="string">&quot;{:}&quot;</span>, <span class="ident">value</span>),
@@ -1008,7 +1010,7 @@
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
                 <span class="ident">is_wide</span>: <span class="bool-val">false</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">if</span> <span class="macro">matches!</span>(
                     <span class="ident">data_type</span>.<span class="ident">get_type_information</span>(),
                     <span class="ident">DataTypeInformation::String</span> {
@@ -1029,7 +1031,7 @@
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
                 <span class="ident">is_wide</span>: <span class="bool-val">true</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">if</span> <span class="macro">matches!</span>(
                     <span class="ident">data_type</span>.<span class="ident">get_type_information</span>(),
                     <span class="ident">DataTypeInformation::String</span> {
@@ -1045,7 +1047,7 @@
                     };
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
     }
     <span class="ident">literal</span>
@@ -1063,7 +1065,7 @@
     <span class="ident">initial</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     <span class="ident">scope</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="op">!</span><span class="ident">needs_evaluation</span>(<span class="ident">initial</span>) {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">initial</span>.<span class="ident">clone</span>())); <span class="comment">// TODO hmm ...</span>
     }
@@ -1071,10 +1073,10 @@
     <span class="kw">let</span> <span class="ident">literal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">initial</span> {
         <span class="ident">AstStatement::CastStatement</span> {
             <span class="ident">target</span>, <span class="ident">type_name</span>, ..
-        } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">index</span>.<span class="ident">find_effective_type_info</span>(<span class="ident">type_name</span>) {
+        } =&gt; <span class="kw">match</span> <span class="ident">index</span>.<span class="ident">find_effective_type_info</span>(<span class="ident">type_name</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">DataTypeInformation::Enum</span> {
                 <span class="ident">name</span>: <span class="ident">enum_name</span>, ..
-            }) <span class="op">=</span><span class="op">&gt;</span> {
+            }) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>: <span class="ident">ref_name</span>, .. } <span class="op">=</span> <span class="ident">target</span>.<span class="ident">as_ref</span>() {
                     <span class="kw">return</span> <span class="ident">index</span>
                         .<span class="ident">find_enum_element</span>(<span class="ident">enum_name</span>, <span class="ident">ref_name</span>)
@@ -1089,16 +1091,16 @@
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Cannot resolve unknown constant.&quot;</span>.<span class="ident">to_string</span>());
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">get_cast_statement_literal</span>(<span class="ident">target</span>, <span class="ident">type_name</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">get_cast_statement_literal</span>(<span class="ident">target</span>, <span class="ident">type_name</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span>),
         },
-        <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } =&gt; {
             <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_variable</span>(<span class="ident">scope</span>, <span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">as_str</span>()));
             <span class="ident">resolve_const_reference</span>(<span class="ident">variable</span>, <span class="ident">name</span>, <span class="ident">index</span>)<span class="question-mark">?</span>
         }
-        <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } =&gt; {
             <span class="comment">// we made sure that there are exactly two references</span>
             <span class="comment">//TODO https://github.com/ghaith/rusty/issues/291 - once we can initialize structs, we need to allow generic qualified references here</span>
-            <span class="kw">if</span> <span class="ident">elements</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
+            <span class="kw">if</span> <span class="ident">elements</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span> {
                 <span class="kw">if</span> <span class="kw">let</span> (
                     <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>: <span class="ident">pou_name</span>, .. },
                     <span class="ident">AstStatement::Reference</span> {
@@ -1119,34 +1121,34 @@
             <span class="ident">operator</span>,
             <span class="ident">id</span>,
             ..
-        } <span class="op">=</span><span class="op">&gt;</span> {
+        } =&gt; {
             <span class="kw">let</span> <span class="ident">eval_left</span> <span class="op">=</span> <span class="ident">evaluate</span>(<span class="ident">left</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">eval_right</span> <span class="op">=</span> <span class="ident">evaluate</span>(<span class="ident">right</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">left</span>, <span class="ident">right</span>)) <span class="op">=</span> <span class="ident">eval_left</span>.<span class="ident">zip</span>(<span class="ident">eval_right</span>).<span class="ident">as_ref</span>() {
                 <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">operator</span> {
-                    <span class="ident">Operator::Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="op">+</span>, <span class="ident">right</span>, <span class="string">&quot;+&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="op">-</span>, <span class="ident">right</span>, <span class="string">&quot;-&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Multiplication</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="kw-2">*</span>, <span class="ident">right</span>, <span class="string">&quot;*&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Division</span> <span class="kw">if</span> <span class="ident">is_zero</span>(<span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Operator::Plus</span> =&gt; <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="op">+</span>, <span class="ident">right</span>, <span class="string">&quot;+&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Minus</span> =&gt; <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="op">-</span>, <span class="ident">right</span>, <span class="string">&quot;-&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Multiplication</span> =&gt; <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="kw-2">*</span>, <span class="ident">right</span>, <span class="string">&quot;*&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Division</span> <span class="kw">if</span> <span class="ident">is_zero</span>(<span class="ident">right</span>) =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Attempt to divide by zero&quot;</span>.<span class="ident">to_string</span>())
                     }
-                    <span class="ident">Operator::Division</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="op">/</span>, <span class="ident">right</span>, <span class="string">&quot;/&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Modulo</span> <span class="kw">if</span> <span class="ident">is_zero</span>(<span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Operator::Division</span> =&gt; <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="op">/</span>, <span class="ident">right</span>, <span class="string">&quot;/&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Modulo</span> <span class="kw">if</span> <span class="ident">is_zero</span>(<span class="ident">right</span>) =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(
                             <span class="string">&quot;Attempt to calculate the remainder with a divisor of zero&quot;</span>.<span class="ident">to_string</span>()
                         )
                     }
-                    <span class="ident">Operator::Modulo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="op">%</span>, <span class="ident">right</span>, <span class="string">&quot;MOD&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">=</span><span class="op">=</span>, <span class="ident">right</span>, <span class="string">&quot;=&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">!</span><span class="op">=</span>, <span class="ident">right</span>, <span class="string">&quot;&lt;&gt;&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">&gt;</span>, <span class="ident">right</span>, <span class="string">&quot;&gt;&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::GreaterOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">&gt;</span><span class="op">=</span>, <span class="ident">right</span>, <span class="string">&quot;&gt;=&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">&lt;</span>, <span class="ident">right</span>, <span class="string">&quot;&lt;&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::LessOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">&lt;</span><span class="op">=</span>, <span class="ident">right</span>, <span class="string">&quot;&lt;=&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bitwise_expression!</span>(<span class="ident">left</span>, <span class="op">&amp;</span> , <span class="ident">right</span>, <span class="string">&quot;AND&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bitwise_expression!</span>(<span class="ident">left</span>, <span class="op">|</span> , <span class="ident">right</span>, <span class="string">&quot;OR&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="ident">Operator::Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">bitwise_expression!</span>(<span class="ident">left</span>, <span class="op">^</span>, <span class="ident">right</span>, <span class="string">&quot;XOR&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Operator::Modulo</span> =&gt; <span class="macro">arithmetic_expression!</span>(<span class="ident">left</span>, <span class="op">%</span>, <span class="ident">right</span>, <span class="string">&quot;MOD&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Equal</span> =&gt; <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">==</span>, <span class="ident">right</span>, <span class="string">&quot;=&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::NotEqual</span> =&gt; <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">!</span><span class="op">=</span>, <span class="ident">right</span>, <span class="string">&quot;&lt;&gt;&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Greater</span> =&gt; <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">&gt;</span>, <span class="ident">right</span>, <span class="string">&quot;&gt;&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::GreaterOrEqual</span> =&gt; <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">&gt;</span><span class="op">=</span>, <span class="ident">right</span>, <span class="string">&quot;&gt;=&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Less</span> =&gt; <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">&lt;</span>, <span class="ident">right</span>, <span class="string">&quot;&lt;&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::LessOrEqual</span> =&gt; <span class="macro">compare_expression!</span>(<span class="ident">left</span>, <span class="op">&lt;</span><span class="op">=</span>, <span class="ident">right</span>, <span class="string">&quot;&lt;=&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::And</span> =&gt; <span class="macro">bitwise_expression!</span>(<span class="ident">left</span>, <span class="op">&amp;</span> , <span class="ident">right</span>, <span class="string">&quot;AND&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Or</span> =&gt; <span class="macro">bitwise_expression!</span>(<span class="ident">left</span>, <span class="op">|</span> , <span class="ident">right</span>, <span class="string">&quot;OR&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="ident">Operator::Xor</span> =&gt; <span class="macro">bitwise_expression!</span>(<span class="ident">left</span>, <span class="op">^</span>, <span class="ident">right</span>, <span class="string">&quot;XOR&quot;</span>, <span class="kw-2">*</span><span class="ident">id</span>)<span class="question-mark">?</span>,
+                    <span class="kw">_</span> =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
                             <span class="string">&quot;Cannot resolve operator {:?} in constant evaluation&quot;</span>,
                             <span class="ident">operator</span>
@@ -1163,12 +1165,12 @@
             <span class="ident">operator</span>: <span class="ident">Operator::Not</span>,
             <span class="ident">value</span>,
             ..
-        } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">evaluate</span>(<span class="ident">value</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span> {
+        } =&gt; <span class="kw">match</span> <span class="ident">evaluate</span>(<span class="ident">value</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span> {
             <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralBool</span> {
                 <span class="ident">value</span>: <span class="ident">v</span>,
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralBool</span> {
+            }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralBool</span> {
                 <span class="ident">value</span>: <span class="op">!</span><span class="ident">v</span>,
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
@@ -1177,27 +1179,27 @@
                 <span class="ident">value</span>: <span class="ident">v</span>,
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralInteger</span> {
+            }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralInteger</span> {
                 <span class="ident">value</span>: <span class="op">!</span><span class="ident">v</span>,
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
             }),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="prelude-val">None</span> <span class="comment">//not yet resolvable</span>
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant Not {:?}&quot;</span>, <span class="ident">value</span>)),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant Not {:?}&quot;</span>, <span class="ident">value</span>)),
         },
         <span class="comment">// - x</span>
         <span class="ident">AstStatement::UnaryExpression</span> {
             <span class="ident">operator</span>: <span class="ident">Operator::Minus</span>,
             <span class="ident">value</span>,
             ..
-        } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">evaluate</span>(<span class="ident">value</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span> {
+        } =&gt; <span class="kw">match</span> <span class="ident">evaluate</span>(<span class="ident">value</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span> {
             <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralInteger</span> {
                 <span class="ident">value</span>: <span class="ident">v</span>,
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralInteger</span> {
+            }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralInteger</span> {
                 <span class="ident">value</span>: <span class="op">-</span><span class="ident">v</span>,
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
@@ -1206,7 +1208,7 @@
                 <span class="ident">value</span>: <span class="ident">v</span>,
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralReal</span> {
+            }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralReal</span> {
                 <span class="ident">value</span>: <span class="macro">format!</span>(
                     <span class="string">&quot;{:}&quot;</span>,
                     <span class="op">-</span>(<span class="ident">v</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>()).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:}: {:}&quot;</span>, <span class="ident">err</span>, <span class="ident">v</span>))<span class="question-mark">?</span>
@@ -1214,17 +1216,17 @@
                 <span class="ident">id</span>,
                 <span class="ident">location</span>,
             }),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="prelude-val">None</span> <span class="comment">//not yet resolvable</span>
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant Minus {:?}&quot;</span>, <span class="ident">value</span>)),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant Minus {:?}&quot;</span>, <span class="ident">value</span>)),
         },
         <span class="ident">AstStatement::LiteralArray</span> {
             <span class="ident">id</span>,
             <span class="ident">elements</span>: <span class="prelude-val">Some</span>(<span class="ident">elements</span>),
             <span class="ident">location</span>,
             ..
-        } <span class="op">=</span><span class="op">&gt;</span> {
+        } =&gt; {
             <span class="kw">let</span> <span class="ident">inner_elements</span> <span class="op">=</span> <span class="ident">AstStatement::get_as_list</span>(<span class="ident">elements</span>)
                 .<span class="ident">iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">evaluate</span>(<span class="ident">e</span>, <span class="ident">scope</span>, <span class="ident">index</span>))
@@ -1242,7 +1244,7 @@
                 <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">clone</span>(),
             })
         }
-        <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, <span class="ident">id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, <span class="ident">id</span> } =&gt; {
             <span class="kw">let</span> <span class="ident">inner_elements</span> <span class="op">=</span> <span class="ident">expressions</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">evaluate</span>(<span class="ident">e</span>, <span class="ident">scope</span>, <span class="ident">index</span>))
@@ -1261,7 +1263,7 @@
             <span class="ident">id</span>,
             <span class="ident">multiplier</span>,
             <span class="ident">location</span>,
-        } <span class="op">=</span><span class="op">&gt;</span> {
+        } =&gt; {
             <span class="kw">let</span> <span class="ident">inner_elements</span> <span class="op">=</span> <span class="ident">AstStatement::get_as_list</span>(<span class="ident">element</span>.<span class="ident">as_ref</span>())
                 .<span class="ident">iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">evaluate</span>(<span class="ident">e</span>, <span class="ident">scope</span>, <span class="ident">index</span>))
@@ -1291,7 +1293,7 @@
                 }
             })
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant: {:#?}&quot;</span>, <span class="ident">initial</span>)),
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant: {:#?}&quot;</span>, <span class="ident">initial</span>)),
     };
     <span class="prelude-val">Ok</span>(<span class="ident">literal</span>)
 }
@@ -1303,7 +1305,7 @@
     <span class="ident">variable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::index::VariableIndexEntry</span><span class="op">&gt;</span>,
     <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">variable</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="op">!</span><span class="ident">it</span>.<span class="ident">is_constant</span>()).<span class="ident">is_some</span>() {
         <span class="comment">//the referenced variable is no const!</span>
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;&#39;{:}&#39; is no const reference&quot;</span>, <span class="ident">name</span>));
@@ -1320,7 +1322,7 @@
     )
 }
 
-<span class="kw">fn</span> <span class="ident">is_zero</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_zero</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) -&gt; <span class="ident">bool</span> {
     <span class="macro">matches!</span>(<span class="ident">v</span>, <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>: <span class="number">0</span>, .. })
 }
 
@@ -1332,7 +1334,7 @@
     <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">scope</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">index</span>
         .<span class="ident">find_effective_type</span>(<span class="ident">type_name</span>)
         .<span class="ident">map</span>(<span class="ident">DataType::get_type_information</span>)
@@ -1342,7 +1344,7 @@
             <span class="ident">size</span>,
             <span class="ident">semantic_size</span>,
             ..
-        }) <span class="op">=</span><span class="op">&gt;</span> {
+        }) =&gt; {
             <span class="kw">let</span> <span class="ident">evaluated_initial</span> <span class="op">=</span> <span class="ident">evaluate</span>(<span class="ident">cast_statement</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span>
                 .<span class="ident">as_ref</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
@@ -1358,16 +1360,16 @@
                 <span class="kw">const</span> <span class="ident">UNSIGNED</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">i128</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">signed</span>, <span class="ident">semantic_size</span>.<span class="ident">unwrap_or</span>(<span class="ident">size</span>)) {
                     <span class="comment">//signed</span>
-                    (<span class="ident">SIGNED</span>, <span class="ident">SINT_SIZE</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeSintType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
-                    (<span class="ident">SIGNED</span>, <span class="ident">INT_SIZE</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeIntType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
-                    (<span class="ident">SIGNED</span>, <span class="ident">DINT_SIZE</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeDintType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
-                    (<span class="ident">SIGNED</span>, <span class="ident">LINT_SIZE</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeLintType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
+                    (<span class="ident">SIGNED</span>, <span class="ident">SINT_SIZE</span>) =&gt; (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeSintType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
+                    (<span class="ident">SIGNED</span>, <span class="ident">INT_SIZE</span>) =&gt; (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeIntType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
+                    (<span class="ident">SIGNED</span>, <span class="ident">DINT_SIZE</span>) =&gt; (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeDintType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
+                    (<span class="ident">SIGNED</span>, <span class="ident">LINT_SIZE</span>) =&gt; (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeLintType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
                     <span class="comment">//unsigned</span>
-                    (<span class="ident">UNSIGNED</span>, <span class="ident">SINT_SIZE</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeByteType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
-                    (<span class="ident">UNSIGNED</span>, <span class="ident">INT_SIZE</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeWordType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
-                    (<span class="ident">UNSIGNED</span>, <span class="ident">DINT_SIZE</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeDwordType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
-                    (<span class="ident">UNSIGNED</span>, <span class="ident">LINT_SIZE</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeLwordType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    (<span class="ident">UNSIGNED</span>, <span class="ident">SINT_SIZE</span>) =&gt; (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeByteType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
+                    (<span class="ident">UNSIGNED</span>, <span class="ident">INT_SIZE</span>) =&gt; (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeWordType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
+                    (<span class="ident">UNSIGNED</span>, <span class="ident">DINT_SIZE</span>) =&gt; (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeDwordType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
+                    (<span class="ident">UNSIGNED</span>, <span class="ident">LINT_SIZE</span>) =&gt; (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">NativeLwordType</span>) <span class="kw">as</span> <span class="ident">i128</span>,
+                    <span class="kw">_</span> =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
                             <span class="string">&quot;Cannot resolve constant: {:}#{:?}&quot;</span>,
                             <span class="ident">type_name</span>, <span class="ident">cast_statement</span>
@@ -1388,13 +1390,12 @@
         }
 
         <span class="comment">//Some(&amp;crate::typesystem::DataTypeInformation::Float{..}) =&gt; {},</span>
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+        <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
             <span class="string">&quot;Cannot resolve constant: {:}#{:?}&quot;</span>,
             <span class="ident">type_name</span>, <span class="ident">cast_statement</span>
         )),
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rusty" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rusty" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

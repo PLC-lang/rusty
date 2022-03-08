@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;c0e13b7&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;c71d7ed&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../inkwell/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -429,6 +431,7 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
+<span id="432">432</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Inkwell documentation is a work in progress.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! If you have any LLVM knowledge that could be used to improve these docs, we would greatly appreciate you opening an issue and/or a pull request on our [GitHub page](https://github.com/TheDan64/inkwell).</span>
@@ -470,6 +473,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">targets</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">values</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
 
 <span class="comment">// Boilerplate to select a desired llvm_sys version at compile &amp; link time.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm3-6&quot;</span>)]</span>
@@ -511,8 +515,8 @@
 <span class="comment">// Thanks to kennytm for coming up with assert_unique_features!</span>
 <span class="comment">// which ensures that the LLVM feature flags are mutually exclusive</span>
 <span class="macro">macro_rules!</span> <span class="ident">assert_unique_features</span> {
-    () <span class="op">=</span><span class="op">&gt;</span> {};
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">first</span>:<span class="ident">tt</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    () =&gt; {};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">first</span>:<span class="ident">tt</span> $(,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
         $(
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">first</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>))]</span>
             <span class="macro">compile_error!</span>(<span class="macro">concat!</span>(<span class="string">&quot;features \&quot;&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">first</span>, <span class="string">&quot;\&quot; and \&quot;&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>, <span class="string">&quot;\&quot; cannot be used together&quot;</span>));
@@ -524,14 +528,14 @@
 <span class="comment">// This macro ensures that at least one of the LLVM feature</span>
 <span class="comment">// flags are provided and prints them out if none are provided</span>
 <span class="macro">macro_rules!</span> <span class="ident">assert_used_features</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">all</span>:<span class="ident">tt</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">all</span>:<span class="ident">tt</span>),<span class="kw-2">*</span>) =&gt; {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>($(<span class="ident">feature</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">all</span>),<span class="kw-2">*</span>)))]</span>
         <span class="macro">compile_error!</span>(<span class="macro">concat!</span>(<span class="string">&quot;One of the LLVM feature flags must be provided: &quot;</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">all</span>, <span class="string">&quot; &quot;</span>),<span class="kw-2">*</span>));
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">assert_unique_used_features</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">all</span>:<span class="ident">tt</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">all</span>:<span class="ident">tt</span>),<span class="kw-2">*</span>) =&gt; {
         <span class="macro">assert_unique_features!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">all</span>),<span class="kw-2">*</span>);
         <span class="macro">assert_used_features!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">all</span>),<span class="kw-2">*</span>);
     }
@@ -555,14 +559,14 @@
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AddressSpace</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">val</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">val</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">val</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Generic</span>),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Global</span>),
-            <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Shared</span>),
-            <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Const</span>),
-            <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Local</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
+            <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Generic</span>),
+            <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Global</span>),
+            <span class="number">3</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Shared</span>),
+            <span class="number">4</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Const</span>),
+            <span class="number">5</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">AddressSpace::Local</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(()),
         }
     }
 }
@@ -780,7 +784,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">OptimizationLevel</span> {
     <span class="doccomment">/// Returns the default value for `OptimizationLevel`, namely `OptimizationLevel::Default`.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">OptimizationLevel::Default</span>
     }
 }
@@ -798,7 +802,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">GlobalVisibility</span> {
     <span class="doccomment">/// Returns the default value for `GlobalVisibility`, namely `GlobalVisibility::Default`.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">GlobalVisibility::Default</span>
     }
 }
@@ -812,22 +816,22 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ThreadLocalMode</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">thread_local_mode</span>: <span class="ident">LLVMThreadLocalMode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">thread_local_mode</span>: <span class="ident">LLVMThreadLocalMode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">thread_local_mode</span> {
-            <span class="ident">LLVMThreadLocalMode::LLVMGeneralDynamicTLSModel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::GeneralDynamicTLSModel</span>),
-            <span class="ident">LLVMThreadLocalMode::LLVMLocalDynamicTLSModel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::LocalDynamicTLSModel</span>),
-            <span class="ident">LLVMThreadLocalMode::LLVMInitialExecTLSModel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::InitialExecTLSModel</span>),
-            <span class="ident">LLVMThreadLocalMode::LLVMLocalExecTLSModel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::LocalExecTLSModel</span>),
-            <span class="ident">LLVMThreadLocalMode::LLVMNotThreadLocal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>
+            <span class="ident">LLVMThreadLocalMode::LLVMGeneralDynamicTLSModel</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::GeneralDynamicTLSModel</span>),
+            <span class="ident">LLVMThreadLocalMode::LLVMLocalDynamicTLSModel</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::LocalDynamicTLSModel</span>),
+            <span class="ident">LLVMThreadLocalMode::LLVMInitialExecTLSModel</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::InitialExecTLSModel</span>),
+            <span class="ident">LLVMThreadLocalMode::LLVMLocalExecTLSModel</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::LocalExecTLSModel</span>),
+            <span class="ident">LLVMThreadLocalMode::LLVMNotThreadLocal</span> =&gt; <span class="prelude-val">None</span>
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_llvm_mode</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMThreadLocalMode</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_llvm_mode</span>(<span class="self">self</span>) -&gt; <span class="ident">LLVMThreadLocalMode</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ThreadLocalMode::GeneralDynamicTLSModel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMThreadLocalMode::LLVMGeneralDynamicTLSModel</span>,
-            <span class="ident">ThreadLocalMode::LocalDynamicTLSModel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMThreadLocalMode::LLVMLocalDynamicTLSModel</span>,
-            <span class="ident">ThreadLocalMode::InitialExecTLSModel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMThreadLocalMode::LLVMInitialExecTLSModel</span>,
-            <span class="ident">ThreadLocalMode::LocalExecTLSModel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMThreadLocalMode::LLVMLocalExecTLSModel</span>,
+            <span class="ident">ThreadLocalMode::GeneralDynamicTLSModel</span> =&gt; <span class="ident">LLVMThreadLocalMode::LLVMGeneralDynamicTLSModel</span>,
+            <span class="ident">ThreadLocalMode::LocalDynamicTLSModel</span> =&gt; <span class="ident">LLVMThreadLocalMode::LLVMLocalDynamicTLSModel</span>,
+            <span class="ident">ThreadLocalMode::InitialExecTLSModel</span> =&gt; <span class="ident">LLVMThreadLocalMode::LLVMInitialExecTLSModel</span>,
+            <span class="ident">ThreadLocalMode::LocalExecTLSModel</span> =&gt; <span class="ident">LLVMThreadLocalMode::LLVMLocalExecTLSModel</span>,
             <span class="comment">// None =&gt; LLVMThreadLocalMode::LLVMNotThreadLocal,</span>
         }
     }
@@ -846,7 +850,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">DLLStorageClass</span> {
     <span class="doccomment">/// Returns the default value for `DLLStorageClass`, namely `DLLStorageClass::Default`.</span>
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">DLLStorageClass::Default</span>
     }
 }
@@ -861,6 +865,5 @@
     <span class="ident">Intel</span>,
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

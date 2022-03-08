@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;c0e13b7&#x2F;src&#x2F;targets.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>targets.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;c71d7ed&#x2F;src&#x2F;targets.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>targets.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../inkwell/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1509,10 +1511,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">FileType</span> {
-    <span class="kw">fn</span> <span class="ident">as_llvm_file_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMCodeGenFileType</span> {
+    <span class="kw">fn</span> <span class="ident">as_llvm_file_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMCodeGenFileType</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">FileType::Assembly</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeGenFileType::LLVMAssemblyFile</span>,
-            <span class="ident">FileType::Object</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeGenFileType::LLVMObjectFile</span>,
+            <span class="ident">FileType::Assembly</span> =&gt; <span class="ident">LLVMCodeGenFileType::LLVMAssemblyFile</span>,
+            <span class="ident">FileType::Object</span> =&gt; <span class="ident">LLVMCodeGenFileType::LLVMObjectFile</span>,
         }
     }
 }
@@ -1529,7 +1531,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">InitializationConfig</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">InitializationConfig</span> {
             <span class="ident">asm_parser</span>: <span class="bool-val">true</span>,
             <span class="ident">asm_printer</span>: <span class="bool-val">true</span>,
@@ -1547,13 +1549,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TargetTriple</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">triple</span>: <span class="ident">LLVMString</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetTriple</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">triple</span>: <span class="ident">LLVMString</span>) -&gt; <span class="ident">TargetTriple</span> {
         <span class="ident">TargetTriple</span> {
             <span class="ident">triple</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetTriple</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">TargetTriple</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">triple</span>);
 
         <span class="ident">TargetTriple</span> {
@@ -1561,29 +1563,29 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
         <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="self">self</span>.<span class="ident">as_ptr</span>()) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span> {
         <span class="self">self</span>.<span class="ident">triple</span>.<span class="ident">as_ptr</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">TargetTriple</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">triple</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">triple</span>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">triple</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">triple</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">TargetTriple</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;TargetTriple({:?})&quot;</span>, <span class="self">self</span>.<span class="ident">triple</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">TargetTriple</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;TargetTriple({:?})&quot;</span>, <span class="self">self</span>.<span class="ident">triple</span>)
     }
 }
@@ -1597,7 +1599,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Target</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">LLVMTargetRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="ident">LLVMTargetRef</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">target</span>.<span class="ident">is_null</span>());
 
         <span class="ident">Target</span> { <span class="ident">target</span> }
@@ -2273,7 +2275,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_native</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_native</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
             <span class="ident">LLVM_InitializeNativeAsmParser</span>, <span class="ident">LLVM_InitializeNativeAsmPrinter</span>,
             <span class="ident">LLVM_InitializeNativeDisassembler</span>, <span class="ident">LLVM_InitializeNativeTarget</span>,
@@ -2283,7 +2285,7 @@
             <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">TARGET_LOCK</span>.<span class="ident">write</span>();
             <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVM_InitializeNativeTarget</span>() };
 
-            <span class="kw">if</span> <span class="ident">code</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Unknown error in initializing native target&quot;</span>.<span class="ident">into</span>());
             }
         }
@@ -2292,7 +2294,7 @@
             <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">TARGET_LOCK</span>.<span class="ident">write</span>();
             <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVM_InitializeNativeAsmPrinter</span>() };
 
-            <span class="kw">if</span> <span class="ident">code</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Unknown error in initializing native asm printer&quot;</span>.<span class="ident">into</span>());
             }
         }
@@ -2301,7 +2303,7 @@
             <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">TARGET_LOCK</span>.<span class="ident">write</span>();
             <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVM_InitializeNativeAsmParser</span>() };
 
-            <span class="kw">if</span> <span class="ident">code</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
                 <span class="comment">// REVIEW: Does parser need to go before printer?</span>
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Unknown error in initializing native asm parser&quot;</span>.<span class="ident">into</span>());
             }
@@ -2311,7 +2313,7 @@
             <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">TARGET_LOCK</span>.<span class="ident">write</span>();
             <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVM_InitializeNativeDisassembler</span>() };
 
-            <span class="kw">if</span> <span class="ident">code</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Unknown error in initializing native disassembler&quot;</span>.<span class="ident">into</span>());
             }
         }
@@ -2365,28 +2367,28 @@
         <span class="ident">level</span>: <span class="ident">OptimizationLevel</span>,
         <span class="ident">reloc_mode</span>: <span class="ident">RelocMode</span>,
         <span class="ident">code_model</span>: <span class="ident">CodeModel</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TargetMachine</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TargetMachine</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">cpu</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">cpu</span>);
         <span class="kw">let</span> <span class="ident">features</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">features</span>);
         <span class="kw">let</span> <span class="ident">level</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">level</span> {
-            <span class="ident">OptimizationLevel::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeGenOptLevel::LLVMCodeGenLevelNone</span>,
-            <span class="ident">OptimizationLevel::Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeGenOptLevel::LLVMCodeGenLevelLess</span>,
-            <span class="ident">OptimizationLevel::Default</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeGenOptLevel::LLVMCodeGenLevelDefault</span>,
-            <span class="ident">OptimizationLevel::Aggressive</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive</span>,
+            <span class="ident">OptimizationLevel::None</span> =&gt; <span class="ident">LLVMCodeGenOptLevel::LLVMCodeGenLevelNone</span>,
+            <span class="ident">OptimizationLevel::Less</span> =&gt; <span class="ident">LLVMCodeGenOptLevel::LLVMCodeGenLevelLess</span>,
+            <span class="ident">OptimizationLevel::Default</span> =&gt; <span class="ident">LLVMCodeGenOptLevel::LLVMCodeGenLevelDefault</span>,
+            <span class="ident">OptimizationLevel::Aggressive</span> =&gt; <span class="ident">LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive</span>,
         };
         <span class="kw">let</span> <span class="ident">code_model</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">code_model</span> {
-            <span class="ident">CodeModel::Default</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeModel::LLVMCodeModelDefault</span>,
-            <span class="ident">CodeModel::JITDefault</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeModel::LLVMCodeModelJITDefault</span>,
-            <span class="ident">CodeModel::Small</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeModel::LLVMCodeModelSmall</span>,
-            <span class="ident">CodeModel::Kernel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeModel::LLVMCodeModelKernel</span>,
-            <span class="ident">CodeModel::Medium</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeModel::LLVMCodeModelMedium</span>,
-            <span class="ident">CodeModel::Large</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMCodeModel::LLVMCodeModelLarge</span>,
+            <span class="ident">CodeModel::Default</span> =&gt; <span class="ident">LLVMCodeModel::LLVMCodeModelDefault</span>,
+            <span class="ident">CodeModel::JITDefault</span> =&gt; <span class="ident">LLVMCodeModel::LLVMCodeModelJITDefault</span>,
+            <span class="ident">CodeModel::Small</span> =&gt; <span class="ident">LLVMCodeModel::LLVMCodeModelSmall</span>,
+            <span class="ident">CodeModel::Kernel</span> =&gt; <span class="ident">LLVMCodeModel::LLVMCodeModelKernel</span>,
+            <span class="ident">CodeModel::Medium</span> =&gt; <span class="ident">LLVMCodeModel::LLVMCodeModelMedium</span>,
+            <span class="ident">CodeModel::Large</span> =&gt; <span class="ident">LLVMCodeModel::LLVMCodeModelLarge</span>,
         };
         <span class="kw">let</span> <span class="ident">reloc_mode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">reloc_mode</span> {
-            <span class="ident">RelocMode::Default</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMRelocMode::LLVMRelocDefault</span>,
-            <span class="ident">RelocMode::Static</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMRelocMode::LLVMRelocStatic</span>,
-            <span class="ident">RelocMode::PIC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMRelocMode::LLVMRelocPIC</span>,
-            <span class="ident">RelocMode::DynamicNoPic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LLVMRelocMode::LLVMRelocDynamicNoPic</span>,
+            <span class="ident">RelocMode::Default</span> =&gt; <span class="ident">LLVMRelocMode::LLVMRelocDefault</span>,
+            <span class="ident">RelocMode::Static</span> =&gt; <span class="ident">LLVMRelocMode::LLVMRelocStatic</span>,
+            <span class="ident">RelocMode::PIC</span> =&gt; <span class="ident">LLVMRelocMode::LLVMRelocPIC</span>,
+            <span class="ident">RelocMode::DynamicNoPic</span> =&gt; <span class="ident">LLVMRelocMode::LLVMRelocDynamicNoPic</span>,
         };
         <span class="kw">let</span> <span class="ident">target_machine</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMCreateTargetMachine</span>(
@@ -2409,7 +2411,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_first</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_first</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">TARGET_LOCK</span>.<span class="ident">read</span>();
             <span class="kw">unsafe</span> { <span class="ident">LLVMGetFirstTarget</span>() }
@@ -2424,7 +2426,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetNextTarget</span>(<span class="self">self</span>.<span class="ident">target</span>) };
 
         <span class="kw">if</span> <span class="ident">target</span>.<span class="ident">is_null</span>() {
@@ -2436,21 +2438,21 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
         <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">LLVMGetTargetName</span>(<span class="self">self</span>.<span class="ident">target</span>)) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
         <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">LLVMGetTargetDescription</span>(<span class="self">self</span>.<span class="ident">target</span>)) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_name</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_name</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="ident"><span class="self">Self</span>::from_name_raw</span>(<span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_name_raw</span>(<span class="ident">c_string</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_name_raw</span>(<span class="ident">c_string</span>: <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">TARGET_LOCK</span>.<span class="ident">read</span>();
             <span class="kw">unsafe</span> { <span class="ident">LLVMGetTargetFromName</span>(<span class="ident">c_string</span>) }
@@ -2465,16 +2467,16 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_triple</span>(<span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_triple</span>(<span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_string</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
 
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">TARGET_LOCK</span>.<span class="ident">read</span>();
-            <span class="kw">unsafe</span> { <span class="ident">LLVMGetTargetFromTriple</span>(<span class="ident">triple</span>.<span class="ident">as_ptr</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">target</span>, <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>()) }
+            <span class="kw">unsafe</span> { <span class="ident">LLVMGetTargetFromTriple</span>(<span class="ident">triple</span>.<span class="ident">as_ptr</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">target</span>, <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>()) }
         };
 
-        <span class="kw">if</span> <span class="ident">code</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">err_string</span>.<span class="ident">assume_init</span>()));
             }
@@ -2485,16 +2487,16 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_jit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">LLVMTargetHasJIT</span>(<span class="self">self</span>.<span class="ident">target</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_jit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">LLVMTargetHasJIT</span>(<span class="self">self</span>.<span class="ident">target</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_target_machine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">LLVMTargetHasTargetMachine</span>(<span class="self">self</span>.<span class="ident">target</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_target_machine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">LLVMTargetHasTargetMachine</span>(<span class="self">self</span>.<span class="ident">target</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_asm_backend</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">LLVMTargetHasAsmBackend</span>(<span class="self">self</span>.<span class="ident">target</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_asm_backend</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">LLVMTargetHasAsmBackend</span>(<span class="self">self</span>.<span class="ident">target</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 }
 
@@ -2504,19 +2506,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TargetMachine</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target_machine</span>: <span class="ident">LLVMTargetMachineRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target_machine</span>: <span class="ident">LLVMTargetMachineRef</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">target_machine</span>.<span class="ident">is_null</span>());
 
         <span class="ident">TargetMachine</span> { <span class="ident">target_machine</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Target</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Target</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">Target::new</span>(<span class="ident">LLVMGetTargetMachineTarget</span>(<span class="self">self</span>.<span class="ident">target_machine</span>))
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_triple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetTriple</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_triple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TargetTriple</span> {
         <span class="kw">let</span> <span class="ident">str</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetTargetMachineTriple</span>(<span class="self">self</span>.<span class="ident">target_machine</span>)) };
 
         <span class="ident">TargetTriple::new</span>(<span class="ident">str</span>)
@@ -2533,14 +2535,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(default_triple.as_str().to_str(), Ok(&quot;x86_64-pc-linux-gnu&quot;));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_default_triple</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetTriple</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_default_triple</span>() -&gt; <span class="ident">TargetTriple</span> {
         <span class="kw">let</span> <span class="ident">llvm_string</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetDefaultTargetTriple</span>()) };
 
         <span class="ident">TargetTriple::new</span>(<span class="ident">llvm_string</span>)
     }
 
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize_triple</span>(<span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetTriple</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize_triple</span>(<span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>) -&gt; <span class="ident">TargetTriple</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::target_machine::LLVMNormalizeTargetTriple</span>;
 
         <span class="kw">let</span> <span class="ident">normalized</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMNormalizeTargetTriple</span>(<span class="ident">triple</span>.<span class="ident">as_ptr</span>())) };
@@ -2554,7 +2556,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `x86_64-pc-linux-gnu`</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_host_cpu_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMString</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_host_cpu_name</span>() -&gt; <span class="ident">LLVMString</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::target_machine::LLVMGetHostCPUName</span>;
 
         <span class="kw">unsafe</span> {
@@ -2568,7 +2570,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `+sse2,+cx16,+sahf,-tbm`</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_host_cpu_features</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMString</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_host_cpu_features</span>() -&gt; <span class="ident">LLVMString</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::target_machine::LLVMGetHostCPUFeatures</span>;
 
         <span class="kw">unsafe</span> {
@@ -2576,19 +2578,19 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_cpu</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMString</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_cpu</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMString</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetTargetMachineCPU</span>(<span class="self">self</span>.<span class="ident">target_machine</span>))
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_feature_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_feature_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
         <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">LLVMGetTargetMachineFeatureString</span>(<span class="self">self</span>.<span class="ident">target_machine</span>)) }
     }
 
     <span class="doccomment">/// Create TargetData from this target machine</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetData</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TargetData</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">TargetData::new</span>(<span class="ident">LLVMCreateTargetDataLayout</span>(<span class="self">self</span>.<span class="ident">target_machine</span>))
         }
@@ -2641,7 +2643,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span>,
         <span class="ident">file_type</span>: <span class="ident">FileType</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MemoryBuffer</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MemoryBuffer</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">memory_buffer</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_string</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
         <span class="kw">let</span> <span class="ident">return_code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -2653,11 +2655,11 @@
                 <span class="ident">module_ptr</span>,
                 <span class="ident">file_type_ptr</span>,
                 <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">memory_buffer</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">memory_buffer</span>,
             )
         };
 
-        <span class="kw">if</span> <span class="ident">return_code</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">return_code</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">err_string</span>.<span class="ident">assume_init</span>()));
             }
@@ -2708,7 +2710,7 @@
         <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span>,
         <span class="ident">file_type</span>: <span class="ident">FileType</span>,
         <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LLVMString</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LLVMString</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>
             .<span class="ident">to_str</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
@@ -2717,7 +2719,7 @@
         <span class="kw">let</span> <span class="ident">return_code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="comment">// REVIEW: Why does LLVM need a mutable ptr to path...?</span>
             <span class="kw">let</span> <span class="ident">module_ptr</span> <span class="op">=</span> <span class="ident">module</span>.<span class="ident">module</span>.<span class="ident">get</span>();
-            <span class="kw">let</span> <span class="ident">path_ptr</span> <span class="op">=</span> <span class="ident">path_c_string</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>;
+            <span class="kw">let</span> <span class="ident">path_ptr</span> <span class="op">=</span> <span class="ident">path_c_string</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
             <span class="kw">let</span> <span class="ident">file_type_ptr</span> <span class="op">=</span> <span class="ident">file_type</span>.<span class="ident">as_llvm_file_type</span>();
 
             <span class="ident">LLVMTargetMachineEmitToFile</span>(
@@ -2729,7 +2731,7 @@
             )
         };
 
-        <span class="kw">if</span> <span class="ident">return_code</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">return_code</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">err_string</span>.<span class="ident">assume_init</span>()));
             }
@@ -2740,7 +2742,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">TargetMachine</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> { <span class="ident">LLVMDisposeTargetMachine</span>(<span class="self">self</span>.<span class="ident">target_machine</span>) }
     }
 }
@@ -2757,7 +2759,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TargetData</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target_data</span>: <span class="ident">LLVMTargetDataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetData</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target_data</span>: <span class="ident">LLVMTargetDataRef</span>) -&gt; <span class="ident">TargetData</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">target_data</span>.<span class="ident">is_null</span>());
 
         <span class="ident">TargetData</span> {
@@ -2787,16 +2789,16 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">Context</span>,
         <span class="ident">address_space</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">int_type_ptr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">address_space</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) =&gt; <span class="kw">unsafe</span> {
                 <span class="ident">LLVMIntPtrTypeForASInContext</span>(
                     <span class="ident">context</span>.<span class="ident">context</span>,
                     <span class="self">self</span>.<span class="ident">target_data</span>,
                     <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>,
                 )
             },
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">LLVMIntPtrTypeInContext</span>(<span class="ident">context</span>.<span class="ident">context</span>, <span class="self">self</span>.<span class="ident">target_data</span>) },
+            <span class="prelude-val">None</span> =&gt; <span class="kw">unsafe</span> { <span class="ident">LLVMIntPtrTypeInContext</span>(<span class="ident">context</span>.<span class="ident">context</span>, <span class="self">self</span>.<span class="ident">target_data</span>) },
         };
 
         <span class="kw">unsafe</span> {
@@ -2804,19 +2806,19 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_data_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DataLayout</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_data_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DataLayout</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">DataLayout::new_owned</span>(<span class="ident">LLVMCopyStringRepOfTargetData</span>(<span class="self">self</span>.<span class="ident">target_data</span>))
         }
     }
 
     <span class="comment">// REVIEW: Does this only work if Sized?</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_bit_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_bit_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMSizeOfTypeInBits</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">type_</span>.<span class="ident">as_type_ref</span>()) }
     }
 
     <span class="comment">// TODOC: This can fail on LLVM&#39;s side(exit?), but it doesn&#39;t seem like we have any way to check this in rust</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">str_repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetData</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">str_repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">TargetData</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">str_repr</span>);
 
         <span class="kw">unsafe</span> {
@@ -2824,53 +2826,53 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_byte_ordering</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ByteOrdering</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_byte_ordering</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ByteOrdering</span> {
         <span class="kw">let</span> <span class="ident">byte_ordering</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMByteOrder</span>(<span class="self">self</span>.<span class="ident">target_data</span>) };
 
         <span class="kw">match</span> <span class="ident">byte_ordering</span> {
-            <span class="ident">LLVMByteOrdering::LLVMBigEndian</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ByteOrdering::BigEndian</span>,
-            <span class="ident">LLVMByteOrdering::LLVMLittleEndian</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ByteOrdering::LittleEndian</span>,
+            <span class="ident">LLVMByteOrdering::LLVMBigEndian</span> =&gt; <span class="ident">ByteOrdering::BigEndian</span>,
+            <span class="ident">LLVMByteOrdering::LLVMLittleEndian</span> =&gt; <span class="ident">ByteOrdering::LittleEndian</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pointer_byte_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address_space</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pointer_byte_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address_space</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&gt;</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="ident">address_space</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) =&gt; <span class="kw">unsafe</span> {
                 <span class="ident">LLVMPointerSizeForAS</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>)
             },
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">LLVMPointerSize</span>(<span class="self">self</span>.<span class="ident">target_data</span>) },
+            <span class="prelude-val">None</span> =&gt; <span class="kw">unsafe</span> { <span class="ident">LLVMPointerSize</span>(<span class="self">self</span>.<span class="ident">target_data</span>) },
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_store_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_store_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMStoreSizeOfType</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">type_</span>.<span class="ident">as_type_ref</span>()) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_abi_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_abi_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMABISizeOfType</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">type_</span>.<span class="ident">as_type_ref</span>()) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_abi_alignment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_abi_alignment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMABIAlignmentOfType</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">type_</span>.<span class="ident">as_type_ref</span>()) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_call_frame_alignment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_call_frame_alignment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMCallFrameAlignmentOfType</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">type_</span>.<span class="ident">as_type_ref</span>()) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_preferred_alignment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_preferred_alignment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyType</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMPreferredAlignmentOfType</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">type_</span>.<span class="ident">as_type_ref</span>()) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_preferred_alignment_of_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">GlobalValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_preferred_alignment_of_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">GlobalValue</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMPreferredAlignmentOfGlobal</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">value</span>.<span class="ident">as_value_ref</span>()) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">element_at_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">struct_type</span>: <span class="kw-2">&amp;</span><span class="ident">StructType</span>, <span class="ident">offset</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">element_at_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">struct_type</span>: <span class="kw-2">&amp;</span><span class="ident">StructType</span>, <span class="ident">offset</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMElementAtOffset</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">struct_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">offset</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">offset_of_element</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">struct_type</span>: <span class="kw-2">&amp;</span><span class="ident">StructType</span>, <span class="ident">element</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">offset_of_element</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">struct_type</span>: <span class="kw-2">&amp;</span><span class="ident">StructType</span>, <span class="ident">element</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">element</span> <span class="op">&gt;</span> <span class="ident">struct_type</span>.<span class="ident">count_fields</span>() <span class="op">-</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -2886,11 +2888,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">TargetData</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> { <span class="ident">LLVMDisposeTargetData</span>(<span class="self">self</span>.<span class="ident">target_data</span>) }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

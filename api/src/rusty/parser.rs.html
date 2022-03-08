@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../rusty/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../rusty/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1101,58 +1103,58 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParsedAst</span> <span class="op">=</span> (<span class="ident">CompilationUnit</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>);
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="ident">lexer</span>: <span class="ident">ParseSession</span>, <span class="ident">lnk</span>: <span class="ident">LinkageType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParsedAst</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="ident">lexer</span>: <span class="ident">ParseSession</span>, <span class="ident">lnk</span>: <span class="ident">LinkageType</span>) -&gt; <span class="ident">ParsedAst</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unit</span> <span class="op">=</span> <span class="ident">CompilationUnit::default</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">lnk</span>;
     <span class="kw">loop</span> {
         <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-            <span class="ident">PropertyExternal</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PropertyExternal</span> =&gt; {
                 <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType::External</span>;
                 <span class="ident">lexer</span>.<span class="ident">advance</span>();
                 <span class="comment">//Don&#39;t reset linkage</span>
                 <span class="kw">continue</span>;
             }
-            <span class="ident">KeywordVarGlobal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">unit</span>.<span class="ident">global_vars</span>.<span class="ident">push</span>(<span class="ident">parse_variable_block</span>(
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>,
+            <span class="ident">KeywordVarGlobal</span> =&gt; <span class="ident">unit</span>.<span class="ident">global_vars</span>.<span class="ident">push</span>(<span class="ident">parse_variable_block</span>(
+                <span class="kw-2">&amp;mut</span> <span class="ident">lexer</span>,
                 <span class="ident">VariableBlockType::Global</span>,
                 <span class="ident">linkage</span>,
             )),
-            <span class="ident">KeywordProgram</span> <span class="op">|</span> <span class="ident">KeywordClass</span> <span class="op">|</span> <span class="ident">KeywordFunction</span> <span class="op">|</span> <span class="ident">KeywordFunctionBlock</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">KeywordProgram</span> <span class="op">|</span> <span class="ident">KeywordClass</span> <span class="op">|</span> <span class="ident">KeywordFunction</span> <span class="op">|</span> <span class="ident">KeywordFunctionBlock</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-                    <span class="ident">KeywordProgram</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">PouType::Program</span>, <span class="ident">KeywordEndProgram</span>),
-                    <span class="ident">KeywordClass</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">PouType::Class</span>, <span class="ident">KeywordEndClass</span>),
-                    <span class="ident">KeywordFunction</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">PouType::Function</span>, <span class="ident">KeywordEndFunction</span>),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">PouType::FunctionBlock</span>, <span class="ident">KeywordEndFunctionBlock</span>),
+                    <span class="ident">KeywordProgram</span> =&gt; (<span class="ident">PouType::Program</span>, <span class="ident">KeywordEndProgram</span>),
+                    <span class="ident">KeywordClass</span> =&gt; (<span class="ident">PouType::Class</span>, <span class="ident">KeywordEndClass</span>),
+                    <span class="ident">KeywordFunction</span> =&gt; (<span class="ident">PouType::Function</span>, <span class="ident">KeywordEndFunction</span>),
+                    <span class="kw">_</span> =&gt; (<span class="ident">PouType::FunctionBlock</span>, <span class="ident">KeywordEndFunctionBlock</span>),
                 };
 
                 <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">pou</span>, <span class="kw-2">mut</span> <span class="ident">implementation</span>) <span class="op">=</span>
-                    <span class="ident">parse_pou</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>, <span class="ident">params</span>.<span class="number">0</span>, <span class="ident">linkage</span>, <span class="ident">params</span>.<span class="number">1</span>);
+                    <span class="ident">parse_pou</span>(<span class="kw-2">&amp;mut</span> <span class="ident">lexer</span>, <span class="ident">params</span>.<span class="number">0</span>, <span class="ident">linkage</span>, <span class="ident">params</span>.<span class="number">1</span>);
 
-                <span class="ident">unit</span>.<span class="ident">units</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pou</span>);
-                <span class="ident">unit</span>.<span class="ident">implementations</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">implementation</span>);
+                <span class="ident">unit</span>.<span class="ident">units</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pou</span>);
+                <span class="ident">unit</span>.<span class="ident">implementations</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">implementation</span>);
             }
-            <span class="ident">KeywordAction</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">implementation</span>) <span class="op">=</span> <span class="ident">parse_action</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>, <span class="ident">linkage</span>, <span class="prelude-val">None</span>) {
+            <span class="ident">KeywordAction</span> =&gt; {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">implementation</span>) <span class="op">=</span> <span class="ident">parse_action</span>(<span class="kw-2">&amp;mut</span> <span class="ident">lexer</span>, <span class="ident">linkage</span>, <span class="prelude-val">None</span>) {
                     <span class="ident">unit</span>.<span class="ident">implementations</span>.<span class="ident">push</span>(<span class="ident">implementation</span>);
                 }
             }
-            <span class="ident">KeywordActions</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">KeywordActions</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">last_pou</span> <span class="op">=</span> <span class="ident">unit</span>
                     .<span class="ident">units</span>
                     .<span class="ident">last</span>()
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">name</span>.<span class="ident">as_str</span>())
                     .<span class="ident">unwrap_or</span>(<span class="string">&quot;__unknown__&quot;</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">actions</span> <span class="op">=</span> <span class="ident">parse_actions</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>, <span class="ident">linkage</span>, <span class="ident">last_pou</span>);
-                <span class="ident">unit</span>.<span class="ident">implementations</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">actions</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">actions</span> <span class="op">=</span> <span class="ident">parse_actions</span>(<span class="kw-2">&amp;mut</span> <span class="ident">lexer</span>, <span class="ident">linkage</span>, <span class="ident">last_pou</span>);
+                <span class="ident">unit</span>.<span class="ident">implementations</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">actions</span>);
             }
-            <span class="ident">KeywordType</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">unit_type</span>) <span class="op">=</span> <span class="ident">parse_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>) {
+            <span class="ident">KeywordType</span> =&gt; {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">unit_type</span>) <span class="op">=</span> <span class="ident">parse_type</span>(<span class="kw-2">&amp;mut</span> <span class="ident">lexer</span>) {
                     <span class="ident">unit</span>.<span class="ident">types</span>.<span class="ident">push</span>(<span class="ident">unit_type</span>);
                 }
             }
-            <span class="ident">KeywordEndActions</span> <span class="op">|</span> <span class="ident">End</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> (<span class="ident">unit</span>, <span class="ident">lexer</span>.<span class="ident">diagnostics</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">KeywordEndActions</span> <span class="op">|</span> <span class="ident">End</span> =&gt; <span class="kw">return</span> (<span class="ident">unit</span>, <span class="ident">lexer</span>.<span class="ident">diagnostics</span>),
+            <span class="kw">_</span> =&gt; {
                 <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
                     <span class="string">&quot;StartKeyword&quot;</span>,
                     <span class="ident">lexer</span>.<span class="ident">slice</span>(),
@@ -1167,13 +1169,13 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_actions</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
     <span class="ident">default_container</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Implementation</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Implementation</span><span class="op">&gt;</span> {
     <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndActions</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
-        <span class="kw">let</span> <span class="ident">container</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Identifier</span> {
+        <span class="kw">let</span> <span class="ident">container</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">Identifier</span> {
             <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>()
         } <span class="kw">else</span> {
             <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::missing_action_container</span>(<span class="ident">lexer</span>.<span class="ident">location</span>()));
@@ -1184,12 +1186,12 @@
         <span class="comment">//Go through each action</span>
         <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">!</span><span class="op">=</span> <span class="ident">KeywordEndActions</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lexer</span>.<span class="ident">is_end_of_stream</span>() {
             <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-                <span class="ident">KeywordAction</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">KeywordAction</span> =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">implementation</span>) <span class="op">=</span> <span class="ident">parse_action</span>(<span class="ident">lexer</span>, <span class="ident">linkage</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">container</span>)) {
                         <span class="ident">impls</span>.<span class="ident">push</span>(<span class="ident">implementation</span>);
                     }
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">_</span> =&gt; {
                     <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
                         <span class="string">&quot;KeywordAction&quot;</span>,
                         <span class="ident">lexer</span>.<span class="ident">slice</span>(),
@@ -1213,11 +1215,11 @@
 <span class="doccomment">/// * `expected_end_token` - the token that ends this pou</span>
 <span class="doccomment">///</span>
 <span class="kw">fn</span> <span class="ident">parse_pou</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
     <span class="ident">expected_end_token</span>: <span class="ident">lexer::Token</span>,
-) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pou</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Implementation</span><span class="op">&gt;</span>) {
+) -&gt; (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pou</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Implementation</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">//Consume ProgramKeyword</span>
     <span class="kw">let</span> <span class="ident">closing_tokens</span> <span class="op">=</span> <span class="macro">vec!</span>[
@@ -1229,11 +1231,11 @@
     ];
     <span class="kw">let</span> <span class="ident">pou</span> <span class="op">=</span> <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="ident">closing_tokens</span>.<span class="ident">clone</span>(), <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">poly_mode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">pou_type</span> {
-            <span class="ident">PouType::Class</span> <span class="op">|</span> <span class="ident">PouType::FunctionBlock</span> <span class="op">|</span> <span class="ident">PouType::Method</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">PouType::Class</span> <span class="op">|</span> <span class="ident">PouType::FunctionBlock</span> <span class="op">|</span> <span class="ident">PouType::Method</span> { .. } =&gt; {
                 <span class="comment">// classes and function blocks can be ABSTRACT, FINAL or neither.</span>
                 <span class="ident">parse_polymorphism_mode</span>(<span class="ident">lexer</span>, <span class="kw-2">&amp;</span><span class="ident">pou_type</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         };
 
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">parse_identifier</span>(<span class="ident">lexer</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>()); <span class="comment">// parse POU name</span>
@@ -1257,8 +1259,8 @@
             <span class="comment">// blocks are not allowed inside of class declarations.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variable_blocks</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="kw">let</span> <span class="ident">allowed_var_types</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">pou_type</span> {
-                <span class="ident">PouType::Class</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec!</span>[<span class="ident">KeywordVar</span>],
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec!</span>[
+                <span class="ident">PouType::Class</span> =&gt; <span class="macro">vec!</span>[<span class="ident">KeywordVar</span>],
+                <span class="kw">_</span> =&gt; <span class="macro">vec!</span>[
                     <span class="ident">KeywordVar</span>,
                     <span class="ident">KeywordVarInput</span>,
                     <span class="ident">KeywordVarOutput</span>,
@@ -1276,13 +1278,13 @@
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">impl_pous</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">implementations</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-            <span class="kw">if</span> <span class="ident">pou_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PouType::Class</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pou_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PouType::FunctionBlock</span> {
+            <span class="kw">if</span> <span class="ident">pou_type</span> <span class="op">==</span> <span class="ident">PouType::Class</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pou_type</span> <span class="op">==</span> <span class="ident">PouType::FunctionBlock</span> {
                 <span class="comment">// classes and function blocks can have methods. methods consist of a Pou part</span>
                 <span class="comment">// and an implementation part. That&#39;s why we get another (Pou, Implementation)</span>
                 <span class="comment">// tuple out of parse_method() that has to be added to the list of Pous and</span>
                 <span class="comment">// implementations. Note that function blocks have to start with the method</span>
                 <span class="comment">// declarations before their implementation.</span>
-                <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordMethod</span> {
+                <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordMethod</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">pou</span>, <span class="ident">implementation</span>)) <span class="op">=</span> <span class="ident">parse_method</span>(<span class="ident">lexer</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">linkage</span>) {
                         <span class="ident">impl_pous</span>.<span class="ident">push</span>(<span class="ident">pou</span>);
                         <span class="ident">implementations</span>.<span class="ident">push</span>(<span class="ident">implementation</span>);
@@ -1310,7 +1312,7 @@
                 <span class="ident">generics</span>,
                 <span class="ident">linkage</span>,
             }];
-            <span class="ident">pous</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">impl_pous</span>);
+            <span class="ident">pous</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">impl_pous</span>);
 
             (<span class="ident">pous</span>, <span class="ident">implementations</span>)
         })
@@ -1327,7 +1329,7 @@
     <span class="ident">pou</span>
 }
 
-<span class="kw">fn</span> <span class="ident">parse_generics</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GenericBinding</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_generics</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GenericBinding</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">Token::OperatorLess</span>) {
         <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">Token::OperatorGreater</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generics</span> <span class="op">=</span> <span class="macro">vec!</span>[];
@@ -1356,24 +1358,24 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_type_nature</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">nature</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TypeNature</span> {
+<span class="kw">fn</span> <span class="ident">parse_type_nature</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>, <span class="ident">nature</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">TypeNature</span> {
     <span class="kw">match</span> <span class="ident">nature</span> {
-        <span class="string">&quot;ANY&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Any</span>,
-        <span class="string">&quot;ANY_DERIVED&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Derived</span>,
-        <span class="string">&quot;ANY_ELEMENTARY&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Elementary</span>,
-        <span class="string">&quot;ANY_MAGNITUDE&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Magnitude</span>,
-        <span class="string">&quot;ANY_NUM&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Num</span>,
-        <span class="string">&quot;ANY_REAL&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Real</span>,
-        <span class="string">&quot;ANY_INT&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Int</span>,
-        <span class="string">&quot;ANY_SIGNED&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Signed</span>,
-        <span class="string">&quot;ANY_UNSIGNED&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Unsigned</span>,
-        <span class="string">&quot;ANY_DURATION&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Duration</span>,
-        <span class="string">&quot;ANY_BIT&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Bit</span>,
-        <span class="string">&quot;ANY_CHARS&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Chars</span>,
-        <span class="string">&quot;ANY_STRING&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::String</span>,
-        <span class="string">&quot;ANY_CHAR&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Char</span>,
-        <span class="string">&quot;ANY_DATE&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeNature::Date</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="string">&quot;ANY&quot;</span> =&gt; <span class="ident">TypeNature::Any</span>,
+        <span class="string">&quot;ANY_DERIVED&quot;</span> =&gt; <span class="ident">TypeNature::Derived</span>,
+        <span class="string">&quot;ANY_ELEMENTARY&quot;</span> =&gt; <span class="ident">TypeNature::Elementary</span>,
+        <span class="string">&quot;ANY_MAGNITUDE&quot;</span> =&gt; <span class="ident">TypeNature::Magnitude</span>,
+        <span class="string">&quot;ANY_NUM&quot;</span> =&gt; <span class="ident">TypeNature::Num</span>,
+        <span class="string">&quot;ANY_REAL&quot;</span> =&gt; <span class="ident">TypeNature::Real</span>,
+        <span class="string">&quot;ANY_INT&quot;</span> =&gt; <span class="ident">TypeNature::Int</span>,
+        <span class="string">&quot;ANY_SIGNED&quot;</span> =&gt; <span class="ident">TypeNature::Signed</span>,
+        <span class="string">&quot;ANY_UNSIGNED&quot;</span> =&gt; <span class="ident">TypeNature::Unsigned</span>,
+        <span class="string">&quot;ANY_DURATION&quot;</span> =&gt; <span class="ident">TypeNature::Duration</span>,
+        <span class="string">&quot;ANY_BIT&quot;</span> =&gt; <span class="ident">TypeNature::Bit</span>,
+        <span class="string">&quot;ANY_CHARS&quot;</span> =&gt; <span class="ident">TypeNature::Chars</span>,
+        <span class="string">&quot;ANY_STRING&quot;</span> =&gt; <span class="ident">TypeNature::String</span>,
+        <span class="string">&quot;ANY_CHAR&quot;</span> =&gt; <span class="ident">TypeNature::Char</span>,
+        <span class="string">&quot;ANY_DATE&quot;</span> =&gt; <span class="ident">TypeNature::Date</span>,
+        <span class="kw">_</span> =&gt; {
             <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unknown_type_nature</span>(<span class="ident">nature</span>, <span class="ident">lexer</span>.<span class="ident">location</span>()));
             <span class="ident">TypeNature::Any</span>
         }
@@ -1381,11 +1383,11 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_polymorphism_mode</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">pou_type</span>: <span class="kw-2">&amp;</span><span class="ident">PouType</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PolymorphismMode</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PolymorphismMode</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">pou_type</span> {
-        <span class="ident">PouType::Class</span> <span class="op">|</span> <span class="ident">PouType::FunctionBlock</span> <span class="op">|</span> <span class="ident">PouType::Method</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">PouType::Class</span> <span class="op">|</span> <span class="ident">PouType::FunctionBlock</span> <span class="op">|</span> <span class="ident">PouType::Method</span> { .. } =&gt; {
             <span class="prelude-val">Some</span>(
                 <span class="comment">// See if the method/pou was declared FINAL or ABSTRACT</span>
                 <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordFinal</span>) {
@@ -1397,11 +1399,11 @@
                 },
             )
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_return_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">pou_type</span>: <span class="kw-2">&amp;</span><span class="ident">PouType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeDeclaration</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_return_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>, <span class="ident">pou_type</span>: <span class="kw-2">&amp;</span><span class="ident">PouType</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeDeclaration</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start_return_type</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordColon</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">declaration</span>, <span class="ident">initializer</span>)) <span class="op">=</span> <span class="ident">parse_data_type_definition</span>(<span class="ident">lexer</span>, <span class="prelude-val">None</span>) {
@@ -1444,10 +1446,10 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_method</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">class_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Pou</span>, <span class="ident">Implementation</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Pou</span>, <span class="ident">Implementation</span>)<span class="op">&gt;</span> {
     <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndMethod</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
         <span class="comment">// Method declarations look like this:</span>
         <span class="comment">// METHOD [AccessModifier] [ABSTRACT|FINAL] [OVERRIDE] [: return_type]</span>
@@ -1468,11 +1470,11 @@
         <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="ident">parse_return_type</span>(<span class="ident">lexer</span>, <span class="kw-2">&amp;</span><span class="ident">pou_type</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variable_blocks</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVar</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarInput</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarOutput</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarInOut</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarTemp</span>
+        <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordVar</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordVarInput</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordVarOutput</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordVarInOut</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordVarTemp</span>
         {
             <span class="ident">variable_blocks</span>.<span class="ident">push</span>(<span class="ident">parse_variable_block</span>(
                 <span class="ident">lexer</span>,
@@ -1517,7 +1519,7 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_access_modifier</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AccessModifier</span> {
+<span class="kw">fn</span> <span class="ident">parse_access_modifier</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AccessModifier</span> {
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordAccessPublic</span>) {
         <span class="ident">AccessModifier::Public</span>
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordAccessPrivate</span>) {
@@ -1532,9 +1534,9 @@
 }
 
 <span class="doccomment">/// parse identifier and advance if successful</span>
-<span class="kw">fn</span> <span class="ident">parse_identifier</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_identifier</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">pou_name</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice</span>().<span class="ident">to_string</span>();
-    <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Identifier</span> {
+    <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">Identifier</span> {
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="prelude-val">Some</span>(<span class="ident">pou_name</span>)
     } <span class="kw">else</span> {
@@ -1548,12 +1550,12 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_implementation</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
     <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
     <span class="ident">call_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Implementation</span> {
+) -&gt; <span class="ident">Implementation</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="kw">let</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">parse_body_standalone</span>(<span class="ident">lexer</span>);
     <span class="ident">Implementation</span> {
@@ -1569,10 +1571,10 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_action</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
     <span class="ident">container</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Implementation</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Implementation</span><span class="op">&gt;</span> {
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">//Consume the Action keyword</span>
     <span class="kw">let</span> <span class="ident">closing_tokens</span> <span class="op">=</span> <span class="macro">vec!</span>[
         <span class="ident">KeywordEndAction</span>,
@@ -1613,7 +1615,7 @@
 }
 
 <span class="comment">// TYPE ... END_TYPE</span>
-<span class="kw">fn</span> <span class="ident">parse_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">UserTypeDeclaration</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">UserTypeDeclaration</span><span class="op">&gt;</span> {
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">// consume the TYPE</span>
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>().<span class="ident">get_start</span>();
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
@@ -1638,10 +1640,10 @@
 <span class="kw">type</span> <span class="ident">DataTypeWithInitializer</span> <span class="op">=</span> (<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>);
 
 <span class="kw">fn</span> <span class="ident">parse_full_data_type_definition</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeWithInitializer</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">end_keyword</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordStruct</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeWithInitializer</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">end_keyword</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordStruct</span> {
         <span class="ident">KeywordEndStruct</span>
     } <span class="kw">else</span> {
         <span class="ident">KeywordSemicolon</span>
@@ -1681,9 +1683,9 @@
 
 <span class="comment">// TYPE xxx : &#39;STRUCT&#39; | &#39;(&#39; | IDENTIFIER</span>
 <span class="kw">fn</span> <span class="ident">parse_data_type_definition</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeWithInitializer</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeWithInitializer</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>().<span class="ident">get_start</span>();
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordStruct</span>) {
         <span class="comment">// Parse struct</span>
@@ -1716,9 +1718,9 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordParensOpen</span>) {
         <span class="comment">//enum without datatype</span>
         <span class="ident">parse_enum_type_definition</span>(<span class="ident">lexer</span>, <span class="ident">name</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordString</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordWideString</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordString</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordWideString</span> {
         <span class="ident">parse_string_type_definition</span>(<span class="ident">lexer</span>, <span class="ident">name</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Identifier</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">Identifier</span> {
         <span class="ident">parse_type_reference_type_definition</span>(<span class="ident">lexer</span>, <span class="ident">name</span>)
     } <span class="kw">else</span> {
         <span class="comment">//no datatype?</span>
@@ -1732,10 +1734,10 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_pointer_definition</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="ident">start_pos</span>: <span class="ident">usize</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
     <span class="ident">parse_data_type_definition</span>(<span class="ident">lexer</span>, <span class="prelude-val">None</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">decl</span>, <span class="ident">initializer</span>)<span class="op">|</span> {
         (
             <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
@@ -1752,9 +1754,9 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_type_reference_type_definition</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>().<span class="ident">get_start</span>();
     <span class="comment">//Subrange</span>
     <span class="kw">let</span> <span class="ident">referenced_type</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
@@ -1778,7 +1780,7 @@
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>;
     <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">bounds</span>.<span class="ident">is_some</span>() {
         <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bounds</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, <span class="ident">id</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, <span class="ident">id</span> }) =&gt; {
                 <span class="comment">//this is an enum</span>
                 <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
                     <span class="ident">data_type</span>: <span class="ident">DataType::EnumType</span> {
@@ -1790,7 +1792,7 @@
                     <span class="ident">scope</span>: <span class="ident">lexer</span>.<span class="ident">scope</span>.<span class="ident">clone</span>(),
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="ident">AstStatement::Reference</span> { .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">AstStatement::Reference</span> { .. }) =&gt; {
                 <span class="comment">// a enum with just one element</span>
                 <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
                     <span class="ident">data_type</span>: <span class="ident">DataType::EnumType</span> {
@@ -1802,7 +1804,7 @@
                     <span class="ident">scope</span>: <span class="ident">lexer</span>.<span class="ident">scope</span>.<span class="ident">clone</span>(),
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+            <span class="kw">_</span> =&gt; <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
                 <span class="comment">//something else inside the brackets -&gt; probably a subrange?</span>
                 <span class="ident">data_type</span>: <span class="ident">DataType::SubRangeType</span> {
                     <span class="ident">name</span>,
@@ -1825,7 +1827,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_string_size_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_string_size_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">opening_token</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">token</span>.<span class="ident">clone</span>();
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordSquareParensOpen</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordParensOpen</span>) {
         <span class="kw">let</span> <span class="ident">opening_location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>().<span class="ident">get_start</span>();
@@ -1834,14 +1836,14 @@
             <span class="kw">let</span> <span class="ident">size_expr</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
             <span class="kw">let</span> <span class="ident">error_range</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">opening_location</span>..<span class="ident">lexer</span>.<span class="ident">location</span>().<span class="ident">get_end</span>());
 
-            <span class="kw">if</span> (<span class="ident">opening_token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordParensOpen</span> <span class="op">&amp;&amp;</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordSquareParensClose</span>)
-                <span class="op">|</span><span class="op">|</span> (<span class="ident">opening_token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordSquareParensOpen</span> <span class="op">&amp;&amp;</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordParensClose</span>)
+            <span class="kw">if</span> (<span class="ident">opening_token</span> <span class="op">==</span> <span class="ident">KeywordParensOpen</span> <span class="op">&amp;&amp;</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordSquareParensClose</span>)
+                <span class="op">|</span><span class="op">|</span> (<span class="ident">opening_token</span> <span class="op">==</span> <span class="ident">KeywordSquareParensOpen</span> <span class="op">&amp;&amp;</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordParensClose</span>)
             {
                 <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::ImprovementSuggestion</span> {
                     <span class="ident">message</span>: <span class="string">&quot;Mismatched types of parentheses around string size expression&quot;</span>.<span class="ident">into</span>(),
                     <span class="ident">range</span>: <span class="ident">error_range</span>,
                 });
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">opening_token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordParensOpen</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordParensClose</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">opening_token</span> <span class="op">==</span> <span class="ident">KeywordParensOpen</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordParensClose</span> {
                 <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::ImprovementSuggestion</span> {
                     <span class="ident">message</span>: <span class="string">&quot;Unusual type of parentheses around string size expression, consider using square parentheses &#39;[]&#39;&quot;</span>
                         .<span class="ident">into</span>(),
@@ -1857,11 +1859,11 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_string_type_definition</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>().<span class="ident">get_start</span>();
-    <span class="kw">let</span> <span class="ident">is_wide</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordWideString</span>;
+    <span class="kw">let</span> <span class="ident">is_wide</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordWideString</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">parse_string_size_expression</span>(<span class="ident">lexer</span>);
@@ -1884,9 +1886,9 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_enum_type_definition</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">start</span>;
     <span class="kw">let</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordParensClose</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
         <span class="comment">// Parse Enum - we expect at least one element</span>
@@ -1909,9 +1911,9 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_array_type_definition</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">DataTypeDeclaration</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">start</span>;
     <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordOf</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
         <span class="comment">// Parse Array range</span>
@@ -1946,11 +1948,11 @@
 }
 
 <span class="doccomment">/// parse a body and recovers until the given `end_keywords`</span>
-<span class="kw">fn</span> <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">end_keywords</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>, <span class="ident">end_keywords</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span> {
     <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="ident">end_keywords</span>, <span class="ident">parse_body_standalone</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse_body_standalone</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_body_standalone</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">while</span> <span class="op">!</span><span class="ident">lexer</span>.<span class="ident">closes_open_region</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>.<span class="ident">token</span>) {
         <span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">parse_control</span>(<span class="ident">lexer</span>));
@@ -1959,11 +1961,11 @@
 }
 
 <span class="doccomment">/// parses a statement ending with a &#39;;&#39;</span>
-<span class="kw">fn</span> <span class="ident">parse_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
+<span class="kw">fn</span> <span class="ident">parse_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordSemicolon</span>, <span class="ident">KeywordColon</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
         <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)
     });
-    <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">last_token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordColon</span> {
+    <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">last_token</span> <span class="op">==</span> <span class="ident">KeywordColon</span> {
         <span class="ident">AstStatement::CaseCondition</span> {
             <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">result</span>),
             <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
@@ -1973,22 +1975,22 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_scope</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span><span class="op">&gt;</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_scope</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">scope</span>: <span class="ident">String</span>,
     <span class="ident">parse_fn</span>: <span class="ident">F</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+) -&gt; <span class="ident">T</span> {
     <span class="ident">lexer</span>.<span class="ident">scope</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">scope</span>);
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parse_fn</span>(<span class="ident">lexer</span>);
     <span class="ident">lexer</span>.<span class="ident">scope</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_any_in_region</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span><span class="op">&gt;</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_any_in_region</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">closing_tokens</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
     <span class="ident">parse_fn</span>: <span class="ident">F</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+) -&gt; <span class="ident">T</span> {
     <span class="ident">lexer</span>.<span class="ident">enter_region</span>(<span class="ident">closing_tokens</span>);
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parse_fn</span>(<span class="ident">lexer</span>);
 
@@ -2000,10 +2002,10 @@
     <span class="ident">result</span>
 }
 
-<span class="kw">fn</span> <span class="ident">parse_reference</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
+<span class="kw">fn</span> <span class="ident">parse_reference</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
     <span class="kw">match</span> <span class="ident">expressions_parser::parse_qualified_reference</span>(<span class="ident">lexer</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">statement</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">statement</span>) =&gt; <span class="ident">statement</span>,
+        <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">AstStatement::EmptyStatement</span> {
                 <span class="ident">location</span>: <span class="ident">diagnostic</span>.<span class="ident">get_location</span>(),
                 <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
@@ -2014,27 +2016,27 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_control</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
+<span class="kw">fn</span> <span class="ident">parse_control</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
     <span class="ident">parse_control_statement</span>(<span class="ident">lexer</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse_variable_block_type</span>(<span class="ident">block_type</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VariableBlockType</span> {
+<span class="kw">fn</span> <span class="ident">parse_variable_block_type</span>(<span class="ident">block_type</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) -&gt; <span class="ident">VariableBlockType</span> {
     <span class="kw">match</span> <span class="ident">block_type</span> {
-        <span class="ident">KeywordVar</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VariableBlockType::Local</span>,
-        <span class="ident">KeywordVarTemp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VariableBlockType::Temp</span>,
-        <span class="ident">KeywordVarInput</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VariableBlockType::Input</span>,
-        <span class="ident">KeywordVarOutput</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VariableBlockType::Output</span>,
-        <span class="ident">KeywordVarGlobal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VariableBlockType::Global</span>,
-        <span class="ident">KeywordVarInOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VariableBlockType::InOut</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VariableBlockType::Local</span>,
+        <span class="ident">KeywordVar</span> =&gt; <span class="ident">VariableBlockType::Local</span>,
+        <span class="ident">KeywordVarTemp</span> =&gt; <span class="ident">VariableBlockType::Temp</span>,
+        <span class="ident">KeywordVarInput</span> =&gt; <span class="ident">VariableBlockType::Input</span>,
+        <span class="ident">KeywordVarOutput</span> =&gt; <span class="ident">VariableBlockType::Output</span>,
+        <span class="ident">KeywordVarGlobal</span> =&gt; <span class="ident">VariableBlockType::Global</span>,
+        <span class="ident">KeywordVarInOut</span> =&gt; <span class="ident">VariableBlockType::InOut</span>,
+        <span class="kw">_</span> =&gt; <span class="ident">VariableBlockType::Local</span>,
     }
 }
 
 <span class="kw">fn</span> <span class="ident">parse_variable_block</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">variable_block_type</span>: <span class="ident">VariableBlockType</span>,
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VariableBlock</span> {
+) -&gt; <span class="ident">VariableBlock</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//Consume the type keyword</span>
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
@@ -2060,24 +2062,24 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_variable_list</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variable</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_variable_list</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variable</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variables</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Identifier</span> {
+    <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">Identifier</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line_vars</span> <span class="op">=</span> <span class="ident">parse_variable_line</span>(<span class="ident">lexer</span>);
-        <span class="ident">variables</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">line_vars</span>);
+        <span class="ident">variables</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">line_vars</span>);
     }
     <span class="ident">variables</span>
 }
 
-<span class="kw">fn</span> <span class="ident">parse_variable_line</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variable</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_variable_line</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variable</span><span class="op">&gt;</span> {
     <span class="comment">// read in a comma separated list of variable names</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">SourceRange</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Identifier</span> {
+    <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">Identifier</span> {
         <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
         <span class="kw">let</span> <span class="ident">identifier_end</span> <span class="op">=</span> <span class="ident">location</span>.<span class="ident">get_end</span>();
         <span class="ident">var_names</span>.<span class="ident">push</span>((<span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>(), <span class="ident">location</span>));
 
-        <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordColon</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordAt</span> {
+        <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordColon</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">KeywordAt</span> {
             <span class="kw">break</span>;
         }
 
@@ -2097,14 +2099,14 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">HardwareAccess</span>((<span class="ident">direction</span>, <span class="ident">access_type</span>)) <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
             <span class="ident">lexer</span>.<span class="ident">advance</span>();
             <span class="comment">//Folowed by an integer</span>
-            <span class="kw">if</span> <span class="ident">access_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">DirectAccessType::Template</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">LiteralInteger</span> {
+            <span class="kw">if</span> <span class="ident">access_type</span> <span class="op">==</span> <span class="ident">DirectAccessType::Template</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">LiteralInteger</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">address</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-                <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">LiteralInteger</span> {
+                <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">LiteralInteger</span> {
                     <span class="kw">loop</span> {
                         <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">expressions_parser::parse_strict_literal_integer</span>(<span class="ident">lexer</span>);
                         <span class="kw">match</span> <span class="ident">int</span> {
-                            <span class="prelude-val">Ok</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">address</span>.<span class="ident">push</span>(<span class="ident">statement</span>),
-                            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Ok</span>(<span class="ident">statement</span>) =&gt; <span class="ident">address</span>.<span class="ident">push</span>(<span class="ident">statement</span>),
+                            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                                 <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">err</span>);
                                 <span class="kw">break</span>;
                             }
@@ -2163,6 +2165,5 @@
     <span class="ident">variables</span>
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

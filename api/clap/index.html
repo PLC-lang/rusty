@@ -1,38 +1,40 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="clap"><meta name="keywords" content="rust, rustlang, rust-lang, clap"><title>clap - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../clap/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;clap-rs&#x2F;clap&#x2F;master&#x2F;assets&#x2F;clap.png' alt='logo'></div></a><h2 class="location">Crate clap</h2><div class="block version"><div class="narrow-helper"></div><p>Version 3.0.14</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all clap's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></div><div id="sidebar-vars" data-name="clap" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">clap</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/lib.rs.html#6-107" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><!-- omit in TOC -->
-<h1 id="clap" class="section-header"><a href="#clap">clap</a></h1>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="clap"><meta name="keywords" content="rust, rustlang, rust-lang, clap"><title>clap - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../clap/index.html"><div class="logo-container"><img src="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;clap-rs&#x2F;clap&#x2F;master&#x2F;assets&#x2F;clap.png" alt="logo"></div>
+        </a><h2 class="location">Crate clap</h2><div class="block version"><div class="narrow-helper"></div><p>Version 3.1.5</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all clap's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></div><div id="sidebar-vars" data-name="clap" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../clap/index.html"><img src="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;clap-rs&#x2F;clap&#x2F;master&#x2F;assets&#x2F;clap.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">clap</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/lib.rs.html#6-121" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><!-- omit in TOC -->
+<h2 id="clap" class="section-header"><a href="#clap">clap</a></h2>
 <blockquote>
 <p><strong>Command Line Argument Parser for Rust</strong></p>
 </blockquote>
 <p><a href="https://crates.io/crates/clap"><img src="https://img.shields.io/crates/v/clap?style=flat-square" alt="Crates.io" /></a>
 <a href="https://crates.io/crates/clap"><img src="https://img.shields.io/crates/d/clap?style=flat-square" alt="Crates.io" /></a>
-<a href="https://github.com/clap-rs/clap/blob/v3.0.14/LICENSE-APACHE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square" alt="License" /></a>
-<a href="https://github.com/clap-rs/clap/blob/v3.0.14/LICENSE-MIT"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" /></a>
+<a href="https://github.com/clap-rs/clap/blob/v3.1.5/LICENSE-APACHE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square" alt="License" /></a>
+<a href="https://github.com/clap-rs/clap/blob/v3.1.5/LICENSE-MIT"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" /></a>
 <a href="https://github.com/clap-rs/clap/actions/workflows/ci.yml?query=branch%3Astaging"><img src="https://img.shields.io/github/workflow/status/clap-rs/clap/CI/staging?style=flat-square" alt="Build Status" /></a>
 <a href="https://coveralls.io/github/clap-rs/clap?branch=master"><img src="https://img.shields.io/coveralls/github/clap-rs/clap/master?style=flat-square" alt="Coverage Status" /></a>
 <a href="https://github.com/clap-rs/clap/graphs/contributors"><img src="https://img.shields.io/github/contributors/clap-rs/clap?style=flat-square" alt="Contributors" /></a></p>
 <p>Dual-licensed under <a href="LICENSE-APACHE">Apache 2.0</a> or <a href="LICENSE-MIT">MIT</a>.</p>
 <ol>
 <li><a href="#about">About</a></li>
-<li>Tutorial: <a href="https://github.com/clap-rs/clap/blob/v3.0.14/examples/tutorial_builder/README.md">Builder API</a>,  <a href="https://github.com/clap-rs/clap/blob/v3.0.14/examples/tutorial_derive/README.md">Derive API</a></li>
-<li><a href="https://github.com/clap-rs/clap/blob/v3.0.14/examples/README.md">Examples</a></li>
+<li>Tutorial: <a href="https://github.com/clap-rs/clap/blob/v3.1.5/examples/tutorial_builder/README.md">Builder API</a>,  <a href="https://github.com/clap-rs/clap/blob/v3.1.5/examples/tutorial_derive/README.md">Derive API</a></li>
+<li><a href="https://github.com/clap-rs/clap/blob/v3.1.5/examples/README.md">Examples</a></li>
 <li><a href="https://docs.rs/clap">API Reference</a>
 <ul>
-<li><a href="https://github.com/clap-rs/clap/blob/v3.0.14/examples/derive_ref/README.md">Derive Reference</a></li>
+<li><a href="https://github.com/clap-rs/clap/blob/v3.1.5/examples/derive_ref/README.md">Derive Reference</a></li>
 <li><a href="#feature-flags">Feature Flags</a></li>
 </ul>
 </li>
-<li><a href="https://github.com/clap-rs/clap/blob/v3.0.14/CHANGELOG.md">CHANGELOG</a></li>
-<li><a href="https://github.com/clap-rs/clap/blob/v3.0.14/docs/FAQ.md">FAQ</a></li>
+<li><a href="https://github.com/clap-rs/clap/blob/v3.1.5/CHANGELOG.md">CHANGELOG</a></li>
+<li><a href="https://github.com/clap-rs/clap/blob/v3.1.5/docs/FAQ.md">FAQ</a></li>
 <li><a href="https://github.com/clap-rs/clap/discussions">Questions &amp; Discussions</a></li>
-<li><a href="https://github.com/clap-rs/clap/blob/v3.0.14/CONTRIBUTING.md">Contributing</a></li>
+<li><a href="https://github.com/clap-rs/clap/blob/v3.1.5/CONTRIBUTING.md">Contributing</a></li>
 <li><a href="#sponsors">Sponsors</a></li>
 </ol>
-<h2 id="about" class="section-header"><a href="#about">About</a></h2>
+<h3 id="about" class="section-header"><a href="#about">About</a></h3>
 <p>Create your command-line parser, with all of the bells and whistles, declaratively or procedurally.</p>
-<h3 id="example" class="section-header"><a href="#example">Example</a></h3>
+<h4 id="example" class="section-header"><a href="#example">Example</a></h4>
 <p>This uses our
-<a href="https://github.com/clap-rs/clap/blob/v3.0.14/examples/tutorial_derive/README.md">Derive API</a>
-which provides access to the <a href="https://github.com/clap-rs/clap/blob/v3.0.14/examples/tutorial_builder/README.md">Builder API</a> as attributes on a <code>struct</code>:</p>
+<a href="https://github.com/clap-rs/clap/blob/v3.1.5/examples/tutorial_derive/README.md">Derive API</a>
+which provides access to the <a href="https://github.com/clap-rs/clap/blob/v3.1.5/examples/tutorial_builder/README.md">Builder API</a> as attributes on a <code>struct</code>:</p>
 <!-- Copied from examples/demo.{rs,md} -->
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">clap::Parser</span>;
@@ -59,7 +61,7 @@ which provides access to the <a href="https://github.com/clap-rs/clap/blob/v3.0.
 }</code></pre></div>
 <p>Add this to <code>Cargo.toml</code>:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies]
-clap = { version = &quot;3.0.14&quot;, features = [&quot;derive&quot;] }</code></pre></div><div class="example-wrap"><pre class="language-bash"><code>$ demo --help
+clap = { version = &quot;3.1.5&quot;, features = [&quot;derive&quot;] }</code></pre></div><div class="example-wrap"><pre class="language-bash"><code>$ demo --help
 clap [..]
 Simple program to greet a person
 
@@ -72,7 +74,7 @@ OPTIONS:
     -n, --name &lt;NAME&gt;      Name of the person to greet
     -V, --version          Print version information</code></pre></div>
 <p><em>(version number and <code>.exe</code> extension on windows replaced by placeholders)</em></p>
-<h3 id="aspirations" class="section-header"><a href="#aspirations">Aspirations</a></h3>
+<h4 id="aspirations" class="section-header"><a href="#aspirations">Aspirations</a></h4>
 <ul>
 <li>Out of the box, users get a polished CLI experience
 <ul>
@@ -100,14 +102,14 @@ size, we will still strive to keep these reasonable for the flexibility you
 get.  Check out the
 <a href="https://github.com/rust-cli/argparse-benchmarks-rs">argparse-benchmarks</a> for
 CLI parsers optimized for other use cases.</p>
-<h3 id="selecting-an-api" class="section-header"><a href="#selecting-an-api">Selecting an API</a></h3>
-<p>Why use the declarative <a href="https://github.com/clap-rs/clap/blob/v3.0.14/examples/tutorial_derive/README.md">Derive API</a>:</p>
+<h4 id="selecting-an-api" class="section-header"><a href="#selecting-an-api">Selecting an API</a></h4>
+<p>Why use the declarative <a href="https://github.com/clap-rs/clap/blob/v3.1.5/examples/tutorial_derive/README.md">Derive API</a>:</p>
 <ul>
 <li>Easier to read, write, and modify</li>
 <li>Easier to keep the argument declaration and reading of argument in sync</li>
 <li>Easier to reuse, e.g. <a href="https://crates.io/crates/clap-verbosity-flag">clap-verbosity-flag</a></li>
 </ul>
-<p>Why use the procedural <a href="https://github.com/clap-rs/clap/blob/v3.0.14/examples/tutorial_builder/README.md">Builder API</a>:</p>
+<p>Why use the procedural <a href="https://github.com/clap-rs/clap/blob/v3.1.5/examples/tutorial_builder/README.md">Builder API</a>:</p>
 <ul>
 <li>Faster compile times if you aren’t already using other procedural macros</li>
 <li>More flexible, e.g. you can look up how many times an argument showed up,
@@ -115,10 +117,12 @@ what its values were, and what were the indexes of those values.  The Derive
 API can only report presence, number of occurrences, or values but no indices
 or combinations of data.</li>
 </ul>
-<h3 id="related-projects" class="section-header"><a href="#related-projects">Related Projects</a></h3>
+<h4 id="related-projects" class="section-header"><a href="#related-projects">Related Projects</a></h4>
 <ul>
 <li><a href="https://crates.io/crates/wild">wild</a> for supporting wildcards (<code>*</code>) on Windows like you do Linux</li>
 <li><a href="https://crates.io/crates/argfile">argfile</a> for loading additional arguments from a file (aka response files)</li>
+<li><a href="https://crates.io/crates/shadow-rs">shadow-rs</a> for generating <code>Command::long_version</code></li>
+<li><a href="https://crates.io/crates/clap_mangen">clap_mangen</a> for generating man page source (roff)</li>
 <li><a href="https://crates.io/crates/clap_complete">clap_complete</a> for shell completion support</li>
 <li><a href="https://crates.io/crates/clap-verbosity-flag">clap-verbosity-flag</a></li>
 <li><a href="https://crates.io/crates/clap-cargo">clap-cargo</a></li>
@@ -130,13 +134,13 @@ or combinations of data.</li>
 </ul>
 </li>
 </ul>
-<h2 id="feature-flags" class="section-header"><a href="#feature-flags">Feature Flags</a></h2><h3 id="default-features" class="section-header"><a href="#default-features">Default Features</a></h3>
+<h3 id="feature-flags" class="section-header"><a href="#feature-flags">Feature Flags</a></h3><h4 id="default-features" class="section-header"><a href="#default-features">Default Features</a></h4>
 <ul>
 <li><strong>std</strong>: <em>Not Currently Used.</em> Placeholder for supporting <code>no_std</code> environments in a backwards compatible manner.</li>
 <li><strong>color</strong>: Turns on colored error messages.</li>
 <li><strong>suggestions</strong>: Turns on the <code>Did you mean '--myoption'?</code> feature for when users make typos.</li>
 </ul>
-<h4 id="optional-features" class="section-header"><a href="#optional-features">Optional features</a></h4>
+<h5 id="optional-features" class="section-header"><a href="#optional-features">Optional features</a></h5>
 <ul>
 <li><strong>derive</strong>: Enables the custom derive (i.e. <code>#[derive(Parser)]</code>). Without this you must use one of the other methods of creating a <code>clap</code> CLI listed above.</li>
 <li><strong>cargo</strong>: Turns on macros that read values from <code>CARGO_*</code> environment variables.</li>
@@ -145,66 +149,60 @@ or combinations of data.</li>
 <li><strong>unicode</strong>: Turns on support for unicode characters (including emoji) in arguments and help messages.</li>
 <li><strong>wrap_help</strong>: Turns on the help text wrapping feature, based on the terminal size.</li>
 </ul>
-<h4 id="experimental-features" class="section-header"><a href="#experimental-features">Experimental features</a></h4>
+<h5 id="experimental-features" class="section-header"><a href="#experimental-features">Experimental features</a></h5>
 <p><strong>Warning:</strong> These may contain breaking changes between minor releases.</p>
 <ul>
-<li><strong>unstable-replace</strong>: Enable <a href="https://github.com/clap-rs/clap/issues/2836"><code>App::replace</code></a></li>
-<li><strong>unstable-multicall</strong>: Enable <a href="https://github.com/clap-rs/clap/issues/2861"><code>AppSettings::Multicall</code></a></li>
+<li><strong>unstable-replace</strong>: Enable <a href="https://github.com/clap-rs/clap/issues/2836"><code>Command::replace</code></a></li>
+<li><strong>unstable-multicall</strong>: Enable <a href="https://github.com/clap-rs/clap/issues/2861"><code>Command::multicall</code></a></li>
 <li><strong>unstable-grouped</strong>: Enable <a href="https://github.com/clap-rs/clap/issues/2924"><code>ArgMatches::grouped_values_of</code></a></li>
+<li><strong>unstable-v4</strong>: Preview features which will be stable on the v4.0 release</li>
 </ul>
-<h2 id="sponsors" class="section-header"><a href="#sponsors">Sponsors</a></h2><!-- omit in TOC -->
-<h3 id="gold" class="section-header"><a href="#gold">Gold</a></h3>
+<h3 id="sponsors" class="section-header"><a href="#sponsors">Sponsors</a></h3><!-- omit in TOC -->
+<h4 id="gold" class="section-header"><a href="#gold">Gold</a></h4>
 <p><a href="https://opencollective.com/clap"><img src="https://opencollective.com/clap/tiers/gold.svg?avatarHeight=36&amp;width=600" alt="" /></a></p>
 <!-- omit in TOC -->
-<h3 id="silver" class="section-header"><a href="#silver">Silver</a></h3>
+<h4 id="silver" class="section-header"><a href="#silver">Silver</a></h4>
 <p><a href="https://opencollective.com/clap"><img src="https://opencollective.com/clap/tiers/silver.svg?avatarHeight=36&amp;width=600" alt="" /></a></p>
 <!-- omit in TOC -->
-<h3 id="bronze" class="section-header"><a href="#bronze">Bronze</a></h3>
+<h4 id="bronze" class="section-header"><a href="#bronze">Bronze</a></h4>
 <p><a href="https://opencollective.com/clap"><img src="https://opencollective.com/clap/tiers/bronze.svg?avatarHeight=36&amp;width=600" alt="" /></a></p>
 <!-- omit in TOC -->
-<h3 id="backer" class="section-header"><a href="#backer">Backer</a></h3>
+<h4 id="backer" class="section-header"><a href="#backer">Backer</a></h4>
 <p><a href="https://opencollective.com/clap"><img src="https://opencollective.com/clap/tiers/backer.svg?avatarHeight=36&amp;width=600" alt="" /></a>
 <a href="https://github.com/clap-rs/clap">https://github.com/clap-rs/clap</a></p>
-</div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.arg.html" title="clap::arg macro">arg</a></div><div class="item-right docblock-short"><p>Create an <a href="./struct.Arg.html"><code>Arg</code></a> from a usage string.</p>
-</div><div class="item-left module-item"><a class="macro" href="macro.arg_enum.html" title="clap::arg_enum macro">arg_enum</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="trait.ArgEnum.html" title="crate::ArgEnum"><code>ArgEnum</code></a></p>
-</div><div class="item-left module-item"><a class="macro" href="macro.clap_app.html" title="clap::clap_app macro">clap_app</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="trait.Parser.html" title="crate::Parser"><code>clap::Parser</code></a> and <a href="macro.arg.html" title="crate::arg"><code>clap::arg!</code></a> (Issue clap-rs/clap#2835)</p>
-</div><div class="item-left module-item"><a class="macro" href="macro.value_t.html" title="clap::value_t macro">value_t</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="struct.ArgMatches.html#method.value_of_t" title="crate::ArgMatches::value_of_t"><code>ArgMatches::value_of_t</code></a></p>
-</div><div class="item-left module-item"><a class="macro" href="macro.value_t_or_exit.html" title="clap::value_t_or_exit macro">value_t_or_exit</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="struct.ArgMatches.html#method.value_of_t_or_exit" title="crate::ArgMatches::value_of_t_or_exit"><code>ArgMatches::value_of_t_or_exit</code></a></p>
-</div><div class="item-left module-item"><a class="macro" href="macro.values_t.html" title="clap::values_t macro">values_t</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="struct.ArgMatches.html#method.value_of_t" title="crate::ArgMatches::value_of_t"><code>ArgMatches::values_of_t</code></a></p>
-</div><div class="item-left module-item"><a class="macro" href="macro.values_t_or_exit.html" title="clap::values_t_or_exit macro">values_t_or_exit</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="struct.ArgMatches.html#method.value_of_t_or_exit" title="crate::ArgMatches::value_of_t_or_exit"><code>ArgMatches::values_of_t_or_exit</code></a></p>
-</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.App.html" title="clap::App struct">App</a></div><div class="item-right docblock-short"><p>Build a command-line interface.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Arg.html" title="clap::Arg struct">Arg</a></div><div class="item-right docblock-short"><p>The abstract representation of a command line argument. Used to set all the options and
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use crate::error::<a class="struct" href="error/struct.Error.html" title="struct clap::error::Error">Error</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::error::<a class="type" href="error/type.Result.html" title="type clap::error::Result">Result</a>;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="error/index.html" title="clap::error mod">error</a></div><div class="item-right docblock-short"><p>Error reporting</p>
+</div></div></div><h2 id="macros" class="small-section-header"><a href="#macros">Macros</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.arg.html" title="clap::arg macro">arg</a></div><div class="item-right docblock-short"><p>Create an <a href="./struct.Arg.html"><code>Arg</code></a> from a usage string.</p>
+</div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.App.html" title="clap::App struct">App</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="type.Command.html" title="Command"><code>Command</code></a></p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Arg.html" title="clap::Arg struct">Arg</a></div><div class="item-right docblock-short"><p>The abstract representation of a command line argument. Used to set all the options and
 relationships that define a valid argument for the program.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.ArgGroup.html" title="clap::ArgGroup struct">ArgGroup</a></div><div class="item-right docblock-short"><p>Family of related <a href="struct.Arg.html">arguments</a>.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.ArgMatches.html" title="clap::ArgMatches struct">ArgMatches</a></div><div class="item-right docblock-short"><p>Container for parse results.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Error.html" title="clap::Error struct">Error</a></div><div class="item-right docblock-short"><p>Command Line Argument Parser Error</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Indices.html" title="clap::Indices struct">Indices</a></div><div class="item-right docblock-short"><p>Iterate over indices for where an argument appeared when parsing, via <a href="struct.ArgMatches.html#method.indices_of"><code>ArgMatches::indices_of</code></a></p>
-</div><div class="item-left module-item"><a class="struct" href="struct.OsValues.html" title="clap::OsValues struct">OsValues</a></div><div class="item-right docblock-short"><p>Iterate over multiple values for an argument via [<code>ArgMatches::values_of_os</code>].</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.PossibleValue.html" title="clap::PossibleValue struct">PossibleValue</a></div><div class="item-right docblock-short"><p>A possible value of an argument.</p>
-</div><div class="item-left module-item"><a class="struct" href="struct.SubCommand.html" title="clap::SubCommand struct">SubCommand</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="struct.App.html#method.new" title="App::new"><code>App::new</code></a>, unless you were looking for <a href="trait.Subcommand.html" title="Subcommand">Subcommand</a></p>
-</div><div class="item-left module-item"><a class="struct" href="struct.Values.html" title="clap::Values struct">Values</a></div><div class="item-right docblock-short"><p>Iterate over multiple values for an argument via <a href="struct.ArgMatches.html#method.values_of"><code>ArgMatches::values_of</code></a>.</p>
-</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.AppSettings.html" title="clap::AppSettings enum">AppSettings</a></div><div class="item-right docblock-short"><p>Application level settings, which affect how <a href="struct.App.html"><code>App</code></a> operates</p>
-</div><div class="item-left module-item"><a class="enum" href="enum.ArgSettings.html" title="clap::ArgSettings enum">ArgSettings</a></div><div class="item-right docblock-short"><p>Various settings that apply to arguments and may be set, unset, and checked via getter/setter
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ArgGroup.html" title="clap::ArgGroup struct">ArgGroup</a></div><div class="item-right docblock-short"><p>Family of related <a href="struct.Arg.html">arguments</a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ArgMatches.html" title="clap::ArgMatches struct">ArgMatches</a></div><div class="item-right docblock-short"><p>Container for parse results.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Indices.html" title="clap::Indices struct">Indices</a></div><div class="item-right docblock-short"><p>Iterate over indices for where an argument appeared when parsing, via <a href="struct.ArgMatches.html#method.indices_of"><code>ArgMatches::indices_of</code></a></p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OsValues.html" title="clap::OsValues struct">OsValues</a></div><div class="item-right docblock-short"><p>Iterate over multiple values for an argument via <a href="struct.ArgMatches.html#method.values_of_os"><code>ArgMatches::values_of_os</code></a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.PossibleValue.html" title="clap::PossibleValue struct">PossibleValue</a></div><div class="item-right docblock-short"><p>A possible value of an argument.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Values.html" title="clap::Values struct">Values</a></div><div class="item-right docblock-short"><p>Iterate over multiple values for an argument via <a href="struct.ArgMatches.html#method.values_of"><code>ArgMatches::values_of</code></a>.</p>
+</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.AppSettings.html" title="clap::AppSettings enum">AppSettings</a></div><div class="item-right docblock-short"><p>Application level settings, which affect how <a href="type.Command.html"><code>Command</code></a> operates</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ArgSettings.html" title="clap::ArgSettings enum">ArgSettings</a></div><div class="item-right docblock-short"><p>Various settings that apply to arguments and may be set, unset, and checked via getter/setter
 methods <a href="struct.Arg.html#method.setting"><code>Arg::setting</code></a>, <a href="struct.Arg.html#method.unset_setting"><code>Arg::unset_setting</code></a>, and <a href="struct.Arg.html#method.is_set"><code>Arg::is_set</code></a>. This is what the
 <a href="struct.Arg.html"><code>Arg</code></a> methods which accept a <code>bool</code> use internally.</p>
-</div><div class="item-left module-item"><a class="enum" href="enum.ColorChoice.html" title="clap::ColorChoice enum">ColorChoice</a></div><div class="item-right docblock-short"><p>Represents the color preferences for program output</p>
-</div><div class="item-left module-item"><a class="enum" href="enum.ErrorKind.html" title="clap::ErrorKind enum">ErrorKind</a></div><div class="item-right docblock-short"><p>Command line argument parser kind of error</p>
-</div><div class="item-left module-item"><a class="enum" href="enum.ValueHint.html" title="clap::ValueHint enum">ValueHint</a></div><div class="item-right docblock-short"><p>Provide shell with hint on how to complete an argument.</p>
-</div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.ArgEnum.html" title="clap::ArgEnum trait">ArgEnum</a></div><div class="item-right docblock-short"><p>Parse arguments into enums.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.Args.html" title="clap::Args trait">Args</a></div><div class="item-right docblock-short"><p>Parse a set of arguments into a user-defined container.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.FromArgMatches.html" title="clap::FromArgMatches trait">FromArgMatches</a></div><div class="item-right docblock-short"><p>Converts an instance of <a href="struct.ArgMatches.html" title="ArgMatches"><code>ArgMatches</code></a> to a user-defined container.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.IntoApp.html" title="clap::IntoApp trait">IntoApp</a></div><div class="item-right docblock-short"><p>Create an <a href="struct.App.html" title="App"><code>App</code></a> relevant for a user-defined container.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.Parser.html" title="clap::Parser trait">Parser</a></div><div class="item-right docblock-short"><p>Parse command-line arguments into <code>Self</code>.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.StructOpt.html" title="clap::StructOpt trait">StructOpt</a></div><div class="item-right docblock-short"><p>Parse command-line arguments into <code>Self</code>.</p>
-</div><div class="item-left module-item"><a class="trait" href="trait.Subcommand.html" title="clap::Subcommand trait">Subcommand</a></div><div class="item-right docblock-short"><p>Parse a sub-command into a user-defined enum.</p>
-</div></div><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="type" href="type.Result.html" title="clap::Result type">Result</a></div><div class="item-right docblock-short"><p>Short hand for <a href="https://doc.rust-lang.org/1.56.1/core/result/enum.Result.html"><code>Result</code></a> type</p>
-</div></div><h2 id="derives" class="section-header"><a href="#derives">Derive Macros</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="derive" href="derive.StructOpt.html" title="clap::StructOpt derive">StructOpt</a></div><div class="item-right docblock-short"><p>Deprecated, replaced with <a href="trait.Parser.html" title="Parser"><code>Parser</code></a></p>
-</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="clap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
-    <script src="../main.js"></script>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ColorChoice.html" title="clap::ColorChoice enum">ColorChoice</a></div><div class="item-right docblock-short"><p>Represents the color preferences for program output</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ErrorKind.html" title="clap::ErrorKind enum">ErrorKind</a></div><div class="item-right docblock-short"><p>Command line argument parser kind of error</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ValueHint.html" title="clap::ValueHint enum">ValueHint</a></div><div class="item-right docblock-short"><p>Provide shell with hint on how to complete an argument.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ValueSource.html" title="clap::ValueSource enum">ValueSource</a></div><div class="item-right docblock-short"><p>Origin of the argument’s value</p>
+</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ArgEnum.html" title="clap::ArgEnum trait">ArgEnum</a></div><div class="item-right docblock-short"><p>Parse arguments into enums.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Args.html" title="clap::Args trait">Args</a></div><div class="item-right docblock-short"><p>Parse a set of arguments into a user-defined container.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.CommandFactory.html" title="clap::CommandFactory trait">CommandFactory</a></div><div class="item-right docblock-short"><p>Create an <a href="type.Command.html" title="Command"><code>Command</code></a> relevant for a user-defined container.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.FromArgMatches.html" title="clap::FromArgMatches trait">FromArgMatches</a></div><div class="item-right docblock-short"><p>Converts an instance of <a href="struct.ArgMatches.html" title="ArgMatches"><code>ArgMatches</code></a> to a user-defined container.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.IntoApp.html" title="clap::IntoApp trait">IntoApp</a></div><div class="item-right docblock-short"><p>Create an <a href="type.Command.html" title="Command"><code>Command</code></a> relevant for a user-defined container.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Parser.html" title="clap::Parser trait">Parser</a></div><div class="item-right docblock-short"><p>Parse command-line arguments into <code>Self</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Subcommand.html" title="clap::Subcommand trait">Subcommand</a></div><div class="item-right docblock-short"><p>Parse a sub-command into a user-defined enum.</p>
+</div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Command.html" title="clap::Command type">Command</a></div><div class="item-right docblock-short"><p>Build a command-line interface.</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

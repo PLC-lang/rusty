@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;lexer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lexer.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;lexer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lexer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../rusty/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../rusty/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -422,7 +424,7 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">expect_token</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">return_value</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">return_value</span>:<span class="ident">expr</span>) =&gt; {
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">token</span> <span class="op">!</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span> {
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
                 <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>).<span class="ident">as_str</span>(),
@@ -435,7 +437,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ParseSession</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">l</span>: <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">id_provider</span>: <span class="ident">IdProvider</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseSession</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">l</span>: <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">id_provider</span>: <span class="ident">IdProvider</span>) -&gt; <span class="ident">ParseSession</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexer</span> <span class="op">=</span> <span class="ident">ParseSession</span> {
             <span class="ident">lexer</span>: <span class="ident">l</span>,
             <span class="ident">token</span>: <span class="ident">Token::KeywordBy</span>,
@@ -451,12 +453,12 @@
         <span class="ident">lexer</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstId</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">AstId</span> {
         <span class="self">self</span>.<span class="ident">id_provider</span>.<span class="ident">next_id</span>()
     }
 
     <span class="doccomment">/// this function will be removed soon:</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">token</span> <span class="op">!</span><span class="op">=</span> <span class="ident">token</span> {
             <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
                 <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">token</span>).<span class="ident">as_str</span>(),
@@ -469,8 +471,8 @@
     }
 
     <span class="doccomment">/// consumes an optional token and returns true if it was consumed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">token</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">token</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">token</span> {
             <span class="self">self</span>.<span class="ident">advance</span>();
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -478,7 +480,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_or_report</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="ident">Token</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_or_report</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="ident">Token</span>) {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">token</span>) {
             <span class="self">self</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::missing_token</span>(
                 <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">token</span>).<span class="ident">as_str</span>(),
@@ -487,24 +489,24 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice_and_advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice_and_advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">slice</span>().<span class="ident">to_string</span>();
         <span class="self">self</span>.<span class="ident">advance</span>();
         <span class="ident">slice</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_end_of_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Token::End</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Token::Error</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_end_of_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">Token::End</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">Token::Error</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice_region</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice_region</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">source</span>()[<span class="ident">range</span>]
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">last_range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">range</span>();
         <span class="self">self</span>.<span class="ident">last_token</span> <span class="op">=</span>
-            <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">token</span>, <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">next</span>().<span class="ident">unwrap_or</span>(<span class="ident">Token::End</span>));
+            <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">token</span>, <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">next</span>().<span class="ident">unwrap_or</span>(<span class="ident">Token::End</span>));
         <span class="self">self</span>.<span class="ident">parse_progress</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">token</span> {
@@ -528,7 +530,7 @@
             <span class="op">|</span> <span class="ident">Token::KeywordEndFor</span>
             <span class="op">|</span> <span class="ident">Token::KeywordEndRepeat</span>
             <span class="op">|</span> <span class="ident">Token::KeywordEndMethod</span>
-            <span class="op">|</span> <span class="ident">Token::KeywordEndClass</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="op">|</span> <span class="ident">Token::KeywordEndClass</span> =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">slice</span>().<span class="ident">to_string</span>().<span class="ident">contains</span>(<span class="string">&#39;_&#39;</span>) {
                     <span class="self">self</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::ImprovementSuggestion</span> {
                         <span class="ident">message</span>: <span class="macro">format!</span>(
@@ -539,35 +541,35 @@
                     });
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">slice</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceRange</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SourceRange</span> {
         <span class="ident">SourceRange::new</span>(<span class="self">self</span>.<span class="ident">range</span>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceRange</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SourceRange</span> {
         <span class="ident">SourceRange::new</span>(<span class="self">self</span>.<span class="ident">last_range</span>.<span class="ident">clone</span>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">span</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept_diagnostic</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">diagnostic</span>: <span class="ident">Diagnostic</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept_diagnostic</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">diagnostic</span>: <span class="ident">Diagnostic</span>) {
         <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">diagnostic</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enter_region</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">end_token</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enter_region</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">end_token</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">closing_keywords</span>.<span class="ident">push</span>(<span class="ident">end_token</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close_region</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close_region</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expected_token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">closing_keywords</span>.<span class="ident">pop</span>() {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">expected_token</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">token</span>) {
                 <span class="self">self</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
@@ -583,18 +585,18 @@
 
     <span class="doccomment">/// returns the level (which corresponds to the position on the `closing_keywords` stack)</span>
     <span class="doccomment">/// returns `None` if this token does not close an open region</span>
-    <span class="kw">fn</span> <span class="ident">get_close_region_level</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_close_region_level</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">closing_keywords</span>
             .<span class="ident">iter</span>()
             .<span class="ident">rposition</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">contains</span>(<span class="ident">token</span>))
     }
 
     <span class="doccomment">/// returns true if the given token closes an open region</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">closes_open_region</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Token::End</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_close_region_level</span>(<span class="ident">token</span>).<span class="ident">is_some</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">closes_open_region</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) -&gt; <span class="ident">bool</span> {
+        <span class="ident">token</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">Token::End</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_close_region_level</span>(<span class="ident">token</span>).<span class="ident">is_some</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recover_until_close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recover_until_close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_close_region_level</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">token</span>);
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">location</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">location</span>().<span class="ident">get_end</span>();
@@ -640,7 +642,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_comments</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Filter</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_comments</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) -&gt; <span class="ident">Filter</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> (<span class="ident">open</span>, <span class="ident">close</span>) <span class="op">=</span> <span class="ident">get_closing_tag</span>(<span class="ident">lexer</span>.<span class="ident">slice</span>());
     <span class="kw">let</span> <span class="ident">remainder</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">remainder</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unclosed</span> <span class="op">=</span> <span class="number">1</span>;
@@ -649,18 +651,18 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="string">&#39; &#39;</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traversed</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">chars</span> {
-        <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;*&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">prev</span> <span class="op">=</span><span class="op">=</span> <span class="ident">open</span> {
+        <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;*&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">prev</span> <span class="op">==</span> <span class="ident">open</span> {
             <span class="ident">unclosed</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="comment">//Make sure the next action does not consume the star</span>
             <span class="ident">prev</span> <span class="op">=</span> <span class="string">&#39; &#39;</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">=</span><span class="op">=</span> <span class="ident">close</span> <span class="op">&amp;&amp;</span> <span class="ident">prev</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;*&#39;</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="ident">close</span> <span class="op">&amp;&amp;</span> <span class="ident">prev</span> <span class="op">==</span> <span class="string">&#39;*&#39;</span> {
             <span class="ident">unclosed</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
             <span class="ident">prev</span> <span class="op">=</span> <span class="ident">c</span>;
         } <span class="kw">else</span> {
             <span class="ident">prev</span> <span class="op">=</span> <span class="ident">c</span>;
         }
         <span class="ident">traversed</span> <span class="op">+</span><span class="op">=</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>();
-        <span class="kw">if</span> <span class="ident">unclosed</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">unclosed</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">lexer</span>.<span class="ident">bump</span>(<span class="ident">traversed</span>);
             <span class="comment">//This is a well formed comment, treat it as whitespace</span>
             <span class="kw">return</span> <span class="ident">Filter::Skip</span>;
@@ -669,14 +671,14 @@
     <span class="ident">Filter::Emit</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">get_closing_tag</span>(<span class="ident">open_tag</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">char</span>, <span class="ident">char</span>) {
+<span class="kw">fn</span> <span class="ident">get_closing_tag</span>(<span class="ident">open_tag</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; (<span class="ident">char</span>, <span class="ident">char</span>) {
     <span class="kw">match</span> <span class="ident">open_tag</span> {
-        <span class="string">&quot;(*&quot;</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="string">&#39;(&#39;</span>, <span class="string">&#39;)&#39;</span>),
-        <span class="string">&quot;/*&quot;</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="string">&#39;/&#39;</span>, <span class="string">&#39;/&#39;</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="string">&quot;(*&quot;</span> =&gt; (<span class="string">&#39;(&#39;</span>, <span class="string">&#39;)&#39;</span>),
+        <span class="string">&quot;/*&quot;</span> =&gt; (<span class="string">&#39;/&#39;</span>, <span class="string">&#39;/&#39;</span>),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 }
-<span class="kw">fn</span> <span class="ident">parse_access_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DirectAccessType</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_access_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DirectAccessType</span><span class="op">&gt;</span> {
     <span class="comment">//Percent is at position 0</span>
     <span class="comment">//Find the size from position 1</span>
     <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">lexer</span>
@@ -684,11 +686,11 @@
         .<span class="ident">chars</span>()
         .<span class="ident">nth</span>(<span class="number">1</span>)
         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_ascii_lowercase</span>() {
-            <span class="string">&#39;x&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Bit</span>),
-            <span class="string">&#39;b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span>),
-            <span class="string">&#39;w&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span>),
-            <span class="string">&#39;d&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="string">&#39;x&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Bit</span>),
+            <span class="string">&#39;b&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span>),
+            <span class="string">&#39;w&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span>),
+            <span class="string">&#39;d&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })
         .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
 
@@ -696,18 +698,18 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_hardware_access_type</span>(
-    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">HardwareAccessType</span>, <span class="ident">DirectAccessType</span>)<span class="op">&gt;</span> {
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">HardwareAccessType</span>, <span class="ident">DirectAccessType</span>)<span class="op">&gt;</span> {
     <span class="comment">//Percent is at position 0</span>
     <span class="kw">let</span> <span class="ident">hardware_type</span> <span class="op">=</span> <span class="ident">lexer</span>
         .<span class="ident">slice</span>()
         .<span class="ident">chars</span>()
         .<span class="ident">nth</span>(<span class="number">1</span>)
         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_ascii_lowercase</span>() {
-            <span class="string">&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Input</span>),
-            <span class="string">&#39;q&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Output</span>),
-            <span class="string">&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Memory</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="string">&#39;i&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Input</span>),
+            <span class="string">&#39;q&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Output</span>),
+            <span class="string">&#39;m&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Memory</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })
         .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
     <span class="comment">//Find the size from position 2</span>
@@ -716,12 +718,12 @@
         .<span class="ident">chars</span>()
         .<span class="ident">nth</span>(<span class="number">2</span>)
         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_ascii_lowercase</span>() {
-            <span class="string">&#39;x&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Bit</span>),
-            <span class="string">&#39;b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span>),
-            <span class="string">&#39;w&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span>),
-            <span class="string">&#39;d&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span>),
-            <span class="string">&#39;*&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Template</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="string">&#39;x&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Bit</span>),
+            <span class="string">&#39;b&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span>),
+            <span class="string">&#39;w&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span>),
+            <span class="string">&#39;d&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span>),
+            <span class="string">&#39;*&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Template</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })
         .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
 
@@ -734,13 +736,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IdProvider</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstId</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">AstId</span> {
         <span class="self">self</span>.<span class="ident">current_id</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">IdProvider</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">IdProvider</span> {
             <span class="ident">current_id</span>: <span class="ident">Arc::new</span>(<span class="ident">AtomicUsize::new</span>(<span class="number">1</span>)),
         }
@@ -748,11 +750,11 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseSession</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">ParseSession</span> {
     <span class="ident">ParseSession::new</span>(<span class="ident">Token::lexer</span>(<span class="ident">source</span>), <span class="ident">IdProvider::default</span>())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex_with_ids</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">id_provider</span>: <span class="ident">IdProvider</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseSession</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex_with_ids</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">id_provider</span>: <span class="ident">IdProvider</span>) -&gt; <span class="ident">ParseSession</span> {
     <span class="ident">ParseSession::new</span>(<span class="ident">Token::lexer</span>(<span class="ident">source</span>), <span class="ident">id_provider</span>)
 }
 
@@ -775,6 +777,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

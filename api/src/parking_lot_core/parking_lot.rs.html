@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;parking_lot_core-0.9.1&#x2F;src&#x2F;parking_lot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parking_lot.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../parking_lot_core/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;parking_lot_core-0.9.1&#x2F;src&#x2F;parking_lot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parking_lot.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../parking_lot_core/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../parking_lot_core/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1717,13 +1719,13 @@
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
         <span class="kw">struct</span> <span class="ident">TimeoutInstant</span>;
         <span class="kw">impl</span> <span class="ident">TimeoutInstant</span> {
-            <span class="kw">fn</span> <span class="ident">now</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TimeoutInstant</span> {
+            <span class="kw">fn</span> <span class="ident">now</span>() -&gt; <span class="ident">TimeoutInstant</span> {
                 <span class="ident">TimeoutInstant</span>
             }
         }
         <span class="kw">impl</span> <span class="ident">core::ops::Add</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TimeoutInstant</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
-            <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">_rhs</span>: <span class="ident">Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Output</span> {
+            <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">_rhs</span>: <span class="ident">Duration</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
                 <span class="ident">TimeoutInstant</span>
             }
         }
@@ -1754,12 +1756,12 @@
     <span class="ident">hash_bits</span>: <span class="ident">u32</span>,
 
     <span class="comment">// Previous table. This is only kept to keep leak detectors happy.</span>
-    <span class="ident">_prev</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HashTable</span>,
+    <span class="ident">_prev</span>: <span class="kw-2">*const</span> <span class="ident">HashTable</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">HashTable</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_threads</span>: <span class="ident">usize</span>, <span class="ident">prev</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HashTable</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HashTable</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_threads</span>: <span class="ident">usize</span>, <span class="ident">prev</span>: <span class="kw-2">*const</span> <span class="ident">HashTable</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HashTable</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">new_size</span> <span class="op">=</span> (<span class="ident">num_threads</span> <span class="op">*</span> <span class="ident">LOAD_FACTOR</span>).<span class="ident">next_power_of_two</span>();
         <span class="kw">let</span> <span class="ident">hash_bits</span> <span class="op">=</span> <span class="number">0usize</span>.<span class="ident">leading_zeros</span>() <span class="op">-</span> <span class="ident">new_size</span>.<span class="ident">leading_zeros</span>() <span class="op">-</span> <span class="number">1</span>;
 
@@ -1784,8 +1786,8 @@
     <span class="ident">mutex</span>: <span class="ident">WordLock</span>,
 
     <span class="comment">// Linked list of threads waiting on this bucket</span>
-    <span class="ident">queue_head</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span><span class="op">&gt;</span>,
-    <span class="ident">queue_tail</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span><span class="op">&gt;</span>,
+    <span class="ident">queue_head</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">ThreadData</span><span class="op">&gt;</span>,
+    <span class="ident">queue_tail</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">ThreadData</span><span class="op">&gt;</span>,
 
     <span class="comment">// Next time at which point be_fair should be set</span>
     <span class="ident">fair_timeout</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">FairTimeout</span><span class="op">&gt;</span>,
@@ -1793,7 +1795,7 @@
 
 <span class="kw">impl</span> <span class="ident">Bucket</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">timeout</span>: <span class="ident">TimeoutInstant</span>, <span class="ident">seed</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">timeout</span>: <span class="ident">TimeoutInstant</span>, <span class="ident">seed</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">mutex</span>: <span class="ident">WordLock::new</span>(),
             <span class="ident">queue_head</span>: <span class="ident">Cell::new</span>(<span class="ident">ptr::null</span>()),
@@ -1813,13 +1815,13 @@
 
 <span class="kw">impl</span> <span class="ident">FairTimeout</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">timeout</span>: <span class="ident">TimeoutInstant</span>, <span class="ident">seed</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FairTimeout</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">timeout</span>: <span class="ident">TimeoutInstant</span>, <span class="ident">seed</span>: <span class="ident">u32</span>) -&gt; <span class="ident">FairTimeout</span> {
         <span class="ident">FairTimeout</span> { <span class="ident">timeout</span>, <span class="ident">seed</span> }
     }
 
     <span class="comment">// Determine whether we should force a fair unlock, and update the timeout</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">should_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">should_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">TimeoutInstant::now</span>();
         <span class="kw">if</span> <span class="ident">now</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">timeout</span> {
             <span class="comment">// Time between 0 and 1ms.</span>
@@ -1832,7 +1834,7 @@
     }
 
     <span class="comment">// Pseudorandom number generator from the &quot;Xorshift RNGs&quot; paper by George Marsaglia.</span>
-    <span class="kw">fn</span> <span class="ident">gen_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">fn</span> <span class="ident">gen_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">seed</span> <span class="op">^</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">seed</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">13</span>;
         <span class="self">self</span>.<span class="ident">seed</span> <span class="op">^</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">seed</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">17</span>;
         <span class="self">self</span>.<span class="ident">seed</span> <span class="op">^</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">seed</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>;
@@ -1848,7 +1850,7 @@
     <span class="ident">key</span>: <span class="ident">AtomicUsize</span>,
 
     <span class="comment">// Linked list of parked threads in a bucket</span>
-    <span class="ident">next_in_queue</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span><span class="op">&gt;</span>,
+    <span class="ident">next_in_queue</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">ThreadData</span><span class="op">&gt;</span>,
 
     <span class="comment">// UnparkToken passed to this thread when it is unparked</span>
     <span class="ident">unpark_token</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">UnparkToken</span><span class="op">&gt;</span>,
@@ -1865,7 +1867,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ThreadData</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ThreadData</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">ThreadData</span> {
         <span class="comment">// Keep track of the total number of live ThreadData objects and resize</span>
         <span class="comment">// the hash table accordingly.</span>
         <span class="kw">let</span> <span class="ident">num_threads</span> <span class="op">=</span> <span class="ident">NUM_THREADS</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>) <span class="op">+</span> <span class="number">1</span>;
@@ -1886,21 +1888,21 @@
 
 <span class="comment">// Invokes the given closure with a reference to the current thread `ThreadData`.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">fn</span> <span class="ident">with_thread_data</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ThreadData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+<span class="kw">fn</span> <span class="ident">with_thread_data</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">ThreadData</span>) -&gt; <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
     <span class="comment">// Unlike word_lock::ThreadData, parking_lot::ThreadData is always expensive</span>
     <span class="comment">// to construct. Try to use a thread-local version if possible. Otherwise just</span>
     <span class="comment">// create a ThreadData on the stack</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">thread_data_storage</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="macro">thread_local!</span>(<span class="kw">static</span> <span class="ident">THREAD_DATA</span>: <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">ThreadData::new</span>());
     <span class="kw">let</span> <span class="ident">thread_data_ptr</span> <span class="op">=</span> <span class="ident">THREAD_DATA</span>
-        .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span>)
+        .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">ThreadData</span>)
         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">thread_data_storage</span>.<span class="ident">get_or_insert_with</span>(<span class="ident">ThreadData::new</span>));
 
     <span class="ident">f</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">thread_data_ptr</span> })
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ThreadData</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="ident">NUM_THREADS</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">Ordering::Relaxed</span>);
     }
 }
@@ -1909,7 +1911,7 @@
 <span class="doccomment">/// The reference is valid forever. However, the `HashTable` it references might become stale</span>
 <span class="doccomment">/// at any point. Meaning it still exists, but it is not the instance in active use.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">get_hashtable</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HashTable</span> {
+<span class="kw">fn</span> <span class="ident">get_hashtable</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HashTable</span> {
     <span class="kw">let</span> <span class="ident">table</span> <span class="op">=</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
 
     <span class="comment">// If there is no table, create one</span>
@@ -1925,7 +1927,7 @@
 <span class="doccomment">/// The reference is valid forever. However, the `HashTable` it references might become stale</span>
 <span class="doccomment">/// at any point. Meaning it still exists, but it is not the instance in active use.</span>
 <span class="attribute">#[<span class="ident">cold</span>]</span>
-<span class="kw">fn</span> <span class="ident">create_hashtable</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HashTable</span> {
+<span class="kw">fn</span> <span class="ident">create_hashtable</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HashTable</span> {
     <span class="kw">let</span> <span class="ident">new_table</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">HashTable::new</span>(<span class="ident">LOAD_FACTOR</span>, <span class="ident">ptr::null</span>()));
 
     <span class="comment">// If this fails then it means some other thread created the hash table first.</span>
@@ -1935,8 +1937,8 @@
         <span class="ident">Ordering::AcqRel</span>,
         <span class="ident">Ordering::Acquire</span>,
     ) {
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">new_table</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">old_table</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="ident">new_table</span>,
+        <span class="prelude-val">Err</span>(<span class="ident">old_table</span>) =&gt; {
             <span class="comment">// Free the table we created</span>
             <span class="comment">// SAFETY: `new_table` is created from `Box::into_raw` above and only freed here.</span>
             <span class="kw">unsafe</span> {
@@ -1971,7 +1973,7 @@
         <span class="comment">// Now check if our table is still the latest one. Another thread could</span>
         <span class="comment">// have grown the hash table between us reading HASHTABLE and locking</span>
         <span class="comment">// the buckets.</span>
-        <span class="kw">if</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">table</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> {
+        <span class="kw">if</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">table</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> {
             <span class="kw">break</span> <span class="ident">table</span>;
         }
 
@@ -1990,7 +1992,7 @@
         <span class="comment">// SAFETY: The park, unpark* and check_wait_graph_fast functions create only correct linked</span>
         <span class="comment">// lists. All `ThreadData` instances in these lists will remain valid as long as they are</span>
         <span class="comment">// present in the lists, meaning as long as their threads are parked.</span>
-        <span class="kw">unsafe</span> { <span class="ident">rehash_bucket_into</span>(<span class="ident">bucket</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_table</span>) };
+        <span class="kw">unsafe</span> { <span class="ident">rehash_bucket_into</span>(<span class="ident">bucket</span>, <span class="kw-2">&amp;mut</span> <span class="ident">new_table</span>) };
     }
 
     <span class="comment">// Publish the new table. No races are possible at this point because</span>
@@ -2014,8 +2016,8 @@
 <span class="doccomment">/// `ThreadData` instances that must stay valid at least as long as the given `table` is in use.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The given `table` must only contain buckets with correctly constructed linked lists.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">rehash_bucket_into</span>(<span class="ident">bucket</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span>, <span class="ident">table</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HashTable</span>) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">bucket</span>.<span class="ident">queue_head</span>.<span class="ident">get</span>();
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">rehash_bucket_into</span>(<span class="ident">bucket</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span>, <span class="ident">table</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashTable</span>) {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span>: <span class="kw-2">*const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">bucket</span>.<span class="ident">queue_head</span>.<span class="ident">get</span>();
     <span class="kw">while</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">is_null</span>() {
         <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">next_in_queue</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">hash</span>((<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>), <span class="ident">table</span>.<span class="ident">hash_bits</span>);
@@ -2035,19 +2037,19 @@
 <span class="comment">// Hash function for addresses</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">hash</span>(<span class="ident">key</span>: <span class="ident">usize</span>, <span class="ident">bits</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">hash</span>(<span class="ident">key</span>: <span class="ident">usize</span>, <span class="ident">bits</span>: <span class="ident">u32</span>) -&gt; <span class="ident">usize</span> {
     <span class="ident">key</span>.<span class="ident">wrapping_mul</span>(<span class="number">0x9E3779B9</span>) <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="number">32</span> <span class="op">-</span> <span class="ident">bits</span>)
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">hash</span>(<span class="ident">key</span>: <span class="ident">usize</span>, <span class="ident">bits</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">hash</span>(<span class="ident">key</span>: <span class="ident">usize</span>, <span class="ident">bits</span>: <span class="ident">u32</span>) -&gt; <span class="ident">usize</span> {
     <span class="ident">key</span>.<span class="ident">wrapping_mul</span>(<span class="number">0x9E3779B97F4A7C15</span>) <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="number">64</span> <span class="op">-</span> <span class="ident">bits</span>)
 }
 
 <span class="doccomment">/// Locks the bucket for the given key and returns a reference to it.</span>
 <span class="doccomment">/// The returned bucket must be unlocked again in order to not cause deadlocks.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">lock_bucket</span>(<span class="ident">key</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span> {
+<span class="kw">fn</span> <span class="ident">lock_bucket</span>(<span class="ident">key</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span> {
     <span class="kw">loop</span> {
         <span class="kw">let</span> <span class="ident">hashtable</span> <span class="op">=</span> <span class="ident">get_hashtable</span>();
 
@@ -2059,7 +2061,7 @@
 
         <span class="comment">// If no other thread has rehashed the table before we grabbed the lock</span>
         <span class="comment">// then we are good to go! The lock we grabbed prevents any rehashes.</span>
-        <span class="kw">if</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">hashtable</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> {
+        <span class="kw">if</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">hashtable</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> {
             <span class="kw">return</span> <span class="ident">bucket</span>;
         }
 
@@ -2073,7 +2075,7 @@
 <span class="doccomment">/// hasn&#39;t been changed in the meantime due to a requeue.</span>
 <span class="doccomment">/// The returned bucket must be unlocked again in order to not cause deadlocks.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">lock_bucket_checked</span>(<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span>) {
+<span class="kw">fn</span> <span class="ident">lock_bucket_checked</span>(<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>) -&gt; (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span>) {
     <span class="kw">loop</span> {
         <span class="kw">let</span> <span class="ident">hashtable</span> <span class="op">=</span> <span class="ident">get_hashtable</span>();
         <span class="kw">let</span> <span class="ident">current_key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
@@ -2087,8 +2089,8 @@
         <span class="comment">// Check that both the hash table and key are correct while the bucket</span>
         <span class="comment">// is locked. Note that the key can&#39;t change once we locked the proper</span>
         <span class="comment">// bucket for it, so we just keep trying until we have the correct key.</span>
-        <span class="kw">if</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">hashtable</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">current_key</span>
+        <span class="kw">if</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">hashtable</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">current_key</span>
         {
             <span class="kw">return</span> (<span class="ident">current_key</span>, <span class="ident">bucket</span>);
         }
@@ -2105,7 +2107,7 @@
 <span class="doccomment">/// If both keys hash to the same value, both returned references will be to the same bucket. Be</span>
 <span class="doccomment">/// careful to only unlock it once in this case, always use `unlock_bucket_pair`.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">lock_bucket_pair</span>(<span class="ident">key1</span>: <span class="ident">usize</span>, <span class="ident">key2</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span>) {
+<span class="kw">fn</span> <span class="ident">lock_bucket_pair</span>(<span class="ident">key1</span>: <span class="ident">usize</span>, <span class="ident">key2</span>: <span class="ident">usize</span>) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Bucket</span>) {
     <span class="kw">loop</span> {
         <span class="kw">let</span> <span class="ident">hashtable</span> <span class="op">=</span> <span class="ident">get_hashtable</span>();
 
@@ -2124,9 +2126,9 @@
 
         <span class="comment">// If no other thread has rehashed the table before we grabbed the lock</span>
         <span class="comment">// then we are good to go! The lock we grabbed prevents any rehashes.</span>
-        <span class="kw">if</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">hashtable</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> {
+        <span class="kw">if</span> <span class="ident">HASHTABLE</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">hashtable</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> {
             <span class="comment">// Now lock the second bucket and return the two buckets</span>
-            <span class="kw">if</span> <span class="ident">hash1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">hash2</span> {
+            <span class="kw">if</span> <span class="ident">hash1</span> <span class="op">==</span> <span class="ident">hash2</span> {
                 <span class="kw">return</span> (<span class="ident">bucket1</span>, <span class="ident">bucket1</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">hash1</span> <span class="op">&lt;</span> <span class="ident">hash2</span> {
                 <span class="kw">let</span> <span class="ident">bucket2</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">hashtable</span>.<span class="ident">entries</span>[<span class="ident">hash2</span>];
@@ -2174,7 +2176,7 @@
 <span class="kw">impl</span> <span class="ident">ParkResult</span> {
     <span class="doccomment">/// Returns true if we were unparked by another thread.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unparked</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unparked</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ParkResult::Unparked</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
@@ -2282,12 +2284,12 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">park</span>(
     <span class="ident">key</span>: <span class="ident">usize</span>,
-    <span class="ident">validate</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+    <span class="ident">validate</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">bool</span>,
     <span class="ident">before_sleep</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(),
     <span class="ident">timed_out</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">usize</span>, <span class="ident">bool</span>),
     <span class="ident">park_token</span>: <span class="ident">ParkToken</span>,
     <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParkResult</span> {
+) -&gt; <span class="ident">ParkResult</span> {
     <span class="comment">// Grab our thread data, this also ensures that the hash table exists</span>
     <span class="ident">with_thread_data</span>(<span class="op">|</span><span class="ident">thread_data</span><span class="op">|</span> {
         <span class="comment">// Lock the bucket for the given key</span>
@@ -2322,8 +2324,8 @@
         <span class="comment">// or by our timeout. Note that this isn&#39;t precise: we can still be</span>
         <span class="comment">// unparked since we are still in the queue.</span>
         <span class="kw">let</span> <span class="ident">unparked</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">timeout</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">timeout</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">thread_data</span>.<span class="ident">parker</span>.<span class="ident">park_until</span>(<span class="ident">timeout</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">timeout</span>) =&gt; <span class="ident">thread_data</span>.<span class="ident">parker</span>.<span class="ident">park_until</span>(<span class="ident">timeout</span>),
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="ident">thread_data</span>.<span class="ident">parker</span>.<span class="ident">park</span>();
                 <span class="comment">// call deadlock detection on_unpark hook</span>
                 <span class="ident">deadlock::on_unpark</span>(<span class="ident">thread_data</span>);
@@ -2354,17 +2356,17 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previous</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">was_last_thread</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">while</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">is_null</span>() {
-            <span class="kw">if</span> <span class="ident">current</span> <span class="op">=</span><span class="op">=</span> <span class="ident">thread_data</span> {
+            <span class="kw">if</span> <span class="ident">current</span> <span class="op">==</span> <span class="ident">thread_data</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">next_in_queue</span>.<span class="ident">get</span>();
                 <span class="ident">link</span>.<span class="ident">set</span>(<span class="ident">next</span>);
-                <span class="kw">if</span> <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">current</span> {
+                <span class="kw">if</span> <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="ident">current</span> {
                     <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">set</span>(<span class="ident">previous</span>);
                 } <span class="kw">else</span> {
                     <span class="comment">// Scan the rest of the queue to see if there are any other</span>
                     <span class="comment">// entries with the given key.</span>
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scan</span> <span class="op">=</span> <span class="ident">next</span>;
                     <span class="kw">while</span> <span class="op">!</span><span class="ident">scan</span>.<span class="ident">is_null</span>() {
-                        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">scan</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key</span> {
+                        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">scan</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key</span> {
                             <span class="ident">was_last_thread</span> <span class="op">=</span> <span class="bool-val">false</span>;
                             <span class="kw">break</span>;
                         }
@@ -2377,7 +2379,7 @@
                 <span class="ident">timed_out</span>(<span class="ident">key</span>, <span class="ident">was_last_thread</span>);
                 <span class="kw">break</span>;
             } <span class="kw">else</span> {
-                <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key</span> {
+                <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key</span> {
                     <span class="ident">was_last_thread</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 }
                 <span class="ident">link</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">next_in_queue</span>;
@@ -2419,8 +2421,8 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpark_one</span>(
     <span class="ident">key</span>: <span class="ident">usize</span>,
-    <span class="ident">callback</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">UnparkResult</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnparkToken</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnparkResult</span> {
+    <span class="ident">callback</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">UnparkResult</span>) -&gt; <span class="ident">UnparkToken</span>,
+) -&gt; <span class="ident">UnparkResult</span> {
     <span class="comment">// Lock the bucket for the given key</span>
     <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="ident">lock_bucket</span>(<span class="ident">key</span>);
 
@@ -2430,18 +2432,18 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previous</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">UnparkResult::default</span>();
     <span class="kw">while</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">is_null</span>() {
-        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key</span> {
+        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key</span> {
             <span class="comment">// Remove the thread from the queue</span>
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">next_in_queue</span>.<span class="ident">get</span>();
             <span class="ident">link</span>.<span class="ident">set</span>(<span class="ident">next</span>);
-            <span class="kw">if</span> <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">current</span> {
+            <span class="kw">if</span> <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="ident">current</span> {
                 <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">set</span>(<span class="ident">previous</span>);
             } <span class="kw">else</span> {
                 <span class="comment">// Scan the rest of the queue to see if there are any other</span>
                 <span class="comment">// entries with the given key.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scan</span> <span class="op">=</span> <span class="ident">next</span>;
                 <span class="kw">while</span> <span class="op">!</span><span class="ident">scan</span>.<span class="ident">is_null</span>() {
-                    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">scan</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key</span> {
+                    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">scan</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key</span> {
                         <span class="ident">result</span>.<span class="ident">have_more_threads</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="kw">break</span>;
                     }
@@ -2494,7 +2496,7 @@
 <span class="doccomment">/// you could otherwise interfere with the operation of other synchronization</span>
 <span class="doccomment">/// primitives.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpark_all</span>(<span class="ident">key</span>: <span class="ident">usize</span>, <span class="ident">unpark_token</span>: <span class="ident">UnparkToken</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpark_all</span>(<span class="ident">key</span>: <span class="ident">usize</span>, <span class="ident">unpark_token</span>: <span class="ident">UnparkToken</span>) -&gt; <span class="ident">usize</span> {
     <span class="comment">// Lock the bucket for the given key</span>
     <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="ident">lock_bucket</span>(<span class="ident">key</span>);
 
@@ -2504,11 +2506,11 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previous</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">threads</span> <span class="op">=</span> <span class="ident">SmallVec</span>::<span class="op">&lt;</span>[<span class="kw">_</span>; <span class="number">8</span>]<span class="op">&gt;</span><span class="ident">::new</span>();
     <span class="kw">while</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">is_null</span>() {
-        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key</span> {
+        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key</span> {
             <span class="comment">// Remove the thread from the queue</span>
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">next_in_queue</span>.<span class="ident">get</span>();
             <span class="ident">link</span>.<span class="ident">set</span>(<span class="ident">next</span>);
-            <span class="kw">if</span> <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">current</span> {
+            <span class="kw">if</span> <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="ident">current</span> {
                 <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">set</span>(<span class="ident">previous</span>);
             }
 
@@ -2572,16 +2574,16 @@
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpark_requeue</span>(
     <span class="ident">key_from</span>: <span class="ident">usize</span>,
     <span class="ident">key_to</span>: <span class="ident">usize</span>,
-    <span class="ident">validate</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RequeueOp</span>,
-    <span class="ident">callback</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">RequeueOp</span>, <span class="ident">UnparkResult</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnparkToken</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnparkResult</span> {
+    <span class="ident">validate</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">RequeueOp</span>,
+    <span class="ident">callback</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">RequeueOp</span>, <span class="ident">UnparkResult</span>) -&gt; <span class="ident">UnparkToken</span>,
+) -&gt; <span class="ident">UnparkResult</span> {
     <span class="comment">// Lock the two buckets for the given key</span>
     <span class="kw">let</span> (<span class="ident">bucket_from</span>, <span class="ident">bucket_to</span>) <span class="op">=</span> <span class="ident">lock_bucket_pair</span>(<span class="ident">key_from</span>, <span class="ident">key_to</span>);
 
     <span class="comment">// If the validation function fails, just return</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">UnparkResult::default</span>();
     <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">validate</span>();
-    <span class="kw">if</span> <span class="ident">op</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequeueOp::Abort</span> {
+    <span class="kw">if</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">RequeueOp::Abort</span> {
         <span class="comment">// SAFETY: Both buckets are locked, as required.</span>
         <span class="ident">unlock_bucket_pair</span>(<span class="ident">bucket_from</span>, <span class="ident">bucket_to</span>);
         <span class="kw">return</span> <span class="ident">result</span>;
@@ -2591,20 +2593,20 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">link</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">bucket_from</span>.<span class="ident">queue_head</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">bucket_from</span>.<span class="ident">queue_head</span>.<span class="ident">get</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previous</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requeue_threads</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requeue_threads_tail</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requeue_threads</span>: <span class="kw-2">*const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requeue_threads_tail</span>: <span class="kw-2">*const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">ptr::null</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wakeup_thread</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="kw">while</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">is_null</span>() {
-        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key_from</span> {
+        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key_from</span> {
             <span class="comment">// Remove the thread from the queue</span>
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">next_in_queue</span>.<span class="ident">get</span>();
             <span class="ident">link</span>.<span class="ident">set</span>(<span class="ident">next</span>);
-            <span class="kw">if</span> <span class="ident">bucket_from</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">current</span> {
+            <span class="kw">if</span> <span class="ident">bucket_from</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="ident">current</span> {
                 <span class="ident">bucket_from</span>.<span class="ident">queue_tail</span>.<span class="ident">set</span>(<span class="ident">previous</span>);
             }
 
             <span class="comment">// Prepare the first thread for wakeup and requeue the rest.</span>
-            <span class="kw">if</span> (<span class="ident">op</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequeueOp::UnparkOneRequeueRest</span> <span class="op">|</span><span class="op">|</span> <span class="ident">op</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequeueOp::UnparkOne</span>)
+            <span class="kw">if</span> (<span class="ident">op</span> <span class="op">==</span> <span class="ident">RequeueOp::UnparkOneRequeueRest</span> <span class="op">|</span><span class="op">|</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">RequeueOp::UnparkOne</span>)
                 <span class="op">&amp;&amp;</span> <span class="ident">wakeup_thread</span>.<span class="ident">is_none</span>()
             {
                 <span class="ident">wakeup_thread</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">current</span>);
@@ -2619,12 +2621,12 @@
                 (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">store</span>(<span class="ident">key_to</span>, <span class="ident">Ordering::Relaxed</span>);
                 <span class="ident">result</span>.<span class="ident">requeued_threads</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
-            <span class="kw">if</span> <span class="ident">op</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequeueOp::UnparkOne</span> <span class="op">|</span><span class="op">|</span> <span class="ident">op</span> <span class="op">=</span><span class="op">=</span> <span class="ident">RequeueOp::RequeueOne</span> {
+            <span class="kw">if</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">RequeueOp::UnparkOne</span> <span class="op">|</span><span class="op">|</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">RequeueOp::RequeueOne</span> {
                 <span class="comment">// Scan the rest of the queue to see if there are any other</span>
                 <span class="comment">// entries with the given key.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scan</span> <span class="op">=</span> <span class="ident">next</span>;
                 <span class="kw">while</span> <span class="op">!</span><span class="ident">scan</span>.<span class="ident">is_null</span>() {
-                    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">scan</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key_from</span> {
+                    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">scan</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key_from</span> {
                         <span class="ident">result</span>.<span class="ident">have_more_threads</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         <span class="kw">break</span>;
                     }
@@ -2703,9 +2705,9 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unpark_filter</span>(
     <span class="ident">key</span>: <span class="ident">usize</span>,
-    <span class="kw-2">mut</span> <span class="ident">filter</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="ident">ParkToken</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FilterOp</span>,
-    <span class="ident">callback</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">UnparkResult</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnparkToken</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">UnparkResult</span> {
+    <span class="kw-2">mut</span> <span class="ident">filter</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="ident">ParkToken</span>) -&gt; <span class="ident">FilterOp</span>,
+    <span class="ident">callback</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">UnparkResult</span>) -&gt; <span class="ident">UnparkToken</span>,
+) -&gt; <span class="ident">UnparkResult</span> {
     <span class="comment">// Lock the bucket for the given key</span>
     <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="ident">lock_bucket</span>(<span class="ident">key</span>);
 
@@ -2716,14 +2718,14 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">threads</span> <span class="op">=</span> <span class="ident">SmallVec</span>::<span class="op">&lt;</span>[<span class="kw">_</span>; <span class="number">8</span>]<span class="op">&gt;</span><span class="ident">::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">UnparkResult::default</span>();
     <span class="kw">while</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">is_null</span>() {
-        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key</span> {
+        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key</span> {
             <span class="comment">// Call the filter function with the thread&#39;s ParkToken</span>
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">next_in_queue</span>.<span class="ident">get</span>();
             <span class="kw">match</span> <span class="ident">filter</span>((<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">park_token</span>.<span class="ident">get</span>()) {
-                <span class="ident">FilterOp::Unpark</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">FilterOp::Unpark</span> =&gt; {
                     <span class="comment">// Remove the thread from the queue</span>
                     <span class="ident">link</span>.<span class="ident">set</span>(<span class="ident">next</span>);
-                    <span class="kw">if</span> <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">current</span> {
+                    <span class="kw">if</span> <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="ident">current</span> {
                         <span class="ident">bucket</span>.<span class="ident">queue_tail</span>.<span class="ident">set</span>(<span class="ident">previous</span>);
                     }
 
@@ -2732,13 +2734,13 @@
 
                     <span class="ident">current</span> <span class="op">=</span> <span class="ident">next</span>;
                 }
-                <span class="ident">FilterOp::Skip</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">FilterOp::Skip</span> =&gt; {
                     <span class="ident">result</span>.<span class="ident">have_more_threads</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     <span class="ident">link</span> <span class="op">=</span> <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">current</span>).<span class="ident">next_in_queue</span>;
                     <span class="ident">previous</span> <span class="op">=</span> <span class="ident">current</span>;
                     <span class="ident">current</span> <span class="op">=</span> <span class="ident">link</span>.<span class="ident">get</span>();
                 }
-                <span class="ident">FilterOp::Stop</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">FilterOp::Stop</span> =&gt; {
                     <span class="ident">result</span>.<span class="ident">have_more_threads</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     <span class="kw">break</span>;
                 }
@@ -2818,7 +2820,7 @@
     <span class="doccomment">/// Each cycle consist of a vector of `DeadlockedThread`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deadlock_detection&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_deadlock</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">deadlock_impl::DeadlockedThread</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_deadlock</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">deadlock_impl::DeadlockedThread</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">deadlock_impl::check_deadlock</span>()
     }
 
@@ -2851,12 +2853,12 @@
 
     <span class="kw">impl</span> <span class="ident">DeadlockedThread</span> {
         <span class="doccomment">/// The system thread id</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
             <span class="self">self</span>.<span class="ident">thread_id</span>
         }
 
         <span class="doccomment">/// The thread backtrace</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">backtrace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Backtrace</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">backtrace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Backtrace</span> {
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">backtrace</span>
         }
     }
@@ -2876,7 +2878,7 @@
     }
 
     <span class="kw">impl</span> <span class="ident">DeadlockData</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
             <span class="ident">DeadlockData</span> {
                 <span class="ident">resources</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">Vec::new</span>()),
                 <span class="ident">deadlocked</span>: <span class="ident">Cell::new</span>(<span class="bool-val">false</span>),
@@ -2913,19 +2915,19 @@
 
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">release_resource</span>(<span class="ident">key</span>: <span class="ident">usize</span>) {
         <span class="ident">with_thread_data</span>(<span class="op">|</span><span class="ident">thread_data</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">resources</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> (<span class="kw-2">*</span><span class="ident">thread_data</span>.<span class="ident">deadlock_data</span>.<span class="ident">resources</span>.<span class="ident">get</span>());
+            <span class="kw">let</span> <span class="ident">resources</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> (<span class="kw-2">*</span><span class="ident">thread_data</span>.<span class="ident">deadlock_data</span>.<span class="ident">resources</span>.<span class="ident">get</span>());
 
             <span class="comment">// There is only one situation where we can fail to find the</span>
             <span class="comment">// resource: we are currently running TLS destructors and our</span>
             <span class="comment">// ThreadData has already been freed. There isn&#39;t much we can do</span>
             <span class="comment">// about it at this point, so just ignore it.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="ident">resources</span>.<span class="ident">iter</span>().<span class="ident">rposition</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="ident">key</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="ident">resources</span>.<span class="ident">iter</span>().<span class="ident">rposition</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="ident">key</span>) {
                 <span class="ident">resources</span>.<span class="ident">swap_remove</span>(<span class="ident">p</span>);
             }
         });
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_deadlock</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DeadlockedThread</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_deadlock</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DeadlockedThread</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="comment">// fast pass</span>
             <span class="kw">if</span> <span class="ident">check_wait_graph_fast</span>() {
@@ -2940,7 +2942,7 @@
     <span class="comment">// Simple algorithm that builds a wait graph f the threads and the resources,</span>
     <span class="comment">// then checks for the presence of cycles (deadlocks).</span>
     <span class="comment">// This variant isn&#39;t precise as it doesn&#39;t lock the entire table before checking</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">check_wait_graph_fast</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">check_wait_graph_fast</span>() -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">table</span> <span class="op">=</span> <span class="ident">get_hashtable</span>();
         <span class="kw">let</span> <span class="ident">thread_count</span> <span class="op">=</span> <span class="ident">NUM_THREADS</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">graph</span> <span class="op">=</span> <span class="ident">DiGraphMap</span>::<span class="op">&lt;</span><span class="ident">usize</span>, ()<span class="op">&gt;</span><span class="ident">::with_capacity</span>(<span class="ident">thread_count</span> <span class="op">*</span> <span class="number">2</span>, <span class="ident">thread_count</span> <span class="op">*</span> <span class="number">2</span>);
@@ -2970,7 +2972,7 @@
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
     <span class="kw">enum</span> <span class="ident">WaitGraphNode</span> {
-        <span class="ident">Thread</span>(<span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span>),
+        <span class="ident">Thread</span>(<span class="kw-2">*const</span> <span class="ident">ThreadData</span>),
         <span class="ident">Resource</span>(<span class="ident">usize</span>),
     }
 
@@ -2979,7 +2981,7 @@
     <span class="comment">// Contrary to the _fast variant this locks the entries table before looking for cycles.</span>
     <span class="comment">// Returns all detected thread wait cycles.</span>
     <span class="comment">// Note that once a cycle is reported it&#39;s never reported again.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">check_wait_graph_slow</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DeadlockedThread</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">check_wait_graph_slow</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DeadlockedThread</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">static</span> <span class="ident">DEADLOCK_DETECTION_LOCK</span>: <span class="ident">WordLock</span> <span class="op">=</span> <span class="ident">WordLock::new</span>();
         <span class="ident">DEADLOCK_DETECTION_LOCK</span>.<span class="ident">lock</span>();
 
@@ -2993,7 +2995,7 @@
             <span class="comment">// Now check if our table is still the latest one. Another thread could</span>
             <span class="comment">// have grown the hash table between us getting and locking the hash table.</span>
             <span class="kw">let</span> <span class="ident">new_table</span> <span class="op">=</span> <span class="ident">get_hashtable</span>();
-            <span class="kw">if</span> <span class="ident">new_table</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="op">=</span><span class="op">=</span> <span class="ident">table</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> {
+            <span class="kw">if</span> <span class="ident">new_table</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="op">==</span> <span class="ident">table</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> {
                 <span class="kw">break</span>;
             }
 
@@ -3065,7 +3067,7 @@
     }
 
     <span class="comment">// normalize a cycle to start with the &quot;smallest&quot; node</span>
-    <span class="kw">fn</span> <span class="ident">normalize_cycle</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">normalize_cycle</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">min_pos</span> <span class="op">=</span> <span class="ident">input</span>
             .<span class="ident">iter</span>()
             .<span class="ident">enumerate</span>()
@@ -3082,7 +3084,7 @@
     }
 
     <span class="comment">// returns all thread cycles in the wait graph</span>
-    <span class="kw">fn</span> <span class="ident">graph_cycles</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident">DiGraphMap</span><span class="op">&lt;</span><span class="ident">WaitGraphNode</span>, ()<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">graph_cycles</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident">DiGraphMap</span><span class="op">&lt;</span><span class="ident">WaitGraphNode</span>, ()<span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">ThreadData</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">petgraph::visit::depth_first_search</span>;
         <span class="kw">use</span> <span class="ident">petgraph::visit::DfsEvent</span>;
         <span class="kw">use</span> <span class="ident">petgraph::visit::NodeIndexable</span>;
@@ -3095,15 +3097,15 @@
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="kw">if</span> <span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">Thread</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">n</span> { <span class="bool-val">true</span> } <span class="kw">else</span> { <span class="bool-val">false</span> });
 
         <span class="ident">depth_first_search</span>(<span class="ident">g</span>, <span class="ident">threads</span>, <span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">e</span> {
-            <span class="ident">DfsEvent::Discover</span>(<span class="ident">Thread</span>(<span class="ident">n</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>.<span class="ident">push</span>(<span class="ident">n</span>),
-            <span class="ident">DfsEvent::Finish</span>(<span class="ident">Thread</span>(<span class="kw">_</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">DfsEvent::Discover</span>(<span class="ident">Thread</span>(<span class="ident">n</span>), <span class="kw">_</span>) =&gt; <span class="ident">path</span>.<span class="ident">push</span>(<span class="ident">n</span>),
+            <span class="ident">DfsEvent::Finish</span>(<span class="ident">Thread</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; {
                 <span class="ident">path</span>.<span class="ident">pop</span>();
             }
-            <span class="ident">DfsEvent::BackEdge</span>(<span class="kw">_</span>, <span class="ident">Thread</span>(<span class="ident">n</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">iter</span>().<span class="ident">rposition</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>).<span class="ident">unwrap</span>();
+            <span class="ident">DfsEvent::BackEdge</span>(<span class="kw">_</span>, <span class="ident">Thread</span>(<span class="ident">n</span>)) =&gt; {
+                <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">iter</span>().<span class="ident">rposition</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="op">==</span> <span class="ident">n</span>).<span class="ident">unwrap</span>();
                 <span class="ident">cycles</span>.<span class="ident">insert</span>(<span class="ident">normalize_cycle</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>[<span class="ident">from</span>..]));
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="kw">_</span> =&gt; (),
         });
 
         <span class="ident">cycles</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>()
@@ -3127,10 +3129,10 @@
     <span class="kw">fn</span> <span class="ident">for_each</span>(<span class="ident">key</span>: <span class="ident">usize</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">ThreadData</span>)) {
         <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::lock_bucket</span>(<span class="ident">key</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">bucket</span>.<span class="ident">queue_head</span>.<span class="ident">get</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span>: <span class="kw-2">*const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">bucket</span>.<span class="ident">queue_head</span>.<span class="ident">get</span>();
         <span class="kw">while</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">is_null</span>() {
             <span class="kw">let</span> <span class="ident">current_ref</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">current</span> };
-            <span class="kw">if</span> <span class="ident">current_ref</span>.<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">key</span> {
+            <span class="kw">if</span> <span class="ident">current_ref</span>.<span class="ident">key</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="op">==</span> <span class="ident">key</span> {
                 <span class="ident">f</span>(<span class="ident">current_ref</span>);
             }
             <span class="ident">current</span> <span class="op">=</span> <span class="ident">current_ref</span>.<span class="ident">next_in_queue</span>.<span class="ident">get</span>();
@@ -3147,7 +3149,7 @@
             <span class="ident">delay</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">delay</span>:<span class="ident">expr</span>,
             <span class="ident">threads</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">threads</span>:<span class="ident">expr</span>,
             <span class="ident">single_unparks</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">single_unparks</span>:<span class="ident">expr</span>);
-        )<span class="op">*</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+        )<span class="op">*</span> ) =&gt; {
             $(<span class="attribute">#[<span class="ident">test</span>]</span>
             <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>() {
                 <span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">Duration::from_micros</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">delay</span>);
@@ -3240,7 +3242,7 @@
     }
 
     <span class="kw">impl</span> <span class="ident">SingleLatchTest</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_threads</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_threads</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
             <span class="self">Self</span> {
                 <span class="comment">// This implements a fair (FIFO) semaphore, and it starts out unavailable.</span>
                 <span class="ident">semaphore</span>: <span class="ident">AtomicIsize::new</span>(<span class="number">0</span>),
@@ -3255,7 +3257,7 @@
             <span class="self">self</span>.<span class="ident">down</span>();
 
             <span class="comment">// Report back to the test verification code that this thread woke up</span>
-            <span class="kw">let</span> <span class="ident">this_thread_ptr</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::with_thread_data</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>);
+            <span class="kw">let</span> <span class="ident">this_thread_ptr</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::with_thread_data</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
             <span class="self">self</span>.<span class="ident">last_awoken</span>.<span class="ident">store</span>(<span class="ident">this_thread_ptr</span>, <span class="ident">Ordering::SeqCst</span>);
             <span class="self">self</span>.<span class="ident">num_awake</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>);
         }
@@ -3265,9 +3267,9 @@
             <span class="comment">// of this method where it&#39;s reset to null again</span>
             <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">last_awoken</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>).<span class="ident">is_null</span>());
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ThreadData</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="self">self</span>.<span class="ident">num_threads</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <span class="ident">ThreadData</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="self">self</span>.<span class="ident">num_threads</span>);
             <span class="ident">for_each</span>(<span class="self">self</span>.<span class="ident">semaphore_addr</span>(), <span class="op">|</span><span class="ident">thread_data</span><span class="op">|</span> {
-                <span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">thread_data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>);
+                <span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">thread_data</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
             });
             <span class="macro">assert!</span>(<span class="ident">queue</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">num_threads</span> <span class="op">-</span> <span class="ident">single_unpark_index</span>);
 
@@ -3369,20 +3371,19 @@
                         <span class="ident"><span class="kw">super</span>::unpark_one</span>(<span class="self">self</span>.<span class="ident">semaphore_addr</span>(), <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">DEFAULT_UNPARK_TOKEN</span>)
                             .<span class="ident">unparked_threads</span>
                     } {
-                        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> (),
-                        <span class="ident">i</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Should not wake up {} threads&quot;</span>, <span class="ident">i</span>),
+                        <span class="number">1</span> =&gt; <span class="kw">break</span>,
+                        <span class="number">0</span> =&gt; (),
+                        <span class="ident">i</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Should not wake up {} threads&quot;</span>, <span class="ident">i</span>),
                     }
                 }
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">semaphore_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">semaphore</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>
+        <span class="kw">fn</span> <span class="ident">semaphore_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">semaphore</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="parking_lot_core" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="parking_lot_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

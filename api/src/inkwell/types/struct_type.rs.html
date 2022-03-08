@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;c0e13b7&#x2F;src&#x2F;types&#x2F;struct_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>struct_type.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;c71d7ed&#x2F;src&#x2F;types&#x2F;struct_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>struct_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../inkwell/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -435,7 +437,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">StructType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">struct_type</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">struct_type</span>: <span class="ident">LLVMTypeRef</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">struct_type</span>.<span class="ident">is_null</span>());
 
         <span class="ident">StructType</span> {
@@ -457,7 +459,7 @@
     <span class="doccomment">/// assert_eq!(struct_type.get_field_type_at_index(0).unwrap().into_float_type(), f32_type);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.7</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field_type_at_index</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field_type_at_index</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// LLVM doesn&#39;t seem to just return null if opaque.</span>
         <span class="comment">// TODO: One day, with SubTypes (&amp; maybe specialization?) we could just</span>
         <span class="comment">// impl this method for non opaque structs only</span>
@@ -489,7 +491,7 @@
     <span class="doccomment">/// let struct_type = context.struct_type(&amp;[f32_type.into()], false);</span>
     <span class="doccomment">/// let struct_val = struct_type.const_named_struct(&amp;[f32_zero.into()]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_named_struct</span>(<span class="self">self</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_named_struct</span>(<span class="self">self</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>]) -&gt; <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">iter</span>()
                                                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>())
                                                 .<span class="ident">collect</span>();
@@ -510,7 +512,7 @@
     <span class="doccomment">/// let struct_type = context.struct_type(&amp;[f32_type.into(), f32_type.into()], false);</span>
     <span class="doccomment">/// let struct_zero = struct_type.const_zero();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_zero</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_zero</span>(<span class="self">self</span>) -&gt; <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">StructValue::new</span>(<span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">const_zero</span>())
         }
@@ -529,7 +531,7 @@
     <span class="doccomment">/// let f32_struct_type = context.struct_type(&amp;[f32_type.into()], false);</span>
     <span class="doccomment">/// let f32_struct_type_size = f32_struct_type.size_of();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size_of</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size_of</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">size_of</span>()
     }
 
@@ -545,7 +547,7 @@
     <span class="doccomment">/// let struct_type = context.struct_type(&amp;[f32_type.into(), f32_type.into()], false);</span>
     <span class="doccomment">/// let struct_type_alignment = struct_type.get_alignment();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_alignment</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_alignment</span>(<span class="self">self</span>) -&gt; <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">get_alignment</span>()
     }
 
@@ -562,7 +564,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(*struct_type.get_context(), context);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_context</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ContextRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_context</span>(<span class="self">self</span>) -&gt; <span class="ident">ContextRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">get_context</span>()
     }
 
@@ -579,7 +581,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(struct_type.get_name().unwrap().to_str().unwrap(), &quot;opaque_struct&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CStr</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CStr</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMGetStructName</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>())
         };
@@ -610,7 +612,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(struct_ptr_type.get_element_type().into_struct_type(), struct_type);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_type</span>(<span class="self">self</span>, <span class="ident">address_space</span>: <span class="ident">AddressSpace</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_type</span>(<span class="self">self</span>, <span class="ident">address_space</span>: <span class="ident">AddressSpace</span>) -&gt; <span class="ident">PointerType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">ptr_type</span>(<span class="ident">address_space</span>)
     }
 
@@ -626,7 +628,7 @@
     <span class="doccomment">/// let struct_type = context.struct_type(&amp;[f32_type.into(), f32_type.into()], false);</span>
     <span class="doccomment">/// let fn_type = struct_type.fn_type(&amp;[], false);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fn_type</span>(<span class="self">self</span>, <span class="ident">param_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicMetadataTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>], <span class="ident">is_var_args</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fn_type</span>(<span class="self">self</span>, <span class="ident">param_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicMetadataTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>], <span class="ident">is_var_args</span>: <span class="ident">bool</span>) -&gt; <span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">fn_type</span>(<span class="ident">param_types</span>, <span class="ident">is_var_args</span>)
     }
 
@@ -645,7 +647,7 @@
     <span class="doccomment">/// assert_eq!(struct_array_type.len(), 3);</span>
     <span class="doccomment">/// assert_eq!(struct_array_type.get_element_type().into_struct_type(), struct_type);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_type</span>(<span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_type</span>(<span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u32</span>) -&gt; <span class="ident">ArrayType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">array_type</span>(<span class="ident">size</span>)
     }
 
@@ -662,9 +664,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(struct_type.is_packed());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_packed</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_packed</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> {
-            <span class="ident">LLVMIsPackedStruct</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()) <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
+            <span class="ident">LLVMIsPackedStruct</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()) <span class="op">==</span> <span class="number">1</span>
         }
     }
 
@@ -681,9 +683,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(struct_type.is_opaque());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_opaque</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_opaque</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> {
-            <span class="ident">LLVMIsOpaqueStruct</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()) <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
+            <span class="ident">LLVMIsOpaqueStruct</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()) <span class="op">==</span> <span class="number">1</span>
         }
     }
 
@@ -701,7 +703,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(struct_type.count_fields(), 2);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_fields</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_fields</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">LLVMCountStructElementTypes</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>())
         }
@@ -721,7 +723,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(struct_type.get_field_types(), &amp;[f32_type.into(), i8_type.into()]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field_types</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field_types</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">count_fields</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMTypeRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">raw_vec</span>.<span class="ident">as_mut_ptr</span>();
@@ -759,7 +761,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(struct_type_undef.is_undef());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_undef</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_undef</span>(<span class="self">self</span>) -&gt; <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">StructValue::new</span>(<span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">get_undef</span>())
         }
@@ -784,7 +786,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(!opaque_struct_type.is_opaque());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_body</span>(<span class="self">self</span>, <span class="ident">field_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>], <span class="ident">packed</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_body</span>(<span class="self">self</span>, <span class="ident">field_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>], <span class="ident">packed</span>: <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">is_opaque</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_opaque</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">field_types</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMTypeRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">field_types</span>.<span class="ident">iter</span>()
                                                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_type_ref</span>())
@@ -813,7 +815,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(struct_array.is_const());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_array</span>(<span class="self">self</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_array</span>(<span class="self">self</span>, <span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>]) -&gt; <span class="ident">ArrayValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">iter</span>()
                                                   .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>())
                                                   .<span class="ident">collect</span>();
@@ -824,11 +826,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">AsTypeRef</span> <span class="kw">for</span> <span class="ident">StructType</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_type_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span> {
+    <span class="kw">fn</span> <span class="ident">as_type_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMTypeRef</span> {
         <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">ty</span>
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;cli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cli.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;cli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../rusty/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../rusty/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -661,11 +663,11 @@
     <span class="kw">pub</span> <span class="ident">hardware_config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">parse_encoding</span>(<span class="ident">encoding</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_encoding</span>(<span class="ident">encoding</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="ident">Encoding::for_label</span>(<span class="ident">encoding</span>.<span class="ident">as_bytes</span>()).<span class="ident">ok_or</span>(<span class="macro">format!</span>(<span class="string">&quot;Unknown encoding {}&quot;</span>, <span class="ident">encoding</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">validate_config</span>(<span class="ident">config_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">validate_config</span>(<span class="ident">config_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">get_config_format</span>(<span class="ident">config_name</span>).<span class="ident">is_some</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">config_name</span>.<span class="ident">to_string</span>())
     } <span class="kw">else</span> {
@@ -676,22 +678,22 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_config_format</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConfigFormat</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_config_format</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConfigFormat</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">ext</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>).<span class="ident">last</span>();
     <span class="kw">match</span> <span class="ident">ext</span> {
-        <span class="prelude-val">Some</span>(<span class="string">&quot;json&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ConfigFormat::JSON</span>),
-        <span class="prelude-val">Some</span>(<span class="string">&quot;toml&quot;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ConfigFormat::TOML</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="prelude-val">Some</span>(<span class="string">&quot;json&quot;</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ConfigFormat::JSON</span>),
+        <span class="prelude-val">Some</span>(<span class="string">&quot;toml&quot;</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ConfigFormat::TOML</span>),
+        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
     }
 }
 
 <span class="kw">impl</span> <span class="ident">CompileParameters</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span><span class="op">&gt;</span> {
         <span class="ident">CompileParameters::try_parse_from</span>(<span class="ident">args</span>)
     }
 
     <span class="comment">// convert the scattered bools from structopt into an enum</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FormatOption</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FormatOption</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">output_bit_code</span> {
             <span class="prelude-val">Some</span>(<span class="ident">FormatOption::Bitcode</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">output_ir</span> {
@@ -710,25 +712,25 @@
     }
 
     <span class="doccomment">/// return the selected output format, or the default if none.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_format_or_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FormatOption</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_format_or_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FormatOption</span> {
         <span class="comment">// structop makes sure only one or zero format flags are</span>
         <span class="comment">// selected. So if none are selected, the default is chosen</span>
         <span class="self">self</span>.<span class="ident">output_format</span>().<span class="ident">unwrap_or</span>(<span class="ident">DEFAULT_FORMAT</span>)
     }
 
     <span class="doccomment">/// return the output filename with the correct ending</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">out_format</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output_format_or_default</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">output</span> {
             <span class="prelude-val">Some</span>(<span class="ident">n</span>.<span class="ident">to_string</span>())
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">ending</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">out_format</span> {
-                <span class="ident">FormatOption::Bitcode</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;.bc&quot;</span>,
-                <span class="ident">FormatOption::Relocatable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;.o&quot;</span>,
-                <span class="ident">FormatOption::Static</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">skip_linking</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;.o&quot;</span>,
-                <span class="ident">FormatOption::Static</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>,
-                <span class="ident">FormatOption::Shared</span> <span class="op">|</span> <span class="ident">FormatOption::PIC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;.so&quot;</span>,
-                <span class="ident">FormatOption::IR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;.ir&quot;</span>,
+                <span class="ident">FormatOption::Bitcode</span> =&gt; <span class="string">&quot;.bc&quot;</span>,
+                <span class="ident">FormatOption::Relocatable</span> =&gt; <span class="string">&quot;.o&quot;</span>,
+                <span class="ident">FormatOption::Static</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">skip_linking</span> =&gt; <span class="string">&quot;.o&quot;</span>,
+                <span class="ident">FormatOption::Static</span> =&gt; <span class="string">&quot;&quot;</span>,
+                <span class="ident">FormatOption::Shared</span> <span class="op">|</span> <span class="ident">FormatOption::PIC</span> =&gt; <span class="string">&quot;.so&quot;</span>,
+                <span class="ident">FormatOption::IR</span> =&gt; <span class="string">&quot;.ir&quot;</span>,
             };
 
             <span class="kw">let</span> <span class="ident">output_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">first</span>().<span class="ident">map</span>(<span class="ident">String::as_str</span>);
@@ -740,14 +742,14 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">config_format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConfigFormat</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">config_format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConfigFormat</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">hardware_config</span>.<span class="ident">as_deref</span>().<span class="ident">and_then</span>(<span class="ident">get_config_format</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">cli_tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::CompileParameters</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ConfigFormat</span>, <span class="ident">FormatOption</span>};
     <span class="kw">use</span> <span class="ident">clap::ErrorKind</span>;
     <span class="kw">use</span> <span class="ident">pretty_assertions::assert_eq</span>;
@@ -755,17 +757,17 @@
     <span class="kw">fn</span> <span class="ident">expect_argument_error</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">expected_error_kind</span>: <span class="ident">ErrorKind</span>) {
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">CompileParameters::parse</span>(<span class="ident">args</span>.<span class="ident">clone</span>());
         <span class="kw">match</span> <span class="ident">params</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">ParameterError</span> { <span class="ident">kind</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">assert_eq!</span>(<span class="ident">kind</span>, <span class="ident">expected_error_kind</span>);
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
+                <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">expected_error_kind</span>);
             }
-            <span class="prelude-val">Ok</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+            <span class="prelude-val">Ok</span>(<span class="ident">p</span>) =&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;expected error, but found none. arguments: {:?}. params: {:?}&quot;</span>,
                 <span class="ident">args</span>, <span class="ident">p</span>
             ),
         }
     }
     <span class="macro">macro_rules!</span> <span class="ident">vec_of_strings</span> {
-        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec!</span>[<span class="string">&quot;rustyc&quot;</span>.<span class="ident">to_string</span>(), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>.<span class="ident">to_string</span>()),<span class="kw-2">*</span>]);
+        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) =&gt; (<span class="macro">vec!</span>[<span class="string">&quot;rustyc&quot;</span>.<span class="ident">to_string</span>(), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>.<span class="ident">to_string</span>()),<span class="kw-2">*</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1008,16 +1010,16 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">cli_supports_version</span>() {
         <span class="kw">match</span> <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--version&quot;</span>)) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;expected version output, but found OK&quot;</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">ParameterError</span> { <span class="ident">kind</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">kind</span>, <span class="ident">ErrorKind::DisplayVersion</span>),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected version output, but found OK&quot;</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">ErrorKind::DisplayVersion</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">cli_supports_help</span>() {
         <span class="kw">match</span> <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--help&quot;</span>)) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;expected help output, but found OK&quot;</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">ParameterError</span> { <span class="ident">kind</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">kind</span>, <span class="ident">ErrorKind::DisplayHelp</span>),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected help output, but found OK&quot;</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">kind</span>(), <span class="ident">ErrorKind::DisplayHelp</span>),
         }
     }
 
@@ -1073,6 +1075,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>
