@@ -427,6 +427,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     for unit in annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
+
     Ok((full_index, code_generator))
 }
 

@@ -58,8 +58,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 let name = referenced_type
                     .as_ref()
                     .map(|it| &**it)
-                    .map(DataTypeDeclaration::get_name)
-                    .flatten()
+                    .and_then(DataTypeDeclaration::get_name)
                     .map(|it| it.to_string());
                 varargs = Some(name);
                 continue;
