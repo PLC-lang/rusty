@@ -97,7 +97,7 @@ pub struct CompileOptions {
     pub format: FormatOption,
     pub output: String,
     pub target: Option<String>,
-    pub optimization : OptimizationLevel,
+    pub optimization: OptimizationLevel,
 }
 
 pub struct LinkOptions {
@@ -337,7 +337,13 @@ pub fn persist_to_shared_object(
     target: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
-    persist_to_obj(codegen, output, RelocMode::DynamicNoPic, target, optimization)
+    persist_to_obj(
+        codegen,
+        output,
+        RelocMode::DynamicNoPic,
+        target,
+        optimization,
+    )
 }
 
 ///
@@ -639,10 +645,10 @@ pub fn persist(
 ) -> Result<FilePath, Diagnostic> {
     match out_format {
         FormatOption::Static | FormatOption::Relocatable => {
-            persist_as_static_obj(input, output, target,optimization)
+            persist_as_static_obj(input, output, target, optimization)
         }
-        FormatOption::Shared => persist_to_shared_object(input, output, target,optimization),
-        FormatOption::PIC => persist_to_shared_pic_object(input, output, target,optimization),
+        FormatOption::Shared => persist_to_shared_object(input, output, target, optimization),
+        FormatOption::PIC => persist_to_shared_pic_object(input, output, target, optimization),
         FormatOption::Bitcode => persist_to_bitcode(input, output),
         FormatOption::IR => persist_to_ir(input, output),
     }?;
