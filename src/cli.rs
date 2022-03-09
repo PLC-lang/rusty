@@ -210,7 +210,7 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use super::{CompileParameters, ParameterError};
+    use super::CompileParameters;
     use crate::{ConfigFormat, FormatOption};
     use clap::ErrorKind;
     use pretty_assertions::assert_eq;
@@ -218,8 +218,8 @@ mod cli_tests {
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
         let params = CompileParameters::parse(args.clone());
         match params {
-            Err(ParameterError { kind, .. }) => {
-                assert_eq!(kind, expected_error_kind);
+            Err(e) => {
+                assert_eq!(e.kind(), expected_error_kind);
             }
             Ok(p) => panic!(
                 "expected error, but found none. arguments: {:?}. params: {:?}",
@@ -472,7 +472,7 @@ mod cli_tests {
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
             Ok(_) => panic!("expected version output, but found OK"),
-            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::DisplayVersion),
+            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayVersion),
         }
     }
 
@@ -480,7 +480,7 @@ mod cli_tests {
     fn cli_supports_help() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
-            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::DisplayHelp),
+            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
         }
     }
 
