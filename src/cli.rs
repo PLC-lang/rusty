@@ -122,6 +122,16 @@ pub struct CompileParameters {
     parse(try_from_str = validate_config)
     ) ]
     pub hardware_config: Option<String>,
+
+    #[clap(
+        name = "optimization",
+        long,
+        short='O',
+        help = "Optimization level",
+        arg_enum,
+        default_value="default"
+        )]
+    pub optimization : crate::OptimizationLevel,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -211,7 +221,7 @@ impl CompileParameters {
 #[cfg(test)]
 mod cli_tests {
     use super::CompileParameters;
-    use crate::{ConfigFormat, FormatOption};
+    use crate::{ConfigFormat, FormatOption, OptimizationLevel};
     use clap::ErrorKind;
     use pretty_assertions::assert_eq;
 
@@ -327,6 +337,52 @@ mod cli_tests {
                 .unwrap();
 
         assert_eq!(parameters.target, Some("x86_64-linux-gnu".to_string()));
+    }
+
+    #[test]
+    fn test_optimization_levels() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st"))
+                .unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st","-Onone"))
+                .unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::None);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st","--optimization","none"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::None);
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st","-Oless"))
+                .unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Less);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "less"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Less);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "-Odefault"))
+                .unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "default"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "-Oaggressive"))
+                .unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Aggressive);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "aggressive"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Aggressive);
     }
 
     #[test]
