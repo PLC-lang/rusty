@@ -277,7 +277,7 @@ done. Otherwise, the program will most likely crash (because it tries to return 
 existed).</p>
 </li>
 </ul>
-<pre><code class="language-st">@EXTERNAL FUNCTION puts : DINT
+<pre><code class="language-iecst">@EXTERNAL FUNCTION puts : DINT
 VAR_INPUT
     text : STRING;
 END_VAR
@@ -298,6 +298,16 @@ END_FUNCTION
 <p>Compiling with rusty is very easy. If you just want to build an object file, then do this:</p>
 <pre><code class="language-bash">rustyc -c hello_world.st -o hello_world.o
 </code></pre>
+<h3 id="optimization"><a class="header" href="#optimization">Optimization</a></h3>
+<p><code>rustyc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>aggressive</code>, respectively <code>-O0</code> to <code>-O3</code>). </p>
+<p>To use an optimization, the flag <code>-O</code> or <code>--optimization</code> is required:</p>
+<ul>
+<li><code>rustyc -c &quot;**/*.st&quot; -O none</code></li>
+<li><code>rustyc -c &quot;**/*.st&quot; -O less</code></li>
+<li><code>rustyc -c &quot;**/*.st&quot; -O default</code></li>
+<li><code>rustyc -c &quot;**/*.st&quot; -O aggressive</code></li>
+</ul>
+<p>By default <code>rustyc</code> will use <code>default</code> which corresponds to clang's <code>-O2</code>.</p>
 <h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
 <p>Instead, you can also compile this into an executable and run it:</p>
 <pre><code class="language-bash">rustyc hello_world.st -o hello_world -L/path/to/libs -lc
