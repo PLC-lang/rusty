@@ -97,6 +97,7 @@ pub struct CompileOptions {
     pub format: FormatOption,
     pub output: String,
     pub target: Option<String>,
+    pub optimization: OptimizationLevel,
 }
 
 pub struct LinkOptions {
@@ -108,6 +109,25 @@ pub struct LinkOptions {
 struct ConfigurationOptions {
     format: ConfigFormat,
     output: String,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+pub enum OptimizationLevel {
+    None,
+    Less,
+    Default,
+    Aggressive,
+}
+
+impl From<OptimizationLevel> for inkwell::OptimizationLevel {
+    fn from(val: OptimizationLevel) -> Self {
+        match val {
+            OptimizationLevel::None => inkwell::OptimizationLevel::None,
+            OptimizationLevel::Less => inkwell::OptimizationLevel::Less,
+            OptimizationLevel::Default => inkwell::OptimizationLevel::Default,
+            OptimizationLevel::Aggressive => inkwell::OptimizationLevel::Aggressive,
+        }
+    }
 }
 
 /// A struct representing the result of a compilation
@@ -239,6 +259,7 @@ fn persist_to_obj(
     output: &str,
     reloc: RelocMode,
     triple: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
@@ -255,8 +276,7 @@ fn persist_to_obj(
             //TODO : Add cpu features as optionals
             "generic", //TargetMachine::get_host_cpu_name().to_string().as_str(),
             "",        //TargetMachine::get_host_cpu_features().to_string().as_str(),
-            //TODO Optimisation as parameter
-            inkwell::OptimizationLevel::Default,
+            optimization.into(),
             reloc,
             CodeModel::Default,
         )
@@ -282,8 +302,9 @@ pub fn persist_as_static_obj(
     codegen: CodeGen,
     output: &str,
     target: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
-    persist_to_obj(codegen, output, RelocMode::Default, target)
+    persist_to_obj(codegen, output, RelocMode::Default, target, optimization)
 }
 
 /// Persists a given LLVM module to a shared postiion indepedent object and saves the output.
@@ -298,8 +319,9 @@ pub fn persist_to_shared_pic_object(
     codegen: CodeGen,
     output: &str,
     target: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
-    persist_to_obj(codegen, output, RelocMode::PIC, target)
+    persist_to_obj(codegen, output, RelocMode::PIC, target, optimization)
 }
 
 /// Persists the given LLVM module to a dynamic non PIC object and saves the output.
@@ -313,8 +335,15 @@ pub fn persist_to_shared_object(
     codegen: CodeGen,
     output: &str,
     target: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
-    persist_to_obj(codegen, output, RelocMode::DynamicNoPic, target)
+    persist_to_obj(
+        codegen,
+        output,
+        RelocMode::DynamicNoPic,
+        target,
+        optimization,
+    )
 }
 
 ///
@@ -521,6 +550,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         output,
         target: parameters.target,
         format: out_format,
+        optimization: parameters.optimization,
     };
 
     let link_options = if !parameters.skip_linking {
@@ -600,6 +630,7 @@ pub fn build(
         &compile_options.output,
         compile_options.format,
         target,
+        compile_options.optimization,
     )?);
 
     Ok(CompileResult { index, objects })
@@ -610,13 +641,14 @@ pub fn persist(
     output: &str,
     out_format: FormatOption,
     target: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<FilePath, Diagnostic> {
     match out_format {
         FormatOption::Static | FormatOption::Relocatable => {
-            persist_as_static_obj(input, output, target)
+            persist_as_static_obj(input, output, target, optimization)
         }
-        FormatOption::Shared => persist_to_shared_object(input, output, target),
-        FormatOption::PIC => persist_to_shared_pic_object(input, output, target),
+        FormatOption::Shared => persist_to_shared_object(input, output, target, optimization),
+        FormatOption::PIC => persist_to_shared_pic_object(input, output, target, optimization),
         FormatOption::Bitcode => persist_to_bitcode(input, output),
         FormatOption::IR => persist_to_ir(input, output),
     }?;
