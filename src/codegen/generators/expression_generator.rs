@@ -458,7 +458,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self,
                 parameters
                     .as_ref()
-                    .map(|it| ast::flatten_expression_list(it))
+                    .map(ast::flatten_expression_list)
                     .unwrap_or_default()
                     .as_slice(),
                 operator.get_location(),
