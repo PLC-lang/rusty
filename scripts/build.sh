@@ -13,6 +13,7 @@ release=0
 debug=0
 container=0
 assume_linux=0
+junit=0
 
 CONTAINER_NAME='rust-llvm'
 
@@ -101,7 +102,11 @@ function run_check_style() {
 function run_test() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo test"
-	cargo test $CARGO_OPTIONS
+	if [[ $junit -ne 0 ]]; then
+		cargo test $CARGO_OPTIONS -- --format=junit -Zunstable-options >> test_report.xml
+	else
+		cargo test $CARGO_OPTIONS
+	fi
 }
 
 function generate_sources() {
@@ -149,6 +154,9 @@ function run_in_container() {
 	if [[ $test -ne 0 ]]; then
 		params="$params --test"
 	fi
+	if [[ $junit -ne 0 ]]; then
+		params="$params --junit"
+	fi
 	if [[ $doc -ne 0 ]]; then
 		params="$params --doc"
 	fi
@@ -179,7 +187,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,test,verbose,container,linux,container-name:,coverage
+LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -230,6 +238,9 @@ while true; do
 					;;
 			--test)
 				  test=1
+					;;
+			--junit)
+					junit=1
 					;;
 			--coverage)
 					coverage=1
