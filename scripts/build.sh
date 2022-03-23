@@ -103,7 +103,14 @@ function run_test() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo test"
 	if [[ $junit -ne 0 ]]; then
-		cargo test $CARGO_OPTIONS -- --format=junit -Zunstable-options >> test_report.xml
+		#Delete the test results if they exist
+		rm -rf "$project_location/test_results"
+		make_dir "$project_location/test_results"
+		#Passing through tail here will remove the first line which is currently empty.
+		cargo test $CARGO_OPTIONS --lib -- --format=junit -Zunstable-options | tail -n +2 > "$project_location"/test_results/rusty_unit_tests.xml
+		# Run only the integration tests
+		#https://stackoverflow.com/questions/62447864/how-can-i-run-only-integration-tests
+		cargo test $CARGO_OPTIONS --test '*' -- --format=junit -Zunstable-options | tail -n +2 > "$project_location"/test_results/rusty_integration_tests.xml
 	else
 		cargo test $CARGO_OPTIONS
 	fi
