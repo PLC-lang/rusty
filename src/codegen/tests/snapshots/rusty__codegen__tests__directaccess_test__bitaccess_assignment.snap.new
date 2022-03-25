@@ -1,0 +1,37 @@
+---
+source: src/codegen/tests/directaccess_test.rs
+assertion_line: 19
+expression: prog
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i16 @main() {
+entry:
+  %a = alloca i8, align 1
+  %b = alloca i16, align 2
+  %main = alloca i16, align 2
+  store i8 0, i8* %a, align 1
+  store i16 1, i16* %b, align 2
+  store i16 0, i16* %main, align 2
+  %0 = load i8, i8* %a, align 1
+  %erase = and i8 %0, -3
+  %or = or i8 %erase, 2
+  store i8 %or, i8* %a, align 1
+  %1 = load i8, i8* %a, align 1
+  %erase1 = and i8 %1, -5
+  store i8 %erase1, i8* %a, align 1
+  %2 = load i8, i8* %a, align 1
+  %load_b = load i16, i16* %b, align 2
+  %3 = trunc i16 %load_b to i8
+  %shift = shl i8 1, %3
+  %invert = xor i8 %shift, -1
+  %erase2 = and i8 %2, %invert
+  %value = shl i8 0, %3
+  %or3 = or i8 %erase2, %value
+  store i8 %or3, i8* %a, align 1
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+

@@ -1,0 +1,23 @@
+---
+source: src/codegen/tests/directaccess_test.rs
+assertion_line: 79
+expression: prog
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i16 @main() {
+entry:
+  %d = alloca i64, align 8
+  %main = alloca i16, align 2
+  store i64 0, i64* %d, align 4
+  store i16 0, i16* %main, align 2
+  %0 = load i64, i64* %d, align 4
+  %erase = and i64 %0, -8589934593
+  %or = or i64 %erase, 8589934592
+  store i64 %or, i64* %d, align 4
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+

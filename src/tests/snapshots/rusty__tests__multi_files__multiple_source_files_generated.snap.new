@@ -1,0 +1,27 @@
+---
+source: src/tests/multi_files.rs
+assertion_line: 37
+expression: res
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%mainProg_interface = type {}
+
+@mainProg_instance = global %mainProg_interface zeroinitializer
+
+define i16 @main() {
+entry:
+  %main = alloca i16, align 2
+  store i16 0, i16* %main, align 2
+  call void @mainProg(%mainProg_interface* @mainProg_instance)
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+
+define void @mainProg(%mainProg_interface* %0) {
+entry:
+  ret void
+}
+

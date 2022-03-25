@@ -1,0 +1,28 @@
+---
+source: src/tests/adr/pou_adr.rs
+assertion_line: 39
+expression: "index.get_pou_types().get(\"main_prg\")"
+
+---
+Some(
+    DataType {
+        name: "main_prg",
+        initial_value: None,
+        information: Struct {
+            name: "main_prg_interface",
+            member_names: [
+                "i",
+                "io",
+                "o",
+                "v",
+                "vt",
+            ],
+            varargs: None,
+            source: Pou(
+                Program,
+            ),
+            generics: [],
+        },
+        nature: Any,
+    },
+)

@@ -1,0 +1,24 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 302
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i16 @baz() {
+entry:
+  %ptr_x = alloca i16*, align 8
+  %y = alloca i64, align 8
+  %baz = alloca i16, align 2
+  store i16* null, i16** %ptr_x, align 8
+  store i64 0, i64* %y, align 4
+  store i16 0, i16* %baz, align 2
+  %load_y = load i64, i64* %y, align 4
+  %0 = inttoptr i64 %load_y to i16*
+  store i16* %0, i16** %ptr_x, align 8
+  %baz_ret = load i16, i16* %baz, align 2
+  ret i16 %baz_ret
+}
+

@@ -1,0 +1,38 @@
+---
+source: src/codegen/tests/directaccess_test.rs
+assertion_line: 98
+expression: prog
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%myStruct = type { i8 }
+
+@myStruct__init = unnamed_addr constant %myStruct { i8 1 }
+
+define i16 @main() {
+entry:
+  %str = alloca %myStruct, align 8
+  %main = alloca i16, align 2
+  %0 = bitcast %myStruct* %str to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%myStruct, %myStruct* @myStruct__init, i32 0, i32 0), i64 ptrtoint (%myStruct* getelementptr (%myStruct, %myStruct* null, i32 1) to i64), i1 false)
+  store i16 0, i16* %main, align 2
+  %x = getelementptr inbounds %myStruct, %myStruct* %str, i32 0, i32 0
+  %1 = load i8, i8* %x, align 1
+  %erase = and i8 %1, -2
+  store i8 %erase, i8* %x, align 1
+  %x1 = getelementptr inbounds %myStruct, %myStruct* %str, i32 0, i32 0
+  %2 = load i8, i8* %x1, align 1
+  %erase2 = and i8 %2, -3
+  %or = or i8 %erase2, 2
+  store i8 %or, i8* %x1, align 1
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn }
+

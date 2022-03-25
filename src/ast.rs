@@ -204,6 +204,7 @@ pub struct Implementation {
     pub statements: Vec<AstStatement>,
     pub location: SourceRange,
     pub overriding: bool,
+    pub generic: bool,
     pub access: Option<AccessModifier>,
 }
 

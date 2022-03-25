@@ -1,0 +1,27 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 24
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%myStruct = type { i16 }
+
+@myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+
+define %myStruct @func() {
+entry:
+  %func = alloca %myStruct, align 8
+  %0 = bitcast %myStruct* %func to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%myStruct* @myStruct__init to i8*), i64 ptrtoint (%myStruct* getelementptr (%myStruct, %myStruct* null, i32 1) to i64), i1 false)
+  %func_ret = load %myStruct, %myStruct* %func, align 2
+  ret %myStruct %func_ret
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn }
+

@@ -19,7 +19,7 @@ struct MainType {
 #[test]
 fn bitaccess_assignment() {
     let prog = "
-    FUNCTION main : INT
+    PROGRAM main 
     VAR
         a : BYTE := 2#0000_0101;
         b : WORD := 0;
@@ -33,7 +33,7 @@ fn bitaccess_assignment() {
     b.%B1       := a;       //2#0000_0010_0000_0000
     c.%W1       := b;       //2#0000_0010_0000_0000_0000_0000_0000_0000
     d.%D1       := c;       //2#0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000
-    END_FUNCTION";
+    END_PROGRAM";
 
     #[allow(dead_code)]
     #[repr(C)]
@@ -61,7 +61,7 @@ fn bitaccess_assignment() {
 #[test]
 fn bitaccess_chained_assignment() {
     let prog = "
-    FUNCTION main : LWORD
+    FUNCTION main: LWORD
     VAR
         d : LWORD := 2#0000_0101_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
         two : INT := 2;
@@ -72,7 +72,7 @@ fn bitaccess_chained_assignment() {
     main := d;       //2#0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000
     END_FUNCTION";
 
-    let res: u64 = compile_and_run(prog, &mut MainType::default());
+    let res: u64 = compile_and_run(prog, &mut rusty::runner::MainType::default());
 
     assert_eq!(
         0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
@@ -97,19 +97,14 @@ fn qualified_reference_assignment() {
 
         ";
 
-    #[derive(Default)]
-    #[allow(dead_code)]
-    struct MainType {
-        x: u8,
-    }
-    let res: u8 = compile_and_run(prog, &mut MainType::default);
+    let res: u8 = compile_and_run(prog, &mut rusty::runner::MainType::default);
     assert_eq!(2, res);
 }
 
 #[test]
 fn bitaccess_test() {
     let prog = "
-    FUNCTION main : DINT
+    PROGRAM main 
     VAR 
         variable    : LWORD; 
         access_var  : INT;
@@ -126,7 +121,7 @@ fn bitaccess_test() {
     dwordTarget := variable.%D1; (*Access last dword*)
     (*Chaining an access is also allowed *)
     bitTarget2  := variable.%D1.%W1.%B1.%X1;
-    END_FUNCTION
+    END_PROGRAM
     ";
     let mut main_type = MainType::default();
 
@@ -148,7 +143,7 @@ fn bitaccess_test() {
 #[test]
 fn bitaccess_with_var_test() {
     let prog = "
-    FUNCTION main : DINT
+    PROGRAM main
     VAR 
         variable    : LWORD; 
         access_var  : INT;
@@ -169,7 +164,7 @@ fn bitaccess_with_var_test() {
     dwordTarget := variable.%Daccess_var; (*Access last dword*)
     (*Chaining an access is also allowed *)
     bitTarget2  := variable.%Daccess_var.%Waccess_var.%Baccess_var.%Xaccess_var;
-    END_FUNCTION
+    END_PROGRAM
     ";
     let mut main_type = MainType::default();
 
@@ -205,8 +200,7 @@ fn bitaccess_assignment_should_not_override_current_values() {
     main := a;
     END_FUNCTION
     ";
-    struct MainType {}
-    let res: i32 = compile_and_run(prog, &mut MainType {});
+    let res: i32 = compile_and_run(prog, &mut rusty::runner::MainType::default);
     assert_eq!(res, 7);
 }
 
@@ -223,7 +217,6 @@ fn byteaccess_assignment_should_not_override_current_values() {
     main := a;
     END_FUNCTION
     ";
-    struct MainType {}
-    let res: i32 = compile_and_run(prog, &mut MainType {});
+    let res: i32 = compile_and_run(prog, &mut rusty::runner::MainType::default);
     assert_eq!(res, 0b0000_0000_1100_0011_1010_1010_0101_0101);
 }

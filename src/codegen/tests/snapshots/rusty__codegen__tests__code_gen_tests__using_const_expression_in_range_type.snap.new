@@ -1,0 +1,50 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2624
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i16 }
+
+@CONST = global i16 7
+@MIN = global i16 7
+@prg_instance = global %prg_interface zeroinitializer
+
+define i16 @CheckRangeSigned(i16* %0, i16* %1, i16* %2) {
+entry:
+  %value = alloca i16*, align 8
+  store i16* %0, i16** %value, align 8
+  %lower = alloca i16*, align 8
+  store i16* %1, i16** %lower, align 8
+  %upper = alloca i16*, align 8
+  store i16* %2, i16** %upper, align 8
+  %CheckRangeSigned = alloca i16, align 2
+  store i16 0, i16* %CheckRangeSigned, align 2
+  %deref = load i16*, i16** %value, align 8
+  %load_value = load i16, i16* %deref, align 2
+  store i16 %load_value, i16* %CheckRangeSigned, align 2
+  %CheckRangeSigned_ret = load i16, i16* %CheckRangeSigned, align 2
+  ret i16 %CheckRangeSigned_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %1 = alloca i16, align 2
+  store i16 5, i16* %1, align 2
+  %2 = alloca i16, align 2
+  store i16 0, i16* %2, align 2
+  %load_MIN = load i16, i16* @MIN, align 2
+  %3 = sext i16 %load_MIN to i32
+  %tmpVar = add i32 %3, 1
+  %4 = trunc i32 %tmpVar to i16
+  %5 = alloca i16, align 2
+  store i16 %4, i16* %5, align 2
+  %call = call i16 @CheckRangeSigned(i16* %1, i16* %2, i16* %5)
+  store i16 %call, i16* %x, align 2
+  ret void
+}
+

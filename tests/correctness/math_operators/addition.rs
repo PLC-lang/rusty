@@ -10,23 +10,26 @@ fn adds_in_result_dint_type() {
     #[repr(C)]
     struct MainType {
         di1: i32,
+        di2: i32,
     }
 
     let prog = "
-    FUNCTION main : DINT
-    VAR
-        i1 : DINT;
-    END_VAR
-        main := 10 + 50;
-        i1 := 22 + 18;
+    FUNCTION foo : DINT
+        foo := 10 + 50;
     END_FUNCTION
+
+    PROGRAM main 
+    VAR i1, i2: DINT; END_VAR
+
+    i1 := 22 + 18;
+    i2 := foo();
+
+    END_PROGRAM
     ";
 
     let mut main = MainType::default();
-
-    let res: i32 = compile_and_run(prog.to_string(), &mut main); //&mut main
-    assert_eq!(res, 60);
-
+    let _: i32 = compile_and_run(prog.to_string(), &mut main); //&mut main
+    assert_eq!(60, main.di2);
     assert_eq!(40, main.di1);
 }
 

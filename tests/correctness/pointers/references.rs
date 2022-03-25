@@ -331,6 +331,7 @@ struct MainTypeWithArray {
 }
 
 #[test]
+#[ignore]
 fn reference_call_array() {
     let function = r"
     FUNCTION_BLOCK FbTestArray

@@ -8,11 +8,12 @@ fn max_function() {
     struct MainType {
         the_a: i16,
         the_b: i16,
+        ret: i16,
     }
 
     let function = r#"
 
-    FUNCTION MAX : DINT 
+    FUNCTION MAX : INT 
     VAR_INPUT 
         a : INT;
         b : INT;
@@ -25,31 +26,37 @@ fn max_function() {
     END_IF
     END_FUNCTION
 
-    FUNCTION main : DINT
-    VAR_INPUT
+    PROGRAM main
+    VAR
         theA : INT;
         theB : INT;
+        ret: INT;
     END_VAR
 
-    main := MAX(theA, theB);
+    ret := MAX(theA, theB);
 
-    END_FUNCTION
+    END_PROGRAM
 
     "#
     .to_string();
 
     let context: Context = Context::create();
     let engine = compile(&context, function);
-    let mut case1 = MainType { the_a: 4, the_b: 7 };
+    let mut case1 = MainType {
+        the_a: 4,
+        the_b: 7,
+        ret: 0,
+    };
     let mut case2 = MainType {
         the_a: 9,
         the_b: -2,
+        ret: 0,
     };
 
-    let res: i32 = run(&engine, "main", &mut case1);
-    assert_eq!(res, 7);
-    let res: i32 = run(&engine, "main", &mut case2);
-    assert_eq!(res, 9);
+    let _: i32 = run(&engine, "main", &mut case1);
+    assert_eq!(case1.ret, 7);
+    let _: i32 = run(&engine, "main", &mut case2);
+    assert_eq!(case2.ret, 9);
 }
 
 #[test]

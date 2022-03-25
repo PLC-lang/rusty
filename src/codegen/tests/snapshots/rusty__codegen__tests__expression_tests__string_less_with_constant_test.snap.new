@@ -1,0 +1,45 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 121
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@utf08_literal_0 = unnamed_addr constant [2 x i8] c"b\00"
+
+define i8 @STRING_LESS([1025 x i8]* %0, [1025 x i8]* %1) {
+entry:
+  %op1 = alloca [1025 x i8]*, align 8
+  store [1025 x i8]* %0, [1025 x i8]** %op1, align 8
+  %op2 = alloca [1025 x i8]*, align 8
+  store [1025 x i8]* %1, [1025 x i8]** %op2, align 8
+  %STRING_LESS = alloca i8, align 1
+  store i8 0, i8* %STRING_LESS, align 1
+  %STRING_LESS_ret = load i8, i8* %STRING_LESS, align 1
+  ret i8 %STRING_LESS_ret
+}
+
+define i16 @baz() {
+entry:
+  %a = alloca [81 x i8], align 1
+  %result = alloca i8, align 1
+  %baz = alloca i16, align 2
+  %0 = bitcast [81 x i8]* %a to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+  store i8 0, i8* %result, align 1
+  store i16 0, i16* %baz, align 2
+  %1 = alloca [2 x i8]*, align 8
+  store [2 x i8]* @utf08_literal_0, [2 x i8]** %1, align 8
+  %call = call i8 @STRING_LESS([81 x i8]* %a, [2 x i8]** %1)
+  store i8 %call, i8* %result, align 1
+  %baz_ret = load i16, i16* %baz, align 2
+  ret i16 %baz_ret
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+

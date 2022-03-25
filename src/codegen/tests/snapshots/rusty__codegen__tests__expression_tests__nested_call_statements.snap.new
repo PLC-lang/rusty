@@ -1,0 +1,34 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 460
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type {}
+
+@main_instance = global %main_interface zeroinitializer
+
+define i32 @foo(i32* %0) {
+entry:
+  %a = alloca i32*, align 8
+  store i32* %0, i32** %a, align 8
+  %foo = alloca i32, align 4
+  store i32 0, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
+  ret i32 %foo_ret
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %1 = alloca i32, align 4
+  store i32 2, i32* %1, align 4
+  %call = call i32 @foo(i32* %1)
+  %2 = alloca i32, align 4
+  store i32 %call, i32* %2, align 4
+  %call1 = call i32 @foo(i32* %2)
+  ret void
+}
+

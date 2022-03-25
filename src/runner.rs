@@ -6,6 +6,7 @@ use inkwell::{
 use crate::{compile_module, diagnostics::Diagnostician, SourceCode, SourceContainer};
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
+type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -69,6 +70,17 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
 }
 
 ///
+/// Runs the function given by `name` inside the compiled execution engine code.
+/// Returns the value returned by calling the function
+///
+pub fn run_no_param<U>(exec_engine: &ExecutionEngine, name: &str) -> U {
+    unsafe {
+        let main: JitFunction<MainEmptyFunction<U>> = exec_engine.get_function(name).unwrap();
+        main.call()
+    }
+}
+
+///
 /// Compiles and runs the given sources
 /// Sources must be `Compilable`, default implementations include `String` and `&str`
 /// An implementation is also provided for `Vec<SourceContainer>`
@@ -83,6 +95,7 @@ pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
         Diagnostician::null_diagnostician(),
     )
     .unwrap();
+    code_gen.module.print_to_stderr();
     code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)

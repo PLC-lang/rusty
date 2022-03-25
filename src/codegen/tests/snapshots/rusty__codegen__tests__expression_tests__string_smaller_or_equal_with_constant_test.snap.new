@@ -1,0 +1,73 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 184
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@utf08_literal_0 = unnamed_addr constant [2 x i8] c"b\00"
+
+define i8 @STRING_LESS([1025 x i8]* %0, [1025 x i8]* %1) {
+entry:
+  %op1 = alloca [1025 x i8]*, align 8
+  store [1025 x i8]* %0, [1025 x i8]** %op1, align 8
+  %op2 = alloca [1025 x i8]*, align 8
+  store [1025 x i8]* %1, [1025 x i8]** %op2, align 8
+  %STRING_LESS = alloca i8, align 1
+  store i8 0, i8* %STRING_LESS, align 1
+  %STRING_LESS_ret = load i8, i8* %STRING_LESS, align 1
+  ret i8 %STRING_LESS_ret
+}
+
+define i8 @STRING_EQUAL([1025 x i8]* %0, [1025 x i8]* %1) {
+entry:
+  %op1 = alloca [1025 x i8]*, align 8
+  store [1025 x i8]* %0, [1025 x i8]** %op1, align 8
+  %op2 = alloca [1025 x i8]*, align 8
+  store [1025 x i8]* %1, [1025 x i8]** %op2, align 8
+  %STRING_EQUAL = alloca i8, align 1
+  store i8 0, i8* %STRING_EQUAL, align 1
+  %STRING_EQUAL_ret = load i8, i8* %STRING_EQUAL, align 1
+  ret i8 %STRING_EQUAL_ret
+}
+
+define i16 @baz() {
+entry:
+  %a = alloca [81 x i8], align 1
+  %b = alloca [81 x i8], align 1
+  %result = alloca i8, align 1
+  %baz = alloca i16, align 2
+  %0 = bitcast [81 x i8]* %a to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+  %1 = bitcast [81 x i8]* %b to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+  store i8 0, i8* %result, align 1
+  store i16 0, i16* %baz, align 2
+  %2 = alloca [2 x i8]*, align 8
+  store [2 x i8]* @utf08_literal_0, [2 x i8]** %2, align 8
+  %call = call i8 @STRING_EQUAL([81 x i8]* %a, [2 x i8]** %2)
+  %3 = icmp ne i8 %call, 0
+  br i1 %3, label %7, label %4
+
+4:                                                ; preds = %entry
+  %5 = alloca [2 x i8]*, align 8
+  store [2 x i8]* @utf08_literal_0, [2 x i8]** %5, align 8
+  %call1 = call i8 @STRING_LESS([81 x i8]* %a, [2 x i8]** %5)
+  %6 = icmp ne i8 %call1, 0
+  br label %7
+
+7:                                                ; preds = %4, %entry
+  %8 = phi i1 [ %3, %entry ], [ %6, %4 ]
+  %9 = zext i1 %8 to i8
+  store i8 %9, i8* %result, align 1
+  %baz_ret = load i16, i16* %baz, align 2
+  ret i16 %baz_ret
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+

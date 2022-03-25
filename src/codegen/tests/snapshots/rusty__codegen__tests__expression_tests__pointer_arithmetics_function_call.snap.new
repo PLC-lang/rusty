@@ -1,0 +1,58 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 439
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i16*, i16, i8 }
+
+@main_instance = global %main_interface zeroinitializer
+
+define i64 @foo() {
+entry:
+  %foo = alloca i64, align 8
+  store i64 0, i64* %foo, align 4
+  %foo_ret = load i64, i64* %foo, align 4
+  ret i64 %foo_ret
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %pt = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %comp = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  store i16* %x, i16** %pt, align 8
+  %load_pt = load i16*, i16** %pt, align 8
+  %call = call i64 @foo()
+  %access___main_pt = getelementptr inbounds i16, i16* %load_pt, i64 %call
+  store i16* %access___main_pt, i16** %pt, align 8
+  %load_pt1 = load i16*, i16** %pt, align 8
+  %load_pt2 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp eq (i64 ptrtoint (i16* %load_pt1 to i64), i64 ptrtoint (i16* %load_pt2 to i64)) to i8), i8* %comp, align 1
+  %load_pt3 = load i16*, i16** %pt, align 8
+  %call4 = call i64 @foo()
+  %tmpVar = icmp ne i64 ptrtoint (i16* %load_pt3 to i64), %call4
+  %1 = zext i1 %tmpVar to i8
+  store i8 %1, i8* %comp, align 1
+  %load_pt5 = load i16*, i16** %pt, align 8
+  %load_pt6 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp slt (i64 ptrtoint (i16* %load_pt5 to i64), i64 ptrtoint (i16* %load_pt6 to i64)) to i8), i8* %comp, align 1
+  %load_pt7 = load i16*, i16** %pt, align 8
+  %call8 = call i64 @foo()
+  %tmpVar9 = icmp sgt i64 ptrtoint (i16* %load_pt7 to i64), %call8
+  %2 = zext i1 %tmpVar9 to i8
+  store i8 %2, i8* %comp, align 1
+  %load_pt10 = load i16*, i16** %pt, align 8
+  %load_pt11 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp sle (i64 ptrtoint (i16* %load_pt10 to i64), i64 ptrtoint (i16* %load_pt11 to i64)) to i8), i8* %comp, align 1
+  %call12 = call i64 @foo()
+  %load_pt13 = load i16*, i16** %pt, align 8
+  %tmpVar14 = icmp sge i64 %call12, ptrtoint (i16* %load_pt13 to i64)
+  %3 = zext i1 %tmpVar14 to i8
+  store i8 %3, i8* %comp, align 1
+  ret void
+}
+

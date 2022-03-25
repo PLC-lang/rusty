@@ -5,10 +5,10 @@ use super::super::*;
 #[test]
 fn string_assignment_from_smaller_literal() {
     let src = "
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[6]; END_VAR
             x := 'hello';
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -24,10 +24,10 @@ fn string_assignment_from_smaller_literal() {
 #[test]
 fn string_assignment_from_bigger_literal() {
     let src = "
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[4];END_VAR
             x := 'hello';
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -42,11 +42,11 @@ fn string_assignment_from_bigger_literal() {
 #[test]
 fn string_assignment_from_smaller_string() {
     let src = "
-        FUNCTION main : DINT
+        PROGRAM main 
             VAR x : STRING[6]; y : STRING[5]; END_VAR
             y := 'hello';
             x := y;
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -66,11 +66,11 @@ fn string_assignment_from_smaller_string() {
 #[test]
 fn string_assignment_from_bigger_string() {
     let src = "
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[4]; y : STRING[5]; END_VAR
             y := 'hello';
             x := y;
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -96,10 +96,10 @@ fn string_assignment_from_smaller_function() {
         hello := 'hello';
         END_FUNCTION
 
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[6]; END_VAR
             x := hello();
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -119,10 +119,10 @@ fn string_assignment_from_bigger_function() {
         hello := 'hello';
         END_FUNCTION
 
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[4]; END_VAR
             x := hello();
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -218,14 +218,14 @@ fn initialization_of_string_arrays() {
             texts: ARRAY[0..2] OF STRING[10] := ['hello', 'world', 'ten chars!']
         END_VAR
 
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x,y,z : STRING[10]; END_VAR
         
             x := texts[0];
             y := texts[1];
             z := texts[2];
         
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]

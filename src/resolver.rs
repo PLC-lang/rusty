@@ -1338,6 +1338,7 @@ impl<'i> TypeAnnotator<'i> {
                             &name,
                             implementation.get_associated_class_name(),
                             implementation.get_implementation_type().clone(),
+                            implementation.generic,
                         );
                         self.index_generic_type(pou, &name, generic_map);
                         self.annotation_map

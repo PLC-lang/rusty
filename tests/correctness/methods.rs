@@ -2,7 +2,7 @@
 use super::super::*;
 
 #[test]
-fn fb_vars_can_be_accessed() {
+fn fb_vars_can_be_accessed_from_method() {
     let src = "
 FUNCTION main : DINT 
     prg();

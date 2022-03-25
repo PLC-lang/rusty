@@ -1,0 +1,148 @@
+---
+source: src/index/tests/instance_resolver_tests.rs
+assertion_line: 210
+expression: "index.filter_instances(|it, _|\n                           !it.is_constant()).collect::<Vec<Instance<'_>>>()"
+
+---
+[
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "gFb",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "gFb",
+            qualified_name: "gFb",
+            initial_value: None,
+            variable_type: ByVal(
+                Global,
+            ),
+            is_constant: true,
+            data_type_name: "fb",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 194..197,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "MainProg_instance",
+            qualified_name: "MainProg",
+            initial_value: None,
+            variable_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "MainProg",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 91..161,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "rFb",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "rFb",
+            qualified_name: "MainProg.rFb",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "fb",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 124..127,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "rFb",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "a",
+            qualified_name: "fb.a",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 40..41,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "rFb",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "b",
+            qualified_name: "fb.b",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 1,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 42..43,
+            },
+        },
+    ),
+]

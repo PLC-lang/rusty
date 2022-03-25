@@ -1,0 +1,17 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 10
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i16* @func() {
+entry:
+  %func = alloca i16*, align 8
+  store i16* null, i16** %func, align 8
+  %func_ret = load i16*, i16** %func, align 8
+  ret i16* %func_ret
+}
+

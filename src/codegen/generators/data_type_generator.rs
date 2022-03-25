@@ -10,7 +10,7 @@ use std::convert::TryInto;
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AstAnnotations;
-use crate::typesystem::{Dimension, StringEncoding, StructSource};
+use crate::typesystem::{StringEncoding, StructSource, Dimension};
 use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
@@ -58,7 +58,7 @@ pub fn generate_data_types<'ink>(
         .index
         .get_types()
         .iter()
-        .filter(|(_, it)| !it.get_type_information().is_generic())
+        .filter(|(_, it)| !it.get_type_information().is_generic(generator.index))
         .map(|(a, b)| (a.as_str(), b))
         .collect::<Vec<(&str, &DataType)>>();
 

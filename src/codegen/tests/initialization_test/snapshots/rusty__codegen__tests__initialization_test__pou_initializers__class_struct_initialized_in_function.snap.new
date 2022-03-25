@@ -1,0 +1,40 @@
+---
+source: src/codegen/tests/initialization_test/pou_initializers.rs
+assertion_line: 213
+expression: function
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { %fb_interface }
+%fb_interface = type { i16 }
+
+@main_instance = global %main_interface { %fb_interface { i16 9 } }
+@fb__init = unnamed_addr constant %fb_interface { i16 9 }
+
+define i32 @func(%fb_interface* %0) {
+entry:
+  %in = alloca %fb_interface*, align 8
+  store %fb_interface* %0, %fb_interface** %in, align 8
+  %x = alloca %fb_interface, align 8
+  %func = alloca i32, align 4
+  %1 = bitcast %fb_interface* %x to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb_interface* @fb__init to i8*), i64 ptrtoint (%fb_interface* getelementptr (%fb_interface, %fb_interface* null, i32 1) to i64), i1 false)
+  store i32 0, i32* %func, align 4
+  %func_ret = load i32, i32* %func, align 4
+  ret i32 %func_ret
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %fb0 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %call = call i32 @func(%fb_interface* %fb0)
+  ret void
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn }
+

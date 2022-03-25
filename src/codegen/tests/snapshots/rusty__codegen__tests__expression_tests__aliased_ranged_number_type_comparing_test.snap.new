@@ -1,0 +1,28 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 244
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i16 @baz() {
+entry:
+  %x = alloca i16, align 2
+  %y = alloca i16, align 2
+  %baz = alloca i16, align 2
+  store i16 0, i16* %x, align 2
+  store i16 0, i16* %y, align 2
+  store i16 0, i16* %baz, align 2
+  %load_x = load i16, i16* %x, align 2
+  %tmpVar = icmp eq i16 %load_x, i32 3
+  %load_x1 = load i16, i16* %x, align 2
+  %load_y = load i16, i16* %y, align 2
+  %tmpVar2 = icmp slt i16 %load_x1, %load_y
+  %load_y3 = load i16, i16* %y, align 2
+  %tmpVar4 = icmp sle i16 %load_y3, i32 0
+  %baz_ret = load i16, i16* %baz, align 2
+  ret i16 %baz_ret
+}
+

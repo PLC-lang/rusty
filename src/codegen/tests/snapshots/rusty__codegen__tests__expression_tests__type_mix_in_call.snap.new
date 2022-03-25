@@ -1,0 +1,30 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 58
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i16 @foo(i16* %0) {
+entry:
+  %in = alloca i16*, align 8
+  store i16* %0, i16** %in, align 8
+  %foo = alloca i16, align 2
+  store i16 0, i16* %foo, align 2
+  %foo_ret = load i16, i16* %foo, align 2
+  ret i16 %foo_ret
+}
+
+define i16 @baz() {
+entry:
+  %baz = alloca i16, align 2
+  store i16 0, i16* %baz, align 2
+  %0 = alloca float, align 4
+  store float 1.500000e+00, float* %0, align 4
+  %call = call i16 @foo(float* %0)
+  %baz_ret = load i16, i16* %baz, align 2
+  ret i16 %baz_ret
+}
+

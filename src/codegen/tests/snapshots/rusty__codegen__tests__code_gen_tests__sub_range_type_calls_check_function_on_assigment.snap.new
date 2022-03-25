@@ -1,0 +1,44 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2551
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%Main_interface = type { i16 }
+
+@Main_instance = global %Main_interface zeroinitializer
+
+define i16 @CheckRangeSigned(i16* %0, i16* %1, i16* %2) {
+entry:
+  %value = alloca i16*, align 8
+  store i16* %0, i16** %value, align 8
+  %lower = alloca i16*, align 8
+  store i16* %1, i16** %lower, align 8
+  %upper = alloca i16*, align 8
+  store i16* %2, i16** %upper, align 8
+  %CheckRangeSigned = alloca i16, align 2
+  store i16 0, i16* %CheckRangeSigned, align 2
+  %deref = load i16*, i16** %value, align 8
+  %load_value = load i16, i16* %deref, align 2
+  store i16 %load_value, i16* %CheckRangeSigned, align 2
+  %CheckRangeSigned_ret = load i16, i16* %CheckRangeSigned, align 2
+  ret i16 %CheckRangeSigned_ret
+}
+
+define void @Main(%Main_interface* %0) {
+entry:
+  %x = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %1 = alloca i16, align 2
+  store i16 7, i16* %1, align 2
+  %2 = alloca i16, align 2
+  store i16 0, i16* %2, align 2
+  %3 = alloca i16, align 2
+  store i16 100, i16* %3, align 2
+  %call = call i16 @CheckRangeSigned(i16* %1, i16* %2, i16* %3)
+  store i16 %call, i16* %x, align 2
+  ret void
+}
+

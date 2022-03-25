@@ -1,0 +1,464 @@
+---
+source: src/index/tests/instance_resolver_tests.rs
+assertion_line: 104
+expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
+
+---
+[
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "gStr",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "gStr",
+            qualified_name: "gStr",
+            initial_value: None,
+            variable_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "str",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 154..158,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "a",
+            qualified_name: "str.a",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "str2",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 32..33,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "a",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "c",
+            qualified_name: "str2.c",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 91..92,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "a",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "d",
+            qualified_name: "str2.d",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 1,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 93..94,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "b",
+            qualified_name: "str.b",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "str2",
+            location_in_parent: 1,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 34..35,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "b",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "c",
+            qualified_name: "str2.c",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 91..92,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "b",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "d",
+            qualified_name: "str2.d",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 1,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 93..94,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "MainProg_instance",
+            qualified_name: "MainProg",
+            initial_value: None,
+            variable_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "MainProg",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 182..254,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "pStr",
+            qualified_name: "MainProg.pStr",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "str",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 215..219,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "a",
+            qualified_name: "str.a",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "str2",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 32..33,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "a",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "c",
+            qualified_name: "str2.c",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 91..92,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "a",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "d",
+            qualified_name: "str2.d",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 1,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 93..94,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "b",
+            qualified_name: "str.b",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "str2",
+            location_in_parent: 1,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 34..35,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "b",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "c",
+            qualified_name: "str2.c",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 91..92,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "b",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "d",
+            qualified_name: "str2.d",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 1,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 93..94,
+            },
+        },
+    ),
+]

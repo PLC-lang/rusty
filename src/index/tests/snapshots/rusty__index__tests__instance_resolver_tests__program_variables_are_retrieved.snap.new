@@ -1,0 +1,89 @@
+---
+source: src/index/tests/instance_resolver_tests.rs
+assertion_line: 59
+expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
+
+---
+[
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "MainProg_instance",
+            qualified_name: "MainProg",
+            initial_value: None,
+            variable_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "MainProg",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 9..97,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "a",
+            qualified_name: "MainProg.a",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 50..51,
+            },
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "b",
+            qualified_name: "MainProg.b",
+            initial_value: None,
+            variable_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            data_type_name: "DINT",
+            location_in_parent: 1,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 52..53,
+            },
+        },
+    ),
+]

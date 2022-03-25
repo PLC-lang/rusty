@@ -1,0 +1,31 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1275
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define float @foo() {
+entry:
+  %foo = alloca float, align 4
+  store float 0.000000e+00, float* %foo, align 4
+  store float 1.000000e+00, float* %foo, align 4
+  %foo_ret = load float, float* %foo, align 4
+  ret float %foo_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %call = call float @foo()
+  %1 = fptosi float %call to i32
+  store i32 %1, i32* %x, align 4
+  ret void
+}
+

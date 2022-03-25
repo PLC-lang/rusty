@@ -215,6 +215,7 @@ fn parse_pou(
                     pou_type.clone(),
                     &name,
                     &name,
+                    !generics.is_empty(),
                 ));
             }
 
@@ -408,6 +409,7 @@ fn parse_method(
             },
             &call_name,
             &call_name,
+            !generics.is_empty(),
         );
 
         // parse_implementation() will default-initialize the fields it
@@ -471,6 +473,7 @@ fn parse_implementation(
     pou_type: PouType,
     call_name: &str,
     type_name: &str,
+    generic: bool,
 ) -> Implementation {
     let start = lexer.range().start;
     let statements = parse_body_standalone(lexer);
@@ -482,6 +485,7 @@ fn parse_implementation(
         statements,
         location: SourceRange::new(start..lexer.range().end),
         overriding: false,
+        generic,
         access: None,
     }
 }
@@ -516,8 +520,14 @@ fn parse_action(
         };
         let call_name = format!("{}.{}", &container, &name);
 
-        let implementation =
-            parse_implementation(lexer, linkage, PouType::Action, &call_name, &container);
+        let implementation = parse_implementation(
+            lexer,
+            linkage,
+            PouType::Action,
+            &call_name,
+            &container,
+            false,
+        );
         //lets see if we ended on the right END_ keyword
         if closing_tokens.contains(&lexer.last_token) && lexer.last_token != KeywordEndAction {
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(

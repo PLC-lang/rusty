@@ -1,0 +1,30 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1631
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i8 }
+%prg_interface = type { i8 }
+
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %baz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
+  call void @foo(%foo_interface* @foo_instance)
+  ret void
+}
+

@@ -1,0 +1,25 @@
+---
+source: src/tests/external_files.rs
+assertion_line: 65
+expression: res
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@x = available_externally global i16
+@y = available_externally global i16
+
+define i16 @main() {
+entry:
+  %main = alloca i16, align 2
+  store i16 0, i16* %main, align 2
+  store i16 2, i16* @x, align 2
+  store i16 2, i16* @y, align 2
+  %call = call i16 @external()
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+
+declare i16 @external()
+

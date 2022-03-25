@@ -1,0 +1,27 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2712
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type {}
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define i64 @TIME() {
+entry:
+  %TIME = alloca i64, align 8
+  store i64 0, i64* %TIME, align 4
+  %TIME_ret = load i64, i64* %TIME, align 4
+  ret i64 %TIME_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %call = call i64 @TIME()
+  ret void
+}
+

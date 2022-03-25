@@ -1,0 +1,24 @@
+---
+source: src/tests/adr/pou_adr.rs
+assertion_line: 112
+expression: codegen(DEFAULT_FB)
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_fb_interface = type { i16, i16*, i16, i16 }
+
+@main_fb__init = unnamed_addr constant %main_fb_interface { i16 6, i16* null, i16 0, i16 1 }
+
+define void @main_fb(%main_fb_interface* %0) {
+entry:
+  %i = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 0
+  %io = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 1
+  %o = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 2
+  %v = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 3
+  %vt = alloca i16, align 2
+  store i16 2, i16* %vt, align 2
+  ret void
+}
+

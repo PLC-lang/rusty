@@ -1,0 +1,33 @@
+---
+source: src/index/tests/instance_resolver_tests.rs
+assertion_line: 23
+expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
+
+---
+[
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "MainProg_instance",
+            qualified_name: "MainProg",
+            initial_value: None,
+            variable_type: ByVal(
+                Global,
+            ),
+            is_constant: false,
+            data_type_name: "MainProg",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceRange {
+                range: 9..45,
+            },
+        },
+    ),
+]
