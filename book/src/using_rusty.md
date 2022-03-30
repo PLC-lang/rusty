@@ -34,7 +34,7 @@ for that and link with libc when we're done. This program can also be found at
 done. Otherwise, the program will most likely crash (because it tries to return to a function that never
 existed).
 
-```st
+```iecst
 @EXTERNAL FUNCTION puts : DINT
 VAR_INPUT
     text : STRING;
@@ -58,6 +58,18 @@ Compiling with rusty is very easy. If you just want to build an object file, the
 ```bash
 rustyc -c hello_world.st -o hello_world.o
 ```
+
+### Optimization
+`rustyc` offers 4 levels of optimization which correspond to the levels established by llvm respectively [clang](https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options) (`none` to `aggressive`, respectively `-O0` to `-O3`). 
+
+To use an optimization, the flag `-O` or `--optimization` is required:
+
+- `rustyc -c "**/*.st" -O none`
+- `rustyc -c "**/*.st" -O less`
+- `rustyc -c "**/*.st" -O default`
+- `rustyc -c "**/*.st" -O aggressive`
+
+By default `rustyc` will use `default` which corresponds to clang's `-O2`.
 
 ### Linking an executable
 Instead, you can also compile this into an executable and run it:
