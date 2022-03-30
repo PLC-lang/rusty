@@ -297,20 +297,6 @@ fn persist_to_obj(
         });
 
     ////Run the passes
-    //unsafe {
-    //    let module_ref = codegen.module.get_ref();
-    //    let machine_ref = machine.as_ref().unwrap().get_ref();
-    //    let options = LLVMCreatePassBuilderOptions();
-    //    LLVMRunPasses(module_ref, to_c_str("default<O2>").as_ptr(), machine_ref, options);
-    //    LLVMDisposePassBuilderOptions(options);
-    //}
-    // let mpm = inkwell::passes::PassManager::create(());
-    // let pm = inkwell::passes::PassManagerBuilder::create();
-    // pm.set_optimization_level(optimization.into());
-    // pm.populate_module_pass_manager(&mpm);
-
-    // mpm.run_on(&codegen.module);
-
     machine.and_then(|it| {
         codegen
             .module
