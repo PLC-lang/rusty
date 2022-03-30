@@ -24,6 +24,7 @@ use std::str::FromStr;
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
+use inkwell::passes::PassBuilderOptions;
 use std::path::Path;
 
 use ast::{LinkageType, PouType, SourceRange};
@@ -126,6 +127,17 @@ impl From<OptimizationLevel> for inkwell::OptimizationLevel {
             OptimizationLevel::Less => inkwell::OptimizationLevel::Less,
             OptimizationLevel::Default => inkwell::OptimizationLevel::Default,
             OptimizationLevel::Aggressive => inkwell::OptimizationLevel::Aggressive,
+        }
+    }
+}
+
+impl OptimizationLevel {
+    fn opt_params(&self) -> &str {
+        match self {
+            OptimizationLevel::None => "default<O0>",
+            OptimizationLevel::Less => "default<O1>",
+            OptimizationLevel::Default => "default<O2>",
+            OptimizationLevel::Aggressive => "default<O3>",
         }
     }
 }
@@ -284,9 +296,16 @@ fn persist_to_obj(
             Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
         });
 
+    ////Run the passes
     machine.and_then(|it| {
-        it.write_to_file(&codegen.module, FileType::Object, Path::new(output))
+        codegen
+            .module
+            .run_passes(optimization.opt_params(), &it, PassBuilderOptions::create())
             .map_err(|it| Diagnostic::llvm_error(output, &it))
+            .and_then(|_| {
+                it.write_to_file(&codegen.module, FileType::Object, Path::new(output))
+                    .map_err(|it| Diagnostic::llvm_error(output, &it))
+            })
     })
 }
 
