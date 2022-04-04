@@ -35,6 +35,7 @@ fn link_as_shared_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();
@@ -50,6 +51,7 @@ fn link_as_shared_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();
@@ -99,6 +101,7 @@ fn link_as_pic_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();
@@ -114,6 +117,7 @@ fn link_as_pic_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();
@@ -163,6 +167,7 @@ fn link_as_static_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();
@@ -178,6 +183,7 @@ fn link_as_static_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();
@@ -227,6 +233,7 @@ fn link_as_relocatable_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();
@@ -242,6 +249,7 @@ fn link_as_relocatable_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();
@@ -282,6 +290,7 @@ fn link_missing_file() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        "rich",
         &triple,
     )
     .unwrap();

@@ -132,6 +132,16 @@ pub struct CompileParameters {
         default_value = "default"
     )]
     pub optimization: crate::OptimizationLevel,
+
+    #[clap(
+        name = "error-format",
+        long,
+        help = "Set format for error reporting.
+		Supported formats : rich (default), clang",
+		default_value = "rich",
+		parse(try_from_str = validate_error_format)
+    )]
+    pub error_format: String,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -155,6 +165,16 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
         Some("json") => Some(ConfigFormat::JSON),
         Some("toml") => Some(ConfigFormat::TOML),
         _ => None,
+    }
+}
+
+fn validate_error_format(error_fmt: &str) -> Result<String, String> {
+    match error_fmt {
+        "rich" | "clang" => Ok(error_fmt.to_string()),
+        _ => Err(format!(
+            r#"Cannot identify format type for {}, valid formats : "rich" (default), "clang""#,
+            error_fmt
+        )),
     }
 }
 
@@ -579,6 +599,26 @@ mod cli_tests {
         );
         expect_argument_error(
             vec_of_strings!("foo", "--hardware-conf=conf.xml"),
+            ErrorKind::ValueValidation,
+        );
+    }
+
+    #[test]
+    fn error_format_default_set() {
+        // make sure the default error format is set
+        let params = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
+        assert_eq!(params.error_format, "rich");
+    }
+
+    #[test]
+    fn error_format_set() {
+        // set clang as error format
+        let params =
+            CompileParameters::parse(vec_of_strings!("input.st", "--error-format=clang")).unwrap();
+        assert_eq!(params.error_format, "clang");
+        // set invalid error format
+        expect_argument_error(
+            vec_of_strings!("input.st", "--error-format=none"),
             ErrorKind::ValueValidation,
         );
     }

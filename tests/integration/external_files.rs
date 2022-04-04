@@ -24,6 +24,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        "rich",
         &target,
     )
     .unwrap();
@@ -38,6 +39,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        "rich",
         &target,
     )
     .unwrap();
@@ -52,6 +54,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        "rich",
         &target,
     )
     .unwrap();
@@ -66,6 +69,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        "rich",
         &target,
     )
     .unwrap();
@@ -80,6 +84,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        "rich",
         &target,
     )
     .unwrap();
