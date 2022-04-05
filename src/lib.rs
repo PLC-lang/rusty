@@ -630,7 +630,7 @@ pub fn build(
     includes: Vec<FilePath>,
     compile_options: &CompileOptions,
     encoding: Option<&'static Encoding>,
-    _error_format: &str,
+    error_format: &str,
     target: &TargetTriple,
 ) -> Result<CompileResult, Diagnostic> {
     let mut objects = vec![];
@@ -644,8 +644,11 @@ pub fn build(
     });
 
     let context = Context::create();
-    // TODO: implement diagnostician for clang format
-    let diagnostician = Diagnostician::default();
+    let diagnostician = if error_format.eq("rich") {
+        Diagnostician::default()
+    } else {
+        Diagnostician::clang_format_diagnostician()
+    };
     let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
     objects.push(persist(
         codegen,

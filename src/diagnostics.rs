@@ -1,8 +1,11 @@
-use std::ops::Range;
+use std::{
+    fmt::{self, Display},
+    ops::Range,
+};
 
 use codespan_reporting::{
     diagnostic::Label,
-    files::SimpleFiles,
+    files::{Files, Location, SimpleFiles},
     term::termcolor::{ColorChoice, StandardStream},
 };
 use inkwell::support::LLVMString;
@@ -553,6 +556,17 @@ pub enum Severity {
     _Info,
 }
 
+impl Display for Severity {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let severity = match self {
+            Severity::Error => "error",
+            Severity::Warning => "warning",
+            Severity::_Info => "info",
+        };
+        write!(f, "{}", severity)
+    }
+}
+
 /// the assessor determins the severity of a diagnostic
 /// this trait allows for different implementations for different usecases
 /// (e.g. default, compiler-settings, tests)
@@ -671,6 +685,79 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
     }
 }
 
+/// a DiagnosticReporter that reports diagnostics using clang-format
+pub struct ClangFormatDiagnosticReporter {
+    files: SimpleFiles<String, String>,
+}
+
+impl ClangFormatDiagnosticReporter {
+    fn new() -> Self {
+        ClangFormatDiagnosticReporter {
+            files: SimpleFiles::new(),
+        }
+    }
+}
+
+impl Default for ClangFormatDiagnosticReporter {
+    fn default() -> Self {
+        ClangFormatDiagnosticReporter::new()
+    }
+}
+
+impl DiagnosticReporter for ClangFormatDiagnosticReporter {
+    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
+        for ad in diagnostics {
+            let d = &ad.diagnostic;
+            let location = d.get_location();
+            let file_name = match self.files.get(file_id) {
+                Ok(v) => v.name(),
+                Err(err) => {
+                    eprintln!("Unable to find affected file : {}", err);
+                    "unknown"
+                }
+            };
+
+            let start_location = get_location(&self.files, file_id, location.get_start());
+            let end_location = get_location(&self.files, file_id, location.get_end());
+
+            // print diagnostic
+            // file-name:{range}: severity: msg
+            eprintln!(
+                "{}:{{{}:{}-{}:{}}}: {}: {}",
+                file_name,
+                start_location.line_number,
+                start_location.column_number,
+                end_location.line_number,
+                end_location.column_number,
+                ad.severity,
+                d.get_message()
+            );
+        }
+    }
+    fn register(&mut self, path: String, src: String) -> usize {
+        self.files.add(path, src)
+    }
+}
+
+/// returns location at the given byte index in file
+/// on error location with line and colum number 0 will be returned
+fn get_location(
+    files: &SimpleFiles<String, String>,
+    file_id: usize,
+    byte_index: usize,
+) -> Location {
+    match files.location(file_id, byte_index) {
+        Ok(v) => v,
+        Err(err) => {
+            eprintln!("Unable to find location : {}", err);
+            Location {
+                line_number: 0,
+                column_number: 0,
+            }
+        }
+    }
+}
+
 /// a DiagnosticReporter that swallows all diagnostics
 #[derive(Default)]
 pub struct NullDiagnosticReporter {
@@ -709,6 +796,14 @@ impl Diagnostician {
         Diagnostician {
             assessor: Box::new(DefaultDiagnosticAssessor::default()),
             reporter: Box::new(NullDiagnosticReporter::default()),
+        }
+    }
+
+    /// creates a clang-format-diagnostician that reports diagnostics in clang format
+    pub fn clang_format_diagnostician() -> Diagnostician {
+        Diagnostician {
+            reporter: Box::new(ClangFormatDiagnosticReporter::default()),
+            assessor: Box::new(DefaultDiagnosticAssessor::default()),
         }
     }
 
