@@ -756,10 +756,15 @@ impl ClangFormatDiagnosticReporter {
         // range
         if let Some(s) = start {
             if let Some(e) = end {
-                builder.append(format!(
-                    "{{{}:{}-{}:{}}}: ",
-                    s.line_number, s.column_number, e.line_number, e.column_number
-                ));
+                // if start and end are equal there is no need to show the range
+                if s.eq(e) {
+                    builder.append(format!("{{{}:{}}}: ", s.line_number, s.column_number));
+                } else {
+                    builder.append(format!(
+                        "{{{}:{}-{}:{}}}: ",
+                        s.line_number, s.column_number, e.line_number, e.column_number
+                    ));
+                }
             }
         }
         // severity
