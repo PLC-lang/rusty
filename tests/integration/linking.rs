@@ -2,7 +2,8 @@ use std::{env, fs};
 
 use crate::get_test_file;
 use rusty::{
-    build, diagnostics::Diagnostic, get_target_triple, link, CompileOptions, FilePath, FormatOption,
+    build, diagnostics::Diagnostic, get_target_triple, link, CompileOptions, ErrorFormat, FilePath,
+    FormatOption,
 };
 
 static TARGET: Option<&str> = Some("x86_64-unkown-linux-gnu");
@@ -35,7 +36,7 @@ fn link_as_shared_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -51,7 +52,7 @@ fn link_as_shared_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -101,7 +102,7 @@ fn link_as_pic_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -117,7 +118,7 @@ fn link_as_pic_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -167,7 +168,7 @@ fn link_as_static_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -183,7 +184,7 @@ fn link_as_static_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -233,7 +234,7 @@ fn link_as_relocatable_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -249,7 +250,7 @@ fn link_as_relocatable_object() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -290,7 +291,7 @@ fn link_missing_file() {
             optimization: rusty::OptimizationLevel::Default,
         },
         None,
-        "rich",
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
