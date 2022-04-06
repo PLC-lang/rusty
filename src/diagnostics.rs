@@ -1,11 +1,12 @@
 use std::{
     fmt::{self, Display},
     ops::Range,
+    string::FromUtf8Error,
 };
 
 use codespan_reporting::{
     diagnostic::Label,
-    files::{Files, Location, SimpleFiles},
+    files::{Files, Location, SimpleFile, SimpleFiles},
     term::termcolor::{ColorChoice, StandardStream},
 };
 use inkwell::support::LLVMString;
@@ -707,31 +708,25 @@ impl Default for ClangFormatDiagnosticReporter {
 impl DiagnosticReporter for ClangFormatDiagnosticReporter {
     fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
         for ad in diagnostics {
-            let d = &ad.diagnostic;
-            let location = d.get_location();
-            let file_name = match self.files.get(file_id) {
-                Ok(v) => v.name(),
-                Err(err) => {
-                    eprintln!("Unable to find affected file : {}", err);
-                    "unknown"
-                }
-            };
+            let file = self.files.get(file_id).ok();
 
-            let start_location = get_location(&self.files, file_id, location.get_start());
-            let end_location = get_location(&self.files, file_id, location.get_end());
+            let diagnostic = &ad.diagnostic;
+            let location = &diagnostic.get_location();
+            let start = self.files.location(file_id, location.get_start());
+            let end = self.files.location(file_id, location.get_end());
 
-            // print diagnostic
-            // file-name:{range}: severity: msg
-            eprintln!(
-                "{}:{{{}:{}-{}:{}}}: {}: {}",
-                file_name,
-                start_location.line_number,
-                start_location.column_number,
-                end_location.line_number,
-                end_location.column_number,
-                ad.severity,
-                d.get_message()
+            let res = self.build_diagnostic_msg(
+                file,
+                start.as_ref().ok(),
+                end.as_ref().ok(),
+                &ad.severity,
+                diagnostic.get_message(),
             );
+
+            match res {
+                Ok(v) => eprintln!("{}", v),
+                Err(err) => eprintln!("{}", err),
+            }
         }
     }
     fn register(&mut self, path: String, src: String) -> usize {
@@ -739,22 +734,40 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
     }
 }
 
-/// returns location at the given byte index in file
-/// on error location with line and colum number 0 will be returned
-fn get_location(
-    files: &SimpleFiles<String, String>,
-    file_id: usize,
-    byte_index: usize,
-) -> Location {
-    match files.location(file_id, byte_index) {
-        Ok(v) => v,
-        Err(err) => {
-            eprintln!("Unable to find location : {}", err);
-            Location {
-                line_number: 0,
-                column_number: 0,
+impl ClangFormatDiagnosticReporter {
+    /// returns diagnostic message in clang format
+    /// file-name:{range}: severity: message
+    /// optional parameters that are none will not be included
+    fn build_diagnostic_msg(
+        &self,
+        file: Option<&SimpleFile<String, String>>,
+        start: Option<&Location>,
+        end: Option<&Location>,
+        severity: &Severity,
+        msg: &str,
+    ) -> Result<String, FromUtf8Error> {
+        let mut builder = string_builder::Builder::default();
+        // file name
+        if let Some(f) = file {
+            builder.append(format!("{}:", f.name().as_str()));
+        } else {
+            eprintln!("Could not find affected file!");
+        }
+        // range
+        if let Some(s) = start {
+            if let Some(e) = end {
+                builder.append(format!(
+                    "{{{}:{}-{}:{}}}: ",
+                    s.line_number, s.column_number, e.line_number, e.column_number
+                ));
             }
         }
+        // severity
+        builder.append(format!("{}: ", severity));
+        // msg
+        builder.append(msg);
+
+        builder.string()
     }
 }
 
