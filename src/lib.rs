@@ -112,6 +112,12 @@ struct ConfigurationOptions {
     output: String,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum)]
+pub enum ErrorFormat {
+    Rich,
+    Clang,
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
 pub enum OptimizationLevel {
     None,
@@ -588,7 +594,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         includes,
         &compile_options,
         parameters.encoding,
-        parameters.error_format.as_str(),
+        &parameters.error_format,
         &target,
     )?;
 
@@ -630,7 +636,7 @@ pub fn build(
     includes: Vec<FilePath>,
     compile_options: &CompileOptions,
     encoding: Option<&'static Encoding>,
-    error_format: &str,
+    error_format: &ErrorFormat,
     target: &TargetTriple,
 ) -> Result<CompileResult, Diagnostic> {
     let mut objects = vec![];
@@ -644,10 +650,9 @@ pub fn build(
     });
 
     let context = Context::create();
-    let diagnostician = if error_format.eq("rich") {
-        Diagnostician::default()
-    } else {
-        Diagnostician::clang_format_diagnostician()
+    let diagnostician = match error_format {
+        ErrorFormat::Rich => Diagnostician::default(),
+        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
     let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
     objects.push(persist(

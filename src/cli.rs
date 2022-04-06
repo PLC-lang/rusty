@@ -3,7 +3,7 @@ use clap::{ArgGroup, Parser};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
-use crate::{ConfigFormat, FormatOption};
+use crate::{ConfigFormat, ErrorFormat, FormatOption};
 
 // => Set the default output format here:
 const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
@@ -138,10 +138,10 @@ pub struct CompileParameters {
         long,
         help = "Set format for error reporting.
 		Supported formats : rich (default), clang",
-		default_value = "rich",
-		parse(try_from_str = validate_error_format)
+        arg_enum,
+        default_value = "rich"
     )]
-    pub error_format: String,
+    pub error_format: ErrorFormat,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -165,16 +165,6 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
         Some("json") => Some(ConfigFormat::JSON),
         Some("toml") => Some(ConfigFormat::TOML),
         _ => None,
-    }
-}
-
-fn validate_error_format(error_fmt: &str) -> Result<String, String> {
-    match error_fmt {
-        "rich" | "clang" => Ok(error_fmt.to_string()),
-        _ => Err(format!(
-            r#"Cannot identify format type for {}, valid formats : "rich" (default), "clang""#,
-            error_fmt
-        )),
     }
 }
 
@@ -241,7 +231,7 @@ impl CompileParameters {
 #[cfg(test)]
 mod cli_tests {
     use super::CompileParameters;
-    use crate::{ConfigFormat, FormatOption, OptimizationLevel};
+    use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
     use clap::ErrorKind;
     use pretty_assertions::assert_eq;
 
@@ -607,7 +597,7 @@ mod cli_tests {
     fn error_format_default_set() {
         // make sure the default error format is set
         let params = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
-        assert_eq!(params.error_format, "rich");
+        assert_eq!(params.error_format, ErrorFormat::Rich);
     }
 
     #[test]
@@ -615,11 +605,11 @@ mod cli_tests {
         // set clang as error format
         let params =
             CompileParameters::parse(vec_of_strings!("input.st", "--error-format=clang")).unwrap();
-        assert_eq!(params.error_format, "clang");
+        assert_eq!(params.error_format, ErrorFormat::Clang);
         // set invalid error format
         expect_argument_error(
             vec_of_strings!("input.st", "--error-format=none"),
-            ErrorKind::ValueValidation,
+            ErrorKind::InvalidValue,
         );
     }
 }
