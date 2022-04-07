@@ -858,3 +858,78 @@ impl Default for Diagnostician {
         }
     }
 }
+
+#[cfg(test)]
+mod diagnostics_tests {
+    use codespan_reporting::files::{Location, SimpleFile};
+
+    use super::ClangFormatDiagnosticReporter;
+
+    #[test]
+    fn test_build_diagnostic_msg() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let file = SimpleFile::new("test.st".to_string(), "source".to_string());
+        let start = Location {
+            line_number: 4,
+            column_number: 1,
+        };
+        let end = Location {
+            line_number: 4,
+            column_number: 4,
+        };
+        let res = reporter.build_diagnostic_msg(
+            Some(&file),
+            Some(&start),
+            Some(&end),
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        match res {
+            Ok(msg) => assert_eq!(msg, "test.st:{4:1-4:4}: error: This is an error"),
+            Err(err) => panic!("Should not fail! : {}", err),
+        }
+    }
+
+    #[test]
+    fn test_build_diagnostic_msg_no_file() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let start = Location {
+            line_number: 4,
+            column_number: 1,
+        };
+        let end = Location {
+            line_number: 4,
+            column_number: 4,
+        };
+        let res = reporter.build_diagnostic_msg(
+            None,
+            Some(&start),
+            Some(&end),
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        match res {
+            Ok(msg) => assert_eq!(msg, "{4:1-4:4}: error: This is an error"),
+            Err(err) => panic!("Should not fail! : {}", err),
+        }
+    }
+
+    #[test]
+    fn test_build_diagnostic_msg_no_location() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let res = reporter.build_diagnostic_msg(
+            None,
+            None,
+            None,
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        match res {
+            Ok(msg) => assert_eq!(msg, "error: This is an error"),
+            Err(err) => panic!("Should not fail! : {}", err),
+        }
+    }
+}
