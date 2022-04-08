@@ -1,7 +1,6 @@
 use std::{
     fmt::{self, Display},
     ops::Range,
-    string::FromUtf8Error,
 };
 
 use codespan_reporting::{
@@ -723,10 +722,7 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
                 diagnostic.get_message(),
             );
 
-            match res {
-                Ok(v) => eprintln!("{}", v),
-                Err(err) => eprintln!("{}", err),
-            }
+            eprintln!("{}", res);
         }
     }
     fn register(&mut self, path: String, src: String) -> usize {
@@ -745,34 +741,42 @@ impl ClangFormatDiagnosticReporter {
         end: Option<&Location>,
         severity: &Severity,
         msg: &str,
-    ) -> Result<String, FromUtf8Error> {
-        let mut builder = string_builder::Builder::default();
+    ) -> String {
+        let mut str = String::new();
         // file name
         if let Some(f) = file {
-            builder.append(format!("{}:", f.name().as_str()));
-        } else {
-            eprintln!("Could not find affected file!");
-        }
-        // range
-        if let Some(s) = start {
-            if let Some(e) = end {
-                // if start and end are equal there is no need to show the range
-                if s.eq(e) {
-                    builder.append(format!("{{{}:{}}}: ", s.line_number, s.column_number));
-                } else {
-                    builder.append(format!(
-                        "{{{}:{}-{}:{}}}: ",
-                        s.line_number, s.column_number, e.line_number, e.column_number
-                    ));
+            str.push_str(format!("{}:", f.name().as_str()).as_str());
+            // range
+            if let Some(s) = start {
+                if let Some(e) = end {
+                    // if start and end are equal there is no need to show the range
+                    if s.eq(e) {
+                        str.push_str(
+                            format!("{{{}:{}}}: ", s.line_number, s.column_number).as_str(),
+                        );
+                    } else {
+                        str.push_str(
+                            format!(
+                                "{}:{}:{{{}:{}-{}:{}}}: ",
+                                s.line_number,
+                                s.column_number,
+                                s.line_number,
+                                s.column_number,
+                                e.line_number,
+                                e.column_number
+                            )
+                            .as_str(),
+                        );
+                    }
                 }
             }
         }
         // severity
-        builder.append(format!("{}: ", severity));
+        str.push_str(format!("{}: ", severity).as_str());
         // msg
-        builder.append(msg);
+        str.push_str(msg);
 
-        builder.string()
+        str
     }
 }
 
@@ -885,10 +889,7 @@ mod diagnostics_tests {
             "This is an error",
         );
 
-        match res {
-            Ok(msg) => assert_eq!(msg, "test.st:{4:1-4:4}: error: This is an error"),
-            Err(err) => panic!("Should not fail! : {}", err),
-        }
+        assert_eq!(res, "test.st:4:1:{4:1-4:4}: error: This is an error");
     }
 
     #[test]
@@ -910,10 +911,7 @@ mod diagnostics_tests {
             "This is an error",
         );
 
-        match res {
-            Ok(msg) => assert_eq!(msg, "{4:1-4:4}: error: This is an error"),
-            Err(err) => panic!("Should not fail! : {}", err),
-        }
+        assert_eq!(res, "error: This is an error");
     }
 
     #[test]
@@ -927,9 +925,6 @@ mod diagnostics_tests {
             "This is an error",
         );
 
-        match res {
-            Ok(msg) => assert_eq!(msg, "error: This is an error"),
-            Err(err) => panic!("Should not fail! : {}", err),
-        }
+        assert_eq!(res, "error: This is an error");
     }
 }
