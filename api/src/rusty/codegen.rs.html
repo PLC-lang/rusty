@@ -192,7 +192,7 @@
 <span class="kw">use</span> <span class="ident">inkwell::module::Module</span>;
 <span class="kw">use</span> <span class="ident">inkwell</span>::{<span class="ident">context::Context</span>, <span class="ident">types::BasicType</span>};
 
-<span class="kw">mod</span> <span class="ident">generators</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">generators</span>;
 <span class="kw">mod</span> <span class="ident">llvm_index</span>;
 <span class="kw">mod</span> <span class="ident">llvm_typesystem</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

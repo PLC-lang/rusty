@@ -2218,6 +2218,32 @@
 <span id="2216">2216</span>
 <span id="2217">2217</span>
 <span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -2668,6 +2694,22 @@
                     <span class="ident">operator</span>.<span class="ident">get_location</span>(),
                 )
             })<span class="question-mark">?</span>;
+
+        <span class="comment">//If the function is builtin, generate a basic value enum for it</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">builtin</span>) <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">index</span>
+            .<span class="ident">get_builtin_function</span>(<span class="ident">implementation</span>.<span class="ident">get_call_name</span>())
+        {
+            <span class="kw">return</span> <span class="ident">builtin</span>.<span class="ident">codegen</span>(
+                <span class="self">self</span>,
+                <span class="ident">parameters</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">map</span>(<span class="ident">ast::flatten_expression_list</span>)
+                    .<span class="ident">unwrap_or_default</span>()
+                    .<span class="ident">as_slice</span>(),
+                <span class="ident">operator</span>.<span class="ident">get_location</span>(),
+            );
+        }
 
         <span class="kw">let</span> (<span class="ident">class_ptr</span>, <span class="ident">call_ptr</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">implementation</span> {
             <span class="ident">ImplementationIndexEntry</span> {
@@ -3132,6 +3174,16 @@
         <span class="self">self</span>.<span class="ident">llvm</span>
             .<span class="ident">load_pointer</span>(<span class="kw-2">&amp;</span><span class="ident">accessor_ptr</span>, <span class="string">&quot;deref&quot;</span>)
             .<span class="ident">into_pointer_value</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_as_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">int_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i64_type</span>();
+        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_const</span>() {
+            <span class="ident">ptr</span>.<span class="ident">const_to_int</span>(<span class="ident">int_type</span>)
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_ptr_to_int</span>(<span class="ident">ptr</span>, <span class="ident">int_type</span>, <span class="string">&quot;&quot;</span>)
+        }
+        .<span class="ident">as_basic_value_enum</span>()
     }
 
     <span class="doccomment">/// automatically derefs an inout variable pointer so it can be used like a normal variable</span>

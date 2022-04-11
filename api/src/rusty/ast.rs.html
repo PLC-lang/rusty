@@ -1352,6 +1352,7 @@
 <span id="1350">1350</span>
 <span id="1351">1351</span>
 <span id="1352">1352</span>
+<span id="1353">1353</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">lexer::IdProvider</span>, <span class="ident">typesystem::DataTypeInformation</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -1565,6 +1566,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LinkageType</span> {
     <span class="ident">Internal</span>,
     <span class="ident">External</span>,
+    <span class="ident">BuiltIn</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
