@@ -11,7 +11,6 @@ use crate::typesystem::{self, *};
 
 pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     let mut index = Index::default();
-
     //Create the typesystem
     let builtins = get_builtin_types();
     for data_type in builtins {
@@ -130,6 +129,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
             generics: pou.generics.clone(),
+            linkage: pou.linkage,
         },
         nature: TypeNature::Any,
     };
@@ -266,6 +266,7 @@ fn visit_data_type(
                 varargs: None,
                 source: StructSource::OriginalDeclaration,
                 generics: vec![],
+                linkage: ast::LinkageType::Internal,
             };
 
             let init = index

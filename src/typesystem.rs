@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    ast::{AstStatement, GenericBinding, Operator, PouType, TypeNature},
+    ast::{AstStatement, GenericBinding, LinkageType, Operator, PouType, TypeNature},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -174,6 +174,7 @@ pub enum DataTypeInformation {
         varargs: Option<VarArgs>,
         source: StructSource,
         generics: Vec<GenericBinding>,
+        linkage: LinkageType,
     },
     Array {
         name: TypeId,
@@ -374,6 +375,16 @@ impl DataTypeInformation {
             DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => 1,
             _ => unimplemented!("Alignment for {}", self.get_name()),
         }
+    }
+
+    pub fn is_builtin(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct {
+                linkage: LinkageType::BuiltIn,
+                ..
+            }
+        )
     }
 }
 
