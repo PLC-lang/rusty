@@ -3,7 +3,7 @@ use clap::{ArgGroup, Parser};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
-use crate::{ConfigFormat, FormatOption};
+use crate::{ConfigFormat, ErrorFormat, FormatOption};
 
 // => Set the default output format here:
 const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
@@ -132,6 +132,15 @@ pub struct CompileParameters {
         default_value = "default"
     )]
     pub optimization: crate::OptimizationLevel,
+
+    #[clap(
+        name = "error-format",
+        long,
+        help = "Set format for error reporting",
+        arg_enum,
+        default_value = "rich"
+    )]
+    pub error_format: ErrorFormat,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -221,7 +230,7 @@ impl CompileParameters {
 #[cfg(test)]
 mod cli_tests {
     use super::CompileParameters;
-    use crate::{ConfigFormat, FormatOption, OptimizationLevel};
+    use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
     use clap::ErrorKind;
     use pretty_assertions::assert_eq;
 
@@ -580,6 +589,26 @@ mod cli_tests {
         expect_argument_error(
             vec_of_strings!("foo", "--hardware-conf=conf.xml"),
             ErrorKind::ValueValidation,
+        );
+    }
+
+    #[test]
+    fn error_format_default_set() {
+        // make sure the default error format is set
+        let params = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
+        assert_eq!(params.error_format, ErrorFormat::Rich);
+    }
+
+    #[test]
+    fn error_format_set() {
+        // set clang as error format
+        let params =
+            CompileParameters::parse(vec_of_strings!("input.st", "--error-format=clang")).unwrap();
+        assert_eq!(params.error_format, ErrorFormat::Clang);
+        // set invalid error format
+        expect_argument_error(
+            vec_of_strings!("input.st", "--error-format=none"),
+            ErrorKind::InvalidValue,
         );
     }
 }
