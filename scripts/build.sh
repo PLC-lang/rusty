@@ -36,17 +36,16 @@ function set_cargo_options() {
 }
 
 function run_coverage() {
-	CARGO_OPTIONS="+nightly"
 	log "Exporting Flags"
-	export RUSTFLAGS="-Zinstrument-coverage"
+	export RUSTFLAGS="-C instrument-coverage"
 	export LLVM_PROFILE_FILE="rusty-%p-%m.profraw"
 
 	log "Cleaning before build"
 	cargo clean
 	log "Building coverage"
-	cargo $CARGO_OPTIONS build
+	cargo build
 	log "Running coverage tests"
-	cargo $CARGO_OPTIONS test
+	cargo test
 	log "Collecting coverage results"
 	grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
 		--ignore "/*" \

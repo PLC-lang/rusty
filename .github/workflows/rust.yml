@@ -11,7 +11,7 @@ on:
   
 env:
   IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: 13-1.59
+  IMAGE_VERSION: latest
 
 jobs:
   check: 
@@ -72,7 +72,7 @@ jobs:
     runs-on: windows-latest
     needs: check
     env:
-      toolchain-version: 1.59
+      toolchain-version: 1.60
       llvm-version: 13.0.0
     steps:
 
