@@ -136,8 +136,7 @@ pub struct CompileParameters {
     #[clap(
         name = "error-format",
         long,
-        help = "Set format for error reporting.
-		Supported formats : rich (default), clang",
+        help = "Set format for error reporting",
         arg_enum,
         default_value = "rich"
     )]

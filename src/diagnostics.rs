@@ -751,9 +751,7 @@ impl ClangFormatDiagnosticReporter {
                 if let Some(e) = end {
                     // if start and end are equal there is no need to show the range
                     if s.eq(e) {
-                        str.push_str(
-                            format!("{{{}:{}}}: ", s.line_number, s.column_number).as_str(),
-                        );
+                        str.push_str(format!("{}:{}: ", s.line_number, s.column_number).as_str());
                     } else {
                         str.push_str(
                             format!(
@@ -769,6 +767,8 @@ impl ClangFormatDiagnosticReporter {
                         );
                     }
                 }
+            } else {
+                str.push(' ');
             }
         }
         // severity
@@ -893,6 +893,44 @@ mod diagnostics_tests {
     }
 
     #[test]
+    fn test_build_diagnostic_msg_equal_start_end() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let file = SimpleFile::new("test.st".to_string(), "source".to_string());
+        let start = Location {
+            line_number: 4,
+            column_number: 1,
+        };
+        let end = Location {
+            line_number: 4,
+            column_number: 1,
+        };
+        let res = reporter.build_diagnostic_msg(
+            Some(&file),
+            Some(&start),
+            Some(&end),
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        assert_eq!(res, "test.st:4:1: error: This is an error");
+    }
+
+    #[test]
+    fn test_build_diagnostic_msg_no_location() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let file = SimpleFile::new("test.st".to_string(), "source".to_string());
+        let res = reporter.build_diagnostic_msg(
+            Some(&file),
+            None,
+            None,
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        assert_eq!(res, "test.st: error: This is an error");
+    }
+
+    #[test]
     fn test_build_diagnostic_msg_no_file() {
         let reporter = ClangFormatDiagnosticReporter::default();
         let start = Location {
@@ -915,7 +953,7 @@ mod diagnostics_tests {
     }
 
     #[test]
-    fn test_build_diagnostic_msg_no_location() {
+    fn test_build_diagnostic_msg_no_file_no_location() {
         let reporter = ClangFormatDiagnosticReporter::default();
         let res = reporter.build_diagnostic_msg(
             None,
