@@ -585,12 +585,41 @@
 <span id="583">583</span>
 <span id="584">584</span>
 <span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">ArgGroup</span>, <span class="ident">Parser</span>};
 <span class="kw">use</span> <span class="ident">encoding_rs::Encoding</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi::OsStr</span>, <span class="ident">path::Path</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ConfigFormat</span>, <span class="ident">FormatOption</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ConfigFormat</span>, <span class="ident">ErrorFormat</span>, <span class="ident">FormatOption</span>};
 
 <span class="comment">// =&gt; Set the default output format here:</span>
 <span class="kw">const</span> <span class="ident">DEFAULT_FORMAT</span>: <span class="ident">FormatOption</span> <span class="op">=</span> <span class="ident">FormatOption::Static</span>;
@@ -719,6 +748,15 @@
         <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;default&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="ident">optimization</span>: <span class="ident"><span class="kw">crate</span>::OptimizationLevel</span>,
+
+    <span class="attribute">#[<span class="ident">clap</span>(
+        <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;error-format&quot;</span>,
+        <span class="ident">long</span>,
+        <span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Set format for error reporting&quot;</span>,
+        <span class="ident">arg_enum</span>,
+        <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;rich&quot;</span>
+    )]</span>
+    <span class="kw">pub</span> <span class="ident">error_format</span>: <span class="ident">ErrorFormat</span>,
 }
 
 <span class="kw">fn</span> <span class="ident">parse_encoding</span>(<span class="ident">encoding</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span>, <span class="ident">String</span><span class="op">&gt;</span> {
@@ -808,7 +846,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">cli_tests</span> {
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::CompileParameters</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ConfigFormat</span>, <span class="ident">FormatOption</span>, <span class="ident">OptimizationLevel</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ConfigFormat</span>, <span class="ident">ErrorFormat</span>, <span class="ident">FormatOption</span>, <span class="ident">OptimizationLevel</span>};
     <span class="kw">use</span> <span class="ident">clap::ErrorKind</span>;
     <span class="kw">use</span> <span class="ident">pretty_assertions::assert_eq</span>;
 
@@ -1167,6 +1205,26 @@
         <span class="ident">expect_argument_error</span>(
             <span class="macro">vec_of_strings!</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;--hardware-conf=conf.xml&quot;</span>),
             <span class="ident">ErrorKind::ValueValidation</span>,
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">error_format_default_set</span>() {
+        <span class="comment">// make sure the default error format is set</span>
+        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">params</span>.<span class="ident">error_format</span>, <span class="ident">ErrorFormat::Rich</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">error_format_set</span>() {
+        <span class="comment">// set clang as error format</span>
+        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span>
+            <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--error-format=clang&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">params</span>.<span class="ident">error_format</span>, <span class="ident">ErrorFormat::Clang</span>);
+        <span class="comment">// set invalid error format</span>
+        <span class="ident">expect_argument_error</span>(
+            <span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--error-format=none&quot;</span>),
+            <span class="ident">ErrorKind::InvalidValue</span>,
         );
     }
 }
