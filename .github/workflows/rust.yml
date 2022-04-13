@@ -72,7 +72,7 @@ jobs:
     runs-on: windows-latest
     needs: check
     env:
-      toolchain-version: 1.60
+      toolchain-version: 1.60.0
       llvm-version: 13.0.0
     steps:
 
