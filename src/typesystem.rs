@@ -31,11 +31,11 @@ pub type NativeLrealType = f64;
 //TODO should we change this to usize?
 pub const U1_SIZE: u32 = 1;
 pub const BOOL_SIZE: u32 = BYTE_SIZE;
-pub const BYTE_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
-pub const SINT_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
-pub const INT_SIZE: u32 = (size_of::<NativeIntType>() * 8) as u32;
-pub const DINT_SIZE: u32 = (size_of::<NativeDintType>() * 8) as u32;
-pub const LINT_SIZE: u32 = (size_of::<NativeLintType>() * 8) as u32;
+pub const BYTE_SIZE: u32 = NativeSintType::BITS as u32;
+pub const SINT_SIZE: u32 = NativeSintType::BITS as u32;
+pub const INT_SIZE: u32 = NativeIntType::BITS as u32;
+pub const DINT_SIZE: u32 = NativeDintType::BITS as u32;
+pub const LINT_SIZE: u32 = NativeLintType::BITS as u32;
 pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
 pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
 pub const DATE_TIME_SIZE: u32 = 64;
