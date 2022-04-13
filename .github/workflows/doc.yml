@@ -7,7 +7,7 @@ on:
 
 env:
   IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: 13-1.59
+  IMAGE_VERSION: latest
 
 jobs:
   cargo-docs:
@@ -20,7 +20,7 @@ jobs:
 
       - name: Run Documentation Build
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           docker pull $IMAGE_ID
