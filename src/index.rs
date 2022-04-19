@@ -3,8 +3,8 @@ use indexmap::IndexMap;
 
 use crate::{
     ast::{
-        AstStatement, DirectAccessType, HardwareAccessType, Implementation, LinkageType, PouType,
-        SourceRange, TypeNature,
+        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
+        LinkageType, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
     diagnostics::Diagnostic,
@@ -326,6 +326,65 @@ impl From<&PouType> for ImplementationType {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub enum PouIndexEntry {
+    Program {
+        name: String,
+        instance_struct_name: String,
+    },
+    FunctionBlock {
+        name: String,
+        instance_struct_name: String,
+    },
+    Function {
+        name: String,
+        generics: Vec<GenericBinding>,
+    },
+    Class {
+        name: String,
+        instance_struct_name: String,
+    },
+}
+
+impl PouIndexEntry {
+    pub fn create_program_entry(pou_name: &str) -> PouIndexEntry {
+        PouIndexEntry::Program {
+            name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+        }
+    }
+
+    pub fn create_function_block_entry(pou_name: &str) -> PouIndexEntry {
+        PouIndexEntry::FunctionBlock {
+            name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+        }
+    }
+
+    pub fn create_function_entry(pou_name: &str) -> PouIndexEntry {
+        PouIndexEntry::Function {
+            name: pou_name.into(),
+            generics: Vec::new(),
+        }
+    }
+
+    pub fn create_class_entry(pou_name: &str) -> PouIndexEntry {
+        PouIndexEntry::Class {
+            name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+        }
+    }
+
+    pub fn get_name(&self) -> &str {
+        match self {
+            PouIndexEntry::Program { name, .. }
+            | PouIndexEntry::FunctionBlock { name, .. }
+            | PouIndexEntry::Function { name, .. }
+            | PouIndexEntry::Class { name, .. } => name,
+        }
+    }
+}
+
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
@@ -417,6 +476,9 @@ pub struct Index {
     /// all local variables, grouped by the POU's name
     member_variables: IndexMap<String, IndexMap<String, VariableIndexEntry>>,
 
+    // all pous,
+    pous: IndexMap<String, PouIndexEntry>,
+
     /// all implementations
     implementations: IndexMap<String, ImplementationIndexEntry>,
 
@@ -497,6 +559,9 @@ impl Index {
 
         //implementations
         self.implementations.extend(other.implementations);
+
+        //pous
+        self.pous.extend(other.pous);
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
@@ -831,6 +896,14 @@ impl Index {
                 implementation_type: impl_type,
             },
         );
+    }
+
+    pub fn find_pou(&self, pou_name: &str) -> Option<&PouIndexEntry> {
+        self.pous.get(&pou_name.to_lowercase())
+    }
+
+    pub fn register_pou(&mut self, entry: PouIndexEntry) {
+        self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
     pub fn find_implementation(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {

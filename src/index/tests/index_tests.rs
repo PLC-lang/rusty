@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
+use crate::index::PouIndexEntry;
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
@@ -1864,5 +1865,59 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             inner_type_name: "INT".to_string(),
             auto_deref: true,
         }
+    );
+}
+
+#[test]
+fn a_program_pou_is_indexed() {
+    // GIVEN some pous
+    let src = r#"
+        PROGRAM myProgram
+        END_PROGRAM
+
+        FUNCTION myFunction : INT
+        END_FUNCTION
+
+        FUNCTION_BLOCK myFunctionBlock
+        END_FUNCTION_BLOCK
+
+        CLASS myClass
+        END_CLASS
+    "#;
+
+    // WHEN the code is indexed
+    let (_, index) = index(src);
+
+    // THEN I expect an entry for the program
+    assert_eq!(
+        Some(&PouIndexEntry::Program {
+            name: "myProgram".into(),
+            instance_struct_name: "myProgram".into(),
+        }),
+        index.find_pou("myProgram"),
+    );
+
+    assert_eq!(
+        Some(&PouIndexEntry::Function {
+            name: "myFunction".into(),
+            generics: Vec::new()
+        }),
+        index.find_pou("myFunction"),
+    );
+
+    assert_eq!(
+        Some(&PouIndexEntry::FunctionBlock {
+            name: "myFunctionBlock".into(),
+            instance_struct_name: "myFunctionBlock".into()
+        }),
+        index.find_pou("myFunctionBlock"),
+    );
+
+    assert_eq!(
+        Some(&PouIndexEntry::Class {
+            name: "myClass".into(),
+            instance_struct_name: "myClass".into()
+        }),
+        index.find_pou("myClass"),
     );
 }

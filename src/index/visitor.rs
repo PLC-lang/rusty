@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{HardwareBinding, VariableIndexEntry, VariableType};
+use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::ast::{
     self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
     PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
@@ -161,6 +161,17 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         }
         _ => {}
     };
+
+    //register the pou
+    match pou.pou_type {
+        PouType::Program => index.register_pou(PouIndexEntry::create_program_entry(&pou.name)),
+        PouType::Function => index.register_pou(PouIndexEntry::create_function_entry(&pou.name)),
+        PouType::FunctionBlock => {
+            index.register_pou(PouIndexEntry::create_function_block_entry(&pou.name))
+        }
+        PouType::Class => index.register_pou(PouIndexEntry::create_class_entry(&pou.name)),
+        _ => {}
+    }
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
