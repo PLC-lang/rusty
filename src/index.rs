@@ -331,6 +331,7 @@ pub enum PouIndexEntry {
     Program {
         name: String,
         instance_struct_name: String,
+        instance_variable: VariableIndexEntry,
     },
     FunctionBlock {
         name: String,
@@ -347,10 +348,14 @@ pub enum PouIndexEntry {
 }
 
 impl PouIndexEntry {
-    pub fn create_program_entry(pou_name: &str) -> PouIndexEntry {
+    pub fn create_program_entry(
+        pou_name: &str,
+        instance_variable: VariableIndexEntry,
+    ) -> PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
+            instance_variable,
         }
     }
 
@@ -864,6 +869,22 @@ impl Index {
         &self.global_variables
     }
 
+    pub fn get_program_instances(&self) -> Vec<&VariableIndexEntry> {
+        self.pous
+            .values()
+            .filter_map(|p| match p {
+                PouIndexEntry::Program {
+                    instance_variable, ..
+                } => Some(instance_variable),
+                _ => None,
+            })
+            .collect()
+    }
+
+    pub fn get_pous(&self) -> &IndexMap<String, PouIndexEntry> {
+        &self.pous
+    }
+
     pub fn get_global_initializers(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_initializers
     }
@@ -900,6 +921,19 @@ impl Index {
 
     pub fn find_pou(&self, pou_name: &str) -> Option<&PouIndexEntry> {
         self.pous.get(&pou_name.to_lowercase())
+    }
+
+    pub fn register_program(&mut self, name: &str, location: &SourceRange, linkage: LinkageType) {
+        let instance_variable = VariableIndexEntry::create_global(
+            &format!("{}_instance", &name),
+            name,
+            name,
+            location.clone(),
+        )
+        .set_linkage(linkage);
+        // self.register_global_variable(name, instance_variable.clone());
+        let entry = PouIndexEntry::create_program_entry(name, instance_variable);
+        self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
     pub fn register_pou(&mut self, entry: PouIndexEntry) {
