@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
-use crate::index::PouIndexEntry;
+use crate::index::{PouIndexEntry, VariableIndexEntry};
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
@@ -79,9 +79,6 @@ fn program_is_indexed() {
     );
 
     index.find_effective_type("myProgram").unwrap();
-    let program_variable = index.find_global_variable("myProgram").unwrap();
-
-    assert_eq!("myProgram", program_variable.data_type_name);
 }
 
 #[test]
@@ -1893,6 +1890,18 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::Program {
             name: "myProgram".into(),
             instance_struct_name: "myProgram".into(),
+            instance_variable: VariableIndexEntry {
+                name: "myProgram_instance".into(),
+                qualified_name: "myProgram".into(),
+                initial_value: None,
+                variable_type: VariableType::Global,
+                is_constant: false,
+                data_type_name: "myProgram".into(),
+                location_in_parent: 0,
+                linkage: LinkageType::Internal,
+                binding: None,
+                source_location: SourceRange::new(9..46)
+            }
         }),
         index.find_pou("myProgram"),
     );

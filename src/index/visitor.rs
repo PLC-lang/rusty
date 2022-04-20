@@ -137,18 +137,9 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 
     match pou.pou_type {
         PouType::Program => {
-            //Associate a global variable for the program
-            let instance_name = format!("{}_instance", &pou.name);
-            let variable = VariableIndexEntry::create_global(
-                &instance_name,
-                &pou.name,
-                &pou.name,
-                pou.location.clone(),
-            )
-            .set_linkage(pou.linkage);
-            index.register_global_variable(&pou.name, variable);
+            index.register_program(&pou.name, &pou.location, pou.linkage);
         }
-        PouType::FunctionBlock | PouType::Class => {
+        PouType::FunctionBlock => {
             let global_struct_name = crate::index::get_initializer_name(&pou.name);
             let variable = VariableIndexEntry::create_global(
                 &global_struct_name,
@@ -158,20 +149,25 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
+            index.register_pou(PouIndexEntry::create_function_block_entry(&pou.name));
+        }
+        PouType::Class => {
+            let global_struct_name = crate::index::get_initializer_name(&pou.name);
+            let variable = VariableIndexEntry::create_global(
+                &global_struct_name,
+                &global_struct_name,
+                &pou.name,
+                pou.location.clone(),
+            )
+            .set_constant(true);
+            index.register_global_initializer(&global_struct_name, variable);
+            index.register_pou(PouIndexEntry::create_class_entry(&pou.name));
+        }
+        PouType::Function => {
+            index.register_pou(PouIndexEntry::create_function_entry(&pou.name));
         }
         _ => {}
     };
-
-    //register the pou
-    match pou.pou_type {
-        PouType::Program => index.register_pou(PouIndexEntry::create_program_entry(&pou.name)),
-        PouType::Function => index.register_pou(PouIndexEntry::create_function_entry(&pou.name)),
-        PouType::FunctionBlock => {
-            index.register_pou(PouIndexEntry::create_function_block_entry(&pou.name))
-        }
-        PouType::Class => index.register_pou(PouIndexEntry::create_class_entry(&pou.name)),
-        _ => {}
-    }
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
