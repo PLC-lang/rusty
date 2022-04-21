@@ -268,12 +268,20 @@ fn pous_are_indexed() {
         r#"
         PROGRAM myProgram
         END_PROGRAM
+        
         FUNCTION myFunction : INT
         END_FUNCTION
+        
         FUNCTION_BLOCK myFunctionBlock : INT
         END_FUNCTION_BLOCK
+        
         CLASS myClass
         END_CLASS
+
+        ACTIONS myProgram
+            ACTION act
+            END_ACTION
+        END_ACTIONS
     "#,
     );
 
@@ -281,6 +289,7 @@ fn pous_are_indexed() {
     index.find_effective_type("myProgram").unwrap();
     index.find_effective_type("myFunctionBlock").unwrap();
     index.find_effective_type("myClass").unwrap();
+    index.find_effective_type("myProgram.act").unwrap();
 }
 
 #[test]
@@ -1880,6 +1889,11 @@ fn a_program_pou_is_indexed() {
 
         CLASS myClass
         END_CLASS
+
+        ACTIONS myProgram
+            ACTION act
+            END_ACTION
+        END_ACTIONS
     "#;
 
     // WHEN the code is indexed
@@ -1928,5 +1942,14 @@ fn a_program_pou_is_indexed() {
             instance_struct_name: "myClass".into()
         }),
         index.find_pou("myClass"),
+    );
+
+    assert_eq!(
+        Some(&PouIndexEntry::Action {
+            name: "myProgram.act".into(),
+            parent_pou_name: "myProgram".into(),
+            instance_struct_name: "myProgram".into()
+        }),
+        index.find_pou("myProgram.act"),
     );
 }

@@ -133,11 +133,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         },
         nature: TypeNature::Any,
     };
-    index.register_pou_type(datatype);
-
-    match pou.pou_type {
+    
+    match &pou.pou_type {
         PouType::Program => {
             index.register_program(&pou.name, &pou.location, pou.linkage);
+            index.register_pou_type(datatype);
         }
         PouType::FunctionBlock => {
             let global_struct_name = crate::index::get_initializer_name(&pou.name);
@@ -150,6 +150,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_function_block_entry(&pou.name));
+            index.register_pou_type(datatype);
         }
         PouType::Class => {
             let global_struct_name = crate::index::get_initializer_name(&pou.name);
@@ -162,9 +163,15 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_class_entry(&pou.name));
+            index.register_pou_type(datatype);
         }
         PouType::Function => {
             index.register_pou(PouIndexEntry::create_function_entry(&pou.name));
+            index.register_pou_type(datatype);
+        }
+        PouType::Method{ owner_class} => {
+            index.register_pou(PouIndexEntry::create_method_entry(&pou.name, owner_class));
+            index.register_pou_type(datatype);
         }
         _ => {}
     };
@@ -189,6 +196,8 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
             },
             nature: TypeNature::Derived,
         };
+
+        index.register_pou(PouIndexEntry::create_action_entry(implementation.name.as_str(), implementation.type_name.as_str()));
         index.register_pou_type(datatype);
     }
 }

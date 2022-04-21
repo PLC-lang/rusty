@@ -345,6 +345,16 @@ pub enum PouIndexEntry {
         name: String,
         instance_struct_name: String,
     },
+    Method {
+        name: String,
+        parent_class_name: String,
+        instance_struct_name: String,
+    },
+    Action {
+        name: String,
+        parent_pou_name: String,
+        instance_struct_name: String,
+    },
 }
 
 impl PouIndexEntry {
@@ -373,9 +383,29 @@ impl PouIndexEntry {
         }
     }
 
+    /// creates a new Action-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the action (without the pou-qualifier)
+    /// - `pou_name` the name of the parent pou
+    pub fn create_action_entry(qualified_name: &str, pou_name: &str) -> PouIndexEntry {
+        PouIndexEntry::Action {
+            name: qualified_name.into(),
+            parent_pou_name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+        }
+    }
+
     pub fn create_class_entry(pou_name: &str) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+        }
+    }
+
+    pub fn create_method_entry(pou_name: &str, owner_class: &str) -> PouIndexEntry {
+        PouIndexEntry::Method {
+            name: pou_name.into(),
+            parent_class_name: owner_class.into(),
             instance_struct_name: pou_name.into(),
         }
     }
@@ -385,9 +415,13 @@ impl PouIndexEntry {
             PouIndexEntry::Program { name, .. }
             | PouIndexEntry::FunctionBlock { name, .. }
             | PouIndexEntry::Function { name, .. }
+            | PouIndexEntry::Method { name, .. }
+            | PouIndexEntry::Action { name, ..}
             | PouIndexEntry::Class { name, .. } => name,
         }
     }
+
+    
 }
 
 /// the TypeIndex carries all types.
