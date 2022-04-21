@@ -8,6 +8,7 @@ use crate::{
     },
     builtins::{self, BuiltIn},
     diagnostics::Diagnostic,
+    resolver::StatementAnnotation,
     typesystem::{self, *},
 };
 
@@ -339,6 +340,7 @@ pub enum PouIndexEntry {
     },
     Function {
         name: String,
+        return_type: String,
         generics: Vec<GenericBinding>,
     },
     Class {
@@ -348,6 +350,7 @@ pub enum PouIndexEntry {
     Method {
         name: String,
         parent_class_name: String,
+        return_type: String,
         instance_struct_name: String,
     },
     Action {
@@ -376,10 +379,11 @@ impl PouIndexEntry {
         }
     }
 
-    pub fn create_function_entry(pou_name: &str) -> PouIndexEntry {
+    pub fn create_function_entry(pou_name: &str, return_type: &str) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: pou_name.into(),
             generics: Vec::new(),
+            return_type: return_type.into(),
         }
     }
 
@@ -402,11 +406,16 @@ impl PouIndexEntry {
         }
     }
 
-    pub fn create_method_entry(pou_name: &str, owner_class: &str) -> PouIndexEntry {
+    pub fn create_method_entry(
+        pou_name: &str,
+        return_type: &str,
+        owner_class: &str,
+    ) -> PouIndexEntry {
         PouIndexEntry::Method {
             name: pou_name.into(),
             parent_class_name: owner_class.into(),
             instance_struct_name: pou_name.into(),
+            return_type: return_type.into(),
         }
     }
 
@@ -416,12 +425,45 @@ impl PouIndexEntry {
             | PouIndexEntry::FunctionBlock { name, .. }
             | PouIndexEntry::Function { name, .. }
             | PouIndexEntry::Method { name, .. }
-            | PouIndexEntry::Action { name, ..}
+            | PouIndexEntry::Action { name, .. }
             | PouIndexEntry::Class { name, .. } => name,
         }
     }
+}
 
-    
+impl Into<StatementAnnotation> for PouIndexEntry {
+    fn into(self) -> StatementAnnotation {
+        match self {
+            PouIndexEntry::Program { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.clone(),
+            },
+            PouIndexEntry::FunctionBlock { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.clone(),
+            },
+            PouIndexEntry::Function {
+                name, return_type, ..
+            } => StatementAnnotation::Function {
+                return_type: return_type.clone(),
+                qualified_name: name.clone(),
+            },
+            PouIndexEntry::Class { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.clone(),
+            },
+            PouIndexEntry::Method {
+                name, return_type, ..
+            } => StatementAnnotation::Function {
+                return_type: return_type.clone(),
+                qualified_name: name.clone(),
+            },
+            PouIndexEntry::Action {
+                name,
+                parent_pou_name,
+                instance_struct_name,
+            } => StatementAnnotation::Program {
+                qualified_name: name.clone(),
+            },
+        }
+    }
 }
 
 /// the TypeIndex carries all types.
