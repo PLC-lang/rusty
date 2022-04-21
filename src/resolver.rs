@@ -1662,18 +1662,10 @@ fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
 }
 
 fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
-    index
-        .find_implementation(name)
-        .and_then(|it| match it.get_implementation_type() {
-            ImplementationType::Program | &ImplementationType::Action => {
-                Some(to_programm_annotation(it))
-            }
-            ImplementationType::Function | ImplementationType::Method => {
-                Some(to_function_annotation(it, index))
-            }
-            ImplementationType::FunctionBlock => Some(to_type_annotation(name)),
-            _ => None,
-        })
+    let x = index.find_pou(name)
+        .map(|it| it.into());
+
+    x
 }
 
 fn to_type_annotation(name: &str) -> StatementAnnotation {
