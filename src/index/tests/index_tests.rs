@@ -1923,7 +1923,8 @@ fn a_program_pou_is_indexed() {
     assert_eq!(
         Some(&PouIndexEntry::Function {
             name: "myFunction".into(),
-            generics: Vec::new()
+            generics: Vec::new(),
+            return_type: "INT".into()
         }),
         index.find_pou("myFunction"),
     );

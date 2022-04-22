@@ -8,7 +8,6 @@ use crate::{
     },
     builtins::{self, BuiltIn},
     diagnostics::Diagnostic,
-    resolver::StatementAnnotation,
     typesystem::{self, *},
 };
 
@@ -349,7 +348,7 @@ pub enum PouIndexEntry {
     },
     Method {
         name: String,
-        parent_class_name: String,
+        parent_pou_name: String,
         return_type: String,
         instance_struct_name: String,
     },
@@ -413,7 +412,7 @@ impl PouIndexEntry {
     ) -> PouIndexEntry {
         PouIndexEntry::Method {
             name: pou_name.into(),
-            parent_class_name: owner_class.into(),
+            parent_pou_name: owner_class.into(),
             instance_struct_name: pou_name.into(),
             return_type: return_type.into(),
         }
@@ -429,39 +428,45 @@ impl PouIndexEntry {
             | PouIndexEntry::Class { name, .. } => name,
         }
     }
-}
 
-impl Into<StatementAnnotation> for PouIndexEntry {
-    fn into(self) -> StatementAnnotation {
+    pub fn get_instance_struct_type_name(&self) -> Option<&str> {
         match self {
-            PouIndexEntry::Program { name, .. } => StatementAnnotation::Program {
-                qualified_name: name.clone(),
-            },
-            PouIndexEntry::FunctionBlock { name, .. } => StatementAnnotation::Program {
-                qualified_name: name.clone(),
-            },
-            PouIndexEntry::Function {
-                name, return_type, ..
-            } => StatementAnnotation::Function {
-                return_type: return_type.clone(),
-                qualified_name: name.clone(),
-            },
-            PouIndexEntry::Class { name, .. } => StatementAnnotation::Program {
-                qualified_name: name.clone(),
-            },
-            PouIndexEntry::Method {
-                name, return_type, ..
-            } => StatementAnnotation::Function {
-                return_type: return_type.clone(),
-                qualified_name: name.clone(),
-            },
-            PouIndexEntry::Action {
-                name,
-                parent_pou_name,
+            PouIndexEntry::Program {
                 instance_struct_name,
-            } => StatementAnnotation::Program {
-                qualified_name: name.clone(),
-            },
+                ..
+            }
+            | PouIndexEntry::FunctionBlock {
+                instance_struct_name,
+                ..
+            }
+            | PouIndexEntry::Method {
+                instance_struct_name,
+                ..
+            }
+            | PouIndexEntry::Action {
+                instance_struct_name,
+                ..
+            }
+            | PouIndexEntry::Class {
+                instance_struct_name,
+                ..
+            } => Some(instance_struct_name.as_str()),
+            PouIndexEntry::Function { .. } => None,
+        }
+    }
+
+    pub fn get_container(&self) -> &str {
+        match self {
+            PouIndexEntry::Program { .. }
+            | PouIndexEntry::FunctionBlock { .. }
+            | PouIndexEntry::Class { .. }
+            | PouIndexEntry::Function { .. } => self.get_name(),
+            PouIndexEntry::Action {
+                parent_pou_name, ..
+            }
+            | PouIndexEntry::Method {
+                parent_pou_name, ..
+            } => parent_pou_name.as_str(),
         }
     }
 }
