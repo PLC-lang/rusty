@@ -1,10 +1,14 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate allows interacting with the data stored by [`OsStr`] and [`OsString`], without resorting to panics or corruption for invalid UTF-8. Thus, methods can be used that are already defined on [`[u8]`][slice] and [`Vec&lt;u8&gt;`]."><meta name="keywords" content="rust, rustlang, rust-lang, os_str_bytes"><title>os_str_bytes - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
-    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.png" alt="logo"></div>
-        </a><h2 class="location">Crate os_str_bytes</h2><div class="block version"><div class="narrow-helper"></div><p>Version 6.0.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all os_str_bytes's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></div><div id="sidebar-vars" data-name="os_str_bytes" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../os_str_bytes/index.html"><img class="rust-logo" src="../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">os_str_bytes</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/os_str_bytes/lib.rs.html#1-432" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate allows interacting with the data stored by <a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a> and
-<a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsString.html" title="OsString"><code>OsString</code></a>, without resorting to panics or corruption for invalid UTF-8.
-Thus, methods can be used that are already defined on <a href="https://doc.rust-lang.org/1.59.0/std/primitive.slice.html" title="slice"><code>[u8]</code></a> and
-<a href="https://doc.rust-lang.org/1.59.0/alloc/vec/struct.Vec.html" title="Vec&lt;u8&gt;"><code>Vec&lt;u8&gt;</code></a>.</p>
-<p>Typically, the only way to losslessly construct <a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a> or <a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsString.html" title="OsString"><code>OsString</code></a>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate os_str_bytes</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 6.0.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></div></section><div id="sidebar-vars" data-name="os_str_bytes" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../os_str_bytes/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">os_str_bytes</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/os_str_bytes/lib.rs.html#1-432">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate allows interacting with the data stored by <a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a> and
+<a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsString.html" title="OsString"><code>OsString</code></a>, without resorting to panics or corruption for invalid UTF-8.
+Thus, methods can be used that are already defined on <a href="https://doc.rust-lang.org/1.60.0/std/primitive.slice.html" title="slice"><code>[u8]</code></a> and
+<a href="https://doc.rust-lang.org/1.60.0/alloc/vec/struct.Vec.html" title="Vec&lt;u8&gt;"><code>Vec&lt;u8&gt;</code></a>.</p>
+<p>Typically, the only way to losslessly construct <a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a> or <a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsString.html" title="OsString"><code>OsString</code></a>
 from a byte sequence is to use <code>OsStr::new(str::from_utf8(bytes)?)</code>, which
 requires the bytes to be valid in UTF-8. However, since this crate makes
 conversions directly between the platform encoding and raw bytes, even some
@@ -12,7 +16,7 @@ strings invalid in UTF-8 can be converted.</p>
 <p>In most cases, <a href="struct.RawOsStr.html" title="RawOsStr"><code>RawOsStr</code></a> and <a href="struct.RawOsString.html" title="RawOsString"><code>RawOsString</code></a> should be used.
 <a href="trait.OsStrBytes.html" title="OsStrBytes"><code>OsStrBytes</code></a> and <a href="trait.OsStringBytes.html" title="OsStringBytes"><code>OsStringBytes</code></a> provide lower-level APIs that are
 easier to misuse.</p>
-<h2 id="encoding" class="section-header"><a href="#encoding">Encoding</a></h2>
+<h2 id="encoding"><a href="#encoding">Encoding</a></h2>
 <p>The encoding of bytes returned or accepted by methods of this crate is
 intentionally left unspecified. It may vary for different platforms, so
 defining it would run contrary to the goal of generic string handling.
@@ -25,25 +29,25 @@ valid byte sequences. They can be re-encoded without error using
 <a href="trait.OsStrBytes.html#tymethod.from_raw_bytes" title="OsStrBytes::from_raw_bytes"><code>OsStrBytes::from_raw_bytes</code></a> and similar methods.</p>
 </li>
 <li>
-<p>All characters valid in platform strings are representable. <a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a> and
-<a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsString.html" title="OsString"><code>OsString</code></a> can always be losslessly reconstructed from extracted bytes.</p>
+<p>All characters valid in platform strings are representable. <a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a> and
+<a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsString.html" title="OsString"><code>OsString</code></a> can always be losslessly reconstructed from extracted bytes.</p>
 </li>
 </ul>
 <p>Note that the chosen encoding may not match how Rust stores these strings
 internally, which is undocumented. For instance, the result of calling
-<a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsStr.html#method.len" title="OsStr::len"><code>OsStr::len</code></a> will not necessarily match the number of bytes this crate
+<a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsStr.html#method.len" title="OsStr::len"><code>OsStr::len</code></a> will not necessarily match the number of bytes this crate
 uses to represent the same string.</p>
 <p>Additionally, concatenation may yield unexpected results without a UTF-8
 separator. If two platform strings need to be concatenated, the only safe
-way to do so is using <a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsString.html#method.push" title="OsString::push"><code>OsString::push</code></a>. This limitation also makes it
+way to do so is using <a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsString.html#method.push" title="OsString::push"><code>OsString::push</code></a>. This limitation also makes it
 undesirable to use the bytes in interchange.</p>
 <p>Since this encoding can change between versions and platforms, it should
 not be used for storage. The standard library provides implementations of
-<a href="https://doc.rust-lang.org/1.59.0/std/os/unix/ffi/os_str/trait.OsStrExt.html"><code>OsStrExt</code></a> and <a href="https://doc.rust-lang.org/1.59.0/std/os/unix/ffi/os_str/trait.OsStringExt.html"><code>OsStringExt</code></a> for various platforms, which should be
+<a href="https://doc.rust-lang.org/1.60.0/std/os/unix/ffi/os_str/trait.OsStrExt.html"><code>OsStrExt</code></a> and <a href="https://doc.rust-lang.org/1.60.0/std/os/unix/ffi/os_str/trait.OsStringExt.html"><code>OsStringExt</code></a> for various platforms, which should be
 preferred for that use case.</p>
-<h2 id="user-input" class="section-header"><a href="#user-input">User Input</a></h2>
+<h2 id="user-input"><a href="#user-input">User Input</a></h2>
 <p>Traits in this crate should ideally not be used to convert byte sequences
-that did not originate from <a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a> or a related struct. The encoding
+that did not originate from <a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a> or a related struct. The encoding
 used by this crate is an implementation detail, so it does not make sense
 to expose it to users.</p>
 <p>Crate <a href="https://crates.io/crates/bstr">bstr</a> offers some useful alternative methods, such as
@@ -51,12 +55,12 @@ to expose it to users.</p>
 for user input. But, they reject some byte sequences used to represent
 valid platform strings, which would be undesirable for reliable path
 handling. They are best used only when accepting unknown input.</p>
-<p>This crate is meant to help when you already have an instance of <a href="https://doc.rust-lang.org/1.59.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a>
+<p>This crate is meant to help when you already have an instance of <a href="https://doc.rust-lang.org/1.60.0/std/ffi/os_str/struct.OsStr.html" title="OsStr"><code>OsStr</code></a>
 and need to modify the data in a lossless way.</p>
-<h2 id="features" class="section-header"><a href="#features">Features</a></h2>
+<h2 id="features"><a href="#features">Features</a></h2>
 <p>These features are optional and can be enabled or disabled in a
 “Cargo.toml” file.</p>
-<h4 id="default-features" class="section-header"><a href="#default-features">Default Features</a></h4>
+<h4 id="default-features"><a href="#default-features">Default Features</a></h4>
 <ul>
 <li>
 <p><strong>memchr</strong> -
@@ -69,7 +73,7 @@ This feature is useless when “raw_os_str” is disabled.</p>
 Enables use of <a href="struct.RawOsStr.html" title="RawOsStr"><code>RawOsStr</code></a> and <a href="struct.RawOsString.html" title="RawOsString"><code>RawOsString</code></a>.</p>
 </li>
 </ul>
-<h4 id="optional-features" class="section-header"><a href="#optional-features">Optional Features</a></h4>
+<h4 id="optional-features"><a href="#optional-features">Optional Features</a></h4>
 <ul>
 <li>
 <p><strong>print_bytes</strong> -
@@ -82,21 +86,21 @@ Provides implementations of [<code>uniquote::Quote</code>] for <a href="struct.R
 <a href="struct.RawOsString.html" title="RawOsString"><code>RawOsString</code></a>.</p>
 </li>
 </ul>
-<h2 id="implementation" class="section-header"><a href="#implementation">Implementation</a></h2>
-<p>Some methods return <a href="https://doc.rust-lang.org/1.59.0/alloc/borrow/enum.Cow.html" title="Cow"><code>Cow</code></a> to account for platform differences. However,
+<h2 id="implementation"><a href="#implementation">Implementation</a></h2>
+<p>Some methods return <a href="https://doc.rust-lang.org/1.60.0/alloc/borrow/enum.Cow.html" title="Cow"><code>Cow</code></a> to account for platform differences. However,
 no guarantee is made that the same variant of that enum will always be
 returned for the same platform. Whichever can be constructed most
 efficiently will be returned.</p>
 <p>All traits are <a href="https://rust-lang.github.io/api-guidelines/future-proofing.html#c-sealed">sealed</a>, meaning that they can only be implemented by this
 crate. Otherwise, backward compatibility would be more difficult to
 maintain for new features.</p>
-<h2 id="complexity" class="section-header"><a href="#complexity">Complexity</a></h2>
+<h2 id="complexity"><a href="#complexity">Complexity</a></h2>
 <p>The time complexities of trait methods will vary based on what
 functionality is available for the platform. At worst, they will all be
 linear, but some can take constant time. For example,
 <a href="trait.OsStringBytes.html#tymethod.from_raw_vec" title="OsStringBytes::from_raw_vec"><code>OsStringBytes::from_raw_vec</code></a> might be able to reuse the allocation for
 its argument.</p>
-<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::env</span>;
 <span class="kw">use</span> <span class="ident">std::fs</span>;
 
@@ -117,8 +121,8 @@ platform encoding.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RawOsStr.html" title="os_str_bytes::RawOsStr struct">RawOsStr</a></div><div class="item-right docblock-short"><p>A container for the byte strings converted by <a href="trait.OsStrBytes.html" title="OsStrBytes"><code>OsStrBytes</code></a>.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RawOsString.html" title="os_str_bytes::RawOsString struct">RawOsString</a></div><div class="item-right docblock-short"><p>A container for the byte strings converted by <a href="trait.OsStringBytes.html" title="OsStringBytes"><code>OsStringBytes</code></a>.</p>
 </div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.OsStrBytes.html" title="os_str_bytes::OsStrBytes trait">OsStrBytes</a></div><div class="item-right docblock-short"><p>A platform agnostic variant of <a href="https://doc.rust-lang.org/1.59.0/std/os/unix/ffi/os_str/trait.OsStrExt.html"><code>OsStrExt</code></a>.</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.OsStringBytes.html" title="os_str_bytes::OsStringBytes trait">OsStringBytes</a></div><div class="item-right docblock-short"><p>A platform agnostic variant of <a href="https://doc.rust-lang.org/1.59.0/std/os/unix/ffi/os_str/trait.OsStringExt.html"><code>OsStringExt</code></a>.</p>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.OsStrBytes.html" title="os_str_bytes::OsStrBytes trait">OsStrBytes</a></div><div class="item-right docblock-short"><p>A platform agnostic variant of <a href="https://doc.rust-lang.org/1.60.0/std/os/unix/ffi/os_str/trait.OsStrExt.html"><code>OsStrExt</code></a>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.OsStringBytes.html" title="os_str_bytes::OsStringBytes trait">OsStringBytes</a></div><div class="item-right docblock-short"><p>A platform agnostic variant of <a href="https://doc.rust-lang.org/1.60.0/std/os/unix/ffi/os_str/trait.OsStringExt.html"><code>OsStringExt</code></a>.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Pattern.html" title="os_str_bytes::Pattern trait">Pattern</a></div><div class="item-right docblock-short"><p>Allows a type to be used for searching by <a href="struct.RawOsStr.html"><code>RawOsStr</code></a> and <a href="struct.RawOsString.html"><code>RawOsString</code></a>.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="os_str_bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="os_str_bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
 </body></html>
