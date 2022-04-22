@@ -16,7 +16,9 @@ use crate::{
         self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
         LinkageType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
-    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
+    index::{
+        ImplementationIndexEntry, ImplementationType, Index, PouIndexEntry, VariableIndexEntry,
+    },
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
@@ -154,6 +156,37 @@ impl StatementAnnotation {
     pub fn new_value(type_name: String) -> Self {
         StatementAnnotation::Value {
             resulting_type: type_name,
+        }
+    }
+}
+
+impl From<&PouIndexEntry> for StatementAnnotation {
+    fn from(e: &PouIndexEntry) -> Self {
+        match e {
+            PouIndexEntry::Program { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::FunctionBlock { name, .. } => StatementAnnotation::Type {
+                type_name: name.to_string(),
+            },
+            PouIndexEntry::Function {
+                name, return_type, ..
+            } => StatementAnnotation::Function {
+                return_type: return_type.to_string(),
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Class { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Method {
+                name, return_type, ..
+            } => StatementAnnotation::Function {
+                return_type: return_type.to_string(),
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Action { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
         }
     }
 }
@@ -998,42 +1031,43 @@ impl<'i> TypeAnnotator<'i> {
                             // ... first look at POU-local variables
                             self.index
                                 .find_member(qualifier, name)
+                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
                                     self.index
-                                        .find_implementation(qualifier)
-                                        .and_then(
-                                            ImplementationIndexEntry::get_associated_class_name,
-                                        )
-                                        .and_then(|it| self.index.find_member(it, name))
+                                        .find_pou(qualifier)
+                                        .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
+                                        .and_then(PouIndexEntry::get_instance_struct_type_name)
+                                        .and_then(|class_name| {
+                                            self.index.find_member(class_name, name)
+                                        })
+                                        .map(|v| {
+                                            to_variable_annotation(v, self.index, ctx.constant)
+                                        })
                                 })
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
-                                    //Try to find an action with this name
+                                    // try to find a local action with this name
                                     let action_call_name = format!("{}.{}", qualifier, name);
-                                    self.index.find_implementation(&action_call_name).and_then(
-                                        |entry| {
-                                            find_implementation_annotation(
-                                                entry.get_call_name(),
-                                                self.index,
-                                            )
-                                        },
+                                    self.index
+                                        .find_pou(action_call_name.as_str())
+                                        .map(|it| StatementAnnotation::from(it))
+                                })
+                        })
+                        .or_else(|| {
+                            // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
+                            ctx.pou
+                                .and_then(|pou_name| self.index.find_pou(pou_name))
+                                .and_then(|it| {
+                                    find_implementation_annotation(
+                                        format!("{}.{}", it.get_container(), name).as_str(),
+                                        self.index,
                                     )
                                 })
                         })
                         .or_else(|| {
-                            // ... then try if we find a pou with that name (maybe it's a call?)
-                            let class_name = ctx
-                                .pou
-                                .and_then(|pou_name| self.index.find_implementation(pou_name))
-                                .and_then(ImplementationIndexEntry::get_associated_class_name);
-
-                            //TODO introduce qualified names!
-                            let call_name = class_name
-                                .map(|it| format!("{}.{}", it, name))
-                                .unwrap_or_else(|| name.into());
-                            find_implementation_annotation(&call_name, self.index)
+                            // ... then try if we find a global-pou with that name (maybe it's a call to a function or program?)
+                            find_implementation_annotation(name, self.index)
                         })
                         .or_else(|| {
                             // ... last option is a global variable, where we ignore the current pou's name as a qualifier
@@ -1662,22 +1696,7 @@ fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
 }
 
 fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
-    let x = index.find_pou(name)
-        .map(|it| it.into());
-
-    x
-}
-
-fn to_type_annotation(name: &str) -> StatementAnnotation {
-    StatementAnnotation::Type {
-        type_name: name.into(),
-    }
-}
-
-fn to_programm_annotation(it: &ImplementationIndexEntry) -> StatementAnnotation {
-    StatementAnnotation::Program {
-        qualified_name: it.get_call_name().into(),
-    }
+    index.find_pou(name).map(|it| it.into())
 }
 
 fn to_variable_annotation(

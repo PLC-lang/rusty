@@ -102,7 +102,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     }
 
     //register a function's return type as a member variable
-    if let Some(return_type) = &pou.return_type {
+    let return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or_else(|| VOID_TYPE);
+    if pou.return_type.is_some() {
         member_names.push(pou.get_return_name().into());
         let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
         index.register_member_variable(
@@ -110,7 +111,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 container_name: &pou.name,
                 variable_name: pou.get_return_name(),
                 variable_linkage: VariableType::Return,
-                variable_type_name: return_type.get_name().unwrap_or_default(),
+                variable_type_name: return_type_name,
                 is_constant: false, //return variables are not constants
                 binding: None,
             },
@@ -166,11 +167,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             index.register_pou_type(datatype);
         }
         PouType::Function => {
-            index.register_pou(PouIndexEntry::create_function_entry(&pou.name));
+            index.register_pou(PouIndexEntry::create_function_entry(&pou.name, return_type_name));
             index.register_pou_type(datatype);
         }
         PouType::Method{ owner_class} => {
-            index.register_pou(PouIndexEntry::create_method_entry(&pou.name, owner_class));
+            index.register_pou(PouIndexEntry::create_method_entry(&pou.name, return_type_name, owner_class));
             index.register_pou_type(datatype);
         }
         _ => {}
