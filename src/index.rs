@@ -360,6 +360,10 @@ pub enum PouIndexEntry {
 }
 
 impl PouIndexEntry {
+    /// creates a new Program-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the function
+    /// - `instance_variable` the global instance-variable of the program
     pub fn create_program_entry(
         pou_name: &str,
         instance_variable: VariableIndexEntry,
@@ -371,6 +375,9 @@ impl PouIndexEntry {
         }
     }
 
+    /// creates a new FunctionBlock-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the FunctionBlock
     pub fn create_function_block_entry(pou_name: &str) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
@@ -378,10 +385,18 @@ impl PouIndexEntry {
         }
     }
 
-    pub fn create_function_entry(pou_name: &str, return_type: &str) -> PouIndexEntry {
+    /// creates a new Function-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the function
+    /// - `return_type` the function's return type
+    pub fn create_function_entry(
+        name: &str,
+        return_type: &str,
+        generic_names: &[GenericBinding],
+    ) -> PouIndexEntry {
         PouIndexEntry::Function {
-            name: pou_name.into(),
-            generics: Vec::new(),
+            name: name.into(),
+            generics: generic_names.to_vec(),
             return_type: return_type.into(),
         }
     }
@@ -398,6 +413,9 @@ impl PouIndexEntry {
         }
     }
 
+    /// creates a new Class-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the Class
     pub fn create_class_entry(pou_name: &str) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
@@ -405,19 +423,21 @@ impl PouIndexEntry {
         }
     }
 
-    pub fn create_method_entry(
-        pou_name: &str,
-        return_type: &str,
-        owner_class: &str,
-    ) -> PouIndexEntry {
+    /// creates a new Method-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the method (without the pou-qualifier)
+    /// - `return_type` the name of the method's return type
+    /// - `owner_class` the name of the parent pou
+    pub fn create_method_entry(name: &str, return_type: &str, owner_class: &str) -> PouIndexEntry {
         PouIndexEntry::Method {
-            name: pou_name.into(),
+            name: name.into(),
             parent_pou_name: owner_class.into(),
-            instance_struct_name: pou_name.into(),
+            instance_struct_name: name.into(),
             return_type: return_type.into(),
         }
     }
 
+    /// returns the fully qualified name of this pou
     pub fn get_name(&self) -> &str {
         match self {
             PouIndexEntry::Program { name, .. }
@@ -429,6 +449,8 @@ impl PouIndexEntry {
         }
     }
 
+    /// returns the name of the struct-type used to store the POUs state
+    /// (interface-variables)
     pub fn get_instance_struct_type_name(&self) -> Option<&str> {
         match self {
             PouIndexEntry::Program {
@@ -455,6 +477,10 @@ impl PouIndexEntry {
         }
     }
 
+    /// returns the name of the POUs container
+    /// it has no container (PROGRAM, FUNCTION, etc.)
+    ///
+    /// Actions and Methods return their host-POUs name
     pub fn get_container(&self) -> &str {
         match self {
             PouIndexEntry::Program { .. }
@@ -468,6 +494,14 @@ impl PouIndexEntry {
                 parent_pou_name, ..
             } => parent_pou_name.as_str(),
         }
+    }
+
+    /// returns the ImplementationIndexEntry associated with this POU
+    pub fn find_implementation<'idx>(
+        &self,
+        index: &'idx Index,
+    ) -> Option<&'idx ImplementationIndexEntry> {
+        index.find_implementation_by_name(self.get_name())
     }
 }
 
@@ -1021,8 +1055,16 @@ impl Index {
         self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
-    pub fn find_implementation(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
+    pub(self) fn find_implementation_by_name(
+        &self,
+        call_name: &str,
+    ) -> Option<&ImplementationIndexEntry> {
         self.implementations.get(&call_name.to_lowercase())
+    }
+
+    pub fn find_pou_implementation(&self, pou_name: &str) -> Option<&ImplementationIndexEntry> {
+        self.find_pou(pou_name)
+            .and_then(|it| it.find_implementation(self))
     }
 
     /// registers a member-variable of a container to be accessed in a qualified name.
@@ -1123,7 +1165,8 @@ impl Index {
         //look for a *callable* variable with that name
         self.find_variable(context, reference).filter(|v| {
             //callable means, there is an implementation associated with the variable's datatype
-            self.find_implementation(&v.data_type_name).is_some()
+            self.find_implementation_by_name(&v.data_type_name)
+                .is_some()
         })
     }
 

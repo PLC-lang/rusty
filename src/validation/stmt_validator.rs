@@ -525,7 +525,7 @@ fn compare_function_exists(
 ) -> bool {
     let implementation = crate::typesystem::get_equals_function_name_for(type_name, operator)
         .as_ref()
-        .and_then(|function_name| context.index.find_implementation(function_name));
+        .and_then(|function_name| context.index.find_pou_implementation(function_name));
 
     if let Some(implementation) = implementation {
         let members = context
