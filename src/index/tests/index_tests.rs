@@ -44,7 +44,7 @@ fn index_not_case_sensitive() {
     assert_eq!("INT", entry.data_type_name);
     let entry = index.find_effective_type("APROGRAM").unwrap();
     assert_eq!("aProgram", entry.name);
-    let entry = index.find_implementation("Foo").unwrap();
+    let entry = index.find_implementation_by_name("Foo").unwrap();
     assert_eq!("foo", entry.call_name);
     assert_eq!("foo", entry.type_name);
 }
@@ -96,7 +96,7 @@ fn actions_are_indexed() {
     "#,
     );
 
-    let foo_impl = index.find_implementation("myProgram.foo").unwrap();
+    let foo_impl = index.find_implementation_by_name("myProgram.foo").unwrap();
     assert_eq!("myProgram.foo", foo_impl.call_name);
     assert_eq!("myProgram", foo_impl.type_name);
     let info = index
@@ -121,7 +121,7 @@ fn actions_are_indexed() {
         panic!("Wrong variant : {:#?}", info);
     }
 
-    let bar = index.find_implementation("myProgram.bar").unwrap();
+    let bar = index.find_implementation_by_name("myProgram.bar").unwrap();
     assert_eq!("myProgram.bar", bar.call_name);
     assert_eq!("myProgram", bar.type_name);
 
@@ -160,7 +160,9 @@ fn fb_methods_are_indexed() {
     "#,
     );
 
-    let foo_impl = index.find_implementation("myFuncBlock.foo").unwrap();
+    let foo_impl = index
+        .find_implementation_by_name("myFuncBlock.foo")
+        .unwrap();
     assert_eq!("myFuncBlock.foo", foo_impl.call_name);
     assert_eq!("myFuncBlock.foo", foo_impl.type_name);
     let info = index
@@ -190,7 +192,7 @@ fn class_methods_are_indexed() {
     "#,
     );
 
-    let foo_impl = index.find_implementation("myClass.foo").unwrap();
+    let foo_impl = index.find_implementation_by_name("myClass.foo").unwrap();
     assert_eq!("myClass.foo", foo_impl.call_name);
     assert_eq!("myClass.foo", foo_impl.type_name);
     let info = index
@@ -307,16 +309,16 @@ fn implementations_are_indexed() {
         "#,
     );
 
-    let my_program = index.find_implementation("myProgram").unwrap();
+    let my_program = index.find_implementation_by_name("myProgram").unwrap();
     assert_eq!(my_program.call_name, "myProgram");
     assert_eq!(my_program.type_name, "myProgram");
-    let prog2 = index.find_implementation("prog2").unwrap();
+    let prog2 = index.find_implementation_by_name("prog2").unwrap();
     assert_eq!(prog2.call_name, "prog2");
     assert_eq!(prog2.type_name, "prog2");
-    let fb1 = index.find_implementation("fb1").unwrap();
+    let fb1 = index.find_implementation_by_name("fb1").unwrap();
     assert_eq!(fb1.call_name, "fb1");
     assert_eq!(fb1.type_name, "fb1");
-    let foo_impl = index.find_implementation("foo").unwrap();
+    let foo_impl = index.find_implementation_by_name("foo").unwrap();
     assert_eq!(foo_impl.call_name, "foo");
     assert_eq!(foo_impl.type_name, "foo");
 }
@@ -1881,7 +1883,7 @@ fn a_program_pou_is_indexed() {
         PROGRAM myProgram
         END_PROGRAM
 
-        FUNCTION myFunction : INT
+        FUNCTION myFunction<A: ANY_INT> : INT
         END_FUNCTION
 
         FUNCTION_BLOCK myFunctionBlock
@@ -1923,7 +1925,11 @@ fn a_program_pou_is_indexed() {
     assert_eq!(
         Some(&PouIndexEntry::Function {
             name: "myFunction".into(),
-            generics: Vec::new(),
+            generics: [GenericBinding {
+                name: "A".into(),
+                nature: TypeNature::Int
+            }]
+            .to_vec(),
             return_type: "INT".into()
         }),
         index.find_pou("myFunction"),

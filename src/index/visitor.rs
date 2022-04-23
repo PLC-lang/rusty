@@ -102,7 +102,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     }
 
     //register a function's return type as a member variable
-    let return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or_else(|| VOID_TYPE);
+    let return_type_name = pou
+        .return_type
+        .as_ref()
+        .and_then(|it| it.get_name())
+        .unwrap_or(VOID_TYPE);
     if pou.return_type.is_some() {
         member_names.push(pou.get_return_name().into());
         let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
@@ -134,7 +138,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         },
         nature: TypeNature::Any,
     };
-    
+
     match &pou.pou_type {
         PouType::Program => {
             index.register_program(&pou.name, &pou.location, pou.linkage);
@@ -167,11 +171,19 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             index.register_pou_type(datatype);
         }
         PouType::Function => {
-            index.register_pou(PouIndexEntry::create_function_entry(&pou.name, return_type_name));
+            index.register_pou(PouIndexEntry::create_function_entry(
+                &pou.name,
+                return_type_name,
+                &pou.generics,
+            ));
             index.register_pou_type(datatype);
         }
-        PouType::Method{ owner_class} => {
-            index.register_pou(PouIndexEntry::create_method_entry(&pou.name, return_type_name, owner_class));
+        PouType::Method { owner_class } => {
+            index.register_pou(PouIndexEntry::create_method_entry(
+                &pou.name,
+                return_type_name,
+                owner_class,
+            ));
             index.register_pou_type(datatype);
         }
         _ => {}
@@ -198,7 +210,10 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
             nature: TypeNature::Derived,
         };
 
-        index.register_pou(PouIndexEntry::create_action_entry(implementation.name.as_str(), implementation.type_name.as_str()));
+        index.register_pou(PouIndexEntry::create_action_entry(
+            implementation.name.as_str(),
+            implementation.type_name.as_str(),
+        ));
         index.register_pou_type(datatype);
     }
 }
