@@ -133,8 +133,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             member_names,
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
-            generics: pou.generics.clone(),
-            linkage: pou.linkage,
         },
         nature: TypeNature::Any,
     };
@@ -154,7 +152,10 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
-            index.register_pou(PouIndexEntry::create_function_block_entry(&pou.name));
+            index.register_pou(PouIndexEntry::create_function_block_entry(
+                &pou.name,
+                pou.linkage,
+            ));
             index.register_pou_type(datatype);
         }
         PouType::Class => {
@@ -167,7 +168,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
-            index.register_pou(PouIndexEntry::create_class_entry(&pou.name));
+            index.register_pou(PouIndexEntry::create_class_entry(&pou.name, pou.linkage));
             index.register_pou_type(datatype);
         }
         PouType::Function => {
@@ -175,6 +176,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 &pou.name,
                 return_type_name,
                 &pou.generics,
+                pou.linkage,
             ));
             index.register_pou_type(datatype);
         }
@@ -183,6 +185,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 &pou.name,
                 return_type_name,
                 owner_class,
+                pou.linkage,
             ));
             index.register_pou_type(datatype);
         }
@@ -213,6 +216,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
         index.register_pou(PouIndexEntry::create_action_entry(
             implementation.name.as_str(),
             implementation.type_name.as_str(),
+            ast::LinkageType::Internal, //TODO: where do I get correct linkage from?
         ));
         index.register_pou_type(datatype);
     }
@@ -297,8 +301,6 @@ fn visit_data_type(
                 member_names,
                 varargs: None,
                 source: StructSource::OriginalDeclaration,
-                generics: vec![],
-                linkage: ast::LinkageType::Internal,
             };
 
             let init = index

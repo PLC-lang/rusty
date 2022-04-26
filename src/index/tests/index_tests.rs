@@ -1906,6 +1906,7 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::Program {
             name: "myProgram".into(),
             instance_struct_name: "myProgram".into(),
+            linkage: LinkageType::Internal,
             instance_variable: VariableIndexEntry {
                 name: "myProgram_instance".into(),
                 qualified_name: "myProgram".into(),
@@ -1925,6 +1926,8 @@ fn a_program_pou_is_indexed() {
     assert_eq!(
         Some(&PouIndexEntry::Function {
             name: "myFunction".into(),
+            linkage: LinkageType::Internal,
+            instance_struct_name: "myFunction".into(),
             generics: [GenericBinding {
                 name: "A".into(),
                 nature: TypeNature::Int
@@ -1938,6 +1941,7 @@ fn a_program_pou_is_indexed() {
     assert_eq!(
         Some(&PouIndexEntry::FunctionBlock {
             name: "myFunctionBlock".into(),
+            linkage: LinkageType::Internal,
             instance_struct_name: "myFunctionBlock".into()
         }),
         index.find_pou("myFunctionBlock"),
@@ -1946,6 +1950,7 @@ fn a_program_pou_is_indexed() {
     assert_eq!(
         Some(&PouIndexEntry::Class {
             name: "myClass".into(),
+            linkage: LinkageType::Internal,
             instance_struct_name: "myClass".into()
         }),
         index.find_pou("myClass"),
@@ -1955,6 +1960,7 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::Action {
             name: "myProgram.act".into(),
             parent_pou_name: "myProgram".into(),
+            linkage: LinkageType::Internal,
             instance_struct_name: "myProgram".into()
         }),
         index.find_pou("myProgram.act"),

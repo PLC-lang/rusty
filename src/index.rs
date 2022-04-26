@@ -332,30 +332,37 @@ pub enum PouIndexEntry {
         name: String,
         instance_struct_name: String,
         instance_variable: VariableIndexEntry,
+        linkage: LinkageType,
     },
     FunctionBlock {
         name: String,
         instance_struct_name: String,
+        linkage: LinkageType,
     },
     Function {
         name: String,
         return_type: String,
+        instance_struct_name: String,
         generics: Vec<GenericBinding>,
+        linkage: LinkageType,
     },
     Class {
         name: String,
         instance_struct_name: String,
+        linkage: LinkageType,
     },
     Method {
         name: String,
         parent_pou_name: String,
         return_type: String,
         instance_struct_name: String,
+        linkage: LinkageType,
     },
     Action {
         name: String,
         parent_pou_name: String,
         instance_struct_name: String,
+        linkage: LinkageType,
     },
 }
 
@@ -367,21 +374,25 @@ impl PouIndexEntry {
     pub fn create_program_entry(
         pou_name: &str,
         instance_variable: VariableIndexEntry,
+        linkage: LinkageType,
     ) -> PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             instance_variable,
+            linkage,
         }
     }
 
     /// creates a new FunctionBlock-PouIndexEntry
     /// # Arguments
     /// - `name` the name of the FunctionBlock
-    pub fn create_function_block_entry(pou_name: &str) -> PouIndexEntry {
+    /// - `linkage` the linkage type of the pou
+    pub fn create_function_block_entry(pou_name: &str, linkage: LinkageType) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
+            linkage,
         }
     }
 
@@ -393,11 +404,14 @@ impl PouIndexEntry {
         name: &str,
         return_type: &str,
         generic_names: &[GenericBinding],
+        linkage: LinkageType,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
             generics: generic_names.to_vec(),
             return_type: return_type.into(),
+            instance_struct_name: name.into(),
+            linkage,
         }
     }
 
@@ -405,21 +419,27 @@ impl PouIndexEntry {
     /// # Arguments
     /// - `name` the name of the action (without the pou-qualifier)
     /// - `pou_name` the name of the parent pou
-    pub fn create_action_entry(qualified_name: &str, pou_name: &str) -> PouIndexEntry {
+    pub fn create_action_entry(
+        qualified_name: &str,
+        pou_name: &str,
+        linkage: LinkageType,
+    ) -> PouIndexEntry {
         PouIndexEntry::Action {
             name: qualified_name.into(),
             parent_pou_name: pou_name.into(),
             instance_struct_name: pou_name.into(),
+            linkage,
         }
     }
 
     /// creates a new Class-PouIndexEntry
     /// # Arguments
     /// - `name` the name of the Class
-    pub fn create_class_entry(pou_name: &str) -> PouIndexEntry {
+    pub fn create_class_entry(pou_name: &str, linkage: LinkageType) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
+            linkage,
         }
     }
 
@@ -428,12 +448,18 @@ impl PouIndexEntry {
     /// - `name` the name of the method (without the pou-qualifier)
     /// - `return_type` the name of the method's return type
     /// - `owner_class` the name of the parent pou
-    pub fn create_method_entry(name: &str, return_type: &str, owner_class: &str) -> PouIndexEntry {
+    pub fn create_method_entry(
+        name: &str,
+        return_type: &str,
+        owner_class: &str,
+        linkage: LinkageType,
+    ) -> PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
             parent_pou_name: owner_class.into(),
             instance_struct_name: name.into(),
             return_type: return_type.into(),
+            linkage,
         }
     }
 
@@ -469,12 +495,31 @@ impl PouIndexEntry {
                 instance_struct_name,
                 ..
             }
+            | PouIndexEntry::Function {
+                instance_struct_name,
+                ..
+            }
             | PouIndexEntry::Class {
                 instance_struct_name,
                 ..
             } => Some(instance_struct_name.as_str()),
-            PouIndexEntry::Function { .. } => None,
         }
+    }
+
+    /// returns `Some(DataType)` associated with this pou or `Some` if none is associated
+    ///
+    /// - `index` the index to fetch te DataType from
+    pub fn find_instance_struct_type<'idx>(&self, index: &'idx Index) -> Option<&'idx DataType> {
+        self.get_instance_struct_type_name()
+            .and_then(|it| index.type_index.find_pou_type(it))
+    }
+
+    /// returns the struct-datatype associated with this pou or `void` if none is associated
+    ///
+    /// - `index` the index to fetch te DataType from
+    pub fn get_instance_struct_type<'idx>(&self, index: &'idx Index) -> &'idx DataType {
+        self.find_instance_struct_type(index)
+            .unwrap_or_else(|| index.get_void_type())
     }
 
     /// returns the name of the POUs container
@@ -502,6 +547,32 @@ impl PouIndexEntry {
         index: &'idx Index,
     ) -> Option<&'idx ImplementationIndexEntry> {
         index.find_implementation_by_name(self.get_name())
+    }
+
+    /// returns the linkage type of this pou
+    pub fn get_linkage(&self) -> &LinkageType {
+        match self {
+            PouIndexEntry::Program { linkage, .. }
+            | PouIndexEntry::FunctionBlock { linkage, .. }
+            | PouIndexEntry::Function { linkage, .. }
+            | PouIndexEntry::Method { linkage, .. }
+            | PouIndexEntry::Action { linkage, .. }
+            | PouIndexEntry::Class { linkage, .. } => linkage,
+        }
+    }
+
+    /// returns true if this pou is a function with generic parameters, otherwise false
+    pub fn is_generic(&self) -> bool {
+        if let PouIndexEntry::Function { generics, .. } = self {
+            !generics.is_empty()
+        } else {
+            false
+        }
+    }
+
+    /// returns true if this pou is an action
+    pub fn is_action(&self) -> bool {
+        matches!(self, PouIndexEntry::Action { .. })
     }
 }
 
@@ -1047,7 +1118,7 @@ impl Index {
         )
         .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
-        let entry = PouIndexEntry::create_program_entry(name, instance_variable);
+        let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage);
         self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
@@ -1227,9 +1298,10 @@ impl Index {
     /// If the provided name is a builtin function, returns it from the builtin index
     pub fn get_builtin_function(&self, name: &str) -> Option<&'_ BuiltIn> {
         //Find a type for that function, see if that type is builtin
-        if let Some(true) = self
-            .find_effective_type_info(name)
-            .map(DataTypeInformation::is_builtin)
+        if let Some(PouIndexEntry::Function {
+            linkage: LinkageType::BuiltIn,
+            ..
+        }) = self.find_pou(name)
         {
             builtins::get_builtin(name)
         } else {

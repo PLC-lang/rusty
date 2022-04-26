@@ -1305,13 +1305,9 @@ impl<'i> TypeAnnotator<'i> {
         parameters: &Option<AstStatement>,
         ctx: VisitorContext,
     ) {
-        let operator_type = self
-            .index
-            .get_effective_type_by_name(implementation_name)
-            .get_type_information();
-        if let DataTypeInformation::Struct {
+        if let Some(PouIndexEntry::Function {
             generics, linkage, ..
-        } = operator_type
+        }) = self.index.find_pou(implementation_name)
         {
             if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
@@ -1333,7 +1329,8 @@ impl<'i> TypeAnnotator<'i> {
                     let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
                     if let Some((pou, implementation)) = self
                         .index
-                        .find_effective_type(qualified_name)
+                        .find_pou(qualified_name)
+                        .and_then(|it| it.find_instance_struct_type(self.index))
                         .zip(self.index.find_pou_implementation(qualified_name))
                     {
                         self.annotation_map.new_index.register_implementation(
@@ -1347,8 +1344,10 @@ impl<'i> TypeAnnotator<'i> {
                             .new_index
                             .register_pou(PouIndexEntry::Function {
                                 name: name.clone(),
+                                instance_struct_name: name.clone(),
                                 return_type: cloned_return_type,
                                 generics: Vec::new(),
+                                linkage: LinkageType::Internal,
                             });
                     }
                     self.annotation_map.annotate(operator, annotation);
@@ -1373,7 +1372,6 @@ impl<'i> TypeAnnotator<'i> {
             member_names,
             source,
             varargs,
-            linkage,
             ..
         } = &generic_type.get_type_information()
         {
@@ -1383,8 +1381,6 @@ impl<'i> TypeAnnotator<'i> {
                 member_names: member_names.clone(),
                 varargs: varargs.clone(),
                 source: source.clone(),
-                generics: vec![],
-                linkage: *linkage,
             };
             for member in member_names {
                 if let Some(generic_entry) = self.index.find_member(generic_type.get_name(), member)
