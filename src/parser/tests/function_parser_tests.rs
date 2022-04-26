@@ -126,6 +126,7 @@ fn varargs_parameters_can_be_parsed() {
             retain: false,
             variable_block_type: VariableBlockType::Input,
             location: SourceRange::undefined(),
+            linkage: LinkageType::Internal,
             variables: vec![
                 Variable {
                     name: "args1".into(),
@@ -137,6 +138,7 @@ fn varargs_parameters_can_be_parsed() {
                         scope: Some("foo".into()),
                     },
                     initializer: None,
+                    address: None,
                     location: SourceRange::undefined(),
                 },
                 Variable {
@@ -154,6 +156,7 @@ fn varargs_parameters_can_be_parsed() {
                         scope: Some("foo".into()),
                     },
                     initializer: None,
+                    address: None,
                     location: SourceRange::undefined(),
                 },
             ],
@@ -161,6 +164,7 @@ fn varargs_parameters_can_be_parsed() {
         location: SourceRange::undefined(),
         poly_mode: None,
         generics: vec![],
+        linkage: crate::ast::LinkageType::Internal,
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
 }
@@ -330,7 +334,8 @@ fn function_inline_struct_return_unsupported() {
                                 location: SourceRange::undefined(),
                                 referenced_type: "INT".into()
                             },
-                            initializer: None
+                            initializer: None,
+                            address: None,
                         },
                         Variable {
                             name: "y".into(),
@@ -339,7 +344,8 @@ fn function_inline_struct_return_unsupported() {
                                 location: SourceRange::undefined(),
                                 referenced_type: "INT".into()
                             },
-                            initializer: None
+                            initializer: None,
+                            address: None,
                         }
                     ],
                 },

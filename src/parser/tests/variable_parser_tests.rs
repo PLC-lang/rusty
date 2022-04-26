@@ -1,4 +1,7 @@
-use crate::test_utils::tests::parse;
+use crate::{
+    ast::{LinkageType, VariableBlock},
+    test_utils::tests::parse,
+};
 
 #[test]
 fn empty_global_vars_can_be_parsed() {
@@ -39,6 +42,40 @@ fn global_vars_can_be_parsed() {
     variable_block_type: Global,
 }"#;
     assert_eq!(ast_string, expected_ast)
+}
+
+#[test]
+fn external_global_vars_can_be_parsed() {
+    let src = "@EXTERNAL VAR_GLOBAL x : INT; y : BOOL; END_VAR";
+    let result = parse(src).0;
+
+    let vars = &result.global_vars[0]; //globar_vars
+    let ast_string = format!("{:#?}", vars);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+        Variable {
+            name: "y",
+            data_type: DataTypeReference {
+                referenced_type: "BOOL",
+            },
+        },
+    ],
+    variable_block_type: Global,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+    assert!(matches!(
+        vars,
+        VariableBlock {
+            linkage: LinkageType::External,
+            ..
+        }
+    ));
 }
 
 #[test]
@@ -130,4 +167,59 @@ fn two_global_vars_can_be_parsed() {
     },
 ]"#;
     assert_eq!(ast_string, expected_ast)
+}
+
+#[test]
+fn global_var_with_address() {
+    let src = "VAR_GLOBAL 
+            a AT %I* : INT; 
+            b AT %Q* : INT; 
+            c AT %M* : INT; 
+            aa AT %IX7 : INT; 
+            bb AT %QB5.5 : INT; 
+            cc AT %MD3.3.3 : INT; 
+    END_VAR ";
+    let (result, diag) = parse(src);
+
+    assert_eq!(diag, vec![]);
+
+    insta::assert_snapshot!(format!("{:?}", result));
+}
+
+#[test]
+fn pou_var_with_address() {
+    let src = "PROGRAM main
+    VAR 
+            a AT %I* : INT; 
+            b AT %Q* : INT; 
+            c,d AT %M* : INT; 
+            aa AT %IX7 : INT; 
+            bb AT %QB5.5 : INT; 
+            cc AT %MD3.3.3 : INT; 
+    END_VAR 
+    END_PROGRAM
+    ";
+    let (result, diag) = parse(src);
+
+    assert_eq!(diag, vec![]);
+
+    insta::assert_snapshot!(format!("{:?}", result));
+}
+
+#[test]
+fn struct_with_address() {
+    let src = "TYPE t : STRUCT
+            a AT %I* : INT; 
+            b AT %Q* : INT; 
+            c AT %M* : INT; 
+            aa AT %IX7 : INT; 
+            bb AT %QB5.5 : INT; 
+            cc AT %MD3.3.3 : INT; 
+    END_STRUCT
+    END_TYPE
+    ";
+    let (result, diag) = parse(src);
+
+    assert_eq!(diag, vec![]);
+    insta::assert_snapshot!(format!("{:?}", result));
 }

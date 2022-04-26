@@ -20,12 +20,28 @@ END_PROGRAM
 #[test]
 fn empty_statements_dont_generate_anything() {
     let result = codegen(
-        r#"PROGRAM prg
+        r#"
+        PROGRAM prg
             VAR x : DINT; y : DINT; END_VAR
             x;
-            ;;;;
             y;
-END_PROGRAM
+        END_PROGRAM
+"#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn external_program_global_var_is_external() {
+    let result = codegen(
+        r#"
+        @EXTERNAL 
+        PROGRAM prg
+            VAR x : DINT; y : DINT; END_VAR
+            x;
+            y;
+        END_PROGRAM
 "#,
     );
 
@@ -41,6 +57,12 @@ fn empty_global_variable_list_generates_nothing() {
 #[test]
 fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn external_global_variable_generates_as_external() {
+    let result = generate_with_empty_program("@EXTERNAL VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
     insta::assert_snapshot!(result);
 }
 
@@ -634,8 +656,9 @@ fn program_with_xor_statement() {
 VAR
 x : BOOL;
 y : BOOL;
+z : BOOL; 
 END_VAR
-x XOR y;
+z := x XOR y;
 END_PROGRAM
 "#,
     );
@@ -2378,6 +2401,46 @@ fn nested_array_access() {
 }
 
 #[test]
+fn nested_array_cube_writes() {
+    let result = codegen(
+        r"
+            PROGRAM main
+            VAR
+            x: INT;
+            y: INT;
+            z: INT;
+            cube        : ARRAY[0..4, 0..4, 0..4] OF DINT;
+            END_VAR
+
+            cube[x, y, z] := x*y*z;
+           END_PROGRAM
+            ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn nested_array_cube_writes_negative_start() {
+    let result = codegen(
+        r"
+            PROGRAM main
+            VAR
+            x: INT;
+            y: INT;
+            z: INT;
+            cube        : ARRAY[-2..2,-2..2,-2..2] OF DINT;
+            END_VAR
+
+            cube[x, y, z] := x*y*z;
+           END_PROGRAM
+            ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn returning_early_in_function() {
     let result = codegen(
         "
@@ -2726,6 +2789,33 @@ fn order_var_and_var_temp_block() {
 		VAR
 			var1 : INT;
 		END_VAR
+		END_PROGRAM
+		",
+    );
+    // codegen should be successful
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn optional_output_assignment() {
+    // GIVEN a program calling a function and only assigning one output
+    let result = codegen(
+        "
+		PROGRAM foo 
+			VAR_OUTPUT
+				output1 : DINT;
+				output2 : DINT;
+			END_VAR
+			output1 := 1;
+			output2 := 2;
+		END_PROGRAM
+
+		PROGRAM main
+			VAR
+				var1 : DINT;
+				var2 : DINT;
+			END_VAR
+			foo(output1 =>, output2 => var2);
 		END_PROGRAM
 		",
     );

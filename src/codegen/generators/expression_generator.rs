@@ -5,10 +5,12 @@ use crate::{
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::{is_same_type_class, Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
+    typesystem::{
+        is_same_type_class, Dimension, StringEncoding, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
+    },
 };
 use inkwell::{
-    basic_block::BasicBlock,
+    builder::Builder,
     types::BasicTypeEnum,
     values::{
         ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue,
@@ -44,6 +46,9 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     pub temp_variable_prefix: String,
     /// the string-suffix to use for temporary variables
     pub temp_variable_suffix: String,
+
+    // the function on how to obtain the the length to use for the string
+    string_len_provider: fn(type_length_declaration: usize, actual_length: usize) -> usize,
 }
 
 /// context information to generate a parameter
@@ -77,6 +82,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             function_context: Some(function_context),
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
+            string_len_provider: |_, actual_length| actual_length, //when generating string-literals in a body, use the actual length
         }
     }
 
@@ -101,6 +107,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             function_context: None,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
+            string_len_provider: |type_length_declaration, _| type_length_declaration, //when generating string-literals in declarations, use the declared length
         }
     }
 
@@ -184,11 +191,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 operator,
                 ..
             } => {
-                //If OR, or AND handle before generating the statements
-                if let Operator::And | Operator::Or = operator {
-                    return self.generate_short_circuit_boolean_expression(operator, left, right);
-                }
-
                 let l_type_hint = self.get_type_hint_for(left)?;
                 let ltype = self
                     .index
@@ -200,6 +202,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .index
                     .get_intrinsic_type_by_name(r_type_hint.get_name())
                     .get_type_information();
+                //If OR, or AND handle before generating the statements
+                if ltype.is_bool() && rtype.is_bool() {
+                    return self.generate_bool_binary_expression(operator, left, right);
+                }
 
                 if ltype.is_int() && rtype.is_int() {
                     Ok(self.create_llvm_int_binary_expression(
@@ -347,14 +353,24 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         expression: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let value = match unary_operator {
-            Operator::Not => Ok(self
-                .llvm
-                .builder
-                .build_not(
-                    self.generate_expression(expression)?.into_int_value(),
-                    "tmpVar",
-                )
-                .as_basic_value_enum()),
+            Operator::Not => {
+                let operator = self.generate_expression(expression)?.into_int_value();
+                let operator = if self
+                    .get_type_hint_for(expression)
+                    .map(|it| it.get_type_information().is_bool())
+                    .unwrap_or_default()
+                {
+                    to_i1(operator, &self.llvm.builder)
+                } else {
+                    operator
+                };
+
+                Ok(self
+                    .llvm
+                    .builder
+                    .build_not(operator, "tmpVar")
+                    .as_basic_value_enum())
+            }
             Operator::Minus => {
                 let generated_exp = self.generate_expression(expression)?;
                 if generated_exp.is_float_value() {
@@ -433,6 +449,22 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 )
             })?;
 
+        //If the function is builtin, generate a basic value enum for it
+        if let Some(builtin) = self
+            .index
+            .get_builtin_function(implementation.get_call_name())
+        {
+            return builtin.codegen(
+                self,
+                parameters
+                    .as_ref()
+                    .map(ast::flatten_expression_list)
+                    .unwrap_or_default()
+                    .as_slice(),
+                operator.get_location(),
+            );
+        }
+
         let (class_ptr, call_ptr) = match implementation {
             ImplementationIndexEntry {
                 implementation_type: ImplementationType::Function,
@@ -476,30 +508,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let (class_struct, instance, index_entry) = (class_ptr, call_ptr, implementation);
         let function_name = index_entry.get_call_name();
-        //Create parameters for input and output blocks
-        let current_f = function_context.function;
-        let input_block = self.llvm.context.append_basic_block(current_f, "input");
-        let call_block = self.llvm.context.append_basic_block(current_f, "call");
-        let output_block = self.llvm.context.append_basic_block(current_f, "output");
-        let continue_block = self.llvm.context.append_basic_block(current_f, "continue");
         //First go to the input block
         let builder = &self.llvm.builder;
-        builder.build_unconditional_branch(input_block);
-        builder.position_at_end(input_block);
         //Generate all parameters, this function may jump to the output block
-        let parameters = self.generate_function_parameters(
+        let parameters_data = self.generate_input_function_parameters(
             function_name,
             class_struct,
             instance,
             parameters,
-            &input_block,
-            &output_block,
         )?;
-        //Generate the label jumps from input to call to output
-        builder.build_unconditional_branch(call_block);
-        builder.position_at_end(output_block);
-        builder.build_unconditional_branch(continue_block);
-        builder.position_at_end(call_block);
+
         let function = self
             .llvm_index
             .find_associated_implementation(function_name) //using the non error option to control the output error
@@ -515,13 +533,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
         let call_result = builder
-            .build_call(function, &parameters, "call")
+            .build_call(function, &parameters_data, "call")
             .try_as_basic_value();
-        builder.build_unconditional_branch(output_block);
-        //Continue here after function call
-        builder.position_at_end(continue_block);
 
-        // !! REVIEW !! we return an uninitialized int pointer for void methods :-/
+        //build output-parameters
+        self.generate_output_function_parameters(function_name, instance, parameters)?;
+
+        // we return an uninitialized int pointer for void methods :-/
         // dont deref it!!
         let value = call_result.either(Ok, |_| {
             get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE).map(|int| {
@@ -566,61 +584,65 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
     /// - `input_block` the block to generate the input-assignments into
     /// - `output_block` the block to generate the output-assignments into
-    fn generate_function_parameters(
+    fn generate_input_function_parameters(
         &self,
         function_name: &str,
         class_struct: Option<PointerValue<'a>>,
         parameter_struct: PointerValue<'a>,
         parameters: &Option<AstStatement>,
-        input_block: &BasicBlock,
-        output_block: &BasicBlock,
     ) -> Result<Vec<BasicMetadataValueEnum<'a>>, Diagnostic> {
-        let mut result = if let Some(class_struct) = class_struct {
-            vec![
-                class_struct.as_basic_value_enum().into(),
-                parameter_struct.as_basic_value_enum().into(),
-            ]
-        } else {
-            vec![parameter_struct.as_basic_value_enum().into()]
-        };
-        match &parameters {
-            Some(AstStatement::ExpressionList { expressions, .. }) => {
-                for (index, exp) in expressions.iter().enumerate() {
-                    let parameter = self.generate_single_parameter(
-                        &ParameterContext {
-                            assignment_statement: exp,
-                            function_name,
-                            parameter_type: None,
-                            index: index as u32,
-                            parameter_struct,
-                        },
-                        input_block,
-                        output_block,
-                    )?;
-                    if let Some(parameter) = parameter {
-                        result.push(parameter.into());
-                    };
-                }
-            }
-            Some(statement) => {
-                let parameter = self.generate_single_parameter(
-                    &ParameterContext {
-                        assignment_statement: statement,
-                        function_name,
-                        parameter_type: None,
-                        index: 0,
-                        parameter_struct,
-                    },
-                    input_block,
-                    output_block,
-                )?;
-                if let Some(parameter) = parameter {
-                    result.push(parameter.into());
-                };
-            }
-            None => {}
+        let mut result = class_struct
+            .map(|class_struct| {
+                vec![
+                    class_struct.as_basic_value_enum().into(),
+                    parameter_struct.as_basic_value_enum().into(),
+                ]
+            })
+            .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
+
+        let expressions = parameters
+            .as_ref()
+            .map(ast::flatten_expression_list)
+            .unwrap_or_else(std::vec::Vec::new);
+
+        for (index, exp) in expressions.iter().enumerate() {
+            let parameter = self.generate_single_input_parameter(&ParameterContext {
+                assignment_statement: exp,
+                function_name,
+                parameter_type: None,
+                index: index as u32,
+                parameter_struct,
+            })?;
+            if let Some(parameter) = parameter {
+                result.push(parameter.into());
+            };
         }
         Ok(result)
+    }
+
+    /// generates the output assignments of a function-call's parameters
+    /// the call parameters are passed to the function using a struct-instance with all the parameters
+    ///
+    /// - `function_name` the name of the function we're calling
+    /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
+    /// - `input_block` the block to generate the input-assignments into
+    fn generate_output_function_parameters(
+        &self,
+        function_name: &str,
+        parameter_struct: PointerValue,
+        parameters: &Option<AstStatement>,
+    ) -> Result<(), Diagnostic> {
+        let expressions = parameters
+            .as_ref()
+            .map(ast::flatten_expression_list)
+            .unwrap_or_else(std::vec::Vec::new);
+
+        for exp in expressions.iter() {
+            if let AstStatement::OutputAssignment { left, right, .. } = exp {
+                self.generate_output_parameter(function_name, parameter_struct, left, right)?;
+            }
+        }
+        Ok(())
     }
 
     /// generates an assignemnt of a single call's parameter
@@ -632,29 +654,21 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `parameter_struct' a pointer to a struct-instance that holds all function-parameters
     /// - `input_block` the block to generate the input-assignments into
     /// - `output_block` the block to generate the output-assignments into
-    fn generate_single_parameter(
+    fn generate_single_input_parameter(
         &self,
         param_context: &ParameterContext,
-        input_block: &BasicBlock,
-        output_block: &BasicBlock,
     ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let assignment_statement = param_context.assignment_statement;
 
         let parameter_value = match assignment_statement {
             // explicit call parameter: foo(param := value)
             AstStatement::Assignment { left, right, .. } => {
-                self.generate_formal_parameter(
-                    param_context,
-                    left,
-                    right,
-                    input_block,
-                    output_block,
-                )?;
+                self.generate_formal_parameter(param_context, left, right)?;
                 None
             }
             // foo (param => value)
-            AstStatement::OutputAssignment { left, right, .. } => {
-                self.generate_output_parameter(param_context, left, right, output_block)?;
+            AstStatement::OutputAssignment { .. } => {
+                //ignore here
                 None
             }
             // foo(x)
@@ -690,18 +704,23 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         .find_input_parameter(function_name, index as u32)
                         .and_then(|var| self.index.find_effective_type(var.get_type_name()))
                 })
-                .map(|var| var.get_type_information());
-            let generated_exp = if let Some(DataTypeInformation::Pointer {
+                .map(|var| var.get_type_information())
+                .unwrap_or_else(|| self.index.get_void_type().get_type_information());
+
+            if let DataTypeInformation::Pointer {
                 auto_deref: true, ..
-            }) = parameter
+            } = parameter
             {
                 //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-                self.generate_element_pointer(expression)?
-                    .as_basic_value_enum()
+                let generated_exp = self
+                    .generate_element_pointer(expression)?
+                    .as_basic_value_enum();
+
+                builder.build_store(pointer_to_param, generated_exp);
             } else {
-                self.generate_expression(expression)?
+                self.generate_store(parameter, expression, pointer_to_param)?;
             };
-            builder.build_store(pointer_to_param, generated_exp);
+
             Ok(None)
         } else {
             Ok(Some(self.generate_expression(expression)?))
@@ -710,53 +729,51 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
     fn generate_output_parameter(
         &self,
-        param_context: &ParameterContext,
+        function_name: &str,
+        parameter_struct: PointerValue,
         left: &AstStatement,
         right: &AstStatement,
-        output_block: &BasicBlock,
     ) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
-        let function_name = param_context.function_name;
-        let parameter_struct = param_context.parameter_struct;
-        let current_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
-        builder.position_at_end(*output_block);
-        if let AstStatement::Reference { name, .. } = left {
-            let parameter = self
-                .index
-                .find_member(function_name, name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
-            let index = parameter.get_location_in_parent();
-            let param_type = self
-                .index
-                .find_effective_type(parameter.get_type_name())
-                .or_else(|| {
-                    self.index
-                        .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_effective_type(var.get_type_name()))
-                })
-                .ok_or_else(|| {
-                    Diagnostic::unknown_type(parameter.get_type_name(), left.get_location())
-                })?;
-            //load the function prameter
-            let pointer_to_param = builder
-                .build_struct_gep(parameter_struct, index as u32, "")
-                .expect(INTERNAL_LLVM_ERROR);
+        // (output => ) output assignments are optional, in this case  ignore codegen
+        if !matches!(right, AstStatement::EmptyStatement { .. }) {
+            if let AstStatement::Reference { name, .. } = left {
+                let parameter = self
+                    .index
+                    .find_member(function_name, name)
+                    .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
+                let index = parameter.get_location_in_parent();
+                let param_type = self
+                    .index
+                    .find_effective_type(parameter.get_type_name())
+                    .or_else(|| {
+                        self.index
+                            .find_input_parameter(function_name, index as u32)
+                            .and_then(|var| self.index.find_effective_type(var.get_type_name()))
+                    })
+                    .ok_or_else(|| {
+                        Diagnostic::unknown_type(parameter.get_type_name(), left.get_location())
+                    })?;
+                //load the function prameter
+                let pointer_to_param = builder
+                    .build_struct_gep(parameter_struct, index as u32, "")
+                    .expect(INTERNAL_LLVM_ERROR);
 
-            let l_value = self.generate_element_pointer(right)?;
-            let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
-            let value = cast_if_needed(
-                self.llvm,
-                self.index,
-                self.llvm_index,
-                self.get_type_hint_for(right)?,
-                loaded_value,
-                param_type,
-                right,
-            )?;
-            builder.build_store(l_value, value);
+                let l_value = self.generate_element_pointer(right)?;
+                let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
+                let value = cast_if_needed(
+                    self.llvm,
+                    self.index,
+                    self.llvm_index,
+                    self.get_type_hint_for(right)?,
+                    loaded_value,
+                    param_type,
+                    right,
+                )?;
+                builder.build_store(l_value, value);
+            }
         }
-        builder.position_at_end(current_block);
         Ok(())
     }
 
@@ -765,13 +782,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         param_context: &ParameterContext,
         left: &AstStatement,
         right: &AstStatement,
-        input_block: &BasicBlock,
-        output_block: &BasicBlock,
     ) -> Result<(), Diagnostic> {
-        let builder = &self.llvm.builder;
         let function_name = param_context.function_name;
         let parameter_struct = param_context.parameter_struct;
-        builder.position_at_end(*input_block);
         if let AstStatement::Reference { name, .. } = left {
             let parameter = self
                 .index
@@ -779,17 +792,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
             let param_type = self.index.find_effective_type(parameter.get_type_name());
-            self.generate_single_parameter(
-                &ParameterContext {
-                    assignment_statement: right,
-                    function_name,
-                    parameter_type: param_type,
-                    index,
-                    parameter_struct,
-                },
-                input_block,
-                output_block,
-            )?;
+            self.generate_single_input_parameter(&ParameterContext {
+                assignment_statement: right,
+                function_name,
+                parameter_type: param_type,
+                index,
+                parameter_struct,
+            })?;
         };
         Ok(())
     }
@@ -921,6 +930,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             .into_pointer_value()
     }
 
+    pub fn ptr_as_value(&self, ptr: PointerValue<'a>) -> BasicValueEnum<'a> {
+        let int_type = self.llvm.context.i64_type();
+        if ptr.is_const() {
+            ptr.const_to_int(int_type)
+        } else {
+            self.llvm.builder.build_ptr_to_int(ptr, int_type, "")
+        }
+        .as_basic_value_enum()
+    }
+
     /// automatically derefs an inout variable pointer so it can be used like a normal variable
     ///
     /// # Arguments
@@ -951,7 +970,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         dimension: &Dimension,
         access_expression: &AstStatement,
-    ) -> Result<IntValue<'a>, Diagnostic> {
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let start_offset = dimension
             .start_offset
             .as_int_value(self.index)
@@ -959,15 +978,27 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let access_value = self.generate_expression(access_expression)?;
         //If start offset is not 0, adjust the current statement with an add operation
-        if start_offset != 0 {
-            Ok(self.llvm.builder.build_int_sub(
-                access_value.into_int_value(),
-                self.llvm.i32_type().const_int(start_offset as u64, true), //TODO error handling for cast
+        let result = if start_offset != 0 {
+            let access_int_value = access_value.into_int_value();
+            let access_int_type = access_int_value.get_type();
+            self.llvm.builder.build_int_sub(
+                access_int_value,
+                access_int_type.const_int(start_offset as u64, true), //TODO error handling for cast
                 "",
-            ))
+            )
         } else {
-            Ok(access_value.into_int_value())
-        }
+            access_value.into_int_value()
+        };
+        //turn it into i32 immediately
+        llvm_typesystem::cast_if_needed(
+            self.llvm,
+            self.index,
+            self.llvm_index,
+            self.index.get_type(DINT_TYPE)?,
+            result.as_basic_value_enum(),
+            self.get_type_hint_for(access_expression)?,
+            access_expression,
+        )
     }
 
     /// generates a gep statement for a array-reference with an optional qualifier
@@ -987,9 +1018,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 if let DataTypeInformation::Array { dimensions, .. } =
                     self.get_type_hint_info_for(reference)?
                 {
-                    //First 0 is to access the pointer, then we access the array
-                    let mut indices = vec![self.llvm.i32_type().const_int(0, false)];
-
                     //Make sure dimensions match statement list
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
@@ -998,13 +1026,94 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             access.get_location(),
                         ));
                     }
-                    for (i, statement) in statements.iter().enumerate() {
-                        indices.push(self.generate_access_for_dimension(&dimensions[i], statement)?)
-                    }
-                    //Load the access from that reference
-                    let pointer =
-                        self.llvm
-                            .load_array_element(lvalue, indices.as_slice(), "tmpVar")?;
+
+                    // e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
+                    let lengths = dimensions
+                        .iter()
+                        .map(|d| d.get_length(self.index))
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(|msg| {
+                            Diagnostic::codegen_error(
+                                format!("Invalid array dimensions access: {}", msg).as_str(),
+                                access.get_location(),
+                            )
+                        })?;
+
+                    // the portion indicates how many elements are represented by the corresponding dimension
+                    // the first dimensions corresponds to the number of elements of the rest of the dimensions
+                    //          - portion = 6 (size to the right = 3 x 2 = 6)
+                    //         /        - portion = 2 (because the size to the right of this dimension = 2)
+                    //        /        /         - the last dimension is directly translated into array-coordinates (skip-size = 1)
+                    //                /         /
+                    // [    4   ,    3    ,    2  ]
+                    let dimension_portions = (0..lengths.len())
+                        .map(|index| {
+                            if index == lengths.len() - 1 {
+                                1
+                            } else {
+                                lengths[index + 1..lengths.len()].iter().product()
+                            }
+                        })
+                        .collect::<Vec<u32>>();
+
+                    let accessors_and_portions = statements
+                        .iter()
+                        .zip(dimensions)
+                        .map(|(statement, dimension)|
+                            // generate array-accessors
+                            self.generate_access_for_dimension(dimension, statement))
+                        .zip(dimension_portions);
+
+                    //accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
+                    let (index_access, _) = accessors_and_portions.fold(
+                        (
+                            Ok(self.llvm.i32_type().const_zero().as_basic_value_enum()),
+                            1,
+                        ),
+                        |(accumulated_value, _), (current_v, current_portion)| {
+                            let result = accumulated_value.and_then(|last_v| {
+                                current_v.map(|v| {
+                                    let current_portion_value = self
+                                        .llvm
+                                        .i32_type()
+                                        .const_int(current_portion as u64, false)
+                                        .as_basic_value_enum();
+                                    //multiply the accessor with the dimension's portion
+                                    let m_v = self.create_llvm_int_binary_expression(
+                                        &Operator::Multiplication,
+                                        current_portion_value,
+                                        v,
+                                    );
+                                    // take the sum of the mulitlication and the previous accumulated_value
+                                    // this now becomes the new accumulated value
+                                    self.create_llvm_int_binary_expression(
+                                        &Operator::Plus,
+                                        m_v,
+                                        last_v,
+                                    )
+                                })
+                            });
+                            (result, 0 /* the 0 will be ignored */)
+                        },
+                    );
+
+                    //make sure we got an int-value
+                    let index_access: IntValue = index_access.and_then(|it| {
+                        it.try_into().map_err(|_| {
+                            Diagnostic::codegen_error(
+                                "non-numeric index-access",
+                                access.get_location(),
+                            )
+                        })
+                    })?;
+
+                    //Load the access from that array
+                    //First 0 is to access the pointer, then we access the array
+                    let pointer = self.llvm.load_array_element(
+                        lvalue,
+                        &[self.llvm.i32_type().const_zero(), index_access],
+                        "tmpVar",
+                    )?;
 
                     return Ok(pointer);
                 }
@@ -1230,6 +1339,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .llvm
                 .builder
                 .build_xor(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::And => self
+                .llvm
+                .builder
+                .build_and(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::Or => self.llvm.builder.build_or(int_lvalue, int_rvalue, "tmpVar"),
             _ => unimplemented!(),
         };
         value.into()
@@ -1409,12 +1523,50 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             } => {
                 let expected_type = self.get_type_hint_info_for(literal_statement)?;
                 match expected_type {
-                    DataTypeInformation::String { encoding, .. } => match encoding {
-                        StringEncoding::Utf8 => self.llvm.create_const_utf8_string(value.as_str()),
-                        StringEncoding::Utf16 => {
-                            self.llvm.create_const_utf16_string(value.as_str())
+                    DataTypeInformation::String { encoding, size, .. } => {
+                        let declared_length = size.as_int_value(self.index).map_err(|msg| {
+                            Diagnostic::codegen_error(
+                                format!("Unable to generate string-literal: {}", msg).as_str(),
+                                literal_statement.get_location(),
+                            )
+                        })? as usize;
+
+                        match encoding {
+                            StringEncoding::Utf8 => {
+                                let literal = self.llvm_index.find_utf08_literal_string(value);
+                                if literal.is_some() && self.function_context.is_some() {
+                                    //global constant string
+                                    Ok(literal.map(|it| it.as_basic_value_enum()).unwrap())
+                                } else {
+                                    //note that .len() will give us the number of bytes, not the number of characters
+                                    let actual_length = value.chars().count() + 1; // +1 to account for a final \0
+                                    let str_len = std::cmp::min(
+                                        (self.string_len_provider)(declared_length, actual_length),
+                                        declared_length,
+                                    );
+                                    self.llvm.create_const_utf8_string(value.as_str(), str_len)
+                                }
+                            }
+                            StringEncoding::Utf16 => {
+                                let literal = self.llvm_index.find_utf16_literal_string(value);
+                                if literal.is_some()
+                                    && self.function_context.is_some()
+                                    && self.function_context.is_some()
+                                {
+                                    //global constant string
+                                    Ok(literal.map(|it| it.as_basic_value_enum()).unwrap())
+                                } else {
+                                    //note that .len() will give us the number of bytes, not the number of characters
+                                    let actual_length = value.encode_utf16().count() + 1; // +1 to account for a final \0
+                                    let str_len = std::cmp::min(
+                                        (self.string_len_provider)(declared_length, actual_length),
+                                        declared_length,
+                                    );
+                                    self.llvm.create_const_utf16_string(value.as_str(), str_len)
+                                }
+                            }
                         }
-                    },
+                    }
                     DataTypeInformation::Integer { size: 8, .. }
                         if expected_type.is_character() =>
                     {
@@ -1610,6 +1762,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let array_value = self.generate_literal_array_value(
             flatten_expression_list(initializer),
+            self.get_type_hint_info_for(initializer)?,
             &initializer.get_location(),
         )?;
         return Ok(array_value.as_basic_value_enum());
@@ -1623,22 +1776,50 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_array_value(
         &self,
         elements: Vec<&AstStatement>,
+        data_type: &DataTypeInformation,
         location: &SourceRange,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let inner_type = elements
-            .first()
-            .ok_or_else(|| {
-                Diagnostic::codegen_error("Cannot generate empty array", location.clone())
-            }) //TODO
-            .and_then(|it| self.get_type_hint_info_for(it))?;
+        let (inner_type, expected_len) = if let DataTypeInformation::Array {
+            inner_type_name,
+            dimensions,
+            ..
+        } = data_type
+        {
+            let len: u32 = dimensions
+                .iter()
+                .map(|d| d.get_length(self.index))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|msg| Diagnostic::codegen_error(msg.as_str(), location.clone()))?
+                .into_iter()
+                .product();
+
+            self.index
+                .get_type(inner_type_name)
+                .map(|inner_type| (inner_type, len as usize))
+        } else {
+            Err(Diagnostic::codegen_error(
+                format!("Expected array type but found: {:}", data_type.get_name()).as_str(),
+                location.clone(),
+            ))
+        }?;
 
         let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
-
         let mut v = Vec::new();
         for e in elements {
             //generate with correct type hint
             let value = self.generate_literal(e)?;
             v.push(value.as_basic_value_enum());
+        }
+
+        if v.len() < expected_len {
+            let initial = self
+                .llvm_index
+                .find_associated_initial_value(inner_type.get_name())
+                .unwrap_or_else(|| llvm_type.const_zero());
+            while v.len() < expected_len {
+                //generate additional defaults for data_type
+                v.push(initial);
+            }
         }
 
         //TODO Validation: fail with compile-error if value cannot be converted into... correctly
@@ -1685,33 +1866,94 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
     /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation
     ///
-    /// - `operator` AND or OR
+    /// - `operator` an operator suitable for bool variables
     /// - `left` the left side of the expression
     /// - `right` the right side of the expression
-    pub fn generate_short_circuit_boolean_expression(
+    pub fn generate_bool_binary_expression(
+        &self,
+        operator: &Operator,
+        left: &AstStatement,
+        right: &AstStatement,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        match operator {
+            Operator::And | Operator::Or => {
+                self.generate_bool_short_circuit_expression(operator, left, right)
+            }
+            Operator::Equal => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::EQ,
+                    to_i1(
+                        self.generate_expression(left)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    to_i1(
+                        self.generate_expression(right)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    "",
+                )
+                .as_basic_value_enum()),
+            Operator::NotEqual => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::NE,
+                    to_i1(
+                        self.generate_expression(left)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    to_i1(
+                        self.generate_expression(right)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    "",
+                )
+                .as_basic_value_enum()),
+            Operator::Xor => Ok(self
+                .llvm
+                .builder
+                .build_xor(
+                    to_i1(
+                        self.generate_expression(left)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    to_i1(
+                        self.generate_expression(right)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    "",
+                )
+                .as_basic_value_enum()),
+            _ => Err(Diagnostic::codegen_error(
+                format!("illegal boolean expresspion for operator {:}", operator).as_str(),
+                (left.get_location().get_start()..right.get_location().get_end()).into(),
+            )),
+        }
+    }
+
+    /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation
+    ///
+    /// - `operator` AND / OR
+    /// - `left` the left side of the expression as an i1 value
+    /// - `right` the right side of an expression as an i1 value
+    pub fn generate_bool_short_circuit_expression(
         &self,
         operator: &Operator,
         left: &AstStatement,
         right: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let builder = &self.llvm.builder;
+        let lhs = to_i1(self.generate_expression(left)?.into_int_value(), builder);
         let function = self.get_function_context(left)?.function;
 
         let right_branch = self.llvm.context.append_basic_block(function, "");
         let continue_branch = self.llvm.context.append_basic_block(function, "");
 
-        let left_type = self.get_type_hint_for(left)?;
-        let left_value = self.generate_expression(left)?;
-
         let final_left_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        let left_llvm_type = self.llvm_index.get_associated_type(left_type.get_name())?;
         //Compare left to 0
-        let lhs = builder.build_int_compare(
-            IntPredicate::NE,
-            left_value.into_int_value(),
-            left_llvm_type.into_int_type().const_int(0, false),
-            "",
-        );
+
         match operator {
             Operator::Or => builder.build_conditional_branch(lhs, continue_branch, right_branch),
             Operator::And => builder.build_conditional_branch(lhs, right_branch, continue_branch),
@@ -1724,31 +1966,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         };
 
         builder.position_at_end(right_branch);
-        let (right_type, right_value) = (
-            self.get_type_hint_for(right)?,
-            self.generate_expression(right)?,
-        );
+        let rhs = to_i1(self.generate_expression(right)?.into_int_value(), builder);
         let final_right_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        let rhs = right_value;
         builder.build_unconditional_branch(continue_branch);
 
         builder.position_at_end(continue_branch);
         //Generate phi
-        let target_type = if left_type.get_type_information().get_size()
-            > right_type.get_type_information().get_size()
-        {
-            left_type
-        } else {
-            right_type
-        };
-        let llvm_target_type = self
-            .llvm_index
-            .get_associated_type(target_type.get_name())?;
-        let phi_value = builder.build_phi(llvm_target_type, "");
-        phi_value.add_incoming(&[
-            (&left_value.into_int_value(), final_left_block),
-            (&rhs, final_right_block),
-        ]);
+        let phi_value = builder.build_phi(lhs.get_type(), "");
+        //assert
+        phi_value.add_incoming(&[(&lhs, final_left_block), (&rhs, final_right_block)]);
 
         Ok(phi_value.as_basic_value())
     }
@@ -1877,6 +2103,85 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 )
             })
     }
+
+    pub fn generate_store(
+        &self,
+        left_type: &DataTypeInformation,
+        right_statement: &AstStatement,
+        left: inkwell::values::PointerValue,
+    ) -> Result<(), Diagnostic> {
+        let right_type = self
+            .annotations
+            .get_type_or_void(right_statement, self.index)
+            .get_type_information();
+
+        //Special string handling
+        if left_type.is_string() && right_type.is_string()
+        //string-literals are also generated as global constant variables so we can always assume that
+        //we have a pointer-value
+        {
+            let right = match right_statement {
+                AstStatement::QualifiedReference { .. } | AstStatement::Reference { .. } => {
+                    self.generate_element_pointer(right_statement)?
+                }
+                _ => {
+                    let expression = self.generate_expression(right_statement)?;
+
+                    if expression.is_pointer_value() {
+                        expression.into_pointer_value()
+                    } else {
+                        //TODO should this ever happen?
+                        let right = self.llvm.builder.build_alloca(expression.get_type(), "");
+                        self.llvm.builder.build_store(right, expression);
+
+                        right
+                    }
+                }
+            };
+            let target_size = self.get_string_size(left_type, right_statement.get_location())?; //we report error on parameter :-/
+            let value_size = self.get_string_size(right_type, right_statement.get_location())?;
+            let size = std::cmp::min(target_size - 1, value_size) as i64;
+            let align_left = left_type.get_alignment();
+            let align_right = right_type.get_alignment();
+            self.llvm
+                .builder
+                .build_memcpy(
+                    left,
+                    align_left,
+                    right,
+                    align_right,
+                    self.llvm.context.i32_type().const_int(size as u64, true),
+                )
+                .map_err(|err| Diagnostic::codegen_error(err, right_statement.get_location()))?;
+
+            // if we didnt write the whole string, we need to ensure the ending 0-byte
+            // self.llvm.builder.build_store(self.llvm.builder.build_gep(
+            //     left,
+            //     self.llvm.i32_type().const_int(size + 1, false),
+            //     "null_terminator",
+            // ), self.get_null_terminator(left_type, left_statement.get_location()));
+        } else {
+            let expression = self.generate_expression(right_statement)?;
+            self.llvm.builder.build_store(left, expression);
+        }
+        Ok(())
+    }
+
+    fn get_string_size(
+        &self,
+        datatype: &DataTypeInformation,
+        location: SourceRange,
+    ) -> Result<i64, Diagnostic> {
+        if let DataTypeInformation::String { size, .. } = datatype {
+            size.as_int_value(self.index)
+                .map_err(|err| Diagnostic::codegen_error(err.as_str(), location))
+        } else {
+            Err(Diagnostic::codegen_error(
+                format!("{} is not a String", datatype.get_name()).as_str(),
+                location,
+            ))
+        }
+    }
 }
 
 /// calculates the seconds in the given days, hours minutes and seconds
@@ -1922,4 +2227,18 @@ fn calculate_date_time(
         "Invalid Date {}-{}-{}-{}:{}:{}.{}",
         year, month, day, hour, min, sec, milli
     ))
+}
+
+/// turns the given intValue into an i1 by comparing it to 0 (of the same size)
+pub fn to_i1<'a>(value: IntValue<'a>, builder: &Builder<'a>) -> IntValue<'a> {
+    if value.get_type().get_bit_width() > 1 {
+        builder.build_int_compare(
+            IntPredicate::NE,
+            value,
+            value.get_type().const_int(0, false),
+            "",
+        )
+    } else {
+        value
+    }
 }

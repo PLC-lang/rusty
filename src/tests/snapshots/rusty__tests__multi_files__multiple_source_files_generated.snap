@@ -1,5 +1,6 @@
 ---
 source: src/tests/multi_files.rs
+assertion_line: 37
 expression: res
 
 ---
@@ -14,19 +15,8 @@ source_filename = "main"
 define i16 @main(%main_interface* %0) {
 entry:
   %main = alloca i16, align 2
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
+  store i16 0, i16* %main, align 2
   call void @mainProg(%mainProg_interface* @mainProg_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret
 }

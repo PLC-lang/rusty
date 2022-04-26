@@ -19,10 +19,10 @@ mod expressions_parser;
 pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
-pub fn parse(mut lexer: ParseSession) -> ParsedAst {
+pub fn parse(mut lexer: ParseSession, lnk: LinkageType) -> ParsedAst {
     let mut unit = CompilationUnit::default();
 
-    let mut linkage = LinkageType::Internal;
+    let mut linkage = lnk;
     loop {
         match lexer.token {
             PropertyExternal => {
@@ -31,9 +31,11 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 //Don't reset linkage
                 continue;
             }
-            KeywordVarGlobal => unit
-                .global_vars
-                .push(parse_variable_block(&mut lexer, VariableBlockType::Global)),
+            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(
+                &mut lexer,
+                VariableBlockType::Global,
+                linkage,
+            )),
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
                 let params = match lexer.token {
                     KeywordProgram => (PouType::Program, KeywordEndProgram),
@@ -77,7 +79,7 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 lexer.advance();
             }
         };
-        linkage = LinkageType::Internal;
+        linkage = lnk;
     }
     //the match in the loop will always return
 }
@@ -186,6 +188,7 @@ fn parse_pou(
                 variable_blocks.push(parse_variable_block(
                     lexer,
                     parse_variable_block_type(&lexer.token),
+                    LinkageType::Internal,
                 ));
             }
 
@@ -223,6 +226,7 @@ fn parse_pou(
                 location: SourceRange::new(start..lexer.range().end),
                 poly_mode,
                 generics,
+                linkage,
             }];
             pous.append(&mut impl_pous);
 
@@ -391,6 +395,7 @@ fn parse_method(
             variable_blocks.push(parse_variable_block(
                 lexer,
                 parse_variable_block_type(&lexer.token),
+                LinkageType::Internal,
             ));
         }
 
@@ -423,6 +428,7 @@ fn parse_method(
                 location: SourceRange::new(method_start..method_end),
                 poly_mode,
                 generics,
+                linkage,
             },
             implementation,
         ))
@@ -945,6 +951,7 @@ fn parse_variable_block_type(block_type: &Token) -> VariableBlockType {
 fn parse_variable_block(
     lexer: &mut ParseSession,
     variable_block_type: VariableBlockType,
+    linkage: LinkageType,
 ) -> VariableBlock {
     let location = lexer.location();
     //Consume the type keyword
@@ -966,6 +973,7 @@ fn parse_variable_block(
         retain,
         variables,
         variable_block_type,
+        linkage,
         location,
     }
 }
@@ -987,7 +995,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         let identifier_end = location.get_end();
         var_names.push((lexer.slice_and_advance(), location));
 
-        if lexer.token == KeywordColon {
+        if lexer.token == KeywordColon || lexer.token == KeywordAt {
             break;
         }
 
@@ -999,6 +1007,55 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             ));
         }
     }
+
+    //See if there's an AT keyword
+    let address = if lexer.allow(&KeywordAt) {
+        let start_location = lexer.last_range.start;
+        //Look for a hardware address
+        if let HardwareAccess((direction, access_type)) = lexer.token {
+            lexer.advance();
+            //Folowed by an integer
+            if access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
+                let mut address = vec![];
+                if lexer.token == LiteralInteger {
+                    loop {
+                        let int = expressions_parser::parse_strict_literal_integer(lexer);
+                        match int {
+                            Ok(statement) => address.push(statement),
+                            Err(err) => {
+                                lexer.accept_diagnostic(err);
+                                break;
+                            }
+                        }
+                        if !lexer.allow(&KeywordDot) {
+                            break;
+                        }
+                    }
+                }
+                Some(AstStatement::HardwareAccess {
+                    access: access_type,
+                    direction,
+                    address,
+                    location: (start_location..lexer.last_range.end).into(),
+                    id: lexer.next_id(),
+                })
+            } else {
+                lexer.accept_diagnostic(Diagnostic::missing_token(
+                    "LiteralInteger",
+                    lexer.location(),
+                ));
+                None
+            }
+        } else {
+            lexer.accept_diagnostic(Diagnostic::missing_token(
+                "Hardware Access",
+                lexer.location(),
+            ));
+            None
+        }
+    } else {
+        None
+    };
 
     // colon has to come before the data type
     if !lexer.allow(&KeywordColon) {
@@ -1017,6 +1074,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
                 data_type: data_type.clone(),
                 location,
                 initializer: initializer.clone(),
+                address: address.clone(),
             });
         }
     }

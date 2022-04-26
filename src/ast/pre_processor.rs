@@ -168,7 +168,7 @@ fn build_enum_initializer(
     last_name: &Option<String>,
     location: &SourceRange,
     id_provider: &mut IdProvider,
-    enum_name: &mut String,
+    enum_name: &mut str,
 ) -> AstStatement {
     if let Some(last_element) = last_name.as_ref() {
         // generate a `enum#last + 1` statement

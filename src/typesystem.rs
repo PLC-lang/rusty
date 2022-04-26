@@ -1,8 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::{mem::size_of, ops::Range};
+use std::{
+    mem::size_of,
+    ops::{Range, RangeInclusive},
+};
 
 use crate::{
-    ast::{AstStatement, GenericBinding, Operator, PouType, TypeNature},
+    ast::{AstStatement, GenericBinding, LinkageType, Operator, PouType, TypeNature},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -26,16 +29,19 @@ pub type NativeRealType = f32;
 pub type NativeLrealType = f64;
 
 //TODO should we change this to usize?
-pub const BOOL_SIZE: u32 = 1;
-pub const BYTE_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
-pub const SINT_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
-pub const INT_SIZE: u32 = (size_of::<NativeIntType>() * 8) as u32;
-pub const DINT_SIZE: u32 = (size_of::<NativeDintType>() * 8) as u32;
-pub const LINT_SIZE: u32 = (size_of::<NativeLintType>() * 8) as u32;
+pub const U1_SIZE: u32 = 1;
+pub const BOOL_SIZE: u32 = BYTE_SIZE;
+pub const BYTE_SIZE: u32 = NativeSintType::BITS as u32;
+pub const SINT_SIZE: u32 = NativeSintType::BITS as u32;
+pub const INT_SIZE: u32 = NativeIntType::BITS as u32;
+pub const DINT_SIZE: u32 = NativeDintType::BITS as u32;
+pub const LINT_SIZE: u32 = NativeLintType::BITS as u32;
 pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
 pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
 pub const DATE_TIME_SIZE: u32 = 64;
 
+pub const U1_TYPE: &str = "__U1";
+/// used internally for forced casts to u1
 pub const BOOL_TYPE: &str = "BOOL";
 pub const BYTE_TYPE: &str = "BYTE";
 pub const SINT_TYPE: &str = "SINT";
@@ -63,10 +69,6 @@ pub const STRING_TYPE: &str = "STRING";
 pub const WSTRING_TYPE: &str = "WSTRING";
 pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
-
-pub const CONST_STRING_TYPE: &str = "___CONST_STRING";
-pub const CONST_WSTRING_TYPE: &str = "___CONST_WSTRING";
-
 pub const VOID_TYPE: &str = "VOID";
 
 #[cfg(test)]
@@ -117,14 +119,14 @@ impl StringEncoding {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TypeSize {
-    LiteralInteger(u32),
+    LiteralInteger(i64),
     ConstExpression(ConstId),
 }
 
 impl TypeSize {
-    pub fn from_literal(v: u32) -> TypeSize {
+    pub fn from_literal(v: i64) -> TypeSize {
         TypeSize::LiteralInteger(v)
     }
 
@@ -135,7 +137,7 @@ impl TypeSize {
     /// tries to compile-time evaluate the size-expression to an i64
     pub fn as_int_value(&self, index: &Index) -> Result<i64, String> {
         match self {
-            TypeSize::LiteralInteger(v) => Ok(*v as i64),
+            TypeSize::LiteralInteger(v) => Ok(*v),
             TypeSize::ConstExpression(id) => index
                 .get_const_expressions()
                 .get_constant_int_statement_value(id)
@@ -162,37 +164,43 @@ pub enum StructSource {
     Pou(PouType),
 }
 
+type TypeId = String;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataTypeInformation {
     Struct {
-        name: String,
+        name: TypeId,
         member_names: Vec<String>,
         varargs: Option<VarArgs>,
         source: StructSource,
         generics: Vec<GenericBinding>,
+        linkage: LinkageType,
     },
     Array {
-        name: String,
-        inner_type_name: String,
+        name: TypeId,
+        inner_type_name: TypeId,
         dimensions: Vec<Dimension>,
     },
     Pointer {
-        name: String,
-        inner_type_name: String,
+        name: TypeId,
+        inner_type_name: TypeId,
         auto_deref: bool,
     },
     Integer {
-        name: String,
+        name: TypeId,
         signed: bool,
+        /// the number of bit stored in memory
         size: u32,
+        /// the numer of bits represented by this type (may differ from the num acutally stored)
+        semantic_size: Option<u32>,
     },
     Enum {
-        name: String,
-        referenced_type: String,
+        name: TypeId,
+        referenced_type: TypeId,
         elements: Vec<String>,
     },
     Float {
-        name: String,
+        name: TypeId,
         size: u32,
     },
     String {
@@ -200,16 +208,16 @@ pub enum DataTypeInformation {
         encoding: StringEncoding,
     },
     SubRange {
-        name: String,
-        referenced_type: String,
+        name: TypeId,
+        referenced_type: TypeId,
         sub_range: Range<AstStatement>,
     },
     Alias {
-        name: String,
-        referenced_type: String,
+        name: TypeId,
+        referenced_type: TypeId,
     },
     Generic {
-        name: String,
+        name: TypeId,
         generic_symbol: String,
         nature: TypeNature,
     },
@@ -256,6 +264,16 @@ impl DataTypeInformation {
         matches!(
             self,
             DataTypeInformation::Integer { .. } | DataTypeInformation::Enum { .. }
+        )
+    }
+
+    pub fn is_bool(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Integer {
+                semantic_size: Some(1),
+                ..
+            }
         )
     }
 
@@ -322,6 +340,19 @@ impl DataTypeInformation {
         }
     }
 
+    /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
+    pub fn get_semantic_size(&self) -> u32 {
+        if let DataTypeInformation::Integer {
+            semantic_size: Some(s),
+            ..
+        } = self
+        {
+            return *s;
+        }
+        self.get_size()
+    }
+
+    /// returns the number of bits used to store this type
     pub fn get_size(&self) -> u32 {
         match self {
             DataTypeInformation::Integer { size, .. } => *size,
@@ -345,9 +376,19 @@ impl DataTypeInformation {
             _ => unimplemented!("Alignment for {}", self.get_name()),
         }
     }
+
+    pub fn is_builtin(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct {
+                linkage: LinkageType::BuiltIn,
+                ..
+            }
+        )
+    }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Dimension {
     pub start_offset: TypeSize,
     pub end_offset: TypeSize,
@@ -358,6 +399,18 @@ impl Dimension {
         let end = self.end_offset.as_int_value(index)?;
         let start = self.start_offset.as_int_value(index)?;
         Ok((end - start + 1) as u32)
+    }
+
+    pub fn get_range(&self, index: &Index) -> Result<Range<i128>, String> {
+        let start = self.start_offset.as_int_value(index)? as i128;
+        let end = self.end_offset.as_int_value(index)? as i128;
+        Ok(start..end)
+    }
+
+    pub fn get_range_inclusive(&self, index: &Index) -> Result<RangeInclusive<i64>, String> {
+        let start = self.start_offset.as_int_value(index)?;
+        let end = self.end_offset.as_int_value(index)?;
+        Ok(start..=end)
     }
 }
 
@@ -392,12 +445,24 @@ pub fn get_builtin_types() -> Vec<DataType> {
             nature: TypeNature::Any,
         },
         DataType {
+            name: U1_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: U1_TYPE.into(),
+                signed: false,
+                size: U1_SIZE,
+                semantic_size: None,
+            },
+            nature: TypeNature::Any,
+        },
+        DataType {
             name: BOOL_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
                 name: BOOL_TYPE.into(),
                 signed: false,
                 size: BOOL_SIZE,
+                semantic_size: Some(1),
             },
             nature: TypeNature::Bit,
         },
@@ -408,6 +473,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: BYTE_TYPE.into(),
                 signed: false,
                 size: BYTE_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Bit,
         },
@@ -418,6 +484,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SINT_TYPE.into(),
                 signed: true,
                 size: SINT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Signed,
         },
@@ -428,6 +495,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: USINT_TYPE.into(),
                 signed: false,
                 size: SINT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Unsigned,
         },
@@ -438,6 +506,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: WORD_TYPE.into(),
                 signed: false,
                 size: INT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Bit,
         },
@@ -448,6 +517,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: INT_TYPE.into(),
                 signed: true,
                 size: INT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Signed,
         },
@@ -458,6 +528,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: UINT_TYPE.into(),
                 signed: false,
                 size: INT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Unsigned,
         },
@@ -468,6 +539,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: DWORD_TYPE.into(),
                 signed: false,
                 size: DINT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Bit,
         },
@@ -478,6 +550,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: DINT_TYPE.into(),
                 signed: true,
                 size: DINT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Signed,
         },
@@ -488,6 +561,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: UDINT_TYPE.into(),
                 signed: false,
                 size: DINT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Unsigned,
         },
@@ -498,6 +572,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: LWORD_TYPE.into(),
                 signed: false,
                 size: LINT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Bit,
         },
@@ -508,6 +583,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: LINT_TYPE.into(),
                 signed: true,
                 size: LINT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Signed,
         },
@@ -518,6 +594,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: DATE_TYPE.into(),
                 signed: true,
                 size: DATE_TIME_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Date,
         },
@@ -528,6 +605,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: TIME_TYPE.into(),
                 signed: true,
                 size: DATE_TIME_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Duration,
         },
@@ -538,6 +616,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: DATE_AND_TIME_TYPE.into(),
                 signed: true,
                 size: DATE_TIME_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Date,
         },
@@ -548,6 +627,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: TIME_OF_DAY_TYPE.into(),
                 signed: true,
                 size: DATE_TIME_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Date,
         },
@@ -558,6 +638,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: ULINT_TYPE.into(),
                 signed: false,
                 size: LINT_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Unsigned,
         },
@@ -583,7 +664,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: STRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
-                size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
+                size: TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
                 encoding: StringEncoding::Utf8,
             },
             nature: TypeNature::String,
@@ -592,25 +673,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: WSTRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
-                size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
-                encoding: StringEncoding::Utf16,
-            },
-            nature: TypeNature::String,
-        },
-        DataType {
-            name: CONST_STRING_TYPE.into(),
-            initial_value: None,
-            information: DataTypeInformation::String {
-                size: TypeSize::from_literal(u16::MAX as u32),
-                encoding: StringEncoding::Utf8,
-            },
-            nature: TypeNature::String,
-        },
-        DataType {
-            name: CONST_WSTRING_TYPE.into(),
-            initial_value: None,
-            information: DataTypeInformation::String {
-                size: TypeSize::from_literal(u16::MAX as u32),
+                size: TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
                 encoding: StringEncoding::Utf16,
             },
             nature: TypeNature::String,
@@ -658,6 +721,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: CHAR_TYPE.into(),
                 signed: false,
                 size: 8,
+                semantic_size: None,
             },
             nature: TypeNature::Char,
         },
@@ -668,6 +732,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: WCHAR_TYPE.into(),
                 signed: false,
                 size: 16,
+                semantic_size: None,
             },
             nature: TypeNature::Char,
         },
@@ -685,7 +750,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         }
         DataTypeInformation::Float { size, .. } => size + 1000,
         DataTypeInformation::String { size, .. } => match size {
-            TypeSize::LiteralInteger(size) => *size,
+            TypeSize::LiteralInteger(size) => (*size).try_into().unwrap(),
             TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
         },
         DataTypeInformation::Enum {

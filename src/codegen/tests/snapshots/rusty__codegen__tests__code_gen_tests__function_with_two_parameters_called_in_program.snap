@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1365
 expression: result
 
 ---
@@ -7,7 +8,7 @@ expression: result
 source_filename = "main"
 
 %prg_interface = type { i32 }
-%foo_interface = type { i32, i1 }
+%foo_interface = type { i32, i8 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
@@ -16,6 +17,7 @@ entry:
   %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
   %foo = alloca i32, align 4
+  store i32 0, i32* %foo, align 4
   store i32 1, i32* %foo, align 4
   %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
@@ -25,24 +27,12 @@ define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
   store i32 2, i32* %1, align 4
   %2 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 1
-  store i1 true, i1* %2, align 1
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i32 @foo(%foo_interface* %foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  store i32 %call1, i32* %x, align 4
+  store i8 1, i8* %2, align 1
+  %call = call i32 @foo(%foo_interface* %foo_instance)
+  store i32 %call, i32* %x, align 4
   ret void
 }
 

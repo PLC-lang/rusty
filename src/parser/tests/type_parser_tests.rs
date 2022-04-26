@@ -30,6 +30,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                     Variable {
@@ -39,6 +40,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                     Variable {
@@ -48,6 +50,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                 ),
@@ -306,6 +309,7 @@ fn subrangetype_can_be_parsed() {
             scope: None,
         },
         initializer: None,
+        address: None,
         location: (0..0).into(),
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
@@ -446,6 +450,7 @@ fn global_pointer_declaration() {
             scope: None,
         },
         initializer: None,
+        address: None,
         location: (0..0).into(),
     };
     assert_eq!(
@@ -467,6 +472,7 @@ fn global_pointer_declaration() {
             scope: None,
         },
         initializer: None,
+        address: None,
         location: (0..0).into(),
     };
     assert_eq!(

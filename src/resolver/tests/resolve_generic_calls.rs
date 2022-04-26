@@ -3,7 +3,7 @@ use crate::{
     ast::{self, AstStatement},
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::index,
-    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE},
+    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, LWORD_TYPE, REAL_TYPE},
 };
 
 #[test]
@@ -25,7 +25,7 @@ fn resolved_generic_call_added_to_index() {
             myFunc(1.0);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     //The implementations are added to the index
     let implementations = annotations.new_index.get_implementations();
     assert_eq!(3, implementations.len());
@@ -50,6 +50,14 @@ fn resolved_generic_call_added_to_index() {
             .get_type_name()
     );
     assert_eq!(
+        "INT",
+        annotations
+            .new_index
+            .find_member("myfunc__int", "myfunc__int")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
         "DINT",
         annotations
             .new_index
@@ -58,10 +66,26 @@ fn resolved_generic_call_added_to_index() {
             .get_type_name()
     );
     assert_eq!(
+        "DINT",
+        annotations
+            .new_index
+            .find_member("myfunc__dint", "myfunc__dint")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
         "REAL",
         annotations
             .new_index
             .find_member("myfunc__real", "x")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
+        "REAL",
+        annotations
+            .new_index
+            .find_member("myfunc__real", "myfunc__real")
             .unwrap()
             .get_type_name()
     );
@@ -86,7 +110,7 @@ fn generic_call_annotated_with_correct_type() {
             myFunc(1.0);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     let call = &unit.implementations[1].statements[0];
 
     //The return type should have the correct type
@@ -180,7 +204,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
             myFunc(1.0, 2, BYTE#2);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     let call = &unit.implementations[1].statements[0];
 
@@ -311,7 +335,7 @@ fn call_order_of_parameters_does_not_change_annotations() {
             myFunc(z := c, y := b, x := a);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     fn get_parameter_with_name<'a>(
         parameters_list: &[&'a AstStatement],
@@ -388,7 +412,7 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
             myFunc(z := c, y := b, x := a);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     fn get_parameter_with_name<'a>(
         parameters_list: &[&'a AstStatement],
@@ -449,4 +473,50 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
             }
         }
     }
+}
+
+#[test]
+fn builtin_generic_functions_do_not_get_specialized_calls() {
+    let (unit, index) = index(
+        "
+        PROGRAM PRG
+            VAR
+                a : INT;
+            END_VAR
+            ADR(x := a);
+            ADR(6);
+            ADR(1.0);
+            REF(x := a);
+            REF(6);
+            REF(1.0);
+        END_PROGRAM",
+    );
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    //The implementations are not added to the index
+    let implementations = annotations.new_index.get_implementations();
+    assert!(!implementations.contains_key("adr__int"));
+    assert!(!implementations.contains_key("adr__dint"));
+    assert!(!implementations.contains_key("adr__real"));
+    assert!(!implementations.contains_key("ref__int"));
+    assert!(!implementations.contains_key("ref__dint"));
+    assert!(!implementations.contains_key("ref__real"));
+
+    //The pous are not added to the index
+    let pous = annotations.new_index.get_pou_types();
+    assert!(!pous.contains_key("adr__int"));
+    assert!(!pous.contains_key("adr__dint"));
+    assert!(!pous.contains_key("adr__real"));
+    assert!(!pous.contains_key("ref__int"));
+    assert!(!pous.contains_key("ref__dint"));
+    assert!(!pous.contains_key("ref__real"));
+
+    let call = &unit.implementations[0].statements[0];
+
+    //The return type should have the correct type
+    assert_type_and_hint!(&annotations, &index, call, LWORD_TYPE, None);
+
+    let call = &unit.implementations[0].statements[1];
+
+    //The return type should have the correct type
+    assert_type_and_hint!(&annotations, &index, call, LWORD_TYPE, None);
 }

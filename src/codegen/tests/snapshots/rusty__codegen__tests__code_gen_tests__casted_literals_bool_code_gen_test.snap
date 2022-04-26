@@ -1,22 +1,23 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 282
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i1 }
+%prg_interface = type { i8 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
 define void @prg(%prg_interface* %0) {
 entry:
   %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  store i1 true, i1* %z, align 1
-  store i1 false, i1* %z, align 1
-  store i1 true, i1* %z, align 1
-  store i1 false, i1* %z, align 1
+  store i8 1, i8* %z, align 1
+  store i8 0, i8* %z, align 1
+  store i8 1, i8* %z, align 1
+  store i8 0, i8* %z, align 1
   ret void
 }
 

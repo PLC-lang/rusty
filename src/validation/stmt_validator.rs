@@ -6,9 +6,9 @@ use crate::{
     index::{VariableIndexEntry, VariableType},
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{
-        DataType, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
-        INT_TYPE, LINT_TYPE, LREAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
+        DataType, DataTypeInformation, Dimension, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE,
+        DINT_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE,
+        TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
     },
     Diagnostic,
 };
@@ -47,6 +47,30 @@ impl StatementValidator {
                 ..
             } => {
                 self.validate_cast_literal(target, type_name, location, context);
+            }
+            AstStatement::ArrayAccess {
+                reference, access, ..
+            } => {
+                let target_type = context
+                    .ast_annotation
+                    .get_type_or_void(reference, context.index)
+                    .get_type_information();
+
+                if let DataTypeInformation::Array { dimensions, .. } = target_type {
+                    if let AstStatement::ExpressionList { expressions, .. } = access.as_ref() {
+                        for (i, exp) in expressions.iter().enumerate() {
+                            self.validate_array_access(exp, dimensions, i, context);
+                        }
+                    } else {
+                        self.validate_array_access(access.as_ref(), dimensions, 0, context);
+                    }
+                } else {
+                    self.diagnostics
+                        .push(Diagnostic::incompatible_array_access_variable(
+                            target_type.get_name(),
+                            access.get_location(),
+                        ));
+                }
             }
             AstStatement::QualifiedReference { elements, .. } => {
                 let mut i = elements.iter().rev();
@@ -275,6 +299,42 @@ impl StatementValidator {
         }
     }
 
+    fn validate_array_access(
+        &mut self,
+        access: &AstStatement,
+        dimensions: &[Dimension],
+        dimension_index: usize,
+        context: &ValidationContext,
+    ) {
+        if let AstStatement::LiteralInteger { value, .. } = access {
+            let dimension = dimensions.get(dimension_index);
+            if let Some(dimension) = dimension {
+                let range = dimension.get_range(context.index);
+                if let Ok(range) = range {
+                    if !(&range.start <= value && &range.end >= value) {
+                        self.diagnostics
+                            .push(Diagnostic::incompatible_array_access_range(
+                                range,
+                                access.get_location(),
+                            ))
+                    }
+                }
+            }
+        } else {
+            let type_info = context
+                .ast_annotation
+                .get_type_or_void(access, context.index)
+                .get_type_information();
+            if !type_info.is_int() {
+                self.diagnostics
+                    .push(Diagnostic::incompatible_array_access_type(
+                        type_info.get_name(),
+                        access.get_location(),
+                    ))
+            }
+        }
+    }
+
     fn validate_reference(
         &mut self,
         id: &usize,
@@ -338,7 +398,7 @@ impl StatementValidator {
             //see if target and cast_type are compatible
         } else if cast_type.is_int() && literal_type.is_int() {
             //INTs with INTs
-            if cast_type.get_size() < literal_type.get_size() {
+            if cast_type.get_semantic_size() < literal_type.get_semantic_size() {
                 self.diagnostics.push(Diagnostic::literal_out_of_range(
                     StatementValidator::get_literal_value(literal).as_str(),
                     cast_type.get_name(),

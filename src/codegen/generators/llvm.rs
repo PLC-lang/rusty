@@ -17,6 +17,43 @@ pub struct Llvm<'a> {
     pub builder: Builder<'a>,
 }
 
+pub trait GlobalValueExt {
+    fn make_constant(self) -> Self;
+    fn make_external(self) -> Self;
+    fn set_initial_value(
+        self,
+        initial_value: Option<BasicValueEnum>,
+        data_type: BasicTypeEnum,
+    ) -> Self;
+}
+
+impl<'ink> GlobalValueExt for GlobalValue<'ink> {
+    fn make_constant(self) -> Self {
+        self.set_constant(true);
+        self.set_unnamed_addr(true);
+        self
+    }
+
+    fn make_external(self) -> Self {
+        self.set_linkage(Linkage::AvailableExternally);
+        self
+    }
+
+    fn set_initial_value(
+        self,
+        initial_value: Option<BasicValueEnum>,
+        data_type: BasicTypeEnum,
+    ) -> Self {
+        if let Some(initializer) = initial_value {
+            let v = &initializer as &dyn BasicValue;
+            self.set_initializer(v);
+        } else {
+            Llvm::set_const_zero_initializer(&self, data_type);
+        };
+        self
+    }
+}
+
 impl<'a> Llvm<'a> {
     /// constructs a new LLVM struct
     pub fn new(context: &'a Context, builder: Builder<'a>) -> Llvm<'a> {
@@ -35,32 +72,10 @@ impl<'a> Llvm<'a> {
         module: &Module<'a>,
         name: &str,
         data_type: BasicTypeEnum<'a>,
-        initial_value: Option<BasicValueEnum<'a>>,
     ) -> GlobalValue<'a> {
         let global = module.add_global(data_type, None, name);
-
-        if let Some(initializer) = initial_value {
-            let v = &initializer as &dyn BasicValue;
-            global.set_initializer(v);
-        } else {
-            Self::set_const_zero_initializer(&global, data_type);
-        }
         global.set_thread_local_mode(None);
         global.set_linkage(Linkage::External);
-        global
-    }
-
-    /// Creates a global constant with an unnamed address
-    pub fn create_constant_global_variable(
-        &self,
-        module: &Module<'a>,
-        name: &str,
-        data_type: BasicTypeEnum<'a>,
-        initial_value: Option<BasicValueEnum<'a>>,
-    ) -> GlobalValue<'a> {
-        let global = self.create_global_variable(module, name, data_type, initial_value);
-        global.set_constant(true);
-        global.set_unnamed_addr(true);
         global
     }
 
@@ -160,7 +175,12 @@ impl<'a> Llvm<'a> {
     /// - `value` the value of the constant bool value
     pub fn create_const_bool(&self, value: bool) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let itype = self.context.bool_type();
-        let value = itype.const_int(value as u64, false);
+
+        let value = if value {
+            itype.const_all_ones()
+        } else {
+            itype.const_zero()
+        };
         Ok(BasicValueEnum::IntValue(value))
     }
 
@@ -200,17 +220,33 @@ impl<'a> Llvm<'a> {
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf8_string(&self, value: &str) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        self.create_llvm_const_vec_string(value.as_bytes())
+    pub fn create_const_utf8_string(
+        &self,
+        value: &str,
+        len: usize,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        let mut utf8_chars = value.as_bytes()[..std::cmp::min(value.len(), len - 1)].to_vec();
+        //fill the 0 terminators
+        while utf8_chars.len() < len {
+            utf8_chars.push(0);
+        }
+        self.create_llvm_const_vec_string(utf8_chars.as_slice())
     }
 
     /// create a constant utf16 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf16_string(&self, value: &str) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    /// - `len` the len of the string, the literal will be right-padded with 0-bytes to match the length
+    pub fn create_const_utf16_string(
+        &self,
+        value: &str,
+        len: usize,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let mut utf16_chars: Vec<u16> = value.encode_utf16().collect();
-        //it only contains a single NUL-terminator-byte so we add a second one
-        utf16_chars.push(0);
+        //fill the 0 terminators
+        while utf16_chars.len() < len {
+            utf16_chars.push(0);
+        }
         self.create_llvm_const_utf16_vec_string(utf16_chars.as_slice())
     }
 
@@ -235,8 +271,12 @@ impl<'a> Llvm<'a> {
         &self,
         value: &[u8],
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let exp_value = self.context.const_string(value, true);
-        Ok(BasicValueEnum::VectorValue(exp_value))
+        let values: Vec<IntValue> = value
+            .iter()
+            .map(|it| self.context.i8_type().const_int(*it as u64, false))
+            .collect();
+        let vector = self.context.i8_type().const_array(&values);
+        Ok(BasicValueEnum::ArrayValue(vector))
     }
 
     /// create a constant i8 character (IntValue) with the given value

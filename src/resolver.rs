@@ -5,7 +5,7 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use indexmap::IndexMap;
 
@@ -14,13 +14,13 @@ pub mod const_evaluator;
 use crate::{
     ast::{
         self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
-        Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+        LinkageType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
-        self, get_bigger_type, DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE,
-        CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE,
-        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
+        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -60,6 +60,9 @@ struct VisitorContext<'s> {
     /// e.g. true for `x` if x is declared in a constant block
     /// e.g. true for `a.b.c` if either a,b or c is declared in a constant block
     constant: bool,
+
+    /// true the visitor entered a body (so no declarations)
+    in_body: bool,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -70,6 +73,7 @@ impl<'s> VisitorContext<'s> {
             qualifier: Some(qualifier),
             call: self.call,
             constant: false,
+            in_body: self.in_body,
         }
     }
 
@@ -80,6 +84,7 @@ impl<'s> VisitorContext<'s> {
             qualifier: self.qualifier.clone(),
             call: self.call,
             constant: false,
+            in_body: self.in_body,
         }
     }
 
@@ -90,13 +95,30 @@ impl<'s> VisitorContext<'s> {
             qualifier: self.qualifier.clone(),
             call: Some(lhs_pou),
             constant: false,
+            in_body: self.in_body,
         }
+    }
+
+    // returns a copy of the current context and sets the in_body field to true
+    fn enter_body(&self) -> Self {
+        VisitorContext {
+            pou: self.pou,
+            qualifier: self.qualifier.clone(),
+            call: self.call,
+            constant: self.constant,
+            in_body: true,
+        }
+    }
+
+    fn is_in_a_body(&self) -> bool {
+        self.in_body
     }
 }
 
 pub struct TypeAnnotator<'i> {
     index: &'i Index,
     annotation_map: AnnotationMapImpl,
+    string_literals: StringLiterals,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -122,9 +144,16 @@ pub enum StatementAnnotation {
 }
 
 impl StatementAnnotation {
-    pub fn value(type_name: &str) -> StatementAnnotation {
+    /// constructs a new StatementAnnotation::Value with the given type_name
+    /// this is a convinience method to take a &str and clones it itself
+    pub fn value(type_name: &str) -> Self {
+        StatementAnnotation::new_value(type_name.to_string())
+    }
+
+    /// constructs a new StatementAnnotation::Value with the given type_name
+    pub fn new_value(type_name: String) -> Self {
         StatementAnnotation::Value {
-            resulting_type: type_name.to_string(),
+            resulting_type: type_name,
         }
     }
 }
@@ -148,12 +177,20 @@ pub trait AnnotationMap {
 
     fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation>;
 
-    fn get_type_or_void<'i>(&self, s: &AstStatement, index: &'i Index) -> &'i typesystem::DataType {
+    fn get_type_or_void<'i>(
+        &'i self,
+        s: &AstStatement,
+        index: &'i Index,
+    ) -> &'i typesystem::DataType {
         self.get_type(s, index)
             .unwrap_or_else(|| index.get_void_type())
     }
 
-    fn get_hint_or_void<'i>(&self, s: &AstStatement, index: &'i Index) -> &'i typesystem::DataType {
+    fn get_hint_or_void<'i>(
+        &'i self,
+        s: &AstStatement,
+        index: &'i Index,
+    ) -> &'i typesystem::DataType {
         self.get_type_hint(s, index)
             .unwrap_or_else(|| index.get_void_type())
     }
@@ -167,7 +204,11 @@ pub trait AnnotationMap {
             .and_then(|it| get_type_for_annotation(index, it))
     }
 
-    fn get_type<'i>(&self, s: &AstStatement, index: &'i Index) -> Option<&'i typesystem::DataType> {
+    fn get_type<'i>(
+        &'i self,
+        s: &AstStatement,
+        index: &'i Index,
+    ) -> Option<&'i typesystem::DataType> {
         self.get(s)
             .and_then(|it| get_type_for_annotation(index, it))
     }
@@ -183,6 +224,8 @@ pub trait AnnotationMap {
             Some(StatementAnnotation::Variable { resulting_type, .. }) => {
                 Some(resulting_type.as_str())
             }
+            // this is used for call statements on array access
+            Some(StatementAnnotation::Value { resulting_type }) => Some(resulting_type.as_str()),
             _ => None,
         }
     }
@@ -291,6 +334,30 @@ impl AnnotationMap for AnnotationMapImpl {
     fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
         self.type_hint_map.get(&s.get_id())
     }
+
+    fn get_type<'i>(
+        &'i self,
+        s: &AstStatement,
+        index: &'i Index,
+    ) -> Option<&'i typesystem::DataType> {
+        self.get(s).and_then(|it| {
+            get_type_for_annotation(index, it)
+                .or_else(|| get_type_for_annotation(&self.new_index, it))
+        })
+    }
+}
+
+#[derive(Default)]
+pub struct StringLiterals {
+    pub utf08: HashSet<String>,
+    pub utf16: HashSet<String>,
+}
+
+impl StringLiterals {
+    pub fn import(&mut self, other: StringLiterals) {
+        self.utf08.extend(other.utf08);
+        self.utf16.extend(other.utf16);
+    }
 }
 
 impl<'i> TypeAnnotator<'i> {
@@ -299,18 +366,26 @@ impl<'i> TypeAnnotator<'i> {
         TypeAnnotator {
             annotation_map: AnnotationMapImpl::new(),
             index,
+            string_literals: StringLiterals {
+                utf08: HashSet::new(),
+                utf16: HashSet::new(),
+            },
         }
     }
 
     /// annotates the given AST elements with the type-name resulting for the statements/expressions.
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
-    pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> AnnotationMapImpl {
+    pub fn visit_unit(
+        index: &Index,
+        unit: &'i CompilationUnit,
+    ) -> (AnnotationMapImpl, StringLiterals) {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
             call: None,
             constant: false,
+            in_body: false,
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -325,10 +400,11 @@ impl<'i> TypeAnnotator<'i> {
             visitor.visit_user_type_declaration(t, ctx);
         }
 
+        let body_ctx = ctx.enter_body();
         for i in &unit.implementations {
             i.statements
                 .iter()
-                .for_each(|s| visitor.visit_statement(&ctx.with_pou(i.name.as_str()), s));
+                .for_each(|s| visitor.visit_statement(&body_ctx.with_pou(i.name.as_str()), s));
         }
 
         // enum initializers may have been introduced by the visitor (indexer)
@@ -346,7 +422,7 @@ impl<'i> TypeAnnotator<'i> {
             }
         }
 
-        visitor.annotation_map
+        (visitor.annotation_map, visitor.string_literals)
     }
 
     fn visit_user_type_declaration(
@@ -394,13 +470,14 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(t) = self
             .annotation_map
             .get_type(annotated_left_side, self.index)
+            .cloned()
         {
             //annotate the right-hand side as a whole
             self.annotation_map
                 .annotate_type_hint(right_side, StatementAnnotation::value(t.get_name()));
 
             //dive into the right hand side
-            self.update_expected_types(t, right_side);
+            self.update_expected_types(&t, right_side);
         }
     }
 
@@ -672,10 +749,10 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 self.visit_statement(ctx, selector);
-                let selector_type = self.annotation_map.get_type(selector, self.index);
+                let selector_type = self.annotation_map.get_type(selector, self.index).cloned();
                 case_blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
-                    if let Some(selector_type) = selector_type {
+                    if let Some(selector_type) = &selector_type {
                         self.update_expected_types(selector_type, b.condition.as_ref());
                     }
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
@@ -702,6 +779,7 @@ impl<'i> TypeAnnotator<'i> {
                         constant: false,
                         pou: ctx.pou,
                         qualifier: None,
+                        in_body: ctx.in_body,
                     },
                     access,
                 );
@@ -709,17 +787,23 @@ impl<'i> TypeAnnotator<'i> {
                     .annotation_map
                     .get_type_or_void(reference, self.index)
                     .get_type_information();
-                if let DataTypeInformation::Array {
+                let inner_type_name = if let DataTypeInformation::Array {
                     inner_type_name, ..
                 } = array_type
                 {
-                    let t = self
-                        .index
-                        .get_effective_type_by_name(inner_type_name)
-                        .get_name();
+                    Some(
+                        self.index
+                            .get_effective_type_by_name(inner_type_name)
+                            .get_name()
+                            .to_string(),
+                    )
+                } else {
+                    None
+                };
 
+                if let Some(inner_type_name) = inner_type_name {
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(t));
+                        .annotate(statement, StatementAnnotation::new_value(inner_type_name));
                 }
             }
             AstStatement::PointerAccess { reference, .. } => {
@@ -771,6 +855,9 @@ impl<'i> TypeAnnotator<'i> {
                             resulting_type: DWORD_TYPE.into(),
                         },
                     ),
+                    crate::ast::DirectAccessType::Template => {
+                        unreachable!("Templates cannot occur in direct access")
+                    }
                 }
             }
             AstStatement::BinaryExpression {
@@ -780,61 +867,110 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 visit_all_statements!(self, ctx, left, right);
-                let left_type = self.annotation_map.get_type_or_void(left, self.index);
-                let right_type = self.annotation_map.get_type_or_void(right, self.index);
+                let statement_type = {
+                    let left_type = self
+                        .annotation_map
+                        .get_type_hint(left, self.index)
+                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(left, self.index));
+                    let right_type = self
+                        .annotation_map
+                        .get_type_hint(right, self.index)
+                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(right, self.index));
 
-                if left_type.get_type_information().is_numerical()
-                    && right_type.get_type_information().is_numerical()
-                {
-                    let dint = self.index.get_type_or_panic(DINT_TYPE);
-                    let bigger_type = get_bigger_type(
-                        get_bigger_type(left_type, right_type, self.index),
-                        dint,
-                        self.index,
-                    );
-                    if bigger_type != left_type {
-                        self.update_expected_types(bigger_type, left);
-                    }
-                    if bigger_type != right_type {
-                        self.update_expected_types(bigger_type, right);
-                    }
+                    if left_type.get_type_information().is_numerical()
+                        && right_type.get_type_information().is_numerical()
+                    {
+                        let bigger_type = if left_type.get_type_information().is_bool()
+                            && right_type.get_type_information().is_bool()
+                        {
+                            left_type
+                        } else {
+                            let dint = self.index.get_type_or_panic(DINT_TYPE);
+                            get_bigger_type(
+                                get_bigger_type(left_type, right_type, self.index),
+                                dint,
+                                self.index,
+                            )
+                        };
 
-                    let target_name = if operator.is_bool_type() {
-                        BOOL_TYPE
+                        let target_name = if operator.is_bool_type() {
+                            BOOL_TYPE.to_string()
+                        } else {
+                            bigger_type.get_name().to_string()
+                        };
+
+                        let bigger_is_left = bigger_type != right_type;
+                        let bigger_is_right = bigger_type != left_type;
+
+                        if bigger_is_left || bigger_is_right {
+                            // if these types are different we need to update the 'other' type's annotation
+                            let bigger_type = bigger_type.clone(); // clone here, so we release the borrow on self
+                            if bigger_is_right {
+                                self.update_expected_types(&bigger_type, left);
+                            }
+                            if bigger_is_left {
+                                self.update_expected_types(&bigger_type, right);
+                            }
+                        }
+
+                        Some(target_name)
+                    } else if operator.is_bool_type() {
+                        Some(BOOL_TYPE.to_string())
+                    } else if left_type.get_type_information().is_pointer()
+                        || right_type.get_type_information().is_pointer()
+                    {
+                        let target_name = if left_type.get_type_information().is_pointer() {
+                            left_type.get_name()
+                        } else {
+                            right_type.get_name()
+                        };
+                        Some(target_name.to_string())
                     } else {
-                        bigger_type.get_name()
-                    };
+                        None
+                    }
+                };
+
+                if let Some(statement_type) = statement_type {
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(target_name));
-                } else if operator.is_bool_type() {
-                    self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(BOOL_TYPE));
+                        .annotate(statement, StatementAnnotation::new_value(statement_type));
                 }
             }
             AstStatement::UnaryExpression {
                 value, operator, ..
             } => {
                 self.visit_statement(ctx, value);
-                let inner_type = self
-                    .annotation_map
-                    .get_type_or_void(value, self.index)
-                    .get_type_information();
-                if operator == &Operator::Minus {
+
+                let statement_type = if operator == &Operator::Minus {
+                    let inner_type = self
+                        .annotation_map
+                        .get_type_or_void(value, self.index)
+                        .get_type_information();
+
                     //keep the same type but switch to signed
-                    if let Some(target) = typesystem::get_signed_type(inner_type, self.index) {
-                        self.annotation_map
-                            .annotate(statement, StatementAnnotation::value(target.get_name()));
-                    }
-                } else if operator == &Operator::Address {
-                    //this becomes a pointer to the given type:
-                    let pointer_type_name =
-                        add_pointer_type(&mut self.annotation_map.new_index, inner_type);
-                    self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(&pointer_type_name));
+                    typesystem::get_signed_type(inner_type, self.index)
+                        .map(|it| it.get_name().to_string())
                 } else {
-                    //TODO: The adderss operator should report a correct pointer type. We need to have reproducable type names for that first.
+                    let inner_type = self
+                        .annotation_map
+                        .get_type_or_void(value, self.index)
+                        .get_type_information()
+                        .get_name()
+                        .to_string();
+
+                    if operator == &Operator::Address {
+                        //this becomes a pointer to the given type:
+                        Some(add_pointer_type(
+                            &mut self.annotation_map.new_index,
+                            inner_type,
+                        ))
+                    } else {
+                        Some(inner_type)
+                    }
+                };
+
+                if let Some(statement_type) = statement_type {
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(inner_type.get_name()));
+                        .annotate(statement, StatementAnnotation::new_value(statement_type));
                 }
             }
             AstStatement::Reference { name, .. } => {
@@ -1003,11 +1139,20 @@ impl<'i> TypeAnnotator<'i> {
                             }
                             None
                         }
+                        // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
+                        StatementAnnotation::Value { resulting_type } => {
+                            // make sure we come from an array access
+                            if let AstStatement::ArrayAccess { .. } = operator.as_ref() {
+                                return Some(resulting_type.clone());
+                            }
+                            None
+                        }
                         _ => None,
                     })
                     .unwrap_or_else(|| VOID_TYPE.to_string());
                 let ctx = ctx.with_call(operator_qualifier.as_str());
-                let mut generics_candidates: HashMap<&str, Vec<&str>> = HashMap::new();
+                let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
+                let mut params = vec![];
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
                     if let Some(s) = parameters.as_ref() {
@@ -1024,16 +1169,19 @@ impl<'i> TypeAnnotator<'i> {
                                     p,
                                 ) {
                                     generics_candidates
-                                        .entry(key)
+                                        .entry(key.to_string())
                                         .or_insert_with(std::vec::Vec::new)
-                                        .push(candidate);
+                                        .push(candidate.to_string());
                                 } else {
                                     //Don't do this for generics
-                                    self.annotate_parameters(*p, m.get_type_name());
+                                    params.push((*p, m.get_type_name().to_string()));
                                 }
                             }
                         }
                     }
+                }
+                for (p, name) in params {
+                    self.annotate_parameters(p, &name);
                 }
 
                 //Attempt to resolve the generic signature here
@@ -1061,26 +1209,29 @@ impl<'i> TypeAnnotator<'i> {
             } => {
                 //see if this type really exists
                 let data_type = self.index.find_effective_type_info(type_name);
-                if let Some(DataTypeInformation::Enum { name, .. }) = data_type {
-                    //enum cast
-                    self.visit_statement(&ctx.with_qualifier(name.to_string()), target);
-                    //use the type of the target
-                    let type_name = self
-                        .annotation_map
-                        .get_type_or_void(target, self.index)
-                        .get_name();
+                let statement_to_annotation =
+                    if let Some(DataTypeInformation::Enum { name, .. }) = data_type {
+                        //enum cast
+                        self.visit_statement(&ctx.with_qualifier(name.to_string()), target);
+                        //use the type of the target
+                        let type_name = self
+                            .annotation_map
+                            .get_type_or_void(target, self.index)
+                            .get_name();
+                        vec![(statement, type_name.to_string())]
+                    } else if let Some(t) = data_type {
+                        vec![
+                            (statement, t.get_name().to_string()),
+                            (target, t.get_name().to_string()),
+                        ]
+                    } else {
+                        //unknown type? what should we do here?
+                        self.visit_statement(ctx, target);
+                        vec![]
+                    };
+                for (stmt, annotation) in statement_to_annotation {
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(type_name));
-                } else if let Some(t) = data_type {
-                    //different cast
-                    self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(t.get_name()));
-                    //overwrite the existing annotation
-                    self.annotation_map
-                        .annotate(target, StatementAnnotation::value(t.get_name()))
-                } else {
-                    //unknown type? what should we do here?
-                    self.visit_statement(ctx, target);
+                        .annotate(stmt, StatementAnnotation::new_value(annotation));
                 }
             }
             _ => {
@@ -1091,7 +1242,7 @@ impl<'i> TypeAnnotator<'i> {
     // Returns a possible generic for the current statement
     fn get_generic_candidate<'idx>(
         index: &'idx Index,
-        annotation_map: &AnnotationMapImpl,
+        annotation_map: &'idx AnnotationMapImpl,
         member: &VariableIndexEntry,
         statement: &AstStatement,
     ) -> Option<(&'idx str, &'idx str)> {
@@ -1120,7 +1271,7 @@ impl<'i> TypeAnnotator<'i> {
     /// And reannotates the function with the found information
     fn update_generic_call_statement(
         &mut self,
-        generics_candidates: HashMap<&str, Vec<&str>>,
+        generics_candidates: HashMap<String, Vec<String>>,
         implementation_name: &str,
         operator: &AstStatement,
         parameters: &Option<AstStatement>,
@@ -1130,8 +1281,11 @@ impl<'i> TypeAnnotator<'i> {
             .index
             .get_effective_type_by_name(implementation_name)
             .get_type_information();
-        if let DataTypeInformation::Struct { generics, .. } = operator_type {
-            if !generics.is_empty() {
+        if let DataTypeInformation::Struct {
+            generics, linkage, ..
+        } = operator_type
+        {
+            if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
                 //Annotate the statement with the new function call
                 if let Some(StatementAnnotation::Function {
@@ -1182,6 +1336,7 @@ impl<'i> TypeAnnotator<'i> {
             member_names,
             source,
             varargs,
+            linkage,
             ..
         } = &generic_type.get_type_information()
         {
@@ -1192,6 +1347,7 @@ impl<'i> TypeAnnotator<'i> {
                 varargs: varargs.clone(),
                 source: source.clone(),
                 generics: vec![],
+                linkage: *linkage,
             };
             for member in member_names {
                 if let Some(generic_entry) = self.index.find_member(generic_type.get_name(), member)
@@ -1369,14 +1525,20 @@ impl<'i> TypeAnnotator<'i> {
                     .annotate(statement, StatementAnnotation::value(BOOL_TYPE));
             }
 
-            AstStatement::LiteralString { is_wide, .. } => {
-                let string_type_name = if *is_wide {
-                    CONST_WSTRING_TYPE
-                } else {
-                    CONST_STRING_TYPE
-                };
+            AstStatement::LiteralString { is_wide, value, .. } => {
+                let string_type_name =
+                    register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::value(string_type_name));
+                    .annotate(statement, StatementAnnotation::new_value(string_type_name));
+
+                //collect literals so we can generate global constants later
+                if ctx.is_in_a_body() {
+                    if *is_wide {
+                        self.string_literals.utf16.insert(value.to_string());
+                    } else {
+                        self.string_literals.utf08.insert(value.to_string());
+                    }
+                }
             }
             AstStatement::LiteralInteger { value, .. } => {
                 self.annotation_map.annotate(
@@ -1423,12 +1585,12 @@ impl<'i> TypeAnnotator<'i> {
     fn derive_generic_types(
         &self,
         generics: &[GenericBinding],
-        generics_candidates: HashMap<&str, Vec<&str>>,
+        generics_candidates: HashMap<String, Vec<String>>,
     ) -> HashMap<String, String> {
         let mut generic_map: HashMap<String, String> = HashMap::new();
         for GenericBinding { name, .. } in generics {
             //Get the current binding
-            if let Some(candidates) = generics_candidates.get(name.as_str()) {
+            if let Some(candidates) = generics_candidates.get(name) {
                 //Find the best suiting type
                 let winner = candidates
                     .iter()
@@ -1457,16 +1619,42 @@ impl<'i> TypeAnnotator<'i> {
     }
 }
 
+/// adds a string-type to the given index and returns it's name
+fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
+    let new_type_name = if is_wide {
+        format!("__WSTRING_{}", len)
+    } else {
+        format!("__STRING_{}", len)
+    };
+
+    if index.find_effective_type(new_type_name.as_str()).is_none() {
+        index.register_type(crate::typesystem::DataType {
+            name: new_type_name.clone(),
+            initial_value: None,
+            nature: TypeNature::Chars,
+            information: crate::typesystem::DataTypeInformation::String {
+                encoding: if is_wide {
+                    StringEncoding::Utf16
+                } else {
+                    StringEncoding::Utf8
+                },
+                size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
+            },
+        });
+    }
+    new_type_name
+}
+
 /// adds a pointer to the given inner_type to the given index and return's its name
-fn add_pointer_type(index: &mut Index, inner_type: &DataTypeInformation) -> String {
-    let new_type_name = format!("POINTER_TO_{}", inner_type.get_name());
+fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
+    let new_type_name = format!("POINTER_TO_{}", inner_type_name.as_str());
     index.register_type(crate::typesystem::DataType {
         name: new_type_name.clone(),
         initial_value: None,
         nature: TypeNature::Any,
         information: crate::typesystem::DataTypeInformation::Pointer {
             auto_deref: false,
-            inner_type_name: inner_type.get_name().into(),
+            inner_type_name,
             name: new_type_name.clone(),
         },
     });

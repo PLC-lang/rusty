@@ -2,7 +2,7 @@
 use pretty_assertions::{assert_eq, assert_ne};
 
 use crate::{
-    ast::{DirectAccessType, SourceRange},
+    ast::{DirectAccessType, HardwareAccessType, SourceRange},
     lexer::{lex, Token::*},
 };
 
@@ -648,6 +648,65 @@ fn direct_access_test() {
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
     assert_eq!(lexer.token, DirectAccess(DirectAccessType::Bit));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, End);
+}
+
+#[test]
+fn hardware_access_test() {
+    let mut lexer = lex("AT %I* %Q* %M* %IX1.1 %IB2.2 %QW5 %MD7");
+    assert_eq!(lexer.token, KeywordAt);
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Input, DirectAccessType::Template))
+    );
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Output, DirectAccessType::Template))
+    );
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Memory, DirectAccessType::Template))
+    );
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Input, DirectAccessType::Bit))
+    );
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordDot);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Input, DirectAccessType::Byte))
+    );
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordDot);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Output, DirectAccessType::Word))
+    );
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Memory, DirectAccessType::DWord))
+    );
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();

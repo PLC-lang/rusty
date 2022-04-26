@@ -290,7 +290,7 @@ fn cast_lword_to_pointer() {
         FUNCTION baz : INT
             VAR 
                 ptr_x : POINTER TO INT; 
-                y : LWORD; 
+                y : LWORD;
             END_VAR;
 
             ptr_x := y;
@@ -299,6 +299,73 @@ fn cast_lword_to_pointer() {
     );
 
     //should result in normal number-comparisons
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn cast_between_pointer_types() {
+    let result = codegen(
+        r#"
+        PROGRAM baz
+            VAR 
+                ptr_x : POINTER TO BYTE; 
+                y : WORD;
+            END_VAR;
+
+            ptr_x := &y;
+        END_PROGRAM
+    "#,
+    );
+
+    //should result in bitcast conversion when assigning to ptr_x
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn unnecessary_casts_between_pointer_types() {
+    let result = codegen(
+        r#"
+        TYPE MyByte : BYTE; END_TYPE
+        
+        PROGRAM baz
+            VAR 
+                ptr : POINTER TO BYTE; 
+                b : BYTE;
+                si : SINT;
+                mb : MyByte;
+            END_VAR;
+
+            ptr := &b; //no cast necessary
+            ptr := &si; //no cast necessary
+            ptr := &mb; //no cast necessary
+        END_PROGRAM
+    "#,
+    );
+
+    //should not result in bitcast
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn access_string_via_byte_array() {
+    let result = codegen(
+        r#"
+        TYPE MyByte : BYTE; END_TYPE
+        
+        PROGRAM baz
+            VAR 
+                str: STRING[10];
+                ptr : POINTER TO BYTE; 
+                bytes : POINTER TO ARRAY[0..9] OF BYTE;
+            END_VAR;
+
+            ptr := &str; //bit-cast expected
+            bytes := &str;
+        END_PROGRAM
+    "#,
+    );
+
+    //should result in bitcasts
     insta::assert_snapshot!(result);
 }
 
@@ -318,8 +385,14 @@ fn pointer_arithmetics() {
 
 		(* +/- *)
 		pt := pt + 1;
+		pt := pt + 1 + 1;
 		pt := 1 + pt;
 		pt := pt - y;
+		pt := 1 + pt + 1;
+		pt := pt - y - 1;
+		pt := 1 + 1 + pt ;
+		pt := y + pt - y ;
+		pt := y + y + pt ;
 
 		(* compare pointer-pointer / pointer-int *)
 		comp := pt = pt;
@@ -331,5 +404,96 @@ fn pointer_arithmetics() {
 		END_PROGRAM
 		",
     );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn pointer_arithmetics_function_call() {
+    // codegen should be successful for binary expression for pointer<->int / int<->pointer / pointer<->pointer
+    let result = codegen(
+        "
+        FUNCTION foo : LINT
+        END_FUNCTION
+
+		PROGRAM main
+		VAR
+			pt : REF_TO INT;
+            x : INT;
+			comp : BOOL;
+		END_VAR
+		pt := &(x);
+
+		(* +/- *)
+		pt := pt + foo();
+
+		(* compare pointer-pointer / pointer-int *)
+		comp := pt = pt;
+		comp := pt <> foo();
+		comp := pt < pt;
+		comp := pt > foo();
+		comp := pt <= pt;
+		comp := foo() >= pt;
+		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn nested_call_statements() {
+    // GIVEN some nested call statements
+    let result = codegen(
+        "
+        FUNCTION foo : DINT
+        VAR_INPUT
+            a : DINT;
+        END_VAR
+        END_FUNCTION
+
+		PROGRAM main
+            foo(foo(2));
+		END_PROGRAM
+		",
+    );
+    // WHEN compiled
+    // WE expect a flat sequence of calls, no regions and branching
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_adr() {
+    // GIVEN some nested call statements
+    let result = codegen(
+        "
+		PROGRAM main
+        VAR
+            a : REF_TO DINT;
+            b : DINT;
+        END_VAR
+            a := ADR(b);
+		END_PROGRAM
+		",
+    );
+    // WHEN compiled
+    // We expect a direct conversion to lword and subsequent assignment (no call)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_ref() {
+    // GIVEN some nested call statements
+    let result = codegen(
+        "
+		PROGRAM main
+        VAR
+            a : REF_TO DINT;
+            b : DINT;
+        END_VAR
+            a := REF(b);
+		END_PROGRAM
+		",
+    );
+    // WHEN compiled
+    // We expect a direct conversion and subsequent assignment to pointer(no call)
     insta::assert_snapshot!(result);
 }

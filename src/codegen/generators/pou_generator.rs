@@ -2,7 +2,7 @@
 use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
-    llvm::Llvm,
+    llvm::{GlobalValueExt, Llvm},
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
 use crate::{
@@ -67,7 +67,7 @@ pub fn generate_implementation_stubs<'ink>(
 /// Returns a new LLVM index to be merged with the parent codegen index.
 pub fn generate_global_constants_for_pou_members<'ink>(
     module: &Module<'ink>,
-    llvm: Llvm<'ink>,
+    llvm: &Llvm<'ink>,
     index: &Index,
     annotations: &AstAnnotations,
     llvm_index: &LlvmTypedIndex<'ink>,
@@ -86,7 +86,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                 var_type.is_struct() || var_type.is_array() || var_type.is_string()
             });
         let exp_gen =
-            ExpressionCodeGenerator::new_context_free(&llvm, index, annotations, llvm_index);
+            ExpressionCodeGenerator::new_context_free(llvm, index, annotations, llvm_index);
         for variable in variables {
             let name = index::get_initializer_name(variable.get_qualified_name());
             let right_stmt = match variable.initial_value {
@@ -115,12 +115,10 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                         exp_gen.generate_expression(stmt)?
                     };
                     let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
-                    let global_value = llvm.create_constant_global_variable(
-                        module,
-                        &name,
-                        variable_type,
-                        Some(value),
-                    );
+                    let global_value = llvm
+                        .create_global_variable(module, &name, variable_type)
+                        .make_constant()
+                        .set_initial_value(Some(value), variable_type);
                     local_llvm_index.associate_global(&name, global_value)?;
                 }
             }
@@ -372,21 +370,22 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         variables: &[&VariableIndexEntry],
         local_llvm_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
-        let variables_with_initializers =
-            variables.iter().filter(|it| it.is_local() || it.is_temp());
+        let variables_with_initializers = variables
+            .iter()
+            .filter(|it| it.is_local() || it.is_temp() || it.is_return());
+
+        let exp_gen = ExpressionCodeGenerator::new_context_free(
+            &self.llvm,
+            self.index,
+            self.annotations,
+            local_llvm_index,
+        );
 
         for variable in variables_with_initializers {
             //get the loaded_ptr for the parameter and store right in it
             if let Some(left) = local_llvm_index
                 .find_loaded_associated_variable_value(variable.get_qualified_name())
             {
-                let exp_gen = ExpressionCodeGenerator::new_context_free(
-                    &self.llvm,
-                    self.index,
-                    self.annotations,
-                    local_llvm_index,
-                );
-
                 let right_stmt = match variable.initial_value {
                     Some(..) => Some(
                         self.index
@@ -401,7 +400,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     ),
                     None => None,
                 };
-
                 // for initializations we might have a global variable with the initial values
                 // the idea is to memcpy the global variable
                 let size = self

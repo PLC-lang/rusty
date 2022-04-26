@@ -34,7 +34,14 @@ fn test_external_function_called() {
         path: "external_test.st".to_string(),
         source: prog.to_string(),
     };
-    let code_gen = compile_module(&context, vec![source], None, Diagnostician::default()).unwrap();
+    let (_, code_gen) = compile_module(
+        &context,
+        vec![source],
+        vec![],
+        None,
+        Diagnostician::default(),
+    )
+    .unwrap();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)

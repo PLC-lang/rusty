@@ -17,6 +17,8 @@ pub struct LlvmTypedIndex<'ink> {
     loaded_variable_associations: HashMap<String, PointerValue<'ink>>,
     implementations: HashMap<String, FunctionValue<'ink>>,
     constants: HashMap<String, BasicValueEnum<'ink>>,
+    utf08_literals: HashMap<String, GlobalValue<'ink>>,
+    utf16_literals: HashMap<String, GlobalValue<'ink>>,
 }
 
 impl<'ink> LlvmTypedIndex<'ink> {
@@ -30,6 +32,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
             loaded_variable_associations: HashMap::new(),
             implementations: HashMap::new(),
             constants: HashMap::new(),
+            utf08_literals: HashMap::new(),
+            utf16_literals: HashMap::new(),
         }
     }
 
@@ -56,6 +60,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
             self.implementations.insert(name, implementation);
         }
         self.constants.extend(other.constants);
+        self.utf08_literals.extend(other.utf08_literals);
+        self.utf16_literals.extend(other.utf16_literals);
     }
 
     pub fn associate_type(
@@ -104,11 +110,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.global_values
             .get(&name.to_lowercase())
             .copied()
-            .or_else(|| {
-                self.parent_index
-                    .map(|it| it.find_global_value(name))
-                    .flatten()
-            })
+            .or_else(|| self.parent_index.and_then(|it| it.find_global_value(name)))
     }
 
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
@@ -117,8 +119,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_type(type_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_type(type_name))
             })
             .or_else(|| self.find_associated_pou_type(type_name))
     }
@@ -129,8 +130,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_pou_type(type_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_pou_type(type_name))
             })
     }
 
@@ -153,8 +153,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_initial_value(type_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_initial_value(type_name))
             })
     }
 
@@ -192,8 +191,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_implementation(callable_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_implementation(callable_name))
             })
     }
 
@@ -206,8 +204,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_variable_value(qualified_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_variable_value(qualified_name))
             })
     }
 
@@ -221,8 +218,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_loaded_associated_variable_value(qualified_name))
-                    .flatten()
+                    .and_then(|it| it.find_loaded_associated_variable_value(qualified_name))
             });
 
         //If nothing got associated, see if we have a global we could reuse
@@ -235,5 +231,35 @@ impl<'ink> LlvmTypedIndex<'ink> {
 
     pub fn find_constant_value(&self, qualified_name: &str) -> Option<BasicValueEnum<'ink>> {
         self.constants.get(qualified_name).copied()
+    }
+
+    pub fn associate_utf08_literal(
+        &mut self,
+        literal: String,
+        literal_variable: GlobalValue<'ink>,
+    ) {
+        self.utf08_literals.insert(literal, literal_variable);
+    }
+
+    pub fn find_utf08_literal_string(&self, literal: &str) -> Option<&GlobalValue<'ink>> {
+        self.utf08_literals.get(literal).or_else(|| {
+            self.parent_index
+                .and_then(|it| it.find_utf08_literal_string(literal))
+        })
+    }
+
+    pub fn associate_utf16_literal(
+        &mut self,
+        literal: String,
+        literal_variable: GlobalValue<'ink>,
+    ) {
+        self.utf16_literals.insert(literal, literal_variable);
+    }
+
+    pub fn find_utf16_literal_string(&self, literal: &str) -> Option<&GlobalValue<'ink>> {
+        self.utf16_literals.get(literal).or_else(|| {
+            self.parent_index
+                .and_then(|it| it.find_utf16_literal_string(literal))
+        })
     }
 }

@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::VariableType;
+use super::{HardwareBinding, VariableIndexEntry, VariableType};
 use crate::ast::{
     self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
     PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
@@ -10,8 +10,7 @@ use crate::lexer::IdProvider;
 use crate::typesystem::{self, *};
 
 pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
-    let mut index = Index::new();
-
+    let mut index = Index::default();
     //Create the typesystem
     let builtins = get_builtin_types();
     for data_type in builtins {
@@ -58,8 +57,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 let name = referenced_type
                     .as_ref()
                     .map(|it| &**it)
-                    .map(DataTypeDeclaration::get_name)
-                    .flatten()
+                    .and_then(DataTypeDeclaration::get_name)
                     .map(|it| it.to_string());
                 varargs = Some(name);
                 continue;
@@ -81,13 +79,19 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                     Some(pou.name.clone()),
                 );
 
+            let binding = var
+                .address
+                .as_ref()
+                .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
+
             index.register_member_variable(
-                &MemberInfo {
+                MemberInfo {
                     container_name: &pou.name,
                     variable_name: &var.name,
                     variable_linkage: block_type,
                     variable_type_name: &type_name,
                     is_constant: block.constant,
+                    binding,
                 },
                 initial_value,
                 var.location.clone(),
@@ -102,12 +106,13 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         member_names.push(pou.get_return_name().into());
         let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
         index.register_member_variable(
-            &MemberInfo {
+            MemberInfo {
                 container_name: &pou.name,
                 variable_name: pou.get_return_name(),
                 variable_linkage: VariableType::Return,
                 variable_type_name: return_type.get_name().unwrap_or_default(),
                 is_constant: false, //return variables are not constants
+                binding: None,
             },
             None,
             source_location,
@@ -124,6 +129,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
             generics: pou.generics.clone(),
+            linkage: pou.linkage,
         },
         nature: TypeNature::Any,
     };
@@ -133,27 +139,28 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         PouType::Program => {
             //Associate a global variable for the program
             let instance_name = format!("{}_instance", &pou.name);
-            index.register_global_variable_with_name(
-                &pou.name,
+            let variable = VariableIndexEntry::create_global(
                 &instance_name,
                 &pou.name,
-                None,
-                false, //program's instance variable is no constant
+                &pou.name,
                 pou.location.clone(),
-            );
+            )
+            .set_linkage(pou.linkage);
+            index.register_global_variable(&pou.name, variable);
         }
         PouType::FunctionBlock | PouType::Class => {
             let global_struct_name = crate::index::get_initializer_name(&pou.name);
-            index.register_global_variable(
+            let variable = VariableIndexEntry::create_global(
+                &global_struct_name,
                 &global_struct_name,
                 &pou.name,
-                None,
-                true, //Initial values are constants
                 pou.location.clone(),
-            );
+            )
+            .set_constant(true);
+            index.register_global_initializer(&global_struct_name, variable);
         }
         _ => {}
-    }
+    };
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
@@ -181,7 +188,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
 
 fn register_inout_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
-    let type_name = format!("pointer_to_{}", inner_type_name);
+    let type_name = format!("auto_pointer_to_{}", inner_type_name);
 
     //generate a pointertype for the variable
     index.register_type(typesystem::DataType {
@@ -199,18 +206,27 @@ fn register_inout_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
 }
 
 fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
+    let linkage = block.linkage;
     for var in &block.variables {
         let target_type = var.data_type.get_name().unwrap_or_default();
         let initializer = index
             .get_mut_const_expressions()
             .maybe_add_constant_expression(var.initializer.clone(), target_type, None);
-        index.register_global_variable(
+        let variable = VariableIndexEntry::create_global(
+            &var.name,
             &var.name,
             var.data_type.get_name().expect("named variable datatype"),
-            initializer,
-            block.constant,
             var.location.clone(),
+        )
+        .set_initial_value(initializer)
+        .set_constant(block.constant)
+        .set_linkage(linkage)
+        .set_hardware_binding(
+            var.address
+                .as_ref()
+                .and_then(|it| HardwareBinding::from_statement(index, it, None)),
         );
+        index.register_global_variable(&var.name, variable);
     }
 }
 
@@ -250,6 +266,7 @@ fn visit_data_type(
                 varargs: None,
                 source: StructSource::OriginalDeclaration,
                 generics: vec![],
+                linkage: ast::LinkageType::Internal,
             };
 
             let init = index
@@ -267,13 +284,15 @@ fn visit_data_type(
             });
             //Generate an initializer for the struct
             let global_struct_name = crate::index::get_initializer_name(name);
-            index.register_global_variable(
-                global_struct_name.as_str(),
+            let variable = VariableIndexEntry::create_global(
+                &global_struct_name,
+                &global_struct_name,
                 type_name.as_str(),
-                init,
-                true, //Initial values are constants
                 type_declaration.location.clone(),
-            );
+            )
+            .set_initial_value(init)
+            .set_constant(true);
+            index.register_global_initializer(&global_struct_name, variable);
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
                     data_type, scope, ..
@@ -300,13 +319,20 @@ fn visit_data_type(
                         member_type,
                         scope.clone(),
                     );
+
+                let binding = var
+                    .address
+                    .as_ref()
+                    .and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
+
                 index.register_member_variable(
-                    &MemberInfo {
+                    MemberInfo {
                         container_name: struct_name,
                         variable_name: &var.name,
                         variable_linkage: VariableType::Local,
                         variable_type_name: member_type,
                         is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                        binding,
                     },
                     init,
                     var.location.clone(),
@@ -454,13 +480,15 @@ fn visit_data_type(
             });
             let global_init_name = crate::index::get_initializer_name(name);
             if init.is_some() {
-                index.register_global_variable(
+                let variable = VariableIndexEntry::create_global(
+                    global_init_name.as_str(),
                     global_init_name.as_str(),
                     name,
-                    init,
-                    true, //Initial values are constants
                     type_declaration.location.clone(),
-                );
+                )
+                .set_constant(true)
+                .set_initial_value(init);
+                index.register_global_initializer(&global_init_name, variable);
             }
         }
         DataType::PointerType {
@@ -504,7 +532,7 @@ fn visit_data_type(
 
             let size = match size {
                 Some(AstStatement::LiteralInteger { value, .. }) => {
-                    TypeSize::from_literal((value + 1) as u32)
+                    TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
                     // construct a "x + 1" expression because we need one additional character for \0 terminator
@@ -527,7 +555,7 @@ fn visit_data_type(
                         ),
                     )
                 }
-                None => TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
+                None => TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
             };
             let information = DataTypeInformation::String { size, encoding };
             let init = index

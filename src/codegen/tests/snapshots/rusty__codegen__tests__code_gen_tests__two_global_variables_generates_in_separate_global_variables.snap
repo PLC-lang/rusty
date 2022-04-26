@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 74
 expression: result
 
 ---
@@ -9,7 +10,7 @@ source_filename = "main"
 %main_interface = type {}
 
 @gX = global i16 0
-@gY = global i1 false
+@gY = global i8 0
 @gA = global i16 0
 @main_instance = global %main_interface zeroinitializer
 

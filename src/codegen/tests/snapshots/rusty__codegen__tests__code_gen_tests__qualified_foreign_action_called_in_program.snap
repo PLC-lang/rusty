@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1538
 expression: result
 
 ---
@@ -14,19 +15,7 @@ source_filename = "main"
 
 define void @bar(%bar_interface* %0) {
 entry:
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
   call void @prg.foo(%prg_interface* @prg_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
   ret void
 }
 

@@ -4,20 +4,23 @@
 use self::{
     generators::{
         data_type_generator,
-        llvm::Llvm,
+        llvm::{GlobalValueExt, Llvm},
         pou_generator::{self, PouGenerator},
         variable_generator,
     },
     llvm_index::LlvmTypedIndex,
 };
-use crate::{diagnostics::Diagnostic, resolver::AstAnnotations};
+use crate::{
+    diagnostics::Diagnostic,
+    resolver::{AstAnnotations, StringLiterals},
+};
 
 use super::ast::*;
 use super::index::*;
-use inkwell::context::Context;
 use inkwell::module::Module;
+use inkwell::{context::Context, types::BasicType};
 
-mod generators;
+pub(crate) mod generators;
 mod llvm_index;
 mod llvm_typesystem;
 #[cfg(test)]
@@ -42,6 +45,7 @@ impl<'ink> CodeGen<'ink> {
     pub fn generate_llvm_index(
         &self,
         annotations: &AstAnnotations,
+        literals: StringLiterals,
         global_index: &Index,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
@@ -74,12 +78,52 @@ impl<'ink> CodeGen<'ink> {
         index.merge(llvm_impl_index);
         let llvm_values_index = pou_generator::generate_global_constants_for_pou_members(
             &self.module,
-            llvm,
+            &llvm,
             global_index,
             annotations,
             &index,
         )?;
         index.merge(llvm_values_index);
+
+        //Generate constants for string-literal
+        //generate literals but first sort, so we get reproducable builds
+        let mut utf08s = literals.utf08.into_iter().collect::<Vec<String>>();
+        utf08s.sort_unstable();
+        for (idx, literal) in utf08s.into_iter().enumerate() {
+            let len = literal.len() + 1;
+            let data_type = llvm.context.i8_type().array_type(len as u32);
+            let literal_variable = llvm.create_global_variable(
+                &self.module,
+                format!("utf08_literal_{}", idx).as_str(),
+                data_type.as_basic_type_enum(),
+            );
+            let initializer = llvm.create_const_utf8_string(literal.as_str(), len)?;
+            literal_variable
+                .make_constant()
+                .set_initializer(&initializer);
+
+            index.associate_utf08_literal(literal, literal_variable);
+        }
+        //generate literals but first sort, so we get reproducable builds
+        let mut utf16s = literals.utf16.into_iter().collect::<Vec<String>>();
+        utf16s.sort_unstable();
+        for (idx, literal) in utf16s.into_iter().enumerate() {
+            let len = literal.len() + 1;
+            let data_type = llvm.context.i16_type().array_type(len as u32);
+            let literal_variable = llvm.create_global_variable(
+                &self.module,
+                format!("utf16_literal_{}", idx).as_str(),
+                data_type.as_basic_type_enum(),
+            );
+            let initializer =
+                llvm.create_const_utf16_string(literal.as_str(), literal.len() + 1)?;
+            literal_variable
+                .make_constant()
+                .set_initializer(&initializer);
+
+            index.associate_utf16_literal(literal, literal_variable);
+        }
+
         Ok(index)
     }
 

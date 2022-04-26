@@ -1,12 +1,13 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1112
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i1 }
+%prg_interface = type { i8 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
@@ -16,11 +17,12 @@ entry:
   br label %condition_check
 
 condition_check:                                  ; preds = %entry, %while_body
-  %load_x = load i1, i1* %x, align 1
-  br i1 %load_x, label %while_body, label %continue
+  %load_x = load i8, i8* %x, align 1
+  %1 = icmp ne i8 %load_x, 0
+  br i1 %1, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
-  %load_x1 = load i1, i1* %x, align 1
+  %load_x1 = load i8, i8* %x, align 1
   br label %condition_check
 
 continue:                                         ; preds = %condition_check

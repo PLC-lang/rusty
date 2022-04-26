@@ -511,7 +511,7 @@ pub fn evaluate(
             }) => Some(AstStatement::LiteralReal {
                 value: format!(
                     "{:}",
-                    -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err.to_string(), v))?
+                    -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err, v))?
                 ),
                 id,
                 location,
@@ -639,7 +639,12 @@ fn get_cast_statement_literal(
         .find_effective_type(type_name)
         .map(DataType::get_type_information)
     {
-        Some(&crate::typesystem::DataTypeInformation::Integer { size, signed, .. }) => {
+        Some(&crate::typesystem::DataTypeInformation::Integer {
+            signed,
+            size,
+            semantic_size,
+            ..
+        }) => {
             let evaluated_initial = evaluate(cast_statement, scope, index)?
                 .as_ref()
                 .map(|v| {
@@ -653,7 +658,7 @@ fn get_cast_statement_literal(
             if let Some(value) = evaluated_initial {
                 const SIGNED: bool = true;
                 const UNSIGNED: bool = false;
-                let value: i128 = match (signed, size) {
+                let value: i128 = match (signed, semantic_size.unwrap_or(size)) {
                     //signed
                     (SIGNED, SINT_SIZE) => (value as NativeSintType) as i128,
                     (SIGNED, INT_SIZE) => (value as NativeIntType) as i128,

@@ -212,3 +212,44 @@ fn class_struct_initialized_in_function() {
     );
     insta::assert_snapshot!(function)
 }
+
+#[test]
+fn function_return_value_is_initialized() {
+    let function = codegen(
+        r"
+        FUNCTION foo_int : INT
+        END_FUNCTION
+
+        FUNCTION foo_str : STRING[10]
+        END_FUNCTION
+
+        FUNCTION foo_arr : ARRAY[0..9] OF REAL
+        END_FUNCTION
+        ",
+    );
+    //expect 0-initialization
+    insta::assert_snapshot!(function)
+}
+
+#[test]
+#[ignore]
+fn function_return_value_with_initializers_is_initialized() {
+    let function = codegen(
+        r"
+        TYPE MyInt : INT := 7; END_TYPE
+        TYPE MyStr : STRING[10] := 'init'; END_TYPE
+        TYPE MyArr : ARRAY[0..9] OF REAL := [0.0, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9]; END_TYPE
+
+        FUNCTION foo_int : MyInt
+        END_FUNCTION
+
+        FUNCTION foo_str : MyStr
+        END_FUNCTION
+
+        FUNCTION foo_arr : MyArr
+        END_FUNCTION
+        ",
+    );
+    //expect datatype's initials
+    insta::assert_snapshot!(function)
+}

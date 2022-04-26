@@ -84,13 +84,15 @@ fn string_assignment_from_bigger_string() {
     };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello".as_bytes(), &main_type.x); //TODO: Should this be "hell\0"?
+    assert_eq!("hell\0".as_bytes(), &main_type.x);
 }
 
 #[test]
 fn string_assignment_from_smaller_function() {
     let src = "
-        FUNCTION hello : STRING[5]
+        TYPE ReturnString : STRING[5] := ''; END_TYPE
+
+        FUNCTION hello : ReturnString
         hello := 'hello';
         END_FUNCTION
 
@@ -130,7 +132,7 @@ fn string_assignment_from_bigger_function() {
     let mut main_type = MainType { x: [0; 5] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello".as_bytes(), &main_type.x); //TODO: Should this be "hell\0"?
+    assert_eq!("hell\0".as_bytes(), &main_type.x);
 }
 
 #[test]
@@ -207,4 +209,40 @@ fn string_assignment_from_bigger_function_does_not_leak() {
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!(&[0; 5], &main_type.y);
+}
+
+#[test]
+fn initialization_of_string_arrays() {
+    let src = "
+        VAR_GLOBAL
+            texts: ARRAY[0..2] OF STRING[10] := ['hello', 'world', 'ten chars!']
+        END_VAR
+
+        FUNCTION main : DINT
+            VAR x,y,z : STRING[10]; END_VAR
+        
+            x := texts[0];
+            y := texts[1];
+            z := texts[2];
+        
+        END_FUNCTION
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 11],
+        y: [u8; 11],
+        z: [u8; 11],
+    }
+    let mut main_type = MainType {
+        x: [0; 11],
+        y: [0; 11],
+        z: [0; 11],
+    };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!(main_type.x, "hello\0\0\0\0\0\0".as_bytes());
+    assert_eq!(main_type.y, "world\0\0\0\0\0\0".as_bytes());
+    assert_eq!(main_type.z, "ten chars!\0".as_bytes());
 }

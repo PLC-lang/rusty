@@ -1,0 +1,24 @@
+---
+source: src/tests/external_files.rs
+assertion_line: 30
+expression: res
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type {}
+%external_interface = type {}
+
+define i16 @main(%main_interface* %0) {
+entry:
+  %main = alloca i16, align 2
+  store i16 0, i16* %main, align 2
+  %external_instance = alloca %external_interface, align 8
+  %call = call i16 @external(%external_interface* %external_instance)
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+
+declare i16 @external(%external_interface*)
+

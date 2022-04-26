@@ -1,0 +1,124 @@
+---
+source: src/hardware_binding.rs
+assertion_line: 247
+expression: config
+
+---
+[
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
+        direction: Input,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "2",
+            "5",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "2",
+            "5",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "x",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "y",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "1",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "z",
+                ),
+            ],
+        },
+        direction: Input,
+        access_type: Word,
+        address: [
+            "1",
+            "2",
+        ],
+    },
+]
