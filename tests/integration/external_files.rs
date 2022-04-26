@@ -3,7 +3,7 @@
 use std::{env, fs};
 
 use encoding_rs::Encoding;
-use rusty::{build, get_target_triple, CompileOptions, FilePath};
+use rusty::{build, get_target_triple, CompileOptions, ErrorFormat, FilePath};
 
 use crate::get_test_file;
 
@@ -21,8 +21,10 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             format: rusty::FormatOption::IR,
             output: out.clone(),
             target: None,
+            optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        &ErrorFormat::Rich,
         &target,
     )
     .unwrap();
@@ -34,8 +36,10 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             format: rusty::FormatOption::Bitcode,
             output: out.clone(),
             target: None,
+            optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        &ErrorFormat::Rich,
         &target,
     )
     .unwrap();
@@ -47,8 +51,10 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             format: rusty::FormatOption::Shared,
             output: out.clone(),
             target: None,
+            optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        &ErrorFormat::Rich,
         &target,
     )
     .unwrap();
@@ -60,8 +66,10 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             format: rusty::FormatOption::PIC,
             output: out.clone(),
             target: None,
+            optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        &ErrorFormat::Rich,
         &target,
     )
     .unwrap();
@@ -73,8 +81,10 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
             format: rusty::FormatOption::Static,
             output: out.clone(),
             target: None,
+            optimization: rusty::OptimizationLevel::Default,
         },
         encoding,
+        &ErrorFormat::Rich,
         &target,
     )
     .unwrap();

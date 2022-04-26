@@ -20,7 +20,7 @@ use super::index::*;
 use inkwell::module::Module;
 use inkwell::{context::Context, types::BasicType};
 
-mod generators;
+pub(crate) mod generators;
 mod llvm_index;
 mod llvm_typesystem;
 #[cfg(test)]

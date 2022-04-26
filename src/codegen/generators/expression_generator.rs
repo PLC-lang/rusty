@@ -449,6 +449,22 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 )
             })?;
 
+        //If the function is builtin, generate a basic value enum for it
+        if let Some(builtin) = self
+            .index
+            .get_builtin_function(implementation.get_call_name())
+        {
+            return builtin.codegen(
+                self,
+                parameters
+                    .as_ref()
+                    .map(ast::flatten_expression_list)
+                    .unwrap_or_default()
+                    .as_slice(),
+                operator.get_location(),
+            );
+        }
+
         let (class_ptr, call_ptr) = match implementation {
             ImplementationIndexEntry {
                 implementation_type: ImplementationType::Function,
@@ -912,6 +928,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         self.llvm
             .load_pointer(&accessor_ptr, "deref")
             .into_pointer_value()
+    }
+
+    pub fn ptr_as_value(&self, ptr: PointerValue<'a>) -> BasicValueEnum<'a> {
+        let int_type = self.llvm.context.i64_type();
+        if ptr.is_const() {
+            ptr.const_to_int(int_type)
+        } else {
+            self.llvm.builder.build_ptr_to_int(ptr, int_type, "")
+        }
+        .as_basic_value_enum()
     }
 
     /// automatically derefs an inout variable pointer so it can be used like a normal variable

@@ -1,6 +1,6 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 169
+assertion_line: 170
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
 
 ---
@@ -44,7 +44,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "MainProg.size",
             initial_value: Some(
                 Index {
-                    index: 2,
+                    index: 0,
                     generation: 0,
                 },
             ),
@@ -99,13 +99,13 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 0,
+                                    index: 1,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 1,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
@@ -146,13 +146,13 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 0,
+                                    index: 1,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 1,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),

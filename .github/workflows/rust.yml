@@ -11,7 +11,7 @@ on:
   
 env:
   IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: 12-1.56.1
+  IMAGE_VERSION: latest
 
 jobs:
   check: 
@@ -24,7 +24,7 @@ jobs:
 
       - name: Run Check
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           docker pull $IMAGE_ID
@@ -40,7 +40,7 @@ jobs:
       - name: Cargo test
         shell: bash
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           docker pull $IMAGE_ID
@@ -72,8 +72,8 @@ jobs:
     runs-on: windows-latest
     needs: check
     env:
-      toolchain-version: 1.56
-      llvm-version: 12.0.1
+      toolchain-version: 1.60.0
+      llvm-version: 13.0.0
     steps:
 
       - uses: actions/checkout@v2
@@ -139,7 +139,7 @@ jobs:
 
       - name: Run Checks
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           docker pull $IMAGE_ID
@@ -154,7 +154,7 @@ jobs:
 
       - name: Run Checks
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           docker pull $IMAGE_ID
