@@ -1,0 +1,23 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 916
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%MyClass_interface = type {}
+%MyClass.testMethod_interface = type { i16, i16 }
+
+@MyClass__init = unnamed_addr constant %MyClass_interface zeroinitializer
+
+define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
+entry:
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
+  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
+  store i16 0, i16* %myMethodLocalVar, align 2
+  store i16 1, i16* %myMethodLocalVar, align 2
+  ret void
+}
+

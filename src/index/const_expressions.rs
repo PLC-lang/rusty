@@ -115,14 +115,29 @@ impl ConstExpressions {
         self.expressions.get(*id).map(|it| &it.expr)
     }
 
-    /// removes the expression from the ConstExpressions and returns all of its elements
-    pub fn remove(&mut self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
-        self.expressions.remove(*id).map(|it| match it.expr {
-            ConstExpression::Unresolved { statement, scope } => {
-                (statement, it.target_type_name, scope)
+    // /// removes the expression from the ConstExpressions and returns all of its elements
+    // pub fn remove(&mut self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
+    //     self.expressions.remove(*id).map(|it| match it.expr {
+    //         ConstExpression::Unresolved { statement, scope } => {
+    //             (statement, it.target_type_name, scope)
+    //         }
+    //         ConstExpression::Resolved(s) => (s, it.target_type_name, None),
+    //         ConstExpression::Unresolvable { statement: s, .. } => (s, it.target_type_name, None),
+    //     })
+    // }
+
+    /// clones the expression in the ConstExpressions and returns all of its elements
+    pub fn clone(&self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
+        self.expressions.get(*id).map(|it| match &it.expr {
+            ConstExpression::Unresolved { statement, scope } => (
+                statement.clone(),
+                it.target_type_name.clone(),
+                scope.clone(),
+            ),
+            ConstExpression::Resolved(s) => (s.clone(), it.target_type_name.clone(), None),
+            ConstExpression::Unresolvable { statement: s, .. } => {
+                (s.clone(), it.target_type_name.clone(), None)
             }
-            ConstExpression::Resolved(s) => (s, it.target_type_name, None),
-            ConstExpression::Unresolvable { statement: s, .. } => (s, it.target_type_name, None),
         })
     }
 
@@ -201,6 +216,10 @@ impl ConstExpressions {
                 AstStatement::LiteralInteger { value, .. } => Ok(*value),
                 _ => Err(format!("Cannot extract int constant from {:#?}", it)),
             })
+    }
+
+    pub fn import(&mut self, other: ConstExpressions) {
+        self.expressions.extend(other.expressions)
     }
 }
 

@@ -1,16 +1,18 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
-    expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
+    expression_generator::{to_i1, ExpressionCodeGenerator},
+    llvm::Llvm,
+    pou_generator::PouGenerator,
 };
 use crate::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
     codegen::llvm_typesystem,
     codegen::LlvmTypedIndex,
-    compile_error::{CompileError, INTERNAL_LLVM_ERROR},
+    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
-    resolver::AnnotationMap,
+    resolver::AstAnnotations,
     typesystem::{
-        DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        self, DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
     },
 };
@@ -19,7 +21,6 @@ use inkwell::{
     builder::Builder,
     context::Context,
     values::{BasicValueEnum, FunctionValue},
-    IntPredicate,
 };
 use std::ops::Range;
 
@@ -35,7 +36,7 @@ pub struct FunctionContext<'a> {
 pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
-    annotations: &'b AnnotationMap,
+    annotations: &'b AstAnnotations,
     pou_generator: &'b PouGenerator<'a, 'b>,
     llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a>,
@@ -54,7 +55,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
-        annotations: &'b AnnotationMap,
+        annotations: &'b AstAnnotations,
         pou_generator: &'b PouGenerator<'a, 'b>,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
@@ -85,7 +86,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     /// generates a list of statements
-    pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), CompileError> {
+    pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), Diagnostic> {
         for s in statements {
             self.generate_statement(s)?;
         }
@@ -108,7 +109,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// genertes a single statement
     ///
     /// - `statement` the statement to be generated
-    pub fn generate_statement(&self, statement: &AstStatement) -> Result<(), CompileError> {
+    pub fn generate_statement(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
         match statement {
             AstStatement::EmptyStatement { .. } => {
                 //nothing to generate
@@ -159,10 +160,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm.builder.build_unconditional_branch(*exit_block);
                     self.generate_buffer_block();
                 } else {
-                    return Err(CompileError::CodeGenError {
-                        message: "Cannot break out of loop when not inside a loop".into(),
-                        location: location.clone(),
-                    });
+                    return Err(Diagnostic::codegen_error(
+                        "Cannot break out of loop when not inside a loop",
+                        location.clone(),
+                    ));
                 }
             }
             AstStatement::ContinueStatement { location, .. } => {
@@ -170,10 +171,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm.builder.build_unconditional_branch(*cont_block);
                     self.generate_buffer_block();
                 } else {
-                    return Err(CompileError::CodeGenError {
-                        message: "Cannot continue loop when not inside a loop".into(),
-                        location: location.clone(),
-                    });
+                    return Err(Diagnostic::codegen_error(
+                        "Cannot continue loop when not inside a loop",
+                        location.clone(),
+                    ));
                 }
             }
             _ => {
@@ -192,7 +193,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         left_statement: &AstStatement,
         right_statement: &AstStatement,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         if left_statement.has_direct_access() {
             return self.generate_direct_access_assignment(left_statement, right_statement);
@@ -205,6 +206,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let range_checked_right_side =
             if let DataTypeInformation::SubRange { sub_range, .. } = left_type {
                 // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
+
+                //TODO move this to generate_store
                 self.find_range_check_implementation_for(left_type)
                     .map(|implementation| {
                         create_call_to_check_function_ast(
@@ -220,62 +223,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             };
 
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
-        let right_type = exp_gen.get_type_hint_info_for(right_statement)?;
-        //Special string handling
-        if matches!(
-            right_statement,
-            AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. }
-        ) && left_type.is_string()
-            && right_type.is_string()
-        {
-            let target_size = self.get_string_size(left_type, left_statement.get_location())?;
-            let value_size = self.get_string_size(right_type, right_statement.get_location())?;
-            let size = std::cmp::min(target_size, value_size) as i64;
-            let right = exp_gen.generate_element_pointer(right_statement)?;
-            let align = left_type.get_alignment();
-            //Generate a mem copy
-            self.llvm
-                .builder
-                .build_memcpy(
-                    left,
-                    align,
-                    right,
-                    align,
-                    self.llvm.context.i32_type().const_int(size as u64, true),
-                )
-                .map_err(|err| {
-                    CompileError::codegen_error(err.into(), left_statement.get_location())
-                })?;
-        } else {
-            self.llvm
-                .builder
-                .build_store(left, exp_gen.generate_expression(right_statement)?);
-        }
 
+        exp_gen.generate_store(left_type, right_statement, left)?;
         Ok(())
-    }
-
-    fn get_string_size(
-        &self,
-        datatype: &DataTypeInformation,
-        location: SourceRange,
-    ) -> Result<i64, CompileError> {
-        if let DataTypeInformation::String { size, .. } = datatype {
-            size.as_int_value(self.index)
-                .map_err(|err| CompileError::codegen_error(err, location))
-        } else {
-            Err(CompileError::codegen_error(
-                format!("{} is not a String", datatype.get_name()),
-                location,
-            ))
-        }
     }
 
     fn generate_direct_access_assignment(
         &self,
         left_statement: &AstStatement,
         right_statement: &AstStatement,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         //TODO : Validation
         let exp_gen = self.create_expr_generator();
         if let AstStatement::QualifiedReference { elements, .. } = left_statement {
@@ -298,6 +255,21 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .collect();
             let left_type = exp_gen.get_type_hint_for(&target)?;
             let right_type = exp_gen.get_type_hint_for(right_statement)?;
+
+            //special case if we deal with a single bit, then we need to switch to a faked u1 type
+            let right_type = if let DataTypeInformation::Integer {
+                semantic_size: Some(typesystem::U1_SIZE),
+                ..
+            } = *right_type.get_type_information()
+            {
+                self.index.get_type_or_panic(typesystem::U1_TYPE)
+            } else {
+                right_type
+            };
+
+            //Left pointer
+            let left = exp_gen.generate_element_pointer(&target)?;
+            let left_value = self.llvm.load_pointer(&left, "").into_int_value();
             //Build index
             if let Some((element, direct_access)) = direct_access.split_first() {
                 let mut rhs = if let AstStatement::DirectAccess { access, index, .. } = element {
@@ -308,13 +280,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         left_type,
                     )
                 } else {
-                    Err(CompileError::codegen_error(
-                        format!("{:?} not a direct access", element),
+                    Err(Diagnostic::syntax_error(
+                        &format!("{:?} not a direct access", element),
                         element.get_location(),
                     ))
                 }?;
                 for element in direct_access {
-                    let next = if let AstStatement::DirectAccess { access, index, .. } = element {
+                    let rhs_next = if let AstStatement::DirectAccess { access, index, .. } = element
+                    {
                         exp_gen.generate_direct_access_index(
                             access,
                             index,
@@ -322,26 +295,42 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             left_type,
                         )
                     } else {
-                        Err(CompileError::codegen_error(
-                            format!("{:?} not a direct access", element),
+                        Err(Diagnostic::syntax_error(
+                            &format!("{:?} not a direct access", element),
                             element.get_location(),
                         ))
                     }?;
-                    rhs = self.llvm.builder.build_int_add(rhs, next, "");
+                    rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
                 }
                 //Build mask for the index
-                let mask = rhs.get_type().const_all_ones();
-                let mask = self.llvm.builder.build_left_shift(mask, rhs, "mask");
-                let mask = self.llvm.builder.build_not(mask, "not");
+                //Get the target bit type as all ones
+                let rhs_type = self
+                    .llvm_index
+                    .get_associated_type(right_type.get_name())?
+                    .into_int_type();
+                let ones = rhs_type.const_all_ones();
+                //Extend the mask to the target type
+                let extended_mask =
+                    self.llvm
+                        .builder
+                        .build_int_z_extend(ones, left_value.get_type(), "ext");
+                //Position the ones in their correct locations
+                let shifted_mask = self
+                    .llvm
+                    .builder
+                    .build_left_shift(extended_mask, rhs, "shift");
+                //Invert the mask
+                let mask = self.llvm.builder.build_not(shifted_mask, "invert");
+                //And the result with the mask to erase the set bits at the target location
+                let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
 
-                //Left pointer
-                let left = exp_gen.generate_element_pointer(&target)?;
                 //Generate an expression for the right size
                 let right = exp_gen.generate_expression(right_statement)?;
                 //Cast the right side to the left side type
                 let lhs = llvm_typesystem::cast_if_needed(
                     self.llvm,
                     self.index,
+                    self.llvm_index,
                     left_type,
                     right,
                     right_type,
@@ -350,9 +339,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .map(BasicValueEnum::into_int_value)?;
                 //Shift left by the direct access
                 let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
-                let left_value = self.llvm.load_pointer(&left, "").into_int_value();
-                //And the result with the mask
-                let and_value = self.llvm.builder.build_and(left_value, mask, "and");
+
                 //OR the result and store it in the left side
                 let or_value = self.llvm.builder.build_or(and_value, value, "or");
                 self.llvm.builder.build_store(left, or_value);
@@ -414,7 +401,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         end: &AstStatement,
         by_step: &Option<Box<AstStatement>>,
         body: &[AstStatement],
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         self.generate_assignment_statement(counter, start)?;
         let condition_check = context.append_basic_block(current_function, "condition_check");
@@ -429,15 +416,17 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(condition_check);
         let exp_gen = self.create_expr_generator();
         let counter_statement = exp_gen.generate_expression(counter)?;
-        let end_statement = exp_gen.generate_expression(end)?;
 
-        let compare = builder.build_int_compare(
-            IntPredicate::SLE,
-            counter_statement.into_int_value(),
-            end_statement.into_int_value(),
-            "tmpVar",
+        //.                                                           /            and_2                \
+        //.                  /             and 1               \
+        //.                   (counter_end_le && counter_start_ge) || (counter_end_ge && counter_start_le)
+        let or_eval = self.generate_compare_expression(counter, end, start, &exp_gen)?;
+
+        builder.build_conditional_branch(
+            to_i1(or_eval.into_int_value(), builder),
+            for_body,
+            continue_block,
         );
-        builder.build_conditional_branch(compare, for_body, continue_block);
 
         //Enter the for loop
         builder.position_at_end(for_body);
@@ -457,7 +446,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let step_by_value = by_step.as_ref().map_or_else(
             || {
                 self.llvm.create_const_numeric(
-                    &self.llvm_index.get_associated_type(DINT_TYPE)?,
+                    &counter_statement.get_type(),
                     "1",
                     SourceRange::undefined(),
                 )
@@ -483,6 +472,59 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
+    fn generate_compare_expression(
+        &'a self,
+        counter: &AstStatement,
+        end: &AstStatement,
+        start: &AstStatement,
+        exp_gen: &'a ExpressionCodeGenerator,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        let counter_end_ge = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::GreaterOrEqual,
+            left: Box::new(counter.to_owned()),
+            right: Box::new(end.to_owned()),
+        };
+        let counter_start_ge = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::GreaterOrEqual,
+            left: Box::new(counter.to_owned()),
+            right: Box::new(start.to_owned()),
+        };
+        let counter_end_le = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::LessOrEqual,
+            left: Box::new(counter.to_owned()),
+            right: Box::new(end.to_owned()),
+        };
+        let counter_start_le = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::LessOrEqual,
+            left: Box::new(counter.to_owned()),
+            right: Box::new(start.to_owned()),
+        };
+        let and_1 = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::And,
+            left: Box::new(counter_end_le),
+            right: Box::new(counter_start_ge),
+        };
+        let and_2 = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::And,
+            left: Box::new(counter_end_ge),
+            right: Box::new(counter_start_le),
+        };
+        let or = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::Or,
+            left: Box::new(and_1),
+            right: Box::new(and_2),
+        };
+        let or_eval = exp_gen.generate_expression(&or)?;
+        Ok(or_eval)
+    }
+
     /// genertes a case statement
     ///
     /// CASE selector OF
@@ -498,7 +540,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         selector: &AstStatement,
         conditional_blocks: &[ConditionalBlock],
         else_body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         //Continue
         let continue_block = context.append_basic_block(current_function, "continue");
@@ -567,7 +609,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         start: &AstStatement,
         end: &AstStatement,
         match_block: BasicBlock,
-    ) -> Result<BasicBlock, CompileError> {
+    ) -> Result<BasicBlock, Diagnostic> {
         let (builder, _, context) = self.get_llvm_deps();
 
         let range_then = context.insert_basic_block_after(
@@ -587,14 +629,22 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
 
         //jmp to continue if the value is smaller than start
-        builder.build_conditional_branch(lower_bound.into_int_value(), range_then, range_else);
+        builder.build_conditional_branch(
+            to_i1(lower_bound.into_int_value(), builder),
+            range_then,
+            range_else,
+        );
         builder.position_at_end(range_then);
         let upper_bound = {
             let end_val = exp_gen.generate_expression(end)?;
             let selector_val = exp_gen.generate_expression(selector)?;
             exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)
         };
-        builder.build_conditional_branch(upper_bound.into_int_value(), match_block, range_else);
+        builder.build_conditional_branch(
+            to_i1(upper_bound.into_int_value(), builder),
+            match_block,
+            range_else,
+        );
         Ok(range_else)
     }
 
@@ -610,16 +660,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        self.generate_base_while_statement(condition, body)?;
+        let (condition_block, _) = self.generate_base_while_statement(condition, body)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
-        let condition_block = basic_block
-            .get_next_basic_block()
-            .expect(INTERNAL_LLVM_ERROR);
         builder.position_at_end(basic_block);
         builder.build_unconditional_branch(condition_block);
 
@@ -640,16 +687,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        self.generate_base_while_statement(condition, body)?;
+        let (_, while_block) = self.generate_base_while_statement(condition, body)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
-        let while_block = continue_block
-            .get_previous_basic_block()
-            .expect(INTERNAL_LLVM_ERROR);
         builder.position_at_end(basic_block);
         builder.build_unconditional_branch(while_block);
 
@@ -662,7 +706,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum>, CompileError> {
+    ) -> Result<(BasicBlock, BasicBlock), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let condition_check = context.append_basic_block(current_function, "condition_check");
         let while_body = context.append_basic_block(current_function, "while_body");
@@ -674,7 +718,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .create_expr_generator()
             .generate_expression(condition)?;
         builder.build_conditional_branch(
-            condition_value.into_int_value(),
+            to_i1(condition_value.into_int_value(), builder),
             while_body,
             continue_block,
         );
@@ -694,7 +738,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Continue
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok((condition_check, while_body))
     }
 
     /// generates an IF-Statement
@@ -705,7 +749,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         conditional_blocks: &[ConditionalBlock],
         else_body: &[AstStatement],
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let mut blocks = vec![builder.get_insert_block().expect(INTERNAL_LLVM_ERROR)];
         for _ in 1..conditional_blocks.len() {
@@ -736,7 +780,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             //Generate if statement condition
             builder.build_conditional_branch(
-                condition.into_int_value(),
+                to_i1(condition.into_int_value(), builder),
                 conditional_block,
                 else_block,
             );
@@ -776,17 +820,12 @@ fn create_call_to_check_function_ast(
     location: &SourceRange,
 ) -> AstStatement {
     let range_type_id = sub_range.start.get_id();
-    AstStatement::CallStatement {
-        operator: Box::new(AstStatement::Reference {
-            name: check_function_name,
-            location: location.clone(),
-            id: target.get_id(), //TODO
-        }),
-        parameters: Box::new(Some(AstStatement::ExpressionList {
-            expressions: vec![parameter, sub_range.start, sub_range.end],
-            id: range_type_id, //use the id so we end up with the same datatype
-        })),
-        location: location.clone(),
-        id: target.get_id(), //TODO
-    }
+    let target_id = target.get_id();
+    crate::ast::create_call_to(
+        check_function_name,
+        vec![parameter, sub_range.start, sub_range.end],
+        target_id,
+        range_type_id,
+        location,
+    )
 }

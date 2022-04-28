@@ -1,0 +1,366 @@
+---
+source: src/hardware_binding.rs
+assertion_line: 256
+expression: config
+
+---
+[
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "gFb",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
+        direction: Input,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "gFb",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "2",
+            "5",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "gFb",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "2",
+            "5",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "gFb",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "gFb",
+                ),
+                Name(
+                    "x",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "gFb",
+                ),
+                Name(
+                    "y",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "1",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "gFb",
+                ),
+                Name(
+                    "z",
+                ),
+            ],
+        },
+        direction: Input,
+        access_type: Word,
+        address: [
+            "1",
+            "2",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "aFb",
+                ),
+                ArrayAccess(
+                    [
+                        Dimension {
+                            start_offset: ConstExpression(
+                                Index {
+                                    index: 9,
+                                    generation: 0,
+                                },
+                            ),
+                            end_offset: ConstExpression(
+                                Index {
+                                    index: 10,
+                                    generation: 0,
+                                },
+                            ),
+                        },
+                    ],
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
+        direction: Input,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "aFb",
+                ),
+                ArrayAccess(
+                    [
+                        Dimension {
+                            start_offset: ConstExpression(
+                                Index {
+                                    index: 9,
+                                    generation: 0,
+                                },
+                            ),
+                            end_offset: ConstExpression(
+                                Index {
+                                    index: 10,
+                                    generation: 0,
+                                },
+                            ),
+                        },
+                    ],
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "2",
+            "5",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "aFb",
+                ),
+                ArrayAccess(
+                    [
+                        Dimension {
+                            start_offset: ConstExpression(
+                                Index {
+                                    index: 9,
+                                    generation: 0,
+                                },
+                            ),
+                            end_offset: ConstExpression(
+                                Index {
+                                    index: 10,
+                                    generation: 0,
+                                },
+                            ),
+                        },
+                    ],
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "2",
+            "5",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "aFb",
+                ),
+                ArrayAccess(
+                    [
+                        Dimension {
+                            start_offset: ConstExpression(
+                                Index {
+                                    index: 9,
+                                    generation: 0,
+                                },
+                            ),
+                            end_offset: ConstExpression(
+                                Index {
+                                    index: 10,
+                                    generation: 0,
+                                },
+                            ),
+                        },
+                    ],
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "aFb",
+                ),
+                ArrayAccess(
+                    [
+                        Dimension {
+                            start_offset: ConstExpression(
+                                Index {
+                                    index: 9,
+                                    generation: 0,
+                                },
+                            ),
+                            end_offset: ConstExpression(
+                                Index {
+                                    index: 10,
+                                    generation: 0,
+                                },
+                            ),
+                        },
+                    ],
+                ),
+                Name(
+                    "x",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "aFb",
+                ),
+                ArrayAccess(
+                    [
+                        Dimension {
+                            start_offset: ConstExpression(
+                                Index {
+                                    index: 9,
+                                    generation: 0,
+                                },
+                            ),
+                            end_offset: ConstExpression(
+                                Index {
+                                    index: 10,
+                                    generation: 0,
+                                },
+                            ),
+                        },
+                    ],
+                ),
+                Name(
+                    "y",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "1",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: ExpressionPath {
+            names: [
+                Name(
+                    "aFb",
+                ),
+                ArrayAccess(
+                    [
+                        Dimension {
+                            start_offset: ConstExpression(
+                                Index {
+                                    index: 9,
+                                    generation: 0,
+                                },
+                            ),
+                            end_offset: ConstExpression(
+                                Index {
+                                    index: 10,
+                                    generation: 0,
+                                },
+                            ),
+                        },
+                    ],
+                ),
+                Name(
+                    "z",
+                ),
+            ],
+        },
+        direction: Input,
+        access_type: Word,
+        address: [
+            "1",
+            "2",
+        ],
+    },
+]

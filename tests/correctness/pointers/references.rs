@@ -132,19 +132,19 @@ END_PROGRAM
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
-    assert_eq!(true, maintype.b_result_a);
-    assert_eq!(true, maintype.b_result_b);
-    assert_eq!(true, maintype.b_result_c);
-    assert_eq!(true, maintype.b_result_d);
-    assert_eq!(true, maintype.b_result_e);
-    assert_eq!(true, maintype.b_result_f);
-    assert_eq!(true, maintype.b_result_g);
-    assert_eq!(true, maintype.b_result_h);
-    assert_eq!(true, maintype.b_result_i);
-    assert_eq!(true, maintype.b_result_j);
-    assert_eq!(true, maintype.b_result_k);
+    assert!(maintype.b_result_a);
+    assert!(maintype.b_result_b);
+    assert!(maintype.b_result_c);
+    assert!(maintype.b_result_d);
+    assert!(maintype.b_result_e);
+    assert!(maintype.b_result_f);
+    assert!(maintype.b_result_g);
+    assert!(maintype.b_result_h);
+    assert!(maintype.b_result_i);
+    assert!(maintype.b_result_j);
+    assert!(maintype.b_result_k);
 }
 
 #[allow(dead_code)]
@@ -277,15 +277,15 @@ END_PROGRAM
 
     let mut new_with_struct: MainTypeWithStruct = MainTypeWithStruct::default();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut new_with_struct);
+    let _: i32 = compile_and_run(function.to_string(), &mut new_with_struct);
 
-    assert_eq!(true, new_with_struct.b_result_a);
+    assert!(new_with_struct.b_result_a);
     assert_eq!(100, new_with_struct.b_result_b);
-    assert_eq!(true, new_with_struct.b_result_c);
+    assert!(new_with_struct.b_result_c);
     assert_eq!(100, new_with_struct.b_result_d);
-    assert_eq!(true, new_with_struct.b_result_e);
+    assert!(new_with_struct.b_result_e);
     assert_eq!(100, new_with_struct.b_result_f);
-    assert_eq!(true, new_with_struct.b_result_g);
+    assert!(new_with_struct.b_result_g);
     assert_eq!(100, new_with_struct.b_result_h);
 }
 
@@ -432,7 +432,7 @@ fn reference_call_array() {
 
     let mut new_with_array: MainTypeWithArray = MainTypeWithArray::default();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut new_with_array);
+    let _: i32 = compile_and_run(function.to_string(), &mut new_with_array);
 
     assert_eq!(100, new_with_array.b_result_a);
     assert_eq!(0, new_with_array.b_result_b);

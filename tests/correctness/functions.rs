@@ -26,7 +26,7 @@ fn max_function() {
     END_FUNCTION
 
     FUNCTION main : DINT
-    VAR
+    VAR_INPUT
         theA : INT;
         theB : INT;
     END_VAR
@@ -144,24 +144,24 @@ fn test_and_sideeffects() {
     END_VAR
 
     FUNCTION AND_BRANCH : BOOL 
-    VAR_INPUT 
-        a : BOOL;
-        b : INT;
-    END_VAR
+        VAR_INPUT 
+            a : BOOL;
+            b : INT;
+        END_VAR
 
-    AND_BRANCH := a;
-    res_and := res_and + b;
+        AND_BRANCH := a;
+        res_and := res_and + b;
 
     END_FUNCTION
 
     FUNCTION main : DINT
-    VAR
-        y : BOOL;
-    END_VAR
+        VAR
+            y : BOOL;
+        END_VAR
 
-    y := AND_BRANCH(FALSE,1) AND AND_BRANCH(TRUE,2);
-    y := AND_BRANCH(TRUE,10) AND AND_BRANCH(FALSE,20) AND AND_BRANCH(TRUE,50);
-    main := res_and;
+        y := AND_BRANCH(FALSE,1) AND AND_BRANCH(TRUE,2);
+        y := AND_BRANCH(TRUE,10) AND AND_BRANCH(FALSE,20) AND AND_BRANCH(TRUE,50);
+        main := res_and;
 
     END_FUNCTION
 
@@ -212,7 +212,7 @@ fn function_block_instances_save_state_per_instance() {
         f: FooType { i: 0 },
         j: FooType { i: 0 },
     };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
     assert_eq!(interface.f.i, 2);
     assert_eq!(interface.j.i, 7);
 }
@@ -270,7 +270,7 @@ fn functions_can_be_called_out_of_order() {
     "#;
 
     let mut interface = MainType { f: 0 };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.f);
 }
@@ -336,7 +336,7 @@ fn function_block_instances_save_state_per_instance_2() {
             baz: BazType { i: 0 },
         },
     };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(2, interface.f.baz.i);
     assert_eq!(4, interface.j.baz.i);
@@ -378,7 +378,7 @@ fn function_call_inout_variable() {
     "#;
 
     let mut interface = MainType { baz: 7 };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(64, interface.baz);
 }
@@ -429,9 +429,175 @@ fn inouts_behave_like_pointers() {
         p2: 0,
         p3: 0,
     };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.p1);
     assert_eq!(8, interface.p2);
     assert_eq!(9, interface.p3);
+}
+
+#[test]
+fn var_output_assignment() {
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		PROGRAM foo 
+            VAR_INPUT
+                input1 : DINT;
+                input2 : DINT;
+            END_VAR
+            VAR_OUTPUT
+            	output1 : DINT;
+				output2 : DINT;
+            END_VAR
+			output1 := input1;
+			output2 := input2;
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+            foo(7, 8, output1 => var1, output2 => var2);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!((7, 8), (interface.var1, interface.var2));
+}
+
+#[test]
+fn optional_output_assignment() {
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		PROGRAM foo 
+            VAR_OUTPUT
+            	output1 : DINT;
+				output2 : DINT;
+            END_VAR
+			output1 := 1;
+			output2 := 2;
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+            foo(output1 =>, output2 => var2);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(0, interface.var1);
+    assert_eq!(2, interface.var2);
+}
+
+#[test]
+fn direct_call_on_function_block_array_access() {
+    #[allow(dead_code)]
+    #[derive(Default)]
+    struct FooType {
+        i: i16,
+        x: i16,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Default)]
+    struct MainType {
+        f: [FooType; 2],
+        x: i16,
+        y: i16,
+    }
+
+    let function = r#"
+    FUNCTION_BLOCK foo
+    VAR_INPUT
+        i : INT;
+    END_VAR
+    VAR
+		x : INT;
+	END_VAR
+		x := i;
+    END_FUNCTION_BLOCK
+
+    PROGRAM main
+    VAR 
+        f : ARRAY[1..2] OF foo;
+		x : INT;
+		y : INT;
+    END_VAR
+	f[1](i := 10);
+	x := f[1].x;
+
+	f[2](i := 20);
+	y := f[2].x;
+    END_PROGRAM
+    "#;
+
+    let mut interface = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+    assert_eq!(interface.x, 10);
+    assert_eq!(interface.y, 20);
+}
+
+#[test]
+fn nested_calls_in_call_statement() {
+    #[repr(C)]
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		FUNCTION seven : DINT 
+			seven := 7;
+        END_FUNCTION
+
+        FUNCTION eight : DINT 
+			eight := 8;
+        END_FUNCTION
+
+        FUNCTION nine : DINT 
+			nine := 9;
+        END_FUNCTION
+
+        FUNCTION sum : DINT
+        VAR_INPUT a,b,c : DINT; END_VAR
+            sum := a + b + c;
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+
+            var1 := sum(seven(), eight(), nine());
+            var2 := sum(
+                sum(seven(), eight(), nine()),
+                sum(seven(), eight(), nine()),
+                sum(seven(), eight(), nine()));
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(
+        (7 + 8 + 9, 3 * (7 + 8 + 9)),
+        (interface.var1, interface.var2)
+    );
 }

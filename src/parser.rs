@@ -3,10 +3,14 @@ use crate::{
     ast::*,
     expect_token, lexer,
     lexer::{ParseSession, Token, Token::*},
+    typesystem::DINT_TYPE,
     Diagnostic,
 };
 
-use self::{control_parser::parse_control_statement, expressions_parser::parse_expression};
+use self::{
+    control_parser::parse_control_statement,
+    expressions_parser::{parse_expression, parse_expression_list},
+};
 
 mod control_parser;
 mod expressions_parser;
@@ -15,10 +19,10 @@ mod expressions_parser;
 pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
-pub fn parse(mut lexer: ParseSession) -> ParsedAst {
+pub fn parse(mut lexer: ParseSession, lnk: LinkageType) -> ParsedAst {
     let mut unit = CompilationUnit::default();
 
-    let mut linkage = LinkageType::Internal;
+    let mut linkage = lnk;
     loop {
         match lexer.token {
             PropertyExternal => {
@@ -27,9 +31,11 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 //Don't reset linkage
                 continue;
             }
-            KeywordVarGlobal => unit
-                .global_vars
-                .push(parse_variable_block(&mut lexer, VariableBlockType::Global)),
+            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(
+                &mut lexer,
+                VariableBlockType::Global,
+                linkage,
+            )),
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
                 let params = match lexer.token {
                     KeywordProgram => (PouType::Program, KeywordEndProgram),
@@ -73,7 +79,7 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 lexer.advance();
             }
         };
-        linkage = LinkageType::Internal;
+        linkage = lnk;
     }
     //the match in the loop will always return
 }
@@ -150,6 +156,8 @@ fn parse_pou(
 
         let name = parse_identifier(lexer).unwrap_or_else(|| "".to_string()); // parse POU name
 
+        let generics = parse_generics(lexer);
+
         with_scope(lexer, name.clone(), |lexer| {
             // TODO: Parse USING directives
             // TODO: Parse EXTENDS specifier
@@ -180,6 +188,7 @@ fn parse_pou(
                 variable_blocks.push(parse_variable_block(
                     lexer,
                     parse_variable_block_type(&lexer.token),
+                    LinkageType::Internal,
                 ));
             }
 
@@ -216,6 +225,8 @@ fn parse_pou(
                 return_type,
                 location: SourceRange::new(start..lexer.range().end),
                 poly_mode,
+                generics,
+                linkage,
             }];
             pous.append(&mut impl_pous);
 
@@ -232,6 +243,59 @@ fn parse_pou(
         ));
     }
     pou
+}
+
+fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
+    if lexer.allow(&Token::OperatorLess) {
+        parse_any_in_region(lexer, vec![Token::OperatorGreater], |lexer| {
+            let mut generics = vec![];
+            loop {
+                //identifier
+                if let Some(name) = parse_identifier(lexer) {
+                    lexer.consume_or_report(Token::KeywordColon);
+
+                    //Expect a type nature
+                    if let Some(nature) =
+                        parse_identifier(lexer).map(|it| parse_type_nature(lexer, &it))
+                    {
+                        generics.push(GenericBinding { name, nature });
+                    }
+                }
+
+                if !lexer.allow(&Token::KeywordComma) || lexer.allow(&Token::OperatorGreater) {
+                    break;
+                }
+            }
+
+            generics
+        })
+    } else {
+        vec![]
+    }
+}
+
+fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {
+    match nature {
+        "ANY" => TypeNature::Any,
+        "ANY_DERIVED" => TypeNature::Derived,
+        "ANY_ELEMENTARY" => TypeNature::Elementary,
+        "ANY_MAGNITUDE" => TypeNature::Magnitude,
+        "ANY_NUM" => TypeNature::Num,
+        "ANY_REAL" => TypeNature::Real,
+        "ANY_INT" => TypeNature::Int,
+        "ANY_SIGNED" => TypeNature::Signed,
+        "ANY_UNSIGNED" => TypeNature::Unsigned,
+        "ANY_DURATION" => TypeNature::Duration,
+        "ANY_BIT" => TypeNature::Bit,
+        "ANY_CHARS" => TypeNature::Chars,
+        "ANY_STRING" => TypeNature::String,
+        "ANY_CHAR" => TypeNature::Char,
+        "ANY_DATE" => TypeNature::Date,
+        _ => {
+            lexer.accept_diagnostic(Diagnostic::unknown_type_nature(nature, lexer.location()));
+            TypeNature::Any
+        }
+    }
 }
 
 fn parse_polymorphism_mode(
@@ -318,6 +382,7 @@ fn parse_method(
         let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
         let overriding = lexer.allow(&KeywordOverride);
         let name = parse_identifier(lexer)?;
+        let generics = parse_generics(lexer);
         let return_type = parse_return_type(lexer, &pou_type);
 
         let mut variable_blocks = vec![];
@@ -330,6 +395,7 @@ fn parse_method(
             variable_blocks.push(parse_variable_block(
                 lexer,
                 parse_variable_block_type(&lexer.token),
+                LinkageType::Internal,
             ));
         }
 
@@ -361,6 +427,8 @@ fn parse_method(
                 return_type,
                 location: SourceRange::new(method_start..method_end),
                 poly_mode,
+                generics,
+                linkage,
             },
             implementation,
         ))
@@ -564,6 +632,7 @@ fn parse_data_type_definition(
     } else if lexer.allow(&KeywordRef) {
         parse_pointer_definition(lexer, name, lexer.last_range.start)
     } else if lexer.allow(&KeywordParensOpen) {
+        //enum without datatype
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
         parse_string_type_definition(lexer, name)
@@ -626,14 +695,41 @@ fn parse_type_reference_type_definition(
 
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
-        let data_type = DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::SubRangeType {
-                name,
-                referenced_type,
-                bounds,
+        let data_type = match bounds {
+            Some(AstStatement::ExpressionList { expressions, id }) => {
+                //this is an enum
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::EnumType {
+                        name,
+                        numeric_type: referenced_type,
+                        elements: AstStatement::ExpressionList { expressions, id },
+                    },
+                    location: (start..end).into(),
+                    scope: lexer.scope.clone(),
+                }
+            }
+            Some(AstStatement::Reference { .. }) => {
+                // a enum with just one element
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::EnumType {
+                        name,
+                        numeric_type: referenced_type,
+                        elements: bounds.unwrap(),
+                    },
+                    location: (start..end).into(),
+                    scope: lexer.scope.clone(),
+                }
+            }
+            _ => DataTypeDeclaration::DataTypeDefinition {
+                //something else inside the brackets -> probably a subrange?
+                data_type: DataType::SubRangeType {
+                    name,
+                    referenced_type,
+                    bounds,
+                },
+                location: (start..end).into(),
+                scope: lexer.scope.clone(),
             },
-            location: (start..end).into(),
-            scope: lexer.scope.clone(),
         };
         Some((data_type, initial_value))
     } else {
@@ -712,23 +808,17 @@ fn parse_enum_type_definition(
     let start = lexer.last_range.start;
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
         // Parse Enum - we expect at least one element
-
-        let mut elements = Vec::new();
-        //we expect at least one element
-        if lexer.token == Identifier {
-            elements.push(lexer.slice_and_advance());
-        }
-        //parse additional elements separated by ,
-        while lexer.allow(&KeywordComma) {
-            expect_token!(lexer, Identifier, None);
-            elements.push(lexer.slice_and_advance());
-        }
+        let elements = parse_expression_list(lexer);
         Some(elements)
     })?;
 
     Some((
         DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::EnumType { name, elements },
+            data_type: DataType::EnumType {
+                name,
+                elements,
+                numeric_type: DINT_TYPE.to_string(),
+            },
             location: (start..lexer.last_range.end).into(),
             scope: lexer.scope.clone(),
         },
@@ -775,7 +865,7 @@ fn parse_array_type_definition(
 
 /// parse a body and recovers until the given `end_keywords`
 fn parse_body_in_region(lexer: &mut ParseSession, end_keywords: Vec<Token>) -> Vec<AstStatement> {
-    parse_any_in_region(lexer, end_keywords, |lexer| parse_body_standalone(lexer))
+    parse_any_in_region(lexer, end_keywords, parse_body_standalone)
 }
 
 fn parse_body_standalone(lexer: &mut ParseSession) -> Vec<AstStatement> {
@@ -861,6 +951,7 @@ fn parse_variable_block_type(block_type: &Token) -> VariableBlockType {
 fn parse_variable_block(
     lexer: &mut ParseSession,
     variable_block_type: VariableBlockType,
+    linkage: LinkageType,
 ) -> VariableBlock {
     let location = lexer.location();
     //Consume the type keyword
@@ -882,6 +973,7 @@ fn parse_variable_block(
         retain,
         variables,
         variable_block_type,
+        linkage,
         location,
     }
 }
@@ -903,7 +995,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         let identifier_end = location.get_end();
         var_names.push((lexer.slice_and_advance(), location));
 
-        if lexer.token == KeywordColon {
+        if lexer.token == KeywordColon || lexer.token == KeywordAt {
             break;
         }
 
@@ -915,6 +1007,55 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             ));
         }
     }
+
+    //See if there's an AT keyword
+    let address = if lexer.allow(&KeywordAt) {
+        let start_location = lexer.last_range.start;
+        //Look for a hardware address
+        if let HardwareAccess((direction, access_type)) = lexer.token {
+            lexer.advance();
+            //Folowed by an integer
+            if access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
+                let mut address = vec![];
+                if lexer.token == LiteralInteger {
+                    loop {
+                        let int = expressions_parser::parse_strict_literal_integer(lexer);
+                        match int {
+                            Ok(statement) => address.push(statement),
+                            Err(err) => {
+                                lexer.accept_diagnostic(err);
+                                break;
+                            }
+                        }
+                        if !lexer.allow(&KeywordDot) {
+                            break;
+                        }
+                    }
+                }
+                Some(AstStatement::HardwareAccess {
+                    access: access_type,
+                    direction,
+                    address,
+                    location: (start_location..lexer.last_range.end).into(),
+                    id: lexer.next_id(),
+                })
+            } else {
+                lexer.accept_diagnostic(Diagnostic::missing_token(
+                    "LiteralInteger",
+                    lexer.location(),
+                ));
+                None
+            }
+        } else {
+            lexer.accept_diagnostic(Diagnostic::missing_token(
+                "Hardware Access",
+                lexer.location(),
+            ));
+            None
+        }
+    } else {
+        None
+    };
 
     // colon has to come before the data type
     if !lexer.allow(&KeywordColon) {
@@ -933,6 +1074,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
                 data_type: data_type.clone(),
                 location,
                 initializer: initializer.clone(),
+                address: address.clone(),
             });
         }
     }

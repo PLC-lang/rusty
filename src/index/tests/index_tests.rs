@@ -3,7 +3,7 @@ use pretty_assertions::assert_eq;
 
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
-use crate::test_utils::tests::{index, parse};
+use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
@@ -631,21 +631,11 @@ fn pre_processing_generates_inline_enums_global() {
             inline_enum : (a,b,c);
         END_VAR
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ENUM
     // THEN an implicit datatype should have been generated for the enum
-    let new_enum_type = &ast.types[0].data_type;
-    assert_eq!(
-        &DataType::EnumType {
-            name: Some("__global_inline_enum".to_string()),
-            elements: ["a".to_string(), "b".to_string(), "c".to_string()].to_vec()
-        },
-        new_enum_type
-    );
+    insta::assert_debug_snapshot!(ast.types[0].data_type);
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.global_vars[0].variables[0].data_type;
@@ -679,10 +669,7 @@ fn pre_processing_generates_inline_structs_global() {
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
@@ -705,7 +692,8 @@ fn pre_processing_generates_inline_structs_global() {
                 },
                 location: (54..55).into(),
                 initializer: None,
-            }]
+                address: None,
+            },],
         },
         new_struct_type
     );
@@ -731,22 +719,10 @@ fn pre_processing_generates_inline_enums() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ENUM
-    // THEN an implicit datatype should have been generated for the enum
-    let new_enum_type = &ast.types[0].data_type;
-    assert_eq!(
-        &DataType::EnumType {
-            name: Some("__foo_inline_enum".to_string()),
-            elements: ["a".to_string(), "b".to_string(), "c".to_string()].to_vec()
-        },
-        new_enum_type
-    );
-
+    //
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
     assert_eq!(
@@ -756,6 +732,10 @@ fn pre_processing_generates_inline_enums() {
         },
         var_data_type
     );
+
+    // THEN an implicit datatype should have been generated for the enum
+    let new_enum_type = &ast.types[0].data_type;
+    insta::assert_debug_snapshot!(new_enum_type);
 }
 
 #[test]
@@ -768,10 +748,7 @@ fn pre_processing_generates_inline_structs() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
@@ -794,7 +771,8 @@ fn pre_processing_generates_inline_structs() {
                 },
                 location: (67..68).into(),
                 initializer: None,
-            }]
+                address: None,
+            }],
         },
         new_struct_type
     );
@@ -820,10 +798,7 @@ fn pre_processing_generates_inline_pointers() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //Pointer
     //THEN an implicit datatype should have been generated for the array
@@ -859,10 +834,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
     let src = r#"
         TYPE pointer_to_pointer: REF_TO REF_TO INT; END_TYPE
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //Pointer
     //THEN an implicit datatype should have been generated for the pointer
@@ -910,10 +882,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //Pointer
     //THEN an implicit datatype should have been generated for the pointer
@@ -970,10 +939,7 @@ fn pre_processing_generates_inline_arrays() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
@@ -1027,10 +993,7 @@ fn pre_processing_generates_inline_array_of_array() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
@@ -1111,10 +1074,7 @@ fn pre_processing_generates_array_of_array_type() {
     let src = r#"
         TYPE arr_arr: ARRAY[0..1] OF ARRAY[0..1] OF INT; END_TYPE
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     let new_type = &ast.types[1];
     let expected = &UserTypeDeclaration {
@@ -1175,10 +1135,7 @@ fn pre_processing_nested_array_in_struct() {
         END_PROGRAM
         "#;
 
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //THEN an implicit datatype should have been generated for the array
 
@@ -1195,6 +1152,7 @@ fn pre_processing_nested_array_in_struct() {
                 },
                 location: SourceRange::undefined(),
                 initializer: None,
+                address: None,
             }],
         },
         initializer: None,
@@ -1243,10 +1201,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
@@ -1350,6 +1305,103 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
 }
 
 #[test]
+fn pre_processing_generates_generic_types() {
+    // GIVEN a function with a generic type G: ANY
+    let src = "
+        FUNCTION myFunc<G : ANY> : G
+        VAR_INPUT
+            in1 : G;
+            in2 : INT;
+        END_VAR
+        END_FUNCTION
+        ";
+    let (ast, ..) = parse_and_preprocess(src);
+
+    assert_eq!(1, ast.types.len());
+    //A type __myFunc__G is created
+    let expected = UserTypeDeclaration {
+        data_type: DataType::GenericType {
+            name: "__myFunc__G".into(),
+            generic_symbol: "G".into(),
+            nature: TypeNature::Any,
+        },
+        initializer: None,
+        location: SourceRange::undefined(),
+        scope: Some("myFunc".into()),
+    };
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", ast.types[0]));
+
+    //The variables with type G now have type __myFunc__G
+    let pou = &ast.units[0];
+    assert_eq!(
+        pou.variable_blocks[0].variables[0]
+            .data_type
+            .get_name()
+            .unwrap(),
+        "__myFunc__G"
+    );
+    assert_eq!(
+        pou.variable_blocks[0].variables[1]
+            .data_type
+            .get_name()
+            .unwrap(),
+        "INT"
+    );
+    assert_eq!(
+        pou.return_type.as_ref().unwrap().get_name().unwrap(),
+        "__myFunc__G"
+    );
+}
+
+#[test]
+fn pre_processing_generates_nested_generic_types() {
+    // GIVEN a function with a generic type G: ANY
+    let src = "
+        FUNCTION myFunc<G : ANY> : REF_TO G
+        VAR_INPUT
+            in1 : ARRAY[0..1] OF G;
+            in2 : INT;
+        END_VAR
+        END_FUNCTION
+        ";
+    let (ast, ..) = parse_and_preprocess(src);
+
+    //A type __myFunc__G is created
+    let expected = UserTypeDeclaration {
+        data_type: DataType::GenericType {
+            name: "__myFunc__G".into(),
+            generic_symbol: "G".into(),
+            nature: TypeNature::Any,
+        },
+        initializer: None,
+        location: SourceRange::undefined(),
+        scope: Some("myFunc".into()),
+    };
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", ast.types[0]));
+    //Additional types created
+    assert_eq!(3, ast.types.len());
+    //referenced types of additional types are the new type
+    if let DataType::ArrayType {
+        referenced_type, ..
+    } = &ast.types[1].data_type
+    {
+        assert_eq!(referenced_type.get_name().unwrap(), "__myFunc__G");
+    } else {
+        panic!("expected array");
+    }
+    if let DataType::PointerType {
+        referenced_type, ..
+    } = &ast.types[2].data_type
+    {
+        assert_eq!(referenced_type.get_name().unwrap(), "__myFunc__G");
+    } else {
+        panic!("expected pointer");
+    }
+}
+
+#[test]
 fn sub_range_boundaries_are_registered_at_the_index() {
     // GIVEN a Subrange INT from 7 to 1000
     let src = "
@@ -1399,9 +1451,12 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
@@ -1443,9 +1498,12 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
@@ -1481,9 +1539,12 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
@@ -1508,9 +1569,12 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
@@ -1589,9 +1653,12 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain constants expressions used in the string-len
@@ -1628,4 +1695,174 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     } else {
         unreachable!()
     }
+}
+
+#[test]
+fn generic_datatypes_indexed() {
+    let source = "FUNCTION gen<G: ANY, X : ANY_BIT> : INT END_FUNCTION";
+    let (_, index) = index(source);
+
+    //Expecting a datatype entry for G and a datatype entry for X
+    let g = index.get_type("__gen__G").unwrap();
+    assert_eq!(
+        g.get_type_information(),
+        &DataTypeInformation::Generic {
+            name: "__gen__G".into(),
+            generic_symbol: "G".into(),
+            nature: TypeNature::Any,
+        }
+    );
+    let g = index.get_type("__gen__X").unwrap();
+    assert_eq!(
+        g.get_type_information(),
+        &DataTypeInformation::Generic {
+            name: "__gen__X".into(),
+            generic_symbol: "X".into(),
+            nature: TypeNature::Bit,
+        }
+    );
+}
+
+#[test]
+fn function_name_equals_return_type() {
+    // GIVEN function with the same name as the return type
+    // WHEN the function is indexed
+    let (_, index) = index(
+        "
+		FUNCTION TIME : TIME
+		END_FUNCTION",
+    );
+
+    // THEN there should be a indexed pou_type
+    let data_type = index.type_index.find_pou_type("TIME").unwrap();
+    // with the name "time"
+    assert_eq!(data_type.get_name(), "TIME");
+    // and DataTypeInformation of the type struct
+    assert_eq!(
+        true,
+        matches!(
+            data_type.get_type_information(),
+            DataTypeInformation::Struct { .. }
+        )
+    );
+}
+
+#[test]
+fn global_vars_for_structs() {
+    // GIVEN a program with a struct variable
+    // WHEN the program is indexed
+    let (_, index) = index(
+        "
+		PROGRAM main
+		VAR
+			x : STRUCT var1 : INT; END_STRUCT
+		END_VAR
+		END_PROGRAM
+		",
+    );
+
+    // THEN there should be a global variable for the struct
+    let global_var = index.find_global_initializer("__main_x__init");
+    assert_eq!(true, global_var.is_some());
+}
+
+#[test]
+fn pointer_and_in_out_pointer_should_not_conflict() {
+    // GIVEN an IN-OUT INT and a POINTER TO INT
+    // WHEN the program is indexed
+    let (_, index) = index(
+        "
+		PROGRAM main
+		VAR_INPUT
+			x : REF_TO INT;
+		END_VAR
+        VAR_IN_OUT
+            y : INT;
+        END_VAR
+		END_PROGRAM
+		",
+    );
+
+    // THEN x and y whould be different pointer types
+    let x = index.find_member("main", "x").expect("main.x not found");
+    let x_type = index
+        .get_type(x.get_type_name())
+        .unwrap()
+        .get_type_information();
+    assert_eq!(
+        x_type,
+        &DataTypeInformation::Pointer {
+            name: "__main_x".to_string(),
+            inner_type_name: "INT".to_string(),
+            auto_deref: false,
+        }
+    );
+
+    let y = index.find_member("main", "y").expect("main.y not found");
+    let y_type = index
+        .get_type(y.get_type_name())
+        .unwrap()
+        .get_type_information();
+    assert_eq!(
+        y_type,
+        &DataTypeInformation::Pointer {
+            name: "auto_pointer_to_INT".to_string(),
+            inner_type_name: "INT".to_string(),
+            auto_deref: true,
+        }
+    );
+}
+
+#[test]
+fn pointer_and_in_out_pointer_should_not_conflict_2() {
+    // GIVEN an IN-OUT INT and a POINTER TO INT
+    // AND a address-of INT operation
+
+    // WHEN the program is indexed
+    let (result, mut index) = index(
+        "
+		PROGRAM main
+		VAR_INPUT
+			x : REF_TO INT;
+		END_VAR
+        VAR_IN_OUT
+            y : INT;
+        END_VAR
+
+        &y; //this will add another pointer_to_int type to the index (autoderef = false)
+		END_PROGRAM
+		",
+    );
+
+    annotate(&result, &mut index);
+
+    // THEN x should be a normal pointer
+    // AND y should be an auto-deref pointer
+    let x = index.find_member("main", "x").expect("main.x not found");
+    let x_type = index
+        .get_type(x.get_type_name())
+        .unwrap()
+        .get_type_information();
+    assert_eq!(
+        x_type,
+        &DataTypeInformation::Pointer {
+            name: "__main_x".to_string(),
+            inner_type_name: "INT".to_string(),
+            auto_deref: false,
+        }
+    );
+
+    let y = index.find_member("main", "y").expect("main.y not found");
+    let y_type = index
+        .get_type(y.get_type_name())
+        .unwrap()
+        .get_type_information();
+    assert_eq!(
+        y_type,
+        &DataTypeInformation::Pointer {
+            name: "auto_pointer_to_INT".to_string(),
+            inner_type_name: "INT".to_string(),
+            auto_deref: true,
+        }
+    );
 }

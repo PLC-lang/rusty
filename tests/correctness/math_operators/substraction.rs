@@ -1,10 +1,5 @@
-use crate::compile_and_run;
+use crate::{compile_and_run, MainType};
 use num::{Float, NumCast};
-
-#[derive(Default)]
-#[allow(dead_code)]
-#[repr(C)]
-struct MainType {}
 
 //--------------------------------------------------------------
 //substraction tests

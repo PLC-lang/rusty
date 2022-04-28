@@ -1,0 +1,12 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+assertion_line: 171
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@x = global [3 x i16] [i16 1, i16 2, i16 3]
+@MyArray__init = unnamed_addr constant [3 x i16] [i16 1, i16 2, i16 3]
+

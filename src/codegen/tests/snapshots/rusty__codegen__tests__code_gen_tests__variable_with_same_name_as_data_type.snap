@@ -1,0 +1,30 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2731
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prog_interface = type { i64 }
+%func_interface = type { i64 }
+
+@prog_instance = global %prog_interface zeroinitializer
+
+define i64 @func(%func_interface* %0) {
+entry:
+  %TIME = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 0
+  %func = alloca i64, align 8
+  store i64 0, i64* %TIME, align 4
+  store i64 0, i64* %func, align 4
+  %func_ret = load i64, i64* %func, align 4
+  ret i64 %func_ret
+}
+
+define void @prog(%prog_interface* %0) {
+entry:
+  %TIME = getelementptr inbounds %prog_interface, %prog_interface* %0, i32 0, i32 0
+  ret void
+}
+

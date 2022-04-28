@@ -1,4 +1,6 @@
-use crate::{ast::*, test_utils::tests::parse, Diagnostic};
+use crate::{
+    ast::*, parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE, Diagnostic,
+};
 use pretty_assertions::*;
 
 #[test]
@@ -124,6 +126,7 @@ fn varargs_parameters_can_be_parsed() {
             retain: false,
             variable_block_type: VariableBlockType::Input,
             location: SourceRange::undefined(),
+            linkage: LinkageType::Internal,
             variables: vec![
                 Variable {
                     name: "args1".into(),
@@ -135,6 +138,7 @@ fn varargs_parameters_can_be_parsed() {
                         scope: Some("foo".into()),
                     },
                     initializer: None,
+                    address: None,
                     location: SourceRange::undefined(),
                 },
                 Variable {
@@ -152,12 +156,15 @@ fn varargs_parameters_can_be_parsed() {
                         scope: Some("foo".into()),
                     },
                     initializer: None,
+                    address: None,
                     location: SourceRange::undefined(),
                 },
             ],
         }],
         location: SourceRange::undefined(),
         poly_mode: None,
+        generics: vec![],
+        linkage: crate::ast::LinkageType::Internal,
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
 }
@@ -292,7 +299,11 @@ fn function_inline_enum_return_unsupported() {
             &DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::EnumType {
                     name: None,
-                    elements: vec!["green".into(), "yellow".into(), "red".into()]
+                    numeric_type: DINT_TYPE.to_string(),
+                    elements: AstStatement::ExpressionList {
+                        expressions: vec![ref_to("green"), ref_to("yellow"), ref_to("red")],
+                        id: 0,
+                    }
                 },
                 location: (15..35).into(),
                 scope: Some("foo".into()),
@@ -323,7 +334,8 @@ fn function_inline_struct_return_unsupported() {
                                 location: SourceRange::undefined(),
                                 referenced_type: "INT".into()
                             },
-                            initializer: None
+                            initializer: None,
+                            address: None,
                         },
                         Variable {
                             name: "y".into(),
@@ -332,7 +344,8 @@ fn function_inline_struct_return_unsupported() {
                                 location: SourceRange::undefined(),
                                 referenced_type: "INT".into()
                             },
-                            initializer: None
+                            initializer: None,
+                            address: None,
                         }
                     ],
                 },

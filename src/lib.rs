@@ -18,15 +18,18 @@
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::fs;
-use std::ops::Range;
+use std::io::Write;
+use std::str::FromStr;
+
+use clap::ArgEnum;
+use codegen::CodeGen;
+use glob::glob;
+use inkwell::passes::PassBuilderOptions;
 use std::path::Path;
 
-use ast::{DataTypeDeclaration, PouType, SourceRange};
-use codespan_reporting::diagnostic::{self, Label};
-use codespan_reporting::files::SimpleFiles;
-use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use codespan_reporting::term::{self, Chars, Styles};
-use compile_error::CompileError;
+use ast::{LinkageType, PouType, SourceRange};
+use cli::CompileParameters;
+use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
@@ -35,316 +38,122 @@ use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
 use lexer::IdProvider;
+use resolver::{AstAnnotations, StringLiterals};
 use std::{fs::File, io::Read};
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
-use crate::resolver::{AnnotationMap, TypeAnnotator};
+use crate::diagnostics::Diagnostician;
+use crate::resolver::{AnnotationMapImpl, TypeAnnotator};
 mod ast;
+mod builtins;
 pub mod cli;
 mod codegen;
-pub mod compile_error;
+pub mod diagnostics;
+pub mod expression_path;
+mod hardware_binding;
 pub mod index;
 mod lexer;
+mod linker;
 mod parser;
 mod resolver;
 mod test_utils;
 mod typesystem;
 mod validation;
 
+pub mod runner;
+
 #[macro_use]
 #[cfg(test)]
 extern crate pretty_assertions;
 
-#[derive(PartialEq, Debug, Clone)]
-pub enum Diagnostic {
-    SyntaxError {
-        message: String,
-        range: SourceRange,
-        err_no: ErrNo,
-    },
-    ImprovementSuggestion {
-        message: String,
-        range: SourceRange,
-    },
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum FormatOption {
+    Static,
+    PIC,
+    Shared,
+    Relocatable,
+    Bitcode,
+    IR,
 }
 
-#[allow(non_camel_case_types)]
-#[derive(PartialEq, Debug, Clone)]
-pub enum ErrNo {
-    undefined,
-
-    //syntax
-    syntax__generic_error,
-    syntax__missing_token,
-    syntax__unexpected_token,
-
-    //semantic
-    // pou related
-    pou__missing_return_type,
-    pou__unexpected_return_type,
-    pou__unsupported_return_type,
-    pou__empty_variable_block,
-
-    //variable related
-    var__unresolved_constant,
-    var__invalid_constant_block,
-    var__invalid_constant,
-    var__cannot_assign_to_const,
-    var__invalid_assignment,
-
-    //reference related
-    reference__unresolved,
-
-    //type related
-    type__literal_out_of_range,
-    type__incompatible_literal_cast,
-    type__incompatible_directaccess,
-    type__incompatible_directaccess_variable,
-    type__incompatible_directaccess_range,
-    type__expected_literal,
+#[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
+pub enum ConfigFormat {
+    JSON,
+    TOML,
 }
 
-impl Diagnostic {
-    pub fn syntax_error(message: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: message.to_string(),
-            range,
-            err_no: ErrNo::syntax__generic_error,
+impl FromStr for ConfigFormat {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "json" => Ok(ConfigFormat::JSON),
+            "toml" => Ok(ConfigFormat::TOML),
+            _ => Err(format!("Invalid option {}", s)),
         }
     }
+}
 
-    pub fn unexpected_token_found(expected: &str, found: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Unexpected token: expected {} but found {}",
-                expected, found
-            ),
-            range,
-            err_no: ErrNo::syntax__unexpected_token,
+pub struct CompileOptions {
+    pub format: FormatOption,
+    pub output: String,
+    pub target: Option<String>,
+    pub optimization: OptimizationLevel,
+}
+
+pub struct LinkOptions {
+    pub libraries: Vec<String>,
+    pub library_pathes: Vec<String>,
+    pub sysroot: Option<String>,
+}
+
+struct ConfigurationOptions {
+    format: ConfigFormat,
+    output: String,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum)]
+pub enum ErrorFormat {
+    Rich,
+    Clang,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+pub enum OptimizationLevel {
+    None,
+    Less,
+    Default,
+    Aggressive,
+}
+
+impl From<OptimizationLevel> for inkwell::OptimizationLevel {
+    fn from(val: OptimizationLevel) -> Self {
+        match val {
+            OptimizationLevel::None => inkwell::OptimizationLevel::None,
+            OptimizationLevel::Less => inkwell::OptimizationLevel::Less,
+            OptimizationLevel::Default => inkwell::OptimizationLevel::Default,
+            OptimizationLevel::Aggressive => inkwell::OptimizationLevel::Aggressive,
         }
     }
+}
 
-    pub fn unexpected_initializer_on_function_return(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Return types cannot have a default value".into(),
-            range,
-            err_no: ErrNo::syntax__unexpected_token,
-        }
-    }
-
-    pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "POU Type {:?} does not support a return type. Did you mean Function?",
-                pou_type
-            ),
-            range,
-            err_no: ErrNo::pou__unexpected_return_type,
-        }
-    }
-
-    pub fn function_unsupported_return_type(data_type: &DataTypeDeclaration) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Data Type {:?} not supported as a function return type!",
-                data_type
-            ),
-            range: data_type.get_location(),
-            err_no: ErrNo::pou__unsupported_return_type,
-        }
-    }
-
-    pub fn function_return_missing(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Function Return type missing".into(),
-            range,
-            err_no: ErrNo::pou__missing_return_type,
-        }
-    }
-
-    pub fn missing_token(epxected_token: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Missing expected Token {}", epxected_token),
-            range,
-            err_no: ErrNo::syntax__missing_token,
-        }
-    }
-
-    pub fn missing_action_container(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Missing Actions Container Name".to_string(),
-            range,
-            err_no: ErrNo::undefined,
-        }
-    }
-
-    pub fn unrseolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Could not resolve reference to {:}", reference),
-            range: location,
-            err_no: ErrNo::reference__unresolved,
-        }
-    }
-
-    pub fn incompatible_directaccess(
-        access_type: &str,
-        access_size: u64,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "{}-Wise access requires a Numerical type larger than {} bits",
-                access_type, access_size
-            ),
-            range: location,
-            err_no: ErrNo::type__incompatible_directaccess,
-        }
-    }
-
-    pub fn incompatible_directaccess_range(
-        access_type: &str,
-        target_type: &str,
-        access_range: Range<u64>,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "{}-Wise access for type {} must be in the range {}..{}",
-                access_type, target_type, access_range.start, access_range.end
-            ),
-            range: location,
-            err_no: ErrNo::type__incompatible_directaccess_range,
-        }
-    }
-
-    pub fn incompatible_directaccess_variable(
-        access_type: &str,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Invalid type {} for direct variable access. Only variables of Integer types are allowed",
-                access_type
-            ),
-            range: location,
-            err_no: ErrNo::type__incompatible_directaccess_variable,
-        }
-    }
-
-    pub fn incompatible_literal_cast(
-        cast_type: &str,
-        literal_type: &str,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Literal {:} is not campatible to {:}",
-                literal_type, cast_type
-            ),
-            range: location,
-            err_no: ErrNo::type__incompatible_literal_cast,
-        }
-    }
-
-    pub fn literal_expected(location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Expected literal".into(),
-            range: location,
-            err_no: ErrNo::type__expected_literal,
-        }
-    }
-
-    pub fn literal_out_of_range(
-        literal: &str,
-        range_hint: &str,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Literal {:} out of range ({})", literal, range_hint),
-            range: location,
-            err_no: ErrNo::type__literal_out_of_range,
-        }
-    }
-
-    pub fn empty_variable_block(location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Variable block is empty".into(),
-            range: location,
-            err_no: ErrNo::pou__empty_variable_block,
-        }
-    }
-
-    pub fn unresolved_constant(
-        constant_name: &str,
-        reason: Option<&str>,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Unresolved constant '{:}' variable{:}",
-                constant_name,
-                reason
-                    .map(|it| format!(": {:}", it))
-                    .unwrap_or_else(|| "".into()),
-            ),
-            range: location,
-            err_no: ErrNo::pou__empty_variable_block,
-        }
-    }
-
-    pub fn invalid_constant_block(location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "This variable block does not support the CONSTANT modifier".to_string(),
-            range: location,
-            err_no: ErrNo::var__invalid_constant_block,
-        }
-    }
-
-    pub fn invalid_constant(constant_name: &str, location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Invalid constant {:} - Functionblock- and Class-instances cannot be delcared constant", constant_name),
-            range: location,
-            err_no: ErrNo::var__invalid_constant,
-        }
-    }
-
-    pub fn cannot_assign_to_constant(qualified_name: &str, location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Cannot assign to CONSTANT '{:}'", qualified_name),
-            range: location,
-            err_no: ErrNo::var__cannot_assign_to_const,
-        }
-    }
-
-    pub fn invalid_assignment(
-        right_type: &str,
-        left_type: &str,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Invalid assignment: cannot assign '{:}' to '{:}'",
-                right_type, left_type
-            ),
-            range: location,
-            err_no: ErrNo::var__invalid_assignment,
-        }
-    }
-
-    pub fn get_message(&self) -> &str {
+impl OptimizationLevel {
+    fn opt_params(&self) -> &str {
         match self {
-            Diagnostic::SyntaxError { message, .. } => message.as_str(),
-            Diagnostic::ImprovementSuggestion { message, .. } => message.as_str(),
+            OptimizationLevel::None => "default<O0>",
+            OptimizationLevel::Less => "default<O1>",
+            OptimizationLevel::Default => "default<O2>",
+            OptimizationLevel::Aggressive => "default<O3>",
         }
     }
+}
 
-    pub fn get_location(&self) -> SourceRange {
-        match self {
-            Diagnostic::SyntaxError { range, .. } => range.clone(),
-            Diagnostic::ImprovementSuggestion { range, .. } => range.clone(),
-        }
-    }
+/// A struct representing the result of a compilation
+#[derive(Default)]
+pub struct CompileResult {
+    pub index: Index,
+    pub objects: Vec<FilePath>,
 }
 
 /// SourceContainers offer source-code to be compiled via the load_source function.
@@ -356,19 +165,46 @@ pub trait SourceContainer {
     fn get_location(&self) -> &str;
 }
 
+#[derive(Clone)]
 pub struct FilePath {
     pub path: String,
 }
 
+impl From<String> for FilePath {
+    fn from(it: String) -> Self {
+        FilePath { path: it }
+    }
+}
+
+impl From<&str> for FilePath {
+    fn from(it: &str) -> Self {
+        FilePath { path: it.into() }
+    }
+}
+
+impl FilePath {
+    fn get_extension(&self) -> &str {
+        self.path.split('.').last().unwrap_or("")
+    }
+
+    fn is_object(&self) -> bool {
+        self.get_extension() == "o"
+    }
+}
+
 impl SourceContainer for FilePath {
     fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
-        let mut file = File::open(&self.path).map_err(|err| err.to_string())?;
-        let source = create_source_code(&mut file, encoding)?;
+        if self.is_object() {
+            Err(format!("{} is not a source file", &self.path))
+        } else {
+            let mut file = File::open(&self.path).map_err(|err| err.to_string())?;
+            let source = create_source_code(&mut file, encoding)?;
 
-        Ok(SourceCode {
-            source,
-            path: self.path,
-        })
+            Ok(SourceCode {
+                source,
+                path: self.path,
+            })
+        }
     }
 
     fn get_location(&self) -> &str {
@@ -396,6 +232,24 @@ impl SourceContainer for SourceCode {
     }
 }
 
+impl From<&str> for SourceCode {
+    fn from(src: &str) -> Self {
+        SourceCode {
+            source: src.into(),
+            path: "external_file.st".into(),
+        }
+    }
+}
+
+impl From<String> for SourceCode {
+    fn from(source: String) -> Self {
+        SourceCode {
+            source,
+            path: "external_file.st".into(),
+        }
+    }
+}
+
 fn create_source_code<T: Read>(
     reader: &mut T,
     encoding: Option<&'static Encoding>,
@@ -410,161 +264,144 @@ fn create_source_code<T: Read>(
     Ok(buffer)
 }
 
-pub fn get_target_triple(triple: Option<String>) -> TargetTriple {
+pub fn get_target_triple(triple: Option<&str>) -> TargetTriple {
     triple
-        .map(|it| TargetTriple::create(it.as_str()))
+        .map(TargetTriple::create)
         .unwrap_or_else(TargetMachine::get_default_triple)
 }
 
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
-fn compile_to_obj<T: SourceContainer>(
-    sources: Vec<T>,
-    encoding: Option<&'static Encoding>,
+fn persist_to_obj(
+    codegen: CodeGen,
     output: &str,
     reloc: RelocMode,
-    triple: TargetTriple,
-) -> Result<(), CompileError> {
+    triple: &TargetTriple,
+    optimization: OptimizationLevel,
+) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
-    let target = Target::from_triple(&triple).map_err(|it| {
-        CompileError::codegen_error(
-            format!("Invalid target-tripple '{:}' - {:?}", triple, it),
+    let target = Target::from_triple(triple).map_err(|it| {
+        Diagnostic::codegen_error(
+            &format!("Invalid target-tripple '{:}' - {:?}", triple, it),
             SourceRange::undefined(),
         )
     })?;
     let machine = target
         .create_target_machine(
-            &triple,
+            triple,
             //TODO : Add cpu features as optionals
             "generic", //TargetMachine::get_host_cpu_name().to_string().as_str(),
             "",        //TargetMachine::get_host_cpu_features().to_string().as_str(),
-            //TODO Optimisation as parameter
-            inkwell::OptimizationLevel::Default,
+            optimization.into(),
             reloc,
             CodeModel::Default,
         )
         .ok_or_else(|| {
-            CompileError::codegen_error(
-                "Cannot create target machine.".into(),
-                SourceRange::undefined(),
-            )
+            Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
         });
 
-    let c = Context::create();
-    let code_generator = compile_module(&c, sources, encoding)?;
+    ////Run the passes
     machine.and_then(|it| {
-        it.write_to_file(&code_generator.module, FileType::Object, Path::new(output))
-            .map_err(|it| it.into())
+        codegen
+            .module
+            .run_passes(optimization.opt_params(), &it, PassBuilderOptions::create())
+            .map_err(|it| Diagnostic::llvm_error(output, &it))
+            .and_then(|_| {
+                it.write_to_file(&codegen.module, FileType::Object, Path::new(output))
+                    .map_err(|it| Diagnostic::llvm_error(output, &it))
+            })
     })
 }
 
-/// Compiles a given source string to a static object and saves the output.
+/// Persists a given LLVM module to a static object and saves the output.
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
+/// * `codegen` - The generated LLVM module to persist
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
-pub fn compile_to_static_obj<T: SourceContainer>(
-    sources: Vec<T>,
-    encoding: Option<&'static Encoding>,
+pub fn persist_as_static_obj(
+    codegen: CodeGen,
     output: &str,
-    target: Option<String>,
-) -> Result<(), CompileError> {
-    compile_to_obj(
-        sources,
-        encoding,
-        output,
-        RelocMode::Default,
-        get_target_triple(target),
-    )
+    target: &TargetTriple,
+    optimization: OptimizationLevel,
+) -> Result<(), Diagnostic> {
+    persist_to_obj(codegen, output, RelocMode::Default, target, optimization)
 }
 
-/// Compiles a given source string to a shared position independent object and saves the output.
+/// Persists a given LLVM module to a shared postiion indepedent object and saves the output.
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
+/// * `codegen` - The generated LLVM module to persist
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
-pub fn compile_to_shared_pic_object<T: SourceContainer>(
-    sources: Vec<T>,
-    encoding: Option<&'static Encoding>,
+pub fn persist_to_shared_pic_object(
+    codegen: CodeGen,
     output: &str,
-    target: Option<String>,
-) -> Result<(), CompileError> {
-    compile_to_obj(
-        sources,
-        encoding,
-        output,
-        RelocMode::PIC,
-        get_target_triple(target),
-    )
+    target: &TargetTriple,
+    optimization: OptimizationLevel,
+) -> Result<(), Diagnostic> {
+    persist_to_obj(codegen, output, RelocMode::PIC, target, optimization)
 }
 
-/// Compiles a given source string to a dynamic non PIC object and saves the output.
+/// Persists the given LLVM module to a dynamic non PIC object and saves the output.
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
+/// * `codegen` - The generated LLVM module to persits
 /// * `output` - the location on disk to save the output
-/// * `target` - an optional llvm target triple
-///     If not provided, the machine's triple will be used.
-pub fn compile_to_shared_object<T: SourceContainer>(
-    sources: Vec<T>,
-    encoding: Option<&'static Encoding>,
+/// * `target` - llvm target triple
+pub fn persist_to_shared_object(
+    codegen: CodeGen,
     output: &str,
-    target: Option<String>,
-) -> Result<(), CompileError> {
-    compile_to_obj(
-        sources,
-        encoding,
+    target: &TargetTriple,
+    optimization: OptimizationLevel,
+) -> Result<(), Diagnostic> {
+    persist_to_obj(
+        codegen,
         output,
         RelocMode::DynamicNoPic,
-        get_target_triple(target),
+        target,
+        optimization,
     )
 }
 
 ///
-/// Compiles the given source into a bitcode file
+/// Persists the given LLVM module into a bitcode file
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
+/// * `codegen` - the genated LLVM module to persist
 /// * `output` - the location on disk to save the output
-pub fn compile_to_bitcode<T: SourceContainer>(
-    sources: Vec<T>,
-    encoding: Option<&'static Encoding>,
-    output: &str,
-) -> Result<(), CompileError> {
+pub fn persist_to_bitcode(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
     let path = Path::new(output);
-    let c = Context::create();
-    let code_generator = compile_module(&c, sources, encoding)?;
-    code_generator.module.write_bitcode_to_path(path);
-    Ok(())
+    if codegen.module.write_bitcode_to_path(path) {
+        Ok(())
+    } else {
+        Err(Diagnostic::codegen_error(
+            "Could not write bitcode to file",
+            SourceRange::undefined(),
+        ))
+    }
 }
 
 ///
-/// Compiles the given source into LLVM IR and returns it
+/// Persits the given LLVM module into LLVM IR and saves it to the given output location
 ///
 /// # Arguments
 ///
-/// * `sources` - the source to be compiled
-pub fn compile_to_ir<T: SourceContainer>(
-    sources: Vec<T>,
-    encoding: Option<&'static Encoding>,
-    output: &str,
-) -> Result<(), CompileError> {
-    let c = Context::create();
-    let code_gen = compile_module(&c, sources, encoding)?;
-    let ir = code_gen.module.print_to_string().to_string();
+/// * `codegen` - The generated LLVM module to be persisted
+/// * `output`  - The location to save the generated ir file
+pub fn persist_to_ir(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
+    let ir = codegen.module.print_to_string().to_string();
     fs::write(output, ir)
-        .map_err(|err| CompileError::io_write_error(output.into(), err.to_string()))
+        .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
 }
 
 ///
@@ -574,99 +411,339 @@ pub fn compile_to_ir<T: SourceContainer>(
 ///
 /// * `context` - the LLVM Context to be used for the compilation
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 pub fn compile_module<'c, T: SourceContainer>(
     context: &'c Context,
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
-) -> Result<codegen::CodeGen<'c>, CompileError> {
-    let mut full_index = Index::new();
-    let id_provider = IdProvider::default();
-    let mut files: SimpleFiles<String, String> = SimpleFiles::new();
+    mut diagnostician: Diagnostician,
+) -> Result<(Index, CodeGen<'c>), Diagnostic> {
+    let mut full_index = Index::default();
+    let mut id_provider = IdProvider::default();
 
     let mut all_units = Vec::new();
 
     // ### PHASE 1 ###
     // parse & index everything
-    for container in sources {
-        let location: String = container.get_location().into();
-        let e = container
-            .load_source(encoding)
-            .map_err(|err| CompileError::io_read_error(err, location.clone()))?;
-        let file_id = files.add(location.clone(), e.source.clone());
+    let (index, mut units) = parse_and_index(
+        sources,
+        encoding,
+        &id_provider,
+        &mut diagnostician,
+        LinkageType::Internal,
+    )?;
+    full_index.import(index);
+    all_units.append(&mut units);
 
-        let (mut parse_result, diagnostics) =
-            parser::parse(lexer::lex_with_ids(e.source.as_str(), id_provider.clone()));
-
-        //pre-process the ast (create inlined types)
-        ast::pre_process(&mut parse_result);
-        //index the pou
-        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
-        all_units.push((file_id, diagnostics, parse_result));
-    }
+    let (includes_index, mut includes_units) = parse_and_index(
+        includes,
+        encoding,
+        &id_provider,
+        &mut diagnostician,
+        LinkageType::External,
+    )?;
+    full_index.import(includes_index);
+    all_units.append(&mut includes_units);
 
     // ### PHASE 1.1 resolve constant literal values
-    let (full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
+    let (mut full_index, _unresolvables) =
+        resolver::const_evaluator::evaluate_constants(full_index);
 
     // ### PHASE 2 ###
     // annotation & validation everything
-    type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
-    let mut annotated_units: Vec<AnnotatedAst> = Vec::new();
-    for (file_id, syntax_errors, unit) in all_units.iter() {
-        let annotations = TypeAnnotator::visit_unit(&full_index, unit);
+    let mut annotated_units: Vec<CompilationUnit> = Vec::new();
+    let mut all_annotations = AnnotationMapImpl::default();
+    let mut all_literals = StringLiterals::default();
+    for (file_id, syntax_errors, unit) in all_units.into_iter() {
+        let (annotations, string_literals) = TypeAnnotator::visit_unit(&full_index, &unit);
 
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, &full_index, unit);
+        validator.visit_unit(&annotations, &full_index, &unit);
         //log errors
-        report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
-        report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;
+        diagnostician.handle(syntax_errors, file_id);
+        diagnostician.handle(validator.diagnostics(), file_id);
 
-        annotated_units.push((unit, annotations));
+        annotated_units.push(unit);
+        all_annotations.import(annotations);
+        all_literals.import(string_literals);
     }
+
+    //Merge the new indices with the full index
+    full_index.import(std::mem::take(&mut all_annotations.new_index));
 
     // ### PHASE 3 ###
     // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
 
-    for (unit, annotations) in annotated_units {
-        code_generator.generate(unit, &annotations, &full_index)?;
+    let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+    //Associate the index type with LLVM types
+    let llvm_index = code_generator.generate_llvm_index(&annotations, all_literals, &full_index)?;
+    for unit in annotated_units {
+        code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
-    Ok(code_generator)
+
+    Ok((full_index, code_generator))
 }
 
-fn report_diagnostics(
-    file_id: usize,
-    semantic_diagnostics: std::slice::Iter<Diagnostic>,
-    files: &SimpleFiles<String, String>,
-) -> Result<(), CompileError> {
-    for error in semantic_diagnostics {
-        let diag = diagnostic::Diagnostic::error()
-            .with_message(error.get_message())
-            .with_labels(vec![Label::primary(
-                file_id,
-                error.get_location().get_start()..error.get_location().get_end(),
-            )]);
-        let writer = StandardStream::stderr(ColorChoice::Always);
-        let config = codespan_reporting::term::Config {
-            display_style: term::DisplayStyle::Rich,
-            tab_width: 2,
-            styles: Styles::default(),
-            chars: Chars::default(),
-            start_context_lines: 5,
-            end_context_lines: 3,
-        };
+type Units = Vec<(usize, Vec<Diagnostic>, CompilationUnit)>;
+fn parse_and_index<T: SourceContainer>(
+    source: Vec<T>,
+    encoding: Option<&'static Encoding>,
+    id_provider: &IdProvider,
+    diagnostician: &mut Diagnostician,
+    linkage: LinkageType,
+) -> Result<(Index, Units), Diagnostic> {
+    let mut index = Index::default();
 
-        term::emit(&mut writer.lock(), &config, files, &diag).map_err(|err| {
-            CompileError::codegen_error(
-                format!("Cannot print errors {:#?}", err),
-                SourceRange::undefined(),
-            )
+    let mut units = Vec::new();
+
+    //parse the builtins into the index
+    let builtins = builtins::parse_built_ins(id_provider.clone());
+    index.import(index::visitor::visit(&builtins, id_provider.clone()));
+
+    for container in source {
+        let location: String = container.get_location().into();
+        let e = container
+            .load_source(encoding)
+            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
+
+        let (mut parse_result, diagnostics) = parser::parse(
+            lexer::lex_with_ids(e.source.as_str(), id_provider.clone()),
+            linkage,
+        );
+
+        //pre-process the ast (create inlined types)
+        ast::pre_process(&mut parse_result, id_provider.clone());
+        //index the pou
+        index.import(index::visitor::visit(&parse_result, id_provider.clone()));
+
+        //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
+        let file_id = diagnostician.register_file(location.clone(), e.source);
+        units.push((file_id, diagnostics, parse_result));
+    }
+    Ok((index, units))
+}
+
+fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
+    let mut sources = Vec::new();
+    for input in inputs {
+        let paths = glob(input).map_err(|e| {
+            Diagnostic::param_error(&format!("Failed to read glob pattern: {}, ({})", input, e))
         })?;
+
+        for p in paths {
+            let path =
+                p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {:}", err)))?;
+            sources.push(FilePath {
+                path: path.to_string_lossy().to_string(),
+            });
+        }
+    }
+    if sources.is_empty() {
+        return Err(Diagnostic::param_error(&format!(
+            "No such file(s): {}",
+            inputs.join(",")
+        )));
+    }
+    Ok(sources)
+}
+
+/// The driver function for the compilation
+/// Sorts files that need compilation
+/// Parses, validates and generates code for the given source files
+/// Links all provided object files with the compilation result
+/// Links any provided libraries
+/// Returns the location of the output file
+pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
+    let files = create_file_paths(&parameters.input)?;
+    let includes = if parameters.includes.is_empty() {
+        vec![]
+    } else {
+        create_file_paths(&parameters.includes)?
+    };
+    let output = parameters
+        .output_name()
+        .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
+    let out_format = parameters.output_format_or_default();
+
+    let config_options = parameters
+        .hardware_config
+        .as_ref()
+        .map(|config| ConfigurationOptions {
+            format: parameters
+                .config_format()
+                .expect("Never none for valid parameters"),
+            output: config.to_owned(),
+        });
+
+    let compile_options = CompileOptions {
+        output,
+        target: parameters.target,
+        format: out_format,
+        optimization: parameters.optimization,
+    };
+
+    let link_options = if !parameters.skip_linking {
+        Some(LinkOptions {
+            libraries: parameters.libraries,
+            library_pathes: parameters.library_pathes,
+            sysroot: parameters.sysroot,
+        })
+    } else {
+        None
+    };
+
+    let target = get_target_triple(compile_options.target.as_deref());
+    let compile_result = build(
+        files,
+        includes,
+        &compile_options,
+        parameters.encoding,
+        &parameters.error_format,
+        &target,
+    )?;
+
+    if let Some(link_options) = link_options {
+        link(
+            &compile_options.output,
+            compile_options.format,
+            &compile_result.objects,
+            link_options.library_pathes,
+            link_options.libraries,
+            &target,
+            link_options.sysroot,
+        )?;
+    }
+
+    if let Some(config) = config_options {
+        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
+        let generated_conf =
+            hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
+
+        File::create(config.output)
+            .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
+            .map_err(|it| Diagnostic::GeneralError {
+                err_no: diagnostics::ErrNo::general__io_err,
+                message: it.to_string(),
+            })?;
+    }
+
+    Ok(())
+}
+
+/// The builder function for the compilation
+/// Sorts files that need compilation
+/// Parses, validates and generates code for the given source files
+/// Persists the generated code to output location
+/// Returns a compilation result with the index, and a list of object files
+pub fn build(
+    files: Vec<FilePath>,
+    includes: Vec<FilePath>,
+    compile_options: &CompileOptions,
+    encoding: Option<&'static Encoding>,
+    error_format: &ErrorFormat,
+    target: &TargetTriple,
+) -> Result<CompileResult, Diagnostic> {
+    let mut objects = vec![];
+    let mut sources = vec![];
+    files.into_iter().for_each(|it| {
+        if it.is_object() {
+            objects.push(it);
+        } else {
+            sources.push(it);
+        }
+    });
+
+    let context = Context::create();
+    let diagnostician = match error_format {
+        ErrorFormat::Rich => Diagnostician::default(),
+        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
+    };
+    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
+    objects.push(persist(
+        codegen,
+        &compile_options.output,
+        compile_options.format,
+        target,
+        compile_options.optimization,
+    )?);
+
+    Ok(CompileResult { index, objects })
+}
+
+pub fn persist(
+    input: codegen::CodeGen,
+    output: &str,
+    out_format: FormatOption,
+    target: &TargetTriple,
+    optimization: OptimizationLevel,
+) -> Result<FilePath, Diagnostic> {
+    match out_format {
+        FormatOption::Static | FormatOption::Relocatable => {
+            persist_as_static_obj(input, output, target, optimization)
+        }
+        FormatOption::Shared => persist_to_shared_object(input, output, target, optimization),
+        FormatOption::PIC => persist_to_shared_pic_object(input, output, target, optimization),
+        FormatOption::Bitcode => persist_to_bitcode(input, output),
+        FormatOption::IR => persist_to_ir(input, output),
+    }?;
+
+    Ok(output.into())
+}
+
+pub fn link(
+    output: &str,
+    out_format: FormatOption,
+    objects: &[FilePath],
+    library_pathes: Vec<String>,
+    libraries: Vec<String>,
+    target: &TargetTriple,
+    sysroot: Option<String>,
+) -> Result<(), Diagnostic> {
+    let linkable_formats = vec![
+        FormatOption::Static,
+        FormatOption::Relocatable,
+        FormatOption::Shared,
+        FormatOption::PIC,
+    ];
+    if linkable_formats.contains(&out_format) {
+        let mut linker = target
+            .as_str()
+            .to_str()
+            .map_err(|e| Diagnostic::param_error(&e.to_string()))
+            .and_then(|triple| linker::Linker::new(triple).map_err(|e| e.into()))?;
+        linker.add_lib_path(".");
+
+        for path in objects {
+            linker.add_obj(&path.path);
+        }
+
+        for path in &library_pathes {
+            linker.add_lib_path(path);
+        }
+        for library in &libraries {
+            linker.add_lib(library);
+        }
+
+        if let Some(sysroot) = &sysroot {
+            linker.add_sysroot(sysroot);
+        }
+
+        match out_format {
+            FormatOption::Static => linker.build_exectuable(Path::new(&output))?,
+            FormatOption::Relocatable => linker.build_relocatable(Path::new(&output))?,
+            _ => linker.build_shared_obj(Path::new(&output))?,
+        }
     }
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+    mod external_files;
+    mod multi_files;
+
     use inkwell::targets::TargetMachine;
 
     use crate::{create_source_code, get_target_triple};
@@ -682,7 +759,7 @@ mod tests {
                 .unwrap()
         );
 
-        let triple = get_target_triple(Some("x86_64-pc-linux-gnu".into()));
+        let triple = get_target_triple(Some("x86_64-pc-linux-gnu"));
         assert_eq!(triple.as_str().to_str().unwrap(), "x86_64-pc-linux-gnu");
     }
 

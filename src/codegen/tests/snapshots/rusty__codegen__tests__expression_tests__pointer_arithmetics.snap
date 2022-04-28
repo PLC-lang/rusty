@@ -1,0 +1,87 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 340
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i16, i16, i16*, i8 }
+
+@main_instance = global %main_interface { i16 10, i16 20, i16* null, i8 0 }
+
+define void @main(%main_interface* %0) {
+entry:
+  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %pt = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  %comp = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 3
+  store i16* %x, i16** %pt, align 8
+  %load_pt = load i16*, i16** %pt, align 8
+  %access___main_pt = getelementptr inbounds i16, i16* %load_pt, i32 1
+  store i16* %access___main_pt, i16** %pt, align 8
+  %load_pt1 = load i16*, i16** %pt, align 8
+  %access___main_pt2 = getelementptr inbounds i16, i16* %load_pt1, i32 1
+  %access___main_pt3 = getelementptr inbounds i16, i16* %access___main_pt2, i32 1
+  store i16* %access___main_pt3, i16** %pt, align 8
+  %load_pt4 = load i16*, i16** %pt, align 8
+  %access___main_pt5 = getelementptr inbounds i16, i16* %load_pt4, i32 1
+  store i16* %access___main_pt5, i16** %pt, align 8
+  %load_pt6 = load i16*, i16** %pt, align 8
+  %load_y = load i16, i16* %y, align 2
+  %access___main_pt7 = getelementptr inbounds i16, i16* %load_pt6, i16 sub (i16 0, i16 %load_y)
+  store i16* %access___main_pt7, i16** %pt, align 8
+  %load_pt8 = load i16*, i16** %pt, align 8
+  %access___main_pt9 = getelementptr inbounds i16, i16* %load_pt8, i32 1
+  %access___main_pt10 = getelementptr inbounds i16, i16* %access___main_pt9, i32 1
+  store i16* %access___main_pt10, i16** %pt, align 8
+  %load_pt11 = load i16*, i16** %pt, align 8
+  %load_y12 = load i16, i16* %y, align 2
+  %access___main_pt13 = getelementptr inbounds i16, i16* %load_pt11, i16 sub (i16 0, i16 %load_y12)
+  %access___main_pt14 = getelementptr inbounds i16, i16* %access___main_pt13, i32 -1
+  store i16* %access___main_pt14, i16** %pt, align 8
+  %load_pt15 = load i16*, i16** %pt, align 8
+  %access___main_pt16 = getelementptr inbounds i16, i16* %load_pt15, i32 2
+  store i16* %access___main_pt16, i16** %pt, align 8
+  %load_y17 = load i16, i16* %y, align 2
+  %load_pt18 = load i16*, i16** %pt, align 8
+  %access___main_pt19 = getelementptr inbounds i16, i16* %load_pt18, i16 %load_y17
+  %load_y20 = load i16, i16* %y, align 2
+  %access___main_pt21 = getelementptr inbounds i16, i16* %access___main_pt19, i16 sub (i16 0, i16 %load_y20)
+  store i16* %access___main_pt21, i16** %pt, align 8
+  %load_y22 = load i16, i16* %y, align 2
+  %1 = sext i16 %load_y22 to i32
+  %load_y23 = load i16, i16* %y, align 2
+  %2 = sext i16 %load_y23 to i32
+  %tmpVar = add i32 %1, %2
+  %load_pt24 = load i16*, i16** %pt, align 8
+  %access___main_pt25 = getelementptr inbounds i16, i16* %load_pt24, i32 %tmpVar
+  store i16* %access___main_pt25, i16** %pt, align 8
+  %load_pt26 = load i16*, i16** %pt, align 8
+  %load_pt27 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp eq (i64 ptrtoint (i16* %load_pt26 to i64), i64 ptrtoint (i16* %load_pt27 to i64)) to i8), i8* %comp, align 1
+  %load_pt28 = load i16*, i16** %pt, align 8
+  %load_y29 = load i16, i16* %y, align 2
+  %tmpVar30 = icmp ne i64 ptrtoint (i16* %load_pt28 to i64), i16 %load_y29
+  %3 = zext i1 %tmpVar30 to i8
+  store i8 %3, i8* %comp, align 1
+  %load_pt31 = load i16*, i16** %pt, align 8
+  %load_pt32 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp slt (i64 ptrtoint (i16* %load_pt31 to i64), i64 ptrtoint (i16* %load_pt32 to i64)) to i8), i8* %comp, align 1
+  %load_pt33 = load i16*, i16** %pt, align 8
+  %load_y34 = load i16, i16* %y, align 2
+  %tmpVar35 = icmp sgt i64 ptrtoint (i16* %load_pt33 to i64), i16 %load_y34
+  %4 = zext i1 %tmpVar35 to i8
+  store i8 %4, i8* %comp, align 1
+  %load_pt36 = load i16*, i16** %pt, align 8
+  %load_pt37 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp sle (i64 ptrtoint (i16* %load_pt36 to i64), i64 ptrtoint (i16* %load_pt37 to i64)) to i8), i8* %comp, align 1
+  %load_y38 = load i16, i16* %y, align 2
+  %load_pt39 = load i16*, i16** %pt, align 8
+  %tmpVar40 = icmp sge i16 %load_y38, i64 ptrtoint (i16* %load_pt39 to i64)
+  %5 = zext i1 %tmpVar40 to i8
+  store i8 %5, i8* %comp, align 1
+  ret void
+}
+

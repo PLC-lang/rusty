@@ -4,20 +4,23 @@
 use self::{
     generators::{
         data_type_generator,
-        llvm::Llvm,
+        llvm::{GlobalValueExt, Llvm},
         pou_generator::{self, PouGenerator},
         variable_generator,
     },
     llvm_index::LlvmTypedIndex,
 };
-use crate::{compile_error::CompileError, resolver::AnnotationMap};
+use crate::{
+    diagnostics::Diagnostic,
+    resolver::{AstAnnotations, StringLiterals},
+};
 
 use super::ast::*;
 use super::index::*;
-use inkwell::context::Context;
 use inkwell::module::Module;
+use inkwell::{context::Context, types::BasicType};
 
-mod generators;
+pub(crate) mod generators;
 mod llvm_index;
 mod llvm_typesystem;
 #[cfg(test)]
@@ -39,14 +42,14 @@ impl<'ink> CodeGen<'ink> {
         CodeGen { context, module }
     }
 
-    fn generate_llvm_index(
+    pub fn generate_llvm_index(
         &self,
-        module: &Module<'ink>,
-        annotations: &AnnotationMap,
+        annotations: &AstAnnotations,
+        literals: StringLiterals,
         global_index: &Index,
-    ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
+    ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
-        let mut index = LlvmTypedIndex::new();
+        let mut index = LlvmTypedIndex::default();
         //Generate types index, and any global variables associated with them.
         let llvm_type_index =
             data_type_generator::generate_data_types(&llvm, global_index, annotations)?;
@@ -54,7 +57,7 @@ impl<'ink> CodeGen<'ink> {
 
         //Generate global variables
         let llvm_gv_index = variable_generator::generate_global_variables(
-            module,
+            &self.module,
             &llvm,
             global_index,
             annotations,
@@ -65,13 +68,62 @@ impl<'ink> CodeGen<'ink> {
         //Generate opaque functions for implementations and associate them with their types
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let llvm_impl_index = pou_generator::generate_implementation_stubs(
-            module,
+            &self.module,
             llvm,
             global_index,
             annotations,
             &index,
         )?;
+        let llvm = Llvm::new(self.context, self.context.create_builder());
         index.merge(llvm_impl_index);
+        let llvm_values_index = pou_generator::generate_global_constants_for_pou_members(
+            &self.module,
+            &llvm,
+            global_index,
+            annotations,
+            &index,
+        )?;
+        index.merge(llvm_values_index);
+
+        //Generate constants for string-literal
+        //generate literals but first sort, so we get reproducable builds
+        let mut utf08s = literals.utf08.into_iter().collect::<Vec<String>>();
+        utf08s.sort_unstable();
+        for (idx, literal) in utf08s.into_iter().enumerate() {
+            let len = literal.len() + 1;
+            let data_type = llvm.context.i8_type().array_type(len as u32);
+            let literal_variable = llvm.create_global_variable(
+                &self.module,
+                format!("utf08_literal_{}", idx).as_str(),
+                data_type.as_basic_type_enum(),
+            );
+            let initializer = llvm.create_const_utf8_string(literal.as_str(), len)?;
+            literal_variable
+                .make_constant()
+                .set_initializer(&initializer);
+
+            index.associate_utf08_literal(literal, literal_variable);
+        }
+        //generate literals but first sort, so we get reproducable builds
+        let mut utf16s = literals.utf16.into_iter().collect::<Vec<String>>();
+        utf16s.sort_unstable();
+        for (idx, literal) in utf16s.into_iter().enumerate() {
+            let len = literal.len() + 1;
+            let data_type = llvm.context.i16_type().array_type(len as u32);
+            let literal_variable = llvm.create_global_variable(
+                &self.module,
+                format!("utf16_literal_{}", idx).as_str(),
+                data_type.as_basic_type_enum(),
+            );
+            let initializer =
+                llvm.create_const_utf16_string(literal.as_str(), literal.len() + 1)?;
+            literal_variable
+                .make_constant()
+                .set_initializer(&initializer);
+
+            index.associate_utf16_literal(literal, literal_variable);
+        }
+
         Ok(index)
     }
 
@@ -79,20 +131,22 @@ impl<'ink> CodeGen<'ink> {
     pub fn generate(
         &self,
         unit: &CompilationUnit,
-        annotations: &AnnotationMap,
+        annotations: &AstAnnotations,
         global_index: &Index,
-    ) -> Result<String, CompileError> {
-        //Associate the index type with LLVM types
-        let llvm_index = self.generate_llvm_index(&self.module, annotations, global_index)?;
-
+        llvm_index: &LlvmTypedIndex,
+    ) -> Result<String, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(self.context, self.context.create_builder());
-        let pou_generator = PouGenerator::new(llvm, global_index, annotations, &llvm_index);
+        let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {
-            //Don't generate external functions
-            if implementation.linkage != LinkageType::External {
+            //Don't generate external or generic functions
+            if implementation.linkage != LinkageType::External
+                && !global_index
+                    .get_type_information_or_void(&implementation.type_name)
+                    .is_generic()
+            {
                 pou_generator.generate_implementation(implementation)?;
             }
         }

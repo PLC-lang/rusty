@@ -2,6 +2,7 @@
 use super::super::*;
 #[allow(dead_code)]
 #[repr(C)]
+#[derive(Debug)]
 struct MainType {
     x: i16,
     y: i16,
@@ -41,7 +42,7 @@ fn array_assignments() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
     for index in 0..5 {
         assert_eq!((index + 10) as i16, maintype.int_array[index]);
@@ -74,7 +75,7 @@ fn array_declaration_using_constants() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
     for index in 0..5 {
         assert_eq!((index + 10) as i16, maintype.int_array[index]);
@@ -103,7 +104,7 @@ fn matrix_array_assignments() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     for x in 0..5 {
         for y in 0..5 {
             assert_eq!((x * y) as i16, maintype.matrix[x][y]);
@@ -179,7 +180,7 @@ fn matrix_array_assignments2() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     for x in 0..5 {
         for y in 0..5 {
             assert_eq!((x * y) as i16, maintype.matrix[x][y]);
@@ -212,7 +213,7 @@ fn cube_array_assignments_array_of_array_of_array() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..5 {
@@ -220,6 +221,42 @@ fn cube_array_assignments_array_of_array_of_array() {
             }
         }
     }
+}
+
+#[test]
+fn simple_cube_array_assignments() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    #[derive(Debug, Default)]
+    struct MainType {
+        x: i32,
+        y: i32,
+        z: i32,
+        cube: [[[i32; 5]; 5]; 5], //5x5x5 array
+    }
+    let function = r"
+            PROGRAM main
+            VAR
+            x: DINT;
+            y: DINT;
+            z: DINT;
+            cube        : ARRAY[0..4, 0..4, 0..4] OF DINT;
+            END_VAR
+
+            x := 0; y := 0; z:= 0;
+            cube[x, y, z] := 1;
+
+            x := 4; y := 4; z:= 4;
+            cube[x, y, z] := 77;
+
+           END_PROGRAM
+            ";
+
+    let mut maintype = MainType::default();
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(1, maintype.cube[0][0][0]);
+    assert_eq!(77, maintype.cube[4][4][4]);
 }
 
 #[test]
@@ -247,7 +284,7 @@ fn cube_array_assignments2() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..5 {
@@ -304,4 +341,93 @@ fn two_dim_array_while() {
     let mut maintype = new();
     let res: i16 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(res, 1);
+}
+
+#[test]
+fn initialize_multi_dim_array() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    #[derive(Debug, Default)]
+    struct MainType {
+        arr: [i16; 27], //3x3x3 array
+    }
+    let function = "
+        FUNCTION main : INT
+        VAR
+            int_array : ARRAY[0..2, 0..2, 0..2] OF INT := [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26];
+        END_VAR
+        END_FUNCTION
+        ";
+
+    let mut maintype = MainType::default();
+    let _: i16 = compile_and_run(function.to_string(), &mut maintype);
+    (0..27i16).for_each(|i| {
+        assert_eq!(i, maintype.arr[i as usize]);
+    })
+}
+
+#[test]
+fn bool_array_assignments() {
+    #[repr(C)]
+    struct MainType {
+        x: i16,
+        b_array1: [u8; 8], // i reserve 8 bytes here! BOOL is stored as i8
+        y: i16,
+        b_array2: [u8; 8], // i reserve 8 bytes here! BOOL is stored as i8
+        z: i16,
+    }
+
+    // GIVEN some boolean arrays
+    // WHEN I write the array-elements
+
+    let function = r"
+        FUNCTION main : INT
+        VAR
+            x : INT;
+            bArray : ARRAY[0..7] OF BOOL := [8(FALSE)];
+            y : INT;
+            bArray2 : ARRAY[0..7] OF BOOL := [8(FALSE)];
+            z : INT;
+        END_VAR
+            x := 111;
+            y := 222;
+            z := 333;
+            //write forwards
+            bArray[0] := TRUE;
+            bArray[1] := FALSE;
+            bArray[2] := TRUE;
+            bArray[3] := FALSE;
+            bArray[4] := TRUE;
+            bArray[5] := FALSE;
+            bArray[6] := TRUE;
+            bArray[7] := FALSE;
+
+            //write backwards
+            bArray2[7] := TRUE;
+            bArray2[6] := FALSE;
+            bArray2[5] := TRUE;
+            bArray2[4] := FALSE;
+            bArray2[3] := TRUE;
+            bArray2[2] := FALSE;
+            bArray2[1] := TRUE;
+            bArray2[0] := FALSE;
+        END_FUNCTION
+        ";
+
+    let mut maintype = MainType {
+        x: 0,
+        b_array1: [0; 8],
+        y: 0,
+        b_array2: [0; 8],
+        z: 0,
+    };
+    //Then i expect the correct array-values without leaking into neighbour segments
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(maintype.b_array1, [1, 0, 1, 0, 1, 0, 1, 0]);
+    assert_eq!(maintype.b_array2, [0, 1, 0, 1, 0, 1, 0, 1]);
+
+    //check the magic numbers to spot some alignment issues
+    assert_eq!(maintype.x, 111);
+    assert_eq!(maintype.y, 222);
+    assert_eq!(maintype.z, 333);
 }

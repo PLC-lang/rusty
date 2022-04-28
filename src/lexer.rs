@@ -10,6 +10,7 @@ pub use tokens::Token;
 
 use crate::ast::AstId;
 use crate::ast::DirectAccessType;
+use crate::ast::HardwareAccessType;
 use crate::ast::SourceRange;
 use crate::Diagnostic;
 
@@ -287,7 +288,6 @@ fn get_closing_tag(open_tag: &str) -> (char, char) {
         _ => unreachable!(),
     }
 }
-
 fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
     //Percent is at position 0
     //Find the size from position 1
@@ -305,6 +305,39 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
         .expect("Unknown access type - tokenizer/grammar incomplete?");
 
     Some(access)
+}
+
+fn parse_hardware_access_type(
+    lexer: &mut Lexer<Token>,
+) -> Option<(HardwareAccessType, DirectAccessType)> {
+    //Percent is at position 0
+    let hardware_type = lexer
+        .slice()
+        .chars()
+        .nth(1)
+        .and_then(|c| match c.to_ascii_lowercase() {
+            'i' => Some(crate::ast::HardwareAccessType::Input),
+            'q' => Some(crate::ast::HardwareAccessType::Output),
+            'm' => Some(crate::ast::HardwareAccessType::Memory),
+            _ => None,
+        })
+        .expect("Unknown access type - tokenizer/grammar incomplete?");
+    //Find the size from position 2
+    let access = lexer
+        .slice()
+        .chars()
+        .nth(2)
+        .and_then(|c| match c.to_ascii_lowercase() {
+            'x' => Some(crate::ast::DirectAccessType::Bit),
+            'b' => Some(crate::ast::DirectAccessType::Byte),
+            'w' => Some(crate::ast::DirectAccessType::Word),
+            'd' => Some(crate::ast::DirectAccessType::DWord),
+            '*' => Some(crate::ast::DirectAccessType::Template),
+            _ => None,
+        })
+        .expect("Unknown access type - tokenizer/grammar incomplete?");
+
+    Some((hardware_type, access))
 }
 
 #[derive(Clone)]

@@ -1,14 +1,21 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use super::{
-    super::ast::{CompilationUnit, DataType, DataTypeDeclaration, UserTypeDeclaration, Variable},
-    Pou, SourceRange,
-};
-use std::vec;
+use crate::{ast::DataTypeDeclaration, lexer::IdProvider};
 
-pub fn pre_process(unit: &mut CompilationUnit) {
+use super::{
+    super::ast::{CompilationUnit, UserTypeDeclaration, Variable},
+    create_binary_expression, create_cast_statement, create_literal_int, create_reference,
+    flatten_expression_list, AstStatement, DataType, Operator, Pou, SourceRange,
+};
+use std::{collections::HashMap, vec};
+
+pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs
-    for mut pou in unit.units.iter_mut() {
+    for pou in unit.units.iter_mut() {
+        //Find all generic types in that pou
+        let generic_types = preprocess_generic_structs(pou);
+        unit.types.extend(generic_types);
+
         let all_variables = pou
             .variable_blocks
             .iter_mut()
@@ -20,7 +27,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
         }
 
         //Generate implicit type for returns
-        preprocess_return_type(&mut pou, &mut unit.types);
+        preprocess_return_type(pou, &mut unit.types);
     }
 
     //process all variables from GVLs
@@ -39,7 +46,9 @@ pub fn pre_process(unit: &mut CompilationUnit) {
     for dt in unit.types.iter_mut() {
         {
             match &mut dt.data_type {
-                DataType::StructType { name, variables } => {
+                DataType::StructType {
+                    name, variables, ..
+                } => {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
                     variables
                         .iter_mut()
@@ -81,11 +90,130 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                         new_types.push(data_type);
                     }
                 }
+                DataType::EnumType { elements, .. }
+                    if matches!(elements, AstStatement::EmptyStatement { .. }) =>
+                {
+                    //avoid empty statements, just use an empty expression list to make it easier to work with
+                    let _ = std::mem::replace(
+                        elements,
+                        AstStatement::ExpressionList {
+                            expressions: vec![],
+                            id: id_provider.next_id(),
+                        },
+                    );
+                }
+                DataType::EnumType {
+                    elements: original_elements,
+                    name: Some(enum_name),
+                    ..
+                } if !matches!(original_elements, AstStatement::EmptyStatement { .. }) => {
+                    let mut last_name: Option<String> = None;
+                    let initialized_enum_elements = flatten_expression_list(original_elements)
+                        .iter()
+                        .map(|it| match it {
+                            AstStatement::Reference { name, .. } => {
+                                (name.clone(), None, it.get_location())
+                            }
+                            AstStatement::Assignment { left, right, .. } => {
+                                let name =
+                                    if let AstStatement::Reference { name, .. } = left.as_ref() {
+                                        name.clone()
+                                    } else {
+                                        unreachable!("expected reference, got {:?}", left.as_ref())
+                                    };
+                                //<element-name, initializer, location>
+                                (name, Some(*right.clone()), it.get_location())
+                            }
+                            _ => unreachable!("expected assignment, got {:?}", it),
+                        })
+                        .map(|(element_name, initializer, location)| {
+                            let enum_literal = initializer.unwrap_or_else(|| {
+                                build_enum_initializer(
+                                    &last_name,
+                                    &location,
+                                    &mut id_provider,
+                                    enum_name,
+                                )
+                            });
+                            last_name = Some(element_name.clone());
+                            AstStatement::Assignment {
+                                id: id_provider.next_id(),
+                                left: Box::new(AstStatement::Reference {
+                                    id: id_provider.next_id(),
+                                    name: element_name,
+                                    location,
+                                }),
+                                right: Box::new(enum_literal),
+                            }
+                        })
+                        .collect::<Vec<AstStatement>>();
+                    // if the enum is empty, we dont change anything
+                    if !initialized_enum_elements.is_empty() {
+                        //swap the expression list with our new Assignments
+                        let expression = AstStatement::ExpressionList {
+                            expressions: initialized_enum_elements,
+                            id: id_provider.next_id(),
+                        };
+                        let _ = std::mem::replace(original_elements, expression);
+                    }
+                }
                 _ => {}
             }
         }
     }
     unit.types.append(&mut new_types);
+}
+
+fn build_enum_initializer(
+    last_name: &Option<String>,
+    location: &SourceRange,
+    id_provider: &mut IdProvider,
+    enum_name: &mut str,
+) -> AstStatement {
+    if let Some(last_element) = last_name.as_ref() {
+        // generate a `enum#last + 1` statement
+        let enum_ref = create_reference(last_element, location, id_provider.next_id());
+        create_binary_expression(
+            create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
+            Operator::Plus,
+            create_literal_int(1, location, id_provider.next_id()),
+            id_provider.next_id(),
+        )
+    } else {
+        create_literal_int(0, location, id_provider.next_id())
+    }
+}
+
+fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
+    let mut generic_types = HashMap::new();
+    let mut types = vec![];
+    for binding in &pou.generics {
+        let new_name = format!("__{}__{}", pou.name, binding.name);
+        //Generate a type for the generic
+        let data_type = UserTypeDeclaration {
+            data_type: DataType::GenericType {
+                name: new_name.clone(),
+                generic_symbol: binding.name.clone(),
+                nature: binding.nature,
+            },
+            initializer: None,
+            scope: Some(pou.name.clone()),
+            location: pou.location.clone(),
+        };
+        types.push(data_type);
+        generic_types.insert(binding.name.clone(), new_name);
+    }
+    for var in pou
+        .variable_blocks
+        .iter_mut()
+        .flat_map(|it| it.variables.iter_mut())
+    {
+        replace_generic_type_name(&mut var.data_type, &generic_types);
+    }
+    if let Some(datatype) = pou.return_type.as_mut() {
+        replace_generic_type_name(datatype, &generic_types);
+    };
+    types
 }
 
 fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
@@ -183,5 +311,26 @@ fn add_nested_datatypes(
             location: location.clone(),
             scope,
         });
+    }
+}
+
+fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &HashMap<String, String>) {
+    match dt {
+        DataTypeDeclaration::DataTypeDefinition { data_type, .. } => match data_type {
+            DataType::ArrayType {
+                referenced_type, ..
+            }
+            | DataType::PointerType {
+                referenced_type, ..
+            } => replace_generic_type_name(referenced_type.as_mut(), generics),
+            _ => {}
+        },
+        DataTypeDeclaration::DataTypeReference {
+            referenced_type, ..
+        } => {
+            if let Some(type_name) = generics.get(referenced_type) {
+                *referenced_type = type_name.clone();
+            }
+        }
     }
 }

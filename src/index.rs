@@ -2,14 +2,22 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, PouType, SourceRange},
-    compile_error::CompileError,
-    typesystem::*,
+    ast::{
+        AstStatement, DirectAccessType, HardwareAccessType, Implementation, LinkageType, PouType,
+        SourceRange, TypeNature,
+    },
+    builtins::{self, BuiltIn},
+    diagnostics::Diagnostic,
+    typesystem::{self, *},
 };
 
-use self::const_expressions::{ConstExpressions, ConstId};
+use self::{
+    const_expressions::{ConstExpressions, ConstId},
+    instance_iterator::InstanceIterator,
+};
 
 pub mod const_expressions;
+mod instance_iterator;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
@@ -23,26 +31,153 @@ pub struct VariableIndexEntry {
     /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
     /// the type of variable
-    variable_type: VariableType,
+    pub variable_type: VariableType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
     /// the variable's datatype
-    data_type_name: String,
+    pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
     location_in_parent: u32,
+    /// Wether the variable is externally or internally available
+    linkage: LinkageType,
+    /// A binding to a hardware or external location
+    binding: Option<HardwareBinding>,
     /// the location in the original source-file
     pub source_location: SourceRange,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct HardwareBinding {
+    /// Specifies if the binding is an In/Out or Memory binding
+    pub direction: HardwareAccessType,
+    /// The datatype (size) of the binding
+    pub access: DirectAccessType,
+    /// A list of entries that form this binding
+    pub entries: Vec<ConstId>,
+    /// The location in the original source-file
+    pub location: SourceRange,
+}
+
+impl HardwareBinding {
+    fn from_statement(index: &mut Index, it: &AstStatement, scope: Option<String>) -> Option<Self> {
+        if let AstStatement::HardwareAccess {
+            access,
+            address,
+            direction,
+            location,
+            ..
+        } = it
+        {
+            Some(HardwareBinding {
+                access: *access,
+                direction: *direction,
+                entries: address
+                    .iter()
+                    .map(|expr| {
+                        index.constant_expressions.add_constant_expression(
+                            expr.clone(),
+                            typesystem::DINT_SIZE.to_string(),
+                            scope.clone(),
+                        )
+                    })
+                    .collect(),
+                location: location.clone(),
+            })
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct MemberInfo<'b> {
     container_name: &'b str,
     variable_name: &'b str,
     variable_linkage: VariableType,
     variable_type_name: &'b str,
+    binding: Option<HardwareBinding>,
     is_constant: bool,
 }
 
 impl VariableIndexEntry {
+    pub fn new(
+        name: &str,
+        qualified_name: &str,
+        data_type_name: &str,
+        variable_type: VariableType,
+        location_in_parent: u32,
+        source_location: SourceRange,
+    ) -> Self {
+        VariableIndexEntry {
+            name: name.to_string(),
+            qualified_name: qualified_name.to_string(),
+            initial_value: None,
+            variable_type,
+            is_constant: false,
+            data_type_name: data_type_name.to_string(),
+            location_in_parent,
+            linkage: LinkageType::Internal,
+            binding: None,
+            source_location,
+        }
+    }
+
+    pub fn create_global(
+        name: &str,
+        qualified_name: &str,
+        data_type_name: &str,
+        source_location: SourceRange,
+    ) -> Self {
+        VariableIndexEntry {
+            name: name.to_string(),
+            qualified_name: qualified_name.to_string(),
+            initial_value: None,
+            variable_type: VariableType::Global,
+            is_constant: false,
+            data_type_name: data_type_name.to_string(),
+            location_in_parent: 0,
+            linkage: LinkageType::Internal,
+            binding: None,
+            source_location,
+        }
+    }
+
+    pub fn set_linkage(mut self, linkage: LinkageType) -> Self {
+        self.linkage = linkage;
+        self
+    }
+
+    pub fn set_initial_value(mut self, initial_value: Option<ConstId>) -> Self {
+        self.initial_value = initial_value;
+        self
+    }
+
+    pub fn set_constant(mut self, is_constant: bool) -> Self {
+        self.is_constant = is_constant;
+        self
+    }
+
+    pub fn set_hardware_binding(mut self, binding: Option<HardwareBinding>) -> Self {
+        self.binding = binding;
+        self
+    }
+
+    /// Creates a new VariableIndexEntry from the current entry with a new container and type
+    /// This is used to create new entries from previously generic entries
+    pub fn into_typed(&self, container: &str, new_type: &str) -> Self {
+        let name = if self.is_return() {
+            container
+        } else {
+            &self.name
+        };
+        VariableIndexEntry {
+            name: name.to_string(),
+            qualified_name: format!("{}.{}", container, name),
+            data_type_name: new_type.to_string(),
+            ..self.to_owned()
+        }
+    }
+
     pub fn get_name(&self) -> &str {
         self.name.as_str()
     }
@@ -74,8 +209,20 @@ impl VariableIndexEntry {
         self.is_constant
     }
 
+    pub fn is_external(&self) -> bool {
+        self.linkage == LinkageType::External
+    }
+
     pub fn get_variable_type(&self) -> VariableType {
         self.variable_type
+    }
+
+    pub fn has_hardware_binding(&self) -> bool {
+        self.binding.is_some()
+    }
+
+    pub fn get_hardware_binding(&self) -> Option<&HardwareBinding> {
+        self.binding.as_ref()
     }
 
     pub(crate) fn is_parameter(&self) -> bool {
@@ -131,12 +278,12 @@ pub enum ImplementationType {
     Method,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ImplementationIndexEntry {
-    call_name: String,
-    type_name: String,
-    associated_class: Option<String>,
-    implementation_type: ImplementationType,
+    pub(crate) call_name: String,
+    pub(crate) type_name: String,
+    pub(crate) associated_class: Option<String>,
+    pub(crate) implementation_type: ImplementationType,
 }
 
 impl ImplementationIndexEntry {
@@ -182,27 +329,39 @@ impl From<&PouType> for ImplementationType {
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
+#[derive(Debug, PartialEq)]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: IndexMap<String, DataType>,
+    pou_types: IndexMap<String, DataType>,
 
     void_type: DataType,
 }
 
-impl TypeIndex {
-    fn new() -> Self {
+impl Default for TypeIndex {
+    fn default() -> Self {
         TypeIndex {
             types: IndexMap::new(),
+            pou_types: IndexMap::new(),
             void_type: DataType {
                 name: VOID_TYPE.into(),
                 initial_value: None,
                 information: DataTypeInformation::Void,
+                nature: TypeNature::Any,
             },
         }
     }
+}
 
+impl TypeIndex {
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
-        self.types.get(&type_name.to_lowercase())
+        self.types
+            .get(&type_name.to_lowercase())
+            .or_else(|| self.find_pou_type(type_name))
+    }
+
+    pub fn find_pou_type(&self, type_name: &str) -> Option<&DataType> {
+        self.pou_types.get(&type_name.to_lowercase())
     }
 
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
@@ -216,9 +375,9 @@ impl TypeIndex {
             .unwrap_or(&self.void_type)
     }
 
-    pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.find_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     /// Retrieves the "Effective" type behind this datatype
@@ -241,10 +400,13 @@ impl TypeIndex {
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
-#[derive()]
+#[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
+
+    /// all struct initializers
+    global_initializers: IndexMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
     enum_global_variables: IndexMap<String, VariableIndexEntry>,
@@ -265,18 +427,6 @@ pub struct Index {
 }
 
 impl Index {
-    pub fn new() -> Index {
-        Index {
-            global_variables: IndexMap::new(),
-            enum_global_variables: IndexMap::new(),
-            enum_qualified_variables: IndexMap::new(),
-            member_variables: IndexMap::new(),
-            type_index: TypeIndex::new(),
-            implementations: IndexMap::new(),
-            constant_expressions: ConstExpressions::new(),
-        }
-    }
-
     /// imports all entries from the given index into the current index
     ///
     /// imports all global_variables, member_variables, types and implementations
@@ -285,36 +435,40 @@ impl Index {
     /// into the current one
     pub fn import(&mut self, mut other: Index) {
         //global variables
-        for (name, mut e) in other.global_variables.drain(..) {
-            e.initial_value =
-                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+        for (name, e) in other.global_variables.drain(..) {
+            let e = self.transfer_constants(e, &mut other.constant_expressions);
             self.global_variables.insert(name, e);
         }
 
-        //enum_global_variables
-        for (name, mut e) in other.enum_global_variables.drain(..) {
-            e.initial_value =
-                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-            self.enum_global_variables.insert(name, e.clone());
-            self.enum_qualified_variables
-                .insert(e.qualified_name.to_lowercase(), e);
+        //enmu_variables use the qualified variables since name conflicts will be overriden in the enum_global
+        for (qualified_name, e) in other.enum_qualified_variables.drain(..) {
+            let e = self.transfer_constants(e, &mut other.constant_expressions);
+            self.enum_global_variables
+                .insert(e.get_name().to_lowercase(), e.clone());
+            self.enum_qualified_variables.insert(qualified_name, e);
+        }
+
+        //initializers
+        for (name, e) in other.global_initializers.drain(..) {
+            let e = self.transfer_constants(e, &mut other.constant_expressions);
+            self.global_initializers.insert(name, e);
         }
 
         //member variables
         for (name, mut members) in other.member_variables.drain(..) {
             //enum qualified variables
-            for (_, mut e) in members.iter_mut() {
-                e.initial_value =
-                    self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            let mut new_members = IndexMap::default();
+            for (name, e) in members.drain(..) {
+                let e = self.transfer_constants(e, &mut other.constant_expressions);
+                new_members.insert(name, e);
             }
-            self.member_variables.insert(name, members);
+            self.member_variables.insert(name, new_members);
         }
 
         //types
         for (name, mut e) in other.type_index.types.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-
             match &mut e.information {
                 //import constant expressions in array-type-definitions
                 DataTypeInformation::Array { dimensions, .. } => {
@@ -334,8 +488,50 @@ impl Index {
             self.type_index.types.insert(name, e);
         }
 
+        //pou_types
+        for (name, mut e) in other.type_index.pou_types.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.type_index.pou_types.insert(name, e);
+        }
+
         //implementations
         self.implementations.extend(other.implementations);
+
+        //Constant expressions are intentionally not imported
+        // self.constant_expressions.import(other.constant_expressions)
+    }
+
+    fn transfer_constants(
+        &mut self,
+        mut variable: VariableIndexEntry,
+        import_from: &mut ConstExpressions,
+    ) -> VariableIndexEntry {
+        variable.initial_value = self.maybe_import_const_expr(import_from, &variable.initial_value);
+
+        let binding = if let Some(HardwareBinding {
+            direction,
+            access,
+            entries,
+            location,
+        }) = variable.get_hardware_binding()
+        {
+            let mut new_entries = vec![];
+            for entry in entries {
+                if let Some(e) = self.maybe_import_const_expr(import_from, &Some(*entry)) {
+                    new_entries.push(e);
+                }
+            }
+            Some(HardwareBinding {
+                direction: *direction,
+                access: *access,
+                entries: new_entries,
+                location: location.clone(),
+            })
+        } else {
+            None
+        };
+        variable.set_hardware_binding(binding)
     }
 
     /// imports the corresponding const-expression (according to the given initializer-id) from the given ConstExpressions
@@ -347,7 +543,7 @@ impl Index {
     ) -> Option<ConstId> {
         initializer_id
             .as_ref()
-            .and_then(|it| import_from.remove(it))
+            .and_then(|it| import_from.clone(it))
             .map(|(init, target_type, scope)| {
                 self.get_mut_const_expressions()
                     .add_constant_expression(init, target_type, scope)
@@ -365,9 +561,9 @@ impl Index {
         type_size: &TypeSize,
     ) -> TypeSize {
         let ts = match type_size {
-            TypeSize::LiteralInteger(_) => Some(type_size.clone()),
+            TypeSize::LiteralInteger(_) => Some(*type_size),
             TypeSize::ConstExpression(id) => import_from
-                .remove(id)
+                .clone(id)
                 .map(|(expr, target_type, scope)| {
                     self.get_mut_const_expressions().add_constant_expression(
                         expr,
@@ -401,6 +597,11 @@ impl Index {
         self.global_variables
             .get(&name.to_lowercase())
             .or_else(|| self.enum_global_variables.get(&name.to_lowercase()))
+    }
+
+    /// returns the `VariableIndexEntry` of the global initializer with the given name
+    pub fn find_global_initializer(&self, name: &str) -> Option<&VariableIndexEntry> {
+        self.global_initializers.get(&name.to_lowercase())
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
@@ -516,10 +717,10 @@ impl Index {
     }
 
     /// returns the effective DataType of the type with the given name or an Error
-    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
@@ -534,7 +735,25 @@ impl Index {
         self.type_index.get_effective_type_by_name(type_name)
     }
 
-    pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    /// returns the intrinsic type of the type with the given name or the
+    /// void-type if the given name does not exist
+    /// returns the real type behind aliases and subRanges (while effective_types will only
+    /// resolve aliases)
+    pub fn get_intrinsic_type_by_name(&self, type_name: &str) -> &DataType {
+        let effective_type = self.type_index.get_effective_type_by_name(type_name);
+
+        match effective_type.get_type_information() {
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => self.get_intrinsic_type_by_name(referenced_type.as_str()),
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => self.get_intrinsic_type_by_name(referenced_type),
+            _ => effective_type,
+        }
+    }
+
+    pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index.get_type(type_name)
     }
 
@@ -546,7 +765,7 @@ impl Index {
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
-        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
+        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||Diagnostic::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
             for (_, variable) in members {
                 if variable.variable_type == VariableType::Return {
@@ -572,9 +791,20 @@ impl Index {
     pub fn get_types(&self) -> &IndexMap<String, DataType> {
         &self.type_index.types
     }
+    pub fn get_pou_types(&self) -> &IndexMap<String, DataType> {
+        &self.type_index.pou_types
+    }
 
     pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_variables
+    }
+
+    pub fn get_global_initializers(&self) -> &IndexMap<String, VariableIndexEntry> {
+        &self.global_initializers
+    }
+
+    pub fn get_members(&self, name: &str) -> Option<&IndexMap<String, VariableIndexEntry>> {
+        self.member_variables.get(name.to_lowercase().as_str())
     }
 
     pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
@@ -619,34 +849,38 @@ impl Index {
     /// * `location` - the location (index) inside the container
     pub fn register_member_variable(
         &mut self,
-        member_info: &MemberInfo,
+        member_info: MemberInfo,
         initial_value: Option<ConstId>,
         source_location: SourceRange,
         location: u32,
     ) {
         let container_name = member_info.container_name;
         let variable_name = member_info.variable_name;
-        let variable_linkage = member_info.variable_linkage;
-        let variable_type_name = member_info.variable_type_name;
+        let variable_type = member_info.variable_linkage;
+        let data_type_name = member_info.variable_type_name;
 
+        let qualified_name = format!("{}.{}", container_name, variable_name);
+
+        let entry = VariableIndexEntry::new(
+            variable_name,
+            &qualified_name,
+            data_type_name,
+            variable_type,
+            location,
+            source_location,
+        )
+        .set_constant(member_info.is_constant)
+        .set_initial_value(initial_value)
+        .set_hardware_binding(member_info.binding);
+
+        self.register_member_entry(container_name, entry);
+    }
+    pub fn register_member_entry(&mut self, container_name: &str, entry: VariableIndexEntry) {
         let members = self
             .member_variables
             .entry(container_name.to_lowercase())
             .or_insert_with(IndexMap::new);
-
-        let qualified_name = format!("{}.{}", container_name, variable_name);
-
-        let entry = VariableIndexEntry {
-            name: variable_name.into(),
-            qualified_name,
-            initial_value,
-            source_location,
-            variable_type: variable_linkage,
-            data_type_name: variable_type_name.into(),
-            is_constant: member_info.is_constant,
-            location_in_parent: location,
-        };
-        members.insert(variable_name.to_lowercase(), entry);
+        members.insert(entry.name.to_lowercase(), entry);
     }
 
     pub fn register_enum_element(
@@ -657,16 +891,14 @@ impl Index {
         source_location: SourceRange,
     ) {
         let qualified_name = format!("{}.{}", enum_type_name, element_name);
-        let entry = VariableIndexEntry {
-            name: element_name.into(),
-            qualified_name: qualified_name.clone(),
-            initial_value,
+        let entry = VariableIndexEntry::create_global(
+            element_name,
+            &qualified_name,
+            enum_type_name,
             source_location,
-            variable_type: VariableType::Global,
-            data_type_name: enum_type_name.into(),
-            is_constant: true,
-            location_in_parent: 0,
-        };
+        )
+        .set_constant(true)
+        .set_initial_value(initial_value);
         self.enum_global_variables
             .insert(element_name.to_lowercase(), entry.clone());
 
@@ -674,64 +906,25 @@ impl Index {
             .insert(qualified_name.to_lowercase(), entry);
     }
 
-    pub fn register_global_variable(
-        &mut self,
-        name: &str,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        is_constant: bool,
-        source_location: SourceRange,
-    ) {
-        self.register_global_variable_with_name(
-            name,
-            name,
-            type_name,
-            initial_value,
-            is_constant,
-            source_location,
-        );
+    pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {
+        self.global_variables.insert(name.to_lowercase(), variable);
     }
 
-    pub fn register_global_variable_with_name(
-        &mut self,
-        association_name: &str,
-        variable_name: &str,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        is_constant: bool,
-        source_location: SourceRange,
-    ) {
-        //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
-        // If we do enough mental gymnastic, we could say that a Qualified name is how you would find a unique id for a variable, which the association name is.
-        let qualified_name = association_name.into();
-        let entry = VariableIndexEntry {
-            name: variable_name.into(),
-            qualified_name,
-            initial_value,
-            source_location,
-            variable_type: VariableType::Global,
-            data_type_name: type_name.into(),
-            is_constant,
-            location_in_parent: 0,
-        };
-        self.global_variables
-            .insert(association_name.to_lowercase(), entry);
+    pub fn register_global_initializer(&mut self, name: &str, variable: VariableIndexEntry) {
+        self.global_initializers
+            .insert(name.to_lowercase(), variable);
     }
 
-    pub fn register_type(
-        &mut self,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        information: DataTypeInformation,
-    ) {
-        let index_entry = DataType {
-            name: type_name.into(),
-            initial_value,
-            information,
-        };
+    pub fn register_type(&mut self, datatype: DataType) {
         self.type_index
             .types
-            .insert(type_name.to_lowercase(), index_entry);
+            .insert(datatype.get_name().to_lowercase(), datatype);
+    }
+
+    pub fn register_pou_type(&mut self, datatype: DataType) {
+        self.type_index
+            .pou_types
+            .insert(datatype.get_name().to_lowercase(), datatype);
     }
 
     pub fn find_callable_instance_variable(
@@ -776,13 +969,45 @@ impl Index {
                     initial_type
                 }
             }
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => self
+                .find_effective_type_info(referenced_type)
+                .unwrap_or(initial_type),
             _ => initial_type,
+        }
+    }
+
+    /// Creates an iterator over all instances in the index
+    pub fn find_instances(&self) -> InstanceIterator {
+        InstanceIterator::new(self)
+    }
+
+    /// Creates an iterator over all instances in the index
+    /// The passed filter will stop the iterator from navigating deeper into variables that should not be considered
+    /// To filter a variable from showing up at all, (not only its children), add a filter to the returned iterator
+    pub fn filter_instances(
+        &self,
+        inner_filter: fn(&VariableIndexEntry, &Index) -> bool,
+    ) -> InstanceIterator {
+        InstanceIterator::with_filter(self, inner_filter)
+    }
+
+    /// If the provided name is a builtin function, returns it from the builtin index
+    pub fn get_builtin_function(&self, name: &str) -> Option<&'_ BuiltIn> {
+        //Find a type for that function, see if that type is builtin
+        if let Some(true) = self
+            .find_effective_type_info(name)
+            .map(DataTypeInformation::is_builtin)
+        {
+            builtins::get_builtin(name)
+        } else {
+            None
         }
     }
 }
 
-impl Default for Index {
-    fn default() -> Self {
-        Self::new()
-    }
+/// Returns a default initialization name for a variable or type
+pub fn get_initializer_name(name: &str) -> String {
+    format!("{}__init", name)
 }

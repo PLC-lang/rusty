@@ -9,9 +9,10 @@ use std::convert::TryInto;
 /// - sized Strings
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
-use crate::resolver::AnnotationMap;
-use crate::typesystem::{Dimension, StringEncoding};
-use crate::{ast::AstStatement, compile_error::CompileError, typesystem::DataTypeInformation};
+use crate::resolver::AstAnnotations;
+use crate::typesystem::{Dimension, StringEncoding, StructSource};
+use crate::Diagnostic;
+use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
         llvm_index::LlvmTypedIndex,
@@ -19,10 +20,9 @@ use crate::{
     },
     typesystem::DataType,
 };
-use inkwell::values::BasicValue;
 use inkwell::{
     types::{ArrayType, BasicType, BasicTypeEnum},
-    values::BasicValueEnum,
+    values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
 
@@ -31,7 +31,7 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 pub struct DataTypeGenerator<'ink, 'b> {
     llvm: &'b Llvm<'ink>,
     index: &'b Index,
-    annotations: &'b AnnotationMap,
+    annotations: &'b AstAnnotations,
     types_index: LlvmTypedIndex<'ink>,
 }
 
@@ -45,20 +45,33 @@ pub struct DataTypeGenerator<'ink, 'b> {
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
     index: &Index,
-    annotations: &AnnotationMap,
-) -> Result<LlvmTypedIndex<'ink>, CompileError> {
+    annotations: &AstAnnotations,
+) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut generator = DataTypeGenerator {
         llvm,
         index,
         annotations,
-        types_index: LlvmTypedIndex::new(),
+        types_index: LlvmTypedIndex::default(),
     };
 
-    let types = generator.index.get_types();
+    let types = generator
+        .index
+        .get_types()
+        .iter()
+        .filter(|(_, it)| !it.get_type_information().is_generic())
+        .map(|(a, b)| (a.as_str(), b))
+        .collect::<Vec<(&str, &DataType)>>();
+    let pou_types = generator
+        .index
+        .get_pou_types()
+        .iter()
+        .filter(|(_, it)| !it.get_type_information().is_generic())
+        .map(|(a, b)| (a.as_str(), b))
+        .collect::<Vec<(&str, &DataType)>>();
 
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
-    for (name, user_type) in types {
+    for (name, user_type) in &types {
         if let DataTypeInformation::Struct {
             name: struct_name, ..
         } = user_type.get_type_information()
@@ -68,15 +81,38 @@ pub fn generate_data_types<'ink>(
                 .associate_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
+    // pou_types will always be struct
+    for (name, user_type) in &pou_types {
+        if let DataTypeInformation::Struct {
+            name: struct_name, ..
+        } = user_type.get_type_information()
+        {
+            generator
+                .types_index
+                .associate_pou_type(name, llvm.create_struct_stub(struct_name).into())?;
+        }
+    }
     // now create all other types (enum's, arrays, etc.)
-    for (name, user_type) in types {
+    for (name, user_type) in &types {
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
+    }
+    for (name, user_type) in &pou_types {
+        let gen_type = generator.create_type(name, user_type)?;
+        generator.types_index.associate_pou_type(name, gen_type)?
     }
 
     // now since all types should be available in the llvm index, we can think about constructing and associating
     // initial values for the types
-    for (name, user_type) in types {
+    for (name, user_type) in &types {
+        generator.expand_opaque_types(user_type)?;
+        if let Some(init_value) = generator.generate_initial_value(user_type)? {
+            generator
+                .types_index
+                .associate_initial_value(name, init_value)?;
+        }
+    }
+    for (name, user_type) in &pou_types {
         generator.expand_opaque_types(user_type)?;
         if let Some(init_value) = generator.generate_initial_value(user_type)? {
             generator
@@ -90,21 +126,26 @@ pub fn generate_data_types<'ink>(
 
 impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// generates the members of an opaque struct and associates its initial values
-    fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), CompileError> {
+    fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
         let information = data_type.get_type_information();
-        if let DataTypeInformation::Struct { .. } = information {
+        if let DataTypeInformation::Struct { source, .. } = information {
             let members = self
                 .index
                 .get_container_members(data_type.get_name())
                 .into_iter()
                 .filter(|it| !it.is_temp() && !it.is_return())
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
-                .collect::<Result<Vec<BasicTypeEnum>, CompileError>>()?;
+                .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
 
-            let struct_type = self
-                .types_index
-                .get_associated_type(data_type.get_name())
-                .map(BasicTypeEnum::into_struct_type)?;
+            let struct_type = match source {
+                StructSource::Pou(..) => self
+                    .types_index
+                    .get_associated_pou_type(data_type.get_name()),
+                StructSource::OriginalDeclaration => {
+                    self.types_index.get_associated_type(data_type.get_name())
+                }
+            }
+            .map(BasicTypeEnum::into_struct_type)?;
 
             struct_type.set_body(members.as_slice(), false);
         }
@@ -118,12 +159,17 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         &self,
         name: &str,
         data_type: &DataType,
-    ) -> Result<BasicTypeEnum<'ink>, CompileError> {
+    ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { .. } => {
-                self.types_index.get_associated_type(data_type.get_name())
-            }
+            DataTypeInformation::Struct { source, .. } => match source {
+                StructSource::Pou(..) => self
+                    .types_index
+                    .get_associated_pou_type(data_type.get_name()),
+                StructSource::OriginalDeclaration => {
+                    self.types_index.get_associated_type(data_type.get_name())
+                }
+            },
             DataTypeInformation::Array {
                 inner_type_name,
                 dimensions,
@@ -137,9 +183,27 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Integer { size, .. } => {
                 get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())
             }
-            DataTypeInformation::Enum { name, .. } => {
-                let enum_size = information.get_size();
-                get_llvm_int_type(self.llvm.context, enum_size, name).map(|it| it.into())
+            DataTypeInformation::Enum {
+                name,
+                referenced_type,
+                ..
+            } => {
+                let effective_type = self
+                    .index
+                    .get_effective_type_by_name(referenced_type)
+                    .get_type_information();
+                if let DataTypeInformation::Integer {
+                    size: enum_size, ..
+                } = effective_type
+                {
+                    get_llvm_int_type(self.llvm.context, *enum_size, name).map(|it| it.into())
+                } else {
+                    Err(Diagnostic::invalid_type_nature(
+                        effective_type.get_name(),
+                        "ANY_INT",
+                        SourceRange::undefined(),
+                    ))
+                }
             }
             DataTypeInformation::Float { size, .. } => {
                 get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())
@@ -151,10 +215,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     self.llvm.context.i16_type()
                 };
 
-                let string_size = size
-                    .as_int_value(self.index)
-                    .map_err(|it| CompileError::codegen_error(it, SourceRange::undefined()))?
-                    as u32;
+                let string_size = size.as_int_value(self.index).map_err(|it| {
+                    Diagnostic::codegen_error(it.as_str(), SourceRange::undefined())
+                })? as u32;
                 Ok(base_type.array_type(string_size).into())
             }
             DataTypeInformation::SubRange {
@@ -176,16 +239,19 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?;
                 Ok(inner_type.ptr_type(AddressSpace::Generic).into())
             }
+            DataTypeInformation::Generic { .. } => {
+                unreachable!("Generic types should not be generated")
+            }
         }
     }
 
     fn generate_initial_value(
         &mut self,
         data_type: &DataType,
-    ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { .. } => {
+            DataTypeInformation::Struct { source, .. } => {
                 let members = self.index.get_container_members(data_type.get_name());
                 let member_names_and_initializers = members
                     .iter()
@@ -201,7 +267,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                                     .map(|v| (it.get_qualified_name(), v)),
                             })
                     })
-                    .collect::<Result<Vec<(&str, BasicValueEnum)>, CompileError>>()?;
+                    .collect::<Result<Vec<(&str, BasicValueEnum)>, Diagnostic>>()?;
 
                 let mut member_values: Vec<BasicValueEnum> = Vec::new();
                 for (name, v) in &member_names_and_initializers {
@@ -209,10 +275,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     member_values.push(*v);
                 }
 
-                let struct_type = self
-                    .types_index
-                    .get_associated_type(data_type.get_name())?
-                    .into_struct_type();
+                let struct_type = match source {
+                    StructSource::Pou(..) => self
+                        .types_index
+                        .get_associated_pou_type(data_type.get_name()),
+                    StructSource::OriginalDeclaration => {
+                        self.types_index.get_associated_type(data_type.get_name())
+                    }
+                }?
+                .into_struct_type();
 
                 Ok(Some(
                     struct_type
@@ -247,7 +318,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn generate_initial_value_for_variable(
         &mut self,
         variable: &VariableIndexEntry,
-    ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let initializer = variable.initial_value.and_then(|it| {
             self.index
                 .get_const_expressions()
@@ -267,7 +338,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         &mut self,
         data_type: &DataType,
         referenced_type: &str,
-    ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         self.generate_initializer(
             data_type.get_name(),
             self.index
@@ -286,7 +357,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         qualified_name: &str,
         initializer: Option<&AstStatement>,
         data_type_name: &str,
-    ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         if let Some(initializer) = initializer {
             let generator = ExpressionCodeGenerator::new_context_free(
                 self.llvm,
@@ -298,7 +369,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .generate_expression(initializer)
                 .map(Some)
                 .map_err(|_| {
-                    CompileError::cannot_generate_initializer(
+                    Diagnostic::cannot_generate_initializer(
                         qualified_name,
                         initializer.get_location(),
                     )
@@ -317,7 +388,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         data_type: &DataType,
         predicate: fn(&AstStatement) -> bool,
         expected_ast: &str,
-    ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         if let Some(initializer) = self
             .index
             .get_const_expressions()
@@ -332,8 +403,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 );
                 Ok(Some(generator.generate_literal(initializer)?))
             } else {
-                Err(CompileError::codegen_error(
-                    format!("Expected {} but found {:?}", expected_ast, initializer),
+                Err(Diagnostic::codegen_error(
+                    &format!("Expected {} but found {:?}", expected_ast, initializer),
                     initializer.get_location(),
                 ))
             }
@@ -343,36 +414,44 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     }
 
     /// creates the llvm types for a multi-dimensional array
+    ///
+    /// an array with multiple dimensions will be flattened into a long
+    /// 1-dimensional array.
+    /// e.g. `arr: ARRAY[0..2, 0..2] OF INT` produces the same result like
+    /// `arr: ARRAY[0..3] OF INT`.
     fn create_nested_array_type(
         &self,
-        end_type: BasicTypeEnum<'ink>,
+        inner_type: BasicTypeEnum<'ink>,
         dimensions: &[Dimension],
-    ) -> Result<ArrayType<'ink>, CompileError> {
-        let dimensions: Vec<u32> = dimensions
+    ) -> Result<ArrayType<'ink>, Diagnostic> {
+        let len = dimensions
             .iter()
             .map(|dimension| {
                 dimension
                     .get_length(self.index)
-                    .map_err(|it| CompileError::codegen_error(it, SourceRange::undefined()))
+                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))
             })
-            .collect::<Result<Vec<u32>, CompileError>>()?;
+            .collect::<Result<Vec<u32>, Diagnostic>>()?
+            .into_iter()
+            .reduce(|a, b| a * b)
+            .ok_or_else(|| {
+                Diagnostic::codegen_error("Invalid array dimensions", SourceRange::undefined())
+            })?;
 
-        let result = dimensions.iter().rev().fold(end_type, |current_type, len| {
-            match current_type {
-                BasicTypeEnum::IntType(..) => current_type.into_int_type().array_type(*len),
-                BasicTypeEnum::FloatType(..) => current_type.into_float_type().array_type(*len),
-                BasicTypeEnum::StructType(..) => current_type.into_struct_type().array_type(*len),
-                BasicTypeEnum::ArrayType(..) => current_type.into_array_type().array_type(*len),
-                BasicTypeEnum::PointerType(..) => current_type.into_pointer_type().array_type(*len),
-                BasicTypeEnum::VectorType(..) => current_type.into_vector_type().array_type(*len),
-            }
-            .as_basic_type_enum()
-        });
+        let result = match inner_type {
+            BasicTypeEnum::IntType(..) => inner_type.into_int_type().array_type(len),
+            BasicTypeEnum::FloatType(..) => inner_type.into_float_type().array_type(len),
+            BasicTypeEnum::StructType(..) => inner_type.into_struct_type().array_type(len),
+            BasicTypeEnum::ArrayType(..) => inner_type.into_array_type().array_type(len),
+            BasicTypeEnum::PointerType(..) => inner_type.into_pointer_type().array_type(len),
+            BasicTypeEnum::VectorType(..) => inner_type.into_vector_type().array_type(len),
+        }
+        .as_basic_type_enum();
 
         let array_result: Result<ArrayType, _> = result.try_into();
         array_result.map_err(|_| {
-            CompileError::codegen_error(
-                format!("Expected ArrayType but found {:#?}", result),
+            Diagnostic::codegen_error(
+                &format!("Expected ArrayType but found {:#?}", result),
                 SourceRange::undefined(),
             )
         })

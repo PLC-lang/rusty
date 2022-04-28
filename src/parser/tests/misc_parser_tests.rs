@@ -48,6 +48,7 @@ fn exponent_literals_parsed_as_variables() {
             constant: false,
             retain: false,
             location: SourceRange::undefined(),
+            linkage: LinkageType::Internal,
             variables: vec![Variable {
                 name: "E3".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
@@ -55,10 +56,13 @@ fn exponent_literals_parsed_as_variables() {
                     location: SourceRange::undefined(),
                 },
                 initializer: None,
+                address: None,
                 location: SourceRange::undefined(),
             }],
         }],
         location: SourceRange::undefined(),
+        generics: vec![],
+        linkage: crate::ast::LinkageType::Internal,
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", pou).as_str());
     let implementation = &parse_result.implementations[0];

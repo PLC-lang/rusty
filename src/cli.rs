@@ -1,30 +1,24 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
+use clap::{ArgGroup, Parser};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
-use structopt::{clap::ArgGroup, StructOpt};
 
-#[derive(PartialEq, Debug)]
-pub enum FormatOption {
-    Static,
-    PIC,
-    Shared,
-    Bitcode,
-    IR,
-}
+use crate::{ConfigFormat, ErrorFormat, FormatOption};
 
 // => Set the default output format here:
 const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
 const DEFAULT_OUTPUT_NAME: &str = "out";
 
-pub type ParameterError = structopt::clap::Error;
+pub type ParameterError = clap::Error;
 
-#[derive(StructOpt, Debug)]
-#[structopt(
-    group = ArgGroup::with_name("format"),
-    about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM "
+#[derive(Parser, Debug)]
+#[clap(
+    group = ArgGroup::new("format"),
+    about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
+    version,
 )]
 pub struct CompileParameters {
-    #[structopt(
+    #[clap(
         short,
         long,
         name = "output-file",
@@ -32,48 +26,55 @@ pub struct CompileParameters {
     )]
     pub output: Option<String>,
 
-    #[structopt(
+    #[clap(
         long = "ir",
         group = "format",
         help = "Emit IR (LLVM Intermediate Representation) as output"
     )]
     pub output_ir: bool,
 
-    #[structopt(
+    #[clap(
         long = "shared",
         group = "format",
         help = "Emit a shared object as output"
     )]
     pub output_shared_obj: bool,
 
-    #[structopt(
+    #[clap(
         long = "pic",
         group = "format",
         help = "Emit PIC (Position Independent Code) as output"
     )]
     pub output_pic_obj: bool,
 
-    #[structopt(long = "static", group = "format", help = "Emit an object as output")]
+    #[clap(long = "static", group = "format", help = "Emit an object as output")]
     pub output_obj_code: bool,
 
-    #[structopt(
+    #[clap(
+        long = "relocatable",
+        group = "format",
+        help = "Emit an object as output"
+    )]
+    pub output_reloc_code: bool,
+
+    #[clap(
         long = "bc",
         group = "format",
         help = "Emit binary IR (binary representation of LLVM-IR) as output"
     )]
     pub output_bit_code: bool,
 
-    #[structopt(short = "c", help = "Do not link after compiling object code")]
+    #[clap(short = 'c', help = "Do not link after compiling object code")]
     pub skip_linking: bool,
 
-    #[structopt(
+    #[clap(
         long,
         name = "target-triple",
         help = "A target-tripple supported by LLVM"
     )]
     pub target: Option<String>,
 
-    #[structopt(
+    #[clap(
         long,
         name = "encoding",
         help = "The file encoding used to read the input-files, as defined by the Encoding Standard",
@@ -81,7 +82,7 @@ pub struct CompileParameters {
     )]
     pub encoding: Option<&'static Encoding>,
 
-    #[structopt(
+    #[clap(
         name = "input-files",
         help = "Read input from <input-files>, may be a glob expression like 'src/**/*' or a sequence of files",
         required = true,
@@ -90,28 +91,85 @@ pub struct CompileParameters {
     // having a vec allows bash to resolve *.st itself
     pub input: Vec<String>,
 
-    #[structopt(
+    #[clap(
         name = "library-path",
         long,
-        short = "L",
+        short = 'L',
         help = "Search path for libraries, used for linking"
     )]
     pub library_pathes: Vec<String>,
 
-    #[structopt(name = "library", long, short = "l", help = "Library name to link")]
+    #[clap(name = "library", long, short = 'l', help = "Library name to link")]
     pub libraries: Vec<String>,
 
-    #[structopt(long, name = "sysroot", help = "Path to system root, used for linking")]
+    #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
     pub sysroot: Option<String>,
+
+    #[clap(
+        name = "include",
+        long,
+        short = 'i',
+        help = "Include source files for external functions"
+    )]
+    pub includes: Vec<String>,
+
+    #[clap(
+        name = "hardware-conf",
+        long,
+        help = "Generate Hardware configuration files to the given location. 
+    Format is detected by extenstion.
+    Supported formats : json, toml",
+    parse(try_from_str = validate_config)
+    ) ]
+    pub hardware_config: Option<String>,
+
+    #[clap(
+        name = "optimization",
+        long,
+        short = 'O',
+        help = "Optimization level",
+        arg_enum,
+        default_value = "default"
+    )]
+    pub optimization: crate::OptimizationLevel,
+
+    #[clap(
+        name = "error-format",
+        long,
+        help = "Set format for error reporting",
+        arg_enum,
+        default_value = "rich"
+    )]
+    pub error_format: ErrorFormat,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
     Encoding::for_label(encoding.as_bytes()).ok_or(format!("Unknown encoding {}", encoding))
 }
 
+fn validate_config(config_name: &str) -> Result<String, String> {
+    if get_config_format(config_name).is_some() {
+        Ok(config_name.to_string())
+    } else {
+        Err(format!(
+            r#"Cannot identify format type for {}, valid extensions : "json", "toml""#,
+            config_name
+        ))
+    }
+}
+
+pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
+    let ext = name.split('.').last();
+    match ext {
+        Some("json") => Some(ConfigFormat::JSON),
+        Some("toml") => Some(ConfigFormat::TOML),
+        _ => None,
+    }
+}
+
 impl CompileParameters {
     pub fn parse(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
-        CompileParameters::from_iter_safe(args)
+        CompileParameters::try_parse_from(args)
     }
 
     // convert the scattered bools from structopt into an enum
@@ -126,6 +184,8 @@ impl CompileParameters {
             Some(FormatOption::Shared)
         } else if self.output_obj_code {
             Some(FormatOption::Static)
+        } else if self.output_reloc_code {
+            Some(FormatOption::Relocatable)
         } else {
             None
         }
@@ -146,6 +206,7 @@ impl CompileParameters {
         } else {
             let ending = match out_format {
                 FormatOption::Bitcode => ".bc",
+                FormatOption::Relocatable => ".o",
                 FormatOption::Static if self.skip_linking => ".o",
                 FormatOption::Static => "",
                 FormatOption::Shared | FormatOption::PIC => ".so",
@@ -160,19 +221,24 @@ impl CompileParameters {
             Some(format!("{}{}", basename, ending))
         }
     }
+
+    pub fn config_format(&self) -> Option<ConfigFormat> {
+        self.hardware_config.as_deref().and_then(get_config_format)
+    }
 }
 
 #[cfg(test)]
 mod cli_tests {
-    use super::{CompileParameters, FormatOption, ParameterError};
+    use super::CompileParameters;
+    use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
+    use clap::ErrorKind;
     use pretty_assertions::assert_eq;
-    use structopt::clap::ErrorKind;
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
         let params = CompileParameters::parse(args.clone());
         match params {
-            Err(ParameterError { kind, .. }) => {
-                assert_eq!(kind, expected_error_kind);
+            Err(e) => {
+                assert_eq!(e.kind(), expected_error_kind);
             }
             Ok(p) => panic!(
                 "expected error, but found none. arguments: {:?}. params: {:?}",
@@ -204,6 +270,10 @@ mod cli_tests {
         );
         expect_argument_error(
             vec_of_strings!["input.st", "--ir", "--shared", "--pic", "--bc"],
+            ErrorKind::ArgumentConflict,
+        );
+        expect_argument_error(
+            vec_of_strings!["input.st", "--ir", "--relocatable"],
             ErrorKind::ArgumentConflict,
         );
     }
@@ -279,6 +349,44 @@ mod cli_tests {
     }
 
     #[test]
+    fn test_optimization_levels() {
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "-Onone")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::None);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "none"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::None);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "-Oless")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Less);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "less"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Less);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "-Odefault")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "default"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "-Oaggressive")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Aggressive);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "aggressive"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Aggressive);
+    }
+
+    #[test]
     fn test_default_format() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::IR);
@@ -331,46 +439,61 @@ mod cli_tests {
     #[test]
     fn valid_output_formats() {
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ir")).unwrap();
-        assert_eq!(parameters.output_ir, true);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
+        assert!(parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--bc")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, true);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
+        assert!(!parameters.output_ir);
+        assert!(parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--static")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, true);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, true);
-        assert_eq!(parameters.output_shared_obj, false);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--shared")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, true);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
     }
 
     #[test]
@@ -406,7 +529,7 @@ mod cli_tests {
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
             Ok(_) => panic!("expected version output, but found OK"),
-            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::VersionDisplayed),
+            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayVersion),
         }
     }
 
@@ -414,7 +537,7 @@ mod cli_tests {
     fn cli_supports_help() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
-            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::HelpDisplayed),
+            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
         }
     }
 
@@ -424,5 +547,68 @@ mod cli_tests {
             CompileParameters::parse(vec_of_strings!("input.st", "--sysroot", "path/to/sysroot"))
                 .unwrap();
         assert_eq!(parameters.sysroot, Some("path/to/sysroot".to_string()));
+    }
+
+    #[test]
+    fn include_files_added() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "-i",
+            "include1",
+            "-i",
+            "include2",
+            "--include",
+            "include3"
+        ))
+        .unwrap();
+        assert_eq!(
+            parameters.includes,
+            vec!["include1", "include2", "include3"]
+        );
+    }
+
+    #[test]
+    fn config_option_set() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("foo", "--hardware-conf=conf.json")).unwrap();
+        assert_eq!(parameters.hardware_config, Some("conf.json".to_string()));
+        assert_eq!(parameters.config_format().unwrap(), ConfigFormat::JSON);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("foo", "--hardware-conf=conf.toml")).unwrap();
+        assert_eq!(parameters.hardware_config, Some("conf.toml".to_string()));
+        assert_eq!(parameters.config_format().unwrap(), ConfigFormat::TOML);
+
+        expect_argument_error(
+            vec_of_strings!("foo", "--hardware-conf=foo"),
+            ErrorKind::ValueValidation,
+        );
+        expect_argument_error(
+            vec_of_strings!("foo", "--hardware-conf=conf.foo"),
+            ErrorKind::ValueValidation,
+        );
+        expect_argument_error(
+            vec_of_strings!("foo", "--hardware-conf=conf.xml"),
+            ErrorKind::ValueValidation,
+        );
+    }
+
+    #[test]
+    fn error_format_default_set() {
+        // make sure the default error format is set
+        let params = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
+        assert_eq!(params.error_format, ErrorFormat::Rich);
+    }
+
+    #[test]
+    fn error_format_set() {
+        // set clang as error format
+        let params =
+            CompileParameters::parse(vec_of_strings!("input.st", "--error-format=clang")).unwrap();
+        assert_eq!(params.error_format, ErrorFormat::Clang);
+        // set invalid error format
+        expect_argument_error(
+            vec_of_strings!("input.st", "--error-format=none"),
+            ErrorKind::InvalidValue,
+        );
     }
 }

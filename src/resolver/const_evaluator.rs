@@ -154,10 +154,13 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
             ..
         } => match elements.as_ref() {
             AstStatement::ExpressionList { expressions, .. } => {
-                expressions.iter().any(|it| needs_evaluation(it))
+                expressions.iter().any(needs_evaluation)
             }
             _ => needs_evaluation(elements.as_ref()),
         },
+        AstStatement::ExpressionList { expressions, .. } => {
+            expressions.iter().any(needs_evaluation)
+        }
         _ => true,
     }
 }
@@ -274,7 +277,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     unresolvable.extend(
         remaining_constants
             .iter()
-            .map(|it| UnresolvableConstant::incomplete_initialzation(it)),
+            .map(UnresolvableConstant::incomplete_initialzation),
     );
 
     (index, unresolvable)
@@ -370,7 +373,26 @@ pub fn evaluate(
     let literal = match initial {
         AstStatement::CastStatement {
             target, type_name, ..
-        } => Some(get_cast_statement_literal(target, type_name, scope, index)?),
+        } => match index.find_effective_type_info(type_name) {
+            Some(DataTypeInformation::Enum {
+                name: enum_name, ..
+            }) => {
+                if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
+                    return index
+                        .find_enum_element(enum_name, ref_name)
+                        .map(|v| resolve_const_reference(Some(v), ref_name, index))
+                        .unwrap_or_else(|| {
+                            Err(format!(
+                                "Cannot resolve constant enum {}#{}.",
+                                enum_name, ref_name
+                            ))
+                        });
+                } else {
+                    return Err("Cannot resolve unknown constant.".to_string());
+                }
+            }
+            _ => Some(get_cast_statement_literal(target, type_name, scope, index)?),
+        },
         AstStatement::Reference { name, .. } => {
             let variable = index.find_variable(scope, std::slice::from_ref(&name.as_str()));
             resolve_const_reference(variable, name, index)?
@@ -489,7 +511,7 @@ pub fn evaluate(
             }) => Some(AstStatement::LiteralReal {
                 value: format!(
                     "{:}",
-                    -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err.to_string(), v))?
+                    -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err, v))?
                 ),
                 id,
                 location,
@@ -520,6 +542,20 @@ pub fn evaluate(
                     id: *id,
                 })),
                 location: location.clone(),
+            })
+        }
+        AstStatement::ExpressionList { expressions, id } => {
+            let inner_elements = expressions
+                .iter()
+                .map(|e| evaluate(e, scope, index))
+                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
+                .into_iter()
+                .collect::<Option<Vec<AstStatement>>>();
+
+            //return a new array, or return none if one was not resolvable
+            inner_elements.map(|ie| AstStatement::ExpressionList {
+                expressions: ie,
+                id: *id,
             })
         }
         AstStatement::MultipliedStatement {
@@ -603,7 +639,12 @@ fn get_cast_statement_literal(
         .find_effective_type(type_name)
         .map(DataType::get_type_information)
     {
-        Some(&crate::typesystem::DataTypeInformation::Integer { size, signed, .. }) => {
+        Some(&crate::typesystem::DataTypeInformation::Integer {
+            signed,
+            size,
+            semantic_size,
+            ..
+        }) => {
             let evaluated_initial = evaluate(cast_statement, scope, index)?
                 .as_ref()
                 .map(|v| {
@@ -617,7 +658,7 @@ fn get_cast_statement_literal(
             if let Some(value) = evaluated_initial {
                 const SIGNED: bool = true;
                 const UNSIGNED: bool = false;
-                let value: i128 = match (signed, size) {
+                let value: i128 = match (signed, semantic_size.unwrap_or(size)) {
                     //signed
                     (SIGNED, SINT_SIZE) => (value as NativeSintType) as i128,
                     (SIGNED, INT_SIZE) => (value as NativeIntType) as i128,
@@ -647,6 +688,7 @@ fn get_cast_statement_literal(
                 ))
             }
         }
+
         //Some(&crate::typesystem::DataTypeInformation::Float{..}) => {},
         _ => Err(format!(
             "Cannot resolve constant: {:}#{:?}",

@@ -1,9 +1,12 @@
+use std::path::PathBuf;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::context::Context;
-use inkwell::execution_engine::{ExecutionEngine, JitFunction};
+use rusty::diagnostics::Diagnostician;
 use rusty::*;
 
-type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
+//Import the helper run methods into the tests
+pub use rusty::runner::{compile, compile_and_run, run, MainType};
 
 mod correctness {
     mod arrays;
@@ -16,10 +19,12 @@ mod correctness {
     mod external_functions;
     mod functions;
     mod functions_struct;
+    mod generic_functions;
     mod global_variables;
     mod initial_values;
     mod methods;
     mod pointers;
+    mod strings;
     mod sub_range_types;
     mod math_operators {
         mod addition;
@@ -32,6 +37,8 @@ mod correctness {
 
 mod integration {
     mod external_files;
+    mod linking;
+    mod multi_files;
 }
 
 #[macro_export]
@@ -52,37 +59,15 @@ macro_rules! assert_almost_eq {
     }};
 }
 
-///
-/// Compiles and runs the given source
-/// Returns the std result as String
-/// Source must define a main function that takes no arguments and returns an int and string
-/// The int is the return value which can be verified
-/// The string will eventually be the Stdout of the function.
-///
-pub fn compile(context: &Context, source: String) -> ExecutionEngine {
-    let source = SourceCode {
-        path: "external_test.st".to_string(),
-        source,
-    };
-    let code_gen = compile_module(context, vec![source], None).unwrap();
-    println!("{}", code_gen.module.print_to_string());
-    code_gen
-        .module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .unwrap()
-}
+/// Gets a file from the integration data folder for tests
+fn get_test_file(name: &str) -> String {
+    let mut data_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    data_path.push("tests");
+    data_path.push("integration");
+    data_path.push("data");
+    data_path.push(name);
 
-pub fn compile_and_run<T, U>(source: String, params: &mut T) -> U {
-    let context: Context = Context::create();
-    let exec_engine = compile(&context, source);
-    run::<T, U>(&exec_engine, "main", params)
-}
+    assert!(data_path.exists());
 
-pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U {
-    unsafe {
-        let main: JitFunction<MainFunction<T, U>> = exec_engine.get_function(name).unwrap();
-        let main_t_ptr = &mut *params as *mut _;
-
-        main.call(main_t_ptr)
-    }
+    data_path.display().to_string()
 }

@@ -1,5 +1,5 @@
 {
-    "remote.containers.dockerPath": "podman",
+    "remote.containers.dockerPath": "docker",
     "restoreTerminals.terminals": [
         {
             "splitTerminals": [

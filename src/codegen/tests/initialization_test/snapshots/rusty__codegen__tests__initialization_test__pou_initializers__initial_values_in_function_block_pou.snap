@@ -1,0 +1,32 @@
+---
+source: src/codegen/tests/initialization_test/pou_initializers.rs
+assertion_line: 68
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { %FB_interface }
+%FB_interface = type { i16, i16, i8, i8, float, float }
+
+@main_instance = global %main_interface { %FB_interface { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
+@FB__init = unnamed_addr constant %FB_interface { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
+
+define void @FB(%FB_interface* %0) {
+entry:
+  %x = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 0
+  %xx = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 2
+  %yy = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 3
+  %z = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 4
+  %zz = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 5
+  ret void
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %fb = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  ret void
+}
+

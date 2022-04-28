@@ -475,7 +475,7 @@ fn parse_literal_number_with_modifier(
     let location = lexer.location();
     let token = lexer.slice_and_advance();
     let number_str = token.split('#').last().expect("token with '#'");
-    let number_str = number_str.replace("_", "");
+    let number_str = number_str.replace('_', "");
 
     // again, the parsed number can be safely unwrapped.
     let value = i128::from_str_radix(number_str.as_str(), radix).expect("valid i128");
@@ -526,7 +526,7 @@ fn parse_literal_number(
     }
 
     // parsed number value can be safely unwrapped
-    let result = result.replace("_", "");
+    let result = result.replace('_', "");
 
     let value = result.parse::<i128>().expect("valid i128");
     let value = if is_negative { -value } else { value };
@@ -539,12 +539,12 @@ fn parse_literal_number(
 }
 
 /// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
-fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     //correct the location if we just parsed a minus before
     let location = lexer.location();
     let result = lexer.slice_and_advance();
     // parsed number value can be safely unwrapped
-    let result = result.replace("_", "");
+    let result = result.replace('_', "");
     if result.to_lowercase().contains('e') {
         Err(Diagnostic::unexpected_token_found(
             "Integer",

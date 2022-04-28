@@ -30,6 +30,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                     Variable {
@@ -39,6 +40,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                     Variable {
@@ -48,6 +50,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                 ),
@@ -68,20 +71,54 @@ fn simple_enum_type_can_be_parsed() {
         END_TYPE 
         "#,
     );
+    insta::assert_debug_snapshot!(result.types[0]);
+}
 
-    let ast_string = format!("{:#?}", &result.types[0]);
+#[test]
+fn simple_enum_with_numeric_type_can_be_parsed() {
+    let (result, ..) = parse(
+        r#"
+        TYPE SampleEnum : INT (red, yellow, green);
+        END_TYPE 
+        "#,
+    );
+    insta::assert_debug_snapshot!(result.types[0]);
+}
 
-    let epxtected_ast = &UserTypeDeclaration {
-        data_type: DataType::EnumType {
-            name: Some("SampleEnum".to_string()),
-            elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
-        },
-        initializer: None,
-        location: SourceRange::undefined(),
-        scope: None,
-    };
-    let expected_string = format!("{:#?}", epxtected_ast);
-    assert_eq!(ast_string, expected_string);
+#[test]
+fn simple_enum_with_one_element_numeric_type_can_be_parsed() {
+    let (result, ..) = parse(
+        r#"
+        TYPE SampleEnum : INT (red);
+        END_TYPE 
+        "#,
+    );
+    insta::assert_debug_snapshot!(result.types[0]);
+}
+
+#[test]
+fn typed_enum_with_initial_values_can_be_parsed() {
+    let (result, ..) = parse(
+        r#"
+        TYPE SampleEnum : INT (red := 1, yellow := 2, green := 4);
+        END_TYPE 
+        "#,
+    );
+    insta::assert_debug_snapshot!(result.types[0]);
+}
+
+#[test]
+fn typed_inline_enum_with_initial_values_can_be_parsed() {
+    let (result, ..) = parse(
+        r#"
+        PROGRAM prg
+        VAR
+            x : INT (red := 1, yellow := 2, green := 4);
+        END_VAR
+        END_PROGRAM 
+        "#,
+    );
+    insta::assert_debug_snapshot!(result.units[0]);
 }
 
 #[test]
@@ -272,6 +309,7 @@ fn subrangetype_can_be_parsed() {
             scope: None,
         },
         initializer: None,
+        address: None,
         location: (0..0).into(),
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
@@ -412,6 +450,7 @@ fn global_pointer_declaration() {
             scope: None,
         },
         initializer: None,
+        address: None,
         location: (0..0).into(),
     };
     assert_eq!(
@@ -433,6 +472,7 @@ fn global_pointer_declaration() {
             scope: None,
         },
         initializer: None,
+        address: None,
         location: (0..0).into(),
     };
     assert_eq!(

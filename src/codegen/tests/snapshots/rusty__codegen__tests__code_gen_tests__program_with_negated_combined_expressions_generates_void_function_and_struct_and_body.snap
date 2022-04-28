@@ -1,12 +1,13 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 698
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i32, i1 }
+%prg_interface = type { i32, i8 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
@@ -14,33 +15,29 @@ define void @prg(%prg_interface* %0) {
 entry:
   %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %load_y = load i1, i1* %y, align 1
-  %1 = zext i1 %load_y to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %3, label %5
+  %load_y = load i8, i8* %y, align 1
+  %1 = icmp ne i8 %load_y, 0
+  br i1 %1, label %2, label %3
 
-3:                                                ; preds = %entry
+2:                                                ; preds = %entry
   %load_z = load i32, i32* %z, align 4
   %tmpVar = icmp sge i32 %load_z, 5
-  %4 = zext i1 %tmpVar to i32
-  br label %5
+  br label %3
 
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
+3:                                                ; preds = %2, %entry
+  %4 = phi i1 [ %1, %entry ], [ %tmpVar, %2 ]
   %load_z1 = load i32, i32* %z, align 4
   %tmpVar2 = icmp sle i32 %load_z1, 6
   %tmpVar3 = xor i1 %tmpVar2, true
-  %7 = zext i1 %tmpVar3 to i32
-  %8 = icmp ne i32 %7, 0
-  br i1 %8, label %11, label %9
+  br i1 %tmpVar3, label %7, label %5
 
-9:                                                ; preds = %5
-  %load_y4 = load i1, i1* %y, align 1
-  %10 = zext i1 %load_y4 to i32
-  br label %11
+5:                                                ; preds = %3
+  %load_y4 = load i8, i8* %y, align 1
+  %6 = icmp ne i8 %load_y4, 0
+  br label %7
 
-11:                                               ; preds = %9, %5
-  %12 = phi i32 [ %7, %5 ], [ %10, %9 ]
+7:                                                ; preds = %5, %3
+  %8 = phi i1 [ %tmpVar3, %3 ], [ %6, %5 ]
   ret void
 }
 
