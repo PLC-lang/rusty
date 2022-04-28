@@ -2990,7 +2990,7 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
 }
 
 #[test]
-fn adress_of_is_annotated_correctly() {
+fn address_of_is_annotated_correctly() {
     //GIVEN a NULL assignment to a pointer
     let (unit, mut index) = index(
         r#"

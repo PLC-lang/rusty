@@ -14,7 +14,7 @@ pub mod const_evaluator;
 use crate::{
     ast::{
         self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
-        Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+        LinkageType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
@@ -1316,8 +1316,11 @@ impl<'i> TypeAnnotator<'i> {
             .index
             .get_effective_type_by_name(implementation_name)
             .get_type_information();
-        if let DataTypeInformation::Struct { generics, .. } = operator_type {
-            if !generics.is_empty() {
+        if let DataTypeInformation::Struct {
+            generics, linkage, ..
+        } = operator_type
+        {
+            if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
                 //Annotate the statement with the new function call
                 if let Some(StatementAnnotation::Function {
@@ -1368,6 +1371,7 @@ impl<'i> TypeAnnotator<'i> {
             member_names,
             source,
             varargs,
+            linkage,
             ..
         } = &generic_type.get_type_information()
         {
@@ -1378,6 +1382,7 @@ impl<'i> TypeAnnotator<'i> {
                 varargs: varargs.clone(),
                 source: source.clone(),
                 generics: vec![],
+                linkage: *linkage,
             };
             for member in member_names {
                 if let Some(generic_entry) = self.index.find_member(generic_type.get_name(), member)

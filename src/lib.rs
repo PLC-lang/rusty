@@ -24,6 +24,7 @@ use std::str::FromStr;
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
+use inkwell::passes::PassBuilderOptions;
 use std::path::Path;
 
 use ast::{LinkageType, PouType, SourceRange};
@@ -45,6 +46,7 @@ use crate::ast::CompilationUnit;
 use crate::diagnostics::Diagnostician;
 use crate::resolver::{AnnotationMapImpl, TypeAnnotator};
 mod ast;
+mod builtins;
 pub mod cli;
 mod codegen;
 pub mod diagnostics;
@@ -97,6 +99,7 @@ pub struct CompileOptions {
     pub format: FormatOption,
     pub output: String,
     pub target: Option<String>,
+    pub optimization: OptimizationLevel,
 }
 
 pub struct LinkOptions {
@@ -108,6 +111,42 @@ pub struct LinkOptions {
 struct ConfigurationOptions {
     format: ConfigFormat,
     output: String,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum)]
+pub enum ErrorFormat {
+    Rich,
+    Clang,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+pub enum OptimizationLevel {
+    None,
+    Less,
+    Default,
+    Aggressive,
+}
+
+impl From<OptimizationLevel> for inkwell::OptimizationLevel {
+    fn from(val: OptimizationLevel) -> Self {
+        match val {
+            OptimizationLevel::None => inkwell::OptimizationLevel::None,
+            OptimizationLevel::Less => inkwell::OptimizationLevel::Less,
+            OptimizationLevel::Default => inkwell::OptimizationLevel::Default,
+            OptimizationLevel::Aggressive => inkwell::OptimizationLevel::Aggressive,
+        }
+    }
+}
+
+impl OptimizationLevel {
+    fn opt_params(&self) -> &str {
+        match self {
+            OptimizationLevel::None => "default<O0>",
+            OptimizationLevel::Less => "default<O1>",
+            OptimizationLevel::Default => "default<O2>",
+            OptimizationLevel::Aggressive => "default<O3>",
+        }
+    }
 }
 
 /// A struct representing the result of a compilation
@@ -239,6 +278,7 @@ fn persist_to_obj(
     output: &str,
     reloc: RelocMode,
     triple: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
@@ -255,8 +295,7 @@ fn persist_to_obj(
             //TODO : Add cpu features as optionals
             "generic", //TargetMachine::get_host_cpu_name().to_string().as_str(),
             "",        //TargetMachine::get_host_cpu_features().to_string().as_str(),
-            //TODO Optimisation as parameter
-            inkwell::OptimizationLevel::Default,
+            optimization.into(),
             reloc,
             CodeModel::Default,
         )
@@ -264,9 +303,16 @@ fn persist_to_obj(
             Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
         });
 
+    ////Run the passes
     machine.and_then(|it| {
-        it.write_to_file(&codegen.module, FileType::Object, Path::new(output))
+        codegen
+            .module
+            .run_passes(optimization.opt_params(), &it, PassBuilderOptions::create())
             .map_err(|it| Diagnostic::llvm_error(output, &it))
+            .and_then(|_| {
+                it.write_to_file(&codegen.module, FileType::Object, Path::new(output))
+                    .map_err(|it| Diagnostic::llvm_error(output, &it))
+            })
     })
 }
 
@@ -282,8 +328,9 @@ pub fn persist_as_static_obj(
     codegen: CodeGen,
     output: &str,
     target: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
-    persist_to_obj(codegen, output, RelocMode::Default, target)
+    persist_to_obj(codegen, output, RelocMode::Default, target, optimization)
 }
 
 /// Persists a given LLVM module to a shared postiion indepedent object and saves the output.
@@ -298,8 +345,9 @@ pub fn persist_to_shared_pic_object(
     codegen: CodeGen,
     output: &str,
     target: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
-    persist_to_obj(codegen, output, RelocMode::PIC, target)
+    persist_to_obj(codegen, output, RelocMode::PIC, target, optimization)
 }
 
 /// Persists the given LLVM module to a dynamic non PIC object and saves the output.
@@ -313,8 +361,15 @@ pub fn persist_to_shared_object(
     codegen: CodeGen,
     output: &str,
     target: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
-    persist_to_obj(codegen, output, RelocMode::DynamicNoPic, target)
+    persist_to_obj(
+        codegen,
+        output,
+        RelocMode::DynamicNoPic,
+        target,
+        optimization,
+    )
 }
 
 ///
@@ -427,6 +482,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     for unit in annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
+
     Ok((full_index, code_generator))
 }
 
@@ -439,7 +495,12 @@ fn parse_and_index<T: SourceContainer>(
     linkage: LinkageType,
 ) -> Result<(Index, Units), Diagnostic> {
     let mut index = Index::default();
+
     let mut units = Vec::new();
+
+    //parse the builtins into the index
+    let builtins = builtins::parse_built_ins(id_provider.clone());
+    index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
     for container in source {
         let location: String = container.get_location().into();
@@ -520,6 +581,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         output,
         target: parameters.target,
         format: out_format,
+        optimization: parameters.optimization,
     };
 
     let link_options = if !parameters.skip_linking {
@@ -538,6 +600,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         includes,
         &compile_options,
         parameters.encoding,
+        &parameters.error_format,
         &target,
     )?;
 
@@ -579,6 +642,7 @@ pub fn build(
     includes: Vec<FilePath>,
     compile_options: &CompileOptions,
     encoding: Option<&'static Encoding>,
+    error_format: &ErrorFormat,
     target: &TargetTriple,
 ) -> Result<CompileResult, Diagnostic> {
     let mut objects = vec![];
@@ -592,13 +656,17 @@ pub fn build(
     });
 
     let context = Context::create();
-    let diagnostician = Diagnostician::default();
+    let diagnostician = match error_format {
+        ErrorFormat::Rich => Diagnostician::default(),
+        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
+    };
     let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
     objects.push(persist(
         codegen,
         &compile_options.output,
         compile_options.format,
         target,
+        compile_options.optimization,
     )?);
 
     Ok(CompileResult { index, objects })
@@ -609,13 +677,14 @@ pub fn persist(
     output: &str,
     out_format: FormatOption,
     target: &TargetTriple,
+    optimization: OptimizationLevel,
 ) -> Result<FilePath, Diagnostic> {
     match out_format {
         FormatOption::Static | FormatOption::Relocatable => {
-            persist_as_static_obj(input, output, target)
+            persist_as_static_obj(input, output, target, optimization)
         }
-        FormatOption::Shared => persist_to_shared_object(input, output, target),
-        FormatOption::PIC => persist_to_shared_pic_object(input, output, target),
+        FormatOption::Shared => persist_to_shared_object(input, output, target, optimization),
+        FormatOption::PIC => persist_to_shared_pic_object(input, output, target, optimization),
         FormatOption::Bitcode => persist_to_bitcode(input, output),
         FormatOption::IR => persist_to_ir(input, output),
     }?;

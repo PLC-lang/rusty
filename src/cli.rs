@@ -3,7 +3,7 @@ use clap::{ArgGroup, Parser};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
-use crate::{ConfigFormat, FormatOption};
+use crate::{ConfigFormat, ErrorFormat, FormatOption};
 
 // => Set the default output format here:
 const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
@@ -122,6 +122,25 @@ pub struct CompileParameters {
     parse(try_from_str = validate_config)
     ) ]
     pub hardware_config: Option<String>,
+
+    #[clap(
+        name = "optimization",
+        long,
+        short = 'O',
+        help = "Optimization level",
+        arg_enum,
+        default_value = "default"
+    )]
+    pub optimization: crate::OptimizationLevel,
+
+    #[clap(
+        name = "error-format",
+        long,
+        help = "Set format for error reporting",
+        arg_enum,
+        default_value = "rich"
+    )]
+    pub error_format: ErrorFormat,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -210,16 +229,16 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use super::{CompileParameters, ParameterError};
-    use crate::{ConfigFormat, FormatOption};
+    use super::CompileParameters;
+    use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
     use clap::ErrorKind;
     use pretty_assertions::assert_eq;
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
         let params = CompileParameters::parse(args.clone());
         match params {
-            Err(ParameterError { kind, .. }) => {
-                assert_eq!(kind, expected_error_kind);
+            Err(e) => {
+                assert_eq!(e.kind(), expected_error_kind);
             }
             Ok(p) => panic!(
                 "expected error, but found none. arguments: {:?}. params: {:?}",
@@ -327,6 +346,44 @@ mod cli_tests {
                 .unwrap();
 
         assert_eq!(parameters.target, Some("x86_64-linux-gnu".to_string()));
+    }
+
+    #[test]
+    fn test_optimization_levels() {
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "-Onone")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::None);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "none"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::None);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "-Oless")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Less);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "less"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Less);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "-Odefault")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "default"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Default);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "-Oaggressive")).unwrap();
+
+        assert_eq!(parameters.optimization, OptimizationLevel::Aggressive);
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "aggressive"))
+                .unwrap();
+        assert_eq!(parameters.optimization, OptimizationLevel::Aggressive);
     }
 
     #[test]
@@ -472,7 +529,7 @@ mod cli_tests {
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
             Ok(_) => panic!("expected version output, but found OK"),
-            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::DisplayVersion),
+            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayVersion),
         }
     }
 
@@ -480,7 +537,7 @@ mod cli_tests {
     fn cli_supports_help() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
-            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::DisplayHelp),
+            Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
         }
     }
 
@@ -532,6 +589,26 @@ mod cli_tests {
         expect_argument_error(
             vec_of_strings!("foo", "--hardware-conf=conf.xml"),
             ErrorKind::ValueValidation,
+        );
+    }
+
+    #[test]
+    fn error_format_default_set() {
+        // make sure the default error format is set
+        let params = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
+        assert_eq!(params.error_format, ErrorFormat::Rich);
+    }
+
+    #[test]
+    fn error_format_set() {
+        // set clang as error format
+        let params =
+            CompileParameters::parse(vec_of_strings!("input.st", "--error-format=clang")).unwrap();
+        assert_eq!(params.error_format, ErrorFormat::Clang);
+        // set invalid error format
+        expect_argument_error(
+            vec_of_strings!("input.st", "--error-format=none"),
+            ErrorKind::InvalidValue,
         );
     }
 }

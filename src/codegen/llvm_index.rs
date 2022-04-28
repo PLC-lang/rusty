@@ -110,11 +110,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.global_values
             .get(&name.to_lowercase())
             .copied()
-            .or_else(|| {
-                self.parent_index
-                    .map(|it| it.find_global_value(name))
-                    .flatten()
-            })
+            .or_else(|| self.parent_index.and_then(|it| it.find_global_value(name)))
     }
 
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
@@ -123,8 +119,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_type(type_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_type(type_name))
             })
             .or_else(|| self.find_associated_pou_type(type_name))
     }
@@ -135,8 +130,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_pou_type(type_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_pou_type(type_name))
             })
     }
 
@@ -159,8 +153,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_initial_value(type_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_initial_value(type_name))
             })
     }
 
@@ -198,8 +191,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_implementation(callable_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_implementation(callable_name))
             })
     }
 
@@ -212,8 +204,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_associated_variable_value(qualified_name))
-                    .flatten()
+                    .and_then(|it| it.find_associated_variable_value(qualified_name))
             })
     }
 
@@ -227,8 +218,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .map(|it| it.find_loaded_associated_variable_value(qualified_name))
-                    .flatten()
+                    .and_then(|it| it.find_loaded_associated_variable_value(qualified_name))
             });
 
         //If nothing got associated, see if we have a global we could reuse
