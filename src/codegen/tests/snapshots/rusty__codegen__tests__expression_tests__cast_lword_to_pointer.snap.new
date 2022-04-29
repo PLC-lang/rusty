@@ -2,7 +2,6 @@
 source: src/codegen/tests/expression_tests.rs
 assertion_line: 302
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"

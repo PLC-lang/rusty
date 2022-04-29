@@ -2,7 +2,6 @@
 source: src/codegen/tests/code_gen_tests.rs
 assertion_line: 1319
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -20,10 +19,10 @@ entry:
   ret i32 %bar_ret
 }
 
-define i32 @foo(i32* %0) {
+define i32 @foo(i32 %0) {
 entry:
-  %in = alloca i32*, align 8
-  store i32* %0, i32** %in, align 8
+  %in = alloca i32, align 4
+  store i32 %0, i32* %in, align 4
   %foo = alloca i32, align 4
   store i32 0, i32* %foo, align 4
   store i32 1, i32* %foo, align 4
@@ -35,9 +34,7 @@ define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %call = call i32 @bar()
-  %1 = alloca i32, align 4
-  store i32 %call, i32* %1, align 4
-  %call1 = call i32 @foo(i32* %1)
+  %call1 = call i32 @foo(i32 %call)
   store i32 %call1, i32* %x, align 4
   ret void
 }

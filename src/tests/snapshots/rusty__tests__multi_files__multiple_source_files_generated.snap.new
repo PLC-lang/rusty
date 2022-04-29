@@ -2,7 +2,6 @@
 source: src/tests/multi_files.rs
 assertion_line: 37
 expression: res
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"

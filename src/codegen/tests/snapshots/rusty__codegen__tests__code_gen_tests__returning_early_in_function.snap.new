@@ -2,19 +2,17 @@
 source: src/codegen/tests/code_gen_tests.rs
 assertion_line: 2456
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @smaller_than_ten(i8* %0) {
+define i16 @smaller_than_ten(i8 %0) {
 entry:
-  %n = alloca i8*, align 8
-  store i8* %0, i8** %n, align 8
+  %n = alloca i8, align 1
+  store i8 %0, i8* %n, align 1
   %smaller_than_ten = alloca i16, align 2
   store i16 0, i16* %smaller_than_ten, align 2
-  %deref = load i8*, i8** %n, align 8
-  %load_n = load i8, i8* %deref, align 1
+  %load_n = load i8, i8* %n, align 1
   %1 = sext i8 %load_n to i32
   %tmpVar = icmp slt i32 %1, 10
   br i1 %tmpVar, label %condition_body, label %continue

@@ -2,7 +2,6 @@
 source: src/codegen/tests/directaccess_test.rs
 assertion_line: 64
 expression: prog
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"

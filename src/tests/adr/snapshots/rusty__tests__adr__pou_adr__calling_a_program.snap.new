@@ -2,7 +2,6 @@
 source: src/tests/adr/pou_adr.rs
 assertion_line: 85
 expression: codegen(calling_prg.as_str())
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -22,6 +21,8 @@ entry:
   store i16 1, i16* getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 0), align 2
   store i16* %y, i16** getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 1), align 8
   call void @main_prg(%main_prg_interface* @main_prg_instance)
+  %o = load i16, i16* getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 2), align 2
+  store i16 %o, i16* %x, align 2
   %foo_ret = load i16, i16* %foo, align 2
   ret i16 %foo_ret
 }

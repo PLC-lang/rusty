@@ -2,7 +2,6 @@
 source: src/codegen/tests/code_gen_tests.rs
 assertion_line: 1413
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -11,10 +10,10 @@ source_filename = "main"
 
 @prg_instance = global %prg_interface zeroinitializer
 
-define i32 @foo(i32* %0) {
+define i32 @foo(i32 %0) {
 entry:
-  %in1 = alloca i32*, align 8
-  store i32* %0, i32** %in1, align 8
+  %in1 = alloca i32, align 4
+  store i32 %0, i32* %in1, align 4
   %x = alloca i16, align 2
   %y = alloca i16, align 2
   %z = alloca i16, align 2
@@ -30,9 +29,7 @@ entry:
 
 define void @prg(%prg_interface* %0) {
 entry:
-  %1 = alloca i32, align 4
-  store i32 5, i32* %1, align 4
-  %call = call i32 @foo(i32* %1)
+  %call = call i32 @foo(i32 5)
   ret void
 }
 

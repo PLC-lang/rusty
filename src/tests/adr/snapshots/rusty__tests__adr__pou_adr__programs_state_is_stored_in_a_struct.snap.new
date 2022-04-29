@@ -1,8 +1,7 @@
 ---
 source: src/tests/adr/pou_adr.rs
-assertion_line: 39
+assertion_line: 37
 expression: "index.get_pou_types().get(\"main_prg\")"
-
 ---
 Some(
     DataType {
@@ -21,7 +20,6 @@ Some(
             source: Pou(
                 Program,
             ),
-            generics: [],
         },
         nature: Any,
     },

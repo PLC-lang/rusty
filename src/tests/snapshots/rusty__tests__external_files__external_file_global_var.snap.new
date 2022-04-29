@@ -2,7 +2,6 @@
 source: src/tests/external_files.rs
 assertion_line: 65
 expression: res
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
