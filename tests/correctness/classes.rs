@@ -34,7 +34,7 @@ fn class_reference_in_pou() {
             END_METHOD
         END_CLASS
 
-        PRORGRAM main 
+        PROGRAM main 
         VAR
           cl : MyClass;
           x : INT := 0;
@@ -44,7 +44,6 @@ fn class_reference_in_pou() {
         x := x + cl.x;
         x := x + cl.testMethod(x);
         x := cl.testMethod(myMethodArg:= x);
-        main := x;
         END_PROGRAM
         ";
 

@@ -10,7 +10,7 @@ use std::convert::TryInto;
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AstAnnotations;
-use crate::typesystem::{StringEncoding, StructSource, Dimension};
+use crate::typesystem::{Dimension, StringEncoding, StructSource};
 use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{

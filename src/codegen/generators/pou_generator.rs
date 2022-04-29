@@ -423,7 +423,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         for m in members.iter() {
             let parameter_name = m.get_name();
 
-            let (name, variable) = if m.is_temp() {
+            let (name, variable) = if m.is_temp() || m.is_return() {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (
                     parameter_name,

@@ -13,8 +13,8 @@ use inkwell::{
     builder::Builder,
     types::BasicTypeEnum,
     values::{
-        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue,
-        PointerValue, StructValue, VectorValue, GlobalValue,
+        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, GlobalValue,
+        IntValue, PointerValue, StructValue, VectorValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
@@ -1606,8 +1606,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
                         match encoding {
                             StringEncoding::Utf8 => {
-                                let literal = self.llvm_index.find_utf08_literal_string(value).map(GlobalValue::as_basic_value_enum);
-                                if let Some((literal_value,_)) = literal.zip(self.function_context) {
+                                let literal = self
+                                    .llvm_index
+                                    .find_utf08_literal_string(value)
+                                    .map(GlobalValue::as_basic_value_enum);
+                                if let Some((literal_value, _)) = literal.zip(self.function_context)
+                                {
                                     //global constant string
                                     //TODO should a string-literal be treated as an auto-deref String* ?
                                     Ok(
