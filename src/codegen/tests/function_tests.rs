@@ -25,7 +25,7 @@ fn member_variables_in_body() {
       store i16 %0, i16* %i, align 2
       %io = alloca i8*, align 8
       store i8* %1, i8** %io, align 8
-      %o = alloca i64, align 8
+      %o = alloca i64, align 8  <<-- this needs to be a pointer!
       store i64 %2, i64* %o, align 4
       %v = alloca i16, align 2
       %vt = alloca i16, align 2

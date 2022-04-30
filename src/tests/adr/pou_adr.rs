@@ -34,7 +34,11 @@ fn programs_state_is_stored_in_a_struct() {
     // process pou and types
     annotate(&pr, &mut index);
 
-    insta::assert_debug_snapshot!(index.get_pou_types().get("main_prg"));
+    let pou_struct = index
+        .find_pou("main_prg")
+        .and_then(|pou| pou.find_instance_struct_type(&index));
+
+    insta::assert_debug_snapshot!(pou_struct);
 }
 
 /// Code-Generating a program does ...
@@ -130,7 +134,43 @@ fn calling_a_function_block() {
         {DEFAULT_FB}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @"");
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %foo_interface = type { i16, i16, %main_fb_interface }
+    %main_fb_interface = type { i16, i16*, i16, i16 }
+
+    @foo_instance = global %foo_interface { i16 0, i16 0, %main_fb_interface { i16 6, i16* null, i16 0, i16 1 } }
+    @main_fb__init = unnamed_addr constant %main_fb_interface { i16 6, i16* null, i16 0, i16 1 }
+
+    define void @foo(%foo_interface* %0) {
+    entry:
+      %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+      %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+      %fb = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 2
+      %1 = getelementptr inbounds %main_fb_interface, %main_fb_interface* %fb, i32 0, i32 0
+      store i16 1, i16* %1, align 2
+      %2 = getelementptr inbounds %main_fb_interface, %main_fb_interface* %fb, i32 0, i32 1
+      store i16* %y, i16** %2, align 8
+      call void @main_fb(%main_fb_interface* %fb)
+      %3 = getelementptr inbounds %main_fb_interface, %main_fb_interface* %fb, i32 0, i32 2
+      %o = load i16, i16* %3, align 2
+      store i16 %o, i16* %x, align 2
+      ret void
+    }
+
+    define void @main_fb(%main_fb_interface* %0) {
+    entry:
+      %i = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 3
+      %vt = alloca i16, align 2
+      store i16 2, i16* %vt, align 2
+      ret void
+    }
+    "###);
 }
 
 /// # FUNCTION
