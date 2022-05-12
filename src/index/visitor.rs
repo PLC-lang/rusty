@@ -196,7 +196,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 }
 
 fn get_declaration_type_for(block: &VariableBlock) -> ArgumentType {
-    if matches!(block.variable_block_type, VariableBlockType::InOut) {
+    if matches!(block.variable_block_type, VariableBlockType::InOut | VariableBlockType::Output) {
         ArgumentType::ByRef(get_variable_type_from_block(block))
     } else {
         ArgumentType::ByVal(get_variable_type_from_block(block))

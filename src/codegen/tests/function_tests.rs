@@ -1,6 +1,28 @@
 use crate::test_utils::tests::codegen;
 
 #[test]
+fn var_output_in_function_call() {
+    let result = codegen(
+        r#"FUNCTION func : DINT
+            VAR_OUTPUT  o   : INT;      END_VAR
+            o := 6;
+            func := 4;
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                x : INT := 4;
+            END_VAR
+
+            func(o => x);
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn member_variables_in_body() {
     let result = codegen(
         r#"FUNCTION func : DINT
@@ -15,47 +37,10 @@ fn member_variables_in_body() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
-
-    define i32 @func(i16 %0, i8* %1, i64 %2) {
-    entry:
-      %i = alloca i16, align 2
-      store i16 %0, i16* %i, align 2
-      %io = alloca i8*, align 8
-      store i8* %1, i8** %io, align 8
-      %o = alloca i64, align 8  <<-- this needs to be a pointer!
-      store i64 %2, i64* %o, align 4
-      %v = alloca i16, align 2
-      %vt = alloca i16, align 2
-      %func = alloca i32, align 4
-      store i16 1, i16* %v, align 2
-      store i16 2, i16* %vt, align 2
-      store i32 0, i32* %func, align 4
-      %load_i = load i16, i16* %i, align 2
-      %3 = sext i16 %load_i to i32
-      %deref = load i8*, i8** %io, align 8
-      %load_io = load i8, i8* %deref, align 1
-      %4 = sext i8 %load_io to i32
-      %tmpVar = mul i32 %3, %4
-      %5 = sext i32 %tmpVar to i64
-      %load_o = load i64, i64* %o, align 4
-      %tmpVar1 = sub i64 %5, %load_o
-      %load_v = load i16, i16* %v, align 2
-      %6 = sext i16 %load_v to i32
-      %load_vt = load i16, i16* %vt, align 2
-      %7 = sext i16 %load_vt to i32
-      %tmpVar2 = mul i32 %6, %7
-      %8 = sext i32 %tmpVar2 to i64
-      %tmpVar3 = add i64 %tmpVar1, %8
-      %9 = trunc i64 %tmpVar3 to i32
-      store i32 %9, i32* %func, align 4
-      %func_ret = load i32, i32* %func, align 4
-      ret i32 %func_ret
-    }
-    "###);
+    insta::assert_snapshot!(result);
 }
+
+
 
 #[test]
 fn simple_call() {

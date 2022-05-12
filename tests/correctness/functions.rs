@@ -480,6 +480,42 @@ fn var_output_assignment() {
 }
 
 #[test]
+fn var_output_assignment_in_functions() {
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		FUNCTION foo : INT
+            VAR_INPUT
+                input1 : DINT;
+                input2 : DINT;
+            END_VAR
+            VAR_OUTPUT
+            	output1 : DINT;
+				output2 : DINT;
+            END_VAR
+			output1 := input1 + 2; 
+			output2 := input2 + 3;
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+            foo(7, 8, output1 => var1, output2 => var2);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!((7+2, 8+3), (interface.var1, interface.var2));
+}
+
+#[test]
 fn optional_output_assignment() {
     struct MainType {
         var1: i32,

@@ -535,8 +535,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             // the parameters to be passed to the function call
             let mut arguments = Vec::new();
             for (idx, param_statement) in call_params.into_iter().enumerate() {
-                let (location, param_statement) =
-                    if let AstStatement::Assignment { left, right, .. } = param_statement {
+                let (location, param_statement) = match param_statement {
+                    AstStatement::Assignment { left, right, .. }
+                    | AstStatement::OutputAssignment { left, right, .. } => {
                         //explicit
                         let loc = if let AstStatement::Reference {
                             name: left_name, ..
@@ -553,10 +554,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         }?;
 
                         (loc, right.as_ref())
-                    } else {
+                    }
+                    _ => {
                         //implicit
                         (idx, param_statement)
-                    };
+                    }
+                };
 
                 let v = declared_parameters[location];
 

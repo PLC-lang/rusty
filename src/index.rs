@@ -971,11 +971,7 @@ impl Index {
             .get(&container_name.to_lowercase())
             .and_then(|map| {
                 map.values()
-                    .filter(|item| {
-                        item.get_variable_type() == VariableType::Input
-                            || item.get_variable_type() == VariableType::InOut
-                            || item.get_variable_type() == VariableType::Output
-                    })
+                    .filter(|item| item.is_parameter())
                     .find(|item| item.location_in_parent == index)
             })
             .is_some()
