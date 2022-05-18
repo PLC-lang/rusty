@@ -23,4 +23,3 @@ vscode:
     - llvm-vs-code-extensions.vscode-clangd
     - vadimcn.vscode-lldb
     - matklad.rust-analyzer
-workspaceLocation: "."
