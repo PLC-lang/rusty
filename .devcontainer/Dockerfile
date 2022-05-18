@@ -43,9 +43,9 @@ RUN cargo install mdbook grcov
 
 RUN cargo install cargo-insta cargo-watch 
 
-# # Give all users access to cargo and rust home
-# RUN chmod -R a+rw $CARGO_HOME \
-#     && chmod -R a+rw $RUSTUP_HOME
+# Give all users access to cargo and rust home
+RUN chmod -R a+rw $CARGO_HOME \
+    && chmod -R a+rw $RUSTUP_HOME
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
