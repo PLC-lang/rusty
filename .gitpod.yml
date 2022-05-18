@@ -23,3 +23,5 @@ vscode:
     - llvm-vs-code-extensions.vscode-clangd
     - vadimcn.vscode-lldb
     - matklad.rust-analyzer
+    - hbenl.vscode-test-explorer
+    - Swellaby.vscode-rust-test-adapter
