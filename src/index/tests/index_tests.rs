@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
+use crate::index::{PouIndexEntry, VariableIndexEntry};
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
@@ -43,7 +44,7 @@ fn index_not_case_sensitive() {
     assert_eq!("INT", entry.data_type_name);
     let entry = index.find_effective_type("APROGRAM").unwrap();
     assert_eq!("aProgram", entry.name);
-    let entry = index.find_implementation("Foo").unwrap();
+    let entry = index.find_implementation_by_name("Foo").unwrap();
     assert_eq!("foo", entry.call_name);
     assert_eq!("foo", entry.type_name);
 }
@@ -78,9 +79,6 @@ fn program_is_indexed() {
     );
 
     index.find_effective_type("myProgram").unwrap();
-    let program_variable = index.find_global_variable("myProgram").unwrap();
-
-    assert_eq!("myProgram", program_variable.data_type_name);
 }
 
 #[test]
@@ -98,7 +96,7 @@ fn actions_are_indexed() {
     "#,
     );
 
-    let foo_impl = index.find_implementation("myProgram.foo").unwrap();
+    let foo_impl = index.find_implementation_by_name("myProgram.foo").unwrap();
     assert_eq!("myProgram.foo", foo_impl.call_name);
     assert_eq!("myProgram", foo_impl.type_name);
     let info = index
@@ -123,7 +121,7 @@ fn actions_are_indexed() {
         panic!("Wrong variant : {:#?}", info);
     }
 
-    let bar = index.find_implementation("myProgram.bar").unwrap();
+    let bar = index.find_implementation_by_name("myProgram.bar").unwrap();
     assert_eq!("myProgram.bar", bar.call_name);
     assert_eq!("myProgram", bar.type_name);
 
@@ -162,7 +160,9 @@ fn fb_methods_are_indexed() {
     "#,
     );
 
-    let foo_impl = index.find_implementation("myFuncBlock.foo").unwrap();
+    let foo_impl = index
+        .find_implementation_by_name("myFuncBlock.foo")
+        .unwrap();
     assert_eq!("myFuncBlock.foo", foo_impl.call_name);
     assert_eq!("myFuncBlock.foo", foo_impl.type_name);
     let info = index
@@ -192,7 +192,7 @@ fn class_methods_are_indexed() {
     "#,
     );
 
-    let foo_impl = index.find_implementation("myClass.foo").unwrap();
+    let foo_impl = index.find_implementation_by_name("myClass.foo").unwrap();
     assert_eq!("myClass.foo", foo_impl.call_name);
     assert_eq!("myClass.foo", foo_impl.type_name);
     let info = index
@@ -270,12 +270,20 @@ fn pous_are_indexed() {
         r#"
         PROGRAM myProgram
         END_PROGRAM
+        
         FUNCTION myFunction : INT
         END_FUNCTION
+        
         FUNCTION_BLOCK myFunctionBlock : INT
         END_FUNCTION_BLOCK
+        
         CLASS myClass
         END_CLASS
+
+        ACTIONS myProgram
+            ACTION act
+            END_ACTION
+        END_ACTIONS
     "#,
     );
 
@@ -283,6 +291,7 @@ fn pous_are_indexed() {
     index.find_effective_type("myProgram").unwrap();
     index.find_effective_type("myFunctionBlock").unwrap();
     index.find_effective_type("myClass").unwrap();
+    index.find_effective_type("myProgram.act").unwrap();
 }
 
 #[test]
@@ -300,16 +309,16 @@ fn implementations_are_indexed() {
         "#,
     );
 
-    let my_program = index.find_implementation("myProgram").unwrap();
+    let my_program = index.find_implementation_by_name("myProgram").unwrap();
     assert_eq!(my_program.call_name, "myProgram");
     assert_eq!(my_program.type_name, "myProgram");
-    let prog2 = index.find_implementation("prog2").unwrap();
+    let prog2 = index.find_implementation_by_name("prog2").unwrap();
     assert_eq!(prog2.call_name, "prog2");
     assert_eq!(prog2.type_name, "prog2");
-    let fb1 = index.find_implementation("fb1").unwrap();
+    let fb1 = index.find_implementation_by_name("fb1").unwrap();
     assert_eq!(fb1.call_name, "fb1");
     assert_eq!(fb1.type_name, "fb1");
-    let foo_impl = index.find_implementation("foo").unwrap();
+    let foo_impl = index.find_implementation_by_name("foo").unwrap();
     assert_eq!(foo_impl.call_name, "foo");
     assert_eq!(foo_impl.type_name, "foo");
 }
@@ -1864,5 +1873,96 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             inner_type_name: "INT".to_string(),
             auto_deref: true,
         }
+    );
+}
+
+#[test]
+fn a_program_pou_is_indexed() {
+    // GIVEN some pous
+    let src = r#"
+        PROGRAM myProgram
+        END_PROGRAM
+
+        FUNCTION myFunction<A: ANY_INT> : INT
+        END_FUNCTION
+
+        FUNCTION_BLOCK myFunctionBlock
+        END_FUNCTION_BLOCK
+
+        CLASS myClass
+        END_CLASS
+
+        ACTIONS myProgram
+            ACTION act
+            END_ACTION
+        END_ACTIONS
+    "#;
+
+    // WHEN the code is indexed
+    let (_, index) = index(src);
+
+    // THEN I expect an entry for the program
+    assert_eq!(
+        Some(&PouIndexEntry::Program {
+            name: "myProgram".into(),
+            instance_struct_name: "myProgram".into(),
+            linkage: LinkageType::Internal,
+            instance_variable: VariableIndexEntry {
+                name: "myProgram_instance".into(),
+                qualified_name: "myProgram".into(),
+                initial_value: None,
+                variable_type: VariableType::Global,
+                is_constant: false,
+                data_type_name: "myProgram".into(),
+                location_in_parent: 0,
+                linkage: LinkageType::Internal,
+                binding: None,
+                source_location: SourceRange::new(9..46)
+            }
+        }),
+        index.find_pou("myProgram"),
+    );
+
+    assert_eq!(
+        Some(&PouIndexEntry::Function {
+            name: "myFunction".into(),
+            linkage: LinkageType::Internal,
+            instance_struct_name: "myFunction".into(),
+            generics: [GenericBinding {
+                name: "A".into(),
+                nature: TypeNature::Int
+            }]
+            .to_vec(),
+            return_type: "INT".into()
+        }),
+        index.find_pou("myFunction"),
+    );
+
+    assert_eq!(
+        Some(&PouIndexEntry::FunctionBlock {
+            name: "myFunctionBlock".into(),
+            linkage: LinkageType::Internal,
+            instance_struct_name: "myFunctionBlock".into()
+        }),
+        index.find_pou("myFunctionBlock"),
+    );
+
+    assert_eq!(
+        Some(&PouIndexEntry::Class {
+            name: "myClass".into(),
+            linkage: LinkageType::Internal,
+            instance_struct_name: "myClass".into()
+        }),
+        index.find_pou("myClass"),
+    );
+
+    assert_eq!(
+        Some(&PouIndexEntry::Action {
+            name: "myProgram.act".into(),
+            parent_pou_name: "myProgram".into(),
+            linkage: LinkageType::Internal,
+            instance_struct_name: "myProgram".into()
+        }),
+        index.find_pou("myProgram.act"),
     );
 }

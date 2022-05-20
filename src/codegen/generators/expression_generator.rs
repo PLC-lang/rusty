@@ -419,7 +419,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             type_name: &str,
             context: &AstStatement,
         ) -> Result<&'i ImplementationIndexEntry, Diagnostic> {
-            index.find_implementation(type_name).ok_or_else(|| {
+            index.find_pou_implementation(type_name).ok_or_else(|| {
                 Diagnostic::codegen_error(
                     &format!("Cannot find callable type for {:?}", type_name),
                     context.get_location(),
@@ -433,7 +433,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             .annotations
             .get_call_name(operator)
             //find implementationIndexEntry for the name
-            .and_then(|it| self.index.find_implementation(it))
+            .and_then(|it| self.index.find_pou_implementation(it))
             //If that fails, try to find an implementation from the reference name
             .or_else(|| {
                 if let AstStatement::Reference { name, .. } = operator {
@@ -881,7 +881,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             match self.annotations.get(context) {
                 Some(StatementAnnotation::Function { qualified_name, .. })
                 | Some(StatementAnnotation::Program { qualified_name, .. }) => {
-                    if self.index.find_implementation(qualified_name).is_some() {
+                    if self.index.find_pou_implementation(qualified_name).is_some() {
                         return Ok(qualifier.to_owned());
                     }
                 }
@@ -905,7 +905,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 _ => {
                     let qualifier_name = self.get_type_hint_for(context)?.get_name();
                     let qualified_name = format!("{}.{}", qualifier_name, name);
-                    let implementation = self.index.find_implementation(&qualified_name);
+                    let implementation = self.index.find_pou_implementation(&qualified_name);
                     if implementation.is_some() {
                         return Ok(qualifier.to_owned());
                     }

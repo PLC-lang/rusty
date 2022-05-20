@@ -360,16 +360,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Option<&ImplementationIndexEntry> {
         match range_type {
             DataTypeInformation::Integer { signed, size, .. } if *signed && *size <= 32 => {
-                self.index.find_implementation(RANGE_CHECK_S_FN)
+                self.index.find_pou_implementation(RANGE_CHECK_S_FN)
             }
             DataTypeInformation::Integer { signed, size, .. } if *signed && *size > 32 => {
-                self.index.find_implementation(RANGE_CHECK_LS_FN)
+                self.index.find_pou_implementation(RANGE_CHECK_LS_FN)
             }
             DataTypeInformation::Integer { signed, size, .. } if !*signed && *size <= 32 => {
-                self.index.find_implementation(RANGE_CHECK_U_FN)
+                self.index.find_pou_implementation(RANGE_CHECK_U_FN)
             }
             DataTypeInformation::Integer { signed, size, .. } if !*signed && *size > 32 => {
-                self.index.find_implementation(RANGE_CHECK_LU_FN)
+                self.index.find_pou_implementation(RANGE_CHECK_LU_FN)
             }
             DataTypeInformation::Alias { name, .. }
             | DataTypeInformation::SubRange {

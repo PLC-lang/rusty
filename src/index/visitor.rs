@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{HardwareBinding, VariableIndexEntry, VariableType};
+use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::ast::{
     self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
     PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
@@ -102,7 +102,12 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     }
 
     //register a function's return type as a member variable
-    if let Some(return_type) = &pou.return_type {
+    let return_type_name = pou
+        .return_type
+        .as_ref()
+        .and_then(|it| it.get_name())
+        .unwrap_or(VOID_TYPE);
+    if pou.return_type.is_some() {
         member_names.push(pou.get_return_name().into());
         let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
         index.register_member_variable(
@@ -110,7 +115,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 container_name: &pou.name,
                 variable_name: pou.get_return_name(),
                 variable_linkage: VariableType::Return,
-                variable_type_name: return_type.get_name().unwrap_or_default(),
+                variable_type_name: return_type_name,
                 is_constant: false, //return variables are not constants
                 binding: None,
             },
@@ -128,27 +133,16 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             member_names,
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
-            generics: pou.generics.clone(),
-            linkage: pou.linkage,
         },
         nature: TypeNature::Any,
     };
-    index.register_pou_type(datatype);
 
-    match pou.pou_type {
+    match &pou.pou_type {
         PouType::Program => {
-            //Associate a global variable for the program
-            let instance_name = format!("{}_instance", &pou.name);
-            let variable = VariableIndexEntry::create_global(
-                &instance_name,
-                &pou.name,
-                &pou.name,
-                pou.location.clone(),
-            )
-            .set_linkage(pou.linkage);
-            index.register_global_variable(&pou.name, variable);
+            index.register_program(&pou.name, &pou.location, pou.linkage);
+            index.register_pou_type(datatype);
         }
-        PouType::FunctionBlock | PouType::Class => {
+        PouType::FunctionBlock => {
             let global_struct_name = crate::index::get_initializer_name(&pou.name);
             let variable = VariableIndexEntry::create_global(
                 &global_struct_name,
@@ -158,6 +152,42 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
+            index.register_pou(PouIndexEntry::create_function_block_entry(
+                &pou.name,
+                pou.linkage,
+            ));
+            index.register_pou_type(datatype);
+        }
+        PouType::Class => {
+            let global_struct_name = crate::index::get_initializer_name(&pou.name);
+            let variable = VariableIndexEntry::create_global(
+                &global_struct_name,
+                &global_struct_name,
+                &pou.name,
+                pou.location.clone(),
+            )
+            .set_constant(true);
+            index.register_global_initializer(&global_struct_name, variable);
+            index.register_pou(PouIndexEntry::create_class_entry(&pou.name, pou.linkage));
+            index.register_pou_type(datatype);
+        }
+        PouType::Function => {
+            index.register_pou(PouIndexEntry::create_function_entry(
+                &pou.name,
+                return_type_name,
+                &pou.generics,
+                pou.linkage,
+            ));
+            index.register_pou_type(datatype);
+        }
+        PouType::Method { owner_class } => {
+            index.register_pou(PouIndexEntry::create_method_entry(
+                &pou.name,
+                return_type_name,
+                owner_class,
+                pou.linkage,
+            ));
+            index.register_pou_type(datatype);
         }
         _ => {}
     };
@@ -182,6 +212,12 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
             },
             nature: TypeNature::Derived,
         };
+
+        index.register_pou(PouIndexEntry::create_action_entry(
+            implementation.name.as_str(),
+            implementation.type_name.as_str(),
+            ast::LinkageType::Internal, //TODO: where do I get correct linkage from?
+        ));
         index.register_pou_type(datatype);
     }
 }
@@ -265,8 +301,6 @@ fn visit_data_type(
                 member_names,
                 varargs: None,
                 source: StructSource::OriginalDeclaration,
-                generics: vec![],
-                linkage: ast::LinkageType::Internal,
             };
 
             let init = index
