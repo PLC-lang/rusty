@@ -115,13 +115,32 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">/// offers operations to generate global variables</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast::SourceRange</span>,
     <span class="ident">diagnostics</span>::{<span class="ident">Diagnostic</span>, <span class="ident">ErrNo</span>},
-    <span class="ident">index::Index</span>,
+    <span class="ident">index</span>::{<span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>},
     <span class="ident">resolver::AstAnnotations</span>,
 };
 <span class="kw">use</span> <span class="ident">inkwell</span>::{<span class="ident">module::Module</span>, <span class="ident">values::GlobalValue</span>};
@@ -142,14 +161,33 @@
     <span class="ident">types_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::default</span>();
-    <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_globals</span>();
-    <span class="kw">let</span> <span class="ident">initializers</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_global_initializers</span>();
-    <span class="kw">let</span> <span class="ident">enums</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_global_qualified_enums</span>();
-    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">variable</span>) <span class="kw">in</span> <span class="ident">globals</span>
+
+    <span class="kw">fn</span> <span class="ident">to_k_v</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
+        <span class="ident">kv</span>: (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">VariableIndexEntry</span>),
+    ) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">VariableIndexEntry</span>) {
+        (<span class="ident">kv</span>.<span class="number">0</span>.<span class="ident">as_str</span>(), <span class="ident">kv</span>.<span class="number">1</span>)
+    }
+
+    <span class="comment">//all declared global variables</span>
+    <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_globals</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">to_k_v</span>);
+    <span class="comment">//all initializers</span>
+    <span class="kw">let</span> <span class="ident">initializers</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_global_initializers</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">to_k_v</span>);
+    <span class="comment">//all enum-elements</span>
+    <span class="kw">let</span> <span class="ident">enums</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_global_qualified_enums</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">to_k_v</span>);
+    <span class="comment">//all program instances</span>
+    <span class="kw">let</span> <span class="ident">programs</span> <span class="op">=</span> <span class="ident">global_index</span>
+        .<span class="ident">get_pous</span>()
+        .<span class="ident">values</span>()
         .<span class="ident">into_iter</span>()
-        .<span class="ident">chain</span>(<span class="ident">initializers</span>.<span class="ident">into_iter</span>())
-        .<span class="ident">chain</span>(<span class="ident">enums</span>.<span class="ident">into_iter</span>())
-    {
+        .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">p</span> {
+            <span class="ident">PouIndexEntry::Program</span> {
+                <span class="ident">instance_variable</span>, ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">instance_variable</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        })
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">v</span>.<span class="ident">get_qualified_name</span>(), <span class="ident">v</span>));
+
+    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">variable</span>) <span class="kw">in</span> <span class="ident">globals</span>.<span class="ident">chain</span>(<span class="ident">programs</span>).<span class="ident">chain</span>(<span class="ident">initializers</span>).<span class="ident">chain</span>(<span class="ident">enums</span>) {
         <span class="kw">let</span> <span class="ident">global_variable</span> <span class="op">=</span> <span class="ident">generate_global_variable</span>(
             <span class="ident">module</span>,
             <span class="ident">llvm</span>,
@@ -160,7 +198,7 @@
         )
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">err</span>.<span class="ident">get_type</span>() {
             <span class="ident">ErrNo::codegen__missing_function</span> <span class="op">|</span> <span class="ident">ErrNo::reference__unresolved</span> =&gt; {
-                <span class="ident">Diagnostic::cannot_generate_initializer</span>(<span class="ident">name</span>.<span class="ident">as_str</span>(), <span class="ident">SourceRange::undefined</span>())
+                <span class="ident">Diagnostic::cannot_generate_initializer</span>(<span class="ident">name</span>, <span class="ident">SourceRange::undefined</span>())
             }
             <span class="kw">_</span> =&gt; <span class="ident">err</span>,
         })<span class="question-mark">?</span>;

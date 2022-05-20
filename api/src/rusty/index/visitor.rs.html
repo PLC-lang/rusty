@@ -599,8 +599,42 @@
 <span id="594">594</span>
 <span id="595">595</span>
 <span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">HardwareBinding</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">HardwareBinding</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{
     <span class="self">self</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Implementation</span>, <span class="ident">Pou</span>,
     <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">TypeNature</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">VariableBlock</span>, <span class="ident">VariableBlockType</span>,
@@ -703,7 +737,12 @@
     }
 
     <span class="comment">//register a function&#39;s return type as a member variable</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">return_type</span> {
+    <span class="kw">let</span> <span class="ident">return_type_name</span> <span class="op">=</span> <span class="ident">pou</span>
+        .<span class="ident">return_type</span>
+        .<span class="ident">as_ref</span>()
+        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_name</span>())
+        .<span class="ident">unwrap_or</span>(<span class="ident">VOID_TYPE</span>);
+    <span class="kw">if</span> <span class="ident">pou</span>.<span class="ident">return_type</span>.<span class="ident">is_some</span>() {
         <span class="ident">member_names</span>.<span class="ident">push</span>(<span class="ident">pou</span>.<span class="ident">get_return_name</span>().<span class="ident">into</span>());
         <span class="kw">let</span> <span class="ident">source_location</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">get_end</span>()..<span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">get_end</span>());
         <span class="ident">index</span>.<span class="ident">register_member_variable</span>(
@@ -711,7 +750,7 @@
                 <span class="ident">container_name</span>: <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
                 <span class="ident">variable_name</span>: <span class="ident">pou</span>.<span class="ident">get_return_name</span>(),
                 <span class="ident">variable_linkage</span>: <span class="ident">VariableType::Return</span>,
-                <span class="ident">variable_type_name</span>: <span class="ident">return_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap_or_default</span>(),
+                <span class="ident">variable_type_name</span>: <span class="ident">return_type_name</span>,
                 <span class="ident">is_constant</span>: <span class="bool-val">false</span>, <span class="comment">//return variables are not constants</span>
                 <span class="ident">binding</span>: <span class="prelude-val">None</span>,
             },
@@ -729,27 +768,16 @@
             <span class="ident">member_names</span>,
             <span class="ident">varargs</span>,
             <span class="ident">source</span>: <span class="ident">StructSource::Pou</span>(<span class="ident">pou</span>.<span class="ident">pou_type</span>.<span class="ident">clone</span>()),
-            <span class="ident">generics</span>: <span class="ident">pou</span>.<span class="ident">generics</span>.<span class="ident">clone</span>(),
-            <span class="ident">linkage</span>: <span class="ident">pou</span>.<span class="ident">linkage</span>,
         },
         <span class="ident">nature</span>: <span class="ident">TypeNature::Any</span>,
     };
-    <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
 
-    <span class="kw">match</span> <span class="ident">pou</span>.<span class="ident">pou_type</span> {
+    <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">pou_type</span> {
         <span class="ident">PouType::Program</span> =&gt; {
-            <span class="comment">//Associate a global variable for the program</span>
-            <span class="kw">let</span> <span class="ident">instance_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}_instance&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>);
-            <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="ident">VariableIndexEntry::create_global</span>(
-                <span class="kw-2">&amp;</span><span class="ident">instance_name</span>,
-                <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
-                <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
-                <span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
-            )
-            .<span class="ident">set_linkage</span>(<span class="ident">pou</span>.<span class="ident">linkage</span>);
-            <span class="ident">index</span>.<span class="ident">register_global_variable</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>, <span class="ident">variable</span>);
+            <span class="ident">index</span>.<span class="ident">register_program</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">location</span>, <span class="ident">pou</span>.<span class="ident">linkage</span>);
+            <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
         }
-        <span class="ident">PouType::FunctionBlock</span> <span class="op">|</span> <span class="ident">PouType::Class</span> =&gt; {
+        <span class="ident">PouType::FunctionBlock</span> =&gt; {
             <span class="kw">let</span> <span class="ident">global_struct_name</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::index::get_initializer_name</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>);
             <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="ident">VariableIndexEntry::create_global</span>(
                 <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
@@ -759,6 +787,42 @@
             )
             .<span class="ident">set_constant</span>(<span class="bool-val">true</span>);
             <span class="ident">index</span>.<span class="ident">register_global_initializer</span>(<span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>, <span class="ident">variable</span>);
+            <span class="ident">index</span>.<span class="ident">register_pou</span>(<span class="ident">PouIndexEntry::create_function_block_entry</span>(
+                <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
+                <span class="ident">pou</span>.<span class="ident">linkage</span>,
+            ));
+            <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
+        }
+        <span class="ident">PouType::Class</span> =&gt; {
+            <span class="kw">let</span> <span class="ident">global_struct_name</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::index::get_initializer_name</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>);
+            <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="ident">VariableIndexEntry::create_global</span>(
+                <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
+                <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
+                <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
+                <span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+            )
+            .<span class="ident">set_constant</span>(<span class="bool-val">true</span>);
+            <span class="ident">index</span>.<span class="ident">register_global_initializer</span>(<span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>, <span class="ident">variable</span>);
+            <span class="ident">index</span>.<span class="ident">register_pou</span>(<span class="ident">PouIndexEntry::create_class_entry</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>, <span class="ident">pou</span>.<span class="ident">linkage</span>));
+            <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
+        }
+        <span class="ident">PouType::Function</span> =&gt; {
+            <span class="ident">index</span>.<span class="ident">register_pou</span>(<span class="ident">PouIndexEntry::create_function_entry</span>(
+                <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
+                <span class="ident">return_type_name</span>,
+                <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">generics</span>,
+                <span class="ident">pou</span>.<span class="ident">linkage</span>,
+            ));
+            <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
+        }
+        <span class="ident">PouType::Method</span> { <span class="ident">owner_class</span> } =&gt; {
+            <span class="ident">index</span>.<span class="ident">register_pou</span>(<span class="ident">PouIndexEntry::create_method_entry</span>(
+                <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
+                <span class="ident">return_type_name</span>,
+                <span class="ident">owner_class</span>,
+                <span class="ident">pou</span>.<span class="ident">linkage</span>,
+            ));
+            <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
         }
         <span class="kw">_</span> =&gt; {}
     };
@@ -783,6 +847,12 @@
             },
             <span class="ident">nature</span>: <span class="ident">TypeNature::Derived</span>,
         };
+
+        <span class="ident">index</span>.<span class="ident">register_pou</span>(<span class="ident">PouIndexEntry::create_action_entry</span>(
+            <span class="ident">implementation</span>.<span class="ident">name</span>.<span class="ident">as_str</span>(),
+            <span class="ident">implementation</span>.<span class="ident">type_name</span>.<span class="ident">as_str</span>(),
+            <span class="ident">ast::LinkageType::Internal</span>, <span class="comment">//TODO: where do I get correct linkage from?</span>
+        ));
         <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
     }
 }
@@ -866,8 +936,6 @@
                 <span class="ident">member_names</span>,
                 <span class="ident">varargs</span>: <span class="prelude-val">None</span>,
                 <span class="ident">source</span>: <span class="ident">StructSource::OriginalDeclaration</span>,
-                <span class="ident">generics</span>: <span class="macro">vec!</span>[],
-                <span class="ident">linkage</span>: <span class="ident">ast::LinkageType::Internal</span>,
             };
 
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>

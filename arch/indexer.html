@@ -153,6 +153,7 @@
 <tr><td>enum_qualified_variables</td><td>All enum elements accessible via their qualified name (e.g. 'COLOR.RED').</td></tr>
 <tr><td>member_variables</td><td>Member variables of structured types (Structs,Functionblocks, etc. This map allows to query all members of a container by name.)</td></tr>
 <tr><td>implementations</td><td>All callable implementations (Programs, Functions, Actions, Functionblocks) accessible by their name.</td></tr>
+<tr><td>pous</td><td>All pous (Programs, Functions, Functionblocks) with additional information.</td></tr>
 <tr><td>type_index</td><td>All data-types (intrinsic and complex) accessible via their name</td></tr>
 <tr><td>constant_expressions</td><td>The results of constant expressions that can be evaluated at compile time (e.g. the initializer of a constant: <code>VAR_GLOBAL CONST TAU := 3.1415 * 2; END_VAR</code>)</td></tr>
 </tbody></table>
@@ -184,6 +185,61 @@ The VariableIndexEntry holds information about every <em>Variable</em> in the so
                                  │ ...              │
                                  │                  │
                                  └──────────────────┘
+</code></pre>
+<ul>
+<li><strong>PouIndexEntry</strong>
+The PouIndexEntry offers information about all Program-Organization-Units. The index entry offers information like the name of an instance-struct, the name of the registered implementation, etc.</li>
+</ul>
+<pre><code class="language-ignore">┌──────────────────────────┐
+│       &lt;abstract&gt;         │
+│       POUIndexEntry      │
+├──────────────────────────┤
+│                          │
+└──────────────────────────┘
+             ▲
+             │
+             │
+             │     ┌──────────────────────────┐      ┌──────────────────────────┐
+             │     │    ProgramIndexEntry     │      │    GenericParameter      │
+             │     ├──────────────────────────┤      ├──────────────────────────┤
+             │     │ - name: String           │      │ - name: String           │
+             ├─────┤ - instanceStruct: String ├──┬──►│ - typeNature: TypeNature │
+             │     │                          │  │   │                          │
+             │     │                          │  │   │                          │
+             │     └──────────────────────────┘  │   └──────────────────────────┘
+             │                                   │
+             │                                   │
+             │                                   │
+             │     ┌──────────────────────────┐  │
+             │     │    FunctionIndexEntry    │  │ generics
+             │     ├──────────────────────────┤  │
+             │     │ - name: String           │  │
+             ├─────┤                          ├──┤
+             │     │                          │  │
+             │     │                          │  │
+             │     └──────────────────────────┘  │
+             │                                   │
+             │                                   │
+             │                                   │
+             │     ┌──────────────────────────┐  │
+             │     │ FunctionBlockIndexEntry  │  │
+             │     ├──────────────────────────┤  │
+             │     │ - name: String           ├──┤
+             ├─────┤ - instanceStruct: String │  │
+             │     │                          │  │
+             │     │                          │  │
+             │     └──────────────────────────┘  │
+             │                                   │
+             │                                   │
+             │                                   │
+             │     ┌──────────────────────────┐  │
+             │     │    ClassIndexEntry       │  │
+             │     ├──────────────────────────┤  │
+             │     │ - name: String           │  │
+             └─────┤ - instanceStruct: String ├──┘
+                   │                          │
+                   │                          │
+                   └──────────────────────────┘
 </code></pre>
 <ul>
 <li><strong>ImplementationIndexEntry</strong>

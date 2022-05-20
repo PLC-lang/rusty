@@ -1751,11 +1751,6 @@
 <span id="1746">1746</span>
 <span id="1747">1747</span>
 <span id="1748">1748</span>
-<span id="1749">1749</span>
-<span id="1750">1750</span>
-<span id="1751">1751</span>
-<span id="1752">1752</span>
-<span id="1753">1753</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1774,7 +1769,7 @@
         <span class="self">self</span>, <span class="ident">AstId</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">GenericBinding</span>,
         <span class="ident">LinkageType</span>, <span class="ident">Operator</span>, <span class="ident">Pou</span>, <span class="ident">TypeNature</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">Variable</span>,
     },
-    <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">ImplementationType</span>, <span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>},
+    <span class="ident">index</span>::{<span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>},
     <span class="ident">typesystem</span>::{
         <span class="self">self</span>, <span class="ident">get_bigger_type</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">StringEncoding</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">BYTE_TYPE</span>,
         <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">REAL_TYPE</span>,
@@ -1912,6 +1907,37 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_value</span>(<span class="ident">type_name</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">StatementAnnotation::Value</span> {
             <span class="ident">resulting_type</span>: <span class="ident">type_name</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PouIndexEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StatementAnnotation</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="ident">PouIndexEntry</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">e</span> {
+            <span class="ident">PouIndexEntry::Program</span> { <span class="ident">name</span>, .. } =&gt; <span class="ident">StatementAnnotation::Program</span> {
+                <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+            },
+            <span class="ident">PouIndexEntry::FunctionBlock</span> { <span class="ident">name</span>, .. } =&gt; <span class="ident">StatementAnnotation::Type</span> {
+                <span class="ident">type_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+            },
+            <span class="ident">PouIndexEntry::Function</span> {
+                <span class="ident">name</span>, <span class="ident">return_type</span>, ..
+            } =&gt; <span class="ident">StatementAnnotation::Function</span> {
+                <span class="ident">return_type</span>: <span class="ident">return_type</span>.<span class="ident">to_string</span>(),
+                <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+            },
+            <span class="ident">PouIndexEntry::Class</span> { <span class="ident">name</span>, .. } =&gt; <span class="ident">StatementAnnotation::Program</span> {
+                <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+            },
+            <span class="ident">PouIndexEntry::Method</span> {
+                <span class="ident">name</span>, <span class="ident">return_type</span>, ..
+            } =&gt; <span class="ident">StatementAnnotation::Function</span> {
+                <span class="ident">return_type</span>: <span class="ident">return_type</span>.<span class="ident">to_string</span>(),
+                <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+            },
+            <span class="ident">PouIndexEntry::Action</span> { <span class="ident">name</span>, .. } =&gt; <span class="ident">StatementAnnotation::Program</span> {
+                <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+            },
         }
     }
 }
@@ -2742,10 +2768,9 @@
                         <span class="comment">// 3rd try - look for a method qualifier.name</span>
                         .<span class="ident">map_or_else</span>(
                             <span class="op">|</span><span class="op">|</span> {
-                                <span class="ident">find_implementation_annotation</span>(
-                                    <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">qualifier</span>, <span class="ident">name</span>).<span class="ident">as_str</span>(),
-                                    <span class="self">self</span>.<span class="ident">index</span>,
-                                )
+                                <span class="self">self</span>.<span class="ident">index</span>
+                                    .<span class="ident">find_pou</span>(<span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">qualifier</span>, <span class="ident">name</span>).<span class="ident">as_str</span>())
+                                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">into</span>())
                             },
                             <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>, <span class="ident">ctx</span>.<span class="ident">constant</span>)),
                         )
@@ -2756,42 +2781,46 @@
                             <span class="comment">// ... first look at POU-local variables</span>
                             <span class="self">self</span>.<span class="ident">index</span>
                                 .<span class="ident">find_member</span>(<span class="ident">qualifier</span>, <span class="ident">name</span>)
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>, <span class="ident">ctx</span>.<span class="ident">constant</span>))
                                 .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
                                     <span class="comment">// ... then check if we&#39;re in a method and we&#39;re referencing</span>
                                     <span class="comment">// a member variable of the corresponding class</span>
                                     <span class="self">self</span>.<span class="ident">index</span>
-                                        .<span class="ident">find_implementation</span>(<span class="ident">qualifier</span>)
-                                        .<span class="ident">and_then</span>(
-                                            <span class="ident">ImplementationIndexEntry::get_associated_class_name</span>,
-                                        )
-                                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">it</span>, <span class="ident">name</span>))
+                                        .<span class="ident">find_pou</span>(<span class="ident">qualifier</span>)
+                                        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">it</span>, <span class="ident">PouIndexEntry::Method</span> { .. }))
+                                        .<span class="ident">and_then</span>(<span class="ident">PouIndexEntry::get_instance_struct_type_name</span>)
+                                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">class_name</span><span class="op">|</span> {
+                                            <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">class_name</span>, <span class="ident">name</span>)
+                                        })
+                                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
+                                            <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>, <span class="ident">ctx</span>.<span class="ident">constant</span>)
+                                        })
                                 })
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>, <span class="ident">ctx</span>.<span class="ident">constant</span>))
                                 .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                                    <span class="comment">//Try to find an action with this name</span>
-                                    <span class="kw">let</span> <span class="ident">action_call_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">qualifier</span>, <span class="ident">name</span>);
-                                    <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_implementation</span>(<span class="kw-2">&amp;</span><span class="ident">action_call_name</span>).<span class="ident">and_then</span>(
-                                        <span class="op">|</span><span class="ident">entry</span><span class="op">|</span> {
-                                            <span class="ident">find_implementation_annotation</span>(
-                                                <span class="ident">entry</span>.<span class="ident">get_call_name</span>(),
-                                                <span class="self">self</span>.<span class="ident">index</span>,
-                                            )
-                                        },
-                                    )
+                                    <span class="comment">// try to find a local action with this name</span>
+                                    <span class="self">self</span>.<span class="ident">index</span>
+                                        .<span class="ident">find_pou</span>(<span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">qualifier</span>, <span class="ident">name</span>).<span class="ident">as_str</span>())
+                                        .<span class="ident">map</span>(<span class="ident">StatementAnnotation::from</span>)
                                 })
                         })
                         .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="comment">// ... then try if we find a pou with that name (maybe it&#39;s a call?)</span>
-                            <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="ident">ctx</span>
-                                .<span class="ident">pou</span>
-                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pou_name</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_implementation</span>(<span class="ident">pou_name</span>))
-                                .<span class="ident">and_then</span>(<span class="ident">ImplementationIndexEntry::get_associated_class_name</span>);
-
-                            <span class="comment">//TODO introduce qualified names!</span>
-                            <span class="kw">let</span> <span class="ident">call_name</span> <span class="op">=</span> <span class="ident">class_name</span>
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">it</span>, <span class="ident">name</span>))
-                                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">name</span>.<span class="ident">into</span>());
-                            <span class="ident">find_implementation_annotation</span>(<span class="kw-2">&amp;</span><span class="ident">call_name</span>, <span class="self">self</span>.<span class="ident">index</span>)
+                            <span class="comment">// ... then try if we find a scoped-pou with that name (maybe it&#39;s a call to a local method or action?)</span>
+                            <span class="ident">ctx</span>.<span class="ident">pou</span>
+                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pou_name</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">pou_name</span>))
+                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
+                                    <span class="self">self</span>.<span class="ident">index</span>
+                                        .<span class="ident">find_pou</span>(
+                                            <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">it</span>.<span class="ident">get_container</span>(), <span class="ident">name</span>).<span class="ident">as_str</span>(),
+                                        )
+                                        .<span class="ident">map</span>(<span class="ident">Into::into</span>)
+                                })
+                        })
+                        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="comment">// ... then try if we find a global-pou with that name (maybe it&#39;s a call to a function or program?)</span>
+                            {
+                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>;
+                                <span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">name</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">into</span>())
+                            }
                         })
                         .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="comment">// ... last option is a global variable, where we ignore the current pou&#39;s name as a qualifier</span>
@@ -2886,16 +2915,10 @@
                         }
                         <span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. } =&gt; {
                             <span class="comment">//lets see if this is a FB</span>
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">implementation</span>) <span class="op">=</span>
-                                <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_implementation</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
-                            {
-                                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ImplementationType::FunctionBlock</span> {} <span class="op">=</span>
-                                    <span class="ident">implementation</span>.<span class="ident">get_implementation_type</span>()
-                                {
-                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">clone</span>());
-                                }
-                            }
-                            <span class="prelude-val">None</span>
+                            <span class="self">self</span>.<span class="ident">index</span>
+                                .<span class="ident">find_pou</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
+                                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">it</span>, <span class="ident">PouIndexEntry::FunctionBlock</span> { .. }))
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_name</span>().<span class="ident">to_string</span>())
                         }
                         <span class="comment">// call statements on array access &quot;arr[1]()&quot; will return a StatementAnnotation::Value</span>
                         <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } =&gt; {
@@ -3035,13 +3058,9 @@
         <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
         <span class="ident">ctx</span>: <span class="ident">VisitorContext</span>,
     ) {
-        <span class="kw">let</span> <span class="ident">operator_type</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">index</span>
-            .<span class="ident">get_effective_type_by_name</span>(<span class="ident">implementation_name</span>)
-            .<span class="ident">get_type_information</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">PouIndexEntry::Function</span> {
             <span class="ident">generics</span>, <span class="ident">linkage</span>, ..
-        } <span class="op">=</span> <span class="ident">operator_type</span>
+        }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">implementation_name</span>)
         {
             <span class="kw">if</span> <span class="ident">linkage</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">LinkageType::BuiltIn</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">generics</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">let</span> <span class="ident">generic_map</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">derive_generic_types</span>(<span class="ident">generics</span>, <span class="ident">generics_candidates</span>);
@@ -3058,11 +3077,14 @@
                         <span class="ident">return_type</span>,
                         <span class="ident">generic_map</span>,
                     );
+
                     <span class="comment">//Create a new pou and implementation for the function</span>
+                    <span class="kw">let</span> <span class="ident">cloned_return_type</span> <span class="op">=</span> <span class="ident">return_type</span>.<span class="ident">clone</span>(); <span class="comment">//borrow checker will not allow to use return_type below :-(</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">pou</span>, <span class="ident">implementation</span>)) <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">index</span>
-                        .<span class="ident">find_effective_type</span>(<span class="ident">qualified_name</span>)
-                        .<span class="ident">zip</span>(<span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_implementation</span>(<span class="ident">qualified_name</span>))
+                        .<span class="ident">find_pou</span>(<span class="ident">qualified_name</span>)
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">find_instance_struct_type</span>(<span class="self">self</span>.<span class="ident">index</span>))
+                        .<span class="ident">zip</span>(<span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou_implementation</span>(<span class="ident">qualified_name</span>))
                     {
                         <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">new_index</span>.<span class="ident">register_implementation</span>(
                             <span class="kw-2">&amp;</span><span class="ident">name</span>,
@@ -3071,6 +3093,15 @@
                             <span class="ident">implementation</span>.<span class="ident">get_implementation_type</span>().<span class="ident">clone</span>(),
                         );
                         <span class="self">self</span>.<span class="ident">index_generic_type</span>(<span class="ident">pou</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">generic_map</span>);
+                        <span class="self">self</span>.<span class="ident">annotation_map</span>
+                            .<span class="ident">new_index</span>
+                            .<span class="ident">register_pou</span>(<span class="ident">PouIndexEntry::Function</span> {
+                                <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
+                                <span class="ident">instance_struct_name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
+                                <span class="ident">return_type</span>: <span class="ident">cloned_return_type</span>,
+                                <span class="ident">generics</span>: <span class="ident">Vec::new</span>(),
+                                <span class="ident">linkage</span>: <span class="ident">LinkageType::Internal</span>,
+                            });
                     }
                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(<span class="ident">operator</span>, <span class="ident">annotation</span>);
                 }
@@ -3094,7 +3125,6 @@
             <span class="ident">member_names</span>,
             <span class="ident">source</span>,
             <span class="ident">varargs</span>,
-            <span class="ident">linkage</span>,
             ..
         } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">generic_type</span>.<span class="ident">get_type_information</span>()
         {
@@ -3104,8 +3134,6 @@
                 <span class="ident">member_names</span>: <span class="ident">member_names</span>.<span class="ident">clone</span>(),
                 <span class="ident">varargs</span>: <span class="ident">varargs</span>.<span class="ident">clone</span>(),
                 <span class="ident">source</span>: <span class="ident">source</span>.<span class="ident">clone</span>(),
-                <span class="ident">generics</span>: <span class="macro">vec!</span>[],
-                <span class="ident">linkage</span>: <span class="kw-2">*</span><span class="ident">linkage</span>,
             };
             <span class="kw">for</span> <span class="ident">member</span> <span class="kw">in</span> <span class="ident">member_names</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">generic_entry</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">generic_type</span>.<span class="ident">get_name</span>(), <span class="ident">member</span>)
@@ -3419,33 +3447,6 @@
     <span class="ident">new_type_name</span>
 }
 
-<span class="kw">fn</span> <span class="ident">find_implementation_annotation</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
-    <span class="ident">index</span>
-        .<span class="ident">find_implementation</span>(<span class="ident">name</span>)
-        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">it</span>.<span class="ident">get_implementation_type</span>() {
-            <span class="ident">ImplementationType::Program</span> <span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">ImplementationType::Action</span> =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">to_programm_annotation</span>(<span class="ident">it</span>))
-            }
-            <span class="ident">ImplementationType::Function</span> <span class="op">|</span> <span class="ident">ImplementationType::Method</span> =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">to_function_annotation</span>(<span class="ident">it</span>, <span class="ident">index</span>))
-            }
-            <span class="ident">ImplementationType::FunctionBlock</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">to_type_annotation</span>(<span class="ident">name</span>)),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        })
-}
-
-<span class="kw">fn</span> <span class="ident">to_type_annotation</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">StatementAnnotation</span> {
-    <span class="ident">StatementAnnotation::Type</span> {
-        <span class="ident">type_name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-    }
-}
-
-<span class="kw">fn</span> <span class="ident">to_programm_annotation</span>(<span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="ident">ImplementationIndexEntry</span>) -&gt; <span class="ident">StatementAnnotation</span> {
-    <span class="ident">StatementAnnotation::Program</span> {
-        <span class="ident">qualified_name</span>: <span class="ident">it</span>.<span class="ident">get_call_name</span>().<span class="ident">into</span>(),
-    }
-}
-
 <span class="kw">fn</span> <span class="ident">to_variable_annotation</span>(
     <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
@@ -3470,17 +3471,6 @@
         <span class="ident">resulting_type</span>: <span class="ident">effective_type_name</span>,
         <span class="ident">constant</span>: <span class="ident">v</span>.<span class="ident">is_constant</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">constant_override</span>,
         <span class="ident">is_auto_deref</span>,
-    }
-}
-
-<span class="kw">fn</span> <span class="ident">to_function_annotation</span>(<span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="ident">ImplementationIndexEntry</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) -&gt; <span class="ident">StatementAnnotation</span> {
-    <span class="ident">StatementAnnotation::Function</span> {
-        <span class="ident">qualified_name</span>: <span class="ident">it</span>.<span class="ident">get_call_name</span>().<span class="ident">into</span>(),
-        <span class="ident">return_type</span>: <span class="ident">index</span>
-            .<span class="ident">find_return_type</span>(<span class="ident">it</span>.<span class="ident">get_call_name</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_name</span>())
-            .<span class="ident">unwrap_or</span>(<span class="ident">VOID_TYPE</span>)
-            .<span class="ident">into</span>(),
     }
 }
 

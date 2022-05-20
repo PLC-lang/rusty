@@ -504,6 +504,7 @@
 <span id="499">499</span>
 <span id="500">500</span>
 <span id="501">501</span>
+<span id="502">502</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">data_type_generator::get_default_for</span>,
@@ -557,10 +558,11 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">llvm_index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::default</span>();
     <span class="kw">let</span> <span class="ident">pou_generator</span> <span class="op">=</span> <span class="ident">PouGenerator::new</span>(<span class="ident">llvm</span>, <span class="ident">index</span>, <span class="ident">annotations</span>, <span class="ident">types_index</span>);
     <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">implementation</span>) <span class="kw">in</span> <span class="ident">index</span>.<span class="ident">get_implementations</span>() {
-        <span class="kw">let</span> <span class="ident">type_info</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_type_information_or_void</span>(<span class="ident">implementation</span>.<span class="ident">get_type_name</span>());
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">type_info</span>.<span class="ident">is_generic</span>() {
-            <span class="kw">let</span> <span class="ident">curr_f</span> <span class="op">=</span> <span class="ident">pou_generator</span>.<span class="ident">generate_implementation_stub</span>(<span class="ident">implementation</span>, <span class="ident">module</span>)<span class="question-mark">?</span>;
-            <span class="ident">llvm_index</span>.<span class="ident">associate_implementation</span>(<span class="ident">name</span>, <span class="ident">curr_f</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pou</span>) <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">implementation</span>.<span class="ident">get_call_name</span>()) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">pou</span>.<span class="ident">is_generic</span>() {
+                <span class="kw">let</span> <span class="ident">curr_f</span> <span class="op">=</span> <span class="ident">pou_generator</span>.<span class="ident">generate_implementation_stub</span>(<span class="ident">implementation</span>, <span class="ident">module</span>)<span class="question-mark">?</span>;
+                <span class="ident">llvm_index</span>.<span class="ident">associate_implementation</span>(<span class="ident">name</span>, <span class="ident">curr_f</span>)<span class="question-mark">?</span>;
+            }
         }
     }
 
