@@ -195,8 +195,12 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     };
 }
 
+/// returns the declaration type (ByRef or ByVal) for the given VariableBlock (VAR_INPUT, VAR_OUTPUT, VAR_INOUT, etc.)
 fn get_declaration_type_for(block: &VariableBlock) -> ArgumentType {
-    if matches!(block.variable_block_type, VariableBlockType::InOut | VariableBlockType::Output) {
+    if matches!(
+        block.variable_block_type,
+        VariableBlockType::InOut | VariableBlockType::Output
+    ) {
         ArgumentType::ByRef(get_variable_type_from_block(block))
     } else {
         ArgumentType::ByVal(get_variable_type_from_block(block))

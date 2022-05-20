@@ -23,6 +23,36 @@ fn var_output_in_function_call() {
 }
 
 #[test]
+fn on_functions_var_in_out_should_be_passed_as_a_pointer() {
+    let result = codegen(
+        r#"
+        FUNCTION bump : DINT
+            VAR_IN_OUT  v  : SINT;      END_VAR
+            bump := v;
+            v := 7;
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn on_functions_var_output_should_be_passed_as_a_pointer() {
+    let result = codegen(
+        r#"
+        FUNCTION bump : DINT
+            VAR_OUTPUT  v  : SINT;      END_VAR
+            bump := 1;
+            v := 2;
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn member_variables_in_body() {
     let result = codegen(
         r#"FUNCTION func : DINT
@@ -39,8 +69,6 @@ fn member_variables_in_body() {
 
     insta::assert_snapshot!(result);
 }
-
-
 
 #[test]
 fn simple_call() {

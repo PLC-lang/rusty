@@ -146,6 +146,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
     }
 
+    /// generates an empty llvm function for the given implementation, including all parameters and the return type
     pub fn generate_implementation_stub(
         &self,
         implementation: &ImplementationIndexEntry,
@@ -267,18 +268,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 current_function,
                 &pou_members,
             )?;
-            // for m in pou_members.iter() {
-            //     //Different names for retun variables
-            //     let parameter_name = m.get_name();
-            //     let temp_type = local_index.get_associated_type(m.get_type_name())?;
-            //     let variable = self.llvm.create_local_variable(parameter_name, &temp_type);
-            //     local_index.associate_loaded_local_variable(
-            //         &implementation.type_name,
-            //         parameter_name,
-            //         variable,
-            //     )?;
-            //     //Store the param value for parameters
-            // }
         } else {
             self.generate_local_struct_variable_accessors(
                 param_index,
