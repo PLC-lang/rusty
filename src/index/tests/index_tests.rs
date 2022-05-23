@@ -1825,7 +1825,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
 #[test]
 fn pointer_and_in_out_pointer_should_not_conflict_2() {
     // GIVEN an IN-OUT INT and a POINTER TO INT
-    // AND a adress-of INT operation
+    // AND a address-of INT operation
 
     // WHEN the program is indexed
     let (result, mut index) = index(
