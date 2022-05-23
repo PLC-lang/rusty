@@ -185,18 +185,58 @@ fn string_assignment_from_bigger_string_does_not_leak() {
 }
 
 #[test]
+fn string_parameter_assignment_in_functions_with_multiple_size() {
+    let src = "
+        FUNCTION small : STRING[10]
+        VAR_INPUT
+            str_param : STRING[5];
+        END_VAR
+        small := str_param;
+        END_FUNCTION
+
+        FUNCTION big : STRING[10]
+        VAR_INPUT
+            str_param : STRING[15];
+        END_VAR
+        big := str_param;
+        END_FUNCTION
+
+
+        PROGRAM main
+            VAR x : STRING[4]; y : STRING[5]; END_VAR
+            x := small('hello foo');
+            y := big('hello');
+        END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    struct MainType {
+        x: [u8; 5],
+        y: [u8; 6],
+    }
+    let mut main_type = MainType {
+        x: [0; 5],
+        y: [0; 6],
+    };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("hell\0".as_bytes(), &main_type.x);
+    assert_eq!("hello\0".as_bytes(), &main_type.y);
+
+}
+
+#[test]
 fn string_assignment_from_bigger_function_does_not_leak() {
     let src = "
         FUNCTION hello : STRING[10]
         hello := 'hello foo';
         END_FUNCTION
 
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x,y : STRING[4]; END_VAR
             x := hello();
-        END_FUNCTION
+        END_PROGRAM
     ";
-
     #[allow(dead_code)]
     struct MainType {
         x: [u8; 5],
@@ -209,6 +249,7 @@ fn string_assignment_from_bigger_function_does_not_leak() {
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!(&[0; 5], &main_type.y);
+    assert_eq!("hell\0".as_bytes(), &main_type.x);
 }
 
 #[test]

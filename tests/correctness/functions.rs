@@ -549,6 +549,39 @@ fn optional_output_assignment() {
 }
 
 #[test]
+fn optional_output_assignment_in_functions() {
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		FUNCTION foo : INT 
+            VAR_OUTPUT
+            	output1 : DINT;
+				output2 : DINT;
+            END_VAR
+			output1 := 1;
+			output2 := 2;
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+            foo(output1 =>, output2 => var2);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(0, interface.var1);
+    assert_eq!(2, interface.var2);
+}
+
+#[test]
 fn direct_call_on_function_block_array_access() {
     #[allow(dead_code)]
     #[derive(Default)]

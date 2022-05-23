@@ -469,18 +469,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             ImplementationIndexEntry {
                 implementation_type: ImplementationType::Function,
                 ..
-            } => {
-                //let call_ptr = self
-                //    .allocate_function_struct_instance(implementation.get_call_name(), operator)?;
-                (
-                    None,
-                    self.llvm
-                        .context
-                        .i32_type()
-                        .ptr_type(AddressSpace::Generic)
-                        .const_null(),
-                )
-            }
+            } => (
+                None,
+                self.llvm
+                    .context
+                    .i32_type()
+                    .ptr_type(AddressSpace::Generic)
+                    .const_null(),
+            ),
             ImplementationIndexEntry {
                 implementation_type: ImplementationType::Method,
                 ..
@@ -564,14 +560,31 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let v = declared_parameters[location];
 
                 let parameter: BasicValueEnum = if v.get_declaration_type().is_by_ref() {
-                    self.generate_element_pointer(param_statement)
-                        .or_else::<Diagnostic, _>(|_| {
-                            let value = self.generate_expression(param_statement)?;
-                            let parameter = self.llvm.builder.build_alloca(value.get_type(), "");
-                            self.llvm.builder.build_store(parameter, value);
-                            Ok(parameter)
-                        })
-                        .map(Into::into)?
+                    if matches!(param_statement, AstStatement::EmptyStatement { .. }) {
+                        //uninitialized var_output/var_in_out
+                        let v_type = self
+                            .llvm_index
+                            .find_associated_type(v.get_type_name())
+                            .ok_or_else(|| {
+                                Diagnostic::unknown_type(
+                                    v.get_type_name(),
+                                    param_statement.get_location(),
+                                )
+                            })?;
+                        Ok(self.llvm.builder.build_alloca(v_type, ""))
+                    } else {
+                        self.generate_element_pointer(param_statement)
+                            .or_else::<Diagnostic, _>(|_| {
+                                //passed a literal to byref parameter?
+                                //TODO: find more defensive solution - check early
+                                let value = self.generate_expression(param_statement)?;
+                                let parameter =
+                                    self.llvm.builder.build_alloca(value.get_type(), "");
+                                self.llvm.builder.build_store(parameter, value);
+                                Ok(parameter)
+                            })
+                    }
+                    .map(Into::into)?
                 } else {
                     self.generate_expression(param_statement)?
                 };
@@ -609,11 +622,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let call_result = builder
             .build_call(function, &parameters_data, "call")
             .try_as_basic_value();
-
-        //build output-parameters
-        if implementation.get_implementation_type() != &ImplementationType::Function {
-            self.generate_output_function_parameters(function_name, call_ptr, parameters)?;
-        }
 
         // we return an uninitialized int pointer for void methods :-/
         // dont deref it!!
@@ -738,13 +746,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let parameter_value = match assignment_statement {
             // explicit call parameter: foo(param := value)
-            AstStatement::Assignment { left, right, .. } => {
+            AstStatement::OutputAssignment { left, right, .. }
+            | AstStatement::Assignment { left, right, .. } => {
                 self.generate_formal_parameter(param_context, left, right)?;
-                None
-            }
-            // foo (param => value)
-            AstStatement::OutputAssignment { .. } => {
-                //ignore here
                 None
             }
             // foo(x)
@@ -787,10 +791,27 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 auto_deref: true, ..
             } = parameter
             {
-                //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-                let generated_exp = self
-                    .generate_element_pointer(expression)?
-                    .as_basic_value_enum();
+                //this is VAR_OUT or VAR_IN_OUT assignemt, so don't load the value, assign the pointer
+
+                //expression may be empty -> generate a local variable for it
+                let generated_exp = if matches!(expression, AstStatement::EmptyStatement { .. }) {
+                    let temp_type = self
+                        .llvm_index
+                        .find_associated_type(parameter.get_name())
+                        .ok_or_else(|| {
+                            Diagnostic::unknown_type(
+                                parameter.get_name(),
+                                expression.get_location(),
+                            )
+                        })?;
+
+                    builder
+                        .build_alloca(temp_type, "empty_varinout")
+                        .as_basic_value_enum()
+                } else {
+                    self.generate_element_pointer(expression)?
+                        .as_basic_value_enum()
+                };
 
                 builder.build_store(pointer_to_param, generated_exp);
             } else {
