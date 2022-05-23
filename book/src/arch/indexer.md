@@ -14,6 +14,7 @@ The index stores information about all referable elements of the program. Depend
 | enum_qualified_variables  |  All enum elements accessible via their qualified name (e.g. 'COLOR.RED').                             | 
 | member_variables          |  Member variables of structured types (Structs,Functionblocks, etc. This map allows to query all members of a container by name.) | 
 | implementations           |  All callable implementations (Programs, Functions, Actions, Functionblocks) accessible by their name.    | 
+| pous                      |  All pous (Programs, Functions, Functionblocks) with additional information.    | 
 | type_index                |  All data-types (intrinsic and complex) accessible via their name  | 
 | constant_expressions      |  The results of constant expressions that can be evaluated at compile time (e.g. the initializer of a constant: `VAR_GLOBAL CONST TAU := 3.1415 * 2; END_VAR`) | 
 
@@ -45,6 +46,62 @@ The VariableIndexEntry holds information about every *Variable* in the source co
                                  │ ...              │
                                  │                  │
                                  └──────────────────┘
+```
+
+- **PouIndexEntry**
+The PouIndexEntry offers information about all Program-Organization-Units. The index entry offers information like the name of an instance-struct, the name of the registered implementation, etc.
+
+```ignore
+┌──────────────────────────┐
+│       <abstract>         │
+│       POUIndexEntry      │
+├──────────────────────────┤
+│                          │
+└──────────────────────────┘
+             ▲
+             │
+             │
+             │     ┌──────────────────────────┐      ┌──────────────────────────┐
+             │     │    ProgramIndexEntry     │      │    GenericParameter      │
+             │     ├──────────────────────────┤      ├──────────────────────────┤
+             │     │ - name: String           │      │ - name: String           │
+             ├─────┤ - instanceStruct: String ├──┬──►│ - typeNature: TypeNature │
+             │     │                          │  │   │                          │
+             │     │                          │  │   │                          │
+             │     └──────────────────────────┘  │   └──────────────────────────┘
+             │                                   │
+             │                                   │
+             │                                   │
+             │     ┌──────────────────────────┐  │
+             │     │    FunctionIndexEntry    │  │ generics
+             │     ├──────────────────────────┤  │
+             │     │ - name: String           │  │
+             ├─────┤                          ├──┤
+             │     │                          │  │
+             │     │                          │  │
+             │     └──────────────────────────┘  │
+             │                                   │
+             │                                   │
+             │                                   │
+             │     ┌──────────────────────────┐  │
+             │     │ FunctionBlockIndexEntry  │  │
+             │     ├──────────────────────────┤  │
+             │     │ - name: String           ├──┤
+             ├─────┤ - instanceStruct: String │  │
+             │     │                          │  │
+             │     │                          │  │
+             │     └──────────────────────────┘  │
+             │                                   │
+             │                                   │
+             │                                   │
+             │     ┌──────────────────────────┐  │
+             │     │    ClassIndexEntry       │  │
+             │     ├──────────────────────────┤  │
+             │     │ - name: String           │  │
+             └─────┤ - instanceStruct: String ├──┘
+                   │                          │
+                   │                          │
+                   └──────────────────────────┘
 ```
 
 - **ImplementationIndexEntry**

@@ -4,7 +4,7 @@
 use crate::{
     ast::SourceRange,
     diagnostics::{Diagnostic, ErrNo},
-    index::Index,
+    index::{Index, PouIndexEntry},
     resolver::AstAnnotations,
 };
 use inkwell::{module::Module, values::GlobalValue};
@@ -25,14 +25,33 @@ pub fn generate_global_variables<'ctx, 'b>(
     types_index: &'b LlvmTypedIndex<'ctx>,
 ) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
     let mut index = LlvmTypedIndex::default();
-    let globals = global_index.get_globals();
-    let initializers = global_index.get_global_initializers();
-    let enums = global_index.get_global_qualified_enums();
-    for (name, variable) in globals
+
+    fn to_k_v<'a, 'b>(
+        kv: (&'a String, &'b VariableIndexEntry),
+    ) -> (&'a str, &'b VariableIndexEntry) {
+        (kv.0.as_str(), kv.1)
+    }
+
+    //all declared global variables
+    let globals = global_index.get_globals().iter().map(to_k_v);
+    //all initializers
+    let initializers = global_index.get_global_initializers().iter().map(to_k_v);
+    //all enum-elements
+    let enums = global_index.get_global_qualified_enums().iter().map(to_k_v);
+    //all program instances
+    let programs = global_index
+        .get_pous()
+        .values()
         .into_iter()
-        .chain(initializers.into_iter())
-        .chain(enums.into_iter())
-    {
+        .filter_map(|p| match p {
+            PouIndexEntry::Program {
+                instance_variable, ..
+            } => Some(instance_variable),
+            _ => None,
+        })
+        .map(|v| (v.get_qualified_name(), v));
+
+    for (name, variable) in globals.chain(programs).chain(initializers).chain(enums) {
         let global_variable = generate_global_variable(
             module,
             llvm,
@@ -43,7 +62,7 @@ pub fn generate_global_variables<'ctx, 'b>(
         )
         .map_err(|err| match err.get_type() {
             ErrNo::codegen__missing_function | ErrNo::reference__unresolved => {
-                Diagnostic::cannot_generate_initializer(name.as_str(), SourceRange::undefined())
+                Diagnostic::cannot_generate_initializer(name, SourceRange::undefined())
             }
             _ => err,
         })?;

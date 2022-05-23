@@ -16,7 +16,7 @@ use crate::{
         self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
         LinkageType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
-    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
@@ -154,6 +154,37 @@ impl StatementAnnotation {
     pub fn new_value(type_name: String) -> Self {
         StatementAnnotation::Value {
             resulting_type: type_name,
+        }
+    }
+}
+
+impl From<&PouIndexEntry> for StatementAnnotation {
+    fn from(e: &PouIndexEntry) -> Self {
+        match e {
+            PouIndexEntry::Program { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::FunctionBlock { name, .. } => StatementAnnotation::Type {
+                type_name: name.to_string(),
+            },
+            PouIndexEntry::Function {
+                name, return_type, ..
+            } => StatementAnnotation::Function {
+                return_type: return_type.to_string(),
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Class { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Method {
+                name, return_type, ..
+            } => StatementAnnotation::Function {
+                return_type: return_type.to_string(),
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Action { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
         }
     }
 }
@@ -984,10 +1015,9 @@ impl<'i> TypeAnnotator<'i> {
                         // 3rd try - look for a method qualifier.name
                         .map_or_else(
                             || {
-                                find_implementation_annotation(
-                                    format!("{}.{}", qualifier, name).as_str(),
-                                    self.index,
-                                )
+                                self.index
+                                    .find_pou(format!("{}.{}", qualifier, name).as_str())
+                                    .map(|it| it.into())
                             },
                             |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
                         )
@@ -998,42 +1028,46 @@ impl<'i> TypeAnnotator<'i> {
                             // ... first look at POU-local variables
                             self.index
                                 .find_member(qualifier, name)
+                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
                                     self.index
-                                        .find_implementation(qualifier)
-                                        .and_then(
-                                            ImplementationIndexEntry::get_associated_class_name,
-                                        )
-                                        .and_then(|it| self.index.find_member(it, name))
+                                        .find_pou(qualifier)
+                                        .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
+                                        .and_then(PouIndexEntry::get_instance_struct_type_name)
+                                        .and_then(|class_name| {
+                                            self.index.find_member(class_name, name)
+                                        })
+                                        .map(|v| {
+                                            to_variable_annotation(v, self.index, ctx.constant)
+                                        })
                                 })
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
-                                    //Try to find an action with this name
-                                    let action_call_name = format!("{}.{}", qualifier, name);
-                                    self.index.find_implementation(&action_call_name).and_then(
-                                        |entry| {
-                                            find_implementation_annotation(
-                                                entry.get_call_name(),
-                                                self.index,
-                                            )
-                                        },
-                                    )
+                                    // try to find a local action with this name
+                                    self.index
+                                        .find_pou(format!("{}.{}", qualifier, name).as_str())
+                                        .map(StatementAnnotation::from)
                                 })
                         })
                         .or_else(|| {
-                            // ... then try if we find a pou with that name (maybe it's a call?)
-                            let class_name = ctx
-                                .pou
-                                .and_then(|pou_name| self.index.find_implementation(pou_name))
-                                .and_then(ImplementationIndexEntry::get_associated_class_name);
-
-                            //TODO introduce qualified names!
-                            let call_name = class_name
-                                .map(|it| format!("{}.{}", it, name))
-                                .unwrap_or_else(|| name.into());
-                            find_implementation_annotation(&call_name, self.index)
+                            // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
+                            ctx.pou
+                                .and_then(|pou_name| self.index.find_pou(pou_name))
+                                .and_then(|it| {
+                                    self.index
+                                        .find_pou(
+                                            format!("{}.{}", it.get_container(), name).as_str(),
+                                        )
+                                        .map(Into::into)
+                                })
+                        })
+                        .or_else(|| {
+                            // ... then try if we find a global-pou with that name (maybe it's a call to a function or program?)
+                            {
+                                let index = self.index;
+                                index.find_pou(name).map(|it| it.into())
+                            }
                         })
                         .or_else(|| {
                             // ... last option is a global variable, where we ignore the current pou's name as a qualifier
@@ -1128,16 +1162,10 @@ impl<'i> TypeAnnotator<'i> {
                         }
                         StatementAnnotation::Variable { resulting_type, .. } => {
                             //lets see if this is a FB
-                            if let Some(implementation) =
-                                self.index.find_implementation(resulting_type.as_str())
-                            {
-                                if let ImplementationType::FunctionBlock {} =
-                                    implementation.get_implementation_type()
-                                {
-                                    return Some(resulting_type.clone());
-                                }
-                            }
-                            None
+                            self.index
+                                .find_pou(resulting_type.as_str())
+                                .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. }))
+                                .map(|it| it.get_name().to_string())
                         }
                         // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
                         StatementAnnotation::Value { resulting_type } => {
@@ -1277,13 +1305,9 @@ impl<'i> TypeAnnotator<'i> {
         parameters: &Option<AstStatement>,
         ctx: VisitorContext,
     ) {
-        let operator_type = self
-            .index
-            .get_effective_type_by_name(implementation_name)
-            .get_type_information();
-        if let DataTypeInformation::Struct {
+        if let Some(PouIndexEntry::Function {
             generics, linkage, ..
-        } = operator_type
+        }) = self.index.find_pou(implementation_name)
         {
             if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
@@ -1300,11 +1324,14 @@ impl<'i> TypeAnnotator<'i> {
                         return_type,
                         generic_map,
                     );
+
                     //Create a new pou and implementation for the function
+                    let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
                     if let Some((pou, implementation)) = self
                         .index
-                        .find_effective_type(qualified_name)
-                        .zip(self.index.find_implementation(qualified_name))
+                        .find_pou(qualified_name)
+                        .and_then(|it| it.find_instance_struct_type(self.index))
+                        .zip(self.index.find_pou_implementation(qualified_name))
                     {
                         self.annotation_map.new_index.register_implementation(
                             &name,
@@ -1313,6 +1340,15 @@ impl<'i> TypeAnnotator<'i> {
                             implementation.get_implementation_type().clone(),
                         );
                         self.index_generic_type(pou, &name, generic_map);
+                        self.annotation_map
+                            .new_index
+                            .register_pou(PouIndexEntry::Function {
+                                name: name.clone(),
+                                instance_struct_name: name.clone(),
+                                return_type: cloned_return_type,
+                                generics: Vec::new(),
+                                linkage: LinkageType::Internal,
+                            });
                     }
                     self.annotation_map.annotate(operator, annotation);
                 }
@@ -1336,7 +1372,6 @@ impl<'i> TypeAnnotator<'i> {
             member_names,
             source,
             varargs,
-            linkage,
             ..
         } = &generic_type.get_type_information()
         {
@@ -1346,8 +1381,6 @@ impl<'i> TypeAnnotator<'i> {
                 member_names: member_names.clone(),
                 varargs: varargs.clone(),
                 source: source.clone(),
-                generics: vec![],
-                linkage: *linkage,
             };
             for member in member_names {
                 if let Some(generic_entry) = self.index.find_member(generic_type.get_name(), member)
@@ -1661,33 +1694,6 @@ fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
     new_type_name
 }
 
-fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
-    index
-        .find_implementation(name)
-        .and_then(|it| match it.get_implementation_type() {
-            ImplementationType::Program | &ImplementationType::Action => {
-                Some(to_programm_annotation(it))
-            }
-            ImplementationType::Function | ImplementationType::Method => {
-                Some(to_function_annotation(it, index))
-            }
-            ImplementationType::FunctionBlock => Some(to_type_annotation(name)),
-            _ => None,
-        })
-}
-
-fn to_type_annotation(name: &str) -> StatementAnnotation {
-    StatementAnnotation::Type {
-        type_name: name.into(),
-    }
-}
-
-fn to_programm_annotation(it: &ImplementationIndexEntry) -> StatementAnnotation {
-    StatementAnnotation::Program {
-        qualified_name: it.get_call_name().into(),
-    }
-}
-
 fn to_variable_annotation(
     v: &VariableIndexEntry,
     index: &Index,
@@ -1712,17 +1718,6 @@ fn to_variable_annotation(
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
         is_auto_deref,
-    }
-}
-
-fn to_function_annotation(it: &ImplementationIndexEntry, index: &Index) -> StatementAnnotation {
-    StatementAnnotation::Function {
-        qualified_name: it.get_call_name().into(),
-        return_type: index
-            .find_return_type(it.get_call_name())
-            .map(|it| it.get_name())
-            .unwrap_or(VOID_TYPE)
-            .into(),
     }
 }
 

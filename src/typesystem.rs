@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    ast::{AstStatement, GenericBinding, LinkageType, Operator, PouType, TypeNature},
+    ast::{AstStatement, Operator, PouType, TypeNature},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -173,8 +173,6 @@ pub enum DataTypeInformation {
         member_names: Vec<String>,
         varargs: Option<VarArgs>,
         source: StructSource,
-        generics: Vec<GenericBinding>,
-        linkage: LinkageType,
     },
     Array {
         name: TypeId,
@@ -331,15 +329,9 @@ impl DataTypeInformation {
             None
         }
     }
-
     pub fn is_generic(&self) -> bool {
-        match self {
-            DataTypeInformation::Struct { generics, .. } => !generics.is_empty(),
-            DataTypeInformation::Generic { .. } => true,
-            _ => false,
-        }
+        matches!(self, DataTypeInformation::Generic { .. })
     }
-
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
     pub fn get_semantic_size(&self) -> u32 {
         if let DataTypeInformation::Integer {
@@ -375,16 +367,6 @@ impl DataTypeInformation {
             DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => 1,
             _ => unimplemented!("Alignment for {}", self.get_name()),
         }
-    }
-
-    pub fn is_builtin(&self) -> bool {
-        matches!(
-            self,
-            DataTypeInformation::Struct {
-                linkage: LinkageType::BuiltIn,
-                ..
-            }
-        )
     }
 }
 
