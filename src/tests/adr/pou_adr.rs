@@ -53,7 +53,7 @@ fn programs_get_a_method_with_a_self_parameter() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %main_prg_interface = type { i16, i16*, i16, i16 }
+    %main_prg_interface = type { i16, i16*, i16*, i16 }
 
     @main_prg_instance = global %main_prg_interface zeroinitializer
 
@@ -139,10 +139,10 @@ fn calling_a_function_block() {
     source_filename = "main"
 
     %foo_interface = type { i16, i16, %main_fb_interface }
-    %main_fb_interface = type { i16, i16*, i16, i16 }
+    %main_fb_interface = type { i16, i16*, i16*, i16 }
 
-    @foo_instance = global %foo_interface { i16 0, i16 0, %main_fb_interface { i16 6, i16* null, i16 0, i16 1 } }
-    @main_fb__init = unnamed_addr constant %main_fb_interface { i16 6, i16* null, i16 0, i16 1 }
+    @foo_instance = global %foo_interface { i16 0, i16 0, %main_fb_interface { i16 6, i16* null, i16* null, i16 1 } }
+    @main_fb__init = unnamed_addr constant %main_fb_interface { i16 6, i16* null, i16* null, i16 1 }
 
     define void @foo(%foo_interface* %0) {
     entry:
@@ -153,10 +153,9 @@ fn calling_a_function_block() {
       store i16 1, i16* %1, align 2
       %2 = getelementptr inbounds %main_fb_interface, %main_fb_interface* %fb, i32 0, i32 1
       store i16* %y, i16** %2, align 8
-      call void @main_fb(%main_fb_interface* %fb)
       %3 = getelementptr inbounds %main_fb_interface, %main_fb_interface* %fb, i32 0, i32 2
-      %o = load i16, i16* %3, align 2
-      store i16 %o, i16* %x, align 2
+      store i16* %x, i16** %3, align 8
+      call void @main_fb(%main_fb_interface* %fb)
       ret void
     }
 
@@ -192,7 +191,28 @@ const DEFAULT_FUNC: &str = r#"
 ///  ... a return variable is allocated on the stack and returned at the end of the function
 #[test]
 fn function_get_a_method_with_by_ref_parameters() {
-    insta::assert_snapshot!(codegen(DEFAULT_FUNC), @"");
+    insta::assert_snapshot!(codegen(DEFAULT_FUNC), @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
+    entry:
+      %i = alloca i16, align 2
+      store i16 %0, i16* %i, align 2
+      %io = alloca i8*, align 8
+      store i8* %1, i8** %io, align 8
+      %o = alloca i64*, align 8
+      store i64* %2, i64** %o, align 8
+      %v = alloca i16, align 2
+      %vt = alloca i16, align 2
+      %main_fun = alloca i32, align 4
+      store i16 1, i16* %v, align 2
+      store i16 2, i16* %vt, align 2
+      store i32 0, i32* %main_fun, align 4
+      %main_fun_ret = load i32, i32* %main_fun, align 4
+      ret i32 %main_fun_ret
+    }
+    "###);
 }
 
 /// Calling a function works like this:

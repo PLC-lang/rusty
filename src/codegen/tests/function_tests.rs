@@ -23,6 +23,7 @@ fn var_output_in_function_call() {
 }
 
 #[test]
+#[ignore = "duplicate"]
 fn on_functions_var_in_out_should_be_passed_as_a_pointer() {
     let result = codegen(
         r#"
