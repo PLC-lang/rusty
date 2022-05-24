@@ -56,12 +56,16 @@ pub const LWORD_TYPE: &str = "LWORD";
 pub const LINT_TYPE: &str = "LINT";
 pub const DATE_TYPE: &str = "DATE";
 pub const SHORT_DATE_TYPE: &str = "D";
+pub const LONG_DATE_TYPE: &str = "LDATE";
 pub const TIME_TYPE: &str = "TIME";
 pub const SHORT_TIME_TYPE: &str = "T";
+pub const LONG_TIME_TYPE: &str = "LTIME";
 pub const DATE_AND_TIME_TYPE: &str = "DATE_AND_TIME";
 pub const SHORT_DATE_AND_TIME_TYPE: &str = "DT";
+pub const LONG_DATE_AND_TIME_TYPE: &str = "LDT";
 pub const TIME_OF_DAY_TYPE: &str = "TIME_OF_DAY";
 pub const SHORT_TIME_OF_DAY_TYPE: &str = "TOD";
+pub const LONG_TIME_OF_DAY_TYPE: &str = "LTOD";
 pub const ULINT_TYPE: &str = "ULINT";
 pub const REAL_TYPE: &str = "REAL";
 pub const LREAL_TYPE: &str = "LREAL";
@@ -670,10 +674,28 @@ pub fn get_builtin_types() -> Vec<DataType> {
             nature: TypeNature::Date,
         },
         DataType {
+            name: LONG_DATE_AND_TIME_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: LONG_DATE_AND_TIME_TYPE.into(),
+                referenced_type: DATE_AND_TIME_TYPE.into(),
+            },
+            nature: TypeNature::Date,
+        },
+        DataType {
             name: SHORT_DATE_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Alias {
                 name: SHORT_DATE_TYPE.into(),
+                referenced_type: DATE_TYPE.into(),
+            },
+            nature: TypeNature::Date,
+        },
+        DataType {
+            name: LONG_DATE_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: LONG_DATE_TYPE.into(),
                 referenced_type: DATE_TYPE.into(),
             },
             nature: TypeNature::Date,
@@ -688,10 +710,28 @@ pub fn get_builtin_types() -> Vec<DataType> {
             nature: TypeNature::Date,
         },
         DataType {
+            name: LONG_TIME_OF_DAY_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: LONG_TIME_OF_DAY_TYPE.into(),
+                referenced_type: TIME_OF_DAY_TYPE.into(),
+            },
+            nature: TypeNature::Date,
+        },
+        DataType {
             name: SHORT_TIME_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Alias {
                 name: SHORT_TIME_TYPE.into(),
+                referenced_type: TIME_TYPE.into(),
+            },
+            nature: TypeNature::Duration,
+        },
+        DataType {
+            name: LONG_TIME_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: LONG_TIME_TYPE.into(),
                 referenced_type: TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,

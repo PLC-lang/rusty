@@ -357,6 +357,31 @@ END_PROGRAM
 }
 
 #[test]
+fn program_with_long_date_assignment() {
+    let result = codegen(
+        r#"PROGRAM prg
+VAR
+w : LTIME;
+x : LDATE;
+y : LDT;
+z : LTOD;
+END_VAR
+w := LTIME#100s12ms;
+w := LTIME#100s12ms;
+x := LDATE#1984-10-01;
+x := LDATE#1970-01-01;
+y := LDT#1984-10-01-20:15:14;
+y := LDT#1970-01-01-16:20:04.123;
+z := LTOD#15:36:30.123;
+z := LTOD#15:36:30.123;
+END_PROGRAM
+"#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn program_with_date_assignment_whit_short_datatype_names() {
     let result = codegen(
         r#"PROGRAM prg
