@@ -232,7 +232,7 @@ fn function_return_value_is_initialized() {
 }
 
 #[test]
-#[ignore]
+#[ignore = "Default values are not being initialized correctly"]
 fn function_return_value_with_initializers_is_initialized() {
     let function = codegen(
         r"

@@ -3,7 +3,7 @@ use crate::{
     ast::{self, DirectAccessType, SourceRange},
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
+    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry, ArgumentType, VariableType},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
         is_same_type_class, Dimension, StringEncoding, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
@@ -11,7 +11,7 @@ use crate::{
 };
 use inkwell::{
     builder::Builder,
-    types::BasicTypeEnum,
+    types::{BasicType, BasicTypeEnum},
     values::{
         ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, GlobalValue,
         IntValue, PointerValue, StructValue, VectorValue,
@@ -413,41 +413,31 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         operator: &AstStatement,
         parameters: &Option<AstStatement>,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        //inner helper function
-        fn try_find_implementation<'i>(
-            index: &'i Index,
-            type_name: &str,
-            context: &AstStatement,
-        ) -> Result<&'i ImplementationIndexEntry, Diagnostic> {
-            index.find_pou_implementation(type_name).ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    &format!("Cannot find callable type for {:?}", type_name),
-                    context.get_location(),
-                )
-            })
-        }
-
         let function_context = self.get_function_context(operator)?;
         //find call name
-        let implementation = self
-            .annotations
-            .get_call_name(operator)
-            //find implementationIndexEntry for the name
-            .and_then(|it| self.index.find_pou_implementation(it))
-            //If that fails, try to find an implementation from the reference name
-            .or_else(|| {
+        let pou = self.annotations.get_call_name(operator)
+            .or_else(|| 
                 if let AstStatement::Reference { name, .. } = operator {
-                    try_find_implementation(self.index, name, operator).ok()
+                    Some(name)
                 } else {
                     None
                 }
-            })
+            ).and_then(|it| self.index.find_pou(it))
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
                     &format!("cannot generate call statement for {:?}", operator),
                     operator.get_location(),
                 )
             })?;
+
+        let implementation = pou.find_implementation(self.index)
+            .ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    &format!("cannot generate call statement for {:?}", operator),
+                    operator.get_location(),
+                )
+            })?;
+
 
         //If the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self
@@ -557,17 +547,31 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     }
                 };
 
-                let v = declared_parameters[location];
+                //None -> possibly variadic
+                let (declaration_type, type_name) = declared_parameters.get(location)
+                .map(|it|
+                    (it.get_declaration_type(), it.get_type_name())
+                )
+                .map(|it| Ok(it))
+                .unwrap_or_else(|| 
+                    if pou.is_variadic() {
+                        self.get_type_hint_for(param_statement).map(|it|
+                        (ArgumentType::ByVal(VariableType::Input), it.get_name()))
+                    } else {
+                        Err(Diagnostic::codegen_error("Too many parameters", param_statement.get_location()))
+                    }
+                )?;
 
-                let parameter: BasicValueEnum = if v.get_declaration_type().is_by_ref() {
+
+                let parameter: BasicValueEnum = if declaration_type.is_by_ref() {
                     if matches!(param_statement, AstStatement::EmptyStatement { .. }) {
                         //uninitialized var_output/var_in_out
                         let v_type = self
                             .llvm_index
-                            .find_associated_type(v.get_type_name())
+                            .find_associated_type(type_name)
                             .ok_or_else(|| {
                                 Diagnostic::unknown_type(
-                                    v.get_type_name(),
+                                    type_name,
                                     param_statement.get_location(),
                                 )
                             })?;
@@ -586,7 +590,49 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     }
                     .map(Into::into)?
                 } else {
-                    self.generate_expression(param_statement)?
+                    //pass by val
+                    // x := "abc";
+                    match self.index.find_effective_type(type_name) {
+                        Some(type_info) if type_info.information.is_string() => {
+                            // allocate a temporary string of correct size and pass it
+                            let llvm_type = self
+                                .llvm_index
+                                .find_associated_type(type_info.get_name())
+                                .ok_or_else(|| {
+                                    Diagnostic::unknown_type(
+                                        type_info.get_name(),
+                                        param_statement.get_location(),
+                                    )
+                                })?;
+
+                            let temp_variable = self.llvm.builder.build_alloca(llvm_type, "");
+                            self.llvm
+                                .builder
+                                .build_memset(
+                                    temp_variable,
+                                    1,
+                                    self.llvm.context.i8_type().const_zero(),
+                                    llvm_type.size_of().ok_or_else(|| {
+                                        Diagnostic::unknown_type(
+                                            type_info.get_name(),
+                                            param_statement.get_location(),
+                                        )
+                                    })?,
+                                )
+                                .map_err(|it| {
+                                    Diagnostic::codegen_error(it, param_statement.get_location())
+                                })?;
+
+                            self.generate_store(
+                                type_info.get_type_information(),
+                                param_statement,
+                                temp_variable,
+                            )?;
+
+                            self.llvm.builder.build_load(temp_variable, "").into()
+                        }
+                        _ => self.generate_expression(param_statement)?,
+                    }
                 };
 
                 arguments.push((location, parameter));
@@ -1637,18 +1683,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                                 if let Some((literal_value, _)) = literal.zip(self.function_context)
                                 {
                                     //global constant string
-                                    //TODO should a string-literal be treated as an auto-deref String* ?
-                                    Ok(
-                                        if literal_value.is_pointer_value()
-                                            && !expected_type.is_pointer()
-                                        {
-                                            self.llvm
-                                                .builder
-                                                .build_load(literal_value.into_pointer_value(), "")
-                                        } else {
-                                            literal_value
-                                        },
-                                    )
+                                    Ok(literal_value)
                                 } else {
                                     //note that .len() will give us the number of bytes, not the number of characters
                                     let actual_length = value.chars().count() + 1; // +1 to account for a final \0

@@ -369,6 +369,7 @@ pub enum PouIndexEntry {
         instance_struct_name: String,
         generics: Vec<GenericBinding>,
         linkage: LinkageType,
+        is_variadic: bool,
     },
     Class {
         name: String,
@@ -429,6 +430,7 @@ impl PouIndexEntry {
         return_type: &str,
         generic_names: &[GenericBinding],
         linkage: LinkageType,
+        is_variadic: bool,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -436,6 +438,7 @@ impl PouIndexEntry {
             return_type: return_type.into(),
             instance_struct_name: name.into(),
             linkage,
+            is_variadic
         }
     }
 
@@ -589,6 +592,15 @@ impl PouIndexEntry {
     pub fn is_generic(&self) -> bool {
         if let PouIndexEntry::Function { generics, .. } = self {
             !generics.is_empty()
+        } else {
+            false
+        }
+    }
+
+    /// returns true if this pou has a variadic (last) parameter
+    pub fn is_variadic(&self) -> bool {
+        if let PouIndexEntry::Function { is_variadic, .. } = self {
+            *is_variadic
         } else {
             false
         }

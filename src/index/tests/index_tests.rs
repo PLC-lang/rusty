@@ -1933,7 +1933,8 @@ fn a_program_pou_is_indexed() {
                 nature: TypeNature::Int
             }]
             .to_vec(),
-            return_type: "INT".into()
+            return_type: "INT".into(),
+            is_variadic: false
         }),
         index.find_pou("myFunction"),
     );

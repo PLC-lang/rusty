@@ -512,7 +512,7 @@ fn var_output_assignment_in_functions() {
     let mut interface = MainType { var1: 0, var2: 0 };
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
-    assert_eq!((7+2, 8+3), (interface.var1, interface.var2));
+    assert_eq!((7 + 2, 8 + 3), (interface.var1, interface.var2));
 }
 
 #[test]

@@ -33,7 +33,6 @@ fn real_negation() {
 }
 
 #[test]
-#[ignore = "pass string to function failse"]
 fn equal_comparison_with_arbitrary_datatypes() {
     #[repr(C)]
     struct Main {
@@ -76,7 +75,6 @@ fn equal_comparison_with_arbitrary_datatypes() {
 }
 
 #[test]
-#[ignore = "pass string to function failse"]
 fn less_or_equal_comparison_with_arbitrary_datatypes() {
     struct Main {
         results: [i32; 3],
@@ -130,7 +128,6 @@ fn less_or_equal_comparison_with_arbitrary_datatypes() {
 }
 
 #[test]
-#[ignore = "pass string to function failse"]
 fn greater_or_equal_comparison_with_arbitrary_datatypes() {
     struct Main {
         results: [i32; 3],

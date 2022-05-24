@@ -127,6 +127,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         )
     }
 
+    let has_varargs = varargs.is_some();
     let datatype = typesystem::DataType {
         name: pou.name.to_string(),
         initial_value: None,
@@ -179,6 +180,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 return_type_name,
                 &pou.generics,
                 pou.linkage,
+                has_varargs
             ));
             index.register_pou_type(datatype);
         }
