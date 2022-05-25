@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/values/instruction_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>instruction_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/values/instruction_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>instruction_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -670,48 +670,30 @@
 <span id="665">665</span>
 <span id="666">666</span>
 <span id="667">667</span>
-<span id="668">668</span>
-<span id="669">669</span>
-<span id="670">670</span>
-<span id="671">671</span>
-<span id="672">672</span>
-<span id="673">673</span>
-<span id="674">674</span>
-<span id="675">675</span>
-<span id="676">676</span>
-<span id="677">677</span>
-<span id="678">678</span>
-<span id="679">679</span>
-<span id="680">680</span>
-<span id="681">681</span>
-<span id="682">682</span>
-<span id="683">683</span>
-<span id="684">684</span>
-<span id="685">685</span>
-<span id="686">686</span>
-<span id="687">687</span>
-<span id="688">688</span>
-<span id="689">689</span>
-<span id="690">690</span>
-<span id="691">691</span>
-<span id="692">692</span>
-<span id="693">693</span>
-<span id="694">694</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">either</span>::{<span class="ident">Either</span>, <span class="ident">Either</span>::{<span class="ident">Left</span>, <span class="ident">Right</span>}};
-<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetAlignment</span>, <span class="ident">LLVMSetAlignment</span>, <span class="ident">LLVMGetInstructionOpcode</span>, <span class="ident">LLVMIsTailCall</span>, <span class="ident">LLVMGetPreviousInstruction</span>, <span class="ident">LLVMGetNextInstruction</span>, <span class="ident">LLVMGetInstructionParent</span>, <span class="ident">LLVMInstructionEraseFromParent</span>, <span class="ident">LLVMInstructionClone</span>, <span class="ident">LLVMSetVolatile</span>, <span class="ident">LLVMGetVolatile</span>, <span class="ident">LLVMGetNumOperands</span>, <span class="ident">LLVMGetOperand</span>, <span class="ident">LLVMGetOperandUse</span>, <span class="ident">LLVMSetOperand</span>, <span class="ident">LLVMValueAsBasicBlock</span>, <span class="ident">LLVMIsABasicBlock</span>, <span class="ident">LLVMGetICmpPredicate</span>, <span class="ident">LLVMGetFCmpPredicate</span>, <span class="ident">LLVMIsAAllocaInst</span>, <span class="ident">LLVMIsALoadInst</span>, <span class="ident">LLVMIsAStoreInst</span>, <span class="ident">LLVMGetMetadata</span>, <span class="ident">LLVMHasMetadata</span>, <span class="ident">LLVMSetMetadata</span>};
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.8</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetOrdering</span>, <span class="ident">LLVMSetOrdering</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">either</span>::{
+    <span class="ident">Either</span>,
+    <span class="ident">Either</span>::{<span class="ident">Left</span>, <span class="ident">Right</span>},
+};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMInstructionRemoveFromParent</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
+    <span class="ident">LLVMGetAlignment</span>, <span class="ident">LLVMGetFCmpPredicate</span>, <span class="ident">LLVMGetICmpPredicate</span>, <span class="ident">LLVMGetInstructionOpcode</span>, <span class="ident">LLVMGetInstructionParent</span>,
+    <span class="ident">LLVMGetMetadata</span>, <span class="ident">LLVMGetNextInstruction</span>, <span class="ident">LLVMGetNumOperands</span>, <span class="ident">LLVMGetOperand</span>, <span class="ident">LLVMGetOperandUse</span>,
+    <span class="ident">LLVMGetPreviousInstruction</span>, <span class="ident">LLVMGetVolatile</span>, <span class="ident">LLVMHasMetadata</span>, <span class="ident">LLVMInstructionClone</span>, <span class="ident">LLVMInstructionEraseFromParent</span>,
+    <span class="ident">LLVMIsAAllocaInst</span>, <span class="ident">LLVMIsABasicBlock</span>, <span class="ident">LLVMIsALoadInst</span>, <span class="ident">LLVMIsAStoreInst</span>, <span class="ident">LLVMIsTailCall</span>, <span class="ident">LLVMSetAlignment</span>,
+    <span class="ident">LLVMSetMetadata</span>, <span class="ident">LLVMSetOperand</span>, <span class="ident">LLVMSetVolatile</span>, <span class="ident">LLVMValueAsBasicBlock</span>,
+};
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.8</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetOrdering</span>, <span class="ident">LLVMSetOrdering</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">10.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMIsAAtomicRMWInst</span>, <span class="ident">LLVMIsAAtomicCmpXchgInst</span>};
-<span class="kw">use</span> <span class="ident">llvm_sys::LLVMOpcode</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMIsAAtomicCmpXchgInst</span>, <span class="ident">LLVMIsAAtomicRMWInst</span>};
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMValueRef</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::LLVMOpcode</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::basic_block::BasicBlock</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::traits::AsValueRef</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">BasicValueUse</span>, <span class="ident">Value</span>, <span class="ident">MetadataValue</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AtomicOrdering</span>, <span class="ident">IntPredicate</span>, <span class="ident">FloatPredicate</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">BasicValueUse</span>, <span class="ident">MetadataValue</span>, <span class="ident">Value</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">basic_block::BasicBlock</span>, <span class="ident">types::AnyTypeEnum</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AtomicOrdering</span>, <span class="ident">FloatPredicate</span>, <span class="ident">IntPredicate</span>};
 
 <span class="comment">// REVIEW: Split up into structs for SubTypes on InstructionValues?</span>
 <span class="comment">// REVIEW: This should maybe be split up into InstructionOpcode and ConstOpcode?</span>
@@ -835,55 +817,46 @@
         }
     }
 
+    <span class="doccomment">/// Get type of the current InstructionValue</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="self">self</span>) -&gt; <span class="ident">AnyTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> { <span class="ident">AnyTypeEnum::new</span>(<span class="self">self</span>.<span class="ident">instruction_value</span>.<span class="ident">get_type</span>()) }
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_opcode</span>(<span class="self">self</span>) -&gt; <span class="ident">InstructionOpcode</span> {
-        <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetInstructionOpcode</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        };
+        <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetInstructionOpcode</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) };
 
         <span class="ident">InstructionOpcode::new</span>(<span class="ident">opcode</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_previous_instruction</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetPreviousInstruction</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        };
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetPreviousInstruction</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) };
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_next_instruction</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetNextInstruction</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        };
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetNextInstruction</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) };
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>)) }
     }
 
     <span class="comment">// REVIEW: Potentially unsafe if parent BB or grandparent fn were removed?</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">erase_from_basic_block</span>(<span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMInstructionEraseFromParent</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMInstructionEraseFromParent</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) }
     }
 
     <span class="comment">// REVIEW: Potentially unsafe if parent BB or grandparent fn were removed?</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_from_basic_block</span>(<span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMInstructionRemoveFromParent</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMInstructionRemoveFromParent</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) }
     }
 
     <span class="comment">// REVIEW: Potentially unsafe is parent BB or grandparent fn was deleted</span>
@@ -892,17 +865,13 @@
     <span class="comment">// was deleted... Invalid memory is more likely. Cloned IV will have no</span>
     <span class="comment">// parent?</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_parent</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">BasicBlock::new</span>(<span class="ident">LLVMGetInstructionParent</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">BasicBlock::new</span>(<span class="ident">LLVMGetInstructionParent</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_tail_call</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// LLVMIsTailCall has UB if the value is not an llvm::CallInst*.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_opcode</span>() <span class="op">==</span> <span class="ident">InstructionOpcode::Call</span> {
-            <span class="kw">unsafe</span> {
-                <span class="ident">LLVMIsTailCall</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) <span class="op">==</span> <span class="number">1</span>
-            }
+            <span class="kw">unsafe</span> { <span class="ident">LLVMIsTailCall</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) <span class="op">==</span> <span class="number">1</span> }
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
         }
@@ -928,8 +897,8 @@
     <span class="doccomment">/// Returns whether or not a memory access instruction is volatile.</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">10.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_volatile</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_load_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_store_inst</span>() <span class="op">&amp;&amp;</span>
-           <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_atomicrmw_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_cmpxchg_inst</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_load_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_store_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_atomicrmw_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_cmpxchg_inst</span>()
+        {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load, store, atomicrmw or cmpxchg.&quot;</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">LLVMGetVolatile</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) } <span class="op">==</span> <span class="number">1</span>)
@@ -951,8 +920,8 @@
     <span class="doccomment">/// Sets whether or not a memory access instruction is volatile.</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">10.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_volatile</span>(<span class="self">self</span>, <span class="ident">volatile</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_load_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_store_inst</span>() <span class="op">&amp;&amp;</span>
-           <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_atomicrmw_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_cmpxchg_inst</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_load_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_store_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_atomicrmw_inst</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_a_cmpxchg_inst</span>()
+        {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load, store, atomicrmw or cmpxchg.&quot;</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">LLVMSetVolatile</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">volatile</span> <span class="kw">as</span> <span class="ident">i32</span>) })
@@ -1007,13 +976,16 @@
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Value is not a load or store instruction.&quot;</span>);
         }
         <span class="kw">match</span> <span class="ident">ordering</span> {
-            <span class="ident">AtomicOrdering::Release</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_a_load_inst</span>() =&gt;
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;The release ordering is not valid on load instructions.&quot;</span>),
-            <span class="ident">AtomicOrdering::AcquireRelease</span> =&gt;
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;The acq_rel ordering is not valid on load or store instructions.&quot;</span>),
-            <span class="ident">AtomicOrdering::Acquire</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_a_store_inst</span>() =&gt;
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;The acquire ordering is not valid on store instructions.&quot;</span>),
-            <span class="kw">_</span> =&gt; { },
+            <span class="ident">AtomicOrdering::Release</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_a_load_inst</span>() =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;The release ordering is not valid on load instructions.&quot;</span>)
+            },
+            <span class="ident">AtomicOrdering::AcquireRelease</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;The acq_rel ordering is not valid on load or store instructions.&quot;</span>)
+            },
+            <span class="ident">AtomicOrdering::Acquire</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_a_store_inst</span>() =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;The acquire ordering is not valid on store instructions.&quot;</span>)
+            },
+            <span class="kw">_</span> =&gt; {},
         };
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">LLVMSetOrdering</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">ordering</span>.<span class="ident">into</span>()) })
     }
@@ -1075,9 +1047,7 @@
     <span class="doccomment">/// 4) Void return has zero: void is not a value and does not count as an operand</span>
     <span class="doccomment">/// even though the return instruction can take values.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_num_operands</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetNumOperands</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) <span class="kw">as</span> <span class="ident">u32</span>
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMGetNumOperands</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) <span class="kw">as</span> <span class="ident">u32</span> }
     }
 
     <span class="doccomment">/// Obtains the operand an `InstructionValue` has at a given index if any.</span>
@@ -1148,22 +1118,16 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">operand</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetOperand</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>)
-        };
+        <span class="kw">let</span> <span class="ident">operand</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetOperand</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>) };
 
         <span class="kw">if</span> <span class="ident">operand</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">is_basic_block</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="op">!</span><span class="ident">LLVMIsABasicBlock</span>(<span class="ident">operand</span>).<span class="ident">is_null</span>()
-        };
+        <span class="kw">let</span> <span class="ident">is_basic_block</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="op">!</span><span class="ident">LLVMIsABasicBlock</span>(<span class="ident">operand</span>).<span class="ident">is_null</span>() };
 
         <span class="kw">if</span> <span class="ident">is_basic_block</span> {
-            <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">BasicBlock::new</span>(<span class="ident">LLVMValueAsBasicBlock</span>(<span class="ident">operand</span>))
-            };
+            <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">BasicBlock::new</span>(<span class="ident">LLVMValueAsBasicBlock</span>(<span class="ident">operand</span>)) };
 
             <span class="prelude-val">Some</span>(<span class="ident">Right</span>(<span class="ident">bb</span>.<span class="ident">expect</span>(<span class="string">&quot;BasicBlock should always be valid&quot;</span>)))
         } <span class="kw">else</span> {
@@ -1209,9 +1173,7 @@
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMSetOperand</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>, <span class="ident">val</span>.<span class="ident">as_value_ref</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMSetOperand</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>, <span class="ident">val</span>.<span class="ident">as_value_ref</span>()) }
 
         <span class="bool-val">true</span>
     }
@@ -1251,17 +1213,13 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">use_</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetOperandUse</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>)
-        };
+        <span class="kw">let</span> <span class="ident">use_</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetOperandUse</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>) };
 
         <span class="kw">if</span> <span class="ident">use_</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">BasicValueUse::new</span>(<span class="ident">use_</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">BasicValueUse::new</span>(<span class="ident">use_</span>)) }
     }
 
     <span class="doccomment">/// Gets the first use of an `InstructionValue` if any.</span>
@@ -1309,9 +1267,7 @@
         <span class="comment">// what happens if we don&#39;t perform this check, and just call</span>
         <span class="comment">// LLVMGetICmpPredicate() regardless?</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_opcode</span>() <span class="op">==</span> <span class="ident">InstructionOpcode::ICmp</span> {
-            <span class="kw">let</span> <span class="ident">pred</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">LLVMGetICmpPredicate</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-            };
+            <span class="kw">let</span> <span class="ident">pred</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetICmpPredicate</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) };
             <span class="prelude-val">Some</span>(<span class="ident">IntPredicate::new</span>(<span class="ident">pred</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -1329,9 +1285,7 @@
         <span class="comment">// what happens if we don&#39;t perform this check, and just call</span>
         <span class="comment">// LLVMGetFCmpPredicate() regardless?</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_opcode</span>() <span class="op">==</span> <span class="ident">InstructionOpcode::FCmp</span> {
-            <span class="kw">let</span> <span class="ident">pred</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">LLVMGetFCmpPredicate</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-            };
+            <span class="kw">let</span> <span class="ident">pred</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetFCmpPredicate</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) };
             <span class="prelude-val">Some</span>(<span class="ident">FloatPredicate::new</span>(<span class="ident">pred</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -1340,32 +1294,26 @@
 
     <span class="doccomment">/// Determines whether or not this `Instruction` has any associated metadata.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_metadata</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMHasMetadata</span>(<span class="self">self</span>.<span class="ident">instruction_value</span>.<span class="ident">value</span>) <span class="op">==</span> <span class="number">1</span>
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMHasMetadata</span>(<span class="self">self</span>.<span class="ident">instruction_value</span>.<span class="ident">value</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Gets the `MetadataValue` associated with this `Instruction` at a specific</span>
     <span class="doccomment">/// `kind_id`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_metadata</span>(<span class="self">self</span>, <span class="ident">kind_id</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MetadataValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">metadata_value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetMetadata</span>(<span class="self">self</span>.<span class="ident">instruction_value</span>.<span class="ident">value</span>, <span class="ident">kind_id</span>)
-        };
+        <span class="kw">let</span> <span class="ident">metadata_value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetMetadata</span>(<span class="self">self</span>.<span class="ident">instruction_value</span>.<span class="ident">value</span>, <span class="ident">kind_id</span>) };
 
         <span class="kw">if</span> <span class="ident">metadata_value</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">MetadataValue::new</span>(<span class="ident">metadata_value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">MetadataValue::new</span>(<span class="ident">metadata_value</span>)) }
     }
 
     <span class="doccomment">/// Determines whether or not this `Instruction` has any associated metadata</span>
     <span class="doccomment">/// `kind_id`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_metadata</span>(<span class="self">self</span>, <span class="ident">metadata</span>: <span class="ident">MetadataValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">kind_id</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">metadata</span>.<span class="ident">is_node</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;metadata is expected to be a node.&quot;</span>)
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;metadata is expected to be a node.&quot;</span>);
         }
 
         <span class="kw">unsafe</span> {
@@ -1380,9 +1328,7 @@
     <span class="doccomment">/// Creates a clone of this `InstructionValue`, and returns it.</span>
     <span class="doccomment">/// The clone will have no parent, and no name.</span>
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">InstructionValue::new</span>(<span class="ident">LLVMInstructionClone</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">InstructionValue::new</span>(<span class="ident">LLVMInstructionClone</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())) }
     }
 }
 

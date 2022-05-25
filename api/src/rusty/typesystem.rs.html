@@ -840,6 +840,46 @@
 <span id="835">835</span>
 <span id="836">836</span>
 <span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">mem::size_of</span>,
@@ -898,12 +938,16 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LINT&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DATE_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DATE&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHORT_DATE_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;D&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LONG_DATE_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LDATE&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIME_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;TIME&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHORT_TIME_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;T&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LONG_TIME_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LTIME&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DATE_AND_TIME_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DATE_AND_TIME&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHORT_DATE_AND_TIME_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LONG_DATE_AND_TIME_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LDT&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIME_OF_DAY_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;TIME_OF_DAY&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHORT_TIME_OF_DAY_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;TOD&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LONG_TIME_OF_DAY_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LTOD&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ULINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ULINT&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REAL_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;REAL&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LREAL_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LREAL&quot;</span>;
@@ -1512,10 +1556,28 @@
             <span class="ident">nature</span>: <span class="ident">TypeNature::Date</span>,
         },
         <span class="ident">DataType</span> {
+            <span class="ident">name</span>: <span class="ident">LONG_DATE_AND_TIME_TYPE</span>.<span class="ident">into</span>(),
+            <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Alias</span> {
+                <span class="ident">name</span>: <span class="ident">LONG_DATE_AND_TIME_TYPE</span>.<span class="ident">into</span>(),
+                <span class="ident">referenced_type</span>: <span class="ident">DATE_AND_TIME_TYPE</span>.<span class="ident">into</span>(),
+            },
+            <span class="ident">nature</span>: <span class="ident">TypeNature::Date</span>,
+        },
+        <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="ident">SHORT_DATE_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Alias</span> {
                 <span class="ident">name</span>: <span class="ident">SHORT_DATE_TYPE</span>.<span class="ident">into</span>(),
+                <span class="ident">referenced_type</span>: <span class="ident">DATE_TYPE</span>.<span class="ident">into</span>(),
+            },
+            <span class="ident">nature</span>: <span class="ident">TypeNature::Date</span>,
+        },
+        <span class="ident">DataType</span> {
+            <span class="ident">name</span>: <span class="ident">LONG_DATE_TYPE</span>.<span class="ident">into</span>(),
+            <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Alias</span> {
+                <span class="ident">name</span>: <span class="ident">LONG_DATE_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">referenced_type</span>: <span class="ident">DATE_TYPE</span>.<span class="ident">into</span>(),
             },
             <span class="ident">nature</span>: <span class="ident">TypeNature::Date</span>,
@@ -1530,10 +1592,28 @@
             <span class="ident">nature</span>: <span class="ident">TypeNature::Date</span>,
         },
         <span class="ident">DataType</span> {
+            <span class="ident">name</span>: <span class="ident">LONG_TIME_OF_DAY_TYPE</span>.<span class="ident">into</span>(),
+            <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Alias</span> {
+                <span class="ident">name</span>: <span class="ident">LONG_TIME_OF_DAY_TYPE</span>.<span class="ident">into</span>(),
+                <span class="ident">referenced_type</span>: <span class="ident">TIME_OF_DAY_TYPE</span>.<span class="ident">into</span>(),
+            },
+            <span class="ident">nature</span>: <span class="ident">TypeNature::Date</span>,
+        },
+        <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="ident">SHORT_TIME_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Alias</span> {
                 <span class="ident">name</span>: <span class="ident">SHORT_TIME_TYPE</span>.<span class="ident">into</span>(),
+                <span class="ident">referenced_type</span>: <span class="ident">TIME_TYPE</span>.<span class="ident">into</span>(),
+            },
+            <span class="ident">nature</span>: <span class="ident">TypeNature::Duration</span>,
+        },
+        <span class="ident">DataType</span> {
+            <span class="ident">name</span>: <span class="ident">LONG_TIME_TYPE</span>.<span class="ident">into</span>(),
+            <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Alias</span> {
+                <span class="ident">name</span>: <span class="ident">LONG_TIME_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">referenced_type</span>: <span class="ident">TIME_TYPE</span>.<span class="ident">into</span>(),
             },
             <span class="ident">nature</span>: <span class="ident">TypeNature::Duration</span>,

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/values/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/values/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -225,6 +225,24 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A value is an instance of a type.</span>
 
 <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
@@ -233,6 +251,7 @@
 <span class="kw">mod</span> <span class="ident">basic_value_use</span>;
 <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">mod</span> <span class="ident">call_site_value</span>;
+<span class="kw">mod</span> <span class="ident">callable_value</span>;
 <span class="kw">mod</span> <span class="ident">enums</span>;
 <span class="kw">mod</span> <span class="ident">float_value</span>;
 <span class="kw">mod</span> <span class="ident">fn_value</span>;
@@ -246,32 +265,36 @@
 <span class="kw">mod</span> <span class="ident">struct_value</span>;
 <span class="kw">mod</span> <span class="ident">traits</span>;
 <span class="kw">mod</span> <span class="ident">vec_value</span>;
-<span class="kw">mod</span> <span class="ident">callable_value</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::LLVMString</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::array_value::ArrayValue</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::basic_value_use::BasicValueUse</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::call_site_value::CallSiteValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::enums</span>::{<span class="ident">AnyValueEnum</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">BasicMetadataValueEnum</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::callable_value::CallableValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::enums</span>::{<span class="ident">AggregateValueEnum</span>, <span class="ident">AnyValueEnum</span>, <span class="ident">BasicMetadataValueEnum</span>, <span class="ident">BasicValueEnum</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::float_value::FloatValue</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::fn_value::FunctionValue</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::generic_value::GenericValue</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::global_value::GlobalValue</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::global_value::UnnamedAddress</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::instruction_value</span>::{<span class="ident">InstructionValue</span>, <span class="ident">InstructionOpcode</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::instruction_value</span>::{<span class="ident">InstructionOpcode</span>, <span class="ident">InstructionValue</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::int_value::IntValue</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::metadata_value</span>::{<span class="ident">MetadataValue</span>, <span class="ident">FIRST_CUSTOM_METADATA_KIND_ID</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::phi_value::PhiValue</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::ptr_value::PointerValue</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::struct_value::StructValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::callable_value::CallableValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::traits</span>::{<span class="ident">AnyValue</span>, <span class="ident">AggregateValue</span>, <span class="ident">BasicValue</span>, <span class="ident">IntMathValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">PointerMathValue</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::vec_value::VectorValue</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::traits::AsValueRef</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::traits</span>::{<span class="ident">AggregateValue</span>, <span class="ident">AnyValue</span>, <span class="ident">BasicValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">IntMathValue</span>, <span class="ident">PointerMathValue</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::vec_value::VectorValue</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LLVMReference</span>;
 
-<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMIsConstant</span>, <span class="ident">LLVMIsNull</span>, <span class="ident">LLVMIsUndef</span>, <span class="ident">LLVMPrintTypeToString</span>, <span class="ident">LLVMPrintValueToString</span>, <span class="ident">LLVMTypeOf</span>, <span class="ident">LLVMDumpValue</span>, <span class="ident">LLVMIsAInstruction</span>, <span class="ident">LLVMReplaceAllUsesWith</span>, <span class="ident">LLVMGetFirstUse</span>};
-<span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMValueRef</span>, <span class="ident">LLVMTypeRef</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
+    <span class="ident">LLVMDumpValue</span>, <span class="ident">LLVMGetFirstUse</span>, <span class="ident">LLVMIsAInstruction</span>, <span class="ident">LLVMIsConstant</span>, <span class="ident">LLVMIsNull</span>, <span class="ident">LLVMIsUndef</span>, <span class="ident">LLVMPrintTypeToString</span>,
+    <span class="ident">LLVMPrintValueToString</span>, <span class="ident">LLVMReplaceAllUsesWith</span>, <span class="ident">LLVMTypeOf</span>,
+};
+<span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMTypeRef</span>, <span class="ident">LLVMValueRef</span>};
 
 <span class="kw">use</span> <span class="ident">std::ffi::CStr</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
@@ -285,7 +308,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">LLVMValueRef</span>) -&gt; <span class="self">Self</span> {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">value</span>.<span class="ident">is_null</span>(), <span class="string">&quot;This should never happen since containing struct should check null ptrs&quot;</span>);
+        <span class="macro">debug_assert!</span>(
+            <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_null</span>(),
+            <span class="string">&quot;This should never happen since containing struct should check null ptrs&quot;</span>
+        );
 
         <span class="ident">Value</span> {
             <span class="ident">value</span>,
@@ -294,9 +320,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">is_instruction</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> {
-            <span class="op">!</span><span class="ident">LLVMIsAInstruction</span>(<span class="self">self</span>.<span class="ident">value</span>).<span class="ident">is_null</span>()
-        }
+        <span class="kw">unsafe</span> { <span class="op">!</span><span class="ident">LLVMIsAInstruction</span>(<span class="self">self</span>.<span class="ident">value</span>).<span class="ident">is_null</span>() }
     }
 
     <span class="kw">fn</span> <span class="ident">as_instruction</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InstructionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -304,21 +328,15 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="self">self</span>.<span class="ident">value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="self">self</span>.<span class="ident">value</span>)) }
     }
 
     <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMIsNull</span>(<span class="self">self</span>.<span class="ident">value</span>) <span class="op">==</span> <span class="number">1</span>
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMIsNull</span>(<span class="self">self</span>.<span class="ident">value</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="kw">fn</span> <span class="ident">is_const</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMIsConstant</span>(<span class="self">self</span>.<span class="ident">value</span>) <span class="op">==</span> <span class="number">1</span>
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMIsConstant</span>(<span class="self">self</span>.<span class="ident">value</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="comment">// TODOC: According to https://stackoverflow.com/questions/21593752/llvm-how-to-pass-a-name-to-constantint</span>
@@ -328,11 +346,18 @@
     <span class="comment">// add a ParamValue wrapper type that always have it but conditional types (IntValue&lt;Variable&gt;)</span>
     <span class="comment">// that also have it. This isn&#39;t a huge deal though, since it hasn&#39;t proven to be UB so far</span>
     <span class="kw">fn</span> <span class="ident">set_name</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
-                  <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>
+        ))]</span>
         {
-            <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetValueName</span>;
             <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::to_c_str</span>;
+            <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetValueName</span>;
 
             <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
@@ -340,29 +365,48 @@
                 <span class="ident">LLVMSetValueName</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>());
             }
         }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
-                      <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>)))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>
+        )))]</span>
         {
             <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetValueName2</span>;
 
-            <span class="kw">unsafe</span> {
-                <span class="ident">LLVMSetValueName2</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="ident">name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">name</span>.<span class="ident">len</span>())
-            }
+            <span class="kw">unsafe</span> { <span class="ident">LLVMSetValueName2</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="ident">name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">name</span>.<span class="ident">len</span>()) }
         }
     }
 
     <span class="comment">// get_name should *not* return a LLVMString, because it is not an owned value AFAICT</span>
     <span class="comment">// TODO: Should make this take ownership of self. But what is the lifetime of the string? &#39;ctx?</span>
     <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
-                  <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>
+        ))]</span>
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetValueName</span>;
 
             <span class="ident">LLVMGetValueName</span>(<span class="self">self</span>.<span class="ident">value</span>)
         };
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
-                      <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>)))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>
+        )))]</span>
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetValueName2</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
@@ -370,33 +414,23 @@
             <span class="ident">LLVMGetValueName2</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="kw-2">&amp;mut</span> <span class="ident">len</span>)
         };
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">CStr::from_ptr</span>(<span class="ident">ptr</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">ptr</span>) }
     }
 
     <span class="kw">fn</span> <span class="ident">is_undef</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMIsUndef</span>(<span class="self">self</span>.<span class="ident">value</span>) <span class="op">==</span> <span class="number">1</span>
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMIsUndef</span>(<span class="self">self</span>.<span class="ident">value</span>) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="self">self</span>) -&gt; <span class="ident">LLVMTypeRef</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMTypeOf</span>(<span class="self">self</span>.<span class="ident">value</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMTypeOf</span>(<span class="self">self</span>.<span class="ident">value</span>) }
     }
 
     <span class="kw">fn</span> <span class="ident">print_to_string</span>(<span class="self">self</span>) -&gt; <span class="ident">LLVMString</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMString::new</span>(<span class="ident">LLVMPrintValueToString</span>(<span class="self">self</span>.<span class="ident">value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMPrintValueToString</span>(<span class="self">self</span>.<span class="ident">value</span>)) }
     }
 
     <span class="kw">fn</span> <span class="ident">print_to_stderr</span>(<span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMDumpValue</span>(<span class="self">self</span>.<span class="ident">value</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMDumpValue</span>(<span class="self">self</span>.<span class="ident">value</span>) }
     }
 
     <span class="comment">// REVIEW: I think this is memory safe, though it may result in an IR error</span>
@@ -404,33 +438,25 @@
     <span class="kw">fn</span> <span class="ident">replace_all_uses_with</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">LLVMValueRef</span>) {
         <span class="comment">// LLVM may infinite-loop when they aren&#39;t distinct, which is UB in C++.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">value</span> <span class="op">!</span><span class="op">=</span> <span class="ident">other</span> {
-            <span class="kw">unsafe</span> {
-                <span class="ident">LLVMReplaceAllUsesWith</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="ident">other</span>)
-            }
+            <span class="kw">unsafe</span> { <span class="ident">LLVMReplaceAllUsesWith</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="ident">other</span>) }
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_first_use</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueUse</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">use_</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetFirstUse</span>(<span class="self">self</span>.<span class="ident">value</span>)
-        };
+        <span class="kw">let</span> <span class="ident">use_</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetFirstUse</span>(<span class="self">self</span>.<span class="ident">value</span>) };
 
         <span class="kw">if</span> <span class="ident">use_</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">BasicValueUse::new</span>(<span class="ident">use_</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">BasicValueUse::new</span>(<span class="ident">use_</span>)) }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Value</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">llvm_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">print_to_string</span>();
-        <span class="kw">let</span> <span class="ident">llvm_type</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">CStr::from_ptr</span>(<span class="ident">LLVMPrintTypeToString</span>(<span class="ident">LLVMTypeOf</span>(<span class="self">self</span>.<span class="ident">value</span>)))
-        };
+        <span class="kw">let</span> <span class="ident">llvm_type</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">LLVMPrintTypeToString</span>(<span class="ident">LLVMTypeOf</span>(<span class="self">self</span>.<span class="ident">value</span>))) };
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_name</span>();
         <span class="kw">let</span> <span class="ident">is_const</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_const</span>();
         <span class="kw">let</span> <span class="ident">is_null</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_null</span>();
@@ -445,6 +471,16 @@
             .<span class="ident">field</span>(<span class="string">&quot;llvm_value&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">llvm_value</span>)
             .<span class="ident">field</span>(<span class="string">&quot;llvm_type&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">llvm_type</span>)
             .<span class="ident">finish</span>()
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">LLVMReference</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">AsValueRef</span>,
+{
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMValueRef</span> {
+        <span class="self">self</span>.<span class="ident">as_value_ref</span>()
     }
 }
 </code></pre></div>

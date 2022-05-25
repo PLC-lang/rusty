@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/support/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/support/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -180,23 +180,6 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error_handling</span>;
 
@@ -206,8 +189,8 @@
 
 <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
 <span class="kw">use</span> <span class="ident">std::error::Error</span>;
+<span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>};
-<span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CString</span>, <span class="ident">CStr</span>};
 <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
 <span class="doccomment">/// An owned LLVM String. Also known as a LLVM Message</span>
@@ -218,9 +201,7 @@
 
 <span class="kw">impl</span> <span class="ident">LLVMString</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">LLVMString</span> {
-            <span class="ident">ptr</span>,
-        }
+        <span class="ident">LLVMString</span> { <span class="ident">ptr</span> }
     }
 
     <span class="doccomment">/// This is a convenience method for creating a Rust `String`,</span>
@@ -234,18 +215,14 @@
 
     <span class="doccomment">/// This method will allocate a c string through LLVM</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_from_c_str</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">CStr</span>) -&gt; <span class="ident">LLVMString</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMString::new</span>(<span class="ident">LLVMCreateMessage</span>(<span class="ident">string</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMCreateMessage</span>(<span class="ident">string</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>)) }
     }
 
     <span class="doccomment">/// This method will allocate a c string through LLVM</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_from_str</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">LLVMString</span> {
         <span class="macro">debug_assert_eq!</span>(<span class="ident">string</span>.<span class="ident">as_bytes</span>()[<span class="ident">string</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>], <span class="number">0</span>);
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMString::new</span>(<span class="ident">LLVMCreateMessage</span>(<span class="ident">string</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMCreateMessage</span>(<span class="ident">string</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>)) }
     }
 }
 
@@ -253,9 +230,7 @@
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">CStr</span>;
 
     <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">CStr::from_ptr</span>(<span class="self">self</span>.<span class="ident">ptr</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="self">self</span>.<span class="ident">ptr</span>) }
     }
 }
 
@@ -279,7 +254,8 @@
 
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">LLVMString</span> {
     <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="self">self</span>.<span class="ident">to_str</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not convert LLVMString to str (likely invalid unicode)&quot;</span>)
+        <span class="self">self</span>.<span class="ident">to_str</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;Could not convert LLVMString to str (likely invalid unicode)&quot;</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span> {
@@ -309,9 +285,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">LLVMStringOrRaw::Owned</span>(<span class="ident">llvm_string</span>) =&gt; <span class="ident">llvm_string</span>.<span class="ident">deref</span>(),
-            <span class="ident">LLVMStringOrRaw::Borrowed</span>(<span class="ident">ptr</span>) =&gt; <span class="kw">unsafe</span> {
-                <span class="ident">CStr::from_ptr</span>(<span class="kw-2">*</span><span class="ident">ptr</span>)
-            },
+            <span class="ident">LLVMStringOrRaw::Borrowed</span>(<span class="ident">ptr</span>) =&gt; <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="kw-2">*</span><span class="ident">ptr</span>) },
         }
     }
 }
@@ -333,9 +307,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_library_permanently</span>(<span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">filename</span>);
 
-    <span class="kw">unsafe</span> {
-        <span class="ident">LLVMLoadLibraryPermanently</span>(<span class="ident">filename</span>.<span class="ident">as_ptr</span>()) <span class="op">==</span> <span class="number">1</span>
-    }
+    <span class="kw">unsafe</span> { <span class="ident">LLVMLoadLibraryPermanently</span>(<span class="ident">filename</span>.<span class="ident">as_ptr</span>()) <span class="op">==</span> <span class="number">1</span> }
 }
 
 <span class="doccomment">/// Determines whether or not LLVM has been configured to run in multithreaded mode. (Inkwell currently does</span>
@@ -343,9 +315,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_multithreaded</span>() -&gt; <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMIsMultithreaded</span>;
 
-    <span class="kw">unsafe</span> {
-        <span class="ident">LLVMIsMultithreaded</span>() <span class="op">==</span> <span class="number">1</span>
-    }
+    <span class="kw">unsafe</span> { <span class="ident">LLVMIsMultithreaded</span>() <span class="op">==</span> <span class="number">1</span> }
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_llvm_pretty_stack_trace</span>() {
@@ -354,9 +324,7 @@
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.8</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">use</span> <span class="ident">llvm_sys::error_handling::LLVMEnablePrettyStackTrace</span>;
 
-    <span class="kw">unsafe</span> {
-        <span class="ident">LLVMEnablePrettyStackTrace</span>()
-    }
+    <span class="kw">unsafe</span> { <span class="ident">LLVMEnablePrettyStackTrace</span>() }
 }
 
 <span class="doccomment">/// This function takes in a Rust string and either:</span>
@@ -374,9 +342,7 @@
         <span class="kw">return</span> <span class="ident">Cow::from</span>(<span class="ident">CString::new</span>(<span class="ident">s</span>).<span class="ident">expect</span>(<span class="string">&quot;unreachable since null bytes are checked&quot;</span>));
     }
 
-    <span class="kw">unsafe</span> {
-        <span class="ident">Cow::from</span>(<span class="ident">CStr::from_ptr</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
-    }
+    <span class="kw">unsafe</span> { <span class="ident">Cow::from</span>(<span class="ident">CStr::from_ptr</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>)) }
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/internal_macros/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/internal_macros/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell_internals/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -609,6 +609,25 @@
 <span id="604">604</span>
 <span id="605">605</span>
 <span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
 </pre><pre class="rust"><code><span class="doccomment">//! These macros are only intended to be used by inkwell internally</span>
 <span class="doccomment">//! and should not be expected to have public support nor stability.</span>
 <span class="doccomment">//! Here be dragons 🐉</span>
@@ -623,15 +642,17 @@
 <span class="kw">use</span> <span class="ident">proc_macro::TokenStream</span>;
 <span class="kw">use</span> <span class="ident">proc_macro2::Span</span>;
 <span class="kw">use</span> <span class="ident">quote::quote</span>;
-<span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_quote</span>, <span class="ident">parse_macro_input</span>, <span class="ident">parenthesized</span>};
-<span class="kw">use</span> <span class="ident">syn::parse</span>::{<span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>, <span class="ident">Error</span>};
 <span class="kw">use</span> <span class="ident">syn::fold::Fold</span>;
+<span class="kw">use</span> <span class="ident">syn::parse</span>::{<span class="ident">Error</span>, <span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">syn::spanned::Spanned</span>;
-<span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">Token</span>, <span class="ident">LitFloat</span>, <span class="ident">Ident</span>, <span class="ident">Item</span>, <span class="ident">Field</span>, <span class="ident">Variant</span>, <span class="ident">Attribute</span>};
+<span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parenthesized</span>, <span class="ident">parse_macro_input</span>, <span class="ident">parse_quote</span>};
+<span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">Attribute</span>, <span class="ident">Field</span>, <span class="ident">Ident</span>, <span class="ident">Item</span>, <span class="ident">LitFloat</span>, <span class="ident">Token</span>, <span class="ident">Variant</span>};
 
 <span class="comment">// This array should match the LLVM features in the top level Cargo manifest</span>
-<span class="kw">const</span> <span class="ident">FEATURE_VERSIONS</span>: [<span class="kw-2">&amp;</span><span class="ident">str</span>; <span class="number">14</span>] <span class="op">=</span>
-    [<span class="string">&quot;llvm3-6&quot;</span>, <span class="string">&quot;llvm3-7&quot;</span>, <span class="string">&quot;llvm3-8&quot;</span>, <span class="string">&quot;llvm3-9&quot;</span>, <span class="string">&quot;llvm4-0&quot;</span>, <span class="string">&quot;llvm5-0&quot;</span>, <span class="string">&quot;llvm6-0&quot;</span>, <span class="string">&quot;llvm7-0&quot;</span>, <span class="string">&quot;llvm8-0&quot;</span>, <span class="string">&quot;llvm9-0&quot;</span>, <span class="string">&quot;llvm10-0&quot;</span>, <span class="string">&quot;llvm11-0&quot;</span>, <span class="string">&quot;llvm12-0&quot;</span>, <span class="string">&quot;llvm13-0&quot;</span>];
+<span class="kw">const</span> <span class="ident">FEATURE_VERSIONS</span>: [<span class="kw-2">&amp;</span><span class="ident">str</span>; <span class="number">15</span>] <span class="op">=</span> [
+    <span class="string">&quot;llvm3-6&quot;</span>, <span class="string">&quot;llvm3-7&quot;</span>, <span class="string">&quot;llvm3-8&quot;</span>, <span class="string">&quot;llvm3-9&quot;</span>, <span class="string">&quot;llvm4-0&quot;</span>, <span class="string">&quot;llvm5-0&quot;</span>, <span class="string">&quot;llvm6-0&quot;</span>, <span class="string">&quot;llvm7-0&quot;</span>, <span class="string">&quot;llvm8-0&quot;</span>, <span class="string">&quot;llvm9-0&quot;</span>,
+    <span class="string">&quot;llvm10-0&quot;</span>, <span class="string">&quot;llvm11-0&quot;</span>, <span class="string">&quot;llvm12-0&quot;</span>, <span class="string">&quot;llvm13-0&quot;</span>, <span class="string">&quot;llvm14-0&quot;</span>,
+];
 
 <span class="doccomment">/// Gets the index of the feature version that represents `latest`</span>
 <span class="kw">fn</span> <span class="ident">get_latest_feature_index</span>(<span class="ident">features</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) -&gt; <span class="ident">usize</span> {
@@ -642,8 +663,11 @@
 <span class="kw">fn</span> <span class="ident">get_feature_index</span>(<span class="ident">features</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>], <span class="ident">feature</span>: <span class="ident">String</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">feat</span> <span class="op">=</span> <span class="ident">feature</span>.<span class="ident">as_str</span>();
     <span class="kw">match</span> <span class="ident">features</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">feat</span>) {
-        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">span</span>, <span class="macro">format!</span>(<span class="string">&quot;Invalid feature version: {}, not defined&quot;</span>, <span class="ident">feature</span>))),
-        <span class="prelude-val">Some</span>(<span class="ident">index</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">index</span>)
+        <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(
+            <span class="ident">span</span>,
+            <span class="macro">format!</span>(<span class="string">&quot;Invalid feature version: {}, not defined&quot;</span>, <span class="ident">feature</span>),
+        )),
+        <span class="prelude-val">Some</span>(<span class="ident">index</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">index</span>),
     }
 }
 
@@ -656,41 +680,50 @@
             <span class="kw">let</span> <span class="ident">feature</span> <span class="op">=</span> <span class="ident">f64_to_feature_string</span>(<span class="ident">version</span>);
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">get_feature_index</span>(<span class="kw-2">&amp;</span><span class="ident">features</span>, <span class="ident">feature</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">features</span>[<span class="ident">index</span>..<span class="op">=</span><span class="ident">index</span>].<span class="ident">to_vec</span>())
-        }
+        },
         <span class="ident">VersionType::InclusiveRangeToLatest</span>(<span class="ident">version</span>, <span class="ident">span</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">feature</span> <span class="op">=</span> <span class="ident">f64_to_feature_string</span>(<span class="ident">version</span>);
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">get_feature_index</span>(<span class="kw-2">&amp;</span><span class="ident">features</span>, <span class="ident">feature</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">features</span>[<span class="ident">index</span>..<span class="op">=</span><span class="ident">latest</span>].<span class="ident">to_vec</span>())
-        }
+        },
         <span class="ident">VersionType::InclusiveRange</span>((<span class="ident">start</span>, <span class="ident">start_span</span>), (<span class="ident">end</span>, <span class="ident">end_span</span>)) =&gt; {
             <span class="kw">let</span> <span class="ident">start_feature</span> <span class="op">=</span> <span class="ident">f64_to_feature_string</span>(<span class="ident">start</span>);
             <span class="kw">let</span> <span class="ident">end_feature</span> <span class="op">=</span> <span class="ident">f64_to_feature_string</span>(<span class="ident">end</span>);
             <span class="kw">let</span> <span class="ident">start_index</span> <span class="op">=</span> <span class="ident">get_feature_index</span>(<span class="kw-2">&amp;</span><span class="ident">features</span>, <span class="ident">start_feature</span>, <span class="ident">start_span</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">end_index</span> <span class="op">=</span> <span class="ident">get_feature_index</span>(<span class="kw-2">&amp;</span><span class="ident">features</span>, <span class="ident">end_feature</span>, <span class="ident">end_span</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">end_index</span> <span class="op">&lt;</span> <span class="ident">start_index</span> {
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;Invalid version range: {} must be greater than or equal to {}&quot;</span>, <span class="ident">start</span>, <span class="ident">end</span>);
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(
+                    <span class="string">&quot;Invalid version range: {} must be greater than or equal to {}&quot;</span>,
+                    <span class="ident">start</span>, <span class="ident">end</span>
+                );
                 <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">end_span</span>, <span class="ident">message</span>))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">features</span>[<span class="ident">start_index</span>..<span class="op">=</span><span class="ident">end_index</span>].<span class="ident">to_vec</span>())
             }
-        }
+        },
         <span class="ident">VersionType::ExclusiveRangeToLatest</span>(<span class="ident">version</span>, <span class="ident">span</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">feature</span> <span class="op">=</span> <span class="ident">f64_to_feature_string</span>(<span class="ident">version</span>);
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">get_feature_index</span>(<span class="kw-2">&amp;</span><span class="ident">features</span>, <span class="ident">feature</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">latest</span> <span class="op">==</span> <span class="ident">index</span> {
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;Invalid version range: {}..latest produces an empty feature set&quot;</span>, <span class="ident">version</span>);
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(
+                    <span class="string">&quot;Invalid version range: {}..latest produces an empty feature set&quot;</span>,
+                    <span class="ident">version</span>
+                );
                 <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">span</span>, <span class="ident">message</span>))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">features</span>[<span class="ident">index</span>..<span class="ident">latest</span>].<span class="ident">to_vec</span>())
             }
-        }
+        },
         <span class="ident">VersionType::ExclusiveRange</span>((<span class="ident">start</span>, <span class="ident">start_span</span>), (<span class="ident">end</span>, <span class="ident">end_span</span>)) =&gt; {
             <span class="kw">let</span> <span class="ident">start_feature</span> <span class="op">=</span> <span class="ident">f64_to_feature_string</span>(<span class="ident">start</span>);
             <span class="kw">let</span> <span class="ident">end_feature</span> <span class="op">=</span> <span class="ident">f64_to_feature_string</span>(<span class="ident">end</span>);
             <span class="kw">let</span> <span class="ident">start_index</span> <span class="op">=</span> <span class="ident">get_feature_index</span>(<span class="kw-2">&amp;</span><span class="ident">features</span>, <span class="ident">start_feature</span>, <span class="ident">start_span</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">end_index</span> <span class="op">=</span> <span class="ident">get_feature_index</span>(<span class="kw-2">&amp;</span><span class="ident">features</span>, <span class="ident">end_feature</span>, <span class="ident">end_span</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">end_index</span> <span class="op">==</span> <span class="ident">start_index</span> {
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;Invalid version range: {}..{} produces an empty feature set&quot;</span>, <span class="ident">start</span>, <span class="ident">end</span>);
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(
+                    <span class="string">&quot;Invalid version range: {}..{} produces an empty feature set&quot;</span>,
+                    <span class="ident">start</span>, <span class="ident">end</span>
+                );
                 <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">start_span</span>, <span class="ident">message</span>))
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">end_index</span> <span class="op">&lt;</span> <span class="ident">start_index</span> {
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;Invalid version range: {} must be greater than {}&quot;</span>, <span class="ident">start</span>, <span class="ident">end</span>);
@@ -698,7 +731,7 @@
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">features</span>[<span class="ident">start_index</span>..<span class="ident">end_index</span>].<span class="ident">to_vec</span>())
             }
-        }
+        },
     }
 }
 
@@ -747,7 +780,10 @@
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">LitFloat</span>) {
                     <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">LitFloat</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
                     <span class="kw">let</span> <span class="ident">to_val</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">base10_parse</span>().<span class="ident">unwrap</span>();
-                    <span class="prelude-val">Ok</span>(<span class="ident">VersionType::InclusiveRange</span>((<span class="ident">from_val</span>, <span class="ident">from</span>.<span class="ident">span</span>()), (<span class="ident">to_val</span>, <span class="ident">to</span>.<span class="ident">span</span>())))
+                    <span class="prelude-val">Ok</span>(<span class="ident">VersionType::InclusiveRange</span>(
+                        (<span class="ident">from_val</span>, <span class="ident">from</span>.<span class="ident">span</span>()),
+                        (<span class="ident">to_val</span>, <span class="ident">to</span>.<span class="ident">span</span>()),
+                    ))
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
                 }
@@ -764,7 +800,10 @@
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">LitFloat</span>) {
                     <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">LitFloat</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
                     <span class="kw">let</span> <span class="ident">to_val</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">base10_parse</span>().<span class="ident">unwrap</span>();
-                    <span class="prelude-val">Ok</span>(<span class="ident">VersionType::ExclusiveRange</span>((<span class="ident">from_val</span>, <span class="ident">from</span>.<span class="ident">span</span>()), (<span class="ident">to_val</span>, <span class="ident">to</span>.<span class="ident">span</span>())))
+                    <span class="prelude-val">Ok</span>(<span class="ident">VersionType::ExclusiveRange</span>(
+                        (<span class="ident">from_val</span>, <span class="ident">from</span>.<span class="ident">span</span>()),
+                        (<span class="ident">to_val</span>, <span class="ident">to</span>.<span class="ident">span</span>()),
+                    ))
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
                 }
@@ -848,7 +887,7 @@
                 <span class="macro">parse_quote!</span> {
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(#(<span class="ident">feature</span> <span class="op">=</span> #<span class="ident">features</span>),<span class="kw-2">*</span>))]</span>
                 }
-            }
+            },
             <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
                 <span class="comment">// We&#39;ve hit an error, but we can&#39;t break out yet,</span>
                 <span class="comment">// so we set the error in the FeatureSet state and</span>
@@ -856,7 +895,7 @@
                 <span class="comment">// the error</span>
                 <span class="self">self</span>.<span class="ident">set_error</span>(<span class="ident">err</span>);
                 <span class="ident">attr</span>.<span class="ident">clone</span>()
-            }
+            },
         }
     }
 }
@@ -866,7 +905,8 @@
             <span class="kw">return</span> <span class="ident">variant</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">attrs</span>
+        <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">variant</span>
+            .<span class="ident">attrs</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">expand_llvm_versions_attr</span>(<span class="ident">attr</span>))
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
@@ -879,7 +919,8 @@
             <span class="kw">return</span> <span class="ident">field</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">attrs</span>
+        <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">field</span>
+            .<span class="ident">attrs</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">expand_llvm_versions_attr</span>(<span class="ident">attr</span>))
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
@@ -1047,7 +1088,8 @@
                     <span class="kw">let</span> <span class="ident">variant_meta</span> <span class="op">=</span> <span class="ident">meta</span>.<span class="ident">nested</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>();
                     <span class="comment">// The element should be an identifier</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">NestedMeta::Meta</span>(<span class="ident">Meta::Path</span>(<span class="ident">name</span>)) <span class="op">=</span> <span class="ident">variant_meta</span> {
-                        <span class="self">self</span>.<span class="ident">variants</span>.<span class="ident">push</span>(<span class="ident">EnumVariant::with_name</span>(<span class="kw-2">&amp;</span><span class="ident">variant</span>, <span class="ident">name</span>.<span class="ident">get_ident</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()));
+                        <span class="self">self</span>.<span class="ident">variants</span>
+                            .<span class="ident">push</span>(<span class="ident">EnumVariant::with_name</span>(<span class="kw-2">&amp;</span><span class="ident">variant</span>, <span class="ident">name</span>.<span class="ident">get_ident</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()));
                         <span class="comment">// Strip the llvm_variant attribute from the final AST</span>
                         <span class="ident">variant</span>.<span class="ident">attrs</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="op">!</span><span class="ident">attr</span>.<span class="ident">path</span>.<span class="ident">is_ident</span>(<span class="string">&quot;llvm_variant&quot;</span>));
                         <span class="kw">return</span> <span class="ident">variant</span>;
@@ -1089,11 +1131,7 @@
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">variants</span>.<span class="ident">into_error</span>());
         }
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">name</span>,
-            <span class="ident">decl</span>,
-            <span class="ident">variants</span>,
-        })
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">name</span>, <span class="ident">decl</span>, <span class="ident">variants</span> })
     }
 }
 
@@ -1127,7 +1165,7 @@
 <span class="doccomment">/// source variant is named `Return` and mapped manually to `LLVMRet`.</span>
 <span class="attribute">#[<span class="ident">proc_macro_attribute</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">llvm_enum</span>(<span class="ident">attribute_args</span>: <span class="ident">TokenStream</span>, <span class="ident">attributee</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
-    <span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">Path</span>, <span class="ident">PatPath</span>, <span class="ident">Arm</span>};
+    <span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">Arm</span>, <span class="ident">PatPath</span>, <span class="ident">Path</span>};
 
     <span class="comment">// Expect something like #[llvm_enum(LLVMOpcode)]</span>
     <span class="kw">let</span> <span class="ident">llvm_ty</span> <span class="op">=</span> <span class="macro">parse_macro_input!</span>(<span class="ident">attribute_args</span> <span class="kw">as</span> <span class="ident">Path</span>);

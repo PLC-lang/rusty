@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/targets.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>targets.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/targets.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>targets.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1399,75 +1399,23 @@
 <span id="1394">1394</span>
 <span id="1395">1395</span>
 <span id="1396">1396</span>
-<span id="1397">1397</span>
-<span id="1398">1398</span>
-<span id="1399">1399</span>
-<span id="1400">1400</span>
-<span id="1401">1401</span>
-<span id="1402">1402</span>
-<span id="1403">1403</span>
-<span id="1404">1404</span>
-<span id="1405">1405</span>
-<span id="1406">1406</span>
-<span id="1407">1407</span>
-<span id="1408">1408</span>
-<span id="1409">1409</span>
-<span id="1410">1410</span>
-<span id="1411">1411</span>
-<span id="1412">1412</span>
-<span id="1413">1413</span>
-<span id="1414">1414</span>
-<span id="1415">1415</span>
-<span id="1416">1416</span>
-<span id="1417">1417</span>
-<span id="1418">1418</span>
-<span id="1419">1419</span>
-<span id="1420">1420</span>
-<span id="1421">1421</span>
-<span id="1422">1422</span>
-<span id="1423">1423</span>
-<span id="1424">1424</span>
-<span id="1425">1425</span>
-<span id="1426">1426</span>
-<span id="1427">1427</span>
-<span id="1428">1428</span>
-<span id="1429">1429</span>
-<span id="1430">1430</span>
-<span id="1431">1431</span>
-<span id="1432">1432</span>
-<span id="1433">1433</span>
-<span id="1434">1434</span>
-<span id="1435">1435</span>
-<span id="1436">1436</span>
-<span id="1437">1437</span>
-<span id="1438">1438</span>
-<span id="1439">1439</span>
-<span id="1440">1440</span>
-<span id="1441">1441</span>
-<span id="1442">1442</span>
-<span id="1443">1443</span>
-<span id="1444">1444</span>
-<span id="1445">1445</span>
-<span id="1446">1446</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-    <span class="ident">LLVMABIAlignmentOfType</span>, <span class="ident">LLVMABISizeOfType</span>, <span class="ident">LLVMByteOrder</span>, <span class="ident">LLVMByteOrdering</span>,
-    <span class="ident">LLVMCallFrameAlignmentOfType</span>, <span class="ident">LLVMCopyStringRepOfTargetData</span>, <span class="ident">LLVMCreateTargetData</span>,
-    <span class="ident">LLVMDisposeTargetData</span>, <span class="ident">LLVMElementAtOffset</span>,
-    <span class="ident">LLVMIntPtrTypeForASInContext</span>, <span class="ident">LLVMIntPtrTypeInContext</span>, <span class="ident">LLVMOffsetOfElement</span>, <span class="ident">LLVMPointerSize</span>,
-    <span class="ident">LLVMPointerSizeForAS</span>, <span class="ident">LLVMPreferredAlignmentOfGlobal</span>, <span class="ident">LLVMPreferredAlignmentOfType</span>,
-    <span class="ident">LLVMSizeOfTypeInBits</span>, <span class="ident">LLVMStoreSizeOfType</span>, <span class="ident">LLVMTargetDataRef</span>,
+    <span class="ident">LLVMABIAlignmentOfType</span>, <span class="ident">LLVMABISizeOfType</span>, <span class="ident">LLVMByteOrder</span>, <span class="ident">LLVMByteOrdering</span>, <span class="ident">LLVMCallFrameAlignmentOfType</span>,
+    <span class="ident">LLVMCopyStringRepOfTargetData</span>, <span class="ident">LLVMCreateTargetData</span>, <span class="ident">LLVMDisposeTargetData</span>, <span class="ident">LLVMElementAtOffset</span>,
+    <span class="ident">LLVMIntPtrTypeForASInContext</span>, <span class="ident">LLVMIntPtrTypeInContext</span>, <span class="ident">LLVMOffsetOfElement</span>, <span class="ident">LLVMPointerSize</span>, <span class="ident">LLVMPointerSizeForAS</span>,
+    <span class="ident">LLVMPreferredAlignmentOfGlobal</span>, <span class="ident">LLVMPreferredAlignmentOfType</span>, <span class="ident">LLVMSizeOfTypeInBits</span>, <span class="ident">LLVMStoreSizeOfType</span>,
+    <span class="ident">LLVMTargetDataRef</span>,
 };
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::target_machine::LLVMCreateTargetDataLayout</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::target_machine</span>::{
-    <span class="ident">LLVMAddAnalysisPasses</span>, <span class="ident">LLVMCodeGenFileType</span>, <span class="ident">LLVMCodeGenOptLevel</span>, <span class="ident">LLVMCodeModel</span>,
-    <span class="ident">LLVMCreateTargetMachine</span>, <span class="ident">LLVMDisposeTargetMachine</span>, <span class="ident">LLVMGetDefaultTargetTriple</span>,
-    <span class="ident">LLVMGetFirstTarget</span>, <span class="ident">LLVMGetNextTarget</span>, <span class="ident">LLVMGetTargetDescription</span>, <span class="ident">LLVMGetTargetFromName</span>,
-    <span class="ident">LLVMGetTargetFromTriple</span>, <span class="ident">LLVMGetTargetMachineCPU</span>, <span class="ident">LLVMGetTargetMachineFeatureString</span>,
-    <span class="ident">LLVMGetTargetMachineTarget</span>, <span class="ident">LLVMGetTargetMachineTriple</span>, <span class="ident">LLVMGetTargetName</span>, <span class="ident">LLVMRelocMode</span>,
-    <span class="ident">LLVMSetTargetMachineAsmVerbosity</span>, <span class="ident">LLVMTargetHasAsmBackend</span>, <span class="ident">LLVMTargetHasJIT</span>,
-    <span class="ident">LLVMTargetHasTargetMachine</span>, <span class="ident">LLVMTargetMachineEmitToFile</span>, <span class="ident">LLVMTargetMachineEmitToMemoryBuffer</span>,
-    <span class="ident">LLVMTargetMachineRef</span>, <span class="ident">LLVMTargetRef</span>,
+    <span class="ident">LLVMAddAnalysisPasses</span>, <span class="ident">LLVMCodeGenFileType</span>, <span class="ident">LLVMCodeGenOptLevel</span>, <span class="ident">LLVMCodeModel</span>, <span class="ident">LLVMCreateTargetMachine</span>,
+    <span class="ident">LLVMDisposeTargetMachine</span>, <span class="ident">LLVMGetDefaultTargetTriple</span>, <span class="ident">LLVMGetFirstTarget</span>, <span class="ident">LLVMGetNextTarget</span>,
+    <span class="ident">LLVMGetTargetDescription</span>, <span class="ident">LLVMGetTargetFromName</span>, <span class="ident">LLVMGetTargetFromTriple</span>, <span class="ident">LLVMGetTargetMachineCPU</span>,
+    <span class="ident">LLVMGetTargetMachineFeatureString</span>, <span class="ident">LLVMGetTargetMachineTarget</span>, <span class="ident">LLVMGetTargetMachineTriple</span>, <span class="ident">LLVMGetTargetName</span>,
+    <span class="ident">LLVMRelocMode</span>, <span class="ident">LLVMSetTargetMachineAsmVerbosity</span>, <span class="ident">LLVMTargetHasAsmBackend</span>, <span class="ident">LLVMTargetHasJIT</span>,
+    <span class="ident">LLVMTargetHasTargetMachine</span>, <span class="ident">LLVMTargetMachineEmitToFile</span>, <span class="ident">LLVMTargetMachineEmitToMemoryBuffer</span>, <span class="ident">LLVMTargetMachineRef</span>,
+    <span class="ident">LLVMTargetRef</span>,
 };
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 <span class="kw">use</span> <span class="ident">parking_lot::RwLock</span>;
@@ -1480,6 +1428,8 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support</span>::{<span class="ident">to_c_str</span>, <span class="ident">LLVMString</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">AnyType</span>, <span class="ident">AsTypeRef</span>, <span class="ident">IntType</span>, <span class="ident">StructType</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">GlobalValue</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LLVMReference</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AddressSpace</span>, <span class="ident">OptimizationLevel</span>};
 
 <span class="kw">use</span> <span class="ident">std::default::Default</span>;
@@ -1553,16 +1503,14 @@
 
 <span class="kw">impl</span> <span class="ident">TargetTriple</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">triple</span>: <span class="ident">LLVMString</span>) -&gt; <span class="ident">TargetTriple</span> {
-        <span class="ident">TargetTriple</span> {
-            <span class="ident">triple</span>,
-        }
+        <span class="ident">TargetTriple</span> { <span class="ident">triple</span> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">TargetTriple</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">triple</span>);
 
         <span class="ident">TargetTriple</span> {
-            <span class="ident">triple</span>: <span class="ident">LLVMString::create_from_c_str</span>(<span class="kw-2">&amp;</span><span class="ident">c_string</span>)
+            <span class="ident">triple</span>: <span class="ident">LLVMString::create_from_c_str</span>(<span class="kw-2">&amp;</span><span class="ident">c_string</span>),
         }
     }
 
@@ -1688,9 +1636,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-mips&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_mips</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeMipsAsmParser</span>, <span class="ident">LLVMInitializeMipsAsmPrinter</span>,
-            <span class="ident">LLVMInitializeMipsDisassembler</span>, <span class="ident">LLVMInitializeMipsTarget</span>, <span class="ident">LLVMInitializeMipsTargetInfo</span>,
-            <span class="ident">LLVMInitializeMipsTargetMC</span>,
+            <span class="ident">LLVMInitializeMipsAsmParser</span>, <span class="ident">LLVMInitializeMipsAsmPrinter</span>, <span class="ident">LLVMInitializeMipsDisassembler</span>,
+            <span class="ident">LLVMInitializeMipsTarget</span>, <span class="ident">LLVMInitializeMipsTargetInfo</span>, <span class="ident">LLVMInitializeMipsTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -1727,9 +1674,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-aarch64&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_aarch64</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeAArch64AsmParser</span>, <span class="ident">LLVMInitializeAArch64AsmPrinter</span>,
-            <span class="ident">LLVMInitializeAArch64Disassembler</span>, <span class="ident">LLVMInitializeAArch64Target</span>,
-            <span class="ident">LLVMInitializeAArch64TargetInfo</span>, <span class="ident">LLVMInitializeAArch64TargetMC</span>,
+            <span class="ident">LLVMInitializeAArch64AsmParser</span>, <span class="ident">LLVMInitializeAArch64AsmPrinter</span>, <span class="ident">LLVMInitializeAArch64Disassembler</span>,
+            <span class="ident">LLVMInitializeAArch64Target</span>, <span class="ident">LLVMInitializeAArch64TargetInfo</span>, <span class="ident">LLVMInitializeAArch64TargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -1804,9 +1750,8 @@
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.7</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_amd_gpu</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeAMDGPUAsmParser</span>, <span class="ident">LLVMInitializeAMDGPUAsmPrinter</span>,
-            <span class="ident">LLVMInitializeAMDGPUTarget</span>, <span class="ident">LLVMInitializeAMDGPUTargetInfo</span>,
-            <span class="ident">LLVMInitializeAMDGPUTargetMC</span>,
+            <span class="ident">LLVMInitializeAMDGPUAsmParser</span>, <span class="ident">LLVMInitializeAMDGPUAsmPrinter</span>, <span class="ident">LLVMInitializeAMDGPUTarget</span>,
+            <span class="ident">LLVMInitializeAMDGPUTargetInfo</span>, <span class="ident">LLVMInitializeAMDGPUTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -1840,9 +1785,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-systemz&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_system_z</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeSystemZAsmParser</span>, <span class="ident">LLVMInitializeSystemZAsmPrinter</span>,
-            <span class="ident">LLVMInitializeSystemZDisassembler</span>, <span class="ident">LLVMInitializeSystemZTarget</span>,
-            <span class="ident">LLVMInitializeSystemZTargetInfo</span>, <span class="ident">LLVMInitializeSystemZTargetMC</span>,
+            <span class="ident">LLVMInitializeSystemZAsmParser</span>, <span class="ident">LLVMInitializeSystemZAsmPrinter</span>, <span class="ident">LLVMInitializeSystemZDisassembler</span>,
+            <span class="ident">LLVMInitializeSystemZTarget</span>, <span class="ident">LLVMInitializeSystemZTargetInfo</span>, <span class="ident">LLVMInitializeSystemZTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -1879,9 +1823,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-hexagon&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_hexagon</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeHexagonAsmPrinter</span>, <span class="ident">LLVMInitializeHexagonDisassembler</span>,
-            <span class="ident">LLVMInitializeHexagonTarget</span>, <span class="ident">LLVMInitializeHexagonTargetInfo</span>,
-            <span class="ident">LLVMInitializeHexagonTargetMC</span>,
+            <span class="ident">LLVMInitializeHexagonAsmPrinter</span>, <span class="ident">LLVMInitializeHexagonDisassembler</span>, <span class="ident">LLVMInitializeHexagonTarget</span>,
+            <span class="ident">LLVMInitializeHexagonTargetInfo</span>, <span class="ident">LLVMInitializeHexagonTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -1915,8 +1858,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-nvptx&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_nvptx</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeNVPTXAsmPrinter</span>, <span class="ident">LLVMInitializeNVPTXTarget</span>,
-            <span class="ident">LLVMInitializeNVPTXTargetInfo</span>, <span class="ident">LLVMInitializeNVPTXTargetMC</span>,
+            <span class="ident">LLVMInitializeNVPTXAsmPrinter</span>, <span class="ident">LLVMInitializeNVPTXTarget</span>, <span class="ident">LLVMInitializeNVPTXTargetInfo</span>,
+            <span class="ident">LLVMInitializeNVPTXTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -1947,8 +1890,7 @@
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.6</span>..<span class="op">=</span><span class="number">3.8</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_cpp_backend</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeCppBackendTarget</span>, <span class="ident">LLVMInitializeCppBackendTargetInfo</span>,
-            <span class="ident">LLVMInitializeCppBackendTargetMC</span>,
+            <span class="ident">LLVMInitializeCppBackendTarget</span>, <span class="ident">LLVMInitializeCppBackendTargetInfo</span>, <span class="ident">LLVMInitializeCppBackendTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -1970,8 +1912,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-msp430&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_msp430</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeMSP430AsmPrinter</span>, <span class="ident">LLVMInitializeMSP430Target</span>,
-            <span class="ident">LLVMInitializeMSP430TargetInfo</span>, <span class="ident">LLVMInitializeMSP430TargetMC</span>,
+            <span class="ident">LLVMInitializeMSP430AsmPrinter</span>, <span class="ident">LLVMInitializeMSP430Target</span>, <span class="ident">LLVMInitializeMSP430TargetInfo</span>,
+            <span class="ident">LLVMInitializeMSP430TargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -2002,8 +1944,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-xcore&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_x_core</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeXCoreAsmPrinter</span>, <span class="ident">LLVMInitializeXCoreDisassembler</span>,
-            <span class="ident">LLVMInitializeXCoreTarget</span>, <span class="ident">LLVMInitializeXCoreTargetInfo</span>, <span class="ident">LLVMInitializeXCoreTargetMC</span>,
+            <span class="ident">LLVMInitializeXCoreAsmPrinter</span>, <span class="ident">LLVMInitializeXCoreDisassembler</span>, <span class="ident">LLVMInitializeXCoreTarget</span>,
+            <span class="ident">LLVMInitializeXCoreTargetInfo</span>, <span class="ident">LLVMInitializeXCoreTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -2037,9 +1979,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-powerpc&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_power_pc</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializePowerPCAsmParser</span>, <span class="ident">LLVMInitializePowerPCAsmPrinter</span>,
-            <span class="ident">LLVMInitializePowerPCDisassembler</span>, <span class="ident">LLVMInitializePowerPCTarget</span>,
-            <span class="ident">LLVMInitializePowerPCTargetInfo</span>, <span class="ident">LLVMInitializePowerPCTargetMC</span>,
+            <span class="ident">LLVMInitializePowerPCAsmParser</span>, <span class="ident">LLVMInitializePowerPCAsmPrinter</span>, <span class="ident">LLVMInitializePowerPCDisassembler</span>,
+            <span class="ident">LLVMInitializePowerPCTarget</span>, <span class="ident">LLVMInitializePowerPCTargetInfo</span>, <span class="ident">LLVMInitializePowerPCTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -2076,9 +2017,8 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;target-sparc&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_sparc</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeSparcAsmParser</span>, <span class="ident">LLVMInitializeSparcAsmPrinter</span>,
-            <span class="ident">LLVMInitializeSparcDisassembler</span>, <span class="ident">LLVMInitializeSparcTarget</span>,
-            <span class="ident">LLVMInitializeSparcTargetInfo</span>, <span class="ident">LLVMInitializeSparcTargetMC</span>,
+            <span class="ident">LLVMInitializeSparcAsmParser</span>, <span class="ident">LLVMInitializeSparcAsmPrinter</span>, <span class="ident">LLVMInitializeSparcDisassembler</span>,
+            <span class="ident">LLVMInitializeSparcTarget</span>, <span class="ident">LLVMInitializeSparcTargetInfo</span>, <span class="ident">LLVMInitializeSparcTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -2158,9 +2098,8 @@
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_lanai</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVMInitializeLanaiAsmParser</span>, <span class="ident">LLVMInitializeLanaiAsmPrinter</span>,
-            <span class="ident">LLVMInitializeLanaiDisassembler</span>, <span class="ident">LLVMInitializeLanaiTarget</span>,
-            <span class="ident">LLVMInitializeLanaiTargetInfo</span>, <span class="ident">LLVMInitializeLanaiTargetMC</span>,
+            <span class="ident">LLVMInitializeLanaiAsmParser</span>, <span class="ident">LLVMInitializeLanaiAsmPrinter</span>, <span class="ident">LLVMInitializeLanaiDisassembler</span>,
+            <span class="ident">LLVMInitializeLanaiTarget</span>, <span class="ident">LLVMInitializeLanaiTargetInfo</span>, <span class="ident">LLVMInitializeLanaiTargetMC</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -2280,8 +2219,8 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_native</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVM_InitializeNativeAsmParser</span>, <span class="ident">LLVM_InitializeNativeAsmPrinter</span>,
-            <span class="ident">LLVM_InitializeNativeDisassembler</span>, <span class="ident">LLVM_InitializeNativeTarget</span>,
+            <span class="ident">LLVM_InitializeNativeAsmParser</span>, <span class="ident">LLVM_InitializeNativeAsmPrinter</span>, <span class="ident">LLVM_InitializeNativeDisassembler</span>,
+            <span class="ident">LLVM_InitializeNativeTarget</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -2326,9 +2265,8 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_all</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{
-            <span class="ident">LLVM_InitializeAllAsmParsers</span>, <span class="ident">LLVM_InitializeAllAsmPrinters</span>,
-            <span class="ident">LLVM_InitializeAllDisassemblers</span>, <span class="ident">LLVM_InitializeAllTargetInfos</span>,
-            <span class="ident">LLVM_InitializeAllTargetMCs</span>, <span class="ident">LLVM_InitializeAllTargets</span>,
+            <span class="ident">LLVM_InitializeAllAsmParsers</span>, <span class="ident">LLVM_InitializeAllAsmPrinters</span>, <span class="ident">LLVM_InitializeAllDisassemblers</span>,
+            <span class="ident">LLVM_InitializeAllTargetInfos</span>, <span class="ident">LLVM_InitializeAllTargetMCs</span>, <span class="ident">LLVM_InitializeAllTargets</span>,
         };
 
         <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">base</span> {
@@ -2409,9 +2347,7 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">TargetMachine::new</span>(<span class="ident">target_machine</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">TargetMachine::new</span>(<span class="ident">target_machine</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_first</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
@@ -2424,9 +2360,7 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Target::new</span>(<span class="ident">target</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">Target::new</span>(<span class="ident">target</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
@@ -2436,9 +2370,7 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Target::new</span>(<span class="ident">target</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">Target::new</span>(<span class="ident">target</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
@@ -2465,9 +2397,7 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Target::new</span>(<span class="ident">target</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">Target::new</span>(<span class="ident">target</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_triple</span>(<span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
@@ -2485,9 +2415,7 @@
             }
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Target::new</span>(<span class="ident">target</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Ok</span>(<span class="ident">Target::new</span>(<span class="ident">target</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_jit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
@@ -2516,9 +2444,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Target</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">Target::new</span>(<span class="ident">LLVMGetTargetMachineTarget</span>(<span class="self">self</span>.<span class="ident">target_machine</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">Target::new</span>(<span class="ident">LLVMGetTargetMachineTarget</span>(<span class="self">self</span>.<span class="ident">target_machine</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_triple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TargetTriple</span> {
@@ -2562,9 +2488,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_host_cpu_name</span>() -&gt; <span class="ident">LLVMString</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::target_machine::LLVMGetHostCPUName</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetHostCPUName</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetHostCPUName</span>()) }
     }
 
     <span class="doccomment">/// Gets a comma separated list of supported features by the host CPU.</span>
@@ -2576,15 +2500,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_host_cpu_features</span>() -&gt; <span class="ident">LLVMString</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::target_machine::LLVMGetHostCPUFeatures</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetHostCPUFeatures</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetHostCPUFeatures</span>()) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_cpu</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMString</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetTargetMachineCPU</span>(<span class="self">self</span>.<span class="ident">target_machine</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMGetTargetMachineCPU</span>(<span class="self">self</span>.<span class="ident">target_machine</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_feature_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
@@ -2594,9 +2514,7 @@
     <span class="doccomment">/// Create TargetData from this target machine</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TargetData</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">TargetData::new</span>(<span class="ident">LLVMCreateTargetDataLayout</span>(<span class="self">self</span>.<span class="ident">target_machine</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">TargetData::new</span>(<span class="ident">LLVMCreateTargetDataLayout</span>(<span class="self">self</span>.<span class="ident">target_machine</span>)) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_asm_verbosity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">verbosity</span>: <span class="ident">bool</span>) {
@@ -2642,11 +2560,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let buffer = target_machine.write_to_memory_buffer(&amp;module, FileType::Assembly).unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to_memory_buffer</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span>,
-        <span class="ident">file_type</span>: <span class="ident">FileType</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MemoryBuffer</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to_memory_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span>, <span class="ident">file_type</span>: <span class="ident">FileType</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MemoryBuffer</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">memory_buffer</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_string</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
         <span class="kw">let</span> <span class="ident">return_code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -2708,15 +2622,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(target_machine.write_to_file(&amp;module, FileType::Object, &amp;path).is_ok());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to_file</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span>,
-        <span class="ident">file_type</span>: <span class="ident">FileType</span>,
-        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LLVMString</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>
-            .<span class="ident">to_str</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span>, <span class="ident">file_type</span>: <span class="ident">FileType</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LLVMString</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">to_str</span>().<span class="ident">expect</span>(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
         <span class="kw">let</span> <span class="ident">path_c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">path</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_string</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
         <span class="kw">let</span> <span class="ident">return_code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -2765,9 +2672,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target_data</span>: <span class="ident">LLVMTargetDataRef</span>) -&gt; <span class="ident">TargetData</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">target_data</span>.<span class="ident">is_null</span>());
 
-        <span class="ident">TargetData</span> {
-            <span class="ident">target_data</span>,
-        }
+        <span class="ident">TargetData</span> { <span class="ident">target_data</span> }
     }
 
     <span class="doccomment">/// Gets the `IntType` representing a bit width of a pointer. It will be assigned the referenced context.</span>
@@ -2795,24 +2700,16 @@
     ) -&gt; <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">int_type_ptr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">address_space</span> {
             <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) =&gt; <span class="kw">unsafe</span> {
-                <span class="ident">LLVMIntPtrTypeForASInContext</span>(
-                    <span class="ident">context</span>.<span class="ident">context</span>,
-                    <span class="self">self</span>.<span class="ident">target_data</span>,
-                    <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>,
-                )
+                <span class="ident">LLVMIntPtrTypeForASInContext</span>(<span class="ident">context</span>.<span class="ident">context</span>, <span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>)
             },
             <span class="prelude-val">None</span> =&gt; <span class="kw">unsafe</span> { <span class="ident">LLVMIntPtrTypeInContext</span>(<span class="ident">context</span>.<span class="ident">context</span>, <span class="self">self</span>.<span class="ident">target_data</span>) },
         };
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">IntType::new</span>(<span class="ident">int_type_ptr</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">IntType::new</span>(<span class="ident">int_type_ptr</span>) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_data_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DataLayout</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">DataLayout::new_owned</span>(<span class="ident">LLVMCopyStringRepOfTargetData</span>(<span class="self">self</span>.<span class="ident">target_data</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">DataLayout::new_owned</span>(<span class="ident">LLVMCopyStringRepOfTargetData</span>(<span class="self">self</span>.<span class="ident">target_data</span>)) }
     }
 
     <span class="comment">// REVIEW: Does this only work if Sized?</span>
@@ -2824,9 +2721,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">str_repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">TargetData</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">str_repr</span>);
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">TargetData::new</span>(<span class="ident">LLVMCreateTargetData</span>(<span class="ident">c_string</span>.<span class="ident">as_ptr</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">TargetData::new</span>(<span class="ident">LLVMCreateTargetData</span>(<span class="ident">c_string</span>.<span class="ident">as_ptr</span>())) }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_byte_ordering</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ByteOrdering</span> {
@@ -2840,9 +2735,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pointer_byte_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address_space</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&gt;</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="ident">address_space</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) =&gt; <span class="kw">unsafe</span> {
-                <span class="ident">LLVMPointerSizeForAS</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>)
-            },
+            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) =&gt; <span class="kw">unsafe</span> { <span class="ident">LLVMPointerSizeForAS</span>(<span class="self">self</span>.<span class="ident">target_data</span>, <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>) },
             <span class="prelude-val">None</span> =&gt; <span class="kw">unsafe</span> { <span class="ident">LLVMPointerSize</span>(<span class="self">self</span>.<span class="ident">target_data</span>) },
         }
     }
@@ -2893,6 +2786,13 @@
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">TargetData</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> { <span class="ident">LLVMDisposeTargetData</span>(<span class="self">self</span>.<span class="ident">target_data</span>) }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">LLVMReference</span><span class="op">&lt;</span><span class="ident">LLVMTargetMachineRef</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TargetMachine</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMTargetMachineRef</span> {
+        <span class="self">self</span>.<span class="ident">target_machine</span>
     }
 }
 </code></pre></div>

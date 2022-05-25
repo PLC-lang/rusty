@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/values/basic_value_use.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>basic_value_use.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/values/basic_value_use.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>basic_value_use.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -176,19 +176,11 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">either</span>::{<span class="ident">Either</span>, <span class="ident">Either</span>::{<span class="ident">Left</span>, <span class="ident">Right</span>}};
-<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetNextUse</span>, <span class="ident">LLVMGetUser</span>, <span class="ident">LLVMGetUsedValue</span>, <span class="ident">LLVMIsABasicBlock</span>, <span class="ident">LLVMValueAsBasicBlock</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">either</span>::{
+    <span class="ident">Either</span>,
+    <span class="ident">Either</span>::{<span class="ident">Left</span>, <span class="ident">Right</span>},
+};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetNextUse</span>, <span class="ident">LLVMGetUsedValue</span>, <span class="ident">LLVMGetUser</span>, <span class="ident">LLVMIsABasicBlock</span>, <span class="ident">LLVMValueAsBasicBlock</span>};
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMUseRef</span>;
 
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -261,17 +253,13 @@
     <span class="doccomment">/// 1) In the store instruction</span>
     <span class="doccomment">/// 2) In the pointer bitcast</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_next_use</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">use_</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetNextUse</span>(<span class="self">self</span>.<span class="number">0</span>)
-        };
+        <span class="kw">let</span> <span class="ident">use_</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetNextUse</span>(<span class="self">self</span>.<span class="number">0</span>) };
 
         <span class="kw">if</span> <span class="ident">use_</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">use_</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">use_</span>)) }
     }
 
     <span class="doccomment">/// Gets the user (an `AnyValueEnum`) of this use.</span>
@@ -307,9 +295,7 @@
     <span class="doccomment">/// assert_eq!(store_operand_use1.get_user(), store_instruction);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_user</span>(<span class="self">self</span>) -&gt; <span class="ident">AnyValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">AnyValueEnum::new</span>(<span class="ident">LLVMGetUser</span>(<span class="self">self</span>.<span class="number">0</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">AnyValueEnum::new</span>(<span class="ident">LLVMGetUser</span>(<span class="self">self</span>.<span class="number">0</span>)) }
     }
 
     <span class="doccomment">/// Gets the used value (a `BasicValueEnum` or `BasicBlock`) of this use.</span>
@@ -350,24 +336,16 @@
     <span class="doccomment">/// assert_eq!(bitcast_use_value, free_operand0);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_used_value</span>(<span class="self">self</span>) -&gt; <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">used_value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetUsedValue</span>(<span class="self">self</span>.<span class="number">0</span>)
-        };
+        <span class="kw">let</span> <span class="ident">used_value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetUsedValue</span>(<span class="self">self</span>.<span class="number">0</span>) };
 
-        <span class="kw">let</span> <span class="ident">is_basic_block</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="op">!</span><span class="ident">LLVMIsABasicBlock</span>(<span class="ident">used_value</span>).<span class="ident">is_null</span>()
-        };
+        <span class="kw">let</span> <span class="ident">is_basic_block</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="op">!</span><span class="ident">LLVMIsABasicBlock</span>(<span class="ident">used_value</span>).<span class="ident">is_null</span>() };
 
         <span class="kw">if</span> <span class="ident">is_basic_block</span> {
-            <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">BasicBlock::new</span>(<span class="ident">LLVMValueAsBasicBlock</span>(<span class="ident">used_value</span>))
-            };
+            <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">BasicBlock::new</span>(<span class="ident">LLVMValueAsBasicBlock</span>(<span class="ident">used_value</span>)) };
 
             <span class="ident">Right</span>(<span class="ident">bb</span>.<span class="ident">expect</span>(<span class="string">&quot;BasicBlock should always be valid&quot;</span>))
         } <span class="kw">else</span> {
-            <span class="kw">unsafe</span> {
-                <span class="ident">Left</span>(<span class="ident">BasicValueEnum::new</span>(<span class="ident">used_value</span>))
-            }
+            <span class="kw">unsafe</span> { <span class="ident">Left</span>(<span class="ident">BasicValueEnum::new</span>(<span class="ident">used_value</span>)) }
         }
     }
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/values/call_site_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_site_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/values/call_site_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_site_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -559,31 +559,21 @@
 <span id="554">554</span>
 <span id="555">555</span>
 <span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">either::Either</span>;
-<span class="kw">use</span> <span class="ident">llvm_sys::LLVMTypeKind</span>;
-<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMIsTailCall</span>, <span class="ident">LLVMSetTailCall</span>, <span class="ident">LLVMGetTypeKind</span>, <span class="ident">LLVMTypeOf</span>, <span class="ident">LLVMSetInstructionCallConv</span>, <span class="ident">LLVMGetInstructionCallConv</span>, <span class="ident">LLVMSetInstrParamAlignment</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
+    <span class="ident">LLVMGetInstructionCallConv</span>, <span class="ident">LLVMGetTypeKind</span>, <span class="ident">LLVMIsTailCall</span>, <span class="ident">LLVMSetInstrParamAlignment</span>,
+    <span class="ident">LLVMSetInstructionCallConv</span>, <span class="ident">LLVMSetTailCall</span>, <span class="ident">LLVMTypeOf</span>,
+};
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMValueRef</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::LLVMTypeKind</span>;
 
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attributes</span>::{<span class="ident">Attribute</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attributes::Attribute</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attributes::AttributeLoc</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::LLVMString</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">InstructionValue</span>, <span class="ident">Value</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::FunctionValue</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">InstructionValue</span>, <span class="ident">Value</span>};
 
 <span class="doccomment">/// A value resulting from a function call. It may have function attributes applied to it.</span>
 <span class="doccomment">///</span>
@@ -618,9 +608,7 @@
     <span class="doccomment">/// call_site_value.set_tail_call(true);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_tail_call</span>(<span class="self">self</span>, <span class="ident">tail_call</span>: <span class="ident">bool</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMSetTailCall</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">tail_call</span> <span class="kw">as</span> <span class="ident">i32</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMSetTailCall</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">tail_call</span> <span class="kw">as</span> <span class="ident">i32</span>) }
     }
 
     <span class="doccomment">/// Determines whether or not this call is a tail call.</span>
@@ -647,9 +635,7 @@
     <span class="doccomment">/// assert!(call_site_value.is_tail_call());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_tail_call</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMIsTailCall</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) <span class="op">==</span> <span class="number">1</span>
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMIsTailCall</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Try to convert this `CallSiteValue` to a `BasicValueEnum` if not a void return type.</span>
@@ -711,9 +697,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">attribute</span>: <span class="ident">Attribute</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMAddCallSiteAttribute</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMAddCallSiteAttribute</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">attribute</span>.<span class="ident">attribute</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMAddCallSiteAttribute</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">attribute</span>.<span class="ident">attribute</span>) }
     }
 
     <span class="doccomment">/// Gets the `FunctionValue` this `CallSiteValue` is based on.</span>
@@ -743,9 +727,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_called_fn_value</span>(<span class="self">self</span>) -&gt; <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCalledValue</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetCalledValue</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())).<span class="ident">expect</span>(<span class="string">&quot;This should never be null?&quot;</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetCalledValue</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())).<span class="ident">expect</span>(<span class="string">&quot;This should never be null?&quot;</span>) }
     }
 
     <span class="doccomment">/// Counts the number of `Attribute`s on this `CallSiteValue` at an index.</span>
@@ -779,9 +761,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_attributes</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCallSiteAttributeCount</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetCallSiteAttributeCount</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMGetCallSiteAttributeCount</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>()) }
     }
 
     <span class="doccomment">/// Get all `Attribute`s on this `CallSiteValue` at an index.</span>
@@ -875,17 +855,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_enum_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">kind_id</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCallSiteEnumAttribute</span>;
 
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetCallSiteEnumAttribute</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">kind_id</span>)
-        };
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetCallSiteEnumAttribute</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">kind_id</span>) };
 
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Attribute::new</span>(<span class="ident">ptr</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">Attribute::new</span>(<span class="ident">ptr</span>)) }
     }
 
     <span class="doccomment">/// Gets a string `Attribute` on this `CallSiteValue` at an index and key.</span>
@@ -921,16 +897,19 @@
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCallSiteStringAttribute</span>;
 
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetCallSiteStringAttribute</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">key</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
+            <span class="ident">LLVMGetCallSiteStringAttribute</span>(
+                <span class="self">self</span>.<span class="ident">as_value_ref</span>(),
+                <span class="ident">loc</span>.<span class="ident">get_index</span>(),
+                <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>,
+                <span class="ident">key</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            )
         };
 
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Attribute::new</span>(<span class="ident">ptr</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">Attribute::new</span>(<span class="ident">ptr</span>)) }
     }
 
     <span class="doccomment">/// Removes an enum `Attribute` on this `CallSiteValue` at an index and kind id.</span>
@@ -965,9 +944,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_enum_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">kind_id</span>: <span class="ident">u32</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMRemoveCallSiteEnumAttribute</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMRemoveCallSiteEnumAttribute</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">kind_id</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMRemoveCallSiteEnumAttribute</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">kind_id</span>) }
     }
 
     <span class="doccomment">/// Removes a string `Attribute` on this `CallSiteValue` at an index and key.</span>
@@ -1003,7 +980,12 @@
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMRemoveCallSiteStringAttribute</span>;
 
         <span class="kw">unsafe</span> {
-            <span class="ident">LLVMRemoveCallSiteStringAttribute</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">key</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
+            <span class="ident">LLVMRemoveCallSiteStringAttribute</span>(
+                <span class="self">self</span>.<span class="ident">as_value_ref</span>(),
+                <span class="ident">loc</span>.<span class="ident">get_index</span>(),
+                <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>,
+                <span class="ident">key</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            )
         }
     }
 
@@ -1035,9 +1017,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_arguments</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetNumArgOperands</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetNumArgOperands</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMGetNumArgOperands</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) }
     }
 
     <span class="doccomment">/// Gets the calling convention for this `CallSiteValue`.</span>
@@ -1062,9 +1042,7 @@
     <span class="doccomment">/// assert_eq!(call_site_value.get_call_convention(), 0);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_call_convention</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetInstructionCallConv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMGetInstructionCallConv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) }
     }
 
     <span class="doccomment">/// Sets the calling convention for this `CallSiteValue`.</span>
@@ -1091,9 +1069,7 @@
     <span class="doccomment">/// assert_eq!(call_site_value.get_call_convention(), 2);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_call_convention</span>(<span class="self">self</span>, <span class="ident">conv</span>: <span class="ident">u32</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMSetInstructionCallConv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">conv</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMSetInstructionCallConv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">conv</span>) }
     }
 
     <span class="doccomment">/// Shortcut for setting the alignment `Attribute` for this `CallSiteValue`.</span>
@@ -1125,9 +1101,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_alignment_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">alignment</span>: <span class="ident">u32</span>) {
         <span class="macro">assert_eq!</span>(<span class="ident">alignment</span>.<span class="ident">count_ones</span>(), <span class="number">1</span>, <span class="string">&quot;Alignment must be a power of two.&quot;</span>);
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMSetInstrParamAlignment</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">alignment</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMSetInstrParamAlignment</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">alignment</span>) }
     }
 
     <span class="doccomment">/// Prints the definition of a `CallSiteValue` to a `LLVMString`.</span>

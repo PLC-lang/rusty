@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/types/traits.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>traits.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/types/traits.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>traits.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -199,34 +199,22 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMTypeRef</span>;
 
 <span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::AddressSpace</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">IntType</span>, <span class="ident">FunctionType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">StructType</span>, <span class="ident">ArrayType</span>, <span class="ident">VectorType</span>, <span class="ident">VoidType</span>, <span class="ident">Type</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::enums</span>::{<span class="ident">AnyTypeEnum</span>, <span class="ident">BasicTypeEnum</span>, <span class="ident">BasicMetadataTypeEnum</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">IntMathValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">PointerMathValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::LLVMString</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::enums</span>::{<span class="ident">AnyTypeEnum</span>, <span class="ident">BasicMetadataTypeEnum</span>, <span class="ident">BasicTypeEnum</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">ArrayType</span>, <span class="ident">FloatType</span>, <span class="ident">FunctionType</span>, <span class="ident">IntType</span>, <span class="ident">PointerType</span>, <span class="ident">StructType</span>, <span class="ident">Type</span>, <span class="ident">VectorType</span>, <span class="ident">VoidType</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">FloatMathValue</span>, <span class="ident">FloatValue</span>, <span class="ident">IntMathValue</span>, <span class="ident">IntValue</span>, <span class="ident">PointerMathValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::AddressSpace</span>;
 
 <span class="comment">// This is an ugly privacy hack so that Type can stay private to this module</span>
 <span class="comment">// and so that super traits using this trait will be not be implementable</span>
 <span class="comment">// outside this library</span>
+<span class="doccomment">/// Accessor to the inner LLVM type reference</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsTypeRef</span> {
+    <span class="doccomment">/// Returns the internal LLVM reference behind the type</span>
     <span class="kw">fn</span> <span class="ident">as_type_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMTypeRef</span>;
 }
 
@@ -242,16 +230,12 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AnyType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>: <span class="ident">AsTypeRef</span> <span class="op">+</span> <span class="ident">Debug</span> {
     <span class="doccomment">/// Returns an `AnyTypeEnum` that represents the current type.</span>
     <span class="kw">fn</span> <span class="ident">as_any_type_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AnyTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">AnyTypeEnum::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">AnyTypeEnum::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()) }
     }
 
     <span class="doccomment">/// Prints the definition of a Type to a `LLVMString`.</span>
     <span class="kw">fn</span> <span class="ident">print_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMString</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">print_to_string</span>()
-        }
+        <span class="kw">unsafe</span> { <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">print_to_string</span>() }
     }
 }
 
@@ -259,9 +243,7 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BasicType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>: <span class="ident">AnyType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a `BasicTypeEnum` that represents the current type.</span>
     <span class="kw">fn</span> <span class="ident">as_basic_type_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">BasicTypeEnum::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">BasicTypeEnum::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()) }
     }
 
     <span class="doccomment">/// Create a `FunctionType` with this `BasicType` as its return type.</span>
@@ -278,9 +260,7 @@
     <span class="doccomment">/// assert_eq!(int_basic_type.fn_type(&amp;[], false), int.fn_type(&amp;[], false));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">fn_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">param_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicMetadataTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>], <span class="ident">is_var_args</span>: <span class="ident">bool</span>) -&gt; <span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">fn_type</span>(<span class="ident">param_types</span>, <span class="ident">is_var_args</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">fn_type</span>(<span class="ident">param_types</span>, <span class="ident">is_var_args</span>) }
     }
 
     <span class="doccomment">/// Determines whether or not this `BasicType` is sized or not.</span>
@@ -299,9 +279,7 @@
     <span class="doccomment">/// assert!(f32_vec_type.is_sized());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">is_sized</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">is_sized</span>()
-        }
+        <span class="kw">unsafe</span> { <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">is_sized</span>() }
     }
 
     <span class="doccomment">/// Gets the size of this `BasicType`. Value may vary depending on the target architecture.</span>
@@ -318,9 +296,7 @@
     <span class="doccomment">/// let f32_type_size = f32_basic_type.size_of();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">size_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">size_of</span>()
-        }
+        <span class="kw">unsafe</span> { <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">size_of</span>() }
     }
 
     <span class="doccomment">/// Create an `ArrayType` with this `BasicType` as its elements.</span>
@@ -337,9 +313,7 @@
     <span class="doccomment">/// ```</span>
     <span class="comment">// FIXME: This likely doesn&#39;t belong on the trait, since not all basic types can be turned into arrays?</span>
     <span class="kw">fn</span> <span class="ident">array_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u32</span>) -&gt; <span class="ident">ArrayType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">array_type</span>(<span class="ident">size</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">array_type</span>(<span class="ident">size</span>) }
     }
 
     <span class="doccomment">/// Create a `PointerType` that points to this `BasicType`.</span>
@@ -357,9 +331,7 @@
     <span class="doccomment">/// assert_eq!(int_basic_type.ptr_type(addr_space), int.ptr_type(addr_space));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">ptr_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address_space</span>: <span class="ident">AddressSpace</span>) -&gt; <span class="ident">PointerType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">ptr_type</span>(<span class="ident">address_space</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">ptr_type</span>(<span class="ident">address_space</span>) }
     }
 }
 

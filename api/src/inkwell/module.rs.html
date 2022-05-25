@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/module.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>module.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/module.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>module.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1567,28 +1567,87 @@
 <span id="1562">1562</span>
 <span id="1563">1563</span>
 <span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A `Module` represets a single code compilation unit.</span>
 
-<span class="kw">use</span> <span class="ident">llvm_sys::analysis</span>::{<span class="ident">LLVMVerifyModule</span>, <span class="ident">LLVMVerifierFailureAction</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::analysis</span>::{<span class="ident">LLVMVerifierFailureAction</span>, <span class="ident">LLVMVerifyModule</span>};
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::bit_reader::LLVMParseBitcodeInContext</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::bit_writer</span>::{<span class="ident">LLVMWriteBitcodeToFile</span>, <span class="ident">LLVMWriteBitcodeToMemoryBuffer</span>};
-<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMAddFunction</span>, <span class="ident">LLVMAddGlobal</span>, <span class="ident">LLVMDumpModule</span>, <span class="ident">LLVMGetNamedFunction</span>, <span class="ident">LLVMGetTypeByName</span>, <span class="ident">LLVMSetDataLayout</span>, <span class="ident">LLVMSetTarget</span>, <span class="ident">LLVMCloneModule</span>, <span class="ident">LLVMDisposeModule</span>, <span class="ident">LLVMGetTarget</span>, <span class="ident">LLVMGetModuleContext</span>, <span class="ident">LLVMGetFirstFunction</span>, <span class="ident">LLVMGetLastFunction</span>, <span class="ident">LLVMAddGlobalInAddressSpace</span>, <span class="ident">LLVMPrintModuleToString</span>, <span class="ident">LLVMGetNamedMetadataNumOperands</span>, <span class="ident">LLVMAddNamedMetadataOperand</span>, <span class="ident">LLVMGetNamedMetadataOperands</span>, <span class="ident">LLVMGetFirstGlobal</span>, <span class="ident">LLVMGetLastGlobal</span>, <span class="ident">LLVMGetNamedGlobal</span>, <span class="ident">LLVMPrintModuleToFile</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
+    <span class="ident">LLVMAddFunction</span>, <span class="ident">LLVMAddGlobal</span>, <span class="ident">LLVMAddGlobalInAddressSpace</span>, <span class="ident">LLVMAddNamedMetadataOperand</span>, <span class="ident">LLVMCloneModule</span>,
+    <span class="ident">LLVMDisposeModule</span>, <span class="ident">LLVMDumpModule</span>, <span class="ident">LLVMGetFirstFunction</span>, <span class="ident">LLVMGetFirstGlobal</span>, <span class="ident">LLVMGetLastFunction</span>,
+    <span class="ident">LLVMGetLastGlobal</span>, <span class="ident">LLVMGetModuleContext</span>, <span class="ident">LLVMGetNamedFunction</span>, <span class="ident">LLVMGetNamedGlobal</span>, <span class="ident">LLVMGetNamedMetadataNumOperands</span>,
+    <span class="ident">LLVMGetNamedMetadataOperands</span>, <span class="ident">LLVMGetTarget</span>, <span class="ident">LLVMGetTypeByName</span>, <span class="ident">LLVMPrintModuleToFile</span>, <span class="ident">LLVMPrintModuleToString</span>,
+    <span class="ident">LLVMSetDataLayout</span>, <span class="ident">LLVMSetTarget</span>,
+};
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMAddModuleFlag</span>, <span class="ident">LLVMGetModuleFlag</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetModuleIdentifier</span>, <span class="ident">LLVMSetModuleIdentifier</span>};
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetModuleFlag</span>, <span class="ident">LLVMAddModuleFlag</span>};
-<span class="kw">use</span> <span class="ident">llvm_sys::execution_engine</span>::{<span class="ident">LLVMCreateInterpreterForModule</span>, <span class="ident">LLVMCreateJITCompilerForModule</span>, <span class="ident">LLVMCreateExecutionEngineForModule</span>};
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+<span class="kw">use</span> <span class="ident">llvm_sys::error::LLVMGetErrorMessage</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::execution_engine</span>::{
+    <span class="ident">LLVMCreateExecutionEngineForModule</span>, <span class="ident">LLVMCreateInterpreterForModule</span>, <span class="ident">LLVMCreateJITCompilerForModule</span>,
+};
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMModuleRef</span>, <span class="ident">LLVMValueRef</span>};
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">13.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+<span class="kw">use</span> <span class="ident">llvm_sys::transforms::pass_builder::LLVMRunPasses</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::LLVMLinkage</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::LLVMModuleFlagBehavior</span>;
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">13.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys::transforms::pass_builder::LLVMRunPasses</span>;
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys::error::LLVMGetErrorMessage</span>;
 
-<span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>, <span class="ident">Ref</span>};
+<span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">Ref</span>, <span class="ident">RefCell</span>};
 <span class="kw">use</span> <span class="ident">std::ffi::CStr</span>;
 <span class="kw">use</span> <span class="ident">std::fs::File</span>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -1597,23 +1656,25 @@
 <span class="kw">use</span> <span class="ident">std::ptr</span>;
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AddressSpace</span>, <span class="ident">OptimizationLevel</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::comdat::Comdat</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::context</span>::{<span class="ident">Context</span>, <span class="ident">ContextRef</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data_layout::DataLayout</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::debug_info</span>::{<span class="ident">DebugInfoBuilder</span>, <span class="ident">DICompileUnit</span>, <span class="ident">DWARFEmissionKind</span>, <span class="ident">DWARFSourceLanguage</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::debug_info</span>::{<span class="ident">DICompileUnit</span>, <span class="ident">DWARFEmissionKind</span>, <span class="ident">DWARFSourceLanguage</span>, <span class="ident">DebugInfoBuilder</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::execution_engine::ExecutionEngine</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::memory_buffer::MemoryBuffer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support</span>::{<span class="ident">to_c_str</span>, <span class="ident">LLVMString</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::targets</span>::{<span class="ident">InitializationConfig</span>, <span class="ident">Target</span>, <span class="ident">TargetTriple</span>, <span class="ident">TargetMachine</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">AsTypeRef</span>, <span class="ident">BasicType</span>, <span class="ident">FunctionType</span>, <span class="ident">StructType</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">FunctionValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">MetadataValue</span>};
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::BasicValue</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">13.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::passes::PassBuilderOptions</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support</span>::{<span class="ident">to_c_str</span>, <span class="ident">LLVMString</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::targets</span>::{<span class="ident">InitializationConfig</span>, <span class="ident">Target</span>, <span class="ident">TargetMachine</span>, <span class="ident">TargetTriple</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">AsTypeRef</span>, <span class="ident">BasicType</span>, <span class="ident">FunctionType</span>, <span class="ident">StructType</span>};
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::BasicValue</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">FunctionValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">MetadataValue</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LLVMReference</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AddressSpace</span>, <span class="ident">OptimizationLevel</span>};
 
 <span class="attribute">#[<span class="ident">llvm_enum</span>(<span class="ident">LLVMLinkage</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
@@ -1790,9 +1851,7 @@
     <span class="doccomment">/// assert_eq!(*local_module.get_context(), local_context);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ContextRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">ContextRef::new</span>(<span class="ident">LLVMGetModuleContext</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">ContextRef::new</span>(<span class="ident">LLVMGetModuleContext</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())) }
     }
 
     <span class="doccomment">/// Gets the first `FunctionValue` defined in this `Module`.</span>
@@ -1814,9 +1873,7 @@
     <span class="doccomment">/// assert_eq!(fn_value, module.get_first_function().unwrap());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_first_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetFirstFunction</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetFirstFunction</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())) }
     }
 
     <span class="doccomment">/// Gets the last `FunctionValue` defined in this `Module`.</span>
@@ -1838,9 +1895,7 @@
     <span class="doccomment">/// assert_eq!(fn_value, module.get_last_function().unwrap());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_last_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetLastFunction</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetLastFunction</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())) }
     }
 
     <span class="doccomment">/// Gets a `FunctionValue` defined in this `Module` by its name.</span>
@@ -1864,9 +1919,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetNamedFunction</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetNamedFunction</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())) }
     }
 
     <span class="doccomment">/// An iterator over the functions in this `Module`.</span>
@@ -1914,17 +1967,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_struct_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StructType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
-        <span class="kw">let</span> <span class="ident">struct_type</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetTypeByName</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
-        };
+        <span class="kw">let</span> <span class="ident">struct_type</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetTypeByName</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
 
         <span class="kw">if</span> <span class="ident">struct_type</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">StructType::new</span>(<span class="ident">struct_type</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">StructType::new</span>(<span class="ident">struct_type</span>)) }
     }
 
     <span class="doccomment">/// Assigns a `TargetTriple` to this `Module`.</span>
@@ -1947,9 +1996,7 @@
     <span class="doccomment">/// assert_eq!(module.get_triple(), triple);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_triple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMSetTarget</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">triple</span>.<span class="ident">as_ptr</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMSetTarget</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">triple</span>.<span class="ident">as_ptr</span>()) }
     }
 
     <span class="doccomment">/// Gets the `TargetTriple` assigned to this `Module`. If none has been</span>
@@ -1974,9 +2021,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_triple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TargetTriple</span> {
         <span class="comment">// REVIEW: This isn&#39;t an owned LLVMString, is it? If so, need to deallocate.</span>
-        <span class="kw">let</span> <span class="ident">target_str</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetTarget</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())
-        };
+        <span class="kw">let</span> <span class="ident">target_str</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetTarget</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()) };
 
         <span class="ident">TargetTriple::new</span>(<span class="ident">LLVMString::create_from_c_str</span>(<span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">target_str</span>) }))
     }
@@ -1999,12 +2044,11 @@
     <span class="doccomment">/// ```</span>
     <span class="comment">// SubType: ExecutionEngine&lt;Basic?&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_execution_engine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExecutionEngine</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
-        <span class="ident">Target::initialize_native</span>(<span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>())
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">err_string</span><span class="op">|</span> {
-                <span class="ident">err_string</span>.<span class="ident">push</span>(<span class="string">&#39;\0&#39;</span>);
+        <span class="ident">Target::initialize_native</span>(<span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>()).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">err_string</span><span class="op">|</span> {
+            <span class="ident">err_string</span>.<span class="ident">push</span>(<span class="string">&#39;\0&#39;</span>);
 
-                <span class="ident">LLVMString::create_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">err_string</span>)
-            })<span class="question-mark">?</span>;
+            <span class="ident">LLVMString::create_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">err_string</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">owned_by_ee</span>.<span class="ident">borrow</span>().<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="string">&quot;This module is already owned by an ExecutionEngine.\0&quot;</span>;
@@ -2015,7 +2059,11 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_string</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="comment">// Takes ownership of module</span>
-            <span class="ident">LLVMCreateExecutionEngineForModule</span>(<span class="ident">execution_engine</span>.<span class="ident">as_mut_ptr</span>(), <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>())
+            <span class="ident">LLVMCreateExecutionEngineForModule</span>(
+                <span class="ident">execution_engine</span>.<span class="ident">as_mut_ptr</span>(),
+                <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>(),
+            )
         };
 
         <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
@@ -2050,12 +2098,11 @@
     <span class="doccomment">/// ```</span>
     <span class="comment">// SubType: ExecutionEngine&lt;Interpreter&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_interpreter_execution_engine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExecutionEngine</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
-        <span class="ident">Target::initialize_native</span>(<span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>())
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">err_string</span><span class="op">|</span> {
-                <span class="ident">err_string</span>.<span class="ident">push</span>(<span class="string">&#39;\0&#39;</span>);
+        <span class="ident">Target::initialize_native</span>(<span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>()).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">err_string</span><span class="op">|</span> {
+            <span class="ident">err_string</span>.<span class="ident">push</span>(<span class="string">&#39;\0&#39;</span>);
 
-                <span class="ident">LLVMString::create_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">err_string</span>)
-            })<span class="question-mark">?</span>;
+            <span class="ident">LLVMString::create_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">err_string</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">owned_by_ee</span>.<span class="ident">borrow</span>().<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="string">&quot;This module is already owned by an ExecutionEngine.\0&quot;</span>;
@@ -2067,7 +2114,11 @@
 
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="comment">// Takes ownership of module</span>
-            <span class="ident">LLVMCreateInterpreterForModule</span>(<span class="ident">execution_engine</span>.<span class="ident">as_mut_ptr</span>(), <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>())
+            <span class="ident">LLVMCreateInterpreterForModule</span>(
+                <span class="ident">execution_engine</span>.<span class="ident">as_mut_ptr</span>(),
+                <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>(),
+            )
         };
 
         <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
@@ -2102,13 +2153,15 @@
     <span class="doccomment">/// assert_eq!(*module.get_context(), context);</span>
     <span class="doccomment">/// ```</span>
     <span class="comment">// SubType: ExecutionEngine&lt;Jit&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_jit_execution_engine</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">opt_level</span>: <span class="ident">OptimizationLevel</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExecutionEngine</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
-        <span class="ident">Target::initialize_native</span>(<span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>())
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">err_string</span><span class="op">|</span> {
-                <span class="ident">err_string</span>.<span class="ident">push</span>(<span class="string">&#39;\0&#39;</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_jit_execution_engine</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">opt_level</span>: <span class="ident">OptimizationLevel</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExecutionEngine</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
+        <span class="ident">Target::initialize_native</span>(<span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>()).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">err_string</span><span class="op">|</span> {
+            <span class="ident">err_string</span>.<span class="ident">push</span>(<span class="string">&#39;\0&#39;</span>);
 
-                <span class="ident">LLVMString::create_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">err_string</span>)
-            })<span class="question-mark">?</span>;
+            <span class="ident">LLVMString::create_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">err_string</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">owned_by_ee</span>.<span class="ident">borrow</span>().<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="string">&quot;This module is already owned by an ExecutionEngine.\0&quot;</span>;
@@ -2120,7 +2173,12 @@
 
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="comment">// Takes ownership of module</span>
-            <span class="ident">LLVMCreateJITCompilerForModule</span>(<span class="ident">execution_engine</span>.<span class="ident">as_mut_ptr</span>(), <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">opt_level</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>())
+            <span class="ident">LLVMCreateJITCompilerForModule</span>(
+                <span class="ident">execution_engine</span>.<span class="ident">as_mut_ptr</span>(),
+                <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">opt_level</span> <span class="kw">as</span> <span class="ident">u32</span>,
+                <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>(),
+            )
         };
 
         <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
@@ -2153,19 +2211,27 @@
     <span class="doccomment">/// assert_eq!(module.get_first_global().unwrap(), global);</span>
     <span class="doccomment">/// assert_eq!(module.get_last_global().unwrap(), global);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_global</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BasicType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_</span>: <span class="ident">T</span>, <span class="ident">address_space</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&gt;</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">GlobalValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_global</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BasicType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">type_</span>: <span class="ident">T</span>,
+        <span class="ident">address_space</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&gt;</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    ) -&gt; <span class="ident">GlobalValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">address_space</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) =&gt; <span class="ident">LLVMAddGlobalInAddressSpace</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">type_</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(), <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) =&gt; <span class="ident">LLVMAddGlobalInAddressSpace</span>(
+                    <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                    <span class="ident">type_</span>.<span class="ident">as_type_ref</span>(),
+                    <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
+                    <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>,
+                ),
                 <span class="prelude-val">None</span> =&gt; <span class="ident">LLVMAddGlobal</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">type_</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()),
             }
         };
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">GlobalValue::new</span>(<span class="ident">value</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">GlobalValue::new</span>(<span class="ident">value</span>) }
     }
 
     <span class="doccomment">/// Writes a `Module` to a `Path`.</span>
@@ -2191,9 +2257,7 @@
         <span class="kw">let</span> <span class="ident">path_str</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">to_str</span>().<span class="ident">expect</span>(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">path_str</span>);
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMWriteBitcodeToFile</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) <span class="op">==</span> <span class="number">0</span>
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMWriteBitcodeToFile</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) <span class="op">==</span> <span class="number">0</span> }
     }
 
     <span class="comment">// See GH issue #6</span>
@@ -2201,13 +2265,18 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_bitcode_to_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">File</span>, <span class="ident">should_close</span>: <span class="ident">bool</span>, <span class="ident">unbuffered</span>: <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
         {
-            <span class="kw">use</span> <span class="ident">std::os::unix::io::AsRawFd</span>;
             <span class="kw">use</span> <span class="ident">llvm_sys::bit_writer::LLVMWriteBitcodeToFD</span>;
+            <span class="kw">use</span> <span class="ident">std::os::unix::io::AsRawFd</span>;
 
             <span class="comment">// REVIEW: as_raw_fd docs suggest it only works in *nix</span>
             <span class="comment">// Also, should_close should maybe be hardcoded to true?</span>
             <span class="kw">unsafe</span> {
-                <span class="ident">LLVMWriteBitcodeToFD</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">file</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">should_close</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">unbuffered</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">==</span> <span class="number">0</span>
+                <span class="ident">LLVMWriteBitcodeToFD</span>(
+                    <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                    <span class="ident">file</span>.<span class="ident">as_raw_fd</span>(),
+                    <span class="ident">should_close</span> <span class="kw">as</span> <span class="ident">i32</span>,
+                    <span class="ident">unbuffered</span> <span class="kw">as</span> <span class="ident">i32</span>,
+                ) <span class="op">==</span> <span class="number">0</span>
             }
         }
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">unix</span>))]</span>
@@ -2235,9 +2304,7 @@
     <span class="doccomment">/// let buffer = module.write_bitcode_to_memory();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_bitcode_to_memory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MemoryBuffer</span> {
-        <span class="kw">let</span> <span class="ident">memory_buffer</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMWriteBitcodeToMemoryBuffer</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())
-        };
+        <span class="kw">let</span> <span class="ident">memory_buffer</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMWriteBitcodeToMemoryBuffer</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()) };
 
         <span class="ident">MemoryBuffer::new</span>(<span class="ident">memory_buffer</span>)
     }
@@ -2252,9 +2319,7 @@
 
         <span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="ident">LLVMVerifierFailureAction::LLVMReturnStatusAction</span>;
 
-        <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMVerifyModule</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">action</span>, <span class="ident">err_str</span>.<span class="ident">as_mut_ptr</span>())
-        };
+        <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMVerifyModule</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">action</span>, <span class="ident">err_str</span>.<span class="ident">as_mut_ptr</span>()) };
 
         <span class="kw">let</span> <span class="ident">err_str</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">err_str</span>.<span class="ident">assume_init</span>() };
         <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">err_str</span>.<span class="ident">is_null</span>() {
@@ -2278,9 +2343,7 @@
             <span class="ident">LLVMGetDataLayoutStr</span>(<span class="ident">module</span>)
         };
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">DataLayout::new_borrowed</span>(<span class="ident">data_layout</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">DataLayout::new_borrowed</span>(<span class="ident">data_layout</span>) }
     }
 
     <span class="doccomment">/// Gets a smart pointer to the `DataLayout` belonging to a particular `Module`.</span>
@@ -2305,7 +2368,9 @@
     <span class="doccomment">/// assert_eq!(*module.get_data_layout(), data_layout);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_data_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">DataLayout</span><span class="op">&gt;</span> {
-        <span class="ident">Ref::map</span>(<span class="self">self</span>.<span class="ident">data_layout</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;DataLayout should always exist until Drop&quot;</span>))
+        <span class="ident">Ref::map</span>(<span class="self">self</span>.<span class="ident">data_layout</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">l</span><span class="op">|</span> {
+            <span class="ident">l</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;DataLayout should always exist until Drop&quot;</span>)
+        })
     }
 
     <span class="comment">// REVIEW: Ensure the replaced string ptr still gets cleaned up by the module (I think it does)</span>
@@ -2348,18 +2413,23 @@
 
     <span class="doccomment">/// Prints the content of the `Module` to a string.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMString</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMString::new</span>(<span class="ident">LLVMPrintModuleToString</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMString::new</span>(<span class="ident">LLVMPrintModuleToString</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())) }
     }
 
     <span class="doccomment">/// Prints the content of the `Module` to a file.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_to_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LLVMString</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path_str</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">to_str</span>().<span class="ident">expect</span>(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
+        <span class="kw">let</span> <span class="ident">path_str</span> <span class="op">=</span> <span class="ident">path</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">to_str</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;Did not find a valid Unicode path string&quot;</span>);
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">path_str</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_string</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
         <span class="kw">let</span> <span class="ident">return_code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMPrintModuleToFile</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">path</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>())
+            <span class="ident">LLVMPrintModuleToFile</span>(
+                <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">path</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>,
+                <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>(),
+            )
         };
 
         <span class="kw">if</span> <span class="ident">return_code</span> <span class="op">==</span> <span class="number">1</span> {
@@ -2373,25 +2443,35 @@
 
     <span class="doccomment">/// Sets the inline assembly for the `Module`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_inline_assembly</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">asm</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
-                  <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>
+        ))]</span>
         {
             <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetModuleInlineAsm</span>;
 
             <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">asm</span>);
 
-            <span class="kw">unsafe</span> {
-                <span class="ident">LLVMSetModuleInlineAsm</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
-            }
+            <span class="kw">unsafe</span> { <span class="ident">LLVMSetModuleInlineAsm</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) }
         }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
-                      <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>)))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>
+        )))]</span>
         {
             <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetModuleInlineAsm2</span>;
 
-            <span class="kw">unsafe</span> {
-                <span class="ident">LLVMSetModuleInlineAsm2</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">asm</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">asm</span>.<span class="ident">len</span>())
-            }
+            <span class="kw">unsafe</span> { <span class="ident">LLVMSetModuleInlineAsm2</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">asm</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">asm</span>.<span class="ident">len</span>()) }
         }
     }
 
@@ -2437,7 +2517,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_global_metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">MetadataValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">metadata</span>.<span class="ident">is_node</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;metadata is expected to be a node.&quot;</span>)
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;metadata is expected to be a node.&quot;</span>);
         }
 
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">key</span>);
@@ -2488,9 +2568,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_global_metadata_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">key</span>);
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetNamedMetadataNumOperands</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMGetNamedMetadataNumOperands</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) }
     }
 
     <span class="comment">// SubTypes: -&gt; Vec&lt;MetadataValue&lt;Node&gt;&gt;</span>
@@ -2565,17 +2643,13 @@
     <span class="doccomment">/// assert_eq!(module.get_first_global().unwrap(), global);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_first_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GlobalValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetFirstGlobal</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())
-        };
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetFirstGlobal</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()) };
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">GlobalValue::new</span>(<span class="ident">value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">GlobalValue::new</span>(<span class="ident">value</span>)) }
     }
 
     <span class="doccomment">/// Gets the last `GlobalValue` in a module.</span>
@@ -2597,17 +2671,13 @@
     <span class="doccomment">/// assert_eq!(module.get_last_global().unwrap(), global);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_last_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GlobalValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetLastGlobal</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())
-        };
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetLastGlobal</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()) };
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">GlobalValue::new</span>(<span class="ident">value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">GlobalValue::new</span>(<span class="ident">value</span>)) }
     }
 
     <span class="doccomment">/// Gets a named `GlobalValue` in a module.</span>
@@ -2630,17 +2700,13 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GlobalValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetNamedGlobal</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
-        };
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetNamedGlobal</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">GlobalValue::new</span>(<span class="ident">value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">GlobalValue::new</span>(<span class="ident">value</span>)) }
     }
 
     <span class="doccomment">/// Creates a new `Module` from a `MemoryBuffer`.</span>
@@ -2670,7 +2736,12 @@
         <span class="comment">// error diagnostics handler for now.</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMParseBitcodeInContext</span>(<span class="ident">context</span>.<span class="ident">context</span>, <span class="ident">buffer</span>.<span class="ident">memory_buffer</span>, <span class="ident">module</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>())
+            <span class="ident">LLVMParseBitcodeInContext</span>(
+                <span class="ident">context</span>.<span class="ident">context</span>,
+                <span class="ident">buffer</span>.<span class="ident">memory_buffer</span>,
+                <span class="ident">module</span>.<span class="ident">as_mut_ptr</span>(),
+                <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>(),
+            )
         };
 
         <span class="kw">if</span> <span class="ident">success</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
@@ -2679,9 +2750,7 @@
             }
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Module::new</span>(<span class="ident">module</span>.<span class="ident">assume_init</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Ok</span>(<span class="ident">Module::new</span>(<span class="ident">module</span>.<span class="ident">assume_init</span>())) }
     }
 
     <span class="doccomment">/// A convenience function for creating a `Module` from a file for a given context.</span>
@@ -2723,13 +2792,9 @@
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">cstr_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetModuleIdentifier</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">length</span>)
-        };
+        <span class="kw">let</span> <span class="ident">cstr_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetModuleIdentifier</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">length</span>) };
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">CStr::from_ptr</span>(<span class="ident">cstr_ptr</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">cstr_ptr</span>) }
     }
 
     <span class="doccomment">/// Assigns the name of this `Module`.</span>
@@ -2748,9 +2813,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMSetModuleIdentifier</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">name</span>.<span class="ident">len</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMSetModuleIdentifier</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">name</span>.<span class="ident">len</span>()) }
     }
 
     <span class="doccomment">/// Gets the source file name. It defaults to the module identifier but is separate from it.</span>
@@ -2775,13 +2838,9 @@
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetSourceFileName</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetSourceFileName</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">len</span>)
-        };
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetSourceFileName</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">len</span>) };
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">CStr::from_ptr</span>(<span class="ident">ptr</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">ptr</span>) }
     }
 
     <span class="doccomment">/// Sets the source file name. It defaults to the module identifier but is separate from it.</span>
@@ -2806,7 +2865,11 @@
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetSourceFileName</span>;
 
         <span class="kw">unsafe</span> {
-            <span class="ident">LLVMSetSourceFileName</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">file_name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">file_name</span>.<span class="ident">len</span>())
+            <span class="ident">LLVMSetSourceFileName</span>(
+                <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">file_name</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>,
+                <span class="ident">file_name</span>.<span class="ident">len</span>(),
+            )
         }
     }
 
@@ -2831,21 +2894,17 @@
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>))]</span>
         {
-            <span class="kw">use</span> <span class="ident">llvm_sys::linker</span>::{<span class="ident">LLVMLinkerMode</span>, <span class="ident">LLVMLinkModules</span>};
+            <span class="kw">use</span> <span class="ident">llvm_sys::linker</span>::{<span class="ident">LLVMLinkModules</span>, <span class="ident">LLVMLinkerMode</span>};
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_string</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
             <span class="comment">// As of 3.7, LLVMLinkerDestroySource is the only option</span>
             <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="ident">LLVMLinkerMode::LLVMLinkerDestroySource</span>;
-            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">LLVMLinkModules</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">other</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">mode</span>, <span class="kw-2">&amp;mut</span> <span class="ident">err_string</span>)
-            };
+            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMLinkModules</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">other</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">mode</span>, <span class="kw-2">&amp;mut</span> <span class="ident">err_string</span>) };
 
             <span class="ident">forget</span>(<span class="ident">other</span>);
 
             <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">err_string</span>))
-                }
+                <span class="kw">unsafe</span> { <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">err_string</span>)) }
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(())
             }
@@ -2853,8 +2912,8 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>)))]</span>
         {
             <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::error_handling::get_error_str_diagnostic_handler</span>;
-            <span class="kw">use</span> <span class="ident">llvm_sys::linker::LLVMLinkModules2</span>;
             <span class="kw">use</span> <span class="ident">libc::c_void</span>;
+            <span class="kw">use</span> <span class="ident">llvm_sys::linker::LLVMLinkModules2</span>;
 
             <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_context</span>();
 
@@ -2865,18 +2924,14 @@
             <span class="comment">// Here we assign an error handler to extract the error message, if any, for us.</span>
             <span class="ident">context</span>.<span class="ident">set_diagnostic_handler</span>(<span class="ident">get_error_str_diagnostic_handler</span>, <span class="ident">char_ptr_ptr</span>);
 
-            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">LLVMLinkModules2</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">other</span>.<span class="ident">module</span>.<span class="ident">get</span>())
-            };
+            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMLinkModules2</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">other</span>.<span class="ident">module</span>.<span class="ident">get</span>()) };
 
             <span class="ident">forget</span>(<span class="ident">other</span>);
 
             <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
                 <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">char_ptr</span>.<span class="ident">is_null</span>());
 
-                <span class="kw">unsafe</span> {
-                    <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">char_ptr</span>))
-                }
+                <span class="kw">unsafe</span> { <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">char_ptr</span>)) }
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(())
             }
@@ -2890,9 +2945,7 @@
         <span class="kw">use</span> <span class="ident">llvm_sys::comdat::LLVMGetOrInsertComdat</span>;
 
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
-        <span class="kw">let</span> <span class="ident">comdat_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetOrInsertComdat</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
-        };
+        <span class="kw">let</span> <span class="ident">comdat_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetOrInsertComdat</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
 
         <span class="ident">Comdat::new</span>(<span class="ident">comdat_ptr</span>)
     }
@@ -2905,21 +2958,15 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MetadataValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMMetadataAsValue</span>;
 
-        <span class="kw">let</span> <span class="ident">flag</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetModuleFlag</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">key</span>.<span class="ident">len</span>())
-        };
+        <span class="kw">let</span> <span class="ident">flag</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetModuleFlag</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">::libc::c_char</span>, <span class="ident">key</span>.<span class="ident">len</span>()) };
 
         <span class="kw">if</span> <span class="ident">flag</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">flag_value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMMetadataAsValue</span>(<span class="ident">LLVMGetModuleContext</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()), <span class="ident">flag</span>)
-        };
+        <span class="kw">let</span> <span class="ident">flag_value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMMetadataAsValue</span>(<span class="ident">LLVMGetModuleContext</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()), <span class="ident">flag</span>) };
 
-        <span class="kw">unsafe</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">MetadataValue::new</span>(<span class="ident">flag_value</span>))
-        }
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">MetadataValue::new</span>(<span class="ident">flag_value</span>)) }
     }
 
     <span class="doccomment">/// Append a `MetadataValue` as a module wide flag. Note that using the same key twice</span>
@@ -2929,7 +2976,13 @@
         <span class="kw">let</span> <span class="ident">md</span> <span class="op">=</span> <span class="ident">flag</span>.<span class="ident">as_metadata_ref</span>();
 
         <span class="kw">unsafe</span> {
-            <span class="ident">LLVMAddModuleFlag</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">behavior</span>.<span class="ident">into</span>(), <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">::libc::c_char</span>, <span class="ident">key</span>.<span class="ident">len</span>(), <span class="ident">md</span>)
+            <span class="ident">LLVMAddModuleFlag</span>(
+                <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">behavior</span>.<span class="ident">into</span>(),
+                <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">::libc::c_char</span>,
+                <span class="ident">key</span>.<span class="ident">len</span>(),
+                <span class="ident">md</span>,
+            )
         }
     }
 
@@ -2940,12 +2993,16 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_basic_value_flag</span><span class="op">&lt;</span><span class="ident">BV</span>: <span class="ident">BasicValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">behavior</span>: <span class="ident">FlagBehavior</span>, <span class="ident">flag</span>: <span class="ident">BV</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMValueAsMetadata</span>;
 
-        <span class="kw">let</span> <span class="ident">md</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMValueAsMetadata</span>(<span class="ident">flag</span>.<span class="ident">as_value_ref</span>())
-        };
+        <span class="kw">let</span> <span class="ident">md</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMValueAsMetadata</span>(<span class="ident">flag</span>.<span class="ident">as_value_ref</span>()) };
 
         <span class="kw">unsafe</span> {
-            <span class="ident">LLVMAddModuleFlag</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">behavior</span>.<span class="ident">into</span>(), <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">::libc::c_char</span>, <span class="ident">key</span>.<span class="ident">len</span>(), <span class="ident">md</span>)
+            <span class="ident">LLVMAddModuleFlag</span>(
+                <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">behavior</span>.<span class="ident">into</span>(),
+                <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">::libc::c_char</span>,
+                <span class="ident">key</span>.<span class="ident">len</span>(),
+                <span class="ident">md</span>,
+            )
         }
     }
 
@@ -2954,9 +3011,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strip_debug_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::debuginfo::LLVMStripModuleDebugInfo</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMStripModuleDebugInfo</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()) <span class="op">==</span> <span class="number">1</span>
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMStripModuleDebugInfo</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()) <span class="op">==</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Gets the version of debug metadata contained in this `Module`.</span>
@@ -2964,14 +3019,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_debug_metadata_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">libc::c_uint</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::debuginfo::LLVMGetModuleDebugMetadataVersion</span>;
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetModuleDebugMetadataVersion</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMGetModuleDebugMetadataVersion</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()) }
     }
 
     <span class="doccomment">/// Creates a `DebugInfoBuilder` for this `Module`.</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_debug_info_builder</span>(<span class="kw-2">&amp;</span><span class="self">self</span>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_debug_info_builder</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">allow_unresolved</span>: <span class="ident">bool</span>,
         <span class="ident">language</span>: <span class="ident">DWARFSourceLanguage</span>,
         <span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
@@ -2985,33 +3039,73 @@
         <span class="ident">dwo_id</span>: <span class="ident">libc::c_uint</span>,
         <span class="ident">split_debug_inlining</span>: <span class="ident">bool</span>,
         <span class="ident">debug_info_for_profiling</span>: <span class="ident">bool</span>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm14-0&quot;</span>
+        ))]</span>
         <span class="ident">sysroot</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm14-0&quot;</span>
+        ))]</span>
         <span class="ident">sdk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) -&gt; (<span class="ident">DebugInfoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">DICompileUnit</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) {
-        <span class="ident">DebugInfoBuilder::new</span>(<span class="self">self</span>, <span class="ident">allow_unresolved</span>,
-                              <span class="ident">language</span>, <span class="ident">filename</span>, <span class="ident">directory</span>, <span class="ident">producer</span>, <span class="ident">is_optimized</span>, <span class="ident">flags</span>,
-                              <span class="ident">runtime_ver</span>, <span class="ident">split_name</span>, <span class="ident">kind</span>, <span class="ident">dwo_id</span>, <span class="ident">split_debug_inlining</span>,
-                              <span class="ident">debug_info_for_profiling</span>,
-                              <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
-                              <span class="ident">sysroot</span>,
-                              <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
-                              <span class="ident">sdk</span>
+        <span class="ident">DebugInfoBuilder::new</span>(
+            <span class="self">self</span>,
+            <span class="ident">allow_unresolved</span>,
+            <span class="ident">language</span>,
+            <span class="ident">filename</span>,
+            <span class="ident">directory</span>,
+            <span class="ident">producer</span>,
+            <span class="ident">is_optimized</span>,
+            <span class="ident">flags</span>,
+            <span class="ident">runtime_ver</span>,
+            <span class="ident">split_name</span>,
+            <span class="ident">kind</span>,
+            <span class="ident">dwo_id</span>,
+            <span class="ident">split_debug_inlining</span>,
+            <span class="ident">debug_info_for_profiling</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm14-0&quot;</span>
+            ))]</span>
+            <span class="ident">sysroot</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm14-0&quot;</span>
+            ))]</span>
+            <span class="ident">sdk</span>,
         )
     }
 
-
     <span class="doccomment">/// Construct and run a set of passes over a module.</span>
-    <span class="doccomment">/// This function takes a string with the passes that should be used. </span>
-    <span class="doccomment">/// The format of this string is the same as opt&#39;s -passes argument for the new pass manager. </span>
-    <span class="doccomment">/// Individual passes may be specified, separated by commas. </span>
-    <span class="doccomment">/// Full pipelines may also be invoked using default&lt;O3&gt; and friends. </span>
+    <span class="doccomment">/// This function takes a string with the passes that should be used.</span>
+    <span class="doccomment">/// The format of this string is the same as opt&#39;s -passes argument for the new pass manager.</span>
+    <span class="doccomment">/// Individual passes may be specified, separated by commas.</span>
+    <span class="doccomment">/// Full pipelines may also be invoked using default&lt;O3&gt; and friends.</span>
     <span class="doccomment">/// See opt for full reference of the Passes format.</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">13.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_passes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">passes</span> : <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">machine</span> : <span class="kw-2">&amp;</span><span class="ident">TargetMachine</span>, <span class="ident">options</span> : <span class="ident">PassBuilderOptions</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LLVMString</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_passes</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">passes</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">machine</span>: <span class="kw-2">&amp;</span><span class="ident">TargetMachine</span>,
+        <span class="ident">options</span>: <span class="ident">PassBuilderOptions</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LLVMString</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">LLVMRunPasses</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">to_c_str</span>(<span class="ident">passes</span>).<span class="ident">as_ptr</span>(), <span class="ident">machine</span>.<span class="ident">target_machine</span> , <span class="ident">options</span>.<span class="ident">options_ref</span>);
+            <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">LLVMRunPasses</span>(
+                <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">to_c_str</span>(<span class="ident">passes</span>).<span class="ident">as_ptr</span>(),
+                <span class="ident">machine</span>.<span class="ident">target_machine</span>,
+                <span class="ident">options</span>.<span class="ident">options_ref</span>,
+            );
             <span class="kw">if</span> <span class="ident">error</span> <span class="op">==</span> <span class="ident">std::ptr::null_mut</span>() {
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else</span> {
@@ -3019,7 +3113,6 @@
                 <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">message</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>))
             }
         }
-
     }
 }
 
@@ -3028,11 +3121,13 @@
         <span class="comment">// REVIEW: Is this just a LLVM 6 bug? We could conditionally compile this assertion for affected versions</span>
         <span class="kw">let</span> <span class="ident">verify</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">verify</span>();
 
-        <span class="macro">assert!</span>(<span class="ident">verify</span>.<span class="ident">is_ok</span>(), <span class="string">&quot;Cloning a Module seems to segfault when module is not valid. We are preventing that here. Error: {}&quot;</span>, <span class="ident">verify</span>.<span class="ident">unwrap_err</span>());
+        <span class="macro">assert!</span>(
+            <span class="ident">verify</span>.<span class="ident">is_ok</span>(),
+            <span class="string">&quot;Cloning a Module seems to segfault when module is not valid. We are preventing that here. Error: {}&quot;</span>,
+            <span class="ident">verify</span>.<span class="ident">unwrap_err</span>()
+        );
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">Module::new</span>(<span class="ident">LLVMCloneModule</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()))
-        }
+        <span class="kw">unsafe</span> { <span class="ident">Module::new</span>(<span class="ident">LLVMCloneModule</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>())) }
     }
 }
 
@@ -3047,6 +3142,13 @@
         }
 
         <span class="comment">// Context &amp; EE will drop naturally if they are unique references at this point</span>
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">LLVMReference</span><span class="op">&lt;</span><span class="ident">LLVMModuleRef</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Module</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMModuleRef</span> {
+        <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>()
     }
 }
 
@@ -3119,13 +3221,13 @@
                 <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">Previous</span>(<span class="ident">first</span>);
 
                 <span class="prelude-val">Some</span>(<span class="ident">first</span>)
-            }
+            },
             <span class="ident">Previous</span>(<span class="ident">prev</span>) =&gt; <span class="kw">match</span> <span class="ident">prev</span>.<span class="ident">get_next_function</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">current</span>) =&gt; {
                     <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">Previous</span>(<span class="ident">current</span>);
 
                     <span class="prelude-val">Some</span>(<span class="ident">current</span>)
-                }
+                },
                 <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
             },
         }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/execution_engine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>execution_engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/execution_engine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>execution_engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -679,8 +679,19 @@
 <span id="674">674</span>
 <span id="675">675</span>
 <span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc::c_int</span>;
-<span class="kw">use</span> <span class="ident">llvm_sys::execution_engine</span>::{<span class="ident">LLVMGetExecutionEngineTargetData</span>, <span class="ident">LLVMExecutionEngineRef</span>, <span class="ident">LLVMRunFunction</span>, <span class="ident">LLVMRunFunctionAsMain</span>, <span class="ident">LLVMDisposeExecutionEngine</span>, <span class="ident">LLVMGetFunctionAddress</span>, <span class="ident">LLVMAddModule</span>, <span class="ident">LLVMFindFunction</span>, <span class="ident">LLVMLinkInMCJIT</span>, <span class="ident">LLVMLinkInInterpreter</span>, <span class="ident">LLVMRemoveModule</span>, <span class="ident">LLVMGenericValueRef</span>, <span class="ident">LLVMFreeMachineCodeForFunction</span>, <span class="ident">LLVMAddGlobalMapping</span>, <span class="ident">LLVMRunStaticConstructors</span>, <span class="ident">LLVMRunStaticDestructors</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::execution_engine</span>::{
+    <span class="ident">LLVMAddGlobalMapping</span>, <span class="ident">LLVMAddModule</span>, <span class="ident">LLVMDisposeExecutionEngine</span>, <span class="ident">LLVMExecutionEngineRef</span>, <span class="ident">LLVMFindFunction</span>,
+    <span class="ident">LLVMFreeMachineCodeForFunction</span>, <span class="ident">LLVMGenericValueRef</span>, <span class="ident">LLVMGetExecutionEngineTargetData</span>, <span class="ident">LLVMGetFunctionAddress</span>,
+    <span class="ident">LLVMLinkInInterpreter</span>, <span class="ident">LLVMLinkInMCJIT</span>, <span class="ident">LLVMRemoveModule</span>, <span class="ident">LLVMRunFunction</span>, <span class="ident">LLVMRunFunctionAsMain</span>,
+    <span class="ident">LLVMRunStaticConstructors</span>, <span class="ident">LLVMRunStaticDestructors</span>,
+};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::context::Context</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::module::Module</span>;
@@ -689,11 +700,14 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AnyValue</span>, <span class="ident">AsValueRef</span>, <span class="ident">FunctionValue</span>, <span class="ident">GenericValue</span>};
 
 <span class="kw">use</span> <span class="ident">std::error::Error</span>;
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
-<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>};
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std::mem</span>::{<span class="ident">forget</span>, <span class="ident">transmute_copy</span>, <span class="ident">size_of</span>, <span class="ident">MaybeUninit</span>};
+<span class="kw">use</span> <span class="ident">std::mem</span>::{<span class="ident">forget</span>, <span class="ident">size_of</span>, <span class="ident">transmute_copy</span>, <span class="ident">MaybeUninit</span>};
+<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LLVMReference</span>;
 
 <span class="kw">static</span> <span class="ident">EE_INNER_PANIC</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ExecutionEngineInner should exist until Drop&quot;</span>;
 
@@ -771,10 +785,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">ExecutionEngine</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">execution_engine</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LLVMExecutionEngineRef</span><span class="op">&gt;</span>,
-        <span class="ident">jit_mode</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">execution_engine</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LLVMExecutionEngineRef</span><span class="op">&gt;</span>, <span class="ident">jit_mode</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">execution_engine</span>.<span class="ident">is_null</span>());
 
         <span class="comment">// REVIEW: Will we have to do this for LLVMGetExecutionEngineTargetMachine too?</span>
@@ -799,9 +810,7 @@
     <span class="doccomment">/// This function probably doesn&#39;t need to be called, but is here due to</span>
     <span class="doccomment">/// linking(?) requirements. Bad things happen if we don&#39;t provide it.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">link_in_mc_jit</span>() {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMLinkInMCJIT</span>()
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMLinkInMCJIT</span>() }
     }
 
     <span class="doccomment">/// This function probably doesn&#39;t need to be called, but is here due to</span>
@@ -854,9 +863,7 @@
     <span class="doccomment">/// assert_eq!(result, 128.);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_global_mapping</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">AnyValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">addr</span>: <span class="ident">usize</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMAddGlobalMapping</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">addr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMAddGlobalMapping</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">addr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="doccomment">/// Adds a module to an `ExecutionEngine`.</span>
@@ -877,9 +884,7 @@
     <span class="doccomment">/// assert!(ee.add_module(&amp;module).is_err());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_module</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMAddModule</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">module</span>.<span class="ident">module</span>.<span class="ident">get</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMAddModule</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">module</span>.<span class="ident">module</span>.<span class="ident">get</span>()) }
 
         <span class="kw">if</span> <span class="ident">module</span>.<span class="ident">owned_by_ee</span>.<span class="ident">borrow</span>().<span class="ident">is_some</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(());
@@ -892,17 +897,23 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_module</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">RemoveModuleError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">module</span>.<span class="ident">owned_by_ee</span>.<span class="ident">borrow</span>() {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">ee</span>) <span class="kw">if</span> <span class="ident">ee</span>.<span class="ident">execution_engine_inner</span>() <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">execution_engine_inner</span>() =&gt;
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RemoveModuleError::IncorrectModuleOwner</span>),
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">ee</span>) <span class="kw">if</span> <span class="ident">ee</span>.<span class="ident">execution_engine_inner</span>() <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">execution_engine_inner</span>() =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RemoveModuleError::IncorrectModuleOwner</span>)
+            },
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RemoveModuleError::ModuleNotOwned</span>),
-            <span class="kw">_</span> =&gt; ()
+            <span class="kw">_</span> =&gt; (),
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_module</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_string</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
 
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMRemoveModule</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">module</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">new_module</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>())
+            <span class="ident">LLVMRemoveModule</span>(
+                <span class="self">self</span>.<span class="ident">execution_engine_inner</span>(),
+                <span class="ident">module</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
+                <span class="ident">new_module</span>.<span class="ident">as_mut_ptr</span>(),
+                <span class="ident">err_string</span>.<span class="ident">as_mut_ptr</span>(),
+            )
         };
 
         <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">1</span> {
@@ -986,8 +997,11 @@
 
         <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_function_address</span>(<span class="ident">fn_name</span>)<span class="question-mark">?</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(), <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>(),
-            <span class="string">&quot;The type `F` must have the same size as a function pointer&quot;</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(),
+            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>(),
+            <span class="string">&quot;The type `F` must have the same size as a function pointer&quot;</span>
+        );
 
         <span class="kw">let</span> <span class="ident">execution_engine</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execution_engine</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="ident">EE_INNER_PANIC</span>);
 
@@ -1009,9 +1023,7 @@
         <span class="self">self</span>.<span class="ident">get_function_value</span>(<span class="ident">fn_name</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">fn_name</span>);
-        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetFunctionAddress</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
-        };
+        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetFunctionAddress</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
 
         <span class="comment">// REVIEW: Can also return 0 if no targets are initialized.</span>
         <span class="comment">// One option might be to set a (thread local?) global to true if any at all of the targets have been</span>
@@ -1027,7 +1039,9 @@
     <span class="comment">// REVIEW: Not sure if an EE&#39;s target data can change.. if so we might want to update the value</span>
     <span class="comment">// when making this call</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">TargetData</span> {
-        <span class="self">self</span>.<span class="ident">target_data</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;TargetData should always exist until Drop&quot;</span>)
+        <span class="self">self</span>.<span class="ident">target_data</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;TargetData should always exist until Drop&quot;</span>)
     }
 
     <span class="comment">// REVIEW: Can also find nothing if no targeting is initialized. Maybe best to</span>
@@ -1042,14 +1056,10 @@
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">fn_name</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
 
-        <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMFindFunction</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(), <span class="ident">function</span>.<span class="ident">as_mut_ptr</span>())
-        };
+        <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMFindFunction</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(), <span class="ident">function</span>.<span class="ident">as_mut_ptr</span>()) };
 
         <span class="kw">if</span> <span class="ident">code</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="kw">unsafe</span> {
-                <span class="ident">FunctionValue::new</span>(<span class="ident">function</span>.<span class="ident">assume_init</span>()).<span class="ident">ok_or</span>(<span class="ident">FunctionLookupError::FunctionNotFound</span>)
-            }
+            <span class="kw">return</span> <span class="kw">unsafe</span> { <span class="ident">FunctionValue::new</span>(<span class="ident">function</span>.<span class="ident">assume_init</span>()).<span class="ident">ok_or</span>(<span class="ident">FunctionLookupError::FunctionNotFound</span>) };
         };
 
         <span class="prelude-val">Err</span>(<span class="ident">FunctionLookupError::FunctionNotFound</span>)
@@ -1057,12 +1067,19 @@
 
     <span class="comment">// TODOC: Marked as unsafe because input function could very well do something unsafe. It&#39;s up to the caller</span>
     <span class="comment">// to ensure that doesn&#39;t happen by defining their function correctly.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">run_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">GenericValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>]) -&gt; <span class="ident">GenericValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMGenericValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">iter</span>()
-                                                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">generic_value</span>)
-                                                     .<span class="ident">collect</span>();
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">run_function</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">function</span>: <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">GenericValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>],
+    ) -&gt; <span class="ident">GenericValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMGenericValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">generic_value</span>).<span class="ident">collect</span>();
 
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMRunFunction</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">function</span>.<span class="ident">as_value_ref</span>(), <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>()); <span class="comment">// REVIEW: usize to u32 ok??</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMRunFunction</span>(
+            <span class="self">self</span>.<span class="ident">execution_engine_inner</span>(),
+            <span class="ident">function</span>.<span class="ident">as_value_ref</span>(),
+            <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>(),
+        ); <span class="comment">// REVIEW: usize to u32 ok??</span>
 
         <span class="ident">GenericValue::new</span>(<span class="ident">value</span>)
     }
@@ -1076,27 +1093,27 @@
 
         <span class="kw">let</span> <span class="ident">environment_variables</span> <span class="op">=</span> <span class="macro">vec!</span>[]; <span class="comment">// TODO: Support envp. Likely needs to be null terminated</span>
 
-        <span class="ident">LLVMRunFunctionAsMain</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">function</span>.<span class="ident">as_value_ref</span>(), <span class="ident">raw_args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">raw_args</span>.<span class="ident">as_ptr</span>(), <span class="ident">environment_variables</span>.<span class="ident">as_ptr</span>()) <span class="comment">// REVIEW: usize to u32 cast ok??</span>
+        <span class="ident">LLVMRunFunctionAsMain</span>(
+            <span class="self">self</span>.<span class="ident">execution_engine_inner</span>(),
+            <span class="ident">function</span>.<span class="ident">as_value_ref</span>(),
+            <span class="ident">raw_args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">raw_args</span>.<span class="ident">as_ptr</span>(),
+            <span class="ident">environment_variables</span>.<span class="ident">as_ptr</span>(),
+        ) <span class="comment">// REVIEW: usize to u32 cast ok??</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">free_fn_machine_code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMFreeMachineCodeForFunction</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">function</span>.<span class="ident">as_value_ref</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMFreeMachineCodeForFunction</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>(), <span class="ident">function</span>.<span class="ident">as_value_ref</span>()) }
     }
 
     <span class="comment">// REVIEW: Is this actually safe?</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_static_constructors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMRunStaticConstructors</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMRunStaticConstructors</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>()) }
     }
 
     <span class="comment">// REVIEW: Is this actually safe? Can you double destruct/free?</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_static_destructors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">LLVMRunStaticDestructors</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>())
-        }
+        <span class="kw">unsafe</span> { <span class="ident">LLVMRunStaticDestructors</span>(<span class="self">self</span>.<span class="ident">execution_engine_inner</span>()) }
     }
 }
 
@@ -1121,9 +1138,7 @@
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">execution_engine_rc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execution_engine_rc</span>().<span class="ident">clone</span>();
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">ExecutionEngine::new</span>(<span class="ident">execution_engine_rc</span>, <span class="self">self</span>.<span class="ident">jit_mode</span>)
-        }
+        <span class="kw">unsafe</span> { <span class="ident">ExecutionEngine::new</span>(<span class="ident">execution_engine_rc</span>, <span class="self">self</span>.<span class="ident">jit_mode</span>) }
     }
 }
 
@@ -1159,9 +1174,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">JitFunction</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">F</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;JitFunction&quot;</span>)
-            .<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="string">&quot;&lt;unnamed&gt;&quot;</span>)
-            .<span class="ident">finish</span>()
+        <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;JitFunction&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="string">&quot;&lt;unnamed&gt;&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
@@ -1207,15 +1220,18 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;experimental&quot;</span>, <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>))))]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">experimental</span> {
-    <span class="kw">use</span> <span class="ident">llvm_sys::error</span>::{<span class="ident">LLVMErrorRef</span>, <span class="ident">LLVMGetErrorTypeId</span>, <span class="ident">LLVMConsumeError</span>, <span class="ident">LLVMGetErrorMessage</span>, <span class="ident">LLVMErrorTypeId</span>};
-    <span class="kw">use</span> <span class="ident">llvm_sys::orc</span>::{<span class="ident">LLVMOrcCreateInstance</span>, <span class="ident">LLVMOrcDisposeInstance</span>, <span class="ident">LLVMOrcJITStackRef</span>, <span class="ident">LLVMOrcAddEagerlyCompiledIR</span>, <span class="ident">LLVMOrcAddLazilyCompiledIR</span>, <span class="ident">LLVMOrcGetErrorMsg</span>, <span class="ident">LLVMOrcGetMangledSymbol</span>, <span class="ident">LLVMOrcDisposeMangledSymbol</span>};
+    <span class="kw">use</span> <span class="ident">llvm_sys::error</span>::{<span class="ident">LLVMConsumeError</span>, <span class="ident">LLVMErrorRef</span>, <span class="ident">LLVMErrorTypeId</span>, <span class="ident">LLVMGetErrorMessage</span>, <span class="ident">LLVMGetErrorTypeId</span>};
+    <span class="kw">use</span> <span class="ident">llvm_sys::orc</span>::{
+        <span class="ident">LLVMOrcAddEagerlyCompiledIR</span>, <span class="ident">LLVMOrcAddLazilyCompiledIR</span>, <span class="ident">LLVMOrcCreateInstance</span>, <span class="ident">LLVMOrcDisposeInstance</span>,
+        <span class="ident">LLVMOrcDisposeMangledSymbol</span>, <span class="ident">LLVMOrcGetErrorMsg</span>, <span class="ident">LLVMOrcGetMangledSymbol</span>, <span class="ident">LLVMOrcJITStackRef</span>,
+    };
 
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::module::Module</span>;
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::to_c_str</span>;
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::targets::TargetMachine</span>;
 
-    <span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
     <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>};
+    <span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
     <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -1225,17 +1241,13 @@
         <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">CStr</span>;
 
         <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CStr</span> {
-            <span class="kw">unsafe</span> {
-                <span class="ident">CStr::from_ptr</span>(<span class="self">self</span>.<span class="number">0</span>)
-            }
+            <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="self">self</span>.<span class="number">0</span>) }
         }
     }
 
     <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">MangledSymbol</span> {
         <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <span class="kw">unsafe</span> {
-                <span class="ident">LLVMOrcDisposeMangledSymbol</span>(<span class="self">self</span>.<span class="number">0</span>)
-            }
+            <span class="kw">unsafe</span> { <span class="ident">LLVMOrcDisposeMangledSymbol</span>(<span class="self">self</span>.<span class="number">0</span>) }
         }
     }
 
@@ -1244,10 +1256,9 @@
 
     <span class="kw">impl</span> <span class="ident">LLVMError</span> {
         <span class="comment">// Null type id == success</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMErrorTypeId</span> { <span class="comment">// FIXME: Don&#39;t expose LLVMErrorTypeId</span>
-            <span class="kw">unsafe</span> {
-                <span class="ident">LLVMGetErrorTypeId</span>(<span class="self">self</span>.<span class="number">0</span>)
-            }
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMErrorTypeId</span> {
+            <span class="comment">// FIXME: Don&#39;t expose LLVMErrorTypeId</span>
+            <span class="kw">unsafe</span> { <span class="ident">LLVMGetErrorTypeId</span>(<span class="self">self</span>.<span class="number">0</span>) }
         }
     }
 
@@ -1263,9 +1274,7 @@
 
     <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">LLVMError</span> {
         <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-            <span class="kw">unsafe</span> {
-                <span class="ident">LLVMConsumeError</span>(<span class="self">self</span>.<span class="number">0</span>)
-            }
+            <span class="kw">unsafe</span> { <span class="ident">LLVMConsumeError</span>(<span class="self">self</span>.<span class="number">0</span>) }
         }
     }
 
@@ -1275,9 +1284,7 @@
 
     <span class="kw">impl</span> <span class="ident">Orc</span> {
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">target_machine</span>: <span class="ident">TargetMachine</span>) -&gt; <span class="self">Self</span> {
-            <span class="kw">let</span> <span class="ident">stack_ref</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">LLVMOrcCreateInstance</span>(<span class="ident">target_machine</span>.<span class="ident">target_machine</span>)
-            };
+            <span class="kw">let</span> <span class="ident">stack_ref</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMOrcCreateInstance</span>(<span class="ident">target_machine</span>.<span class="ident">target_machine</span>) };
 
             <span class="ident">Orc</span>(<span class="ident">stack_ref</span>)
         }
@@ -1301,9 +1308,7 @@
                 <span class="macro">panic!</span>(<span class="string">&quot;Needs to be optional&quot;</span>)
             }
 
-            <span class="kw">unsafe</span> {
-                <span class="ident">CStr::from_ptr</span>(<span class="ident">err_str</span>)
-            }
+            <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">err_str</span>) }
         }
 
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mangled_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">MangledSymbol</span> {
@@ -1320,29 +1325,29 @@
         <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
             <span class="comment">// REVIEW: This returns an LLVMErrorRef, not sure what we can do with it...</span>
             <span class="comment">// print to stderr maybe?</span>
-            <span class="ident">LLVMError</span>(<span class="kw">unsafe</span> {
-                <span class="ident">LLVMOrcDisposeInstance</span>(<span class="self">self</span>.<span class="number">0</span>)
-            });
+            <span class="ident">LLVMError</span>(<span class="kw">unsafe</span> { <span class="ident">LLVMOrcDisposeInstance</span>(<span class="self">self</span>.<span class="number">0</span>) });
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_mangled_str</span>() {
-        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::OptimizationLevel</span>;
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::targets</span>::{<span class="ident">CodeModel</span>, <span class="ident">InitializationConfig</span>, <span class="ident">RelocMode</span>, <span class="ident">Target</span>};
+        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::OptimizationLevel</span>;
 
         <span class="ident">Target::initialize_native</span>(<span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>()).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">target_triple</span> <span class="op">=</span> <span class="ident">TargetMachine::get_default_triple</span>();
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">Target::from_triple</span>(<span class="kw-2">&amp;</span><span class="ident">target_triple</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">target_machine</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">create_target_machine</span>(
-            <span class="kw-2">&amp;</span><span class="ident">target_triple</span>,
-            <span class="kw-2">&amp;</span><span class="string">&quot;&quot;</span>,
-            <span class="kw-2">&amp;</span><span class="string">&quot;&quot;</span>,
-            <span class="ident">OptimizationLevel::None</span>,
-            <span class="ident">RelocMode::Default</span>,
-            <span class="ident">CodeModel::Default</span>,
-        ).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">target_machine</span> <span class="op">=</span> <span class="ident">target</span>
+            .<span class="ident">create_target_machine</span>(
+                <span class="kw-2">&amp;</span><span class="ident">target_triple</span>,
+                <span class="kw-2">&amp;</span><span class="string">&quot;&quot;</span>,
+                <span class="kw-2">&amp;</span><span class="string">&quot;&quot;</span>,
+                <span class="ident">OptimizationLevel::None</span>,
+                <span class="ident">RelocMode::Default</span>,
+                <span class="ident">CodeModel::Default</span>,
+            )
+            .<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">orc</span> <span class="op">=</span> <span class="ident">Orc::create</span>(<span class="ident">target_machine</span>);
 
         <span class="macro">assert_eq!</span>(<span class="ident">orc</span>.<span class="ident">get_error</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;&quot;</span>);
@@ -1353,6 +1358,13 @@
 
         <span class="comment">// REVIEW: This doesn&#39;t seem very mangled...</span>
         <span class="macro">assert_eq!</span>(<span class="ident">mangled_symbol</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;MyStructName&quot;</span>);
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">LLVMReference</span><span class="op">&lt;</span><span class="ident">LLVMExecutionEngineRef</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExecutionEngine</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMExecutionEngineRef</span> {
+        <span class="self">self</span>.<span class="ident">execution_engine_inner</span>()
     }
 }
 </code></pre></div>

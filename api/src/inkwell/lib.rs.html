@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/36c3b10/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/02fb704/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -435,6 +435,37 @@
 <span id="430">430</span>
 <span id="431">431</span>
 <span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Inkwell documentation is a work in progress.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! If you have any LLVM knowledge that could be used to improve these docs, we would greatly appreciate you opening an issue and/or a pull request on our [GitHub page](https://github.com/TheDan64/inkwell).</span>
@@ -456,18 +487,34 @@
 <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">attributes</span>;
 <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
-              <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">comdat</span>;
-<span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">basic_block</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">builder</span>;
 <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>
+)))]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">comdat</span>;
+<span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">context</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">data_layout</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>
+)))]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">debug_info</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">execution_engine</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">memory_buffer</span>;
 <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">module</span>;
@@ -476,39 +523,43 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">targets</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">values</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
 
 <span class="comment">// Boilerplate to select a desired llvm_sys version at compile &amp; link time.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm3-6&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_36</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm3-7&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_37</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm3-8&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_38</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm3-9&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_39</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm4-0&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_40</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm5-0&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_50</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm6-0&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_60</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm7-0&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_70</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm8-0&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_80</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm9-0&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_90</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm10-0&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_100</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm11-0&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_110</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm12-0&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_120</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;llvm13-0&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_130</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm14-0&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_140</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_36</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_37</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_38</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-9&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_39</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_40</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_50</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_60</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_70</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_80</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_90</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
 
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::{<span class="ident">LLVMIntPredicate</span>, <span class="ident">LLVMRealPredicate</span>, <span class="ident">LLVMVisibility</span>, <span class="ident">LLVMThreadLocalMode</span>, <span class="ident">LLVMDLLStorageClass</span>, <span class="ident">LLVMAtomicOrdering</span>, <span class="ident">LLVMAtomicRMWBinOp</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys</span>::{
+    <span class="ident">LLVMAtomicOrdering</span>, <span class="ident">LLVMAtomicRMWBinOp</span>, <span class="ident">LLVMDLLStorageClass</span>, <span class="ident">LLVMIntPredicate</span>, <span class="ident">LLVMRealPredicate</span>,
+    <span class="ident">LLVMThreadLocalMode</span>, <span class="ident">LLVMVisibility</span>,
+};
 
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::LLVMInlineAsmDialect</span>;
@@ -544,7 +595,7 @@
     }
 }
 
-<span class="macro">assert_unique_used_features!</span>{<span class="string">&quot;llvm3-6&quot;</span>, <span class="string">&quot;llvm3-7&quot;</span>, <span class="string">&quot;llvm3-8&quot;</span>, <span class="string">&quot;llvm3-9&quot;</span>, <span class="string">&quot;llvm4-0&quot;</span>, <span class="string">&quot;llvm5-0&quot;</span>, <span class="string">&quot;llvm6-0&quot;</span>, <span class="string">&quot;llvm7-0&quot;</span>, <span class="string">&quot;llvm8-0&quot;</span>, <span class="string">&quot;llvm9-0&quot;</span>, <span class="string">&quot;llvm10-0&quot;</span>, <span class="string">&quot;llvm11-0&quot;</span>, <span class="string">&quot;llvm12-0&quot;</span>, <span class="string">&quot;llvm13-0&quot;</span>}
+<span class="macro">assert_unique_used_features!</span> {<span class="string">&quot;llvm3-6&quot;</span>, <span class="string">&quot;llvm3-7&quot;</span>, <span class="string">&quot;llvm3-8&quot;</span>, <span class="string">&quot;llvm3-9&quot;</span>, <span class="string">&quot;llvm4-0&quot;</span>, <span class="string">&quot;llvm5-0&quot;</span>, <span class="string">&quot;llvm6-0&quot;</span>, <span class="string">&quot;llvm7-0&quot;</span>, <span class="string">&quot;llvm8-0&quot;</span>, <span class="string">&quot;llvm9-0&quot;</span>, <span class="string">&quot;llvm10-0&quot;</span>, <span class="string">&quot;llvm11-0&quot;</span>, <span class="string">&quot;llvm12-0&quot;</span>, <span class="string">&quot;llvm13-0&quot;</span>, <span class="string">&quot;llvm14-0&quot;</span>}
 
 <span class="doccomment">/// Defines the address space in which a global will be inserted.</span>
 <span class="doccomment">///</span>
@@ -553,10 +604,10 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AddressSpace</span> {
     <span class="ident">Generic</span> <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">Global</span>  <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">Shared</span>  <span class="op">=</span> <span class="number">3</span>,
-    <span class="ident">Const</span>   <span class="op">=</span> <span class="number">4</span>,
-    <span class="ident">Local</span>   <span class="op">=</span> <span class="number">5</span>,
+    <span class="ident">Global</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="ident">Shared</span> <span class="op">=</span> <span class="number">3</span>,
+    <span class="ident">Const</span> <span class="op">=</span> <span class="number">4</span>,
+    <span class="ident">Local</span> <span class="op">=</span> <span class="number">5</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AddressSpace</span> {
@@ -779,9 +830,9 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u32</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OptimizationLevel</span> {
-    <span class="prelude-val">None</span>       <span class="op">=</span> <span class="number">0</span>,
-    <span class="ident">Less</span>       <span class="op">=</span> <span class="number">1</span>,
-    <span class="ident">Default</span>    <span class="op">=</span> <span class="number">2</span>,
+    <span class="prelude-val">None</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="ident">Less</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="ident">Default</span> <span class="op">=</span> <span class="number">2</span>,
     <span class="ident">Aggressive</span> <span class="op">=</span> <span class="number">3</span>,
 }
 
@@ -825,7 +876,7 @@
             <span class="ident">LLVMThreadLocalMode::LLVMLocalDynamicTLSModel</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::LocalDynamicTLSModel</span>),
             <span class="ident">LLVMThreadLocalMode::LLVMInitialExecTLSModel</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::InitialExecTLSModel</span>),
             <span class="ident">LLVMThreadLocalMode::LLVMLocalExecTLSModel</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ThreadLocalMode::LocalExecTLSModel</span>),
-            <span class="ident">LLVMThreadLocalMode::LLVMNotThreadLocal</span> =&gt; <span class="prelude-val">None</span>
+            <span class="ident">LLVMThreadLocalMode::LLVMNotThreadLocal</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -866,6 +917,17 @@
     <span class="ident">ATT</span>,
     <span class="attribute">#[<span class="ident">llvm_variant</span>(<span class="ident">LLVMInlineAsmDialectIntel</span>)]</span>
     <span class="ident">Intel</span>,
+}
+
+<span class="doccomment">/// Exposes LLVM internal references to the outside.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LLVMReference</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Returns an underlying llvm reference</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// This method is inherintly unsafe as it is designed to return internal LLVM references</span>
+    <span class="doccomment">/// Always encapsulate the entire operation in an unsafe call.</span>
+    <span class="doccomment">/// Leaking `T` outside of the unsafe block can lead to undefined behaviour</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">T</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>

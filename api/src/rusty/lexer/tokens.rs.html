@@ -719,19 +719,19 @@
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FALSE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralFalse</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;D(ATE)?#\\d+-\\d+-\\d+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(LDATE|DATE|D)#\\d+-\\d+-\\d+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralDate</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(
-        <span class="string">&quot;(DATE_AND_TIME|DT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>,
+        <span class="string">&quot;(DATE_AND_TIME|DT|LDT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>,
         <span class="ident">ignore</span>(<span class="ident">case</span>)
     )]</span>
     <span class="ident">LiteralDateAndTime</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(TIME_OF_DAY|TOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(TIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTimeOfDay</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(LTIME|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTime</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;%(B|b|D|d|W|w|X|x)&quot;</span>, <span class="ident"><span class="kw">super</span>::parse_access_type</span>)]</span>
