@@ -47,8 +47,8 @@ fn equal_comparison_with_arbitrary_datatypes() {
                 STRING_EQUAL := TRUE;
             END_FUNCTION
 
-            FUNCTION main : DINT
-            VAR_INPUT
+            PROGRAM main 
+            VAR
                 result1 : DINT;
                 result2 : DINT;
             END_VAR
@@ -68,7 +68,7 @@ fn equal_comparison_with_arbitrary_datatypes() {
                 result2 := -1;
             END_IF
 
-           END_FUNCTION
+           END_PROGRAM
     ";
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!([1, -1], main.results);
@@ -93,8 +93,8 @@ fn less_or_equal_comparison_with_arbitrary_datatypes() {
                 STRING_LESS := TRUE;
             END_FUNCTION
 
-            FUNCTION main : DINT
-            VAR_INPUT
+            PROGRAM main
+            VAR
                 result1 : DINT;
                 result2 : DINT;
                 result3 : DINT;
@@ -121,7 +121,7 @@ fn less_or_equal_comparison_with_arbitrary_datatypes() {
                 result3 := -1;
             END_IF
 
-           END_FUNCTION
+           END_PROGRAM
     ";
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!([-1, 1, 1], main.results);
@@ -146,8 +146,8 @@ fn greater_or_equal_comparison_with_arbitrary_datatypes() {
                 STRING_GREATER := TRUE;
             END_FUNCTION
 
-            FUNCTION main : DINT
-            VAR_INPUT
+            PROGRAM main
+            VAR
                 result1 : DINT;
                 result2 : DINT;
                 result3 : DINT;
@@ -174,7 +174,7 @@ fn greater_or_equal_comparison_with_arbitrary_datatypes() {
                 result3 := -1;
             END_IF
 
-           END_FUNCTION
+           END_PROGRAM
     ";
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!([-1, 1, 1], main.results);

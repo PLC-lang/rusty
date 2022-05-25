@@ -156,7 +156,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //generate a function that takes a instance-struct parameter
         let pou_name = implementation.get_call_name();
 
-        let parameters = self.create_paramters_for_implementation(implementation)?;
+        let parameters = self.create_parameters_for_implementation(implementation)?;
 
         let return_type = match global_index.find_return_type(implementation.get_type_name()) {
             Some(r_type) => Some(self.llvm_index.get_associated_type(r_type.get_name())?),
@@ -178,7 +178,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// creates and returns all parameters for the given implementation
     /// for functions, this method creates a full list of parameters, for other POUs
     /// this method creates a single state-struct parameter
-    fn create_paramters_for_implementation(
+    fn create_parameters_for_implementation(
         &self,
         implementation: &ImplementationIndexEntry,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {

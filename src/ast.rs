@@ -334,6 +334,21 @@ impl Variable {
     }
 }
 
+pub trait DiagnosticInfo {
+    fn get_description(&self) -> String;
+    fn get_location(&self) -> SourceRange;
+}
+
+impl DiagnosticInfo for AstStatement {
+    fn get_description(&self) -> String {
+        format!("{:?}", self)
+    }
+
+    fn get_location(&self) -> SourceRange {
+        self.get_location()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct SourceRange {
     range: core::ops::Range<usize>,

@@ -109,7 +109,7 @@ fn illegal_end_pou_keyword() {
 }
 
 #[test]
-#[ignore = "Semantic validation"]
+#[ignore = "https://github.com/PLC-lang/rusty/issues/491"]
 fn function_without_return_variable_declaration() {
     // GIVEN a function without a return type
     let src = r"

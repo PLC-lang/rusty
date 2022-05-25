@@ -258,8 +258,8 @@ impl ArgumentType {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum VariableType {
-    Local, //functions: -, _ VAR
-    Temp,  // functions: VAR & VAR_TEMP, _: VAR_TEMP
+    Local, // functions have no locals; others: VAR-block
+    Temp,  // for functions: VAR & VAR_TEMP; others: VAR_TEMP
     Input,
     Output,
     InOut,
@@ -438,7 +438,7 @@ impl PouIndexEntry {
             return_type: return_type.into(),
             instance_struct_name: name.into(),
             linkage,
-            is_variadic
+            is_variadic,
         }
     }
 

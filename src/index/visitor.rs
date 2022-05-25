@@ -65,9 +65,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             member_names.push(var.name.clone());
 
             let var_type_name = var.data_type.get_name().expect("named datatype");
-            let type_name = if block_type.is_by_ref()
-            //               && pou.generics.is_empty() //skip generics!! TODO this is wrong!
-            {
+            let type_name = if block_type.is_by_ref() {
                 //register a pointer type for argument
                 register_byref_pointer_type_for(index, var_type_name)
             } else {
@@ -180,7 +178,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 return_type_name,
                 &pou.generics,
                 pou.linkage,
-                has_varargs
+                has_varargs,
             ));
             index.register_pou_type(datatype);
         }
