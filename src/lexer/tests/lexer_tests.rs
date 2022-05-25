@@ -295,6 +295,20 @@ fn date_literals_test() {
 }
 
 #[test]
+fn long_date_literals_test() {
+    let mut lexer = lex(r#"
+        LDATE#1984-10-01 LDATE#1-1-1
+		LD#1-1-1
+        "#);
+    for _ in 1..=2 {
+        assert_eq!(lexer.token, LiteralDate);
+        lexer.advance();
+    }
+    assert_ne!(lexer.token, LiteralDate);
+    lexer.advance();
+}
+
+#[test]
 fn date_and_time_literals_test() {
     let mut lexer = lex("DATE_AND_TIME#1984-10-01-20:15:12 DT#1-1-1-1:1:1 DT#1-1-1-1:1:1.123 DATE_AND_TIME#2000-01-01-20:15");
     assert_eq!(lexer.token, LiteralDateAndTime);
@@ -305,6 +319,16 @@ fn date_and_time_literals_test() {
     lexer.advance();
     assert_eq!(lexer.token, LiteralDateAndTime);
     lexer.advance();
+}
+
+#[test]
+fn long_date_and_time_literals_test() {
+    let mut lexer = lex("
+	LDT#1984-10-01-20:15:12 LDT#1-1-1-1:1:1");
+    for _ in 1..=2 {
+        assert_eq!(lexer.token, LiteralDateAndTime);
+        lexer.advance();
+    }
 }
 
 #[test]
@@ -320,6 +344,15 @@ fn time_of_day_literals_test() {
     lexer.advance();
     assert_eq!(lexer.token, LiteralTimeOfDay);
     lexer.advance();
+}
+
+#[test]
+fn long_time_of_day_literals_test() {
+    let mut lexer = lex("LTOD#20:15:12 LTOD#1:1:1");
+    for _ in 1..=2 {
+        assert_eq!(lexer.token, LiteralTimeOfDay);
+        lexer.advance();
+    }
 }
 
 #[test]
@@ -339,6 +372,26 @@ fn time_literals_test() {
         );
         lexer.advance();
     }
+}
+
+#[test]
+fn ltime_literals_test() {
+    let mut lexer = lex(r#"
+    LTIME#12d
+	LTIME#10m4s
+	LT#10d
+    "#);
+    for _ in 1..=2 {
+        assert_eq!(
+            lexer.token,
+            LiteralTime,
+            "{} at {:?} is no Time Literal",
+            lexer.slice(),
+            lexer.location()
+        );
+        lexer.advance();
+    }
+    assert_ne!(lexer.token, LiteralTime);
 }
 
 #[test]

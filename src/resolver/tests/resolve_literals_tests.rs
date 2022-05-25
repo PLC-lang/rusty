@@ -144,6 +144,30 @@ fn date_literals_are_annotated() {
 }
 
 #[test]
+fn long_date_literals_are_annotated() {
+    let (unit, index) = index(
+        "PROGRAM PRG
+                LTIME#12.4d;
+				LDATE#1984-10-01;
+				LDT#1984-10-01-16:40:22;
+				LTOD#00:00:12;
+            END_PROGRAM",
+    );
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec!["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
+    for (i, s) in statements.iter().enumerate() {
+        assert_eq!(
+            expected_types[i],
+            annotations.get_type_or_void(s, &index).get_name(),
+            "{:#?}",
+            s
+        );
+    }
+}
+
+#[test]
 fn real_literals_are_annotated() {
     let (unit, index) = index(
         "PROGRAM PRG
