@@ -1306,7 +1306,10 @@ impl<'i> TypeAnnotator<'i> {
         ctx: VisitorContext,
     ) {
         if let Some(PouIndexEntry::Function {
-            generics, linkage, ..
+            generics,
+            linkage,
+            is_variadic,
+            ..
         }) = self.index.find_pou(implementation_name)
         {
             if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
@@ -1338,6 +1341,7 @@ impl<'i> TypeAnnotator<'i> {
                             &name,
                             implementation.get_associated_class_name(),
                             implementation.get_implementation_type().clone(),
+                            implementation.generic,
                         );
                         self.index_generic_type(pou, &name, generic_map);
                         self.annotation_map
@@ -1348,6 +1352,7 @@ impl<'i> TypeAnnotator<'i> {
                                 return_type: cloned_return_type,
                                 generics: Vec::new(),
                                 linkage: LinkageType::Internal,
+                                is_variadic: *is_variadic,
                             });
                     }
                     self.annotation_map.annotate(operator, annotation);

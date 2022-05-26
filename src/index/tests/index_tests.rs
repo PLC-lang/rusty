@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
-use crate::index::{PouIndexEntry, VariableIndexEntry};
+use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
@@ -224,7 +224,7 @@ fn function_is_indexed() {
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
     assert_eq!("INT", return_variable.data_type_name);
-    assert_eq!(VariableType::Return, return_variable.variable_type);
+    assert_eq!(VariableType::Return, return_variable.get_variable_type());
 }
 
 #[test]
@@ -347,32 +347,32 @@ fn program_members_are_indexed() {
     let variable = index.find_member("myProgram", "a").unwrap();
     assert_eq!("a", variable.name);
     assert_eq!("INT", variable.data_type_name);
-    assert_eq!(VariableType::Local, variable.variable_type);
+    assert_eq!(VariableType::Local, variable.get_variable_type());
 
     let variable = index.find_member("myProgram", "b").unwrap();
     assert_eq!("b", variable.name);
     assert_eq!("INT", variable.data_type_name);
-    assert_eq!(VariableType::Local, variable.variable_type);
+    assert_eq!(VariableType::Local, variable.get_variable_type());
 
     let variable = index.find_member("myProgram", "c").unwrap();
     assert_eq!("c", variable.name);
     assert_eq!("BOOL", variable.data_type_name);
-    assert_eq!(VariableType::Input, variable.variable_type);
+    assert_eq!(VariableType::Input, variable.get_variable_type());
 
     let variable = index.find_member("myProgram", "d").unwrap();
     assert_eq!("d", variable.name);
     assert_eq!("BOOL", variable.data_type_name);
-    assert_eq!(VariableType::Input, variable.variable_type);
+    assert_eq!(VariableType::Input, variable.get_variable_type());
 
     let variable = index.find_member("myProgram", "e").unwrap();
     assert_eq!("e", variable.name);
     assert_eq!("INT", variable.data_type_name);
-    assert_eq!(VariableType::Temp, variable.variable_type);
+    assert_eq!(VariableType::Temp, variable.get_variable_type());
 
     let variable = index.find_member("myProgram", "f").unwrap();
     assert_eq!("f", variable.name);
     assert_eq!("INT", variable.data_type_name);
-    assert_eq!(VariableType::Temp, variable.variable_type);
+    assert_eq!(VariableType::Temp, variable.get_variable_type());
 }
 
 #[test]
@@ -406,23 +406,23 @@ fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
 
     //Asking for a variable with no context returns global variables
     let result = index.find_variable(None, &["a"]).unwrap();
-    assert_eq!(VariableType::Global, result.variable_type);
+    assert_eq!(VariableType::Global, result.get_variable_type());
     assert_eq!("a", result.name);
     //Asking for a variable with the POU  context finds a local variable
     let result = index.find_variable(Some("prg"), &["a"]).unwrap();
-    assert_eq!(VariableType::Local, result.variable_type);
+    assert_eq!(VariableType::Local, result.get_variable_type());
     assert_eq!("a", result.name);
     //Asking for a variable with th POU context finds a global variable
     let result = index.find_variable(Some("prg"), &["b"]).unwrap();
-    assert_eq!(VariableType::Global, result.variable_type);
+    assert_eq!(VariableType::Global, result.get_variable_type());
     assert_eq!("b", result.name);
     //Asking for a variable with the function context finds the local variable
     let result = index.find_variable(Some("foo"), &["a"]).unwrap();
-    assert_eq!(VariableType::Local, result.variable_type);
+    assert_eq!(VariableType::Local, result.get_variable_type());
     assert_eq!("a", result.name);
     //Asking for a variable with the function context finds the global variable
     let result = index.find_variable(Some("foo"), &["x"]).unwrap();
-    assert_eq!(VariableType::Global, result.variable_type);
+    assert_eq!(VariableType::Global, result.get_variable_type());
     assert_eq!("x", result.name);
 }
 
@@ -461,7 +461,7 @@ fn index_can_be_retrieved_from_qualified_name() {
     let result = index
         .find_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst", "x"])
         .unwrap();
-    assert_eq!(VariableType::Input, result.variable_type);
+    assert_eq!(VariableType::Input, result.get_variable_type());
     assert_eq!("x", result.name);
 }
 
@@ -1911,7 +1911,7 @@ fn a_program_pou_is_indexed() {
                 name: "myProgram_instance".into(),
                 qualified_name: "myProgram".into(),
                 initial_value: None,
-                variable_type: VariableType::Global,
+                variable_type: ArgumentType::ByVal(VariableType::Global),
                 is_constant: false,
                 data_type_name: "myProgram".into(),
                 location_in_parent: 0,
@@ -1933,7 +1933,8 @@ fn a_program_pou_is_indexed() {
                 nature: TypeNature::Int
             }]
             .to_vec(),
-            return_type: "INT".into()
+            return_type: "INT".into(),
+            is_variadic: false
         }),
         index.find_pou("myFunction"),
     );

@@ -1,22 +1,18 @@
 ---
 source: src/codegen/tests/directaccess_test.rs
-assertion_line: 34
 expression: prog
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { i16 }
-
-define i16 @main(%main_interface* %0) {
+define i16 @main() {
 entry:
-  %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %b = alloca i16, align 2
   %main = alloca i16, align 2
   store i16 0, i16* %b, align 2
   store i16 0, i16* %main, align 2
-  %1 = load i16, i16* %b, align 2
-  %erase = and i16 %1, -256
+  %0 = load i16, i16* %b, align 2
+  %erase = and i16 %0, -256
   %or = or i16 %erase, 2
   store i16 %or, i16* %b, align 2
   %main_ret = load i16, i16* %main, align 2

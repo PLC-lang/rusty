@@ -86,6 +86,7 @@ fn exponent_literals_parsed_as_variables() {
         }],
         access: None,
         overriding: false,
+        generic: false,
         location: (105..142).into(),
     };
     assert_eq!(

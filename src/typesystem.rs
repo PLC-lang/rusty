@@ -333,8 +333,25 @@ impl DataTypeInformation {
             None
         }
     }
-    pub fn is_generic(&self) -> bool {
-        matches!(self, DataTypeInformation::Generic { .. })
+
+    pub fn is_generic(&self, index: &Index) -> bool {
+        match self {
+            DataTypeInformation::Array {
+                inner_type_name, ..
+            }
+            | DataTypeInformation::Pointer {
+                inner_type_name, ..
+            }
+            | DataTypeInformation::Alias {
+                referenced_type: inner_type_name,
+                ..
+            } => index
+                .find_effective_type(inner_type_name)
+                .map(|dt| dt.get_type_information().is_generic(index))
+                .unwrap_or(false),
+            DataTypeInformation::Generic { .. } => true,
+            _ => false,
+        }
     }
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
     pub fn get_semantic_size(&self) -> u32 {

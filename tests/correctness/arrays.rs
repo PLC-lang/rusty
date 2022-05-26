@@ -153,7 +153,7 @@ fn three_dim_array_math() {
         END_FUNCTION
         ";
 
-    let mut maintype = new();
+    let mut maintype = rusty::runner::MainType::default();
     let res: i16 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(res, 15);
 }
@@ -352,11 +352,20 @@ fn initialize_multi_dim_array() {
         arr: [i16; 27], //3x3x3 array
     }
     let function = "
-        FUNCTION main : INT
+        PROGRAM target
         VAR
             int_array : ARRAY[0..2, 0..2, 0..2] OF INT := [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26];
         END_VAR
-        END_FUNCTION
+        END_PROGRAM
+
+        PROGRAM main
+        VAR
+            int_array : ARRAY[0..2, 0..2, 0..2] OF INT;
+        END_VAR
+        //lets see if target.int_array got initialized properly
+        int_array := target.int_array;
+        END_PROGRAM
+
         ";
 
     let mut maintype = MainType::default();
@@ -381,7 +390,7 @@ fn bool_array_assignments() {
     // WHEN I write the array-elements
 
     let function = r"
-        FUNCTION main : INT
+        PROGRAM main
         VAR
             x : INT;
             bArray : ARRAY[0..7] OF BOOL := [8(FALSE)];
@@ -411,7 +420,7 @@ fn bool_array_assignments() {
             bArray2[2] := FALSE;
             bArray2[1] := TRUE;
             bArray2[0] := FALSE;
-        END_FUNCTION
+        END_PROGRAM
         ";
 
     let mut maintype = MainType {

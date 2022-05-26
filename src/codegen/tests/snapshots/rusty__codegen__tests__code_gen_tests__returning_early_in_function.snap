@@ -1,17 +1,14 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2455
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%smaller_than_ten_interface = type { i8 }
-
-define i16 @smaller_than_ten(%smaller_than_ten_interface* %0) {
+define i16 @smaller_than_ten(i8 %0) {
 entry:
-  %n = getelementptr inbounds %smaller_than_ten_interface, %smaller_than_ten_interface* %0, i32 0, i32 0
+  %n = alloca i8, align 1
+  store i8 %0, i8* %n, align 1
   %smaller_than_ten = alloca i16, align 2
   store i16 0, i16* %smaller_than_ten, align 2
   %load_n = load i8, i8* %n, align 1

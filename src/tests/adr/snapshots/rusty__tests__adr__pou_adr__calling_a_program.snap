@@ -1,0 +1,38 @@
+---
+source: src/tests/adr/pou_adr.rs
+expression: codegen(calling_prg.as_str())
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_prg_interface = type { i16, i16*, i16*, i16 }
+
+@main_prg_instance = global %main_prg_interface zeroinitializer
+
+define i16 @foo() {
+entry:
+  %x = alloca i16, align 2
+  %y = alloca i16, align 2
+  %foo = alloca i16, align 2
+  store i16 0, i16* %x, align 2
+  store i16 0, i16* %y, align 2
+  store i16 0, i16* %foo, align 2
+  store i16 1, i16* getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 0), align 2
+  store i16* %y, i16** getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 1), align 8
+  store i16* %x, i16** getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 2), align 8
+  call void @main_prg(%main_prg_interface* @main_prg_instance)
+  %foo_ret = load i16, i16* %foo, align 2
+  ret i16 %foo_ret
+}
+
+define void @main_prg(%main_prg_interface* %0) {
+entry:
+  %i = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 0
+  %io = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 1
+  %o = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 2
+  %v = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 3
+  %vt = alloca i16, align 2
+  store i16 0, i16* %vt, align 2
+  ret void
+}
+

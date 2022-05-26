@@ -2,7 +2,8 @@
 use super::super::*;
 
 #[test]
-fn fb_vars_can_be_accessed() {
+#[ignore = "class/method support postponed"]
+fn fb_vars_can_be_accessed_from_method() {
     let src = "
 FUNCTION main : DINT 
     prg();
@@ -33,6 +34,7 @@ END_FUNCTION_BLOCK
 }
 
 #[test]
+#[ignore = "class support postponed"]
 fn class_vars_can_be_accessed() {
     let src = "
 FUNCTION main : DINT 

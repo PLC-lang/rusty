@@ -232,7 +232,7 @@ fn function_return_value_is_initialized() {
 }
 
 #[test]
-#[ignore]
+#[ignore = "https://github.com/PLC-lang/rusty/issues/449"]
 fn function_return_value_with_initializers_is_initialized() {
     let function = codegen(
         r"

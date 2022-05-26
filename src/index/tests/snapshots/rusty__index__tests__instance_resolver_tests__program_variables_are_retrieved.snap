@@ -1,8 +1,6 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 59
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
-
 ---
 [
     (
@@ -17,7 +15,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "MainProg_instance",
             qualified_name: "MainProg",
             initial_value: None,
-            variable_type: Global,
+            variable_type: ByVal(
+                Global,
+            ),
             is_constant: false,
             data_type_name: "MainProg",
             location_in_parent: 0,
@@ -43,7 +43,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "a",
             qualified_name: "MainProg.a",
             initial_value: None,
-            variable_type: Local,
+            variable_type: ByVal(
+                Local,
+            ),
             is_constant: false,
             data_type_name: "DINT",
             location_in_parent: 0,
@@ -69,7 +71,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "b",
             qualified_name: "MainProg.b",
             initial_value: None,
-            variable_type: Local,
+            variable_type: ByVal(
+                Local,
+            ),
             is_constant: false,
             data_type_name: "DINT",
             location_in_parent: 1,
