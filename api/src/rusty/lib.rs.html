@@ -806,6 +806,7 @@
 <span id="801">801</span>
 <span id="802">802</span>
 <span id="803">803</span>
+<span id="804">804</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -866,10 +867,10 @@
 <span class="kw">mod</span> <span class="ident">parser</span>;
 <span class="kw">mod</span> <span class="ident">resolver</span>;
 <span class="kw">mod</span> <span class="ident">test_utils</span>;
-<span class="kw">mod</span> <span class="ident">typesystem</span>;
-<span class="kw">mod</span> <span class="ident">validation</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">runner</span>;
+<span class="kw">mod</span> <span class="ident">typesystem</span>;
+<span class="kw">mod</span> <span class="ident">validation</span>;
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -1549,6 +1550,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">mod</span> <span class="ident">adr</span>;
     <span class="kw">mod</span> <span class="ident">external_files</span>;
     <span class="kw">mod</span> <span class="ident">multi_files</span>;
 

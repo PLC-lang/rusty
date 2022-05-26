@@ -633,6 +633,31 @@
 <span id="628">628</span>
 <span id="629">629</span>
 <span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">HardwareBinding</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{
@@ -640,7 +665,7 @@
     <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">TypeNature</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">VariableBlock</span>, <span class="ident">VariableBlockType</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostic</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::index</span>::{<span class="ident">Index</span>, <span class="ident">MemberInfo</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::index</span>::{<span class="ident">ArgumentType</span>, <span class="ident">Index</span>, <span class="ident">MemberInfo</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::lexer::IdProvider</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::typesystem</span>::{<span class="self">self</span>, <span class="kw-2">*</span>};
 
@@ -682,7 +707,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">varargs</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">variable_blocks</span> {
-        <span class="kw">let</span> <span class="ident">block_type</span> <span class="op">=</span> <span class="ident">get_variable_type_from_block</span>(<span class="ident">block</span>);
+        <span class="kw">let</span> <span class="ident">block_type</span> <span class="op">=</span> <span class="ident">get_declaration_type_for</span>(<span class="ident">block</span>);
         <span class="kw">for</span> <span class="ident">var</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">variables</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
                 <span class="ident">data_type</span>: <span class="ident">ast::DataType::VarArgs</span> { <span class="ident">referenced_type</span> },
@@ -700,9 +725,9 @@
             <span class="ident">member_names</span>.<span class="ident">push</span>(<span class="ident">var</span>.<span class="ident">name</span>.<span class="ident">clone</span>());
 
             <span class="kw">let</span> <span class="ident">var_type_name</span> <span class="op">=</span> <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">expect</span>(<span class="string">&quot;named datatype&quot;</span>);
-            <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">block_type</span> <span class="op">==</span> <span class="ident">VariableType::InOut</span> {
-                <span class="comment">//register a pointer type for the var_in_out</span>
-                <span class="ident">register_inout_pointer_type_for</span>(<span class="ident">index</span>, <span class="ident">var_type_name</span>)
+            <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">block_type</span>.<span class="ident">is_by_ref</span>() {
+                <span class="comment">//register a pointer type for argument</span>
+                <span class="ident">register_byref_pointer_type_for</span>(<span class="ident">index</span>, <span class="ident">var_type_name</span>)
             } <span class="kw">else</span> {
                 <span class="ident">var_type_name</span>.<span class="ident">to_string</span>()
             };
@@ -749,7 +774,7 @@
             <span class="ident">MemberInfo</span> {
                 <span class="ident">container_name</span>: <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
                 <span class="ident">variable_name</span>: <span class="ident">pou</span>.<span class="ident">get_return_name</span>(),
-                <span class="ident">variable_linkage</span>: <span class="ident">VariableType::Return</span>,
+                <span class="ident">variable_linkage</span>: <span class="ident">ArgumentType::ByVal</span>(<span class="ident">VariableType::Return</span>),
                 <span class="ident">variable_type_name</span>: <span class="ident">return_type_name</span>,
                 <span class="ident">is_constant</span>: <span class="bool-val">false</span>, <span class="comment">//return variables are not constants</span>
                 <span class="ident">binding</span>: <span class="prelude-val">None</span>,
@@ -760,6 +785,7 @@
         )
     }
 
+    <span class="kw">let</span> <span class="ident">has_varargs</span> <span class="op">=</span> <span class="ident">varargs</span>.<span class="ident">is_some</span>();
     <span class="kw">let</span> <span class="ident">datatype</span> <span class="op">=</span> <span class="ident">typesystem::DataType</span> {
         <span class="ident">name</span>: <span class="ident">pou</span>.<span class="ident">name</span>.<span class="ident">to_string</span>(),
         <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
@@ -812,6 +838,7 @@
                 <span class="ident">return_type_name</span>,
                 <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">generics</span>,
                 <span class="ident">pou</span>.<span class="ident">linkage</span>,
+                <span class="ident">has_varargs</span>,
             ));
             <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
         }
@@ -828,6 +855,18 @@
     };
 }
 
+<span class="doccomment">/// returns the declaration type (ByRef or ByVal) for the given VariableBlock (VAR_INPUT, VAR_OUTPUT, VAR_INOUT, etc.)</span>
+<span class="kw">fn</span> <span class="ident">get_declaration_type_for</span>(<span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>) -&gt; <span class="ident">ArgumentType</span> {
+    <span class="kw">if</span> <span class="macro">matches!</span>(
+        <span class="ident">block</span>.<span class="ident">variable_block_type</span>,
+        <span class="ident">VariableBlockType::InOut</span> <span class="op">|</span> <span class="ident">VariableBlockType::Output</span>
+    ) {
+        <span class="ident">ArgumentType::ByRef</span>(<span class="ident">get_variable_type_from_block</span>(<span class="ident">block</span>))
+    } <span class="kw">else</span> {
+        <span class="ident">ArgumentType::ByVal</span>(<span class="ident">get_variable_type_from_block</span>(<span class="ident">block</span>))
+    }
+}
+
 <span class="kw">fn</span> <span class="ident">visit_implementation</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">implementation</span>: <span class="kw-2">&amp;</span><span class="ident">Implementation</span>) {
     <span class="kw">let</span> <span class="ident">pou_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">pou_type</span>;
     <span class="ident">index</span>.<span class="ident">register_implementation</span>(
@@ -835,6 +874,7 @@
         <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>,
         <span class="ident">pou_type</span>.<span class="ident">get_optional_owner_class</span>().<span class="ident">as_ref</span>(),
         <span class="ident">pou_type</span>.<span class="ident">into</span>(),
+        <span class="ident">implementation</span>.<span class="ident">generic</span>,
     );
     <span class="comment">//if we are registing an action, also register a datatype for it</span>
     <span class="kw">if</span> <span class="ident">pou_type</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">PouType::Action</span> {
@@ -857,7 +897,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">register_inout_pointer_type_for</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">inner_type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
+<span class="kw">fn</span> <span class="ident">register_byref_pointer_type_for</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">inner_type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
     <span class="comment">//get unique name</span>
     <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;auto_pointer_to_{}&quot;</span>, <span class="ident">inner_type_name</span>);
 
@@ -998,7 +1038,7 @@
                     <span class="ident">MemberInfo</span> {
                         <span class="ident">container_name</span>: <span class="ident">struct_name</span>,
                         <span class="ident">variable_name</span>: <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">name</span>,
-                        <span class="ident">variable_linkage</span>: <span class="ident">VariableType::Local</span>,
+                        <span class="ident">variable_linkage</span>: <span class="ident">ArgumentType::ByVal</span>(<span class="ident">VariableType::Local</span>),
                         <span class="ident">variable_type_name</span>: <span class="ident">member_type</span>,
                         <span class="ident">is_constant</span>: <span class="bool-val">false</span>, <span class="comment">//struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)</span>
                         <span class="ident">binding</span>,
@@ -1134,21 +1174,31 @@
                 <span class="ident">dimensions</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
+            <span class="kw">let</span> <span class="ident">init1</span> <span class="op">=</span> <span class="ident">index</span>
                 .<span class="ident">get_mut_const_expressions</span>()
                 .<span class="ident">maybe_add_constant_expression</span>(
                     <span class="ident">type_declaration</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
                     <span class="ident">name</span>,
                     <span class="ident">scope</span>.<span class="ident">clone</span>(),
                 );
+            <span class="comment">// TODO unfortunately we cannot share const-expressions between multiple</span>
+            <span class="comment">// index-entries</span>
+            <span class="kw">let</span> <span class="ident">init2</span> <span class="op">=</span> <span class="ident">index</span>
+                .<span class="ident">get_mut_const_expressions</span>()
+                .<span class="ident">maybe_add_constant_expression</span>(
+                    <span class="ident">type_declaration</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">name</span>,
+                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
+                );
+
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">typesystem::DataType</span> {
                 <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
-                <span class="ident">initial_value</span>: <span class="ident">init</span>,
+                <span class="ident">initial_value</span>: <span class="ident">init1</span>,
                 <span class="ident">information</span>,
                 <span class="ident">nature</span>: <span class="ident">TypeNature::Any</span>,
             });
             <span class="kw">let</span> <span class="ident">global_init_name</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::index::get_initializer_name</span>(<span class="ident">name</span>);
-            <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">is_some</span>() {
+            <span class="kw">if</span> <span class="ident">init2</span>.<span class="ident">is_some</span>() {
                 <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="ident">VariableIndexEntry::create_global</span>(
                     <span class="ident">global_init_name</span>.<span class="ident">as_str</span>(),
                     <span class="ident">global_init_name</span>.<span class="ident">as_str</span>(),
@@ -1156,7 +1206,7 @@
                     <span class="ident">type_declaration</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
                 )
                 .<span class="ident">set_constant</span>(<span class="bool-val">true</span>)
-                .<span class="ident">set_initial_value</span>(<span class="ident">init</span>);
+                .<span class="ident">set_initial_value</span>(<span class="ident">init2</span>);
                 <span class="ident">index</span>.<span class="ident">register_global_initializer</span>(<span class="kw-2">&amp;</span><span class="ident">global_init_name</span>, <span class="ident">variable</span>);
             }
         }

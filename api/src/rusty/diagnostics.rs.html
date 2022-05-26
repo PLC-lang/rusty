@@ -971,6 +971,16 @@
 <span id="966">966</span>
 <span id="967">967</span>
 <span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
     <span class="ident">ops::Range</span>,
@@ -983,7 +993,7 @@
 };
 <span class="kw">use</span> <span class="ident">inkwell::support::LLVMString</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DataTypeDeclaration</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DataTypeDeclaration</span>, <span class="ident">DiagnosticInfo</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INTERNAL_LLVM_ERROR</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;internal llvm codegen error&quot;</span>;
 
@@ -1382,6 +1392,16 @@
             <span class="ident">range</span>: <span class="ident">location</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::codegen__general</span>,
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cannot_generate_call_statement</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">DiagnosticInfo</span><span class="op">&gt;</span>(<span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::codegen_error</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                <span class="string">&quot;cannot generate call statement for {:?}&quot;</span>,
+                <span class="ident">operator</span>.<span class="ident">get_description</span>()
+            ),
+            <span class="ident">operator</span>.<span class="ident">get_location</span>(),
+        )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">io_read_error</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">reason</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Diagnostic</span> {

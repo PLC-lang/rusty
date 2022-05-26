@@ -1085,6 +1085,16 @@
 <span id="1080">1080</span>
 <span id="1081">1081</span>
 <span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::<span class="kw-2">*</span>,
@@ -1302,6 +1312,7 @@
                     <span class="ident">pou_type</span>.<span class="ident">clone</span>(),
                     <span class="kw-2">&amp;</span><span class="ident">name</span>,
                     <span class="kw-2">&amp;</span><span class="ident">name</span>,
+                    <span class="op">!</span><span class="ident">generics</span>.<span class="ident">is_empty</span>(),
                 ));
             }
 
@@ -1495,6 +1506,7 @@
             },
             <span class="kw-2">&amp;</span><span class="ident">call_name</span>,
             <span class="kw-2">&amp;</span><span class="ident">call_name</span>,
+            <span class="op">!</span><span class="ident">generics</span>.<span class="ident">is_empty</span>(),
         );
 
         <span class="comment">// parse_implementation() will default-initialize the fields it</span>
@@ -1558,6 +1570,7 @@
     <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
     <span class="ident">call_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">generic</span>: <span class="ident">bool</span>,
 ) -&gt; <span class="ident">Implementation</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="kw">let</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">parse_body_standalone</span>(<span class="ident">lexer</span>);
@@ -1569,6 +1582,7 @@
         <span class="ident">statements</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
         <span class="ident">overriding</span>: <span class="bool-val">false</span>,
+        <span class="ident">generic</span>,
         <span class="ident">access</span>: <span class="prelude-val">None</span>,
     }
 }
@@ -1603,8 +1617,14 @@
         };
         <span class="kw">let</span> <span class="ident">call_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">container</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>);
 
-        <span class="kw">let</span> <span class="ident">implementation</span> <span class="op">=</span>
-            <span class="ident">parse_implementation</span>(<span class="ident">lexer</span>, <span class="ident">linkage</span>, <span class="ident">PouType::Action</span>, <span class="kw-2">&amp;</span><span class="ident">call_name</span>, <span class="kw-2">&amp;</span><span class="ident">container</span>);
+        <span class="kw">let</span> <span class="ident">implementation</span> <span class="op">=</span> <span class="ident">parse_implementation</span>(
+            <span class="ident">lexer</span>,
+            <span class="ident">linkage</span>,
+            <span class="ident">PouType::Action</span>,
+            <span class="kw-2">&amp;</span><span class="ident">call_name</span>,
+            <span class="kw-2">&amp;</span><span class="ident">container</span>,
+            <span class="bool-val">false</span>,
+        );
         <span class="comment">//lets see if we ended on the right END_ keyword</span>
         <span class="kw">if</span> <span class="ident">closing_tokens</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>.<span class="ident">last_token</span>) <span class="op">&amp;&amp;</span> <span class="ident">lexer</span>.<span class="ident">last_token</span> <span class="op">!</span><span class="op">=</span> <span class="ident">KeywordEndAction</span> {
             <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(

@@ -601,7 +601,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ValidationContext</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">DirectAccessType</span>, <span class="ident">Operator</span>, <span class="ident">SourceRange</span>},
-    <span class="ident">index</span>::{<span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>},
+    <span class="ident">index</span>::{<span class="ident">ArgumentType</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>},
     <span class="ident">resolver</span>::{<span class="ident">AnnotationMap</span>, <span class="ident">StatementAnnotation</span>},
     <span class="ident">typesystem</span>::{
         <span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">Dimension</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>,
@@ -1133,15 +1133,15 @@
         <span class="comment">//we expect two input parameters and a return-parameter</span>
         <span class="kw">if</span> <span class="kw">let</span> [<span class="ident">VariableIndexEntry</span> {
             <span class="ident">data_type_name</span>: <span class="ident">type_name_1</span>,
-            <span class="ident">variable_type</span>: <span class="ident">VariableType::Input</span>,
+            <span class="ident">variable_type</span>: <span class="ident">ArgumentType::ByVal</span>(<span class="ident">VariableType::Input</span>),
             ..
         }, <span class="ident">VariableIndexEntry</span> {
             <span class="ident">data_type_name</span>: <span class="ident">type_name_2</span>,
-            <span class="ident">variable_type</span>: <span class="ident">VariableType::Input</span>,
+            <span class="ident">variable_type</span>: <span class="ident">ArgumentType::ByVal</span>(<span class="ident">VariableType::Input</span>),
             ..
         }, <span class="ident">VariableIndexEntry</span> {
             <span class="ident">data_type_name</span>: <span class="ident">return_type</span>,
-            <span class="ident">variable_type</span>: <span class="ident">VariableType::Return</span>,
+            <span class="ident">variable_type</span>: <span class="ident">ArgumentType::ByVal</span>(<span class="ident">VariableType::Return</span>),
             ..
         }] <span class="op">=</span> <span class="ident">members</span>.<span class="ident">as_slice</span>()
         {

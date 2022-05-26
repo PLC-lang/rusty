@@ -1356,6 +1356,22 @@
 <span id="1351">1351</span>
 <span id="1352">1352</span>
 <span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">lexer::IdProvider</span>, <span class="ident">typesystem::DataTypeInformation</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -1562,6 +1578,7 @@
     <span class="kw">pub</span> <span class="ident">statements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">SourceRange</span>,
     <span class="kw">pub</span> <span class="ident">overriding</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">generic</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">access</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccessModifier</span><span class="op">&gt;</span>,
 }
 
@@ -1688,6 +1705,21 @@
             <span class="ident">location</span>: <span class="self">self</span>.<span class="ident">data_type</span>.<span class="ident">get_location</span>(),
         };
         <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data_type</span>, <span class="ident">new_data_type</span>)
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DiagnosticInfo</span> {
+    <span class="kw">fn</span> <span class="ident">get_description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span>;
+    <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SourceRange</span>;
+}
+
+<span class="kw">impl</span> <span class="ident">DiagnosticInfo</span> <span class="kw">for</span> <span class="ident">AstStatement</span> {
+    <span class="kw">fn</span> <span class="ident">get_description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
+        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SourceRange</span> {
+        <span class="self">self</span>.<span class="ident">get_location</span>()
     }
 }
 

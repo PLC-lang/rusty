@@ -2247,12 +2247,122 @@
 <span id="2242">2242</span>
 <span id="2243">2243</span>
 <span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
+<span id="2278">2278</span>
+<span id="2279">2279</span>
+<span id="2280">2280</span>
+<span id="2281">2281</span>
+<span id="2282">2282</span>
+<span id="2283">2283</span>
+<span id="2284">2284</span>
+<span id="2285">2285</span>
+<span id="2286">2286</span>
+<span id="2287">2287</span>
+<span id="2288">2288</span>
+<span id="2289">2289</span>
+<span id="2290">2290</span>
+<span id="2291">2291</span>
+<span id="2292">2292</span>
+<span id="2293">2293</span>
+<span id="2294">2294</span>
+<span id="2295">2295</span>
+<span id="2296">2296</span>
+<span id="2297">2297</span>
+<span id="2298">2298</span>
+<span id="2299">2299</span>
+<span id="2300">2300</span>
+<span id="2301">2301</span>
+<span id="2302">2302</span>
+<span id="2303">2303</span>
+<span id="2304">2304</span>
+<span id="2305">2305</span>
+<span id="2306">2306</span>
+<span id="2307">2307</span>
+<span id="2308">2308</span>
+<span id="2309">2309</span>
+<span id="2310">2310</span>
+<span id="2311">2311</span>
+<span id="2312">2312</span>
+<span id="2313">2313</span>
+<span id="2314">2314</span>
+<span id="2315">2315</span>
+<span id="2316">2316</span>
+<span id="2317">2317</span>
+<span id="2318">2318</span>
+<span id="2319">2319</span>
+<span id="2320">2320</span>
+<span id="2321">2321</span>
+<span id="2322">2322</span>
+<span id="2323">2323</span>
+<span id="2324">2324</span>
+<span id="2325">2325</span>
+<span id="2326">2326</span>
+<span id="2327">2327</span>
+<span id="2328">2328</span>
+<span id="2329">2329</span>
+<span id="2330">2330</span>
+<span id="2331">2331</span>
+<span id="2332">2332</span>
+<span id="2333">2333</span>
+<span id="2334">2334</span>
+<span id="2335">2335</span>
+<span id="2336">2336</span>
+<span id="2337">2337</span>
+<span id="2338">2338</span>
+<span id="2339">2339</span>
+<span id="2340">2340</span>
+<span id="2341">2341</span>
+<span id="2342">2342</span>
+<span id="2343">2343</span>
+<span id="2344">2344</span>
+<span id="2345">2345</span>
+<span id="2346">2346</span>
+<span id="2347">2347</span>
+<span id="2348">2348</span>
+<span id="2349">2349</span>
+<span id="2350">2350</span>
+<span id="2351">2351</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
     <span class="ident">codegen::llvm_typesystem</span>,
     <span class="ident">diagnostics</span>::{<span class="ident">Diagnostic</span>, <span class="ident">INTERNAL_LLVM_ERROR</span>},
-    <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">ImplementationType</span>, <span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>},
+    <span class="ident">index</span>::{
+        <span class="ident">ArgumentType</span>, <span class="ident">ImplementationIndexEntry</span>, <span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>,
+        <span class="ident">VariableType</span>,
+    },
     <span class="ident">resolver</span>::{<span class="ident">AnnotationMap</span>, <span class="ident">AstAnnotations</span>, <span class="ident">StatementAnnotation</span>},
     <span class="ident">typesystem</span>::{
         <span class="ident">is_same_type_class</span>, <span class="ident">Dimension</span>, <span class="ident">StringEncoding</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">INT_SIZE</span>, <span class="ident">INT_TYPE</span>, <span class="ident">LINT_TYPE</span>,
@@ -2260,10 +2370,10 @@
 };
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">builder::Builder</span>,
-    <span class="ident">types::BasicTypeEnum</span>,
+    <span class="ident">types</span>::{<span class="ident">BasicType</span>, <span class="ident">BasicTypeEnum</span>},
     <span class="ident">values</span>::{
-        <span class="ident">ArrayValue</span>, <span class="ident">BasicMetadataValueEnum</span>, <span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">FloatValue</span>, <span class="ident">IntValue</span>,
-        <span class="ident">PointerValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>,
+        <span class="ident">ArrayValue</span>, <span class="ident">BasicMetadataValueEnum</span>, <span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">FloatValue</span>, <span class="ident">GlobalValue</span>,
+        <span class="ident">IntValue</span>, <span class="ident">PointerValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>,
     },
     <span class="ident">AddressSpace</span>, <span class="ident">FloatPredicate</span>, <span class="ident">IntPredicate</span>,
 };
@@ -2309,7 +2419,7 @@
     <span class="ident">parameter_struct</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="doccomment">/// creates a new expression generator</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `llvm` dependencies used to generate llvm IR</span>
@@ -2317,12 +2427,12 @@
     <span class="doccomment">/// - `type_hint` an optional type hint for generating literals</span>
     <span class="doccomment">/// - `function_context` the current function to create blocks</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
         <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AstAnnotations</span>,
-        <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+        <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+        <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
         <span class="ident">ExpressionCodeGenerator</span> {
             <span class="ident">llvm</span>,
             <span class="ident">index</span>,
@@ -2343,11 +2453,11 @@
     <span class="doccomment">/// - `index` the index / global symbol table</span>
     <span class="doccomment">/// - `type_hint` an optional type hint for generating literals</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_context_free</span>(
-        <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
         <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AstAnnotations</span>,
-        <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+        <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
         <span class="ident">ExpressionCodeGenerator</span> {
             <span class="ident">llvm</span>,
             <span class="ident">index</span>,
@@ -2364,7 +2474,7 @@
     <span class="kw">fn</span> <span class="ident">get_function_context</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">function_context</span>
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::missing_function</span>(<span class="ident">statement</span>.<span class="ident">get_location</span>()))
     }
@@ -2373,7 +2483,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_expression</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">do_generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
 
         <span class="comment">//see if we need a cast</span>
@@ -2396,7 +2506,7 @@
     <span class="kw">fn</span> <span class="ident">do_generate_expression</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="comment">//see if this is a constant - maybe we can short curcuit this codegen</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> { <span class="ident">qualified_name</span>, .. }) <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">expression</span>)
@@ -2495,7 +2605,7 @@
     <span class="kw">fn</span> <span class="ident">generate_directaccess</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">elements</span>: <span class="kw-2">&amp;</span>[<span class="ident">AstStatement</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">expression</span>, <span class="ident">last</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">elements</span> {
             [<span class="ident">qualifier</span>, <span class="ident">last</span>] =&gt; {
                 <span class="comment">// a.%w1</span>
@@ -2557,7 +2667,7 @@
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">access_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
         <span class="ident">target_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">index</span>)<span class="question-mark">?</span>;
         <span class="comment">//Load the reference</span>
         <span class="kw">if</span> <span class="ident">reference</span>.<span class="ident">is_int_value</span>() {
@@ -2600,7 +2710,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">unary_operator</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span>,
         <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">unary_operator</span> {
             <span class="ident">Operator::Not</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>();
@@ -2661,48 +2771,32 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="comment">//inner helper function</span>
-        <span class="kw">fn</span> <span class="ident">try_find_implementation</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
-            <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
-            <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-            <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-        ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">ImplementationIndexEntry</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-            <span class="ident">index</span>.<span class="ident">find_pou_implementation</span>(<span class="ident">type_name</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">Diagnostic::codegen_error</span>(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot find callable type for {:?}&quot;</span>, <span class="ident">type_name</span>),
-                    <span class="ident">context</span>.<span class="ident">get_location</span>(),
-                )
-            })
-        }
-
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_function_context</span>(<span class="ident">operator</span>)<span class="question-mark">?</span>;
-        <span class="comment">//find call name</span>
-        <span class="kw">let</span> <span class="ident">implementation</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">annotations</span>
-            .<span class="ident">get_call_name</span>(<span class="ident">operator</span>)
-            <span class="comment">//find implementationIndexEntry for the name</span>
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou_implementation</span>(<span class="ident">it</span>))
-            <span class="comment">//If that fails, try to find an implementation from the reference name</span>
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+
+        <span class="comment">//find the pou we&#39;re calling</span>
+        <span class="kw">let</span> <span class="ident">pou</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_call_name</span>(<span class="ident">operator</span>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">it</span>))
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span>
+                <span class="comment">// some rare situations have a callstatement that&#39;s not properly annotated (e.g. checkRange-call of ranged datatypes)</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="ident">operator</span> {
-                    <span class="ident">try_find_implementation</span>(<span class="self">self</span>.<span class="ident">index</span>, <span class="ident">name</span>, <span class="ident">operator</span>).<span class="ident">ok</span>()
+                    <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">name</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
-                }
-            })
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">Diagnostic::codegen_error</span>(
-                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;cannot generate call statement for {:?}&quot;</span>, <span class="ident">operator</span>),
-                    <span class="ident">operator</span>.<span class="ident">get_location</span>(),
-                )
-            })<span class="question-mark">?</span>;
+                })
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::cannot_generate_call_statement</span>(<span class="ident">operator</span>))<span class="question-mark">?</span>;
+
+        <span class="comment">// find corresponding implementation</span>
+        <span class="kw">let</span> <span class="ident">implementation</span> <span class="op">=</span> <span class="ident">pou</span>
+            .<span class="ident">find_implementation</span>(<span class="self">self</span>.<span class="ident">index</span>)
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::cannot_generate_call_statement</span>(<span class="ident">operator</span>))<span class="question-mark">?</span>;
 
         <span class="comment">//If the function is builtin, generate a basic value enum for it</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">builtin</span>) <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">index</span>
             .<span class="ident">get_builtin_function</span>(<span class="ident">implementation</span>.<span class="ident">get_call_name</span>())
         {
+            <span class="comment">//adr, ref, etc.</span>
             <span class="kw">return</span> <span class="ident">builtin</span>.<span class="ident">codegen</span>(
                 <span class="self">self</span>,
                 <span class="ident">parameters</span>
@@ -2714,59 +2808,17 @@
             );
         }
 
-        <span class="kw">let</span> (<span class="ident">class_ptr</span>, <span class="ident">call_ptr</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">implementation</span> {
-            <span class="ident">ImplementationIndexEntry</span> {
-                <span class="ident">implementation_type</span>: <span class="ident">ImplementationType::Function</span>,
-                ..
-            } =&gt; {
-                <span class="kw">let</span> <span class="ident">call_ptr</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">allocate_function_struct_instance</span>(<span class="ident">implementation</span>.<span class="ident">get_call_name</span>(), <span class="ident">operator</span>)<span class="question-mark">?</span>;
-                (<span class="prelude-val">None</span>, <span class="ident">call_ptr</span>)
-            }
-            <span class="ident">ImplementationIndexEntry</span> {
-                <span class="ident">implementation_type</span>: <span class="ident">ImplementationType::Method</span>,
-                ..
-            } =&gt; {
-                <span class="kw">let</span> <span class="ident">class_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">operator</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">call_ptr</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">allocate_function_struct_instance</span>(<span class="ident">implementation</span>.<span class="ident">get_call_name</span>(), <span class="ident">operator</span>)<span class="question-mark">?</span>;
-                (<span class="prelude-val">Some</span>(<span class="ident">class_ptr</span>), <span class="ident">call_ptr</span>)
-            }
-            <span class="ident">ImplementationIndexEntry</span> {
-                <span class="ident">implementation_type</span>: <span class="ident">ImplementationType::Action</span>,
-                ..
-            } <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">operator</span>, <span class="ident">AstStatement::Reference</span> { .. }) =&gt; {
-                <span class="comment">//Special handling for local actions, get the parameter from the function context</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">call_ptr</span>) <span class="op">=</span> <span class="ident">function_context</span>.<span class="ident">function</span>.<span class="ident">get_first_param</span>() {
-                    (<span class="prelude-val">None</span>, <span class="ident">call_ptr</span>.<span class="ident">into_pointer_value</span>())
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
-                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                            <span class="string">&quot;cannot find parameter for {}&quot;</span>,
-                            <span class="ident">implementation</span>.<span class="ident">get_call_name</span>()
-                        ),
-                        <span class="ident">operator</span>.<span class="ident">get_location</span>(),
-                    ));
-                }
-            }
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">class_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">operator</span>)<span class="question-mark">?</span>;
-                (<span class="prelude-val">None</span>, <span class="ident">class_ptr</span>)
-            }
-        };
-
-        <span class="kw">let</span> (<span class="ident">class_struct</span>, <span class="ident">instance</span>, <span class="ident">index_entry</span>) <span class="op">=</span> (<span class="ident">class_ptr</span>, <span class="ident">call_ptr</span>, <span class="ident">implementation</span>);
-        <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <span class="ident">index_entry</span>.<span class="ident">get_call_name</span>();
-        <span class="comment">//First go to the input block</span>
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
-        <span class="comment">//Generate all parameters, this function may jump to the output block</span>
-        <span class="kw">let</span> <span class="ident">parameters_data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_input_function_parameters</span>(
-            <span class="ident">function_name</span>,
-            <span class="ident">class_struct</span>,
-            <span class="ident">instance</span>,
+        <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <span class="ident">implementation</span>.<span class="ident">get_call_name</span>();
+        <span class="kw">let</span> <span class="ident">arguments_list</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_pou_arguments_list</span>(
+            <span class="ident">pou</span>,
             <span class="ident">parameters</span>,
+            <span class="ident">implementation</span>,
+            <span class="ident">operator</span>,
+            <span class="ident">function_context</span>,
+            <span class="ident">function_name</span>,
         )<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">llvm_index</span>
             .<span class="ident">find_associated_implementation</span>(<span class="ident">function_name</span>) <span class="comment">//using the non error option to control the output error</span>
@@ -2782,11 +2834,8 @@
         <span class="comment">//If the target is a function, declare the struct locally</span>
         <span class="comment">//Assign all parameters into the struct values</span>
         <span class="kw">let</span> <span class="ident">call_result</span> <span class="op">=</span> <span class="ident">builder</span>
-            .<span class="ident">build_call</span>(<span class="ident">function</span>, <span class="kw-2">&amp;</span><span class="ident">parameters_data</span>, <span class="string">&quot;call&quot;</span>)
+            .<span class="ident">build_call</span>(<span class="ident">function</span>, <span class="kw-2">&amp;</span><span class="ident">arguments_list</span>, <span class="string">&quot;call&quot;</span>)
             .<span class="ident">try_as_basic_value</span>();
-
-        <span class="comment">//build output-parameters</span>
-        <span class="self">self</span>.<span class="ident">generate_output_function_parameters</span>(<span class="ident">function_name</span>, <span class="ident">instance</span>, <span class="ident">parameters</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// we return an uninitialized int pointer for void methods :-/</span>
         <span class="comment">// dont deref it!!</span>
@@ -2801,6 +2850,192 @@
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
 
+    <span class="kw">fn</span> <span class="ident">generate_pou_arguments_list</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">pou</span>: <span class="kw-2">&amp;</span><span class="ident">PouIndexEntry</span>,
+        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
+        <span class="ident">implementation</span>: <span class="kw-2">&amp;</span><span class="ident">ImplementationIndexEntry</span>,
+        <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+        <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+        <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">arguments_list</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">pou</span>, <span class="ident">PouIndexEntry::Function</span> { .. }) {
+            <span class="comment">//we&#39;re calling a function</span>
+
+            <span class="kw">let</span> <span class="ident">call_params</span> <span class="op">=</span> <span class="ident">parameters</span>
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">map</span>(<span class="ident">ast::flatten_expression_list</span>)
+                .<span class="ident">unwrap_or_default</span>();
+
+            <span class="comment">// foo(a,b,c)</span>
+            <span class="comment">// foo(z:= a, x:=c, y := b);</span>
+            <span class="kw">let</span> <span class="ident">declared_parameters</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">index</span>
+                .<span class="ident">get_container_members</span>(<span class="ident">implementation</span>.<span class="ident">get_type_name</span>())
+                .<span class="ident">into_iter</span>()
+                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_parameter</span>())
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+            <span class="comment">// the parameters to be passed to the function call</span>
+            <span class="self">self</span>.<span class="ident">generate_function_arguments</span>(<span class="ident">pou</span>, <span class="ident">call_params</span>, <span class="ident">declared_parameters</span>)<span class="question-mark">?</span>
+        } <span class="kw">else</span> {
+            <span class="comment">// no function</span>
+            <span class="kw">let</span> (<span class="ident">class_ptr</span>, <span class="ident">call_ptr</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">pou</span> {
+                <span class="ident">PouIndexEntry::Method</span> { .. } =&gt; {
+                    <span class="kw">let</span> <span class="ident">class_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">operator</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">call_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">allocate_function_struct_instance</span>(
+                        <span class="ident">implementation</span>.<span class="ident">get_call_name</span>(),
+                        <span class="ident">operator</span>,
+                    )<span class="question-mark">?</span>;
+                    (<span class="prelude-val">Some</span>(<span class="ident">class_ptr</span>), <span class="ident">call_ptr</span>)
+                }
+                <span class="ident">PouIndexEntry::Action</span> { .. }
+                    <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">operator</span>, <span class="ident">AstStatement::Reference</span> { .. }) =&gt;
+                {
+                    <span class="comment">//Special handling for local actions, get the parameter from the function context</span>
+                    <span class="ident">function_context</span>
+                        .<span class="ident">function</span>
+                        .<span class="ident">get_first_param</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">call_ptr</span><span class="op">|</span> (<span class="prelude-val">None</span>, <span class="ident">call_ptr</span>.<span class="ident">into_pointer_value</span>()))
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::cannot_generate_call_statement</span>(<span class="ident">operator</span>))<span class="question-mark">?</span>
+                }
+                <span class="kw">_</span> =&gt; {
+                    <span class="kw">let</span> <span class="ident">class_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">operator</span>)<span class="question-mark">?</span>;
+                    (<span class="prelude-val">None</span>, <span class="ident">class_ptr</span>)
+                }
+            };
+
+            <span class="comment">//First go to the input block</span>
+            <span class="comment">//Generate all parameters, this function may jump to the output block</span>
+            <span class="self">self</span>.<span class="ident">generate_stateful_pou_call_parameters</span>(
+                <span class="ident">function_name</span>,
+                <span class="ident">class_ptr</span>,
+                <span class="ident">call_ptr</span>,
+                <span class="ident">parameters</span>,
+            )<span class="question-mark">?</span>
+        };
+        <span class="prelude-val">Ok</span>(<span class="ident">arguments_list</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">generate_function_arguments</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">pou</span>: <span class="kw-2">&amp;</span><span class="ident">PouIndexEntry</span>,
+        <span class="ident">arguments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
+        <span class="ident">declared_parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">param_statement</span>) <span class="kw">in</span> <span class="ident">arguments</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">let</span> (<span class="ident">location</span>, <span class="ident">param_statement</span>) <span class="op">=</span>
+                <span class="ident">get_implicit_call_parameter</span>(<span class="ident">param_statement</span>, <span class="kw-2">&amp;</span><span class="ident">declared_parameters</span>, <span class="ident">idx</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">//None -&gt; possibly variadic</span>
+            <span class="kw">let</span> (<span class="ident">declaration_type</span>, <span class="ident">type_name</span>) <span class="op">=</span> <span class="ident">declared_parameters</span>
+                <span class="comment">//get paremeter at location</span>
+                .<span class="ident">get</span>(<span class="ident">location</span>)
+                <span class="comment">//find the parameter&#39;s type and name</span>
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> (<span class="ident">it</span>.<span class="ident">get_declaration_type</span>(), <span class="ident">it</span>.<span class="ident">get_type_name</span>()))
+                <span class="comment">//TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail</span>
+                .<span class="ident">map</span>(<span class="prelude-val">Ok</span>)
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="comment">//If we are dealing with a variadic function, we can accept all extra parameters</span>
+                    <span class="kw">if</span> <span class="ident">pou</span>.<span class="ident">is_variadic</span>() {
+                        <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">param_statement</span>)
+                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> (<span class="ident">ArgumentType::ByVal</span>(<span class="ident">VariableType::Input</span>), <span class="ident">it</span>.<span class="ident">get_name</span>()))
+                    } <span class="kw">else</span> {
+                        <span class="comment">//We are not variadic, we have too many parameters here</span>
+                        <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
+                            <span class="string">&quot;Too many parameters&quot;</span>,
+                            <span class="ident">param_statement</span>.<span class="ident">get_location</span>(),
+                        ))
+                    }
+                })<span class="question-mark">?</span>;
+
+            <span class="kw">let</span> <span class="ident">argument</span>: <span class="ident">BasicValueEnum</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">declaration_type</span>.<span class="ident">is_by_ref</span>() {
+                <span class="self">self</span>.<span class="ident">generate_argument_by_ref</span>(<span class="ident">param_statement</span>, <span class="ident">type_name</span>)<span class="question-mark">?</span>
+            } <span class="kw">else</span> {
+                <span class="comment">//pass by val</span>
+                <span class="self">self</span>.<span class="ident">generate_argument_by_val</span>(<span class="ident">type_name</span>, <span class="ident">param_statement</span>)<span class="question-mark">?</span>
+            };
+
+            <span class="ident">result</span>.<span class="ident">push</span>((<span class="ident">location</span>, <span class="ident">argument</span>));
+        }
+        <span class="ident">result</span>.<span class="ident">sort_by</span>(<span class="op">|</span>(<span class="ident">idx_a</span>, <span class="kw">_</span>), (<span class="ident">idx_b</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">idx_a</span>.<span class="ident">cmp</span>(<span class="ident">idx_b</span>));
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>
+            .<span class="ident">into_iter</span>()
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>.<span class="ident">into</span>())
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataValueEnum</span><span class="op">&gt;</span><span class="op">&gt;</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">generate_argument_by_val</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">param_statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">type_name</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">type_info</span>) <span class="kw">if</span> <span class="ident">type_info</span>.<span class="ident">information</span>.<span class="ident">is_string</span>() =&gt; {
+                <span class="self">self</span>.<span class="ident">generate_string_argument</span>(<span class="ident">type_info</span>, <span class="ident">param_statement</span>)<span class="question-mark">?</span>
+            }
+            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">param_statement</span>)<span class="question-mark">?</span>,
+        })
+    }
+
+    <span class="comment">// Before passing a string to a function, it is copied to a new string with the appropriate size for the called function</span>
+    <span class="kw">fn</span> <span class="ident">generate_string_argument</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">type_info</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>,
+        <span class="ident">argument</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="comment">// allocate a temporary string of correct size and pass it</span>
+        <span class="kw">let</span> <span class="ident">llvm_type</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">llvm_index</span>
+            .<span class="ident">find_associated_type</span>(<span class="ident">type_info</span>.<span class="ident">get_name</span>())
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">type_info</span>.<span class="ident">get_name</span>(), <span class="ident">argument</span>.<span class="ident">get_location</span>())
+            })<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">temp_variable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_alloca</span>(<span class="ident">llvm_type</span>, <span class="string">&quot;&quot;</span>);
+        <span class="self">self</span>.<span class="ident">llvm</span>
+            .<span class="ident">builder</span>
+            .<span class="ident">build_memset</span>(
+                <span class="ident">temp_variable</span>,
+                <span class="number">1</span>,
+                <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i8_type</span>().<span class="ident">const_zero</span>(),
+                <span class="ident">llvm_type</span>.<span class="ident">size_of</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">type_info</span>.<span class="ident">get_name</span>(), <span class="ident">argument</span>.<span class="ident">get_location</span>())
+                })<span class="question-mark">?</span>,
+            )
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">it</span>, <span class="ident">argument</span>.<span class="ident">get_location</span>()))<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">generate_store</span>(<span class="ident">type_info</span>.<span class="ident">get_type_information</span>(), <span class="ident">argument</span>, <span class="ident">temp_variable</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_load</span>(<span class="ident">temp_variable</span>, <span class="string">&quot;&quot;</span>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">generate_argument_by_ref</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">param_statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+        <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">param_statement</span>, <span class="ident">AstStatement::EmptyStatement</span> { .. }) {
+            <span class="comment">//uninitialized var_output/var_in_out</span>
+            <span class="kw">let</span> <span class="ident">v_type</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">llvm_index</span>
+                .<span class="ident">find_associated_type</span>(<span class="ident">type_name</span>)
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">param_statement</span>.<span class="ident">get_location</span>())
+                })<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_alloca</span>(<span class="ident">v_type</span>, <span class="string">&quot;&quot;</span>))
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">param_statement</span>)
+                .<span class="ident">or_else</span>::<span class="op">&lt;</span><span class="ident">Diagnostic</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                    <span class="comment">//passed a literal to byref parameter?</span>
+                    <span class="comment">//TODO: find more defensive solution - check early</span>
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">param_statement</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">argument</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_alloca</span>(<span class="ident">value</span>.<span class="ident">get_type</span>(), <span class="string">&quot;&quot;</span>);
+                    <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">argument</span>, <span class="ident">value</span>);
+                    <span class="prelude-val">Ok</span>(<span class="ident">argument</span>)
+                })
+        }
+        .<span class="ident">map</span>(<span class="ident">Into::into</span>)
+    }
+
     <span class="doccomment">/// generates a new instance of a function called `function_name` and returns a PointerValue to it</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `function_name` the name of the function as registered in the index</span>
@@ -2809,7 +3044,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">instance_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}_instance&quot;</span>, <span class="ident">function_name</span>);
         <span class="kw">let</span> <span class="ident">function_type</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">llvm_index</span>
@@ -2833,13 +3068,13 @@
     <span class="doccomment">/// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters</span>
     <span class="doccomment">/// - `input_block` the block to generate the input-assignments into</span>
     <span class="doccomment">/// - `output_block` the block to generate the output-assignments into</span>
-    <span class="kw">fn</span> <span class="ident">generate_input_function_parameters</span>(
+    <span class="kw">fn</span> <span class="ident">generate_stateful_pou_call_parameters</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">class_struct</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">parameter_struct</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">class_struct</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">parameter_struct</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
         <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">class_struct</span>
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">class_struct</span><span class="op">|</span> {
                 <span class="macro">vec!</span>[
@@ -2869,31 +3104,6 @@
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
-    <span class="doccomment">/// generates the output assignments of a function-call&#39;s parameters</span>
-    <span class="doccomment">/// the call parameters are passed to the function using a struct-instance with all the parameters</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - `function_name` the name of the function we&#39;re calling</span>
-    <span class="doccomment">/// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters</span>
-    <span class="doccomment">/// - `input_block` the block to generate the input-assignments into</span>
-    <span class="kw">fn</span> <span class="ident">generate_output_function_parameters</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">parameter_struct</span>: <span class="ident">PointerValue</span>,
-        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">expressions</span> <span class="op">=</span> <span class="ident">parameters</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">map</span>(<span class="ident">ast::flatten_expression_list</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">std::vec::Vec::new</span>);
-
-        <span class="kw">for</span> <span class="ident">exp</span> <span class="kw">in</span> <span class="ident">expressions</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span> <span class="ident">exp</span> {
-                <span class="self">self</span>.<span class="ident">generate_output_parameter</span>(<span class="ident">function_name</span>, <span class="ident">parameter_struct</span>, <span class="ident">left</span>, <span class="ident">right</span>)<span class="question-mark">?</span>;
-            }
-        }
-        <span class="prelude-val">Ok</span>(())
-    }
-
     <span class="doccomment">/// generates an assignemnt of a single call&#39;s parameter</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `assignment_statement&#39; the parameter-assignment, either an AssignmentStatement, an OutputAssignmentStatement or an expression</span>
@@ -2906,18 +3116,14 @@
     <span class="kw">fn</span> <span class="ident">generate_single_input_parameter</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">param_context</span>: <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">assignment_statement</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">assignment_statement</span>;
 
         <span class="kw">let</span> <span class="ident">parameter_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">assignment_statement</span> {
             <span class="comment">// explicit call parameter: foo(param := value)</span>
-            <span class="ident">AstStatement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } =&gt; {
+            <span class="ident">AstStatement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. }
+            <span class="op">|</span> <span class="ident">AstStatement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">generate_formal_parameter</span>(<span class="ident">param_context</span>, <span class="ident">left</span>, <span class="ident">right</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">None</span>
-            }
-            <span class="comment">// foo (param =&gt; value)</span>
-            <span class="ident">AstStatement::OutputAssignment</span> { .. } =&gt; {
-                <span class="comment">//ignore here</span>
                 <span class="prelude-val">None</span>
             }
             <span class="comment">// foo(x)</span>
@@ -2931,7 +3137,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">param_context</span>: <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span>,
         <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
         <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">function_name</span>;
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">index</span>;
@@ -2960,10 +3166,27 @@
                 <span class="ident">auto_deref</span>: <span class="bool-val">true</span>, ..
             } <span class="op">=</span> <span class="ident">parameter</span>
             {
-                <span class="comment">//this is VAR_IN_OUT assignemt, so don&#39;t load the value, assign the pointer</span>
-                <span class="kw">let</span> <span class="ident">generated_exp</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>
-                    .<span class="ident">as_basic_value_enum</span>();
+                <span class="comment">//this is VAR_OUT or VAR_IN_OUT assignemt, so don&#39;t load the value, assign the pointer</span>
+
+                <span class="comment">//expression may be empty -&gt; generate a local variable for it</span>
+                <span class="kw">let</span> <span class="ident">generated_exp</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">expression</span>, <span class="ident">AstStatement::EmptyStatement</span> { .. }) {
+                    <span class="kw">let</span> <span class="ident">temp_type</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">llvm_index</span>
+                        .<span class="ident">find_associated_type</span>(<span class="ident">parameter</span>.<span class="ident">get_name</span>())
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="ident">Diagnostic::unknown_type</span>(
+                                <span class="ident">parameter</span>.<span class="ident">get_name</span>(),
+                                <span class="ident">expression</span>.<span class="ident">get_location</span>(),
+                            )
+                        })<span class="question-mark">?</span>;
+
+                    <span class="ident">builder</span>
+                        .<span class="ident">build_alloca</span>(<span class="ident">temp_type</span>, <span class="string">&quot;empty_varinout&quot;</span>)
+                        .<span class="ident">as_basic_value_enum</span>()
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>
+                        .<span class="ident">as_basic_value_enum</span>()
+                };
 
                 <span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">pointer_to_param</span>, <span class="ident">generated_exp</span>);
             } <span class="kw">else</span> {
@@ -2974,56 +3197,6 @@
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>))
         }
-    }
-
-    <span class="kw">fn</span> <span class="ident">generate_output_parameter</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">parameter_struct</span>: <span class="ident">PointerValue</span>,
-        <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-        <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
-
-        <span class="comment">// (output =&gt; ) output assignments are optional, in this case  ignore codegen</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">right</span>, <span class="ident">AstStatement::EmptyStatement</span> { .. }) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="ident">left</span> {
-                <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">index</span>
-                    .<span class="ident">find_member</span>(<span class="ident">function_name</span>, <span class="ident">name</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unresolved_reference</span>(<span class="ident">name</span>, <span class="ident">left</span>.<span class="ident">get_location</span>()))<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">get_location_in_parent</span>();
-                <span class="kw">let</span> <span class="ident">param_type</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">index</span>
-                    .<span class="ident">find_effective_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>())
-                    .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="self">self</span>.<span class="ident">index</span>
-                            .<span class="ident">find_input_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>)
-                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">var</span>.<span class="ident">get_type_name</span>()))
-                    })
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>(), <span class="ident">left</span>.<span class="ident">get_location</span>())
-                    })<span class="question-mark">?</span>;
-                <span class="comment">//load the function prameter</span>
-                <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>
-                    .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
-                    .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
-
-                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">right</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">loaded_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_load</span>(<span class="ident">pointer_to_param</span>, <span class="ident">parameter</span>.<span class="ident">get_name</span>());
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
-                    <span class="self">self</span>.<span class="ident">llvm</span>,
-                    <span class="self">self</span>.<span class="ident">index</span>,
-                    <span class="self">self</span>.<span class="ident">llvm_index</span>,
-                    <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">right</span>)<span class="question-mark">?</span>,
-                    <span class="ident">loaded_value</span>,
-                    <span class="ident">param_type</span>,
-                    <span class="ident">right</span>,
-                )<span class="question-mark">?</span>;
-                <span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">l_value</span>, <span class="ident">value</span>);
-            }
-        }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn</span> <span class="ident">generate_formal_parameter</span>(
@@ -3058,7 +3231,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_element_pointer</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">reference_statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span> <span class="ident">reference_statement</span> {
             <span class="self">self</span>.<span class="ident">generate_element_pointer_from_elements</span>(
                 <span class="ident">elements</span>,
@@ -3073,7 +3246,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">elements</span>: <span class="kw-2">&amp;</span>[<span class="ident">AstStatement</span>],
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">elements</span> {
             <span class="ident">qualifier</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">do_generate_element_pointer</span>(<span class="ident">qualifier</span>, <span class="ident">e</span>)<span class="question-mark">?</span>);
@@ -3088,9 +3261,9 @@
 
     <span class="kw">fn</span> <span class="ident">do_generate_element_pointer</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">reference_statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">reference_statement</span> {
             <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } =&gt; <span class="self">self</span>.<span class="ident">create_llvm_pointer_value_for_reference</span>(
                 <span class="ident">qualifier</span>.<span class="ident">as_ref</span>(),
@@ -3119,10 +3292,10 @@
     <span class="doccomment">/// - `context` the statement to obtain the location from when returning an error</span>
     <span class="kw">fn</span> <span class="ident">create_llvm_pointer_value_for_reference</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">get_location</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">qualifier</span>) <span class="op">=</span> <span class="ident">qualifier</span> {
             <span class="comment">//if we&#39;re loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,</span>
@@ -3173,13 +3346,13 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">accessor_ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">accessor_ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>) -&gt; <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">llvm</span>
             .<span class="ident">load_pointer</span>(<span class="kw-2">&amp;</span><span class="ident">accessor_ptr</span>, <span class="string">&quot;deref&quot;</span>)
             .<span class="ident">into_pointer_value</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_as_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_as_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>) -&gt; <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">int_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i64_type</span>();
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_const</span>() {
             <span class="ident">ptr</span>.<span class="ident">const_to_int</span>(<span class="ident">int_type</span>)
@@ -3196,9 +3369,9 @@
     <span class="doccomment">/// - `access_ptr` the original pointer value loaded for the reference. will be returned if no auto-deref is necessary</span>
     <span class="kw">fn</span> <span class="ident">auto_deref_if_necessary</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">accessor_ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">accessor_ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
         <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> {
             <span class="ident">is_auto_deref</span>: <span class="bool-val">true</span>,
             ..
@@ -3219,7 +3392,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">dimension</span>: <span class="kw-2">&amp;</span><span class="ident">Dimension</span>,
         <span class="ident">access_expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">start_offset</span> <span class="op">=</span> <span class="ident">dimension</span>
             .<span class="ident">start_offset</span>
             .<span class="ident">as_int_value</span>(<span class="self">self</span>.<span class="ident">index</span>)
@@ -3257,10 +3430,10 @@
     <span class="doccomment">/// - `access` the accessor expression (the expression between the brackets: reference[access])</span>
     <span class="kw">fn</span> <span class="ident">generate_element_pointer_for_array</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">reference</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">access</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="comment">//Load the reference</span>
         <span class="self">self</span>.<span class="ident">do_generate_element_pointer</span>(<span class="ident">qualifier</span>.<span class="ident">cloned</span>(), <span class="ident">reference</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">lvalue</span><span class="op">|</span> {
@@ -3389,7 +3562,7 @@
         <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">right_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
         <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">left_expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">left</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">right_expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">right</span>)<span class="question-mark">?</span>;
 
@@ -3496,7 +3669,7 @@
         <span class="ident">result</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_to_int_value_if_pointer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_to_int_value_if_pointer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>) -&gt; <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="ident">BasicValueEnum::PointerValue</span>(<span class="ident">v</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">int_type</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">get_type</span>().<span class="ident">size_of</span>().<span class="ident">get_type</span>();
@@ -3516,9 +3689,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_llvm_int_binary_expression</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span>,
-        <span class="ident">left_value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">right_value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="ident">left_value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+        <span class="ident">right_value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">int_lvalue</span> <span class="op">=</span> <span class="ident">left_value</span>.<span class="ident">into_int_value</span>();
         <span class="kw">let</span> <span class="ident">int_rvalue</span> <span class="op">=</span> <span class="ident">right_value</span>.<span class="ident">into_int_value</span>();
 
@@ -3607,9 +3780,9 @@
     <span class="kw">fn</span> <span class="ident">create_llvm_float_binary_expression</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span>,
-        <span class="ident">lvalue</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">rvalue</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="ident">lvalue</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+        <span class="ident">rvalue</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">float_lvalue</span> <span class="op">=</span> <span class="ident">lvalue</span>.<span class="ident">into_float_value</span>();
         <span class="kw">let</span> <span class="ident">float_rvalue</span> <span class="op">=</span> <span class="ident">rvalue</span>.<span class="ident">into_float_value</span>();
 
@@ -3680,7 +3853,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">stmt</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">number</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">type_hint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">stmt</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">actual_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_type_or_void</span>(<span class="ident">stmt</span>, <span class="self">self</span>.<span class="ident">index</span>);
         <span class="kw">let</span> <span class="ident">literal_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_same_type_class</span>(
@@ -3705,7 +3878,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_literal</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">literal_statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">literal_statement</span> {
             <span class="ident">AstStatement::LiteralBool</span> { <span class="ident">value</span>, .. } =&gt; <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_bool</span>(<span class="kw-2">*</span><span class="ident">value</span>),
             <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } =&gt; {
@@ -3782,10 +3955,14 @@
 
                         <span class="kw">match</span> <span class="ident">encoding</span> {
                             <span class="ident">StringEncoding::Utf8</span> =&gt; {
-                                <span class="kw">let</span> <span class="ident">literal</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">find_utf08_literal_string</span>(<span class="ident">value</span>);
-                                <span class="kw">if</span> <span class="ident">literal</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">function_context</span>.<span class="ident">is_some</span>() {
+                                <span class="kw">let</span> <span class="ident">literal</span> <span class="op">=</span> <span class="self">self</span>
+                                    .<span class="ident">llvm_index</span>
+                                    .<span class="ident">find_utf08_literal_string</span>(<span class="ident">value</span>)
+                                    .<span class="ident">map</span>(<span class="ident">GlobalValue::as_basic_value_enum</span>);
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">literal_value</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">literal</span>.<span class="ident">zip</span>(<span class="self">self</span>.<span class="ident">function_context</span>)
+                                {
                                     <span class="comment">//global constant string</span>
-                                    <span class="prelude-val">Ok</span>(<span class="ident">literal</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_basic_value_enum</span>()).<span class="ident">unwrap</span>())
+                                    <span class="prelude-val">Ok</span>(<span class="ident">literal_value</span>)
                                 } <span class="kw">else</span> {
                                     <span class="comment">//note that .len() will give us the number of bytes, not the number of characters</span>
                                     <span class="kw">let</span> <span class="ident">actual_length</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="op">+</span> <span class="number">1</span>; <span class="comment">// +1 to account for a final \0</span>
@@ -3900,7 +4077,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">assignments</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">declaration_location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> {
             <span class="ident">name</span>: <span class="ident">struct_name</span>,
             <span class="ident">member_names</span>,
@@ -3909,7 +4086,7 @@
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">uninitialized_members</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span>
                 <span class="ident">member_names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_str</span>()).<span class="ident">collect</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">member_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">member_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
             <span class="kw">for</span> <span class="ident">assignment</span> <span class="kw">in</span> <span class="ident">flatten_expression_list</span>(<span class="ident">assignments</span>) {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span> <span class="ident">assignment</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> {
@@ -3979,7 +4156,7 @@
                 .<span class="ident">into_struct_type</span>();
             <span class="kw">if</span> <span class="ident">member_values</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">struct_type</span>.<span class="ident">count_fields</span>() <span class="kw">as</span> <span class="ident">usize</span> {
                 <span class="ident">member_values</span>.<span class="ident">sort_by</span>(<span class="op">|</span>(<span class="ident">a</span>, <span class="kw">_</span>), (<span class="ident">b</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">a</span>.<span class="ident">cmp</span>(<span class="ident">b</span>));
-                <span class="kw">let</span> <span class="ident">ordered_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+                <span class="kw">let</span> <span class="ident">ordered_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">member_values</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">v</span>).<span class="ident">collect</span>();
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">struct_type</span>
@@ -4008,7 +4185,7 @@
     <span class="kw">fn</span> <span class="ident">generate_literal_array</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">initializer</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">array_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_literal_array_value</span>(
             <span class="ident">flatten_expression_list</span>(<span class="ident">initializer</span>),
             <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">initializer</span>)<span class="question-mark">?</span>,
@@ -4027,7 +4204,7 @@
         <span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
         <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
         <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">inner_type</span>, <span class="ident">expected_len</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Array</span> {
             <span class="ident">inner_type_name</span>,
             <span class="ident">dimensions</span>,
@@ -4123,7 +4300,7 @@
         <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span>,
         <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">operator</span> {
             <span class="ident">Operator::And</span> <span class="op">|</span> <span class="ident">Operator::Or</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">generate_bool_short_circuit_expression</span>(<span class="ident">operator</span>, <span class="ident">left</span>, <span class="ident">right</span>)
@@ -4192,7 +4369,7 @@
         <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span>,
         <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
         <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">to_i1</span>(<span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">left</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(), <span class="ident">builder</span>);
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_function_context</span>(<span class="ident">left</span>)<span class="question-mark">?</span>.<span class="ident">function</span>;
@@ -4228,7 +4405,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">phi_value</span>.<span class="ident">as_basic_value</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">create_const_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">create_const_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_numeric</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">LINT_TYPE</span>)<span class="question-mark">?</span>,
             <span class="ident">value</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>(),
@@ -4248,7 +4425,7 @@
         <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">binary_statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Value</span> { .. }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">binary_statement</span>) {
             <span class="comment">// we trust that the validator only passed us valid parameters (so left &amp; right should be same type)</span>
             <span class="kw">let</span> <span class="ident">call_statement</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">operator</span> {
@@ -4431,6 +4608,43 @@
             ))
         }
     }
+}
+
+<span class="doccomment">/// Returns the information required to call a parameter implicitly in a function</span>
+<span class="doccomment">/// If the parameter is already implicit, it does nothing.</span>
+<span class="doccomment">/// if the parameter is explicit ´param := value´,</span>
+<span class="doccomment">/// it returns the location of the parameter in the function declaration</span>
+<span class="doccomment">///  as well as the parameter value (right side) ´param := value´ =&gt; ´value´</span>
+<span class="kw">fn</span> <span class="ident">get_implicit_call_parameter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="ident">param_statement</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AstStatement</span>,
+    <span class="ident">declared_parameters</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>],
+    <span class="ident">idx</span>: <span class="ident">usize</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AstStatement</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> (<span class="ident">location</span>, <span class="ident">param_statement</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">param_statement</span> {
+        <span class="ident">AstStatement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. }
+        <span class="op">|</span> <span class="ident">AstStatement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } =&gt; {
+            <span class="comment">//explicit</span>
+            <span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> {
+                <span class="ident">name</span>: <span class="ident">left_name</span>, ..
+            } <span class="op">=</span> <span class="ident">left</span>.<span class="ident">as_ref</span>()
+            {
+                <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">declared_parameters</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">position</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get_name</span>() <span class="op">==</span> <span class="ident">left_name</span>);
+                <span class="ident">position</span>
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unresolved_reference</span>(<span class="ident">left_name</span>, <span class="ident">left</span>.<span class="ident">get_location</span>()))
+            } <span class="kw">else</span> {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;left of an assignment must be a reference&quot;</span>);
+            }<span class="question-mark">?</span>;
+
+            (<span class="ident">loc</span>, <span class="ident">right</span>.<span class="ident">as_ref</span>())
+        }
+        <span class="kw">_</span> =&gt; {
+            <span class="comment">//implicit</span>
+            (<span class="ident">idx</span>, <span class="ident">param_statement</span>)
+        }
+    };
+    <span class="prelude-val">Ok</span>((<span class="ident">location</span>, <span class="ident">param_statement</span>))
 }
 
 <span class="doccomment">/// calculates the seconds in the given days, hours minutes and seconds</span>
