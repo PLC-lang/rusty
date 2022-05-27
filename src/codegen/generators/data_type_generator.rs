@@ -58,15 +58,17 @@ pub fn generate_data_types<'ink>(
         .index
         .get_types()
         .iter()
-        .filter(|(_, it)| !it.get_type_information().is_generic())
+        .filter(|(_, it)| !it.get_type_information().is_generic(generator.index))
         .map(|(a, b)| (a.as_str(), b))
         .collect::<Vec<(&str, &DataType)>>();
+
     let pou_types = generator
         .index
-        .get_pou_types()
-        .iter()
-        .filter(|(_, it)| !it.get_type_information().is_generic())
-        .map(|(a, b)| (a.as_str(), b))
+        .get_pous()
+        .values()
+        .filter(|pou| !pou.is_generic() && !pou.is_action()) //actions dont get an own datatype, they use the one from their parent
+        .map(|pou| pou.get_instance_struct_type(generator.index))
+        .map(|it| (it.get_name(), it))
         .collect::<Vec<(&str, &DataType)>>();
 
     // first create all STUBs for struct types (empty structs)
@@ -97,6 +99,7 @@ pub fn generate_data_types<'ink>(
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
     }
+
     for (name, user_type) in &pou_types {
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_pou_type(name, gen_type)?

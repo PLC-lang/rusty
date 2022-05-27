@@ -1,22 +1,20 @@
 ---
 source: src/codegen/tests/string_tests.rs
-assertion_line: 165
 expression: program
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 %main_interface = type { [81 x i8], [81 x i8], [81 x i8] }
-%read_string_interface = type { [81 x i8] }
 
 @main_instance = global %main_interface zeroinitializer
 @utf08_literal_0 = unnamed_addr constant [154 x i8] c"abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc\00"
 @utf08_literal_1 = unnamed_addr constant [6 x i8] c"hello\00"
 
-define [81 x i8] @read_string(%read_string_interface* %0) {
+define [81 x i8] @read_string([81 x i8] %0) {
 entry:
-  %to_read = getelementptr inbounds %read_string_interface, %read_string_interface* %0, i32 0, i32 0
+  %to_read = alloca [81 x i8], align 1
+  store [81 x i8] %0, [81 x i8]* %to_read, align 1
   %read_string = alloca [81 x i8], align 1
   %1 = bitcast [81 x i8]* %read_string to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
@@ -32,26 +30,30 @@ entry:
   %text1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
   %text2 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
   %text3 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
-  %read_string_instance = alloca %read_string_interface, align 8
-  %1 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance, i32 0, i32 0
+  %1 = alloca [81 x i8], align 1
   %2 = bitcast [81 x i8]* %1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([154 x i8], [154 x i8]* @utf08_literal_0, i32 0, i32 0), i32 80, i1 false)
-  %call = call [81 x i8] @read_string(%read_string_interface* %read_string_instance)
-  %3 = alloca [81 x i8], align 1
-  store [81 x i8] %call, [81 x i8]* %3, align 1
-  %4 = bitcast [81 x i8]* %text1 to i8*
-  %5 = bitcast [81 x i8]* %3 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 80, i1 false)
-  %read_string_instance1 = alloca %read_string_interface, align 8
-  %6 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance1, i32 0, i32 0
-  %7 = bitcast [81 x i8]* %6 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %7, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
-  %call2 = call [81 x i8] @read_string(%read_string_interface* %read_string_instance1)
+  call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+  %3 = bitcast [81 x i8]* %1 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 getelementptr inbounds ([154 x i8], [154 x i8]* @utf08_literal_0, i32 0, i32 0), i32 80, i1 false)
+  %4 = load [81 x i8], [81 x i8]* %1, align 1
+  %call = call [81 x i8] @read_string([81 x i8] %4)
+  %5 = alloca [81 x i8], align 1
+  store [81 x i8] %call, [81 x i8]* %5, align 1
+  %6 = bitcast [81 x i8]* %text1 to i8*
+  %7 = bitcast [81 x i8]* %5 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %6, i8* align 1 %7, i32 80, i1 false)
   %8 = alloca [81 x i8], align 1
-  store [81 x i8] %call2, [81 x i8]* %8, align 1
-  %9 = bitcast [81 x i8]* %text3 to i8*
+  %9 = bitcast [81 x i8]* %8 to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %9, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
   %10 = bitcast [81 x i8]* %8 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %9, i8* align 1 %10, i32 80, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %10, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
+  %11 = load [81 x i8], [81 x i8]* %8, align 1
+  %call1 = call [81 x i8] @read_string([81 x i8] %11)
+  %12 = alloca [81 x i8], align 1
+  store [81 x i8] %call1, [81 x i8]* %12, align 1
+  %13 = bitcast [81 x i8]* %text3 to i8*
+  %14 = bitcast [81 x i8]* %12 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %13, i8* align 1 %14, i32 80, i1 false)
   ret void
 }
 

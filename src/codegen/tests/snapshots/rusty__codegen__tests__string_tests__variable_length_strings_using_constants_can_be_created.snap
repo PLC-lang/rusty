@@ -1,8 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
-assertion_line: 190
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"

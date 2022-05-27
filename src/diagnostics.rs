@@ -10,7 +10,7 @@ use codespan_reporting::{
 };
 use inkwell::support::LLVMString;
 
-use crate::ast::{DataTypeDeclaration, PouType, SourceRange};
+use crate::ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
@@ -409,6 +409,16 @@ impl Diagnostic {
             range: location,
             err_no: ErrNo::codegen__general,
         }
+    }
+
+    pub fn cannot_generate_call_statement<T: DiagnosticInfo>(operator: &T) -> Diagnostic {
+        Diagnostic::codegen_error(
+            &format!(
+                "cannot generate call statement for {:?}",
+                operator.get_description()
+            ),
+            operator.get_location(),
+        )
     }
 
     pub fn io_read_error(file: &str, reason: &str) -> Diagnostic {

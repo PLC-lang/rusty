@@ -1,21 +1,20 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1365
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 %prg_interface = type { i32 }
-%foo_interface = type { i32, i8 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
-define i32 @foo(%foo_interface* %0) {
+define i32 @foo(i32 %0, i8 %1) {
 entry:
-  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
-  %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  %bar = alloca i32, align 4
+  store i32 %0, i32* %bar, align 4
+  %buz = alloca i8, align 1
+  store i8 %1, i8* %buz, align 1
   %foo = alloca i32, align 4
   store i32 0, i32* %foo, align 4
   store i32 1, i32* %foo, align 4
@@ -26,12 +25,7 @@ entry:
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %foo_instance = alloca %foo_interface, align 8
-  %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
-  store i32 2, i32* %1, align 4
-  %2 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 1
-  store i8 1, i8* %2, align 1
-  %call = call i32 @foo(%foo_interface* %foo_instance)
+  %call = call i32 @foo(i32 2, i8 1)
   store i32 %call, i32* %x, align 4
   ret void
 }

@@ -20,23 +20,23 @@ struct MainType {
 fn sub_range_chooses_right_implementation() {
     let function = r"
         FUNCTION CheckRangeSigned : DINT
-        VAR_INPUT v: DINT; low: DINT; up: DINT; END_VAR
-        CheckRangeSigned := -7;
+            VAR_INPUT v: DINT; low: DINT; up: DINT; END_VAR
+            CheckRangeSigned := -7;
         END_FUNCTION
 
         FUNCTION CheckRangeUnsigned : UDINT
-        VAR_INPUT v: UDINT; low: UDINT; up: UDINT; END_VAR
-        CheckRangeUnsigned := 7;
+            VAR_INPUT v: UDINT; low: UDINT; up: UDINT; END_VAR
+            CheckRangeUnsigned := 7;
         END_FUNCTION
 
         FUNCTION CheckLRangeSigned : LINT
-        VAR_INPUT v: LINT; low: LINT; up: LINT; END_VAR
-        CheckLRangeSigned := -77;
+            VAR_INPUT v: LINT; low: LINT; up: LINT; END_VAR
+            CheckLRangeSigned := -77;
         END_FUNCTION
 
         FUNCTION CheckLRangeUnsigned : ULINT
-        VAR_INPUT v: ULINT; low: ULINT; up: ULINT; END_VAR
-        CheckLRangeUnsigned := 77;
+            VAR_INPUT v: ULINT; low: ULINT; up: ULINT; END_VAR
+            CheckLRangeUnsigned := 77;
         END_FUNCTION
         
         PROGRAM main

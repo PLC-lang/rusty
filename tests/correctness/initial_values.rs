@@ -177,9 +177,9 @@ fn initial_values_of_function_members() {
     let function = r"
         FUNCTION other : DINT
         VAR
-            x   : DINT := 77;
-            y   : DINT := 88;
-            z   : DINT := 99;
+        x   : DINT := 77;
+        y   : DINT := 88;
+        z   : DINT := 99;
         END_VAR
         VAR_INPUT
             index : INT;
@@ -764,6 +764,8 @@ fn initialization_of_string_variables() {
        // assert_eq!(maintype.string3[7..21], [0; 14]); // rest is blank
 }
 
+#[derive(Debug, PartialEq)]
+#[repr(C)]
 struct FourInts {
     a: i32,
     b: i32,
@@ -1075,11 +1077,149 @@ fn initialization_of_struct_in_function() {
 #[test]
 fn initialized_array_in_function() {
     let function = "
-		FUNCTION main : INT
+		FUNCTION foo : ARRAY[-1..2] OF DINT
+		VAR
+			arr_var : ARRAY[-1..2] OF DINT := [77,20,300,4000];
+		END_VAR
+            foo := arr_var;
+		END_FUNCTION
+
+        PROGRAM main
+            VAR_INPUT
+                a,b,c,d : DINT;
+            END_VAR
+            VAR_TEMP
+                arr_var : ARRAY[-1..2] OF DINT;
+            END_VAR
+
+            arr_var := foo();
+            a := arr_var[-1];
+            b := arr_var[0];
+            c := arr_var[1];
+            d := arr_var[2];
+        END_PROGRAM
+        ";
+
+    let mut maintype = FourInts {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+    };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(
+        FourInts {
+            a: 77,
+            b: 20,
+            c: 300,
+            d: 4000
+        },
+        maintype
+    );
+}
+
+#[test]
+fn array_test() {
+    let function = "
+        VAR_GLOBAL
+            u,v,w,x : ULINT;
+        END_VAR
+
+		FUNCTION foo : ARRAY[-1..2] OF DINT
+		VAR_INPUT
+			arr_var : ARRAY[-1..2] OF DINT;
+		END_VAR
+            //main := arr_var;
+            //main[-1] := 1;
+
+            u := &(arr_var[0]);
+            v := &(arr_var[1]));
+            w := &(arr_var[2]));
+            x := &(arr_var[3]));
+
+            main.a := 99;
+		END_FUNCTION
+
+        PROGRAM main
+            VAR_INPUT
+                a,b,c,d : ULINT;
+            END_VAR
+            VAR_TEMP
+			    arr_var : ARRAY[-1..2] OF DINT := [77,20,300,4000];
+            END_VAR
+            a := 1; b:=2; c:=3; d:=4;
+
+            foo(arr_var);
+
+            a := u;
+            b := v;
+            c := w;
+            d := x; 
+        END_PROGRAM
+        ";
+
+    #[derive(Debug)]
+    #[repr(C)]
+    struct T {
+        a: u64,
+        b: u64,
+        c: u64,
+        d: u64,
+    }
+    let mut maintype = T {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+    };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    println!(
+        "{}, {}, {}, {}",
+        maintype.a, maintype.b, maintype.c, maintype.d
+    );
+    println!(
+        "{}, {}, {}",
+        maintype.b - maintype.a,
+        maintype.c - maintype.b,
+        maintype.d - maintype.c
+    );
+}
+
+#[test]
+fn initialized_array_type_in_function() {
+    let function = "
+    TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
+        FUNCTION main : arr
+        VAR
+            arr_var : arr;
+        END_VAR
+            main := arr_var;
+        END_PROGRAM
+		";
+    #[allow(dead_code)]
+    struct MainType {
+        arr: [i32; 4],
+    }
+    let mut maintype = MainType { arr: [0; 4] };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!([1, 2, 3, 4], maintype.arr);
+}
+
+#[test]
+fn initialized_array_in_program() {
+    let function = "
+		PROGRAM target
 		VAR
 			arr_var : ARRAY[-1..2] OF DINT := [1,2,3,4];
 		END_VAR
-		END_FUNCTION
+		END_PROGRAM
+
+        PROGRAM main
+        VAR
+			arr_var : ARRAY[-1..2] OF DINT;
+		END_VAR
+            arr_var := target.arr_var;
+        END_PROGRAM
 		";
 
     #[allow(dead_code)]
@@ -1092,14 +1232,23 @@ fn initialized_array_in_function() {
 }
 
 #[test]
-fn initialized_array_type_in_function() {
+fn initialized_array_type_in_program() {
     let function = "
-    TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
-		FUNCTION main : INT
+        TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
+
+		PROGRAM target
 		VAR
 			arr_var : arr;
 		END_VAR
-		END_FUNCTION
+		END_PROGRAM
+
+        PROGRAM main
+            VAR
+                arr_var : ARRAY[-1..2] OF DINT;
+            END_VAR
+           
+           arr_var := target.arr_var;
+        END_PROGRAM
 		";
     #[allow(dead_code)]
     struct MainType {
@@ -1115,12 +1264,22 @@ fn intial_values_diverge_from_type() {
     let function = "
     TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
     TYPE myInt : DINT := 4; END_TYPE
-		FUNCTION main : INT
-		VAR
-			arr_var : arr := [5,6,7,8];
-            i : myInt := 5;
-		END_VAR
-		END_FUNCTION
+
+    PROGRAM target
+    VAR 
+		arr_var : arr := [5,6,7,8];
+        i : myInt := 5;
+    END_VAR
+    END_PROGRAM
+
+    PROGRAM main
+    VAR
+        arr_var : arr;
+        i : myInt;
+    END_VAR
+    arr_var := target.arr_var;
+    i := target.i;
+    END_PROGRAM
 		";
     #[allow(dead_code)]
     struct MainType {

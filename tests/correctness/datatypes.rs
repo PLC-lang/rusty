@@ -999,8 +999,6 @@ fn real_to_int_assignment2() {
 
 #[test]
 fn lreal_to_int_assignment() {
-    struct Type {}
-
     let function = r#"
         FUNCTION LOG : LREAL
             LOG := 1.0;
@@ -1010,6 +1008,9 @@ fn lreal_to_int_assignment() {
             main := LOG();
         END_FUNCTION
     "#;
-    let res: i32 = compile_and_run(function.to_string(), &mut Type {});
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(1, res);
 }

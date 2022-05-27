@@ -32,16 +32,23 @@ impl<'idx> InstanceIterator<'idx> {
         InstanceIterator {
             index,
             current_prefix: ExpressionPath::default(),
-            iterator: (Box::new(index.get_globals().iter().map(|(_, it)| {
-                (
-                    it.get_qualified_name()
-                        .split('.')
-                        .last()
-                        .expect("Variable needs a name")
-                        .into(),
-                    it,
-                )
-            }))) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
+            iterator: (Box::new(
+                index
+                    .get_globals()
+                    .iter()
+                    .map(|(_, it)| it)
+                    .chain(index.get_program_instances().into_iter())
+                    .map(|it| {
+                        (
+                            it.get_qualified_name()
+                                .split('.')
+                                .last()
+                                .expect("Variable needs a name")
+                                .into(),
+                            it,
+                        )
+                    }),
+            )) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
             inner: None,
             filter: |_, _| true,
         }
@@ -54,16 +61,24 @@ impl<'idx> InstanceIterator<'idx> {
         InstanceIterator {
             index,
             current_prefix: ExpressionPath::default(),
-            iterator: (Box::new(index.get_globals().iter().map(|(_, it)| {
-                (
-                    it.get_qualified_name()
-                        .split('.')
-                        .last()
-                        .expect("Variable needs a name")
-                        .into(),
-                    it,
-                )
-            }))) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
+            iterator: (Box::new(
+                index
+                    .get_globals()
+                    .iter()
+                    .map(|(_, it)| it)
+                    .chain(index.get_program_instances().into_iter())
+                    .map(|it| {
+                        (
+                            it.get_qualified_name()
+                                .split('.')
+                                .last()
+                                .expect("Variable needs a name")
+                                .into(),
+                            it,
+                        )
+                    }),
+            )) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
+
             inner: None,
             filter,
         }

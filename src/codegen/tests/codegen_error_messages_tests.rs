@@ -74,31 +74,6 @@ fn continue_not_in_loop() {
     }
 }
 
-#[test]
-#[ignore]
-fn unknown_type_should_be_reported_with_line_number() {
-    let result = codegen_without_unwrap(
-        "
-        PROGRAM prg 
-            VAR
-                x : unknown_type;
-            END_VAR
-            x := 7;
-        END_PROGRAM
-        ",
-    );
-    if let Err(msg) = result {
-        // that's not perfect yet, the error is reported for the region of the variable
-        // but better than nothing
-        assert_eq!(
-            Diagnostic::unknown_type("unknown_type", (17..18).into()),
-            msg
-        );
-    } else {
-        panic!("expected code-gen error but got none")
-    }
-}
-
 #[ignore = "will be covered by validation"]
 #[test]
 fn unknown_struct_field_should_be_reported_with_line_number() {
