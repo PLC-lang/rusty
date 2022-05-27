@@ -34,8 +34,6 @@ use crate::{
 
 use super::{llvm::Llvm, statement_generator::FunctionContext};
 
-use chrono::{LocalResult, TimeZone, Utc};
-
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
@@ -55,11 +53,16 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 }
 
 /// context information to generate a parameter
-struct ParameterContext<'a, 'b> {
+struct CallParameterAssignment<'a, 'b> {
+    /// the assignmentstatement in the call-argument list (a:=3)
     assignment_statement: &'b AstStatement,
+    /// the name of the function we're calling
     function_name: &'b str,
+    /// the argument's data type
     parameter_type: Option<&'b DataType>,
+    /// the position of the argument in the POU's argument's list
     index: u32,
+    /// a pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
 }
 
@@ -123,6 +126,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .ok_or_else(|| Diagnostic::missing_function(statement.get_location()))
     }
 
+    /// entry point into the expression generator.
     /// generates the given expression and returns the resulting BasicValueEnum
     pub fn generate_expression(
         &self,
@@ -161,6 +165,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
+        // generate the expression
         match expression {
             AstStatement::Reference { name, .. } => {
                 let load_name = format!(
@@ -193,46 +198,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 right,
                 operator,
                 ..
-            } => {
-                let l_type_hint = self.get_type_hint_for(left)?;
-                let ltype = self
-                    .index
-                    .get_intrinsic_type_by_name(l_type_hint.get_name())
-                    .get_type_information();
-
-                let r_type_hint = self.get_type_hint_for(right)?;
-                let rtype = self
-                    .index
-                    .get_intrinsic_type_by_name(r_type_hint.get_name())
-                    .get_type_information();
-                //If OR, or AND handle before generating the statements
-                if ltype.is_bool() && rtype.is_bool() {
-                    return self.generate_bool_binary_expression(operator, left, right);
-                }
-
-                if ltype.is_int() && rtype.is_int() {
-                    Ok(self.create_llvm_int_binary_expression(
-                        operator,
-                        self.generate_expression(left)?,
-                        self.generate_expression(right)?,
-                    ))
-                } else if ltype.is_float() && rtype.is_float() {
-                    Ok(self.create_llvm_float_binary_expression(
-                        operator,
-                        self.generate_expression(left)?,
-                        self.generate_expression(right)?,
-                    ))
-                } else if (ltype.is_pointer() && rtype.is_int())
-                    || (ltype.is_int() && rtype.is_pointer())
-                    || (ltype.is_pointer() && rtype.is_pointer())
-                {
-                    self.create_llvm_binary_expression_for_pointer(
-                        operator, left, ltype, right, rtype, expression,
-                    )
-                } else {
-                    self.create_llvm_generic_binary_expression(operator, left, right, expression)
-                }
-            }
+            } => self.generate_binary_expression(left, right, operator, expression),
             AstStatement::CallStatement {
                 operator,
                 parameters,
@@ -243,6 +209,55 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             } => self.generate_unary_expression(operator, value),
             //fallback
             _ => self.generate_literal(expression),
+        }
+    }
+
+    /// generates a binary expression (e.g. a + b, x AND y, etc.) and returns the resulting `BasicValueEnum`
+    /// - `left` the AstStatement left of the operator
+    /// - `right` the AstStatement right of the operator
+    /// - `operator` the binary expression's operator
+    /// - `expression` the whole expression for diagnostic reasons
+    fn generate_binary_expression(
+        &self,
+        left: &AstStatement,
+        right: &AstStatement,
+        operator: &Operator,
+        expression: &AstStatement,
+    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        let l_type_hint = self.get_type_hint_for(left)?;
+        let ltype = self
+            .index
+            .get_intrinsic_type_by_name(l_type_hint.get_name())
+            .get_type_information();
+        let r_type_hint = self.get_type_hint_for(right)?;
+        let rtype = self
+            .index
+            .get_intrinsic_type_by_name(r_type_hint.get_name())
+            .get_type_information();
+        if ltype.is_bool() && rtype.is_bool() {
+            return self.generate_bool_binary_expression(operator, left, right);
+        }
+        if ltype.is_int() && rtype.is_int() {
+            Ok(self.create_llvm_int_binary_expression(
+                operator,
+                self.generate_expression(left)?,
+                self.generate_expression(right)?,
+            ))
+        } else if ltype.is_float() && rtype.is_float() {
+            Ok(self.create_llvm_float_binary_expression(
+                operator,
+                self.generate_expression(left)?,
+                self.generate_expression(right)?,
+            ))
+        } else if (ltype.is_pointer() && rtype.is_int())
+            || (ltype.is_int() && rtype.is_pointer())
+            || (ltype.is_pointer() && rtype.is_pointer())
+        {
+            self.create_llvm_binary_expression_for_pointer(
+                operator, left, ltype, right, rtype, expression,
+            )
+        } else {
+            self.create_llvm_generic_binary_expression(operator, left, right, expression)
         }
     }
 
@@ -453,7 +468,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         let function_name = implementation.get_call_name();
-        let arguments_list = self.generate_pou_arguments_list(
+        let arguments_list = self.generate_pou_call_arguments_list(
             pou,
             parameters,
             implementation,
@@ -494,7 +509,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(value)
     }
 
-    fn generate_pou_arguments_list(
+    /// generates the argument list for a call to a pou
+    /// a call to a function returns a Vec with all parameters for the function,
+    /// a call to a Program/Fb will return a Vec with a single struct carrying all parameters
+    fn generate_pou_call_arguments_list(
         &self,
         pou: &PouIndexEntry,
         parameters: &Option<AstStatement>,
@@ -623,7 +641,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         })
     }
 
-    // Before passing a string to a function, it is copied to a new string with the appropriate size for the called function
+    /// Before passing a string to a function, it is copied to a new string with the
+    /// appropriate size for the called function
     fn generate_string_argument(
         &self,
         type_info: &DataType,
@@ -652,26 +671,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(self.llvm.builder.build_load(temp_variable, ""))
     }
 
+    /// generates a value that is passed by reference
+    /// this generates and returns a PointerValue
+    /// pointing to the given `argument`
     fn generate_argument_by_ref(
         &self,
-        param_statement: &AstStatement,
+        argument: &AstStatement,
         type_name: &str,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        if matches!(param_statement, AstStatement::EmptyStatement { .. }) {
+        if matches!(argument, AstStatement::EmptyStatement { .. }) {
             //uninitialized var_output/var_in_out
             let v_type = self
                 .llvm_index
                 .find_associated_type(type_name)
-                .ok_or_else(|| {
-                    Diagnostic::unknown_type(type_name, param_statement.get_location())
-                })?;
+                .ok_or_else(|| Diagnostic::unknown_type(type_name, argument.get_location()))?;
             Ok(self.llvm.builder.build_alloca(v_type, ""))
         } else {
-            self.generate_element_pointer(param_statement)
+            self.generate_element_pointer(argument)
                 .or_else::<Diagnostic, _>(|_| {
                     //passed a literal to byref parameter?
                     //TODO: find more defensive solution - check early
-                    let value = self.generate_expression(param_statement)?;
+                    let value = self.generate_expression(argument)?;
                     let argument = self.llvm.builder.build_alloca(value.get_type(), "");
                     self.llvm.builder.build_store(argument, value);
                     Ok(argument)
@@ -684,6 +704,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ///
     /// - `function_name` the name of the function as registered in the index
     /// - `context` the statement used to report a possible Diagnostic on
+    /// TODO: will be deleted once methods work properly (like functions)
     fn allocate_function_struct_instance(
         &self,
         function_name: &str,
@@ -734,13 +755,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .unwrap_or_else(std::vec::Vec::new);
 
         for (index, exp) in expressions.iter().enumerate() {
-            let parameter = self.generate_single_input_parameter(&ParameterContext {
-                assignment_statement: exp,
-                function_name,
-                parameter_type: None,
-                index: index as u32,
-                parameter_struct,
-            })?;
+            let parameter =
+                self.generate_call_struct_argument_assignment(&CallParameterAssignment {
+                    assignment_statement: exp,
+                    function_name,
+                    parameter_type: None,
+                    index: index as u32,
+                    parameter_struct,
+                })?;
             if let Some(parameter) = parameter {
                 result.push(parameter.into());
             };
@@ -748,7 +770,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(result)
     }
 
-    /// generates an assignemnt of a single call's parameter
+    /// generates an assignemnt of a single call's argument
     ///
     /// - `assignment_statement' the parameter-assignment, either an AssignmentStatement, an OutputAssignmentStatement or an expression
     /// - `function_name` the name of the callable
@@ -757,9 +779,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `parameter_struct' a pointer to a struct-instance that holds all function-parameters
     /// - `input_block` the block to generate the input-assignments into
     /// - `output_block` the block to generate the output-assignments into
-    fn generate_single_input_parameter(
+    fn generate_call_struct_argument_assignment(
         &self,
-        param_context: &ParameterContext,
+        param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let assignment_statement = param_context.assignment_statement;
 
@@ -777,9 +799,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(parameter_value)
     }
 
+    /// generates the appropriate value for the given expression where the expression
+    /// is a call's implicit argument (hence: foo(3), not foo(in := 3))
     fn generate_nameless_parameter(
         &self,
-        param_context: &ParameterContext,
+        param_context: &CallParameterAssignment,
         expression: &AstStatement,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let builder = &self.llvm.builder;
@@ -843,9 +867,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
+    /// generates the appropriate value for the given `right` expression  that is passed in a call
+    /// to the parameter represented by `left`
+    /// it's a call's explicit argument (hence: foo(left := right), not foo(right))
     fn generate_formal_parameter(
         &self,
-        param_context: &ParameterContext,
+        param_context: &CallParameterAssignment,
         left: &AstStatement,
         right: &AstStatement,
     ) -> Result<(), Diagnostic> {
@@ -858,7 +885,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
             let param_type = self.index.find_effective_type(parameter.get_type_name());
-            self.generate_single_input_parameter(&ParameterContext {
+            self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment_statement: right,
                 function_name,
                 parameter_type: param_type,
@@ -1313,6 +1340,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         result
     }
 
+    /// if the given `value` is a pointer value, it converts the pointer into an int_value to access the pointer's
+    /// address, if the given `value` is already an IntValue it is returned as is
     pub fn convert_to_int_value_if_pointer(&self, value: BasicValueEnum<'ink>) -> IntValue<'ink> {
         match value {
             BasicValueEnum::PointerValue(v) => {
@@ -1538,7 +1567,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 location,
                 ..
             } => self.create_const_int(
-                calculate_date_time(*year, *month, *day, 0, 0, 0, 0)
+                super::date_time_util::calculate_date_time(*year, *month, *day, 0, 0, 0, 0)
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))?,
             ),
             AstStatement::LiteralDateAndTime {
@@ -1552,8 +1581,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 location,
                 ..
             } => self.create_const_int(
-                calculate_date_time(*year, *month, *day, *hour, *min, *sec, *milli)
-                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))?,
+                super::date_time_util::calculate_date_time(
+                    *year, *month, *day, *hour, *min, *sec, *milli,
+                )
+                .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))?,
             ),
             AstStatement::LiteralTimeOfDay {
                 hour,
@@ -1563,7 +1594,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 location,
                 ..
             } => self.create_const_int(
-                calculate_date_time(1970, 1, 1, *hour, *min, *sec, *milli)
+                super::date_time_util::calculate_date_time(1970, 1, 1, *hour, *min, *sec, *milli)
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))?,
             ),
             AstStatement::LiteralTime {
@@ -1576,9 +1607,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 nano,
                 negative,
                 ..
-            } => self.create_const_int(calculate_time_nano(
+            } => self.create_const_int(super::date_time_util::calculate_time_nano(
                 *negative,
-                calculate_dhm_time_seconds(*day, *hour, *min, *sec),
+                super::date_time_util::calculate_dhm_time_seconds(*day, *hour, *min, *sec),
                 *milli,
                 *micro,
                 *nano,
@@ -1586,75 +1617,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             AstStatement::LiteralString {
                 value, location, ..
-            } => {
-                let expected_type = self.get_type_hint_info_for(literal_statement)?;
-                match expected_type {
-                    DataTypeInformation::String { encoding, size, .. } => {
-                        let declared_length = size.as_int_value(self.index).map_err(|msg| {
-                            Diagnostic::codegen_error(
-                                format!("Unable to generate string-literal: {}", msg).as_str(),
-                                literal_statement.get_location(),
-                            )
-                        })? as usize;
-
-                        match encoding {
-                            StringEncoding::Utf8 => {
-                                let literal = self
-                                    .llvm_index
-                                    .find_utf08_literal_string(value)
-                                    .map(GlobalValue::as_basic_value_enum);
-                                if let Some((literal_value, _)) = literal.zip(self.function_context)
-                                {
-                                    //global constant string
-                                    Ok(literal_value)
-                                } else {
-                                    //note that .len() will give us the number of bytes, not the number of characters
-                                    let actual_length = value.chars().count() + 1; // +1 to account for a final \0
-                                    let str_len = std::cmp::min(
-                                        (self.string_len_provider)(declared_length, actual_length),
-                                        declared_length,
-                                    );
-                                    self.llvm.create_const_utf8_string(value.as_str(), str_len)
-                                }
-                            }
-                            StringEncoding::Utf16 => {
-                                let literal = self.llvm_index.find_utf16_literal_string(value);
-                                if literal.is_some()
-                                    && self.function_context.is_some()
-                                    && self.function_context.is_some()
-                                {
-                                    //global constant string
-                                    Ok(literal.map(|it| it.as_basic_value_enum()).unwrap())
-                                } else {
-                                    //note that .len() will give us the number of bytes, not the number of characters
-                                    let actual_length = value.encode_utf16().count() + 1; // +1 to account for a final \0
-                                    let str_len = std::cmp::min(
-                                        (self.string_len_provider)(declared_length, actual_length),
-                                        declared_length,
-                                    );
-                                    self.llvm.create_const_utf16_string(value.as_str(), str_len)
-                                }
-                            }
-                        }
-                    }
-                    DataTypeInformation::Integer { size: 8, .. }
-                        if expected_type.is_character() =>
-                    {
-                        self.llvm
-                            .create_llvm_const_i8_char(value.as_str(), location)
-                    }
-                    DataTypeInformation::Integer { size: 16, .. }
-                        if expected_type.is_character() =>
-                    {
-                        self.llvm
-                            .create_llvm_const_i16_char(value.as_str(), location)
-                    }
-                    _ => Err(Diagnostic::cannot_generate_string_literal(
-                        expected_type.get_name(),
-                        location.clone(),
-                    )),
-                }
-            }
+            } => self.generate_string_literal(literal_statement, value, location),
             AstStatement::LiteralArray {
                 elements: Some(elements),
                 ..
@@ -1684,6 +1647,75 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             _ => Err(Diagnostic::codegen_error(
                 &format!("Cannot generate Literal for {:?}", literal_statement),
                 literal_statement.get_location(),
+            )),
+        }
+    }
+
+    /// generates the string-literal `value` represented by `literal_statement`
+    fn generate_string_literal(
+        &self,
+        literal_statement: &AstStatement,
+        value: &str,
+        location: &SourceRange,
+    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        let expected_type = self.get_type_hint_info_for(literal_statement)?;
+        match expected_type {
+            DataTypeInformation::String { encoding, size, .. } => {
+                let declared_length = size.as_int_value(self.index).map_err(|msg| {
+                    Diagnostic::codegen_error(
+                        format!("Unable to generate string-literal: {}", msg).as_str(),
+                        literal_statement.get_location(),
+                    )
+                })? as usize;
+
+                match encoding {
+                    StringEncoding::Utf8 => {
+                        let literal = self
+                            .llvm_index
+                            .find_utf08_literal_string(value)
+                            .map(GlobalValue::as_basic_value_enum);
+                        if let Some((literal_value, _)) = literal.zip(self.function_context) {
+                            //global constant string
+                            Ok(literal_value)
+                        } else {
+                            //note that .len() will give us the number of bytes, not the number of characters
+                            let actual_length = value.chars().count() + 1; // +1 to account for a final \0
+                            let str_len = std::cmp::min(
+                                (self.string_len_provider)(declared_length, actual_length),
+                                declared_length,
+                            );
+                            self.llvm.create_const_utf8_string(value, str_len)
+                        }
+                    }
+                    StringEncoding::Utf16 => {
+                        let literal = self.llvm_index.find_utf16_literal_string(value);
+                        if literal.is_some()
+                            && self.function_context.is_some()
+                            && self.function_context.is_some()
+                        {
+                            //global constant string
+                            Ok(literal.map(|it| it.as_basic_value_enum()).unwrap())
+                        } else {
+                            //note that .len() will give us the number of bytes, not the number of characters
+                            let actual_length = value.encode_utf16().count() + 1; // +1 to account for a final \0
+                            let str_len = std::cmp::min(
+                                (self.string_len_provider)(declared_length, actual_length),
+                                declared_length,
+                            );
+                            self.llvm.create_const_utf16_string(value, str_len)
+                        }
+                    }
+                }
+            }
+            DataTypeInformation::Integer { size: 8, .. } if expected_type.is_character() => {
+                self.llvm.create_llvm_const_i8_char(value, location)
+            }
+            DataTypeInformation::Integer { size: 16, .. } if expected_type.is_character() => {
+                self.llvm.create_llvm_const_i16_char(value, location)
+            }
+            _ => Err(Diagnostic::cannot_generate_string_literal(
+                expected_type.get_name(),
+                location.clone(),
             )),
         }
     }
@@ -2289,51 +2321,6 @@ fn get_implicit_call_parameter<'a>(
         }
     };
     Ok((location, param_statement))
-}
-
-/// calculates the seconds in the given days, hours minutes and seconds
-fn calculate_dhm_time_seconds(day: f64, hour: f64, min: f64, sec: f64) -> f64 {
-    let hours = day * 24_f64 + hour;
-    let mins = hours * 60_f64 + min;
-    mins * 60_f64 + sec
-}
-
-/// calculates the nanos in the given seconds, millis, micros and nano/**
-fn calculate_time_nano(negative: bool, sec: f64, milli: f64, micro: f64, nano: u32) -> i64 {
-    let millis = sec * 1000_f64 + milli;
-    let micro = millis * 1000_f64 + micro;
-    let nano = micro * 1000_f64 + nano as f64;
-    //go to full micro
-    let nanos = (nano).round() as i64;
-
-    if negative {
-        -nanos
-    } else {
-        nanos
-    }
-}
-
-/// calculates the milliseconds since 1970-01-01-00:00:00 for the given
-/// point in time
-fn calculate_date_time(
-    year: i32,
-    month: u32,
-    day: u32,
-    hour: u32,
-    min: u32,
-    sec: u32,
-    milli: u32,
-) -> Result<i64, String> {
-    if let LocalResult::Single(date_time) = Utc
-        .ymd_opt(year, month, day)
-        .and_hms_milli_opt(hour, min, sec, milli)
-    {
-        return Ok(date_time.timestamp_millis());
-    }
-    Err(format!(
-        "Invalid Date {}-{}-{}-{}:{}:{}.{}",
-        year, month, day, hour, min, sec, milli
-    ))
 }
 
 /// turns the given intValue into an i1 by comparing it to 0 (of the same size)
