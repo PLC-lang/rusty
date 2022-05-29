@@ -145,6 +145,7 @@ fn using_nested_structs() {
 
 #[test]
 fn using_enums() {
+    #[repr(C)]
     struct ThreeFields {
         field1: i32,
         field2: i32,
@@ -182,6 +183,7 @@ fn using_enums() {
 
 #[test]
 fn using_inline_enums() {
+    #[repr(C)]
     struct ThreeFields {
         field1: i32,
         field2: i32,
@@ -219,10 +221,11 @@ fn using_inline_enums() {
 
 #[test]
 fn using_duplicate_enums_with_casts() {
+    #[repr(C)]
     struct ThreeFields {
-        field1: i32,
-        field2: i32,
-        field3: i32,
+        field1: u8,
+        field2: u16,
+        field3: u32,
     }
     let mut d = ThreeFields {
         field1: 0,
@@ -255,13 +258,12 @@ fn using_duplicate_enums_with_casts() {
     "#;
 
     let _: i32 = compile_and_run(testcode, &mut d);
-    assert_eq!(1, d.field1);
-    assert_eq!(11, d.field2);
-    assert_eq!(44, d.field3);
+    assert_eq!((1u8, 11u16, 44u32), (d.field1, d.field2, d.field3));
 }
 
 #[test]
 fn using_inline_enums_in_structs() {
+    #[repr(C)]
     struct MyStruct {
         tf1: i32,
         tf2: i32,
