@@ -1,6 +1,6 @@
 use crate::test_utils::tests::{annotate, codegen, index};
 
-/// Architecture Design Record: POUs
+/// # Architecture Design Record: POUs
 ///
 /// POU = Program Organisation Unit
 ///
