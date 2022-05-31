@@ -3,7 +3,7 @@ use std::{convert::TryInto, mem::discriminant};
 use super::ValidationContext;
 use crate::{
     ast::{AstStatement, DirectAccessType, Operator, SourceRange},
-    index::{VariableIndexEntry, VariableType},
+    index::{ArgumentType, VariableIndexEntry, VariableType},
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{
         DataType, DataTypeInformation, Dimension, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE,
@@ -525,7 +525,7 @@ fn compare_function_exists(
 ) -> bool {
     let implementation = crate::typesystem::get_equals_function_name_for(type_name, operator)
         .as_ref()
-        .and_then(|function_name| context.index.find_implementation(function_name));
+        .and_then(|function_name| context.index.find_pou_implementation(function_name));
 
     if let Some(implementation) = implementation {
         let members = context
@@ -535,15 +535,15 @@ fn compare_function_exists(
         //we expect two input parameters and a return-parameter
         if let [VariableIndexEntry {
             data_type_name: type_name_1,
-            variable_type: VariableType::Input,
+            variable_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: type_name_2,
-            variable_type: VariableType::Input,
+            variable_type: ArgumentType::ByVal(VariableType::Input),
             ..
         }, VariableIndexEntry {
             data_type_name: return_type,
-            variable_type: VariableType::Return,
+            variable_type: ArgumentType::ByVal(VariableType::Return),
             ..
         }] = members.as_slice()
         {

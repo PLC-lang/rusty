@@ -8,11 +8,12 @@ fn max_function() {
     struct MainType {
         the_a: i16,
         the_b: i16,
+        ret: i16,
     }
 
     let function = r#"
 
-    FUNCTION MAX : DINT 
+    FUNCTION MAX : INT 
     VAR_INPUT 
         a : INT;
         b : INT;
@@ -25,31 +26,37 @@ fn max_function() {
     END_IF
     END_FUNCTION
 
-    FUNCTION main : DINT
-    VAR_INPUT
+    PROGRAM main
+    VAR
         theA : INT;
         theB : INT;
+        ret: INT;
     END_VAR
 
-    main := MAX(theA, theB);
+    ret := MAX(theA, theB);
 
-    END_FUNCTION
+    END_PROGRAM
 
     "#
     .to_string();
 
     let context: Context = Context::create();
     let engine = compile(&context, function);
-    let mut case1 = MainType { the_a: 4, the_b: 7 };
+    let mut case1 = MainType {
+        the_a: 4,
+        the_b: 7,
+        ret: 0,
+    };
     let mut case2 = MainType {
         the_a: 9,
         the_b: -2,
+        ret: 0,
     };
 
-    let res: i32 = run(&engine, "main", &mut case1);
-    assert_eq!(res, 7);
-    let res: i32 = run(&engine, "main", &mut case2);
-    assert_eq!(res, 9);
+    let _: i32 = run(&engine, "main", &mut case1);
+    assert_eq!(case1.ret, 7);
+    let _: i32 = run(&engine, "main", &mut case2);
+    assert_eq!(case2.ret, 9);
 }
 
 #[test]
@@ -473,6 +480,42 @@ fn var_output_assignment() {
 }
 
 #[test]
+fn var_output_assignment_in_functions() {
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		FUNCTION foo : INT
+            VAR_INPUT
+                input1 : DINT;
+                input2 : DINT;
+            END_VAR
+            VAR_OUTPUT
+            	output1 : DINT;
+				output2 : DINT;
+            END_VAR
+			output1 := input1 + 2; 
+			output2 := input2 + 3;
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+            foo(7, 8, output1 => var1, output2 => var2);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!((7 + 2, 8 + 3), (interface.var1, interface.var2));
+}
+
+#[test]
 fn optional_output_assignment() {
     struct MainType {
         var1: i32,
@@ -488,6 +531,39 @@ fn optional_output_assignment() {
 			output1 := 1;
 			output2 := 2;
         END_PROGRAM
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+            foo(output1 =>, output2 => var2);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(0, interface.var1);
+    assert_eq!(2, interface.var2);
+}
+
+#[test]
+fn optional_output_assignment_in_functions() {
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		FUNCTION foo : INT 
+            VAR_OUTPUT
+            	output1 : DINT;
+				output2 : DINT;
+            END_VAR
+			output1 := 1;
+			output2 := 2;
+        END_FUNCTION
 
         PROGRAM main
             VAR

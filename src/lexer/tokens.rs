@@ -341,19 +341,19 @@ pub enum Token {
     #[token("FALSE", ignore(case))]
     LiteralFalse,
 
-    #[regex("D(ATE)?#\\d+-\\d+-\\d+", ignore(case))]
+    #[regex("(LDATE|DATE|D)#\\d+-\\d+-\\d+", ignore(case))]
     LiteralDate,
 
     #[regex(
-        "(DATE_AND_TIME|DT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?",
+        "(DATE_AND_TIME|DT|LDT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?",
         ignore(case)
     )]
     LiteralDateAndTime,
 
-    #[regex("(TIME_OF_DAY|TOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?", ignore(case))]
+    #[regex("(TIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?", ignore(case))]
     LiteralTimeOfDay,
 
-    #[regex("T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]
+    #[regex("(LTIME|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]
     LiteralTime,
 
     #[regex("%(B|b|D|d|W|w|X|x)", super::parse_access_type)]

@@ -3,8 +3,8 @@ use indexmap::IndexMap;
 
 use crate::{
     ast::{
-        AstStatement, DirectAccessType, HardwareAccessType, Implementation, LinkageType, PouType,
-        SourceRange, TypeNature,
+        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
+        LinkageType, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
     diagnostics::Diagnostic,
@@ -31,7 +31,7 @@ pub struct VariableIndexEntry {
     /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
     /// the type of variable
-    pub variable_type: VariableType,
+    pub variable_type: ArgumentType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
     /// the variable's datatype
@@ -93,7 +93,7 @@ impl HardwareBinding {
 pub struct MemberInfo<'b> {
     container_name: &'b str,
     variable_name: &'b str,
-    variable_linkage: VariableType,
+    variable_linkage: ArgumentType,
     variable_type_name: &'b str,
     binding: Option<HardwareBinding>,
     is_constant: bool,
@@ -104,7 +104,7 @@ impl VariableIndexEntry {
         name: &str,
         qualified_name: &str,
         data_type_name: &str,
-        variable_type: VariableType,
+        variable_type: ArgumentType,
         location_in_parent: u32,
         source_location: SourceRange,
     ) -> Self {
@@ -132,7 +132,7 @@ impl VariableIndexEntry {
             name: name.to_string(),
             qualified_name: qualified_name.to_string(),
             initial_value: None,
-            variable_type: VariableType::Global,
+            variable_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
@@ -195,14 +195,14 @@ impl VariableIndexEntry {
     }
 
     pub fn is_return(&self) -> bool {
-        self.variable_type == VariableType::Return
+        self.get_variable_type() == VariableType::Return
     }
 
     pub fn is_local(&self) -> bool {
-        self.variable_type == VariableType::Local
+        self.get_variable_type() == VariableType::Local
     }
     pub fn is_temp(&self) -> bool {
-        self.variable_type == VariableType::Temp
+        self.get_variable_type() == VariableType::Temp
     }
 
     pub fn is_constant(&self) -> bool {
@@ -214,6 +214,10 @@ impl VariableIndexEntry {
     }
 
     pub fn get_variable_type(&self) -> VariableType {
+        self.variable_type.get_variable_type()
+    }
+
+    pub fn get_declaration_type(&self) -> ArgumentType {
         self.variable_type
     }
 
@@ -226,18 +230,36 @@ impl VariableIndexEntry {
     }
 
     pub(crate) fn is_parameter(&self) -> bool {
-        let vt = self.get_variable_type();
         matches!(
-            vt,
+            self.get_variable_type(),
             VariableType::Input | VariableType::Output | VariableType::InOut
         )
     }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ArgumentType {
+    ByVal(VariableType),
+    ByRef(VariableType),
+}
+
+impl ArgumentType {
+    pub fn get_variable_type(&self) -> VariableType {
+        match self {
+            ArgumentType::ByVal(t) => *t,
+            ArgumentType::ByRef(t) => *t,
+        }
+    }
+
+    pub fn is_by_ref(&self) -> bool {
+        matches!(self, ArgumentType::ByRef(..))
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum VariableType {
-    Local,
-    Temp,
+    Local, // functions have no locals; others: VAR-block
+    Temp,  // for functions: VAR & VAR_TEMP; others: VAR_TEMP
     Input,
     Output,
     InOut,
@@ -284,6 +306,7 @@ pub struct ImplementationIndexEntry {
     pub(crate) type_name: String,
     pub(crate) associated_class: Option<String>,
     pub(crate) implementation_type: ImplementationType,
+    pub(crate) generic: bool,
 }
 
 impl ImplementationIndexEntry {
@@ -309,6 +332,7 @@ impl From<&Implementation> for ImplementationIndexEntry {
             type_name: implementation.type_name.clone(),
             associated_class: pou_type.get_optional_owner_class(),
             implementation_type: pou_type.into(),
+            generic: implementation.generic,
         }
     }
 }
@@ -323,6 +347,268 @@ impl From<&PouType> for ImplementationType {
             PouType::Class => ImplementationType::Class,
             PouType::Method { .. } => ImplementationType::Method,
         }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PouIndexEntry {
+    Program {
+        name: String,
+        instance_struct_name: String,
+        instance_variable: VariableIndexEntry,
+        linkage: LinkageType,
+    },
+    FunctionBlock {
+        name: String,
+        instance_struct_name: String,
+        linkage: LinkageType,
+    },
+    Function {
+        name: String,
+        return_type: String,
+        instance_struct_name: String,
+        generics: Vec<GenericBinding>,
+        linkage: LinkageType,
+        is_variadic: bool,
+    },
+    Class {
+        name: String,
+        instance_struct_name: String,
+        linkage: LinkageType,
+    },
+    Method {
+        name: String,
+        parent_pou_name: String,
+        return_type: String,
+        instance_struct_name: String,
+        linkage: LinkageType,
+    },
+    Action {
+        name: String,
+        parent_pou_name: String,
+        instance_struct_name: String,
+        linkage: LinkageType,
+    },
+}
+
+impl PouIndexEntry {
+    /// creates a new Program-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the function
+    /// - `instance_variable` the global instance-variable of the program
+    pub fn create_program_entry(
+        pou_name: &str,
+        instance_variable: VariableIndexEntry,
+        linkage: LinkageType,
+    ) -> PouIndexEntry {
+        PouIndexEntry::Program {
+            name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+            instance_variable,
+            linkage,
+        }
+    }
+
+    /// creates a new FunctionBlock-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the FunctionBlock
+    /// - `linkage` the linkage type of the pou
+    pub fn create_function_block_entry(pou_name: &str, linkage: LinkageType) -> PouIndexEntry {
+        PouIndexEntry::FunctionBlock {
+            name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+            linkage,
+        }
+    }
+
+    /// creates a new Function-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the function
+    /// - `return_type` the function's return type
+    pub fn create_function_entry(
+        name: &str,
+        return_type: &str,
+        generic_names: &[GenericBinding],
+        linkage: LinkageType,
+        is_variadic: bool,
+    ) -> PouIndexEntry {
+        PouIndexEntry::Function {
+            name: name.into(),
+            generics: generic_names.to_vec(),
+            return_type: return_type.into(),
+            instance_struct_name: name.into(),
+            linkage,
+            is_variadic,
+        }
+    }
+
+    /// creates a new Action-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the action (without the pou-qualifier)
+    /// - `pou_name` the name of the parent pou
+    pub fn create_action_entry(
+        qualified_name: &str,
+        pou_name: &str,
+        linkage: LinkageType,
+    ) -> PouIndexEntry {
+        PouIndexEntry::Action {
+            name: qualified_name.into(),
+            parent_pou_name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+            linkage,
+        }
+    }
+
+    /// creates a new Class-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the Class
+    pub fn create_class_entry(pou_name: &str, linkage: LinkageType) -> PouIndexEntry {
+        PouIndexEntry::Class {
+            name: pou_name.into(),
+            instance_struct_name: pou_name.into(),
+            linkage,
+        }
+    }
+
+    /// creates a new Method-PouIndexEntry
+    /// # Arguments
+    /// - `name` the name of the method (without the pou-qualifier)
+    /// - `return_type` the name of the method's return type
+    /// - `owner_class` the name of the parent pou
+    pub fn create_method_entry(
+        name: &str,
+        return_type: &str,
+        owner_class: &str,
+        linkage: LinkageType,
+    ) -> PouIndexEntry {
+        PouIndexEntry::Method {
+            name: name.into(),
+            parent_pou_name: owner_class.into(),
+            instance_struct_name: name.into(),
+            return_type: return_type.into(),
+            linkage,
+        }
+    }
+
+    /// returns the fully qualified name of this pou
+    pub fn get_name(&self) -> &str {
+        match self {
+            PouIndexEntry::Program { name, .. }
+            | PouIndexEntry::FunctionBlock { name, .. }
+            | PouIndexEntry::Function { name, .. }
+            | PouIndexEntry::Method { name, .. }
+            | PouIndexEntry::Action { name, .. }
+            | PouIndexEntry::Class { name, .. } => name,
+        }
+    }
+
+    /// returns the name of the struct-type used to store the POUs state
+    /// (interface-variables)
+    pub fn get_instance_struct_type_name(&self) -> Option<&str> {
+        match self {
+            PouIndexEntry::Program {
+                instance_struct_name,
+                ..
+            }
+            | PouIndexEntry::FunctionBlock {
+                instance_struct_name,
+                ..
+            }
+            | PouIndexEntry::Method {
+                instance_struct_name,
+                ..
+            }
+            | PouIndexEntry::Action {
+                instance_struct_name,
+                ..
+            }
+            | PouIndexEntry::Function {
+                instance_struct_name,
+                ..
+            }
+            | PouIndexEntry::Class {
+                instance_struct_name,
+                ..
+            } => Some(instance_struct_name.as_str()),
+        }
+    }
+
+    /// returns `Some(DataType)` associated with this pou or `Some` if none is associated
+    ///
+    /// - `index` the index to fetch te DataType from
+    pub fn find_instance_struct_type<'idx>(&self, index: &'idx Index) -> Option<&'idx DataType> {
+        self.get_instance_struct_type_name()
+            .and_then(|it| index.type_index.find_pou_type(it))
+    }
+
+    /// returns the struct-datatype associated with this pou or `void` if none is associated
+    ///
+    /// - `index` the index to fetch te DataType from
+    pub fn get_instance_struct_type<'idx>(&self, index: &'idx Index) -> &'idx DataType {
+        self.find_instance_struct_type(index)
+            .unwrap_or_else(|| index.get_void_type())
+    }
+
+    /// returns the name of the POUs container
+    /// it has no container (PROGRAM, FUNCTION, etc.)
+    ///
+    /// Actions and Methods return their host-POUs name
+    pub fn get_container(&self) -> &str {
+        match self {
+            PouIndexEntry::Program { .. }
+            | PouIndexEntry::FunctionBlock { .. }
+            | PouIndexEntry::Class { .. }
+            | PouIndexEntry::Function { .. } => self.get_name(),
+            PouIndexEntry::Action {
+                parent_pou_name, ..
+            }
+            | PouIndexEntry::Method {
+                parent_pou_name, ..
+            } => parent_pou_name.as_str(),
+        }
+    }
+
+    /// returns the ImplementationIndexEntry associated with this POU
+    pub fn find_implementation<'idx>(
+        &self,
+        index: &'idx Index,
+    ) -> Option<&'idx ImplementationIndexEntry> {
+        index.find_implementation_by_name(self.get_name())
+    }
+
+    /// returns the linkage type of this pou
+    pub fn get_linkage(&self) -> &LinkageType {
+        match self {
+            PouIndexEntry::Program { linkage, .. }
+            | PouIndexEntry::FunctionBlock { linkage, .. }
+            | PouIndexEntry::Function { linkage, .. }
+            | PouIndexEntry::Method { linkage, .. }
+            | PouIndexEntry::Action { linkage, .. }
+            | PouIndexEntry::Class { linkage, .. } => linkage,
+        }
+    }
+
+    /// returns true if this pou is a function with generic parameters, otherwise false
+    pub fn is_generic(&self) -> bool {
+        if let PouIndexEntry::Function { generics, .. } = self {
+            !generics.is_empty()
+        } else {
+            false
+        }
+    }
+
+    /// returns true if this pou has a variadic (last) parameter
+    pub fn is_variadic(&self) -> bool {
+        if let PouIndexEntry::Function { is_variadic, .. } = self {
+            *is_variadic
+        } else {
+            false
+        }
+    }
+
+    /// returns true if this pou is an action
+    pub fn is_action(&self) -> bool {
+        matches!(self, PouIndexEntry::Action { .. })
     }
 }
 
@@ -417,6 +703,9 @@ pub struct Index {
     /// all local variables, grouped by the POU's name
     member_variables: IndexMap<String, IndexMap<String, VariableIndexEntry>>,
 
+    // all pous,
+    pous: IndexMap<String, PouIndexEntry>,
+
     /// all implementations
     implementations: IndexMap<String, ImplementationIndexEntry>,
 
@@ -497,6 +786,9 @@ impl Index {
 
         //implementations
         self.implementations.extend(other.implementations);
+
+        //pous
+        self.pous.extend(other.pous);
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
@@ -691,11 +983,7 @@ impl Index {
             .get(&container_name.to_lowercase())
             .and_then(|map| {
                 map.values()
-                    .filter(|item| {
-                        item.variable_type == VariableType::Input
-                            || item.variable_type == VariableType::InOut
-                            || item.variable_type == VariableType::Output
-                    })
+                    .filter(|item| item.is_parameter())
                     .find(|item| item.location_in_parent == index)
             })
             .is_some()
@@ -706,7 +994,7 @@ impl Index {
             .get(&pou_name.to_lowercase())
             .and_then(|map| {
                 map.values()
-                    .filter(|item| item.variable_type == VariableType::Input)
+                    .filter(|item| item.get_variable_type() == VariableType::Input)
                     .find(|item| item.location_in_parent == index)
             })
     }
@@ -768,7 +1056,7 @@ impl Index {
         let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||Diagnostic::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
             for (_, variable) in members {
-                if variable.variable_type == VariableType::Return {
+                if variable.get_variable_type() == VariableType::Return {
                     return Some(variable);
                 }
             }
@@ -799,6 +1087,22 @@ impl Index {
         &self.global_variables
     }
 
+    pub fn get_program_instances(&self) -> Vec<&VariableIndexEntry> {
+        self.pous
+            .values()
+            .filter_map(|p| match p {
+                PouIndexEntry::Program {
+                    instance_variable, ..
+                } => Some(instance_variable),
+                _ => None,
+            })
+            .collect()
+    }
+
+    pub fn get_pous(&self) -> &IndexMap<String, PouIndexEntry> {
+        &self.pous
+    }
+
     pub fn get_global_initializers(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_initializers
     }
@@ -821,6 +1125,7 @@ impl Index {
         type_name: &str,
         associated_class_name: Option<&String>,
         impl_type: ImplementationType,
+        generic: bool,
     ) {
         self.implementations.insert(
             call_name.to_lowercase(),
@@ -829,12 +1134,42 @@ impl Index {
                 type_name: type_name.into(),
                 associated_class: associated_class_name.map(|str| str.into()),
                 implementation_type: impl_type,
+                generic,
             },
         );
     }
 
-    pub fn find_implementation(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
+    pub fn find_pou(&self, pou_name: &str) -> Option<&PouIndexEntry> {
+        self.pous.get(&pou_name.to_lowercase())
+    }
+
+    pub fn register_program(&mut self, name: &str, location: &SourceRange, linkage: LinkageType) {
+        let instance_variable = VariableIndexEntry::create_global(
+            &format!("{}_instance", &name),
+            name,
+            name,
+            location.clone(),
+        )
+        .set_linkage(linkage);
+        // self.register_global_variable(name, instance_variable.clone());
+        let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage);
+        self.pous.insert(entry.get_name().to_lowercase(), entry);
+    }
+
+    pub fn register_pou(&mut self, entry: PouIndexEntry) {
+        self.pous.insert(entry.get_name().to_lowercase(), entry);
+    }
+
+    pub(self) fn find_implementation_by_name(
+        &self,
+        call_name: &str,
+    ) -> Option<&ImplementationIndexEntry> {
         self.implementations.get(&call_name.to_lowercase())
+    }
+
+    pub fn find_pou_implementation(&self, pou_name: &str) -> Option<&ImplementationIndexEntry> {
+        self.find_pou(pou_name)
+            .and_then(|it| it.find_implementation(self))
     }
 
     /// registers a member-variable of a container to be accessed in a qualified name.
@@ -935,7 +1270,8 @@ impl Index {
         //look for a *callable* variable with that name
         self.find_variable(context, reference).filter(|v| {
             //callable means, there is an implementation associated with the variable's datatype
-            self.find_implementation(&v.data_type_name).is_some()
+            self.find_implementation_by_name(&v.data_type_name)
+                .is_some()
         })
     }
 
@@ -996,9 +1332,10 @@ impl Index {
     /// If the provided name is a builtin function, returns it from the builtin index
     pub fn get_builtin_function(&self, name: &str) -> Option<&'_ BuiltIn> {
         //Find a type for that function, see if that type is builtin
-        if let Some(true) = self
-            .find_effective_type_info(name)
-            .map(DataTypeInformation::is_builtin)
+        if let Some(PouIndexEntry::Function {
+            linkage: LinkageType::BuiltIn,
+            ..
+        }) = self.find_pou(name)
         {
             builtins::get_builtin(name)
         } else {

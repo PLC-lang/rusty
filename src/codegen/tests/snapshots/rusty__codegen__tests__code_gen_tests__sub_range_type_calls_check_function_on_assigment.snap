@@ -1,22 +1,22 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2550
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 %Main_interface = type { i16 }
-%CheckRangeSigned_interface = type { i16, i16, i16 }
 
 @Main_instance = global %Main_interface zeroinitializer
 
-define i16 @CheckRangeSigned(%CheckRangeSigned_interface* %0) {
+define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
-  %value = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 0
-  %lower = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 1
-  %upper = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 2
+  %value = alloca i16, align 2
+  store i16 %0, i16* %value, align 2
+  %lower = alloca i16, align 2
+  store i16 %1, i16* %lower, align 2
+  %upper = alloca i16, align 2
+  store i16 %2, i16* %upper, align 2
   %CheckRangeSigned = alloca i16, align 2
   store i16 0, i16* %CheckRangeSigned, align 2
   %load_value = load i16, i16* %value, align 2
@@ -28,14 +28,7 @@ entry:
 define void @Main(%Main_interface* %0) {
 entry:
   %x = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
-  %CheckRangeSigned_instance = alloca %CheckRangeSigned_interface, align 8
-  %1 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 0
-  store i16 7, i16* %1, align 2
-  %2 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 1
-  store i16 0, i16* %2, align 2
-  %3 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 2
-  store i16 100, i16* %3, align 2
-  %call = call i16 @CheckRangeSigned(%CheckRangeSigned_interface* %CheckRangeSigned_instance)
+  %call = call i16 @CheckRangeSigned(i16 7, i16 0, i16 100)
   store i16 %call, i16* %x, align 2
   ret void
 }

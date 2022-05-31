@@ -5,10 +5,10 @@ use super::super::*;
 #[test]
 fn string_assignment_from_smaller_literal() {
     let src = "
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[6]; END_VAR
             x := 'hello';
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -24,10 +24,10 @@ fn string_assignment_from_smaller_literal() {
 #[test]
 fn string_assignment_from_bigger_literal() {
     let src = "
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[4];END_VAR
             x := 'hello';
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -42,11 +42,11 @@ fn string_assignment_from_bigger_literal() {
 #[test]
 fn string_assignment_from_smaller_string() {
     let src = "
-        FUNCTION main : DINT
+        PROGRAM main 
             VAR x : STRING[6]; y : STRING[5]; END_VAR
             y := 'hello';
             x := y;
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -66,11 +66,11 @@ fn string_assignment_from_smaller_string() {
 #[test]
 fn string_assignment_from_bigger_string() {
     let src = "
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[4]; y : STRING[5]; END_VAR
             y := 'hello';
             x := y;
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -96,10 +96,10 @@ fn string_assignment_from_smaller_function() {
         hello := 'hello';
         END_FUNCTION
 
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[6]; END_VAR
             x := hello();
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -119,10 +119,10 @@ fn string_assignment_from_bigger_function() {
         hello := 'hello';
         END_FUNCTION
 
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x : STRING[4]; END_VAR
             x := hello();
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]
@@ -185,18 +185,65 @@ fn string_assignment_from_bigger_string_does_not_leak() {
 }
 
 #[test]
+fn string_parameter_assignment_in_functions_with_multiple_size2() {
+    let src = "
+        FUNCTION small : STRING[10]
+        VAR_INPUT
+            str_param : STRING[5];
+        END_VAR
+        small := str_param;
+        END_FUNCTION
+
+        FUNCTION big : STRING[10]
+        VAR_INPUT
+            str_param : STRING[15];
+        END_VAR
+        big := str_param;
+        END_FUNCTION
+
+
+        PROGRAM main
+            VAR x : STRING[20]; y : STRING[20]; END_VAR
+            x := small('hello world');
+            y := big('hello');
+        END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    struct MainType {
+        x: [u8; 21],
+        y: [u8; 21],
+    }
+    let mut main_type = MainType {
+        x: [0; 21],
+        y: [0; 21],
+    };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    // long string passed to short function and returned
+    assert_eq!(
+        format!("{:?}", "hello\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0".as_bytes()),
+        format!("{:?}", &main_type.x)
+    );
+    // short string passed to long function and returned
+    assert_eq!(
+        format!("{:?}", "hello\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0".as_bytes()),
+        format!("{:?}", &main_type.y)
+    );
+}
+
+#[test]
 fn string_assignment_from_bigger_function_does_not_leak() {
     let src = "
         FUNCTION hello : STRING[10]
         hello := 'hello foo';
         END_FUNCTION
 
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x,y : STRING[4]; END_VAR
             x := hello();
-        END_FUNCTION
+        END_PROGRAM
     ";
-
     #[allow(dead_code)]
     struct MainType {
         x: [u8; 5],
@@ -209,6 +256,7 @@ fn string_assignment_from_bigger_function_does_not_leak() {
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!(&[0; 5], &main_type.y);
+    assert_eq!("hell\0".as_bytes(), &main_type.x);
 }
 
 #[test]
@@ -218,14 +266,14 @@ fn initialization_of_string_arrays() {
             texts: ARRAY[0..2] OF STRING[10] := ['hello', 'world', 'ten chars!']
         END_VAR
 
-        FUNCTION main : DINT
+        PROGRAM main
             VAR x,y,z : STRING[10]; END_VAR
         
             x := texts[0];
             y := texts[1];
             z := texts[2];
         
-        END_FUNCTION
+        END_PROGRAM
     ";
 
     #[allow(dead_code)]

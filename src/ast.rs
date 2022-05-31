@@ -204,6 +204,7 @@ pub struct Implementation {
     pub statements: Vec<AstStatement>,
     pub location: SourceRange,
     pub overriding: bool,
+    pub generic: bool,
     pub access: Option<AccessModifier>,
 }
 
@@ -330,6 +331,21 @@ impl Variable {
             location: self.data_type.get_location(),
         };
         std::mem::replace(&mut self.data_type, new_data_type)
+    }
+}
+
+pub trait DiagnosticInfo {
+    fn get_description(&self) -> String;
+    fn get_location(&self) -> SourceRange;
+}
+
+impl DiagnosticInfo for AstStatement {
+    fn get_description(&self) -> String {
+        format!("{:?}", self)
+    }
+
+    fn get_location(&self) -> SourceRange {
+        self.get_location()
     }
 }
 

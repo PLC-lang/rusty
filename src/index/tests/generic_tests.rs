@@ -1,6 +1,6 @@
 use pretty_assertions::assert_eq;
 
-use crate::{ast::GenericBinding, test_utils::tests::index, typesystem::DataTypeInformation};
+use crate::{ast::GenericBinding, index::PouIndexEntry, test_utils::tests::index};
 
 #[test]
 fn generics_saved_in_index() {
@@ -10,9 +10,9 @@ fn generics_saved_in_index() {
     ",
     );
 
-    let foo_info = index.find_effective_type_info("foo").unwrap();
+    let foo_info = index.find_pou("foo").unwrap();
     assert!(foo_info.is_generic());
-    if let DataTypeInformation::Struct { generics, .. } = foo_info {
+    if let PouIndexEntry::Function { generics, .. } = foo_info {
         let t = &generics[0];
         assert_eq!(
             &GenericBinding {
@@ -22,6 +22,6 @@ fn generics_saved_in_index() {
             t
         );
     } else {
-        panic!("{:#?} not a struct", foo_info);
+        panic!("{:#?} not a generic function", foo_info);
     }
 }

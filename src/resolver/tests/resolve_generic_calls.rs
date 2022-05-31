@@ -28,17 +28,19 @@ fn resolved_generic_call_added_to_index() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     //The implementations are added to the index
     let implementations = annotations.new_index.get_implementations();
-    assert_eq!(3, implementations.len());
+    dbg!(&annotations.new_index);
+    dbg!(&index);
     assert!(implementations.contains_key("myfunc__int"));
     assert!(implementations.contains_key("myfunc__dint"));
     assert!(implementations.contains_key("myfunc__real"));
+    assert_eq!(3, implementations.len());
 
     //The pous are added to the index
     let pous = annotations.new_index.get_pou_types();
-    assert_eq!(3, pous.len());
     assert!(pous.contains_key("myfunc__int"));
     assert!(pous.contains_key("myfunc__dint"));
     assert!(pous.contains_key("myfunc__real"));
+    assert_eq!(3, pous.len());
 
     //Each POU has members
     assert_eq!(
