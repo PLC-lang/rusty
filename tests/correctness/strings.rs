@@ -1,6 +1,9 @@
+use inkwell::targets::{Target, InitializationConfig};
 use pretty_assertions::assert_eq;
+use rusty::runner::run_no_param;
 
 use super::super::*;
+use std::ffi::{CString, CStr};
 
 #[test]
 fn string_assignment_from_smaller_literal() {
@@ -293,4 +296,139 @@ fn initialization_of_string_arrays() {
     assert_eq!(main_type.x, "hello\0\0\0\0\0\0".as_bytes());
     assert_eq!(main_type.y, "world\0\0\0\0\0\0".as_bytes());
     assert_eq!(main_type.z, "ten chars!\0".as_bytes());
+}
+
+#[repr(C)]
+struct Wrapper<T> {
+    inner : T,
+}
+
+/// .
+///
+/// # Safety
+///
+/// Unsafe by design, it dereferences a pointer
+#[allow(dead_code)]
+unsafe extern "C" fn string_id(input : *const i8) -> Wrapper<[u8; 81]> {
+    let mut res = [0; 81];
+    let bytes = CStr::from_ptr(input).to_bytes();
+    for (index,val) in bytes.iter().enumerate() {
+        res[index] = *val;
+    }
+    Wrapper { inner : res}
+}
+
+
+#[test]
+fn string_as_function_parameters() {
+    let src = "
+    @EXTERNAL
+    FUNCTION func : STRING
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+    END_FUNCTION
+
+    PROGRAM main
+	VAR
+		res : STRING;
+	END_VAR
+		res := func('hello');
+    END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        res: [u8; 81],
+    }
+
+    let mut main_type = MainType {
+        res: [0; 81],
+    };
+
+    Target::initialize_native(&InitializationConfig::default()).unwrap();
+    let context: Context = Context::create();
+    let source = SourceCode {
+        path: "string_test.st".to_string(),
+        source: src.to_string(),
+    };
+    let (_, code_gen) = compile_module(
+        &context,
+        vec![source],
+        vec![],
+        None,
+        Diagnostician::default(),
+    )
+    .unwrap();
+    let exec_engine = code_gen
+        .module
+        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
+        .unwrap();
+
+    let fn_value = code_gen.module.get_function("func").unwrap();
+
+    exec_engine.add_global_mapping(&fn_value, string_id as usize);
+
+    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    dbg!(&main_type.res);
+    let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
+    assert_eq!(res, "hello");
+}
+
+#[test]
+fn string_as_function_in_out_parameters() {
+    let src = "
+    @EXTERNAL
+    FUNCTION func : STRING
+        VAR_IN_OUT
+            in : STRING;
+        END_VAR
+    END_FUNCTION
+
+    PROGRAM main
+	VAR
+		res : STRING;
+	END_VAR
+		res := func('hello');
+    END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        res: [u8; 81],
+    }
+
+    let mut main_type = MainType {
+        res: [0; 81],
+    };
+
+    Target::initialize_native(&InitializationConfig::default()).unwrap();
+    let context: Context = Context::create();
+    let source = SourceCode {
+        path: "string_test.st".to_string(),
+        source: src.to_string(),
+    };
+    let (_, code_gen) = compile_module(
+        &context,
+        vec![source],
+        vec![],
+        None,
+        Diagnostician::default(),
+    )
+    .unwrap();
+    let exec_engine = code_gen
+        .module
+        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
+        .unwrap();
+
+    let fn_value = code_gen.module.get_function("func").unwrap();
+
+    exec_engine.add_global_mapping(&fn_value, string_id as usize);
+
+    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    dbg!(&main_type.res);
+    let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
+    assert_eq!(res, "hello");
 }
