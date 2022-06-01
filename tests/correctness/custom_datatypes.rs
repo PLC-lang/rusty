@@ -145,6 +145,7 @@ fn using_nested_structs() {
 
 #[test]
 fn using_enums() {
+    #[repr(C)]
     struct ThreeFields {
         field1: i32,
         field2: i32,
@@ -182,6 +183,7 @@ fn using_enums() {
 
 #[test]
 fn using_inline_enums() {
+    #[repr(C)]
     struct ThreeFields {
         field1: i32,
         field2: i32,
@@ -218,7 +220,50 @@ fn using_inline_enums() {
 }
 
 #[test]
+fn using_duplicate_enums_with_casts() {
+    #[repr(C)]
+    struct ThreeFields {
+        field1: u8,
+        field2: u16,
+        field3: u32,
+    }
+    let mut d = ThreeFields {
+        field1: 0,
+        field2: 0,
+        field3: 0,
+    };
+
+    let testcode = r#"
+    TYPE MyEnum: BYTE(red := 1, yellow := 2, green := 3);
+    END_TYPE
+
+    TYPE MyEnum2: UINT(red := 10, yellow := 11, green := 12);
+    END_TYPE
+    
+    TYPE MyEnum3: DINT(red := 22, yellow := 33, green := 44);
+    END_TYPE
+
+
+    PROGRAM main
+    VAR
+        tf1 : MyEnum;        
+        tf2 : MyEnum2;        
+        tf3 : MyEnum3;        
+    END_VAR
+        tf1 := MyEnum#red;
+        tf2 := MyEnum2#yellow;
+        tf3 := MyEnum3#green;
+        
+    END_PROGRAM
+    "#;
+
+    let _: i32 = compile_and_run(testcode, &mut d);
+    assert_eq!((1u8, 11u16, 44u32), (d.field1, d.field2, d.field3));
+}
+
+#[test]
 fn using_inline_enums_in_structs() {
+    #[repr(C)]
     struct MyStruct {
         tf1: i32,
         tf2: i32,
