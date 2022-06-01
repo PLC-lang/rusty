@@ -61,6 +61,7 @@ fn exponent_literals_parsed_as_variables() {
             }],
         }],
         location: SourceRange::undefined(),
+        name_location: SourceRange::undefined(),
         generics: vec![],
         linkage: crate::ast::LinkageType::Internal,
     };

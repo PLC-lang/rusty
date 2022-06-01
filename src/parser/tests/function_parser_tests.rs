@@ -162,6 +162,7 @@ fn varargs_parameters_can_be_parsed() {
             ],
         }],
         location: SourceRange::undefined(),
+        name_location: SourceRange::undefined(),
         poly_mode: None,
         generics: vec![],
         linkage: crate::ast::LinkageType::Internal,
