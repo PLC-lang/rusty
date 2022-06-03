@@ -154,7 +154,8 @@ fn parse_pou(
             _ => None,
         };
 
-        let name = parse_identifier(lexer).unwrap_or_else(|| "".to_string()); // parse POU name
+        let (name, name_location) =
+            parse_identifier(lexer).unwrap_or_else(|| ("".to_string(), SourceRange::undefined())); // parse POU name
 
         let generics = parse_generics(lexer);
 
@@ -225,6 +226,7 @@ fn parse_pou(
                 variable_blocks,
                 return_type,
                 location: SourceRange::new(start..lexer.range().end),
+                name_location,
                 poly_mode,
                 generics,
                 linkage,
@@ -252,12 +254,12 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
             let mut generics = vec![];
             loop {
                 //identifier
-                if let Some(name) = parse_identifier(lexer) {
+                if let Some((name, _)) = parse_identifier(lexer) {
                     lexer.consume_or_report(Token::KeywordColon);
 
                     //Expect a type nature
                     if let Some(nature) =
-                        parse_identifier(lexer).map(|it| parse_type_nature(lexer, &it))
+                        parse_identifier(lexer).map(|(it, _)| parse_type_nature(lexer, &it))
                     {
                         generics.push(GenericBinding { name, nature });
                     }
@@ -382,7 +384,7 @@ fn parse_method(
         };
         let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
         let overriding = lexer.allow(&KeywordOverride);
-        let name = parse_identifier(lexer)?;
+        let (name, name_location) = parse_identifier(lexer)?;
         let generics = parse_generics(lexer);
         let return_type = parse_return_type(lexer, &pou_type);
 
@@ -428,6 +430,7 @@ fn parse_method(
                 variable_blocks,
                 return_type,
                 location: SourceRange::new(method_start..method_end),
+                name_location,
                 poly_mode,
                 generics,
                 linkage,
@@ -452,11 +455,12 @@ fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
 }
 
 /// parse identifier and advance if successful
-fn parse_identifier(lexer: &mut ParseSession) -> Option<String> {
+/// returns the identifier as a String and the SourceRange of the parsed name
+fn parse_identifier(lexer: &mut ParseSession) -> Option<(String, SourceRange)> {
     let pou_name = lexer.slice().to_string();
     if lexer.token == Identifier {
         lexer.advance();
-        Some(pou_name)
+        Some((pou_name, lexer.last_location()))
     } else {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
             "Identifier",

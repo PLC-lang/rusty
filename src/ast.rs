@@ -23,7 +23,10 @@ pub struct Pou {
     pub variable_blocks: Vec<VariableBlock>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
+    /// the SourceRange of the whole POU
     pub location: SourceRange,
+    /// the SourceRange of the POU's name
+    pub name_location: SourceRange,
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
