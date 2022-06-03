@@ -1372,6 +1372,9 @@
 <span id="1367">1367</span>
 <span id="1368">1368</span>
 <span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">lexer::IdProvider</span>, <span class="ident">typesystem::DataTypeInformation</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -1397,7 +1400,10 @@
     <span class="kw">pub</span> <span class="ident">variable_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">VariableBlock</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
     <span class="kw">pub</span> <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeDeclaration</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// the SourceRange of the whole POU</span>
     <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+    <span class="doccomment">/// the SourceRange of the POU&#39;s name</span>
+    <span class="kw">pub</span> <span class="ident">name_location</span>: <span class="ident">SourceRange</span>,
     <span class="kw">pub</span> <span class="ident">poly_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PolymorphismMode</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">generics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GenericBinding</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
