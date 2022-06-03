@@ -188,7 +188,7 @@ fn parse_pou(
             while allowed_var_types.contains(&lexer.token) {
                 variable_blocks.push(parse_variable_block(
                     lexer,
-                    parse_variable_block_type(&lexer.token),
+                    parse_variable_block_type(lexer),
                     LinkageType::Internal,
                 ));
             }
@@ -397,7 +397,7 @@ fn parse_method(
         {
             variable_blocks.push(parse_variable_block(
                 lexer,
-                parse_variable_block_type(&lexer.token),
+                parse_variable_block_type(lexer),
                 LinkageType::Internal,
             ));
         }
@@ -950,11 +950,23 @@ fn parse_control(lexer: &mut ParseSession) -> AstStatement {
     parse_control_statement(lexer)
 }
 
-fn parse_variable_block_type(block_type: &Token) -> VariableBlockType {
+fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
+    let block_type = lexer.token;
+    lexer.advance();
+    let argument_property = if let PropertyByRef = lexer.token {
+        lexer.advance();
+        //Report a diagnostic if blocktype is incompatible
+        if !matches!(block_type, KeywordVarInput) {
+            lexer.accept_diagnostic(Diagnostic::invalid_pragma_location("Only VAR_INPUT support by ref properties", lexer.location()))
+        }
+        ArgumentProperty::ByRef
+    } else {
+        ArgumentProperty::ByVal
+    };
     match block_type {
         KeywordVar => VariableBlockType::Local,
         KeywordVarTemp => VariableBlockType::Temp,
-        KeywordVarInput => VariableBlockType::Input,
+        KeywordVarInput => VariableBlockType::Input(argument_property),
         KeywordVarOutput => VariableBlockType::Output,
         KeywordVarGlobal => VariableBlockType::Global,
         KeywordVarInOut => VariableBlockType::InOut,
@@ -968,8 +980,6 @@ fn parse_variable_block(
     linkage: LinkageType,
 ) -> VariableBlock {
     let location = lexer.location();
-    //Consume the type keyword
-    lexer.advance();
 
     let constant = lexer.allow(&KeywordConstant);
 

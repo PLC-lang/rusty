@@ -45,6 +45,42 @@ fn comments_are_ignored_by_the_lexer() {
 }
 
 #[test]
+fn undefined_pragmas_are_ignored_by_the_lexer() {
+    let mut lexer = lex(r"
+        PROGRAM { Some Content } END_PROGRAM 
+                                   {
+                                    FUNCTION }
+        {END_FUNCTION FUNCTION_BLOCK}
+        END_FUNCTION_BLOCK
+        ");
+    assert_eq!(lexer.token, KeywordProgram, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        KeywordEndFunctionBlock,
+        "Token : {}",
+        lexer.slice()
+    );
+    lexer.advance();
+}
+
+#[test]
+fn registered_pragmas_parsed() {
+    let mut lexer = lex(r"
+        {external}{ref}{not_registerd}
+        ");
+    assert_eq!(lexer.token, PropertyExternal, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, PropertyByRef, "Token : {}", lexer.slice());
+    lexer.advance();
+
+}
+
+
+
+#[test]
 fn comments_are_not_ignored_in_strings() {
     let mut lexer = lex(r#"
         'PROGRAM (* Some Content *) END_PROGRAM 

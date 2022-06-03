@@ -124,7 +124,7 @@ fn varargs_parameters_can_be_parsed() {
             constant: false,
             access: AccessModifier::Protected,
             retain: false,
-            variable_block_type: VariableBlockType::Input,
+            variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
             location: SourceRange::undefined(),
             linkage: LinkageType::Internal,
             variables: vec![
@@ -399,4 +399,20 @@ fn simple_function_with_var_temp_can_be_parsed() {
     variable_block_type: Temp,
 }"#;
     assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn var_input_by_ref_parsed() {
+    let function = "FUNCTION buz VAR_INPUT {ref} x : INT; END_VAR END_FUNCTION";
+    let result = parse(function).0;
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+
+    insta::assert_snapshot!(ast_string, "")
+
+
+
+
 }

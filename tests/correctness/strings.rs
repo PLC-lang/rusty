@@ -1,9 +1,8 @@
 use inkwell::targets::{Target, InitializationConfig};
 use pretty_assertions::assert_eq;
-use rusty::runner::run_no_param;
 
 use super::super::*;
-use std::ffi::{CString, CStr};
+use std::ffi::CStr;
 
 #[test]
 fn string_assignment_from_smaller_literal() {
@@ -298,7 +297,8 @@ fn initialization_of_string_arrays() {
     assert_eq!(main_type.z, "ten chars!\0".as_bytes());
 }
 
-#[repr(C)]
+#[repr(C, align(1))]
+#[derive(Debug)]
 struct Wrapper<T> {
     inner : T,
 }
@@ -314,6 +314,21 @@ unsafe extern "C" fn string_id(input : *const i8) -> Wrapper<[u8; 81]> {
     let bytes = CStr::from_ptr(input).to_bytes();
     for (index,val) in bytes.iter().enumerate() {
         res[index] = *val;
+    }
+    Wrapper { inner : res}
+}
+
+/// .
+///
+/// # Safety
+///
+/// Unsafe by design, it dereferences a pointer
+#[allow(dead_code)]
+unsafe extern "C" fn wstring_id(input : *const i16) -> Wrapper<[u16; 81]> {
+    let mut res = [0; 81];
+    let bytes = std::slice::from_raw_parts(input, 81);
+    for (index,val) in bytes.iter().enumerate() {
+        res[index] = *val as u16;
     }
     Wrapper { inner : res}
 }
@@ -361,6 +376,7 @@ fn string_as_function_parameters() {
         Diagnostician::default(),
     )
     .unwrap();
+    code_gen.module.print_to_stderr();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
@@ -371,17 +387,75 @@ fn string_as_function_parameters() {
     exec_engine.add_global_mapping(&fn_value, string_id as usize);
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    dbg!(&main_type.res);
     let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
 
 #[test]
-fn string_as_function_in_out_parameters() {
+fn wstring_as_function_parameters() {
+    let src = r#"
+    @EXTERNAL
+    FUNCTION func : WSTRING
+        VAR_INPUT
+            in : WSTRING;
+        END_VAR
+    END_FUNCTION
+
+    PROGRAM main
+	VAR
+		res : WSTRING;
+	END_VAR
+		res := func("hello");
+    END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        res: [u16; 81],
+    }
+
+    let mut main_type = MainType {
+        res: [0; 81],
+    };
+
+    Target::initialize_native(&InitializationConfig::default()).unwrap();
+    let context: Context = Context::create();
+    let source = SourceCode {
+        path: "string_test.st".to_string(),
+        source: src.to_string(),
+    };
+    let (_, code_gen) = compile_module(
+        &context,
+        vec![source],
+        vec![],
+        None,
+        Diagnostician::default(),
+    )
+    .unwrap();
+    code_gen.module.print_to_stderr();
+    let exec_engine = code_gen
+        .module
+        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
+        .unwrap();
+
+    let fn_value = code_gen.module.get_function("func").unwrap();
+
+    exec_engine.add_global_mapping(&fn_value, wstring_id as usize);
+
+    let _: i32 = run(&exec_engine, "main", &mut main_type);
+
+    let res = String::from_utf16_lossy(&main_type.res[..5]);
+    assert_eq!(res, "hello");
+}
+
+
+#[test]
+fn string_as_function_parameters_cast() {
     let src = "
     @EXTERNAL
     FUNCTION func : STRING
-        VAR_IN_OUT
+        VAR_INPUT
             in : STRING;
         END_VAR
     END_FUNCTION
@@ -390,7 +464,7 @@ fn string_as_function_in_out_parameters() {
 	VAR
 		res : STRING;
 	END_VAR
-		res := func('hello');
+		res := func(STRING#'hello');
     END_PROGRAM
     ";
 
@@ -418,6 +492,7 @@ fn string_as_function_in_out_parameters() {
         Diagnostician::default(),
     )
     .unwrap();
+    code_gen.module.print_to_stderr();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
@@ -428,7 +503,65 @@ fn string_as_function_in_out_parameters() {
     exec_engine.add_global_mapping(&fn_value, string_id as usize);
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    dbg!(&main_type.res);
     let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
+
+#[test]
+fn wstring_as_function_parameters_cast() {
+    let src = r#"
+    @EXTERNAL
+    FUNCTION func : WSTRING
+        VAR_INPUT
+            in : WSTRING;
+        END_VAR
+    END_FUNCTION
+
+    PROGRAM main
+	VAR
+		res : WSTRING;
+	END_VAR
+		res := func(WSTRING#"hello");
+    END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        res: [u16; 81],
+    }
+
+    let mut main_type = MainType {
+        res: [0; 81],
+    };
+
+    Target::initialize_native(&InitializationConfig::default()).unwrap();
+    let context: Context = Context::create();
+    let source = SourceCode {
+        path: "string_test.st".to_string(),
+        source: src.to_string(),
+    };
+    let (_, code_gen) = compile_module(
+        &context,
+        vec![source],
+        vec![],
+        None,
+        Diagnostician::default(),
+    )
+    .unwrap();
+    code_gen.module.print_to_stderr();
+    let exec_engine = code_gen
+        .module
+        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
+        .unwrap();
+
+    let fn_value = code_gen.module.get_function("func").unwrap();
+
+    exec_engine.add_global_mapping(&fn_value, wstring_id as usize);
+
+    let _: i32 = run(&exec_engine, "main", &mut main_type);
+
+    let res = String::from_utf16_lossy(&main_type.res[..5]);
+    assert_eq!(res, "hello");
+}
+

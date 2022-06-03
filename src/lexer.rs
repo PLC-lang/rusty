@@ -252,6 +252,20 @@ impl<'a> ParseSession<'a> {
     }
 }
 
+fn parse_pragma(lexer: &mut Lexer<Token>) -> Filter<()> {
+    let remainder = lexer.remainder();
+    let chars = remainder.chars();
+    let mut traversed = 0;
+    for c in chars {
+        traversed += c.len_utf8();
+        if c == '}' {
+            lexer.bump(traversed);
+            return Filter::Skip;
+        }
+    }
+    Filter::Emit(())
+}
+
 fn parse_comments(lexer: &mut Lexer<Token>) -> Filter<()> {
     let (open, close) = get_closing_tag(lexer.slice());
     let remainder = lexer.remainder();
