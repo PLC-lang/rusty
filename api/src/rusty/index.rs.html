@@ -1350,9 +1350,6 @@
 <span id="1345">1345</span>
 <span id="1346">1346</span>
 <span id="1347">1347</span>
-<span id="1348">1348</span>
-<span id="1349">1349</span>
-<span id="1350">1350</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 
@@ -1877,14 +1874,11 @@
                 <span class="ident">instance_struct_name</span>,
                 ..
             }
-            <span class="op">|</span> <span class="ident">PouIndexEntry::Function</span> {
-                <span class="ident">instance_struct_name</span>,
-                ..
-            }
             <span class="op">|</span> <span class="ident">PouIndexEntry::Class</span> {
                 <span class="ident">instance_struct_name</span>,
                 ..
             } =&gt; <span class="prelude-val">Some</span>(<span class="ident">instance_struct_name</span>.<span class="ident">as_str</span>()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>, <span class="comment">//functions have no struct type</span>
         }
     }
 
