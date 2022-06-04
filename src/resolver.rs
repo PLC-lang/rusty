@@ -1267,17 +1267,30 @@ impl<'i> TypeAnnotator<'i> {
             }
         }
     }
-    // Returns a possible generic for the current statement
+
+    /// determines a possible generic for the current statement
+    /// returns a pair with the possible generics symbol and the real datatype
+    /// e.g. `( "T", "INT" )`
     fn get_generic_candidate<'idx>(
         index: &'idx Index,
         annotation_map: &'idx AnnotationMapImpl,
         member: &VariableIndexEntry,
         statement: &AstStatement,
     ) -> Option<(&'idx str, &'idx str)> {
+        //find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
+        let effective_type = index.find_effective_type_info(member.get_type_name());
+        let candidate = match effective_type {
+            Some(DataTypeInformation::Pointer {
+                inner_type_name, ..
+            })
+            | Some(DataTypeInformation::Array {
+                inner_type_name, ..
+            }) => index.find_effective_type_info(inner_type_name),
+            _ => effective_type,
+        };
+
         //If generic add a generic annotation
-        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) =
-            index.find_effective_type_info(member.get_type_name())
-        {
+        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
             let statement = match statement {
                 //The right side of the assignment is the source of truth
                 AstStatement::Assignment { right, .. } => right,
@@ -1286,8 +1299,7 @@ impl<'i> TypeAnnotator<'i> {
             //Find the statement's type
             annotation_map
                 .get_type(statement, index)
-                .map(|it| it.get_name())
-                .map(|name| (generic_symbol.as_str(), name))
+                .map(|it| (generic_symbol.as_str(), it.get_name()))
         } else {
             None
         }
@@ -1306,10 +1318,7 @@ impl<'i> TypeAnnotator<'i> {
         ctx: VisitorContext,
     ) {
         if let Some(PouIndexEntry::Function {
-            generics,
-            linkage,
-            is_variadic,
-            ..
+            generics, linkage, ..
         }) = self.index.find_pou(implementation_name)
         {
             if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
@@ -1321,7 +1330,7 @@ impl<'i> TypeAnnotator<'i> {
                 }) = self.annotation_map.get(operator)
                 {
                     //Figure out the new name for the call
-                    let (name, annotation) = self.get_generic_function_annotation(
+                    let (new_name, annotation) = self.get_generic_function_annotation(
                         generics,
                         qualified_name,
                         return_type,
@@ -1330,31 +1339,21 @@ impl<'i> TypeAnnotator<'i> {
 
                     //Create a new pou and implementation for the function
                     let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
-                    if let Some((pou, implementation)) = self
-                        .index
-                        .find_pou(qualified_name)
-                        .and_then(|it| it.find_instance_struct_type(self.index))
-                        .zip(self.index.find_pou_implementation(qualified_name))
-                    {
-                        self.annotation_map.new_index.register_implementation(
-                            &name,
-                            &name,
-                            implementation.get_associated_class_name(),
-                            implementation.get_implementation_type().clone(),
-                            implementation.generic,
-                        );
-                        self.index_generic_type(pou, &name, generic_map);
-                        self.annotation_map
-                            .new_index
-                            .register_pou(PouIndexEntry::Function {
-                                name: name.clone(),
-                                instance_struct_name: name.clone(),
-                                return_type: cloned_return_type,
-                                generics: Vec::new(),
-                                linkage: LinkageType::Internal,
-                                is_variadic: *is_variadic,
-                            });
+                    if let Some(pou) = self.index.find_pou(qualified_name) {
+                        //only register concrete typed function if it was not indexed yet
+                        if self.index.find_pou(new_name.as_str()).is_none() {
+                            //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
+                            // e.g. call to generic_foo(aInt)
+                            self.register_generic_pou_entries(
+                                pou,
+                                cloned_return_type.as_str(),
+                                new_name.as_str(),
+                                generic_map,
+                            );
+                        }
                     }
+
+                    //annotate the call-statement so it points to the new implementation
                     self.annotation_map.annotate(operator, annotation);
                 }
                 //Adjust annotations on the inner statement
@@ -1366,61 +1365,67 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    /// Only works for Structs
-    pub fn index_generic_type(
+    /// douplicates the given generic_function under the `new_name` (e.g. foo__INT__REAL)using the
+    /// real datatypes for the generics as given in `generics` (e.g. { T=INT, U=REAL})
+    pub fn register_generic_pou_entries(
         &mut self,
-        generic_type: &typesystem::DataType,
-        specific_name: &str,
+        generic_function: &PouIndexEntry,
+        return_type: &str,
+        new_name: &str,
         generics: &HashMap<String, String>,
     ) {
-        let information = if let DataTypeInformation::Struct {
-            member_names,
-            source,
-            varargs,
-            ..
-        } = &generic_type.get_type_information()
-        {
-            let interface_name = format!("{}_interface", specific_name);
-            let information = DataTypeInformation::Struct {
-                name: interface_name,
-                member_names: member_names.clone(),
-                varargs: varargs.clone(),
-                source: source.clone(),
-            };
-            for member in member_names {
-                if let Some(generic_entry) = self.index.find_member(generic_type.get_name(), member)
-                {
-                    let new_name = if let Some(old_type) = self
-                        .index
-                        .find_effective_type(generic_entry.get_type_name())
-                    {
-                        match old_type.get_type_information() {
-                            DataTypeInformation::Generic { generic_symbol, .. } => generics
+        // the generic implementation
+        if let Some(generic_implementation) = generic_function.find_implementation(self.index) {
+            //register a copy of the generic's implemntation under the new name
+            self.annotation_map.new_index.register_implementation(
+                new_name,
+                new_name,
+                generic_implementation.get_associated_class_name(),
+                generic_implementation.get_implementation_type().clone(),
+                generic_implementation.generic,
+            );
+
+            //register a copy of the pou under the new name
+            self.annotation_map
+                .new_index
+                .register_pou(PouIndexEntry::create_function_entry(
+                    new_name,
+                    return_type,
+                    &[],
+                    LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
+                    generic_function.is_variadic(),
+                ));
+
+            // register the member-variables (interface) of the new function
+            // copy each member-index-entry and make sure to turn the generic (e.g. T)
+            // into the concrete type (e.g. INT)
+            if let Some(generic_function_members) =
+                self.index.get_members(generic_function.get_name())
+            {
+                for (_, member) in generic_function_members {
+                    let new_type_name =
+                        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) =
+                            self.index.find_effective_type_info(member.get_type_name())
+                        {
+                            // this is a generic member, so lets see what it's generic symbol is and translate it
+                            generics
                                 .get(generic_symbol)
                                 .map(String::as_str)
-                                .unwrap_or_else(|| old_type.get_name()),
-                            _ => old_type.get_name(),
-                        }
-                    } else {
-                        unreachable!("Member not indexed")
-                    };
-                    let entry = generic_entry.into_typed(specific_name, new_name);
+                                .unwrap_or_else(|| member.get_type_name())
+                        } else {
+                            // not a generic member, just use the original type
+                            member.get_type_name()
+                        };
+
+                    //register the member under the new container (old: foo__T, new: foo__INT)
+                    //with its new type-name (old: T, new: INT)
+                    let entry = member.into_typed(new_name, new_type_name);
                     self.annotation_map
                         .new_index
-                        .register_member_entry(specific_name, entry);
+                        .register_member_entry(new_name, entry);
                 }
             }
-            information
-        } else {
-            unreachable!("Not a struct");
-        };
-        let datatype = typesystem::DataType {
-            name: specific_name.to_string(),
-            initial_value: generic_type.initial_value,
-            nature: generic_type.nature,
-            information,
-        };
-        self.annotation_map.new_index.register_pou_type(datatype);
+        }
     }
 
     fn update_generic_function_parameters(
