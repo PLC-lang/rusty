@@ -186,3 +186,118 @@ fn passing_a_string_to_a_function() {
     attributes #1 = { argmemonly nofree nounwind willreturn }
     "###);
 }
+
+#[test]
+fn passing_a_string_to_a_function_as_reference() {
+    let result = codegen(
+        r#"FUNCTION func : DINT
+            VAR_INPUT {ref} x : STRING[5]; END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR a : STRING[5]; END_VAR
+
+            func(a);
+            func('12345');
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %main_interface = type { [6 x i8] }
+
+    @main_instance = global %main_interface zeroinitializer
+    @utf08_literal_0 = unnamed_addr constant [6 x i8] c"12345\00"
+
+    define i32 @func([6 x i8]* %0) {
+    entry:
+      %x = alloca [6 x i8]*, align 8
+      store [6 x i8]* %0, [6 x i8]** %x, align 8
+      %func = alloca i32, align 4
+      store i32 0, i32* %func, align 4
+      %func_ret = load i32, i32* %func, align 4
+      ret i32 %func_ret
+    }
+
+    define void @main(%main_interface* %0) {
+    entry:
+      %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+      %call = call i32 @func([6 x i8]* %a)
+      %call1 = call i32 @func([6 x i8]* @utf08_literal_0)
+      ret void
+    }
+    "###);
+}
+
+#[test]
+fn passing_arguments_to_functions_by_ref_and_val() {
+    let result = codegen(
+        r#"FUNCTION func : DINT
+        VAR_INPUT {ref}
+            byRef1 : INT;
+            byRef2 : DINT;
+        END_VAR
+        VAR_INPUT
+            byVal1 : INT;
+            byVal2 : DINT;
+        END_VAR
+            func := byRef1 * byRef2 * byVal1 * byRef2;
+        END_FUNCTION
+
+        PROGRAM main
+            func(1,2,3,4); //1 and 2 by ref, 3 and 4 by val
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %main_interface = type {}
+
+    @main_instance = global %main_interface zeroinitializer
+
+    define i32 @func(i16* %0, i32* %1, i16 %2, i32 %3) {
+    entry:
+      %byRef1 = alloca i16*, align 8
+      store i16* %0, i16** %byRef1, align 8
+      %byRef2 = alloca i32*, align 8
+      store i32* %1, i32** %byRef2, align 8
+      %byVal1 = alloca i16, align 2
+      store i16 %2, i16* %byVal1, align 2
+      %byVal2 = alloca i32, align 4
+      store i32 %3, i32* %byVal2, align 4
+      %func = alloca i32, align 4
+      store i32 0, i32* %func, align 4
+      %deref = load i16*, i16** %byRef1, align 8
+      %load_byRef1 = load i16, i16* %deref, align 2
+      %4 = sext i16 %load_byRef1 to i32
+      %deref1 = load i32*, i32** %byRef2, align 8
+      %load_byRef2 = load i32, i32* %deref1, align 4
+      %tmpVar = mul i32 %4, %load_byRef2
+      %load_byVal1 = load i16, i16* %byVal1, align 2
+      %5 = sext i16 %load_byVal1 to i32
+      %tmpVar2 = mul i32 %tmpVar, %5
+      %deref3 = load i32*, i32** %byRef2, align 8
+      %load_byRef24 = load i32, i32* %deref3, align 4
+      %tmpVar5 = mul i32 %tmpVar2, %load_byRef24
+      store i32 %tmpVar5, i32* %func, align 4
+      %func_ret = load i32, i32* %func, align 4
+      ret i32 %func_ret
+    }
+
+    define void @main(%main_interface* %0) {
+    entry:
+      %1 = alloca i32, align 4
+      store i32 1, i32* %1, align 4
+      %2 = alloca i32, align 4
+      store i32 2, i32* %2, align 4
+      %call = call i32 @func(i32* %1, i32* %2, i16 3, i32 4)
+      ret void
+    }
+    "###);
+}

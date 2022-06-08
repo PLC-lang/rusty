@@ -1,8 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::ast::{
-    self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
-    PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
+    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
+    Implementation, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
+    VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
@@ -199,7 +200,9 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 fn get_declaration_type_for(block: &VariableBlock) -> ArgumentType {
     if matches!(
         block.variable_block_type,
-        VariableBlockType::InOut | VariableBlockType::Output
+        VariableBlockType::InOut
+            | VariableBlockType::Output
+            | VariableBlockType::Input(ArgumentProperty::ByRef)
     ) {
         ArgumentType::ByRef(get_variable_type_from_block(block))
     } else {

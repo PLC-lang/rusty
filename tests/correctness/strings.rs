@@ -338,7 +338,7 @@ fn string_as_function_parameters() {
     let src = "
     @EXTERNAL
     FUNCTION func : STRING
-        VAR_INPUT
+        VAR_INPUT {ref}
             in : STRING;
         END_VAR
     END_FUNCTION
@@ -396,7 +396,7 @@ fn wstring_as_function_parameters() {
     let src = r#"
     @EXTERNAL
     FUNCTION func : WSTRING
-        VAR_INPUT
+        VAR_INPUT {ref}
             in : WSTRING;
         END_VAR
     END_FUNCTION
@@ -452,7 +452,7 @@ fn string_as_function_parameters_cast() {
     let src = "
     @EXTERNAL
     FUNCTION func : STRING
-        VAR_INPUT
+        VAR_INPUT {ref}
             in : STRING;
         END_VAR
     END_FUNCTION
@@ -510,7 +510,7 @@ fn wstring_as_function_parameters_cast() {
     let src = r#"
     @EXTERNAL
     FUNCTION func : WSTRING
-        VAR_INPUT
+        VAR_INPUT {ref}
             in : WSTRING;
         END_VAR
     END_FUNCTION
