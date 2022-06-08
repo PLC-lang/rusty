@@ -522,14 +522,11 @@ impl PouIndexEntry {
                 instance_struct_name,
                 ..
             }
-            | PouIndexEntry::Function {
-                instance_struct_name,
-                ..
-            }
             | PouIndexEntry::Class {
                 instance_struct_name,
                 ..
             } => Some(instance_struct_name.as_str()),
+            _ => None, //functions have no struct type
         }
     }
 
