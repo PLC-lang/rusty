@@ -285,7 +285,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
     match block.variable_block_type {
         VariableBlockType::Local => VariableType::Local,
         VariableBlockType::Temp => VariableType::Temp,
-        VariableBlockType::Input => VariableType::Input,
+        VariableBlockType::Input(_) => VariableType::Input,
         VariableBlockType::Output => VariableType::Output,
         VariableBlockType::Global => VariableType::Global,
         VariableBlockType::InOut => VariableType::InOut,

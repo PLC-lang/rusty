@@ -283,7 +283,7 @@ pub enum VariableBlockType {
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum ArgumentProperty {
     ByVal,
-    ByRef
+    ByRef,
 }
 
 #[derive(PartialEq)]

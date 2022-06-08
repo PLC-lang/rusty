@@ -231,7 +231,10 @@ fn method_with_var_inout_blocks() {
     let vblock3 = &method_pou.variable_blocks[2];
 
     assert_eq!(vblock1.constant, true);
-    assert_eq!(vblock1.variable_block_type, VariableBlockType::Input(ArgumentProperty::ByVal));
+    assert_eq!(
+        vblock1.variable_block_type,
+        VariableBlockType::Input(ArgumentProperty::ByVal)
+    );
 
     assert_eq!(vblock2.constant, false);
     assert_eq!(vblock2.variable_block_type, VariableBlockType::InOut);

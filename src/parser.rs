@@ -31,11 +31,9 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType) -> ParsedAst {
                 //Don't reset linkage
                 continue;
             }
-            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(
-                &mut lexer,
-                VariableBlockType::Global,
-                linkage,
-            )),
+            KeywordVarGlobal => unit
+                .global_vars
+                .push(parse_variable_block(&mut lexer, linkage)),
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
                 let params = match lexer.token {
                     KeywordProgram => (PouType::Program, KeywordEndProgram),
@@ -186,11 +184,7 @@ fn parse_pou(
                 ],
             };
             while allowed_var_types.contains(&lexer.token) {
-                variable_blocks.push(parse_variable_block(
-                    lexer,
-                    parse_variable_block_type(lexer),
-                    LinkageType::Internal,
-                ));
+                variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
 
             let mut impl_pous = vec![];
@@ -395,11 +389,7 @@ fn parse_method(
             || lexer.token == KeywordVarInOut
             || lexer.token == KeywordVarTemp
         {
-            variable_blocks.push(parse_variable_block(
-                lexer,
-                parse_variable_block_type(lexer),
-                LinkageType::Internal,
-            ));
+            variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
         let call_name = format!("{}.{}", class_name, name);
@@ -951,13 +941,17 @@ fn parse_control(lexer: &mut ParseSession) -> AstStatement {
 }
 
 fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
-    let block_type = lexer.token;
+    let block_type = lexer.token.clone();
+    //Consume the type token
     lexer.advance();
     let argument_property = if let PropertyByRef = lexer.token {
         lexer.advance();
         //Report a diagnostic if blocktype is incompatible
         if !matches!(block_type, KeywordVarInput) {
-            lexer.accept_diagnostic(Diagnostic::invalid_pragma_location("Only VAR_INPUT support by ref properties", lexer.location()))
+            lexer.accept_diagnostic(Diagnostic::invalid_pragma_location(
+                "Only VAR_INPUT support by ref properties",
+                lexer.location(),
+            ))
         }
         ArgumentProperty::ByRef
     } else {
@@ -974,12 +968,9 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
     }
 }
 
-fn parse_variable_block(
-    lexer: &mut ParseSession,
-    variable_block_type: VariableBlockType,
-    linkage: LinkageType,
-) -> VariableBlock {
+fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> VariableBlock {
     let location = lexer.location();
+    let variable_block_type = parse_variable_block_type(lexer);
 
     let constant = lexer.allow(&KeywordConstant);
 

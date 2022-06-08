@@ -75,10 +75,7 @@ fn registered_pragmas_parsed() {
     lexer.advance();
     assert_eq!(lexer.token, PropertyByRef, "Token : {}", lexer.slice());
     lexer.advance();
-
 }
-
-
 
 #[test]
 fn comments_are_not_ignored_in_strings() {

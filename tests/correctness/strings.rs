@@ -1,4 +1,4 @@
-use inkwell::targets::{Target, InitializationConfig};
+use inkwell::targets::{InitializationConfig, Target};
 use pretty_assertions::assert_eq;
 
 use super::super::*;
@@ -300,7 +300,7 @@ fn initialization_of_string_arrays() {
 #[repr(C, align(1))]
 #[derive(Debug)]
 struct Wrapper<T> {
-    inner : T,
+    inner: T,
 }
 
 /// .
@@ -309,13 +309,13 @@ struct Wrapper<T> {
 ///
 /// Unsafe by design, it dereferences a pointer
 #[allow(dead_code)]
-unsafe extern "C" fn string_id(input : *const i8) -> Wrapper<[u8; 81]> {
+unsafe extern "C" fn string_id(input: *const i8) -> Wrapper<[u8; 81]> {
     let mut res = [0; 81];
     let bytes = CStr::from_ptr(input).to_bytes();
-    for (index,val) in bytes.iter().enumerate() {
+    for (index, val) in bytes.iter().enumerate() {
         res[index] = *val;
     }
-    Wrapper { inner : res}
+    Wrapper { inner: res }
 }
 
 /// .
@@ -324,15 +324,14 @@ unsafe extern "C" fn string_id(input : *const i8) -> Wrapper<[u8; 81]> {
 ///
 /// Unsafe by design, it dereferences a pointer
 #[allow(dead_code)]
-unsafe extern "C" fn wstring_id(input : *const i16) -> Wrapper<[u16; 81]> {
+unsafe extern "C" fn wstring_id(input: *const i16) -> Wrapper<[u16; 81]> {
     let mut res = [0; 81];
     let bytes = std::slice::from_raw_parts(input, 81);
-    for (index,val) in bytes.iter().enumerate() {
+    for (index, val) in bytes.iter().enumerate() {
         res[index] = *val as u16;
     }
-    Wrapper { inner : res}
+    Wrapper { inner: res }
 }
-
 
 #[test]
 fn string_as_function_parameters() {
@@ -358,9 +357,7 @@ fn string_as_function_parameters() {
         res: [u8; 81],
     }
 
-    let mut main_type = MainType {
-        res: [0; 81],
-    };
+    let mut main_type = MainType { res: [0; 81] };
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
@@ -387,7 +384,10 @@ fn string_as_function_parameters() {
     exec_engine.add_global_mapping(&fn_value, string_id as usize);
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
+    let res = CStr::from_bytes_with_nul(&main_type.res[..6])
+        .unwrap()
+        .to_str()
+        .unwrap();
     assert_eq!(res, "hello");
 }
 
@@ -415,9 +415,7 @@ fn wstring_as_function_parameters() {
         res: [u16; 81],
     }
 
-    let mut main_type = MainType {
-        res: [0; 81],
-    };
+    let mut main_type = MainType { res: [0; 81] };
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
@@ -449,7 +447,6 @@ fn wstring_as_function_parameters() {
     assert_eq!(res, "hello");
 }
 
-
 #[test]
 fn string_as_function_parameters_cast() {
     let src = "
@@ -474,9 +471,7 @@ fn string_as_function_parameters_cast() {
         res: [u8; 81],
     }
 
-    let mut main_type = MainType {
-        res: [0; 81],
-    };
+    let mut main_type = MainType { res: [0; 81] };
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
@@ -503,7 +498,10 @@ fn string_as_function_parameters_cast() {
     exec_engine.add_global_mapping(&fn_value, string_id as usize);
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
+    let res = CStr::from_bytes_with_nul(&main_type.res[..6])
+        .unwrap()
+        .to_str()
+        .unwrap();
     assert_eq!(res, "hello");
 }
 
@@ -531,9 +529,7 @@ fn wstring_as_function_parameters_cast() {
         res: [u16; 81],
     }
 
-    let mut main_type = MainType {
-        res: [0; 81],
-    };
+    let mut main_type = MainType { res: [0; 81] };
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
@@ -564,4 +560,3 @@ fn wstring_as_function_parameters_cast() {
     let res = String::from_utf16_lossy(&main_type.res[..5]);
     assert_eq!(res, "hello");
 }
-
