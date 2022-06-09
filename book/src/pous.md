@@ -119,7 +119,7 @@ END_PROGRAM
 
 ### Function Block
 
-A function block is a `STRUCT` that can be initialized multiple types using different variables (i.e `instance`s)
+A function block is a `STRUCT` that can be initialized multiple times using different variables (i.e `instance`s)
 A function block instance can hold its state (including input parameters) across multiple calls, but does not share any state with different instances.
 A function block does not support passing input parameters by reference.
 

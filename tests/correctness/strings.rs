@@ -373,7 +373,6 @@ fn string_as_function_parameters() {
         Diagnostician::default(),
     )
     .unwrap();
-    code_gen.module.print_to_stderr();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
@@ -431,7 +430,6 @@ fn wstring_as_function_parameters() {
         Diagnostician::default(),
     )
     .unwrap();
-    code_gen.module.print_to_stderr();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
@@ -487,7 +485,6 @@ fn string_as_function_parameters_cast() {
         Diagnostician::default(),
     )
     .unwrap();
-    code_gen.module.print_to_stderr();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
@@ -545,7 +542,6 @@ fn wstring_as_function_parameters_cast() {
         Diagnostician::default(),
     )
     .unwrap();
-    code_gen.module.print_to_stderr();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)

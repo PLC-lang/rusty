@@ -944,8 +944,7 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
     let block_type = lexer.token.clone();
     //Consume the type token
     lexer.advance();
-    let argument_property = if let PropertyByRef = lexer.token {
-        lexer.advance();
+    let argument_property = if lexer.allow(&PropertyByRef) {
         //Report a diagnostic if blocktype is incompatible
         if !matches!(block_type, KeywordVarInput) {
             lexer.accept_diagnostic(Diagnostic::invalid_pragma_location(
