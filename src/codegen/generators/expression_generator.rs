@@ -947,6 +947,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::PointerAccess { reference, .. } => self
                 .do_generate_element_pointer(qualifier, reference)
                 .map(|it| self.deref(it)),
+            AstStatement::LiteralString { value, is_wide, .. } => if *is_wide {
+                self.llvm_index.find_utf16_literal_string(value)
+            } else {
+                self.llvm_index.find_utf08_literal_string(value)
+            }
+            .map(|it| it.as_pointer_value())
+            .ok_or_else(|| unreachable!("All string literals have to be constants")),
             _ => Err(Diagnostic::codegen_error(
                 &format!("Cannot generate a LValue for {:?}", reference_statement),
                 reference_statement.get_location(),

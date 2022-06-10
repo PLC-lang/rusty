@@ -7,12 +7,17 @@ pub enum Token {
     #[error]
     #[regex(r"\(\*", |lex| super::parse_comments(lex))]
     #[regex(r"/\*", |lex| super::parse_comments(lex))]
+    #[regex(r"\{", |lex| super::parse_pragma(lex))]
     #[regex(r"//.*", logos::skip)]
     #[regex(r"(?m)\r", logos::skip)]
     Error,
 
     #[token("@EXTERNAL")]
+    #[token("{external}")]
     PropertyExternal,
+
+    #[token("{ref}")]
+    PropertyByRef,
 
     #[token("PROGRAM", ignore(case))]
     KeywordProgram,

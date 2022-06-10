@@ -274,10 +274,16 @@ impl CompilationUnit {
 pub enum VariableBlockType {
     Local,
     Temp,
-    Input,
+    Input(ArgumentProperty),
     Output,
     Global,
     InOut,
+}
+
+#[derive(Debug, Copy, PartialEq, Clone)]
+pub enum ArgumentProperty {
+    ByVal,
+    ByRef,
 }
 
 #[derive(PartialEq)]

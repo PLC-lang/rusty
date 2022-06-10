@@ -557,6 +557,13 @@ impl Diagnostic {
             _ => it,
         }
     }
+
+    pub fn invalid_pragma_location(message: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!("Invalid pragma location: {}", message),
+            range,
+        }
+    }
 }
 
 /// a diagnostics severity
