@@ -379,6 +379,11 @@
 <span id="374">374</span>
 <span id="375">375</span>
 <span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">HardwareAccessType</span>};
@@ -388,12 +393,17 @@
     <span class="attribute">#[<span class="ident">error</span>]</span>
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;\(\*&quot;</span>, <span class="op">|</span><span class="ident">lex</span><span class="op">|</span> <span class="ident"><span class="kw">super</span>::parse_comments</span>(<span class="ident">lex</span>))]</span>
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;/\*&quot;</span>, <span class="op">|</span><span class="ident">lex</span><span class="op">|</span> <span class="ident"><span class="kw">super</span>::parse_comments</span>(<span class="ident">lex</span>))]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;\{&quot;</span>, <span class="op">|</span><span class="ident">lex</span><span class="op">|</span> <span class="ident"><span class="kw">super</span>::parse_pragma</span>(<span class="ident">lex</span>))]</span>
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;//.*&quot;</span>, <span class="ident">logos::skip</span>)]</span>
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;(?m)\r&quot;</span>, <span class="ident">logos::skip</span>)]</span>
     <span class="ident">Error</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;@EXTERNAL&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;{external}&quot;</span>)]</span>
     <span class="ident">PropertyExternal</span>,
+
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;{ref}&quot;</span>)]</span>
+    <span class="ident">PropertyByRef</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PROGRAM&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordProgram</span>,

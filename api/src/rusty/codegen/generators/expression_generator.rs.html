@@ -2341,6 +2341,13 @@
 <span id="2336">2336</span>
 <span id="2337">2337</span>
 <span id="2338">2338</span>
+<span id="2339">2339</span>
+<span id="2340">2340</span>
+<span id="2341">2341</span>
+<span id="2342">2342</span>
+<span id="2343">2343</span>
+<span id="2344">2344</span>
+<span id="2345">2345</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -3290,6 +3297,13 @@
             <span class="ident">AstStatement::PointerAccess</span> { <span class="ident">reference</span>, .. } =&gt; <span class="self">self</span>
                 .<span class="ident">do_generate_element_pointer</span>(<span class="ident">qualifier</span>, <span class="ident">reference</span>)
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">deref</span>(<span class="ident">it</span>)),
+            <span class="ident">AstStatement::LiteralString</span> { <span class="ident">value</span>, <span class="ident">is_wide</span>, .. } =&gt; <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">is_wide</span> {
+                <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">find_utf16_literal_string</span>(<span class="ident">value</span>)
+            } <span class="kw">else</span> {
+                <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">find_utf08_literal_string</span>(<span class="ident">value</span>)
+            }
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_pointer_value</span>())
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">unreachable!</span>(<span class="string">&quot;All string literals have to be constants&quot;</span>)),
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
                 <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate a LValue for {:?}&quot;</span>, <span class="ident">reference_statement</span>),
                 <span class="ident">reference_statement</span>.<span class="ident">get_location</span>(),

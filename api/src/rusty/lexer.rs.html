@@ -391,6 +391,20 @@
 <span id="386">386</span>
 <span id="387">387</span>
 <span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
 <span class="kw">use</span> <span class="ident">logos::Filter</span>;
@@ -643,6 +657,20 @@
             }
         }
     }
+}
+
+<span class="kw">fn</span> <span class="ident">parse_pragma</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) -&gt; <span class="ident">Filter</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">remainder</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">remainder</span>();
+    <span class="kw">let</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">remainder</span>.<span class="ident">chars</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traversed</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">chars</span> {
+        <span class="ident">traversed</span> <span class="op">+</span><span class="op">=</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>();
+        <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;}&#39;</span> {
+            <span class="ident">lexer</span>.<span class="ident">bump</span>(<span class="ident">traversed</span>);
+            <span class="kw">return</span> <span class="ident">Filter::Skip</span>;
+        }
+    }
+    <span class="ident">Filter::Emit</span>(())
 }
 
 <span class="kw">fn</span> <span class="ident">parse_comments</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) -&gt; <span class="ident">Filter</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {

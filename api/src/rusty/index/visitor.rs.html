@@ -658,11 +658,15 @@
 <span id="653">653</span>
 <span id="654">654</span>
 <span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">HardwareBinding</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{
-    <span class="self">self</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Implementation</span>, <span class="ident">Pou</span>,
-    <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">TypeNature</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">VariableBlock</span>, <span class="ident">VariableBlockType</span>,
+    <span class="self">self</span>, <span class="ident">ArgumentProperty</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>,
+    <span class="ident">Implementation</span>, <span class="ident">Pou</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">TypeNature</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">VariableBlock</span>,
+    <span class="ident">VariableBlockType</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostic</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::index</span>::{<span class="ident">ArgumentType</span>, <span class="ident">Index</span>, <span class="ident">MemberInfo</span>};
@@ -859,7 +863,9 @@
 <span class="kw">fn</span> <span class="ident">get_declaration_type_for</span>(<span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>) -&gt; <span class="ident">ArgumentType</span> {
     <span class="kw">if</span> <span class="macro">matches!</span>(
         <span class="ident">block</span>.<span class="ident">variable_block_type</span>,
-        <span class="ident">VariableBlockType::InOut</span> <span class="op">|</span> <span class="ident">VariableBlockType::Output</span>
+        <span class="ident">VariableBlockType::InOut</span>
+            <span class="op">|</span> <span class="ident">VariableBlockType::Output</span>
+            <span class="op">|</span> <span class="ident">VariableBlockType::Input</span>(<span class="ident">ArgumentProperty::ByRef</span>)
     ) {
         <span class="ident">ArgumentType::ByRef</span>(<span class="ident">get_variable_type_from_block</span>(<span class="ident">block</span>))
     } <span class="kw">else</span> {
@@ -945,7 +951,7 @@
     <span class="kw">match</span> <span class="ident">block</span>.<span class="ident">variable_block_type</span> {
         <span class="ident">VariableBlockType::Local</span> =&gt; <span class="ident">VariableType::Local</span>,
         <span class="ident">VariableBlockType::Temp</span> =&gt; <span class="ident">VariableType::Temp</span>,
-        <span class="ident">VariableBlockType::Input</span> =&gt; <span class="ident">VariableType::Input</span>,
+        <span class="ident">VariableBlockType::Input</span>(<span class="kw">_</span>) =&gt; <span class="ident">VariableType::Input</span>,
         <span class="ident">VariableBlockType::Output</span> =&gt; <span class="ident">VariableType::Output</span>,
         <span class="ident">VariableBlockType::Global</span> =&gt; <span class="ident">VariableType::Global</span>,
         <span class="ident">VariableBlockType::InOut</span> =&gt; <span class="ident">VariableType::InOut</span>,

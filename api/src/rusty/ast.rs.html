@@ -1375,6 +1375,12 @@
 <span id="1370">1370</span>
 <span id="1371">1371</span>
 <span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">lexer::IdProvider</span>, <span class="ident">typesystem::DataTypeInformation</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -1651,10 +1657,16 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableBlockType</span> {
     <span class="ident">Local</span>,
     <span class="ident">Temp</span>,
-    <span class="ident">Input</span>,
+    <span class="ident">Input</span>(<span class="ident">ArgumentProperty</span>),
     <span class="ident">Output</span>,
     <span class="ident">Global</span>,
     <span class="ident">InOut</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ArgumentProperty</span> {
+    <span class="ident">ByVal</span>,
+    <span class="ident">ByRef</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>)]</span>
