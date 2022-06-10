@@ -2254,16 +2254,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let align_right = right_type.get_alignment();
             //Multiply by the string alignment to copy enough for widestrings
             //This is done at compile time to avoid generating an extra mul
-            let size = self.llvm.context.i32_type().const_int((size * align_left as i64) as u64, true);
+            let size = self
+                .llvm
+                .context
+                .i32_type()
+                .const_int((size * align_left as i64) as u64, true);
             self.llvm
                 .builder
-                .build_memcpy(
-                    left,
-                    align_left,
-                    right,
-                    align_right,
-                    size,
-                )
+                .build_memcpy(left, align_left, right, align_right, size)
                 .map_err(|err| Diagnostic::codegen_error(err, right_statement.get_location()))?;
         } else {
             let expression = self.generate_expression(right_statement)?;

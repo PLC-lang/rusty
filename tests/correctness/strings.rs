@@ -23,7 +23,10 @@ fn string_assignment_from_smaller_literal() {
         x: [u8; 7],
         y: [u16; 7],
     }
-    let mut main_type = MainType { x: [0; 7], y : [0; 7] };
+    let mut main_type = MainType {
+        x: [0; 7],
+        y: [0; 7],
+    };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hello\0\0".as_bytes(), &main_type.x);
@@ -49,7 +52,10 @@ fn string_assignment_from_bigger_literal() {
         x: [u8; 5],
         y: [u16; 5],
     }
-    let mut main_type = MainType { x: [0; 5], y: [0; 5] };
+    let mut main_type = MainType {
+        x: [0; 5],
+        y: [0; 5],
+    };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hell\0".as_bytes(), &main_type.x);
