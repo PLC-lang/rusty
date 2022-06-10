@@ -6,87 +6,123 @@ use std::ffi::CStr;
 
 #[test]
 fn string_assignment_from_smaller_literal() {
-    let src = "
+    let src = r#"
         PROGRAM main
-            VAR x : STRING[6]; END_VAR
+            VAR 
+                x : STRING[6]; 
+                y : WSTRING[6]; 
+            END_VAR
             x := 'hello';
+            y := "hello";
         END_PROGRAM
-    ";
+    "#;
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 7],
+        y: [u16; 7],
     }
-    let mut main_type = MainType { x: [0; 7] };
+    let mut main_type = MainType { x: [0; 7], y : [0; 7] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hello\0\0".as_bytes(), &main_type.x);
+    assert_eq!("hello", String::from_utf16_lossy(&main_type.y[..5]));
 }
 
 #[test]
 fn string_assignment_from_bigger_literal() {
-    let src = "
+    let src = r#"
         PROGRAM main
-            VAR x : STRING[4];END_VAR
+            VAR 
+                x : STRING[4];
+                y : WSTRING[4];
+            END_VAR
             x := 'hello';
+            y := "hello";
         END_PROGRAM
-    ";
+    "#;
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 5],
+        y: [u16; 5],
     }
-    let mut main_type = MainType { x: [0; 5] };
+    let mut main_type = MainType { x: [0; 5], y: [0; 5] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hell\0".as_bytes(), &main_type.x);
+    assert_eq!("hell", String::from_utf16_lossy(&main_type.y[..4]));
 }
+
 #[test]
 fn string_assignment_from_smaller_string() {
-    let src = "
+    let src = r#"
         PROGRAM main 
-            VAR x : STRING[6]; y : STRING[5]; END_VAR
+            VAR 
+                x : STRING[6]; y : STRING[5]; 
+                u : STRING[6]; v : STRING[5]; 
+            END_VAR
             y := 'hello';
             x := y;
+            v := "hello";
+            u := v;
         END_PROGRAM
-    ";
+    "#;
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 7],
         y: [u8; 6],
+        u: [u16; 7],
+        v: [u16; 6],
     }
     let mut main_type = MainType {
         x: [0; 7],
         y: [0; 6],
+        u: [0; 7],
+        v: [0; 6],
     };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hello\0\0".as_bytes(), &main_type.x);
+    assert_eq!("hello", String::from_utf16_lossy(&main_type.u[..5]));
 }
 
 #[test]
 fn string_assignment_from_bigger_string() {
-    let src = "
+    let src = r#"
         PROGRAM main
-            VAR x : STRING[4]; y : STRING[5]; END_VAR
+            VAR 
+                x : STRING[4]; y : STRING[5];
+                u : STRING[4]; v : STRING[5]; 
+            END_VAR
             y := 'hello';
             x := y;
+            v := "hello";
+            u := v;
         END_PROGRAM
-    ";
+    "#;
 
     #[allow(dead_code)]
     struct MainType {
         x: [u8; 5],
         y: [u8; 6],
+        u: [u16; 5],
+        v: [u16; 6],
     }
     let mut main_type = MainType {
         x: [0; 5],
         y: [0; 6],
+        u: [0; 5],
+        v: [0; 6],
     };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hell\0".as_bytes(), &main_type.x);
+    assert_eq!("hell", String::from_utf16_lossy(&main_type.u[..4]));
 }
 
 #[test]
