@@ -2252,6 +2252,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let size = std::cmp::min(target_size - 1, value_size) as i64;
             let align_left = left_type.get_alignment();
             let align_right = right_type.get_alignment();
+            //Multiply by the string alignment to copy enough for widestrings
+            //This is done at compile time to avoid generating an extra mul
+            let size = self.llvm.context.i32_type().const_int((size * align_left as i64) as u64, true);
             self.llvm
                 .builder
                 .build_memcpy(
@@ -2259,16 +2262,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     align_left,
                     right,
                     align_right,
-                    self.llvm.context.i32_type().const_int(size as u64, true),
+                    size,
                 )
                 .map_err(|err| Diagnostic::codegen_error(err, right_statement.get_location()))?;
-
-            // if we didnt write the whole string, we need to ensure the ending 0-byte
-            // self.llvm.builder.build_store(self.llvm.builder.build_gep(
-            //     left,
-            //     self.llvm.i32_type().const_int(size + 1, false),
-            //     "null_terminator",
-            // ), self.get_null_terminator(left_type, left_statement.get_location()));
         } else {
             let expression = self.generate_expression(right_statement)?;
             self.llvm.builder.build_store(left, expression);

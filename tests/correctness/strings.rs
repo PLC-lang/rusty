@@ -62,7 +62,7 @@ fn string_assignment_from_smaller_string() {
         PROGRAM main 
             VAR 
                 x : STRING[6]; y : STRING[5]; 
-                u : STRING[6]; v : STRING[5]; 
+                u : WSTRING[6]; v : WSTRING[5]; 
             END_VAR
             y := 'hello';
             x := y;
@@ -97,7 +97,7 @@ fn string_assignment_from_bigger_string() {
         PROGRAM main
             VAR 
                 x : STRING[4]; y : STRING[5];
-                u : STRING[4]; v : STRING[5]; 
+                u : WSTRING[4]; v : WSTRING[5]; 
             END_VAR
             y := 'hello';
             x := y;
@@ -107,6 +107,7 @@ fn string_assignment_from_bigger_string() {
     "#;
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 5],
         y: [u8; 6],
@@ -141,6 +142,7 @@ fn string_assignment_from_smaller_function() {
     ";
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 7],
     }
@@ -164,6 +166,7 @@ fn string_assignment_from_bigger_function() {
     ";
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 5],
     }
@@ -183,6 +186,7 @@ fn string_assignment_from_bigger_literal_do_not_leak() {
     ";
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 5],
         y: [u8; 5],
@@ -207,6 +211,7 @@ fn string_assignment_from_bigger_string_does_not_leak() {
     ";
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 5],
         y: [u8; 5],
@@ -248,6 +253,7 @@ fn string_parameter_assignment_in_functions_with_multiple_size2() {
     ";
 
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 21],
         y: [u8; 21],
@@ -283,6 +289,7 @@ fn string_assignment_from_bigger_function_does_not_leak() {
         END_PROGRAM
     ";
     #[allow(dead_code)]
+    #[repr(C)]
     struct MainType {
         x: [u8; 5],
         y: [u8; 5],
