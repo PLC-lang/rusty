@@ -24,3 +24,5 @@ vscode:
     - matklad.rust-analyzer
     - hbenl.vscode-test-explorer
     - Swellaby.vscode-rust-test-adapter
+    - hbenl.test-adapter-converter
+    - revng.llvm-ir
