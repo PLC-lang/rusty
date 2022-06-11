@@ -2342,12 +2342,6 @@
 <span id="2337">2337</span>
 <span id="2338">2338</span>
 <span id="2339">2339</span>
-<span id="2340">2340</span>
-<span id="2341">2341</span>
-<span id="2342">2342</span>
-<span id="2343">2343</span>
-<span id="2344">2344</span>
-<span id="2345">2345</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -4602,23 +4596,17 @@
             <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">target_size</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">value_size</span>) <span class="kw">as</span> <span class="ident">i64</span>;
             <span class="kw">let</span> <span class="ident">align_left</span> <span class="op">=</span> <span class="ident">left_type</span>.<span class="ident">get_alignment</span>();
             <span class="kw">let</span> <span class="ident">align_right</span> <span class="op">=</span> <span class="ident">right_type</span>.<span class="ident">get_alignment</span>();
+            <span class="comment">//Multiply by the string alignment to copy enough for widestrings</span>
+            <span class="comment">//This is done at compile time to avoid generating an extra mul</span>
+            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">llvm</span>
+                .<span class="ident">context</span>
+                .<span class="ident">i32_type</span>()
+                .<span class="ident">const_int</span>((<span class="ident">size</span> <span class="op">*</span> <span class="ident">align_left</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">u64</span>, <span class="bool-val">true</span>);
             <span class="self">self</span>.<span class="ident">llvm</span>
                 .<span class="ident">builder</span>
-                .<span class="ident">build_memcpy</span>(
-                    <span class="ident">left</span>,
-                    <span class="ident">align_left</span>,
-                    <span class="ident">right</span>,
-                    <span class="ident">align_right</span>,
-                    <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i32_type</span>().<span class="ident">const_int</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="bool-val">true</span>),
-                )
+                .<span class="ident">build_memcpy</span>(<span class="ident">left</span>, <span class="ident">align_left</span>, <span class="ident">right</span>, <span class="ident">align_right</span>, <span class="ident">size</span>)
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">err</span>, <span class="ident">right_statement</span>.<span class="ident">get_location</span>()))<span class="question-mark">?</span>;
-
-            <span class="comment">// if we didnt write the whole string, we need to ensure the ending 0-byte</span>
-            <span class="comment">// self.llvm.builder.build_store(self.llvm.builder.build_gep(</span>
-            <span class="comment">//     left,</span>
-            <span class="comment">//     self.llvm.i32_type().const_int(size + 1, false),</span>
-            <span class="comment">//     &quot;null_terminator&quot;,</span>
-            <span class="comment">// ), self.get_null_terminator(left_type, left_statement.get_location()));</span>
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">right_statement</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">left</span>, <span class="ident">expression</span>);

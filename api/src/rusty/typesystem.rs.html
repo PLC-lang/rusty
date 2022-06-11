@@ -1284,7 +1284,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_alignment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } <span class="kw">if</span> <span class="ident">encoding</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">StringEncoding::Utf8</span> =&gt; <span class="number">1</span>,
-            <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } <span class="kw">if</span> <span class="ident">encoding</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">StringEncoding::Utf16</span> =&gt; <span class="number">1</span>,
+            <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } <span class="kw">if</span> <span class="ident">encoding</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">StringEncoding::Utf16</span> =&gt; <span class="number">2</span>,
             <span class="kw">_</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;Alignment for {}&quot;</span>, <span class="self">self</span>.<span class="ident">get_name</span>()),
         }
     }
