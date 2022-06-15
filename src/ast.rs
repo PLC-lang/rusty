@@ -23,7 +23,10 @@ pub struct Pou {
     pub variable_blocks: Vec<VariableBlock>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
+    /// the SourceRange of the whole POU
     pub location: SourceRange,
+    /// the SourceRange of the POU's name
+    pub name_location: SourceRange,
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
     pub linkage: LinkageType,
@@ -204,6 +207,7 @@ pub struct Implementation {
     pub statements: Vec<AstStatement>,
     pub location: SourceRange,
     pub overriding: bool,
+    pub generic: bool,
     pub access: Option<AccessModifier>,
 }
 
@@ -270,10 +274,16 @@ impl CompilationUnit {
 pub enum VariableBlockType {
     Local,
     Temp,
-    Input,
+    Input(ArgumentProperty),
     Output,
     Global,
     InOut,
+}
+
+#[derive(Debug, Copy, PartialEq, Clone)]
+pub enum ArgumentProperty {
+    ByVal,
+    ByRef,
 }
 
 #[derive(PartialEq)]
@@ -330,6 +340,21 @@ impl Variable {
             location: self.data_type.get_location(),
         };
         std::mem::replace(&mut self.data_type, new_data_type)
+    }
+}
+
+pub trait DiagnosticInfo {
+    fn get_description(&self) -> String;
+    fn get_location(&self) -> SourceRange;
+}
+
+impl DiagnosticInfo for AstStatement {
+    fn get_description(&self) -> String {
+        format!("{:?}", self)
+    }
+
+    fn get_location(&self) -> SourceRange {
+        self.get_location()
     }
 }
 

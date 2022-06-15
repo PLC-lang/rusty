@@ -1,22 +1,22 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2522
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 %Main_interface = type { i16 }
-%Check_XX_RangeSigned_interface = type { i16, i16, i16 }
 
 @Main_instance = global %Main_interface zeroinitializer
 
-define i16 @Check_XX_RangeSigned(%Check_XX_RangeSigned_interface* %0) {
+define i16 @Check_XX_RangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
-  %value = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 0
-  %lower = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 1
-  %upper = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 2
+  %value = alloca i16, align 2
+  store i16 %0, i16* %value, align 2
+  %lower = alloca i16, align 2
+  store i16 %1, i16* %lower, align 2
+  %upper = alloca i16, align 2
+  store i16 %2, i16* %upper, align 2
   %Check_XX_RangeSigned = alloca i16, align 2
   store i16 0, i16* %Check_XX_RangeSigned, align 2
   %load_value = load i16, i16* %value, align 2

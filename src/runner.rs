@@ -6,6 +6,7 @@ use inkwell::{
 use crate::{compile_module, diagnostics::Diagnostician, SourceCode, SourceContainer};
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
+type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -65,6 +66,17 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
         let main_t_ptr = &mut *params as *mut _;
 
         main.call(main_t_ptr)
+    }
+}
+
+///
+/// Runs the function given by `name` inside the compiled execution engine code.
+/// Returns the value returned by calling the function
+///
+pub fn run_no_param<U>(exec_engine: &ExecutionEngine, name: &str) -> U {
+    unsafe {
+        let main: JitFunction<MainEmptyFunction<U>> = exec_engine.get_function(name).unwrap();
+        main.call()
     }
 }
 

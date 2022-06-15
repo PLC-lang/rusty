@@ -1,18 +1,15 @@
 ---
 source: src/tests/multi_files.rs
-assertion_line: 37
 expression: res
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 %mainProg_interface = type {}
-%main_interface = type {}
 
 @mainProg_instance = global %mainProg_interface zeroinitializer
 
-define i16 @main(%main_interface* %0) {
+define i16 @main() {
 entry:
   %main = alloca i16, align 2
   store i16 0, i16* %main, align 2

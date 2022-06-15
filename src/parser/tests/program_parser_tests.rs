@@ -54,7 +54,7 @@ fn simple_program_with_var_input_can_be_parsed() {
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
-    let expected_ast = r#"VariableBlock {
+    insta::assert_snapshot!(ast_string, @r#"VariableBlock {
     variables: [
         Variable {
             name: "x",
@@ -63,9 +63,10 @@ fn simple_program_with_var_input_can_be_parsed() {
             },
         },
     ],
-    variable_block_type: Input,
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    variable_block_type: Input(
+        ByVal,
+    ),
+}"#);
 }
 
 #[test]

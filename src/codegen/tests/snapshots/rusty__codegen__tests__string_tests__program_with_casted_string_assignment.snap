@@ -1,8 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
-assertion_line: 75
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -24,7 +22,7 @@ entry:
   store [18 x i16] [i16 105, i16 109, i16 32, i16 97, i16 32, i16 117, i16 116, i16 102, i16 49, i16 54, i16 32, i16 103, i16 101, i16 110, i16 105, i16 117, i16 115, i16 0], [18 x i16]* %4, align 2
   %5 = bitcast [81 x i16]* %z to i8*
   %6 = bitcast [18 x i16]* %4 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 80, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %5, i8* align 2 %6, i32 160, i1 false)
   ret void
 }
 

@@ -58,10 +58,10 @@ mod linker;
 mod parser;
 mod resolver;
 mod test_utils;
-mod typesystem;
-mod validation;
 
 pub mod runner;
+mod typesystem;
+mod validation;
 
 #[macro_use]
 #[cfg(test)]
@@ -741,6 +741,7 @@ pub fn link(
 
 #[cfg(test)]
 mod tests {
+    mod adr;
     mod external_files;
     mod multi_files;
 

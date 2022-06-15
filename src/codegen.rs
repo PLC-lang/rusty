@@ -142,12 +142,10 @@ impl<'ink> CodeGen<'ink> {
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {
             //Don't generate external or generic functions
-            if implementation.linkage != LinkageType::External
-                && !global_index
-                    .get_type_information_or_void(&implementation.type_name)
-                    .is_generic()
-            {
-                pou_generator.generate_implementation(implementation)?;
+            if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
+                if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
+                    pou_generator.generate_implementation(implementation)?;
+                }
             }
         }
 
