@@ -22,7 +22,6 @@ vscode:
     - llvm-vs-code-extensions.vscode-clangd
     - vadimcn.vscode-lldb
     - matklad.rust-analyzer
-    - revng.llvm-ir
 tasks:
   - name: Run build and watch
     init: cargo build --tests
