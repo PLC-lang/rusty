@@ -1,15 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::super::*;
 use inkwell::targets::{InitializationConfig, Target};
+use rusty::runner::run_no_param;
 
-#[allow(dead_code)]
-#[repr(C)]
-struct MainType {
-    val: i32,
-}
-
-extern "C" fn times_two(param: &MainType) -> i32 {
-    param.val * 2
+extern "C" fn times_two(val: i32) -> i32 {
+    val * 2
 }
 
 #[test]
@@ -50,7 +45,8 @@ fn test_external_function_called() {
     let fn_value = code_gen.module.get_function("times_two").unwrap();
 
     exec_engine.add_global_mapping(&fn_value, times_two as usize);
-    let res: i32 = run(&exec_engine, "main", &mut MainType { val: 0 });
+
+    let res: i32 = run_no_param(&exec_engine, "main");
     assert_eq!(res, 200)
 
     //Call that function

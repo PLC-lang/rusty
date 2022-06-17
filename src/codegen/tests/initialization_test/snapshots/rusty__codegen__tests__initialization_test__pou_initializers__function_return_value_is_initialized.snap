@@ -1,17 +1,11 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
-assertion_line: 231
 expression: function
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%foo_int_interface = type {}
-%foo_str_interface = type {}
-%foo_arr_interface = type {}
-
-define i16 @foo_int(%foo_int_interface* %0) {
+define i16 @foo_int() {
 entry:
   %foo_int = alloca i16, align 2
   store i16 0, i16* %foo_int, align 2
@@ -19,20 +13,20 @@ entry:
   ret i16 %foo_int_ret
 }
 
-define [11 x i8] @foo_str(%foo_str_interface* %0) {
+define [11 x i8] @foo_str() {
 entry:
   %foo_str = alloca [11 x i8], align 1
-  %1 = bitcast [11 x i8]* %foo_str to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([11 x i8]* getelementptr ([11 x i8], [11 x i8]* null, i32 1) to i64), i1 false)
+  %0 = bitcast [11 x i8]* %foo_str to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([11 x i8]* getelementptr ([11 x i8], [11 x i8]* null, i32 1) to i64), i1 false)
   %foo_str_ret = load [11 x i8], [11 x i8]* %foo_str, align 1
   ret [11 x i8] %foo_str_ret
 }
 
-define [10 x float] @foo_arr(%foo_arr_interface* %0) {
+define [10 x float] @foo_arr() {
 entry:
   %foo_arr = alloca [10 x float], align 4
-  %1 = bitcast [10 x float]* %foo_arr to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([10 x float]* getelementptr ([10 x float], [10 x float]* null, i32 1) to i64), i1 false)
+  %0 = bitcast [10 x float]* %foo_arr to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([10 x float]* getelementptr ([10 x float], [10 x float]* null, i32 1) to i64), i1 false)
   %foo_arr_ret = load [10 x float], [10 x float]* %foo_arr, align 4
   ret [10 x float] %foo_arr_ret
 }

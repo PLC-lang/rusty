@@ -69,7 +69,7 @@ jobs:
 
   test-windows:
     name: Test Windows
-    runs-on: windows-latest
+    runs-on: windows-2019
     needs: check
     env:
       toolchain-version: 1.60.0

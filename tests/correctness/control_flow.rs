@@ -324,22 +324,23 @@ fn for_loop_overflow() {
     }
 
     let function = r#"
-    FUNCTION main : DINT
+    PROGRAM main 
     VAR
         i : INT;
+        ret : DINT;
     END_VAR
-    main := 100;
+    ret := 100;
     FOR i:= 1 TO 0 BY -2 DO
-        main := main + 1;
+        ret := ret + 1;
     END_FOR
-    END_FUNCTION
+    END_PROGRAM
     "#;
 
     let mut main = MainType { i: 0, ret: 0 };
 
-    let res: i32 = compile_and_run(function.to_string(), &mut main);
-    assert_eq!(res, 101);
-    assert_eq!(-1, main.i);
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.ret, 101);
+    assert_eq!(main.i, -1);
 }
 
 #[test]
@@ -350,28 +351,34 @@ fn for_loop_variable_does_not_affect_other_variables_dint() {
         a: i32,
         i: i32,
         b: i32,
+        ret: i32,
     }
 
     let function = r#"
-    FUNCTION main : DINT
+    PROGRAM main
     VAR
-        a,i,b : DINT;
+        a,i,b,ret : DINT;
     END_VAR
     a := 16#FFFF_FFFF;
     b := 16#FFFF_FFFF;
-    main := 100;
+    ret := 100;
     FOR i:= 1 TO 10 DO
-        main := main + 1;
+        ret := ret + 1;
     END_FOR
-    END_FUNCTION
+    END_PROGRAM
     "#;
 
-    let mut main = MainType { a: 0, i: 0, b: 0 };
+    let mut main = MainType {
+        a: 0,
+        i: 0,
+        b: 0,
+        ret: 0,
+    };
 
-    let res: i32 = compile_and_run(function.to_string(), &mut main);
-    assert_eq!(res, 110);
-    assert_eq!(-1, main.a);
-    assert_eq!(-1, main.b);
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.ret, 110);
+    assert_eq!(main.a, -1);
+    assert_eq!(main.b, -1);
 }
 
 #[test]
@@ -382,28 +389,35 @@ fn for_loop_variable_does_not_affect_other_variables_int() {
         a: i16,
         i: i16,
         b: i16,
+        ret: i32,
     }
 
     let function = r#"
-    FUNCTION main : DINT
+    PROGRAM main
     VAR
         a,i,b : INT;
+        ret: DINT;
     END_VAR
     a := 16#FFFF;
     b := 16#FFFF;
-    main := 100;
+    ret := 100;
     FOR i:= 1 TO 10 DO
-        main := main + 1;
+        ret := ret + 1;
     END_FOR
-    END_FUNCTION
+    END_PROGRAM
     "#;
 
-    let mut main = MainType { a: 0, i: 0, b: 0 };
+    let mut main = MainType {
+        a: 0,
+        i: 0,
+        b: 0,
+        ret: 0,
+    };
 
-    let res: i32 = compile_and_run(function.to_string(), &mut main);
-    assert_eq!(res, 110);
-    assert_eq!(-1, main.a);
-    assert_eq!(-1, main.b);
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.ret, 110);
+    assert_eq!(main.a, -1);
+    assert_eq!(main.b, -1);
 }
 
 #[test]
@@ -414,28 +428,35 @@ fn for_loop_variable_does_not_affect_other_variables_sint() {
         a: i8,
         i: i8,
         b: i8,
+        ret: i32,
     }
 
     let function = r#"
-    FUNCTION main : DINT
+    PROGRAM main
     VAR
         a,i,b : SINT;
+        ret: DINT;
     END_VAR
     a := 16#FF;
     b := 16#FF;
-    main := 100;
+    ret := 100;
     FOR i:= 1 TO 10 DO
-        main := main + 1;
+        ret := ret + 1;
     END_FOR
-    END_FUNCTION
+    END_PROGRAM
     "#;
 
-    let mut main = MainType { a: 0, i: 0, b: 0 };
+    let mut main = MainType {
+        a: 0,
+        i: 0,
+        b: 0,
+        ret: 0,
+    };
 
-    let res: i32 = compile_and_run(function.to_string(), &mut main);
-    assert_eq!(res, 110);
-    assert_eq!(-1, main.a);
-    assert_eq!(-1, main.b);
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.ret, 110);
+    assert_eq!(main.a, -1);
+    assert_eq!(main.b, -1);
 }
 
 #[test]
@@ -446,38 +467,39 @@ fn for_loop_variable_does_not_affect_other_variables_lint() {
         a: i64,
         i: i64,
         b: i64,
+        ret: i32,
     }
 
     let function = r#"
-    FUNCTION main : DINT
+    PROGRAM main
     VAR
         a,i,b : LINT;
+        ret: DINT;
     END_VAR
     a := 16#FFFF_FFFF_FFFF_FFFF;
     b := 16#FFFF_FFFF_FFFF_FFFF;
-    main := 100;
+    ret := 100;
     FOR i:= 1 TO 10 DO
-        main := main + 1;
+        ret := ret + 1;
     END_FOR
-    END_FUNCTION
+    END_PROGRAM
     "#;
 
-    let mut main = MainType { a: 0, i: 0, b: 0 };
+    let mut main = MainType {
+        a: 0,
+        i: 0,
+        b: 0,
+        ret: 0,
+    };
 
-    let res: i32 = compile_and_run(function.to_string(), &mut main);
-    assert_eq!(res, 110);
-    assert_eq!(-1, main.a);
-    assert_eq!(-1, main.b);
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.ret, 110);
+    assert_eq!(main.a, -1);
+    assert_eq!(main.b, -1);
 }
 
 #[test]
 fn for_loop_and_increment_10_times_skipping_1() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        i: i16,
-        ret: i16,
-    }
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -490,19 +512,15 @@ fn for_loop_and_increment_10_times_skipping_1() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(res, 1005);
 }
 
 #[test]
 fn while_loop_no_entry() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        i: i16,
-        ret: i32,
-    }
-
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -518,19 +536,15 @@ fn while_loop_no_entry() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(res, 5);
 }
 
 #[test]
 fn exit_in_if_in_while_loop() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        i: i16,
-        ret: i32,
-    }
-
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -547,19 +561,15 @@ fn exit_in_if_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(res, 10);
 }
 
 #[test]
 fn exit_in_for_loop_in_while_loop() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        i: i16,
-        ret: i32,
-    }
-
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -576,19 +586,15 @@ fn exit_in_for_loop_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(res, 20);
 }
 
 #[test]
 fn continue_in_for_loop_in_while_loop() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        i: i16,
-        ret: i32,
-    }
-
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -606,19 +612,15 @@ fn continue_in_for_loop_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(res, 31);
 }
 
 #[test]
 fn repeat_loop_no_entry() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        i: i16,
-        ret: i32,
-    }
-
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -635,17 +637,14 @@ fn repeat_loop_no_entry() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(res, 1017);
 }
 #[test]
 fn while_loop_10_times() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        i: i16,
-        ret: i32,
-    }
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -661,18 +660,15 @@ fn while_loop_10_times() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(res, 10101);
 }
 
 #[test]
 fn repeat_loop_10_times() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        i: i16,
-        ret: i32,
-    }
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -689,7 +685,10 @@ fn repeat_loop_10_times() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
     assert_eq!(res, 10101);
 }
 
@@ -699,38 +698,44 @@ fn case_statement() {
     #[repr(C)]
     struct MainType {
         i: i16,
+        ret: i16,
     }
     let function = r#"
-    FUNCTION main : DINT
+    PROGRAM main
     VAR_INPUT
         i : INT;
+        ret : INT;
     END_VAR
-    main := 1;
+    ret := 1;
     
     CASE i OF
-        1,2,3,4,5,6,7,8,9: main := 101;
-        10,11,12..19: main := 201;
-        20..24, 25..29: main := 301;
-        ELSE main := 7;
+        1,2,3,4,5,6,7,8,9: ret := 101;
+        10,11,12..19: ret := 201;
+        20..24, 25..29: ret := 301;
+        ELSE ret := 7;
     END_CASE
-    END_FUNCTION
+    END_PROGRAM
     "#;
 
     (1..9).for_each(|i| {
-        let res: i32 = compile_and_run(function.to_string(), &mut MainType { i });
-        assert_eq!(res, 101);
+        let p = &mut MainType { i, ret: 0 };
+        let _: i32 = compile_and_run(function.to_string(), p);
+        assert_eq!(p.ret, 101);
     });
 
     (10..19).for_each(|i| {
-        let res: i32 = compile_and_run(function.to_string(), &mut MainType { i });
-        assert_eq!(res, 201);
+        let p = &mut MainType { i, ret: 0 };
+        let _: i32 = compile_and_run(function.to_string(), p);
+        assert_eq!(p.ret, 201);
     });
 
     (20..29).for_each(|i| {
-        let res: i32 = compile_and_run(function.to_string(), &mut MainType { i });
-        assert_eq!(res, 301);
+        let p = &mut MainType { i, ret: 0 };
+        let _: i32 = compile_and_run(function.to_string(), p);
+        assert_eq!(p.ret, 301);
     });
 
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 999 });
-    assert_eq!(res, 7);
+    let p = &mut MainType { i: 999, ret: 0 };
+    let _: i32 = compile_and_run(function.to_string(), p);
+    assert_eq!(p.ret, 7);
 }

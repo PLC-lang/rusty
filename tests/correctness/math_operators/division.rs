@@ -238,13 +238,13 @@ fn real_division_by_zero() {
     }
 
     let prog = "
-    FUNCTION main : DINT
+    PROGRAM main
         VAR
             r : LREAL;
             rZero: LREAL;
         END_VAR
         r := (1.0 / rZero);
-    END_FUNCTION
+    END_PROGRAM
     ";
 
     let mut main = MainType { r: 0.0, z: 0.0 };

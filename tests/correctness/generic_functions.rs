@@ -3,29 +3,17 @@ use inkwell::targets::{InitializationConfig, Target};
 
 #[allow(dead_code)]
 #[repr(C)]
-struct TimesTwoTypeInt {
-    val: i16,
-}
-
-#[allow(dead_code)]
-#[repr(C)]
-struct TimesTwoTypeReal {
-    val: f32,
-}
-
-#[allow(dead_code)]
-#[repr(C)]
 struct MainType {
     a: i16,
     b: f32,
 }
 
-extern "C" fn times_two_int(param: &TimesTwoTypeInt) -> i16 {
-    param.val * 2
+extern "C" fn times_two_int(val: i16) -> i16 {
+    val * 2
 }
 
-extern "C" fn times_two_real(param: &TimesTwoTypeReal) -> f32 {
-    param.val * 2.0f32
+extern "C" fn times_two_real(val: f32) -> f32 {
+    val * 2.0f32
 }
 
 #[test]
@@ -38,14 +26,14 @@ fn test_external_function_called() {
     END_VAR
     END_FUNCTION
 
-    FUNCTION main : DINT
+    PROGRAM main
     VAR
         a : INT;
         b : REAL;
     END_VAR
         a := times_two(INT#100);
         b := times_two(2.5);
-    END_FUNCTION
+    END_PROGRAM
     ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
@@ -102,14 +90,14 @@ fn test_generic_function_implemented_in_st_called() {
         times_two__REAL := val * 2.0;
     END_FUNCTION
 
-    FUNCTION main : DINT
+    PROGRAM main 
     VAR
         a : INT;
         b : REAL;
     END_VAR
         a := times_two(INT#100);
         b := times_two(2.5);
-    END_FUNCTION
+    END_PROGRAM
     ";
 
     let mut main_type = MainType { a: 0, b: 0.0f32 };

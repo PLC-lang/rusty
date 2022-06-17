@@ -10,7 +10,7 @@ use codespan_reporting::{
 };
 use inkwell::support::LLVMString;
 
-use crate::ast::{DataTypeDeclaration, PouType, SourceRange};
+use crate::ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
@@ -411,6 +411,16 @@ impl Diagnostic {
         }
     }
 
+    pub fn cannot_generate_call_statement<T: DiagnosticInfo>(operator: &T) -> Diagnostic {
+        Diagnostic::codegen_error(
+            &format!(
+                "cannot generate call statement for {:?}",
+                operator.get_description()
+            ),
+            operator.get_location(),
+        )
+    }
+
     pub fn io_read_error(file: &str, reason: &str) -> Diagnostic {
         Diagnostic::GeneralError {
             message: format!("Cannot read file '{:}': {:}'", file, reason),
@@ -545,6 +555,13 @@ impl Diagnostic {
                 }
             }
             _ => it,
+        }
+    }
+
+    pub fn invalid_pragma_location(message: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!("Invalid pragma location: {}", message),
+            range,
         }
     }
 }
