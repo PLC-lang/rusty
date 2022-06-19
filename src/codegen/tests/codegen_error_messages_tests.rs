@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, diagnostics::Diagnostic, test_utils::tests::codegen_without_unwrap};
+use crate::{diagnostics::Diagnostic, test_utils::tests::codegen_without_unwrap};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -255,10 +255,7 @@ fn constants_without_initialization() {
 
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::codegen_error(
-                "Cannot generate literal initializer for 'b': Value can not be derived",
-                SourceRange::undefined()
-            ),
+            Diagnostic::codegen_error("Cannot propagate constant value for 'a'", (73..74).into()),
             msg
         )
     } else {
@@ -279,10 +276,7 @@ fn recursive_initial_constant_values() {
 
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::codegen_error(
-                "Cannot generate literal initializer for 'a': Value can not be derived",
-                SourceRange::undefined()
-            ),
+            Diagnostic::codegen_error("Cannot propagate constant value for 'b'", (52..53).into()),
             msg
         )
     } else {
