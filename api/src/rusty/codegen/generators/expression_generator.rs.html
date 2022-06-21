@@ -2342,6 +2342,51 @@
 <span id="2337">2337</span>
 <span id="2338">2338</span>
 <span id="2339">2339</span>
+<span id="2340">2340</span>
+<span id="2341">2341</span>
+<span id="2342">2342</span>
+<span id="2343">2343</span>
+<span id="2344">2344</span>
+<span id="2345">2345</span>
+<span id="2346">2346</span>
+<span id="2347">2347</span>
+<span id="2348">2348</span>
+<span id="2349">2349</span>
+<span id="2350">2350</span>
+<span id="2351">2351</span>
+<span id="2352">2352</span>
+<span id="2353">2353</span>
+<span id="2354">2354</span>
+<span id="2355">2355</span>
+<span id="2356">2356</span>
+<span id="2357">2357</span>
+<span id="2358">2358</span>
+<span id="2359">2359</span>
+<span id="2360">2360</span>
+<span id="2361">2361</span>
+<span id="2362">2362</span>
+<span id="2363">2363</span>
+<span id="2364">2364</span>
+<span id="2365">2365</span>
+<span id="2366">2366</span>
+<span id="2367">2367</span>
+<span id="2368">2368</span>
+<span id="2369">2369</span>
+<span id="2370">2370</span>
+<span id="2371">2371</span>
+<span id="2372">2372</span>
+<span id="2373">2373</span>
+<span id="2374">2374</span>
+<span id="2375">2375</span>
+<span id="2376">2376</span>
+<span id="2377">2377</span>
+<span id="2378">2378</span>
+<span id="2379">2379</span>
+<span id="2380">2380</span>
+<span id="2381">2381</span>
+<span id="2382">2382</span>
+<span id="2383">2383</span>
+<span id="2384">2384</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -2516,8 +2561,19 @@
                     <span class="string">&quot;{}{}{}&quot;</span>,
                     <span class="self">self</span>.<span class="ident">temp_variable_prefix</span>, <span class="ident">name</span>, <span class="self">self</span>.<span class="ident">temp_variable_suffix</span>
                 );
-                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">load_pointer</span>(<span class="kw-2">&amp;</span><span class="ident">l_value</span>, <span class="ident">load_name</span>.<span class="ident">as_str</span>()))
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> {
+                    <span class="ident">qualified_name</span>,
+                    <span class="ident">constant</span>: <span class="bool-val">true</span>,
+                    ..
+                }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">expression</span>)
+                {
+                    <span class="comment">// constant propagation</span>
+                    <span class="self">self</span>.<span class="ident">generate_constant_expression</span>(<span class="ident">qualified_name</span>, <span class="ident">expression</span>)
+                } <span class="kw">else</span> {
+                    <span class="comment">// general reference generation</span>
+                    <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
+                    <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">load_pointer</span>(<span class="kw-2">&amp;</span><span class="ident">l_value</span>, <span class="ident">load_name</span>.<span class="ident">as_str</span>()))
+                }
             }
             <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } =&gt; {
                 <span class="comment">//If direct access, don&#39;t load pointers</span>
@@ -2554,6 +2610,40 @@
             <span class="comment">//fallback</span>
             <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">generate_literal</span>(<span class="ident">expression</span>),
         }
+    }
+
+    <span class="doccomment">/// Propagate the constant value of the constant reference to  `qualified_name`.</span>
+    <span class="doccomment">/// - `qualified _name` the qualified name of the referenced constant variable we want to propagate</span>
+    <span class="doccomment">/// - `expression` the original expression</span>
+    <span class="kw">fn</span> <span class="ident">generate_constant_expression</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">const_expression</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">index</span>
+            <span class="comment">// try to find a constant variable</span>
+            .<span class="ident">find_variable</span>(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>[<span class="ident">qualified_name</span>])
+            <span class="comment">// or else try to find an enum element</span>
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_qualified_enum_element</span>(<span class="ident">qualified_name</span>))
+            <span class="comment">// if this is no constant we have a problem</span>
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">is_constant</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">initial_value</span>)
+            <span class="comment">// fetch the constant&#39;s initial value fron the const-expressions arena</span>
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">constant_variable</span><span class="op">|</span> {
+                <span class="self">self</span>.<span class="ident">index</span>
+                    .<span class="ident">get_const_expressions</span>()
+                    .<span class="ident">get_resolved_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">constant_variable</span>)
+            })
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">Diagnostic::codegen_error</span>(
+                    <span class="macro">format!</span>(<span class="string">&quot;Cannot propagate constant value for &#39;{:}&#39;&quot;</span>, <span class="ident">qualified_name</span>).<span class="ident">as_str</span>(),
+                    <span class="ident">expression</span>.<span class="ident">get_location</span>(),
+                )
+            })<span class="question-mark">?</span>;
+
+        <span class="comment">//  generate the resulting constant-expression (which should be a Value, no ptr-reference)</span>
+        <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">const_expression</span>)
     }
 
     <span class="doccomment">/// generates a binary expression (e.g. a + b, x AND y, etc.) and returns the resulting `BasicValueEnum`</span>
