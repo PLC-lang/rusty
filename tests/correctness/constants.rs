@@ -25,7 +25,7 @@ fn constant_values_used_as_initial_values() {
         gF : LREAL := cF;
     END_VAR
 
-    PROGRAM main : DINT
+    PROGRAM main
         VAR
             i : DINT;
             b : BOOL;
@@ -67,17 +67,17 @@ fn constant_expressions_used_as_initial_values() {
     let src = r#"
     VAR_GLOBAL CONSTANT
         cI : DINT := 2 * 5;
-        cB : BOOL := (CI-5 = 5);
+        cB : BOOL := (cI-5 = 5);
         cF : LREAL := 2.1543 + cI;
     END_VAR
 
     VAR_GLOBAL CONSTANT
         gI : DINT := cI;
         gb : BOOL := cB;
-        gF : LREAL := cF;
+        gF : LREAL := cF + gI * 2;
     END_VAR
 
-    PROGRAM main : DINT
+    PROGRAM main
         VAR
             i : DINT;
             b : BOOL;
@@ -99,7 +99,7 @@ fn constant_expressions_used_as_initial_values() {
         MainType {
             i: 10,
             b: true,
-            f: 12.1543,
+            f: 32.1543,
         },
     );
 }
@@ -123,7 +123,7 @@ fn constant_expressions_used_in_case_statement() {
         number_3 : DINT := 8;
     END_VAR
 
-    PROGRAM main : DINT
+    PROGRAM main
         VAR
             i : DINT;
             b : BOOL;
@@ -193,7 +193,7 @@ fn constant_expressions_used_in_array_declaration() {
         THREE : DINT := 3;
     END_VAR
 
-    PROGRAM main : DINT
+    PROGRAM main
         VAR
             i : ARRAY[ 1 .. (TWO + THREE) * TWO] OF DINT;  // 1 .. 10
             j : DINT;
