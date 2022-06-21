@@ -134,12 +134,9 @@ fn using_enums() {
       %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
       %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
       %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-      %load_idle = load i32, i32* @idle, align 4
-      store i32 %load_idle, i32* %x, align 4
-      %load_closed = load i32, i32* @closed, align 4
-      store i32 %load_closed, i32* %y, align 4
-      %load_closed1 = load i32, i32* @closed.2, align 4
-      store i32 %load_closed1, i32* %z, align 4
+      store i32 5, i32* %x, align 4
+      store i32 4, i32* %y, align 4
+      store i32 16, i32* %z, align 4
       ret void
     }
     "###);

@@ -1261,6 +1261,84 @@ fn case_with_ranges_statement() {
 }
 
 #[test]
+fn case_with_constant_expressions_in_case_selectors() {
+    let result = codegen(
+        r##"
+VAR_GLOBAL CONSTANT
+	FORWARD     : DINT := 7;
+	UP          : DINT := FORWARD + 1;
+	DOWN        : DINT := FORWARD + UP;
+END_VAR
+
+FUNCTION drive : DINT
+    VAR
+        input : DINT;
+        horiz, depth : DINT;
+    END_VAR
+
+	CASE input OF
+		FORWARD : 
+			horiz := horiz + 1;
+        FORWARD*2:
+            horiz := horiz + 2;
+		UP :
+			depth := depth - 1;
+		DOWN : 
+			depth := depth + 1;
+
+	END_CASE
+
+END_FUNCTION
+"##,
+    );
+
+    // WHEN we compile, we want to see propagated constant in the switch statement
+    // -> so no references to variables, but int-values (7, 14, 8 and 15)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn case_with_enum_expressions_in_case_selectors() {
+    let result = codegen(
+        r##"
+VAR_GLOBAL CONSTANT
+    BASE     : DINT := 7;
+END_VAR
+
+TYPE Direction: (
+    FORWARD := BASE,
+    UP,
+    DOWN := BASE * 2);
+END_TYPE
+
+FUNCTION drive : DINT
+    VAR
+        input : DINT;
+        horiz, depth : DINT;
+    END_VAR
+
+	CASE input OF
+		FORWARD : 
+			horiz := horiz + 1;
+        FORWARD*2:
+            horiz := horiz + 2;
+		UP :
+			depth := depth - 1;
+		DOWN : 
+			depth := depth + 1;
+
+	END_CASE
+
+END_FUNCTION
+"##,
+    );
+
+    // WHEN we compile, we want to see propagated constant in the switch statement
+    // -> so no references to variables, but int-values (7, 14, 8 and 15)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn function_called_in_program() {
     let result = codegen(
         "
@@ -2597,8 +2675,6 @@ fn using_global_consts_in_expressions() {
     );
     //WHEN we compile
     // we expect the constants to be inlined
-    //TODO inline constant values into body-expression
-    // https://github.com/ghaith/rusty/issues/291
     insta::assert_snapshot!(result);
 }
 
