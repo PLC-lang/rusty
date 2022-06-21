@@ -2923,3 +2923,37 @@ fn optional_output_assignment() {
     // codegen should be successful
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn constant_expressions_in_ranged_type_declaration_are_propagated() {
+    //GIVEN a ranged type from 0 .. MIN+1 where MIN is a global constant
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        VAR_GLOBAL CONSTANT
+          MIN : INT := 7;
+        END_VAR 
+
+        FUNCTION CheckRangeSigned: INT 
+          VAR_INPUT
+              value : INT;
+              lower : INT;
+              upper : INT;
+          END_VAR
+          CheckRangeSigned := value;
+        END_FUNCTION
+
+        PROGRAM prg
+          VAR
+            x: INT(0 .. MIN+1);
+          END_VAR
+          x := 5;
+        END_PROGRAM",
+    );
+
+    // THEN we expect that the assignment to the range-typed variable (x := 5) will result
+    // in a call to CheckRangedSigned where the upper bound is a literal i16 8 - NOT an
+    // add-expression that really calculates the upper bound at runtime
+
+    insta::assert_snapshot!(result);
+}
