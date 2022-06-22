@@ -676,8 +676,8 @@ fn parse_time_of_day(
     time: &mut Split<char>,
     location: &SourceRange,
 ) -> Result<(u32, u32, u32, u32), Diagnostic> {
-    let hour = parse_number::<u32>(time.next().expect("valid u32"), location)?;
-    let min = parse_number::<u32>(time.next().expect("valid u32"), location)?;
+    let hour = parse_number::<u32>(time.next().expect("expected hours"), location)?;
+    let min = parse_number::<u32>(time.next().expect("expected minutes"), location)?;
 
     // doesn't necessarily have to have seconds, e.g [12:00] is also valid
     let sec = match time.next() {
@@ -685,7 +685,7 @@ fn parse_time_of_day(
         None => 0.0,
     };
 
-    let milli = (sec.fract() * 1000_f64) as u32;
+    let milli = (sec.fract() * 1000_f64).round() as u32;
 
     Ok((hour, min, sec.floor() as u32, milli))
 }
