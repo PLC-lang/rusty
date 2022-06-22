@@ -31,7 +31,7 @@ fn link_as_shared_object() {
         vec![],
         &CompileOptions {
             output: out2.clone(),
-            format: FormatOption::Shared,
+            format: Some(FormatOption::Shared),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
@@ -47,7 +47,7 @@ fn link_as_shared_object() {
         vec![],
         &CompileOptions {
             output: out1.clone(),
-            format: FormatOption::Shared,
+            format: Some(FormatOption::Shared),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
@@ -97,7 +97,7 @@ fn link_as_pic_object() {
         vec![],
         &CompileOptions {
             output: out2.clone(),
-            format: FormatOption::PIC,
+            format: Some(FormatOption::PIC),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
@@ -113,7 +113,7 @@ fn link_as_pic_object() {
         vec![],
         &CompileOptions {
             output: out1.clone(),
-            format: FormatOption::PIC,
+            format: Some(FormatOption::PIC),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
@@ -163,7 +163,7 @@ fn link_as_static_object() {
         vec![],
         &CompileOptions {
             output: out2.clone(),
-            format: FormatOption::Static,
+            format: Some(FormatOption::Static),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
@@ -179,7 +179,7 @@ fn link_as_static_object() {
         vec![],
         &CompileOptions {
             output: out1.clone(),
-            format: FormatOption::Static,
+            format: Some(FormatOption::Static),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
@@ -229,7 +229,7 @@ fn link_as_relocatable_object() {
         vec![],
         &CompileOptions {
             output: out2.clone(),
-            format: FormatOption::Static,
+            format: Some(FormatOption::Static),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
@@ -245,7 +245,7 @@ fn link_as_relocatable_object() {
         vec![],
         &CompileOptions {
             output: out1.clone(),
-            format: FormatOption::Relocatable,
+            format: Some(FormatOption::Relocatable),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
@@ -286,7 +286,7 @@ fn link_missing_file() {
         vec![],
         &CompileOptions {
             output: out.clone(),
-            format: FormatOption::Static,
+            format: Some(FormatOption::Static),
             target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
         },
