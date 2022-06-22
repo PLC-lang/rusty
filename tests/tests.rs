@@ -12,6 +12,7 @@ mod correctness {
     mod arrays;
     mod bitaccess;
     mod classes;
+    mod constants;
     mod control_flow;
     mod custom_datatypes;
     mod datatypes;

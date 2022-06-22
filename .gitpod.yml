@@ -22,7 +22,7 @@ vscode:
     - llvm-vs-code-extensions.vscode-clangd
     - vadimcn.vscode-lldb
     - matklad.rust-analyzer
-    - hbenl.vscode-test-explorer
-    - Swellaby.vscode-rust-test-adapter
-    - hbenl.test-adapter-converter
-    - revng.llvm-ir
+tasks:
+  - name: Run build and watch
+    init: cargo build --tests
+    command: cargo watch -x 'test'

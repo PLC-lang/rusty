@@ -172,8 +172,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     "{}{}{}",
                     self.temp_variable_prefix, name, self.temp_variable_suffix
                 );
-                let l_value = self.generate_element_pointer(expression)?;
-                Ok(self.llvm.load_pointer(&l_value, load_name.as_str()))
+                if let Some(StatementAnnotation::Variable {
+                    qualified_name,
+                    constant: true,
+                    ..
+                }) = self.annotations.get(expression)
+                {
+                    // constant propagation
+                    self.generate_constant_expression(qualified_name, expression)
+                } else {
+                    // general reference generation
+                    let l_value = self.generate_element_pointer(expression)?;
+                    Ok(self.llvm.load_pointer(&l_value, load_name.as_str()))
+                }
             }
             AstStatement::QualifiedReference { elements, .. } => {
                 //If direct access, don't load pointers
@@ -210,6 +221,40 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             //fallback
             _ => self.generate_literal(expression),
         }
+    }
+
+    /// Propagate the constant value of the constant reference to  `qualified_name`.
+    /// - `qualified _name` the qualified name of the referenced constant variable we want to propagate
+    /// - `expression` the original expression
+    fn generate_constant_expression(
+        &self,
+        qualified_name: &str,
+        expression: &AstStatement,
+    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        let const_expression = self
+            .index
+            // try to find a constant variable
+            .find_variable(None, &[qualified_name])
+            // or else try to find an enum element
+            .or_else(|| self.index.find_qualified_enum_element(qualified_name))
+            // if this is no constant we have a problem
+            .filter(|v| v.is_constant())
+            .and_then(|v| v.initial_value)
+            // fetch the constant's initial value fron the const-expressions arena
+            .and_then(|constant_variable| {
+                self.index
+                    .get_const_expressions()
+                    .get_resolved_constant_statement(&constant_variable)
+            })
+            .ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    format!("Cannot propagate constant value for '{:}'", qualified_name).as_str(),
+                    expression.get_location(),
+                )
+            })?;
+
+        //  generate the resulting constant-expression (which should be a Value, no ptr-reference)
+        self.generate_expression(const_expression)
     }
 
     /// generates a binary expression (e.g. a + b, x AND y, etc.) and returns the resulting `BasicValueEnum`
