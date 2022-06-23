@@ -51,7 +51,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         let block_type = get_declaration_type_for(block);
         for var in &block.variables {
             if let DataTypeDeclaration::DataTypeDefinition {
-                data_type: ast::DataType::VarArgs { referenced_type },
+                data_type:
+                    ast::DataType::VarArgs {
+                        referenced_type,
+                        sized,
+                    },
                 ..
             } = &var.data_type
             {
@@ -60,7 +64,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                     .map(|it| &**it)
                     .and_then(DataTypeDeclaration::get_name)
                     .map(|it| it.to_string());
-                varargs = Some(name);
+                varargs = Some(if *sized {
+                    VarArgs::Sized(name)
+                } else {
+                    VarArgs::Unsized(name)
+                });
                 continue;
             }
             member_names.push(var.name.clone());

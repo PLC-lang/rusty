@@ -494,6 +494,7 @@ pub enum DataType {
     },
     VarArgs {
         referenced_type: Option<Box<DataTypeDeclaration>>,
+        sized: bool, //If the variadic has the sized property
     },
     GenericType {
         name: String,

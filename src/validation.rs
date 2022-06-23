@@ -170,8 +170,15 @@ impl Validator {
             } => self.visit_data_type_declaration(context, referenced_type),
             DataType::VarArgs {
                 referenced_type: Some(referenced_type),
+                ..
             } => {
                 self.visit_data_type_declaration(context, referenced_type.as_ref());
+            }
+            DataType::VarArgs {
+                referenced_type: None,
+                sized: true
+            } => {
+                //Cannot have sized varargs with no type declaration
             }
             _ => {}
         }

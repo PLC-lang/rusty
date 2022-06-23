@@ -106,7 +106,11 @@ impl DataType {
     }
 }
 
-type VarArgs = Option<String>;
+#[derive(Debug, Clone, PartialEq)]
+pub enum VarArgs {
+    Sized(Option<String>),
+    Unsized(Option<String>),
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StringEncoding {
@@ -328,6 +332,10 @@ impl DataTypeInformation {
             ..
         } = &self
         {
+            let inner_type = match inner_type {
+                VarArgs::Sized(t) => t,
+                VarArgs::Unsized(t) => t,
+            };
             inner_type.as_ref().map(String::as_str)
         } else {
             None

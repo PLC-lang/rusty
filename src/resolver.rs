@@ -696,6 +696,7 @@ impl<'i> TypeAnnotator<'i> {
             } => self.visit_data_type_declaration(ctx, referenced_type),
             DataType::VarArgs {
                 referenced_type: Some(referenced_type),
+                ..
             } => {
                 self.visit_data_type_declaration(ctx, referenced_type.as_ref());
             }
