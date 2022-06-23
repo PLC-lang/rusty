@@ -157,11 +157,6 @@ pub struct CompileResult {
     pub objects: Vec<FilePath>,
 }
 
-pub enum CompiledModule<'c> {
-    IndexOnly(Index),
-    FullCodegen(Index, CodeGen<'c>),
-}
-
 /// SourceContainers offer source-code to be compiled via the load_source function.
 /// Furthermore it offers a location-String used when reporting diagnostics.
 pub trait SourceContainer {
