@@ -80,7 +80,7 @@ fn expt_binary_expression() {
                 e,f : LREAL;
             END_VAR
             //DINTS
-            a ** b; //DINT * DINT -> hint : REAL * DINT result REAL
+            a ** b; //DINT * DINT -> hint : DINT * DINT result DINT
             a ** d; //DINT * REAL -> hit : REAL * REAL result REAL
             a ** f; //DINT * LREAL -> hit : LREAL * LREAL result LREAL
 
@@ -99,9 +99,9 @@ fn expt_binary_expression() {
     let statements = &unit.implementations[0].statements;
     //DINT
     if let AstStatement::BinaryExpression { left, right, .. } = &statements[0] {
-        assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(REAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
         assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
-        assert_type_and_hint!(&annotations, &index, &statements[0], REAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[0], DINT_TYPE, None);
     } else {
         unreachable!()
     }

@@ -1229,8 +1229,7 @@ impl<'i> TypeAnnotator<'i> {
                 let dint = self.index.get_type_or_panic(DINT_TYPE);
                 if operator == Operator::Exponentiation {
                     //Convert left side to either REAL or LREAL
-                    let real = self.index.get_type_or_panic(REAL_TYPE);
-                    let left_converted = get_bigger_type(left_type, real, self.index);
+                    let left_converted = get_bigger_type(left_type, dint, self.index);
                     //Convert the right side to at least DINT
                     let right_converted = get_bigger_type(right_type, dint, self.index);
                     //Use the biggest type of the input for the left/end result
