@@ -11,9 +11,11 @@ fn resolved_generic_call_added_to_index() {
     let (unit, index) = index(
         "
         FUNCTION myFunc<G: ANY_NUM> : G
-        VAR_INPUT
-            x : G;
-        END_VAR
+        VAR_INPUT   x : G;  END_VAR
+        END_FUNCTION
+
+        FUNCTION myFunc__BYTE : BYTE
+        VAR_INPUT   x : BYTE; END_VAR
         END_FUNCTION
 
         PROGRAM PRG
@@ -23,24 +25,23 @@ fn resolved_generic_call_added_to_index() {
             myFunc(x := a);
             myFunc(6);
             myFunc(1.0);
+            myFunc(BYTE#1);
         END_PROGRAM",
     );
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
-    //The implementations are added to the index
+    // The implementations are added to the index
     let implementations = annotations.new_index.get_implementations();
-    dbg!(&annotations.new_index);
-    dbg!(&index);
     assert!(implementations.contains_key("myfunc__int"));
     assert!(implementations.contains_key("myfunc__dint"));
     assert!(implementations.contains_key("myfunc__real"));
-    assert_eq!(3, implementations.len());
+    assert_eq!(3, implementations.len()); //make sure BYTE-implementation was not added by the annotator
 
     //The pous are added to the index
-    let pous = annotations.new_index.get_pou_types();
+    let pous = annotations.new_index.get_pous();
     assert!(pous.contains_key("myfunc__int"));
     assert!(pous.contains_key("myfunc__dint"));
     assert!(pous.contains_key("myfunc__real"));
-    assert_eq!(3, pous.len());
+    assert_eq!(3, pous.len()); //make sure BYTE-implementation was not added by the annotator
 
     //Each POU has members
     assert_eq!(

@@ -45,6 +45,39 @@ fn comments_are_ignored_by_the_lexer() {
 }
 
 #[test]
+fn undefined_pragmas_are_ignored_by_the_lexer() {
+    let mut lexer = lex(r"
+        PROGRAM { Some Content } END_PROGRAM 
+                                   {
+                                    FUNCTION }
+        {END_FUNCTION FUNCTION_BLOCK}
+        END_FUNCTION_BLOCK
+        ");
+    assert_eq!(lexer.token, KeywordProgram, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        KeywordEndFunctionBlock,
+        "Token : {}",
+        lexer.slice()
+    );
+    lexer.advance();
+}
+
+#[test]
+fn registered_pragmas_parsed() {
+    let mut lexer = lex(r"
+        {external}{ref}{not_registerd}
+        ");
+    assert_eq!(lexer.token, PropertyExternal, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, PropertyByRef, "Token : {}", lexer.slice());
+    lexer.advance();
+}
+
+#[test]
 fn comments_are_not_ignored_in_strings() {
     let mut lexer = lex(r#"
         'PROGRAM (* Some Content *) END_PROGRAM 
@@ -326,8 +359,8 @@ fn date_and_time_literals_test() {
 #[test]
 fn long_date_and_time_literals_test() {
     let mut lexer = lex("
-	LDT#1984-10-01-20:15:12 LDT#1-1-1-1:1:1");
-    for _ in 1..=2 {
+	LDT#1984-10-01-20:15:12 LDT#1-1-1-1:1:1 LDT#1984-10-01-20:15 LDT#1984-10-01-20:15:12.123");
+    for _ in 1..=4 {
         assert_eq!(lexer.token, LiteralDateAndTime);
         lexer.advance();
     }
@@ -336,16 +369,10 @@ fn long_date_and_time_literals_test() {
 #[test]
 fn time_of_day_literals_test() {
     let mut lexer = lex("TIME_OF_DAY#20:15:12 TOD#1:1:1 TOD#1:1:1.123 TIME_OF_DAY#12:13 TOD#10:20");
-    assert_eq!(lexer.token, LiteralTimeOfDay);
-    lexer.advance();
-    assert_eq!(lexer.token, LiteralTimeOfDay);
-    lexer.advance();
-    assert_eq!(lexer.token, LiteralTimeOfDay);
-    lexer.advance();
-    assert_eq!(lexer.token, LiteralTimeOfDay);
-    lexer.advance();
-    assert_eq!(lexer.token, LiteralTimeOfDay);
-    lexer.advance();
+    for _ in 1..=5 {
+        assert_eq!(lexer.token, LiteralTimeOfDay);
+        lexer.advance();
+    }
 }
 
 #[test]

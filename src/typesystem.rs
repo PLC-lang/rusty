@@ -385,7 +385,7 @@ impl DataTypeInformation {
     pub fn get_alignment(&self) -> u32 {
         match self {
             DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf8 => 1,
-            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => 1,
+            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => 2,
             _ => unimplemented!("Alignment for {}", self.get_name()),
         }
     }

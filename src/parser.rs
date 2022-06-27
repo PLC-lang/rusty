@@ -31,11 +31,9 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType) -> ParsedAst {
                 //Don't reset linkage
                 continue;
             }
-            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(
-                &mut lexer,
-                VariableBlockType::Global,
-                linkage,
-            )),
+            KeywordVarGlobal => unit
+                .global_vars
+                .push(parse_variable_block(&mut lexer, linkage)),
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
                 let params = match lexer.token {
                     KeywordProgram => (PouType::Program, KeywordEndProgram),
@@ -154,7 +152,8 @@ fn parse_pou(
             _ => None,
         };
 
-        let name = parse_identifier(lexer).unwrap_or_else(|| "".to_string()); // parse POU name
+        let (name, name_location) =
+            parse_identifier(lexer).unwrap_or_else(|| ("".to_string(), SourceRange::undefined())); // parse POU name
 
         let generics = parse_generics(lexer);
 
@@ -185,11 +184,7 @@ fn parse_pou(
                 ],
             };
             while allowed_var_types.contains(&lexer.token) {
-                variable_blocks.push(parse_variable_block(
-                    lexer,
-                    parse_variable_block_type(&lexer.token),
-                    LinkageType::Internal,
-                ));
+                variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
             }
 
             let mut impl_pous = vec![];
@@ -225,6 +220,7 @@ fn parse_pou(
                 variable_blocks,
                 return_type,
                 location: SourceRange::new(start..lexer.range().end),
+                name_location,
                 poly_mode,
                 generics,
                 linkage,
@@ -252,12 +248,12 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
             let mut generics = vec![];
             loop {
                 //identifier
-                if let Some(name) = parse_identifier(lexer) {
+                if let Some((name, _)) = parse_identifier(lexer) {
                     lexer.consume_or_report(Token::KeywordColon);
 
                     //Expect a type nature
                     if let Some(nature) =
-                        parse_identifier(lexer).map(|it| parse_type_nature(lexer, &it))
+                        parse_identifier(lexer).map(|(it, _)| parse_type_nature(lexer, &it))
                     {
                         generics.push(GenericBinding { name, nature });
                     }
@@ -382,7 +378,7 @@ fn parse_method(
         };
         let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
         let overriding = lexer.allow(&KeywordOverride);
-        let name = parse_identifier(lexer)?;
+        let (name, name_location) = parse_identifier(lexer)?;
         let generics = parse_generics(lexer);
         let return_type = parse_return_type(lexer, &pou_type);
 
@@ -393,11 +389,7 @@ fn parse_method(
             || lexer.token == KeywordVarInOut
             || lexer.token == KeywordVarTemp
         {
-            variable_blocks.push(parse_variable_block(
-                lexer,
-                parse_variable_block_type(&lexer.token),
-                LinkageType::Internal,
-            ));
+            variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
         let call_name = format!("{}.{}", class_name, name);
@@ -428,6 +420,7 @@ fn parse_method(
                 variable_blocks,
                 return_type,
                 location: SourceRange::new(method_start..method_end),
+                name_location,
                 poly_mode,
                 generics,
                 linkage,
@@ -452,11 +445,12 @@ fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
 }
 
 /// parse identifier and advance if successful
-fn parse_identifier(lexer: &mut ParseSession) -> Option<String> {
+/// returns the identifier as a String and the SourceRange of the parsed name
+fn parse_identifier(lexer: &mut ParseSession) -> Option<(String, SourceRange)> {
     let pou_name = lexer.slice().to_string();
     if lexer.token == Identifier {
         lexer.advance();
-        Some(pou_name)
+        Some((pou_name, lexer.last_location()))
     } else {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
             "Identifier",
@@ -946,11 +940,26 @@ fn parse_control(lexer: &mut ParseSession) -> AstStatement {
     parse_control_statement(lexer)
 }
 
-fn parse_variable_block_type(block_type: &Token) -> VariableBlockType {
+fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
+    let block_type = lexer.token.clone();
+    //Consume the type token
+    lexer.advance();
+    let argument_property = if lexer.allow(&PropertyByRef) {
+        //Report a diagnostic if blocktype is incompatible
+        if !matches!(block_type, KeywordVarInput) {
+            lexer.accept_diagnostic(Diagnostic::invalid_pragma_location(
+                "Only VAR_INPUT support by ref properties",
+                lexer.location(),
+            ))
+        }
+        ArgumentProperty::ByRef
+    } else {
+        ArgumentProperty::ByVal
+    };
     match block_type {
         KeywordVar => VariableBlockType::Local,
         KeywordVarTemp => VariableBlockType::Temp,
-        KeywordVarInput => VariableBlockType::Input,
+        KeywordVarInput => VariableBlockType::Input(argument_property),
         KeywordVarOutput => VariableBlockType::Output,
         KeywordVarGlobal => VariableBlockType::Global,
         KeywordVarInOut => VariableBlockType::InOut,
@@ -958,14 +967,9 @@ fn parse_variable_block_type(block_type: &Token) -> VariableBlockType {
     }
 }
 
-fn parse_variable_block(
-    lexer: &mut ParseSession,
-    variable_block_type: VariableBlockType,
-    linkage: LinkageType,
-) -> VariableBlock {
+fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> VariableBlock {
     let location = lexer.location();
-    //Consume the type keyword
-    lexer.advance();
+    let variable_block_type = parse_variable_block_type(lexer);
 
     let constant = lexer.allow(&KeywordConstant);
 

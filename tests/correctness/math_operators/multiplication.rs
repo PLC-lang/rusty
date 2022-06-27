@@ -1,4 +1,4 @@
-use crate::{compile_and_run, MainType, assert_almost_eq};
+use crate::{assert_almost_eq, compile_and_run, MainType};
 use num::{Float, NumCast};
 
 //--------------------------------------------------------------

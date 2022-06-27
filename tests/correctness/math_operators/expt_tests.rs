@@ -1,4 +1,4 @@
-use rusty::runner::{MainType, compile_and_run};
+use rusty::runner::{compile_and_run, MainType};
 
 use crate::assert_almost_eq;
 
@@ -12,7 +12,6 @@ fn int_to_int_expt() {
 
     let res: i32 = compile_and_run(prog.to_string(), &mut MainType::default());
     assert_eq!(res, 8)
-
 }
 
 #[test]
@@ -24,7 +23,7 @@ fn int_to_real_expt() {
     ";
 
     let res: f32 = compile_and_run(prog.to_string(), &mut MainType::default());
-    assert_almost_eq!(res,2.0f32.sqrt(), f32::EPSILON);
+    assert_almost_eq!(res, 2.0f32.sqrt(), f32::EPSILON);
 }
 
 #[test]
@@ -36,7 +35,7 @@ fn real_to_real_expt() {
     ";
 
     let res: f32 = compile_and_run(prog.to_string(), &mut MainType::default());
-    assert_almost_eq!(res,2.0f32.powf(0.1), f32::EPSILON);
+    assert_almost_eq!(res, 2.0f32.powf(0.1), f32::EPSILON);
 }
 
 #[test]
@@ -48,7 +47,7 @@ fn real_to_int_expt() {
     ";
 
     let res: f32 = compile_and_run(prog.to_string(), &mut MainType::default());
-    assert_almost_eq!(res,9.0f32, f32::EPSILON);
+    assert_almost_eq!(res, 9.0f32, f32::EPSILON);
 }
 
 #[test]
@@ -60,8 +59,7 @@ fn lreal_to_real_expt() {
     ";
 
     let res: f64 = compile_and_run(prog.to_string(), &mut MainType::default());
-    assert_almost_eq!(res,3.0f64.powf(0.2), f64::EPSILON);
-
+    assert_almost_eq!(res, 3.0f64.powf(0.2), f64::EPSILON);
 }
 
 #[test]
@@ -73,7 +71,7 @@ fn real_to_lreal_expt() {
     ";
 
     let res: f64 = compile_and_run(prog.to_string(), &mut MainType::default());
-    assert_almost_eq!(res,4.0f64.powf(0.3), f64::EPSILON);
+    assert_almost_eq!(res, 4.0f64.powf(0.3), f64::EPSILON);
 }
 
 #[test]
@@ -85,5 +83,5 @@ fn lreal_to_lreal_expt() {
     ";
 
     let res: f64 = compile_and_run(prog.to_string(), &mut MainType::default());
-    assert_almost_eq!(res,5.0f64.powf(0.4), f64::EPSILON);
+    assert_almost_eq!(res, 5.0f64.powf(0.4), f64::EPSILON);
 }

@@ -6,8 +6,8 @@ use crate::{
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, REAL_TYPE,
-        SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, LREAL_TYPE,
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LREAL_TYPE,
+        REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -165,8 +165,6 @@ fn expt_binary_expression() {
     } else {
         unreachable!()
     }
-
-
 }
 
 #[test]

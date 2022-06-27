@@ -677,3 +677,26 @@ fn nested_calls_in_call_statement() {
         (interface.var1, interface.var2)
     );
 }
+
+#[test]
+fn by_ref_and_by_val_mixed_function_call() {
+    let function = r#"FUNCTION func : DINT
+        VAR_INPUT {ref}
+            byRef1 : INT;
+            byRef2 : DINT;
+        END_VAR
+        VAR_INPUT
+            byVal1 : INT;
+            byVal2 : DINT;
+        END_VAR
+            func := byRef1 + byRef2 + byVal1 + byVal2;
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            main := func(10,100,1000,10_000); //1 and 2 by ref, 3 and 4 by val
+        END_PROGRAM
+        "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType::default());
+    assert_eq!(res, 11_110)
+}

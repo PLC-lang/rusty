@@ -522,14 +522,11 @@ impl PouIndexEntry {
                 instance_struct_name,
                 ..
             }
-            | PouIndexEntry::Function {
-                instance_struct_name,
-                ..
-            }
             | PouIndexEntry::Class {
                 instance_struct_name,
                 ..
             } => Some(instance_struct_name.as_str()),
+            _ => None, //functions have no struct type
         }
     }
 
@@ -965,6 +962,13 @@ impl Index {
     ) -> Option<&VariableIndexEntry> {
         self.enum_qualified_variables
             .get(&format!("{}.{}", enum_name, element_name).to_lowercase())
+    }
+
+    /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
+    /// or None if the requested Enum-Type or -Element does not exist
+    pub fn find_qualified_enum_element(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
+        self.enum_qualified_variables
+            .get(&qualified_name.to_lowercase())
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
