@@ -125,7 +125,11 @@ impl Validator {
         container: &VariableBlock,
     ) {
         self.variable_validator
-            .validate_variable_block(container, context);
+            .validate_variable_block(container);
+        
+        for variable in &container.variables {
+            self.visit_variable(context, variable);
+        }
     }
 
     pub fn visit_variable(&mut self, context: &ValidationContext, variable: &Variable) {
@@ -173,12 +177,6 @@ impl Validator {
                 ..
             } => {
                 self.visit_data_type_declaration(context, referenced_type.as_ref());
-            }
-            DataType::VarArgs {
-                referenced_type: None,
-                sized: true
-            } => {
-                //Cannot have sized varargs with no type declaration
             }
             _ => {}
         }

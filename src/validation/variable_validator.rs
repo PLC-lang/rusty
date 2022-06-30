@@ -23,7 +23,7 @@ impl VariableValidator {
         }
     }
 
-    pub fn validate_variable_block(&mut self, block: &VariableBlock, context: &ValidationContext) {
+    pub fn validate_variable_block(&mut self, block: &VariableBlock) {
         if block.constant
             && !matches!(
                 block.variable_block_type,
@@ -32,10 +32,6 @@ impl VariableValidator {
         {
             self.diagnostics
                 .push(Diagnostic::invalid_constant_block(block.location.clone()))
-        }
-
-        for variable in &block.variables {
-            self.validate_variable(variable, context);
         }
     }
 
@@ -103,7 +99,12 @@ impl VariableValidator {
             } if expressions.is_empty() => {
                 self.diagnostics
                     .push(Diagnostic::empty_variable_block(location.clone()));
-            }
+            },
+            DataType::VarArgs { referenced_type: None, sized: true } => {
+                self.diagnostics.push(
+                    Diagnostic::missing_datatype(Some(": Sized Variadics require a known datatype."), location.clone())
+                )
+            },
             _ => {}
         }
     }

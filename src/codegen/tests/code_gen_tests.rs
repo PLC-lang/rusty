@@ -1470,29 +1470,6 @@ fn function_with_two_parameters_called_in_program() {
 }
 
 #[test]
-fn function_with_varargs_called_in_program() {
-    let result = codegen(
-        "
-        @EXTERNAL
-        FUNCTION foo : DINT
-        VAR_INPUT
-          args : ...;
-        END_VAR
-        END_FUNCTION
-
-        PROGRAM prg 
-        VAR
-        x : DINT;
-        END_VAR
-        x := foo(FALSE, 3, (x + 1));
-        END_PROGRAM
-        ",
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
 fn function_with_local_var_initialization_and_call() {
     let result = codegen(
         "

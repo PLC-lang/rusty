@@ -9,12 +9,13 @@ use crate::{
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
-        is_same_type_class, Dimension, StringEncoding, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
+        self, is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE,
+        INT_TYPE, LINT_TYPE,
     },
 };
 use inkwell::{
     builder::Builder,
-    types::{BasicType, BasicTypeEnum},
+    types::{AnyType, BasicType, BasicTypeEnum, BasicMetadataTypeEnum},
     values::{
         ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, GlobalValue,
         IntValue, PointerValue, StructValue, VectorValue,
@@ -631,23 +632,28 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         declared_parameters: Vec<&VariableIndexEntry>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = Vec::new();
+        let mut variadic_params = Vec::new();
         for (idx, param_statement) in arguments.into_iter().enumerate() {
             let (location, param_statement) =
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
 
             //None -> possibly variadic
-            let (declaration_type, type_name) = declared_parameters
+            let param /*(declaration_type, type_name)*/ = declared_parameters
                 //get paremeter at location
                 .get(location)
                 //find the parameter's type and name
-                .map(|it| (it.get_declaration_type(), it.get_type_name()))
+                .map(|it| Some((it.get_declaration_type(), it.get_type_name())))
                 //TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
                 .map(Ok)
                 .unwrap_or_else(|| {
                     //If we are dealing with a variadic function, we can accept all extra parameters
                     if pou.is_variadic() {
+                        variadic_params.push(
+                        (location,
                         self.get_type_hint_for(param_statement)
-                            .map(|it| (ArgumentType::ByVal(VariableType::Input), it.get_name()))
+                            .map(|it| it.get_name())
+                            .and_then(|type_name| self.generate_argument_by_val(type_name, param_statement))?));
+                        Ok(None)
                     } else {
                         //We are not variadic, we have too many parameters here
                         Err(Diagnostic::codegen_error(
@@ -657,14 +663,83 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            let argument: BasicValueEnum = if declaration_type.is_by_ref() {
-                self.generate_argument_by_ref(param_statement, type_name)?
-            } else {
-                //pass by val
-                self.generate_argument_by_val(type_name, param_statement)?
-            };
+            if let Some((declaration_type, type_name)) = param {
+                let argument: BasicValueEnum = if declaration_type.is_by_ref() {
+                    self.generate_argument_by_ref(param_statement, type_name)?
+                } else {
+                    //pass by val
+                    self.generate_argument_by_val(type_name, param_statement)?
+                };
+                result.push((location, argument));
+            }
 
-            result.push((location, argument));
+            //Push variadic collection and optionally the variadic size
+            if pou.is_variadic() {
+                //get the real varargs from the index
+                if let Some(VarArgs::Sized(Some(type_name))) = self
+                    .index
+                    .find_effective_type_info(pou.get_name())
+                    .and_then(|it| it.get_variadic())
+                {
+                    let size = variadic_params.len();
+                    //Create a size argument
+                    let location = result.last().map(|(size, _)| *size).unwrap_or_default();
+                    let size_param = self
+                        .llvm_index
+                        .get_associated_type(typesystem::DINT_TYPE)
+                        .expect("DINT always exists")
+                        .into_int_type()
+                        .const_int(size as u64, true);
+                    result.push((location + 1, size_param.into()));
+                    //Create an array in the pou
+                    let llvm_type = self.llvm_index.get_associated_type(type_name)?;
+                    let arr : BasicValueEnum = match llvm_type {
+                        //Add all arguments to the pointer
+                        BasicTypeEnum::ArrayType(_) => llvm_type.into_array_type().const_array(
+                            &variadic_params
+                                .iter()
+                                .map(|(_, it)| it.into_array_value())
+                                .collect::<Vec<_>>(),
+                        ),
+                        BasicTypeEnum::FloatType(_) => llvm_type.into_float_type().const_array(
+                            &variadic_params
+                                .iter()
+                                .map(|(_, it)| it.into_float_value())
+                                .collect::<Vec<_>>(),
+                        ),
+                        BasicTypeEnum::IntType(_) => llvm_type.into_int_type().const_array(
+                            &variadic_params
+                                .iter()
+                                .map(|(_, it)| it.into_int_value())
+                                .collect::<Vec<_>>(),
+                        ),
+                        BasicTypeEnum::PointerType(_) => llvm_type.into_pointer_type().const_array(
+                            &variadic_params
+                                .iter()
+                                .map(|(_, it)| it.into_pointer_value())
+                                .collect::<Vec<_>>(),
+                        ),
+                        BasicTypeEnum::StructType(_) => llvm_type.into_struct_type().const_array(
+                            &variadic_params
+                                .iter()
+                                .map(|(_, it)| it.into_struct_value())
+                                .collect::<Vec<_>>(),
+                        ),
+                        BasicTypeEnum::VectorType(_) => llvm_type.into_vector_type().const_array(
+                            &variadic_params
+                                .iter()
+                                .map(|(_, it)| it.into_vector_value())
+                                .collect::<Vec<_>>(),
+                        ),
+                    }
+                    .into();
+                    //Pass the array as pointer parameter
+                    
+                    result.push((location + 2, arr.into_pointer_value().into()));
+                } else {
+                    result.append(&mut variadic_params);
+                }
+            }
         }
         result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
         Ok(result

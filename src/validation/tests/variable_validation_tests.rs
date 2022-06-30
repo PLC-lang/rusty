@@ -173,3 +173,27 @@ fn constant_fb_instances_are_illegal() {
         ]
     );
 }
+
+#[test]
+fn sized_varargs_require_type() {
+    // GIVEN a function with a untyped sized variadic argument
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION f_with_var : INT
+        VAR_INPUT
+            in   : INT;
+            args : {sized}...;
+        END_VAR
+        END_FUNCTION
+      ",
+    );
+
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::missing_datatype(Some(": Sized Variadics require a known datatype."), (103..106).into()),
+        ]
+    )
+
+}

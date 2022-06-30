@@ -112,6 +112,12 @@ pub enum VarArgs {
     Unsized(Option<String>),
 }
 
+impl VarArgs {
+    pub fn is_sized(&self) -> bool {
+        matches!(self, VarArgs::Sized(..))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum StringEncoding {
     Utf8,
@@ -324,6 +330,17 @@ impl DataTypeInformation {
                 ..
             }
         )
+    }
+
+    pub fn get_variadic(&self) -> Option<&VarArgs> {
+        if let DataTypeInformation::Struct {
+            varargs,
+            ..
+        } = &self {
+            varargs.as_ref()
+        } else {
+            None
+        }
     }
 
     pub fn get_variadic_type(&self) -> Option<&str> {

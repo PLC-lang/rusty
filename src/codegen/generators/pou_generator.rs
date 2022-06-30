@@ -10,7 +10,7 @@ use crate::{
     codegen::llvm_index::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
-    resolver::AstAnnotations,
+    resolver::AstAnnotations, typesystem::{DataTypeInformation, VarArgs, self},
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -165,8 +165,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let variadic = global_index
             .find_effective_type_info(implementation.get_type_name())
-            .map(|it| it.is_variadic())
-            .unwrap_or(false);
+            .and_then(DataTypeInformation::get_variadic);
 
         let function_declaration =
             self.create_llvm_function_type(parameters, variadic, return_type)?;
@@ -320,27 +319,34 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn create_llvm_function_type(
         &self,
         parameters: Vec<BasicMetadataTypeEnum<'ink>>,
-        is_var_args: bool,
+        variadic: Option<&'cg VarArgs>,
         return_type: Option<BasicTypeEnum<'ink>>,
     ) -> Result<FunctionType<'ink>, Diagnostic> {
-        let params = parameters.as_slice();
+        //Sized variadic is not considered a variadic function, but receives 2 extra parameters, size and a pointer
+        let is_var_args = variadic.map(|it| !it.is_sized()).unwrap_or_default();
+        let sized_variadics = self.get_sized_variadic_params(variadic);
+        let mut params = parameters;
+        if let Some(sized_variadics) = sized_variadics {
+           params.extend_from_slice(&sized_variadics);
+        };
+
         match return_type {
             Some(enum_type) if enum_type.is_int_type() => {
-                Ok(enum_type.into_int_type().fn_type(params, is_var_args))
+                Ok(enum_type.into_int_type().fn_type(&params, is_var_args))
             }
             Some(enum_type) if enum_type.is_float_type() => {
-                Ok(enum_type.into_float_type().fn_type(params, is_var_args))
+                Ok(enum_type.into_float_type().fn_type(&params, is_var_args))
             }
             Some(enum_type) if enum_type.is_array_type() => {
-                Ok(enum_type.into_array_type().fn_type(params, is_var_args))
+                Ok(enum_type.into_array_type().fn_type(&params, is_var_args))
             }
             Some(enum_type) if enum_type.is_pointer_type() => {
-                Ok(enum_type.into_pointer_type().fn_type(params, is_var_args))
+                Ok(enum_type.into_pointer_type().fn_type(&params, is_var_args))
             }
             Some(enum_type) if enum_type.is_struct_type() => {
-                Ok(enum_type.into_struct_type().fn_type(params, is_var_args))
+                Ok(enum_type.into_struct_type().fn_type(&params, is_var_args))
             }
-            None => Ok(self.llvm.context.void_type().fn_type(params, is_var_args)),
+            None => Ok(self.llvm.context.void_type().fn_type(&params, is_var_args)),
             _ => Err(Diagnostic::codegen_error(
                 &format!("Unsupported return type {:?}", return_type),
                 SourceRange::undefined(),
@@ -577,4 +583,17 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
         Ok(())
     }
+
+
+fn get_sized_variadic_params(&self, variadic: Option<&'cg VarArgs>) -> Option<[BasicMetadataTypeEnum<'ink>;2]> {
+    if let Some(VarArgs::Sized(Some(type_name))) = variadic {
+        //Create a size parameter of type i32 (DINT)
+        let size_param = self.llvm_index.find_associated_type(typesystem::DINT_TYPE).map(Into::into)?;
+        let ptr_param = self.llvm_index.find_associated_type(type_name).map(|it| it.ptr_type(AddressSpace::Generic).into())?;
+        Some([size_param, ptr_param])
+    } else {
+        None
+    }
 }
+}
+
