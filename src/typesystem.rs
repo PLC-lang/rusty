@@ -333,10 +333,7 @@ impl DataTypeInformation {
     }
 
     pub fn get_variadic(&self) -> Option<&VarArgs> {
-        if let DataTypeInformation::Struct {
-            varargs,
-            ..
-        } = &self {
+        if let DataTypeInformation::Struct { varargs, .. } = &self {
             varargs.as_ref()
         } else {
             None

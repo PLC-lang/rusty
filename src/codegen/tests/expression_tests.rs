@@ -497,3 +497,17 @@ fn builtin_function_call_ref() {
     // We expect a direct conversion and subsequent assignment to pointer(no call)
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn builtin_function_call_mux() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b,c,d,e : DINT;
+        END_VAR
+            a := MUX(3, b,c,d,e); //3 = d
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}

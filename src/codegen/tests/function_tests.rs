@@ -302,7 +302,6 @@ fn passing_arguments_to_functions_by_ref_and_val() {
     "###);
 }
 
-
 #[test]
 fn function_with_varargs_called_in_program() {
     let result = codegen(
@@ -364,8 +363,9 @@ fn function_with_sized_varargs_called_in_program() {
       %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
       %load_x = load i32, i32* %x, align 4
       %tmpVar = add i32 %load_x, 1
-      args
-      %call = call i32 (i32, i32*) @foo(i32 3, i32* %args)
+      %1 = alloca [3 x i32], align 4
+      store [3 x i32] [i32 0, i32 3, i32 %tmpVar], [3 x i32]* %1, align 4
+      %call = call i32 @foo(i32 3, [3 x i32]* %1)
       store i32 %call, i32* %x, align 4
       ret void
     }

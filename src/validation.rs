@@ -124,9 +124,8 @@ impl Validator {
         context: &ValidationContext,
         container: &VariableBlock,
     ) {
-        self.variable_validator
-            .validate_variable_block(container);
-        
+        self.variable_validator.validate_variable_block(container);
+
         for variable in &container.variables {
             self.visit_variable(context, variable);
         }

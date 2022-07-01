@@ -9,6 +9,10 @@ license = "LGPL-3.0-or-later"
 keywords = ["iec61131", "st", "Structued_Text"]
 categories = ["development-tools::build-utils"]
 
+[features]
+default = []
+debug = []
+
 [dependencies]
 logos = "0.12.0"
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features= ["llvm13-0"] }

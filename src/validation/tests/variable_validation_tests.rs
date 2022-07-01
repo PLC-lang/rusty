@@ -191,9 +191,9 @@ fn sized_varargs_require_type() {
 
     assert_eq!(
         diagnostics,
-        vec![
-            Diagnostic::missing_datatype(Some(": Sized Variadics require a known datatype."), (103..106).into()),
-        ]
+        vec![Diagnostic::missing_datatype(
+            Some(": Sized Variadics require a known datatype."),
+            (103..106).into()
+        ),]
     )
-
 }

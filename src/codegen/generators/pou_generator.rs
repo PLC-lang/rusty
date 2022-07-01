@@ -10,7 +10,8 @@ use crate::{
     codegen::llvm_index::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
-    resolver::AstAnnotations, typesystem::{DataTypeInformation, VarArgs, self},
+    resolver::AstAnnotations,
+    typesystem::{self, DataTypeInformation, VarArgs},
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -327,7 +328,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let sized_variadics = self.get_sized_variadic_params(variadic);
         let mut params = parameters;
         if let Some(sized_variadics) = sized_variadics {
-           params.extend_from_slice(&sized_variadics);
+            params.extend_from_slice(&sized_variadics);
         };
 
         match return_type {
@@ -584,16 +585,23 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(())
     }
 
-
-fn get_sized_variadic_params(&self, variadic: Option<&'cg VarArgs>) -> Option<[BasicMetadataTypeEnum<'ink>;2]> {
-    if let Some(VarArgs::Sized(Some(type_name))) = variadic {
-        //Create a size parameter of type i32 (DINT)
-        let size_param = self.llvm_index.find_associated_type(typesystem::DINT_TYPE).map(Into::into)?;
-        let ptr_param = self.llvm_index.find_associated_type(type_name).map(|it| it.ptr_type(AddressSpace::Generic).into())?;
-        Some([size_param, ptr_param])
-    } else {
-        None
+    fn get_sized_variadic_params(
+        &self,
+        variadic: Option<&'cg VarArgs>,
+    ) -> Option<[BasicMetadataTypeEnum<'ink>; 2]> {
+        if let Some(VarArgs::Sized(Some(type_name))) = variadic {
+            //Create a size parameter of type i32 (DINT)
+            let size_param = self
+                .llvm_index
+                .find_associated_type(typesystem::DINT_TYPE)
+                .map(Into::into)?;
+            let ptr_param = self
+                .llvm_index
+                .find_associated_type(type_name)
+                .map(|it| it.ptr_type(AddressSpace::Generic).into())?;
+            Some([size_param, ptr_param])
+        } else {
+            None
+        }
     }
 }
-}
-

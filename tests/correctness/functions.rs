@@ -1,3 +1,5 @@
+use rusty::runner::run_no_param;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::super::*;
 
@@ -699,4 +701,18 @@ fn by_ref_and_by_val_mixed_function_call() {
 
     let res: i32 = compile_and_run(function.to_string(), &mut MainType::default());
     assert_eq!(res, 11_110)
+}
+
+#[test]
+fn mux_test() {
+    let function = r#"
+        FUNCTION main : DINT
+            main := MUX(2,4,5,6,7,8); //Result is 6 
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 6)
 }

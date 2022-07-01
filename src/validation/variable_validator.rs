@@ -99,12 +99,14 @@ impl VariableValidator {
             } if expressions.is_empty() => {
                 self.diagnostics
                     .push(Diagnostic::empty_variable_block(location.clone()));
-            },
-            DataType::VarArgs { referenced_type: None, sized: true } => {
-                self.diagnostics.push(
-                    Diagnostic::missing_datatype(Some(": Sized Variadics require a known datatype."), location.clone())
-                )
-            },
+            }
+            DataType::VarArgs {
+                referenced_type: None,
+                sized: true,
+            } => self.diagnostics.push(Diagnostic::missing_datatype(
+                Some(": Sized Variadics require a known datatype."),
+                location.clone(),
+            )),
             _ => {}
         }
     }

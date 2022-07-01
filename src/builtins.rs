@@ -59,6 +59,27 @@ lazy_static! {
                     }
                 }
             },
+        ),
+        (
+            "MUX",
+            BuiltIn {
+                decl: "FUNCTION MUX<T: ANY> : T
+                VAR_INPUT
+                    K : DINT;
+                    args : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                code: |generator, params, location| {
+                    //Generate an access from the first param
+                    let k = params.first().ok_or_else(|| Diagnostic::codegen_error("Missing parameter K in Mux", location)).and_then(|k| generator.generate_expression(k))?;
+                    let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
+                    //Generate a pointer for the rest of the params
+                    let params = generator.generate_variadic_arguments_list(pou, &params[1..])?;
+                    let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), k.into_int_value()],"mux")?; //First access is into the array
+                    Ok(generator.llvm.builder.build_load(ptr, "mux"))
+                }
+            },
         )
     ]);
 }

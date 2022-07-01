@@ -103,7 +103,6 @@ fn a_function_with_typed_varargs_can_be_parsed() {
     "###);
 }
 
-
 #[test]
 fn a_function_with_sized_varargs_can_be_parsed() {
     let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : {sized} ...; END_VAR END_FUNCTION";
@@ -137,7 +136,6 @@ fn a_function_with_sized_varargs_can_be_parsed() {
     }
     "###);
 }
-
 
 #[test]
 fn a_function_with_sized_typed_varargs_can_be_parsed() {
