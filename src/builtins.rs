@@ -72,14 +72,47 @@ lazy_static! {
                 ",
                 code: |generator, params, location| {
                     //Generate an access from the first param
-                    let k = params.first().ok_or_else(|| Diagnostic::codegen_error("Missing parameter K in Mux", location)).and_then(|k| generator.generate_expression(k))?;
-                    let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
-                    //Generate a pointer for the rest of the params
-                    let params = generator.generate_variadic_arguments_list(pou, &params[1..])?;
-                    let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), k.into_int_value()],"mux")?; //First access is into the array
-                    Ok(generator.llvm.builder.build_load(ptr, "mux"))
+                    if let &[k, ..] = params {
+                        let k = generator.generate_expression(k)?;
+                        let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
+                        //Generate a pointer for the rest of the params
+                        let params = generator.generate_variadic_arguments_list(pou, &params[1..])?;
+                        let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), k.into_int_value()],"")?; //First access is into the array
+                        Ok(generator.llvm.builder.build_load(ptr, ""))
+                    } else {
+                        Err(Diagnostic::codegen_error("Invalid signature for MUX", location))
+                    }
+
                 }
             },
+        ),
+        (
+            "SEL",
+            BuiltIn {
+                decl: "FUNCTION SEL<T: ANY> : T
+                VAR_INPUT
+                    G : BOOL;
+                    IN0 : T;
+                    IN1 : T;
+                END_VAR
+                END_FUNCTION
+                ",
+                code: |generator, params, location| {
+                    if let &[g,..] = params {
+                        //evaluate G
+                        let cond = generator.generate_expression(g)?;
+                        //Use the mux definition for the varargs
+                        let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
+                        //Generate a pointer for the rest of the params
+                        let params = generator.generate_variadic_arguments_list(pou, &params[1..])?;
+                        let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), cond.into_int_value()],"")?; //First access is into the array
+                        Ok(generator.llvm.builder.build_load(ptr, ""))
+                    } else {
+                        Err(Diagnostic::codegen_error("Invalid signature for SEL", location))
+                    }
+
+                }
+            }
         )
     ]);
 }

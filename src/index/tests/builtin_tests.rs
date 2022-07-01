@@ -9,9 +9,11 @@ fn builtin_functions_added_to_index() {
     assert!(index.find_member("ADR", "in").is_some());
     assert!(index.find_member("REF", "in").is_some());
     assert!(index.find_member("MUX", "K").is_some());
+    assert!(index.find_member("SEL", "G").is_some());
     assert!(index.find_implementation_by_name("ADR").is_some());
     assert!(index.find_implementation_by_name("REF").is_some());
     assert!(index.find_implementation_by_name("MUX").is_some());
+    assert!(index.find_implementation_by_name("SEL").is_some());
 }
 
 #[test]
@@ -20,7 +22,9 @@ fn test_indexer_has_builtins() {
     assert!(index.find_member("ADR", "in").is_some());
     assert!(index.find_member("REF", "in").is_some());
     assert!(index.find_member("MUX", "K").is_some());
+    assert!(index.find_member("SEL", "G").is_some());
     assert!(index.find_implementation_by_name("ADR").is_some());
     assert!(index.find_implementation_by_name("REF").is_some());
     assert!(index.find_implementation_by_name("MUX").is_some());
+    assert!(index.find_implementation_by_name("SEL").is_some());
 }

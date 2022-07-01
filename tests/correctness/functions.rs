@@ -716,3 +716,31 @@ fn mux_test() {
     let res: i32 = run_no_param(&exec_engine, "main");
     assert_eq!(res, 6)
 }
+
+#[test]
+fn sel_test_false() {
+    let function = r#"
+        FUNCTION main : DINT
+            main := SEL(FALSE,4,5); //Result is 4
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 4)
+}
+
+#[test]
+fn sel_test_true() {
+    let function = r#"
+        FUNCTION main : DINT
+            main := SEL(TRUE,4,5); //Result is 5 
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 5)
+}

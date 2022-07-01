@@ -511,3 +511,17 @@ fn builtin_function_call_mux() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn builtin_function_call_sel() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b,c,d,e : DINT;
+        END_VAR
+            a := SEL(TRUE, b,c);
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
