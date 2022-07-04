@@ -617,6 +617,50 @@
 <span id="612">612</span>
 <span id="613">613</span>
 <span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">ArgGroup</span>, <span class="ident">Parser</span>};
 <span class="kw">use</span> <span class="ident">encoding_rs::Encoding</span>;
@@ -644,6 +688,13 @@
         <span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Write output to &lt;output-file&gt;&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+
+    <span class="attribute">#[<span class="ident">clap</span>(
+        <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;check&quot;</span>,
+        <span class="ident">group</span> <span class="op">=</span> <span class="string">&quot;format&quot;</span>,
+        <span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Only validate input program (do not generate any code)&quot;</span>
+    )]</span>
+    <span class="kw">pub</span> <span class="ident">check_only</span>: <span class="ident">bool</span>,
 
     <span class="attribute">#[<span class="ident">clap</span>(
         <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;ir&quot;</span>,
@@ -811,25 +862,37 @@
     }
 
     <span class="doccomment">/// return the selected output format, or the default if none.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_format_or_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FormatOption</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_format_or_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FormatOption</span><span class="op">&gt;</span> {
         <span class="comment">// structop makes sure only one or zero format flags are</span>
         <span class="comment">// selected. So if none are selected, the default is chosen</span>
-        <span class="self">self</span>.<span class="ident">output_format</span>().<span class="ident">unwrap_or</span>(<span class="ident">DEFAULT_FORMAT</span>)
+
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">check_only</span> {
+            <span class="comment">// if the --check flag is selected, we aren&#39;t supposted</span>
+            <span class="comment">// to generate any code, so none of the format options</span>
+            <span class="comment">// is valid.</span>
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">output_format</span>().<span class="ident">unwrap_or</span>(<span class="ident">DEFAULT_FORMAT</span>))
     }
 
     <span class="doccomment">/// return the output filename with the correct ending</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">out_format</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output_format_or_default</span>();
+
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">output</span> {
             <span class="prelude-val">Some</span>(<span class="ident">n</span>.<span class="ident">to_string</span>())
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">ending</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">out_format</span> {
-                <span class="ident">FormatOption::Bitcode</span> =&gt; <span class="string">&quot;.bc&quot;</span>,
-                <span class="ident">FormatOption::Relocatable</span> =&gt; <span class="string">&quot;.o&quot;</span>,
-                <span class="ident">FormatOption::Static</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">skip_linking</span> =&gt; <span class="string">&quot;.o&quot;</span>,
-                <span class="ident">FormatOption::Static</span> =&gt; <span class="string">&quot;&quot;</span>,
-                <span class="ident">FormatOption::Shared</span> <span class="op">|</span> <span class="ident">FormatOption::PIC</span> =&gt; <span class="string">&quot;.so&quot;</span>,
-                <span class="ident">FormatOption::IR</span> =&gt; <span class="string">&quot;.ir&quot;</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">out_format</span>) =&gt; <span class="kw">match</span> <span class="ident">out_format</span> {
+                    <span class="ident">FormatOption::Bitcode</span> =&gt; <span class="string">&quot;.bc&quot;</span>,
+                    <span class="ident">FormatOption::Relocatable</span> =&gt; <span class="string">&quot;.o&quot;</span>,
+                    <span class="ident">FormatOption::Static</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">skip_linking</span> =&gt; <span class="string">&quot;.o&quot;</span>,
+                    <span class="ident">FormatOption::Static</span> =&gt; <span class="string">&quot;&quot;</span>,
+                    <span class="ident">FormatOption::Shared</span> <span class="op">|</span> <span class="ident">FormatOption::PIC</span> =&gt; <span class="string">&quot;.so&quot;</span>,
+                    <span class="ident">FormatOption::IR</span> =&gt; <span class="string">&quot;.ir&quot;</span>,
+                },
+                <span class="prelude-val">None</span> =&gt; <span class="string">&quot;&quot;</span>,
             };
 
             <span class="kw">let</span> <span class="ident">output_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">first</span>().<span class="ident">map</span>(<span class="ident">String::as_str</span>);
@@ -879,6 +942,10 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">multiple_output_formats_results_in_error</span>() {
+        <span class="ident">expect_argument_error</span>(
+            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--check&quot;</span>, <span class="string">&quot;--shared&quot;</span>],
+            <span class="ident">ErrorKind::ArgumentConflict</span>,
+        );
         <span class="ident">expect_argument_error</span>(
             <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>],
             <span class="ident">ErrorKind::ArgumentConflict</span>,
@@ -1007,28 +1074,49 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_default_format</span>() {
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--check&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(), <span class="prelude-val">None</span>);
+
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(), <span class="ident">FormatOption::IR</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">FormatOption::IR</span>)
+        );
 
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;bravo&quot;</span>, <span class="string">&quot;--shared&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(), <span class="ident">FormatOption::Shared</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">FormatOption::Shared</span>)
+        );
 
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span>
             <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;examples/charlie.st&quot;</span>, <span class="string">&quot;--pic&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(), <span class="ident">FormatOption::PIC</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">FormatOption::PIC</span>)
+        );
 
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span>
             <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;examples/test/delta.st&quot;</span>, <span class="string">&quot;--static&quot;</span>))
                 .<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(), <span class="ident">FormatOption::Static</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">FormatOption::Static</span>)
+        );
 
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span>
             <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;examples/test/echo&quot;</span>, <span class="string">&quot;--bc&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(), <span class="ident">FormatOption::Bitcode</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">FormatOption::Bitcode</span>)
+        );
 
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span>
             <span class="ident">CompileParameters::parse</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;examples/test/echo.st&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(), <span class="ident"><span class="kw">super</span>::DEFAULT_FORMAT</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">super</span>::DEFAULT_FORMAT</span>)
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

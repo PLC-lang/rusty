@@ -807,6 +807,49 @@
 <span id="802">802</span>
 <span id="803">803</span>
 <span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -905,7 +948,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompileOptions</span> {
-    <span class="kw">pub</span> <span class="ident">format</span>: <span class="ident">FormatOption</span>,
+    <span class="kw">pub</span> <span class="ident">format</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FormatOption</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">output</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">optimization</span>: <span class="ident">OptimizationLevel</span>,
@@ -915,6 +958,7 @@
     <span class="kw">pub</span> <span class="ident">libraries</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">library_pathes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">sysroot</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">format</span>: <span class="ident">FormatOption</span>,
 }
 
 <span class="kw">struct</span> <span class="ident">ConfigurationOptions</span> {
@@ -1213,23 +1257,21 @@
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Diagnostic::io_write_error</span>(<span class="ident">output</span>, <span class="ident">err</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>()))
 }
 
-<span class="doccomment">///</span>
-<span class="doccomment">/// Compiles the given source into a `codegen::CodeGen` using the provided context</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Arguments</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// * `context` - the LLVM Context to be used for the compilation</span>
-<span class="doccomment">/// * `sources` - the source to be compiled</span>
-<span class="doccomment">/// * `encoding` - The encoding to parse the files, None for UTF-8</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_module</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
-    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="ident">Context</span>,
+<span class="kw">struct</span> <span class="ident">IndexComponents</span> {
+    <span class="ident">id_provider</span>: <span class="ident">IdProvider</span>,
+    <span class="ident">all_annotations</span>: <span class="ident">AnnotationMapImpl</span>,
+    <span class="ident">all_literals</span>: <span class="ident">StringLiterals</span>,
+    <span class="ident">annotated_units</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CompilationUnit</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">fn</span> <span class="ident">index_module</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">diagnostician</span>: <span class="ident">Diagnostician</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Index</span>, <span class="ident">CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Index</span>, <span class="ident">IndexComponents</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">full_index</span> <span class="op">=</span> <span class="ident">Index::default</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">id_provider</span> <span class="op">=</span> <span class="ident">IdProvider::default</span>();
+    <span class="kw">let</span> <span class="ident">id_provider</span> <span class="op">=</span> <span class="ident">IdProvider::default</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_units</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
@@ -1281,14 +1323,43 @@
     <span class="comment">//Merge the new indices with the full index</span>
     <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">all_annotations</span>.<span class="ident">new_index</span>));
 
+    <span class="prelude-val">Ok</span>((
+        <span class="ident">full_index</span>,
+        <span class="ident">IndexComponents</span> {
+            <span class="ident">id_provider</span>,
+            <span class="ident">all_annotations</span>,
+            <span class="ident">all_literals</span>,
+            <span class="ident">annotated_units</span>,
+        },
+    ))
+}
+
+<span class="doccomment">///</span>
+<span class="doccomment">/// Compiles the given source into a `codegen::CodeGen` using the provided context</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Arguments</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// * `context` - the LLVM Context to be used for the compilation</span>
+<span class="doccomment">/// * `sources` - the source to be compiled</span>
+<span class="doccomment">/// * `encoding` - The encoding to parse the files, None for UTF-8</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_module</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
+    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="ident">Context</span>,
+    <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
+    <span class="ident">diagnostician</span>: <span class="ident">Diagnostician</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Index</span>, <span class="ident">CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> (<span class="ident">full_index</span>, <span class="kw-2">mut</span> <span class="ident">index</span>) <span class="op">=</span> <span class="ident">index_module</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
+
     <span class="comment">// ### PHASE 3 ###</span>
     <span class="comment">// - codegen</span>
     <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">codegen::CodeGen::new</span>(<span class="ident">context</span>, <span class="string">&quot;main&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="ident">AstAnnotations::new</span>(<span class="ident">all_annotations</span>, <span class="ident">id_provider</span>.<span class="ident">next_id</span>());
+    <span class="kw">let</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="ident">AstAnnotations::new</span>(<span class="ident">index</span>.<span class="ident">all_annotations</span>, <span class="ident">index</span>.<span class="ident">id_provider</span>.<span class="ident">next_id</span>());
     <span class="comment">//Associate the index type with LLVM types</span>
-    <span class="kw">let</span> <span class="ident">llvm_index</span> <span class="op">=</span> <span class="ident">code_generator</span>.<span class="ident">generate_llvm_index</span>(<span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="ident">all_literals</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>)<span class="question-mark">?</span>;
-    <span class="kw">for</span> <span class="ident">unit</span> <span class="kw">in</span> <span class="ident">annotated_units</span> {
+    <span class="kw">let</span> <span class="ident">llvm_index</span> <span class="op">=</span>
+        <span class="ident">code_generator</span>.<span class="ident">generate_llvm_index</span>(<span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="ident">index</span>.<span class="ident">all_literals</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>)<span class="question-mark">?</span>;
+    <span class="kw">for</span> <span class="ident">unit</span> <span class="kw">in</span> <span class="ident">index</span>.<span class="ident">annotated_units</span> {
         <span class="ident">code_generator</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>, <span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>, <span class="kw-2">&amp;</span><span class="ident">llvm_index</span>)<span class="question-mark">?</span>;
     }
 
@@ -1393,12 +1464,17 @@
         <span class="ident">optimization</span>: <span class="ident">parameters</span>.<span class="ident">optimization</span>,
     };
 
-    <span class="kw">let</span> <span class="ident">link_options</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">skip_linking</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">LinkOptions</span> {
-            <span class="ident">libraries</span>: <span class="ident">parameters</span>.<span class="ident">libraries</span>,
-            <span class="ident">library_pathes</span>: <span class="ident">parameters</span>.<span class="ident">library_pathes</span>,
-            <span class="ident">sysroot</span>: <span class="ident">parameters</span>.<span class="ident">sysroot</span>,
-        })
+    <span class="kw">let</span> <span class="ident">link_options</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">format</span>) <span class="op">=</span> <span class="ident">out_format</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">skip_linking</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">LinkOptions</span> {
+                <span class="ident">libraries</span>: <span class="ident">parameters</span>.<span class="ident">libraries</span>,
+                <span class="ident">library_pathes</span>: <span class="ident">parameters</span>.<span class="ident">library_pathes</span>,
+                <span class="ident">sysroot</span>: <span class="ident">parameters</span>.<span class="ident">sysroot</span>,
+                <span class="ident">format</span>,
+            })
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        }
     } <span class="kw">else</span> {
         <span class="prelude-val">None</span>
     };
@@ -1416,7 +1492,7 @@
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">link_options</span>) <span class="op">=</span> <span class="ident">link_options</span> {
         <span class="ident">link</span>(
             <span class="kw-2">&amp;</span><span class="ident">compile_options</span>.<span class="ident">output</span>,
-            <span class="ident">compile_options</span>.<span class="ident">format</span>,
+            <span class="ident">link_options</span>.<span class="ident">format</span>,
             <span class="kw-2">&amp;</span><span class="ident">compile_result</span>.<span class="ident">objects</span>,
             <span class="ident">link_options</span>.<span class="ident">library_pathes</span>,
             <span class="ident">link_options</span>.<span class="ident">libraries</span>,
@@ -1469,14 +1545,24 @@
         <span class="ident">ErrorFormat::Rich</span> =&gt; <span class="ident">Diagnostician::default</span>(),
         <span class="ident">ErrorFormat::Clang</span> =&gt; <span class="ident">Diagnostician::clang_format_diagnostician</span>(),
     };
-    <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">codegen</span>) <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
-    <span class="ident">objects</span>.<span class="ident">push</span>(<span class="ident">persist</span>(
-        <span class="ident">codegen</span>,
-        <span class="kw-2">&amp;</span><span class="ident">compile_options</span>.<span class="ident">output</span>,
-        <span class="ident">compile_options</span>.<span class="ident">format</span>,
-        <span class="ident">target</span>,
-        <span class="ident">compile_options</span>.<span class="ident">optimization</span>,
-    )<span class="question-mark">?</span>);
+
+    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">compile_options</span>.<span class="ident">format</span> {
+        <span class="prelude-val">None</span> =&gt; <span class="ident">index_module</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>.<span class="number">0</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">out_format</span>) =&gt; {
+            <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">codegen</span>) <span class="op">=</span>
+                <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
+
+            <span class="ident">objects</span>.<span class="ident">push</span>(<span class="ident">persist</span>(
+                <span class="ident">codegen</span>,
+                <span class="kw-2">&amp;</span><span class="ident">compile_options</span>.<span class="ident">output</span>,
+                <span class="ident">out_format</span>,
+                <span class="ident">target</span>,
+                <span class="ident">compile_options</span>.<span class="ident">optimization</span>,
+            )<span class="question-mark">?</span>);
+
+            <span class="ident">index</span>
+        }
+    };
 
     <span class="prelude-val">Ok</span>(<span class="ident">CompileResult</span> { <span class="ident">index</span>, <span class="ident">objects</span> })
 }
