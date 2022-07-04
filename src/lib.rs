@@ -96,7 +96,7 @@ impl FromStr for ConfigFormat {
 }
 
 pub struct CompileOptions {
-    pub format: FormatOption,
+    pub format: Option<FormatOption>,
     pub output: String,
     pub target: Option<String>,
     pub optimization: OptimizationLevel,
@@ -106,6 +106,7 @@ pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
     pub sysroot: Option<String>,
+    pub format: FormatOption,
 }
 
 struct ConfigurationOptions {
@@ -404,23 +405,21 @@ pub fn persist_to_ir(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
         .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
 }
 
-///
-/// Compiles the given source into a `codegen::CodeGen` using the provided context
-///
-/// # Arguments
-///
-/// * `context` - the LLVM Context to be used for the compilation
-/// * `sources` - the source to be compiled
-/// * `encoding` - The encoding to parse the files, None for UTF-8
-pub fn compile_module<'c, T: SourceContainer>(
-    context: &'c Context,
+struct IndexComponents {
+    id_provider: IdProvider,
+    all_annotations: AnnotationMapImpl,
+    all_literals: StringLiterals,
+    annotated_units: Vec<CompilationUnit>,
+}
+
+fn index_module<T: SourceContainer>(
     sources: Vec<T>,
     includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     mut diagnostician: Diagnostician,
-) -> Result<(Index, CodeGen<'c>), Diagnostic> {
+) -> Result<(Index, IndexComponents), Diagnostic> {
     let mut full_index = Index::default();
-    let mut id_provider = IdProvider::default();
+    let id_provider = IdProvider::default();
 
     let mut all_units = Vec::new();
 
@@ -472,14 +471,43 @@ pub fn compile_module<'c, T: SourceContainer>(
     //Merge the new indices with the full index
     full_index.import(std::mem::take(&mut all_annotations.new_index));
 
+    Ok((
+        full_index,
+        IndexComponents {
+            id_provider,
+            all_annotations,
+            all_literals,
+            annotated_units,
+        },
+    ))
+}
+
+///
+/// Compiles the given source into a `codegen::CodeGen` using the provided context
+///
+/// # Arguments
+///
+/// * `context` - the LLVM Context to be used for the compilation
+/// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
+pub fn compile_module<'c, T: SourceContainer>(
+    context: &'c Context,
+    sources: Vec<T>,
+    includes: Vec<T>,
+    encoding: Option<&'static Encoding>,
+    diagnostician: Diagnostician,
+) -> Result<(Index, CodeGen<'c>), Diagnostic> {
+    let (full_index, mut index) = index_module(sources, includes, encoding, diagnostician)?;
+
     // ### PHASE 3 ###
     // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
 
-    let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+    let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
-    let llvm_index = code_generator.generate_llvm_index(&annotations, all_literals, &full_index)?;
-    for unit in annotated_units {
+    let llvm_index =
+        code_generator.generate_llvm_index(&annotations, index.all_literals, &full_index)?;
+    for unit in index.annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
 
@@ -584,12 +612,17 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         optimization: parameters.optimization,
     };
 
-    let link_options = if !parameters.skip_linking {
-        Some(LinkOptions {
-            libraries: parameters.libraries,
-            library_pathes: parameters.library_pathes,
-            sysroot: parameters.sysroot,
-        })
+    let link_options = if let Some(format) = out_format {
+        if !parameters.skip_linking {
+            Some(LinkOptions {
+                libraries: parameters.libraries,
+                library_pathes: parameters.library_pathes,
+                sysroot: parameters.sysroot,
+                format,
+            })
+        } else {
+            None
+        }
     } else {
         None
     };
@@ -607,7 +640,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     if let Some(link_options) = link_options {
         link(
             &compile_options.output,
-            compile_options.format,
+            link_options.format,
             &compile_result.objects,
             link_options.library_pathes,
             link_options.libraries,
@@ -660,14 +693,24 @@ pub fn build(
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
-    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
-    objects.push(persist(
-        codegen,
-        &compile_options.output,
-        compile_options.format,
-        target,
-        compile_options.optimization,
-    )?);
+
+    let index = match compile_options.format {
+        None => index_module(sources, includes, encoding, diagnostician)?.0,
+        Some(out_format) => {
+            let (index, codegen) =
+                compile_module(&context, sources, includes, encoding, diagnostician)?;
+
+            objects.push(persist(
+                codegen,
+                &compile_options.output,
+                out_format,
+                target,
+                compile_options.optimization,
+            )?);
+
+            index
+        }
+    };
 
     Ok(CompileResult { index, objects })
 }
