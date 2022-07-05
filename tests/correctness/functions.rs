@@ -707,7 +707,11 @@ fn by_ref_and_by_val_mixed_function_call() {
 fn mux_test() {
     let function = r#"
         FUNCTION main : DINT
-            main := MUX(2,4,5,6,7,8); //Result is 6 
+        VAR
+            num,b : DINT := 2;
+        END_VAR
+            b := num;
+            main := MUX(num,b,5,6,7,8); //Result is 6 
         END_FUNCTION
         "#;
 
@@ -716,6 +720,30 @@ fn mux_test() {
     let res: i32 = run_no_param(&exec_engine, "main");
     assert_eq!(res, 6)
 }
+
+#[test]
+fn mux_test_variables() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR
+            num,b,c,d,e,f : DINT;
+        END_VAR
+            num := 2;
+            b := 4;
+            c := 5;
+            d := 6;
+            e := 7;
+            f := 8;
+            main := MUX(num,b,c,d,e,f); //Result is 6 (d)
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 6)
+}
+
 
 #[test]
 fn sel_test_false() {
