@@ -364,7 +364,12 @@ fn function_with_sized_varargs_called_in_program() {
       %load_x = load i32, i32* %x, align 4
       %tmpVar = add i32 %load_x, 1
       %1 = alloca [3 x i32], align 4
-      store [3 x i32] [i32 0, i32 3, i32 %tmpVar], [3 x i32]* %1, align 4
+      %2 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 0
+      store i32 0, i32* %2, align 4
+      %3 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 1
+      store i32 3, i32* %3, align 4
+      %4 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 2
+      store i32 %tmpVar, i32* %4, align 4
       %call = call i32 @foo(i32 3, [3 x i32]* %1)
       store i32 %call, i32* %x, align 4
       ret void

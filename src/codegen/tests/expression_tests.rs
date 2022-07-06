@@ -509,7 +509,40 @@ fn builtin_function_call_mux() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result);
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %main_interface = type { i32, i32, i32, i32, i32 }
+
+    @main_instance = global %main_interface zeroinitializer
+
+    define void @main(%main_interface* %0) {
+    entry:
+      %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+      %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+      %c = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+      %d = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 3
+      %e = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 4
+      %load_b = load i32, i32* %b, align 4
+      %load_c = load i32, i32* %c, align 4
+      %load_d = load i32, i32* %d, align 4
+      %load_e = load i32, i32* %e, align 4
+      %1 = alloca [4 x i32], align 4
+      %2 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 0
+      store i32 %load_b, i32* %2, align 4
+      %3 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 1
+      store i32 %load_c, i32* %3, align 4
+      %4 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 2
+      store i32 %load_d, i32* %4, align 4
+      %5 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 3
+      store i32 %load_e, i32* %5, align 4
+      %6 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 3
+      %7 = load i32, i32* %6, align 4
+      store i32 %7, i32* %a, align 4
+      ret void
+    }
+    "###);
 }
 
 #[test]
@@ -517,11 +550,67 @@ fn builtin_function_call_sel() {
     let result = codegen(
         "PROGRAM main
         VAR
-            a,b,c,d,e : DINT;
+            a,b,c : DINT;
         END_VAR
             a := SEL(TRUE, b,c);
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result);
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %main_interface = type { i32, i32, i32 }
+
+    @main_instance = global %main_interface zeroinitializer
+
+    define void @main(%main_interface* %0) {
+    entry:
+      %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+      %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+      %c = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+      %load_b = load i32, i32* %b, align 4
+      %load_c = load i32, i32* %c, align 4
+      %1 = alloca [2 x i32], align 8
+      %2 = getelementptr inbounds [2 x i32], [2 x i32]* %1, i32 0, i32 0
+      store i32 %1, i32* %2, align 4
+      %3 = getelementptr inbounds [2 x i32], [2 x i32]* %1, i32 0, i32 1
+      store i32 %load_c, i32* %3, align 4
+      %4 = getelementptr inbounds [2 x i32], [2 x i32]* %1, i32 0, i8 1
+      %5 = load i32, i32* %4, align 4
+      store i32 %7, i32* %a, align 4
+      ret void
+    }
+    "###);
+}
+
+
+#[test]
+fn builtin_function_call_move() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b : DINT;
+        END_VAR
+            a := MOVE(b);
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %main_interface = type { i32, i32 }
+
+    @main_instance = global %main_interface zeroinitializer
+
+    define void @main(%main_interface* %0) {
+    entry:
+      %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+      %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+      %load_b = load i32, i32* %b, align 4
+      store i32 %load_b, i32* %a, align 4
+      ret void
+    }
+    "###);
 }

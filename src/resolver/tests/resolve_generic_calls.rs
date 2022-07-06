@@ -522,4 +522,42 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
 
     //The return type should have the correct type
     assert_type_and_hint!(&annotations, &index, call, LWORD_TYPE, None);
+
+    //The parameter should have the correct (original) type
+    if let AstStatement::CallStatement {parameters, .. } = call {
+        let params = parameters.as_ref().as_ref().unwrap();
+        assert_type_and_hint!(&annotations, &index, params, DINT_TYPE, None);
+    } else  {
+        panic!("Expected call statement")
+    }
+    let call = &unit.implementations[0].statements[2];
+    if let AstStatement::CallStatement {parameters, .. } = call {
+        let params = parameters.as_ref().as_ref().unwrap();
+        assert_type_and_hint!(&annotations, &index, params, REAL_TYPE, None);
+    } else  {
+        panic!("Expected call statement")
+    }
+}
+
+#[test]
+fn builtint_sel_param_type_is_not_changed() {
+    let (unit, index) = index(
+    "
+    FUNCTION test : DINT
+    VAR
+        a,b: DINT;
+    END_VAR
+        SEL(FALSE,a,b);
+    END_FUNCTION
+    ");
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    //get the type/hints for a and b in the call, they should be unchanged (DINT, None)
+    let call = &unit.implementations[0].statements[0];
+    if let AstStatement::CallStatement { parameters, ..} = call {
+        let params = parameters.as_ref().as_ref().unwrap();
+        assert_type_and_hint!(&annotations, &index, params, DINT_TYPE, None);
+    } else {
+        panic!("Expected call statement")
+    }
 }

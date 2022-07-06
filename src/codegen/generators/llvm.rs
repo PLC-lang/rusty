@@ -2,6 +2,7 @@
 use crate::ast::SourceRange;
 use crate::diagnostics::Diagnostic;
 use crate::typesystem::{CHAR_TYPE, WCHAR_TYPE};
+use inkwell::types::ArrayType;
 use inkwell::{
     builder::Builder,
     context::Context,
@@ -316,6 +317,18 @@ impl<'a> Llvm<'a> {
                 WCHAR_TYPE,
                 location.clone(),
             )),
+        }
+    }
+
+    pub fn get_array_type(llvm_type: BasicTypeEnum, size: u32) -> ArrayType {
+        match llvm_type {
+            //Add all arguments to the pointer
+            BasicTypeEnum::ArrayType(_) => llvm_type.into_array_type().array_type(size),
+            BasicTypeEnum::FloatType(_) => llvm_type.into_float_type().array_type(size),
+            BasicTypeEnum::IntType(_) => llvm_type.into_int_type().array_type(size),
+            BasicTypeEnum::PointerType(_) => llvm_type.into_pointer_type().array_type(size),
+            BasicTypeEnum::StructType(_) => llvm_type.into_struct_type().array_type(size),
+            BasicTypeEnum::VectorType(_) => llvm_type.into_vector_type().array_type(size),
         }
     }
 }

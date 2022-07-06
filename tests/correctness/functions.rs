@@ -744,7 +744,6 @@ fn mux_test_variables() {
     assert_eq!(res, 6)
 }
 
-
 #[test]
 fn sel_test_false() {
     let function = r#"
@@ -771,4 +770,37 @@ fn sel_test_true() {
     let exec_engine = compile(&context, function);
     let res: i32 = run_no_param(&exec_engine, "main");
     assert_eq!(res, 5)
+}
+
+#[test]
+fn sel_test_true_vars() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR a,b : DINT; END_VAR
+            a := 4;
+            b := 5;
+            main := SEL(TRUE,a,b); //Result is 5 
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 5)
+}
+
+#[test]
+fn move_test() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR a : DINT; END_VAR
+            a := 4;
+            main := MOVE(a); //Result is 4
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 4)
 }
