@@ -52,11 +52,9 @@ pub fn generate_implementation_stubs<'ink>(
     let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
     for (name, implementation) in index.get_implementations() {
-        if let Some(pou) = index.find_pou(implementation.get_call_name()) {
-            if !pou.is_generic() {
-                let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
-                llvm_index.associate_implementation(name, curr_f)?;
-            }
+        if !implementation.is_generic() {
+            let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
+            llvm_index.associate_implementation(name, curr_f)?;
         }
     }
 

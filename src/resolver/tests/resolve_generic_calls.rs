@@ -563,3 +563,36 @@ fn builtin_sel_param_type_is_not_changed() {
         panic!("Expected call statement")
     }
 }
+
+
+#[test]
+fn resovle_variadic_generics() {
+    let (unit, index) = index(
+        "
+    FUNCTION ex<U: ANY> : U 
+    VAR_INPUT
+        ar : {sized}U...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION test : DINT
+    VAR
+        a,b: DINT;
+    END_VAR
+        ex(a,b);
+    END_FUNCTION
+    ",
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    //get the type/hints for a and b in the call, they should be unchanged (DINT, None)
+    let call = &unit.implementations[0].statements[0];
+    if let AstStatement::CallStatement { parameters, .. } = call {
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, params[2], DINT_TYPE, None);
+    } else {
+        panic!("Expected call statement")
+    }
+    
+}

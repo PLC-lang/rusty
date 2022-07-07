@@ -322,6 +322,10 @@ impl ImplementationIndexEntry {
     pub fn get_implementation_type(&self) -> &ImplementationType {
         &self.implementation_type
     }
+
+    pub fn is_generic(&self) -> bool {
+        self.generic
+    }
 }
 
 impl From<&Implementation> for ImplementationIndexEntry {

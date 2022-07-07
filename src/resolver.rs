@@ -1188,8 +1188,9 @@ impl<'i> TypeAnnotator<'i> {
                         let parameters = ast::flatten_expression_list(s);
                         let all_members = self.index.get_container_members(&operator_qualifier);
                         let members = all_members.iter().filter(|it| it.is_parameter());
-                        for (i, m) in members.enumerate() {
-                            if let Some(p) = parameters.get(i) {
+                        let mut parameters = parameters.into_iter();
+                        for m in members {
+                            if let Some(p) = parameters.next() {
                                 //Add a possible generic candidate
                                 if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
                                     self.index,
@@ -1206,6 +1207,10 @@ impl<'i> TypeAnnotator<'i> {
                                     params.push((*p, m.get_type_name().to_string()));
                                 }
                             }
+                        }
+                        if !parameters.is_empty() {
+                            //We did not consume all parameters, see if the variadic arguments are derivable
+                            
                         }
                     }
                 }

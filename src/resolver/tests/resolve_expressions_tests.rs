@@ -2975,9 +2975,8 @@ fn call_on_function_block_array() {
         AstStatement::CallStatement { operator, .. } => Some(operator.as_ref()),
         _ => None,
     };
-    assert_eq!(
+    assert!(
         matches!(operator, Some(&AstStatement::ArrayAccess { .. })),
-        true
     );
 
     let annotation = annotations.get(operator.unwrap());

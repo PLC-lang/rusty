@@ -613,3 +613,18 @@ fn builtin_function_call_move() {
     }
     "###);
 }
+
+#[test]
+fn test_max_int() {
+    let result = codegen(r"
+    {external}
+    FUNCTION MAX<U : ANY> : U
+    VAR_INPUT in : {sized} U...; END_VAR
+    END_FUNCTION
+    
+    FUNCTION main : INT
+    main := MAX(INT#5,INT#2,INT#1,INT#3,INT#4,INT#7,INT#-1);
+    END_FUNCTION");
+    
+    insta::assert_snapshot!(result, @r###""###);
+}
