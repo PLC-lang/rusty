@@ -236,3 +236,65 @@ fn resolve_function_members_via_qualifier() {
         ]
     );
 }
+
+/// tests whether references to privater variables do resolve, but end up in an validation problem
+#[test]
+fn reference_to_private_variable_is_illegal() {
+    let diagnostics = parse_and_validate(
+        "
+            PROGRAM prg
+                VAR 
+                    s : INT;
+                END_VAR
+            END_PROGRAM
+
+            FUNCTION foo : INT
+                prg.s := 7;
+            END_FUNCTION
+       ",
+    );
+
+    assert_eq!(
+        diagnostics,
+        vec![Diagnostic::illegal_access("prg.s", (175..176).into()),]
+    );
+}
+
+/// tests whether an intermediate access like: `a.priv.b` (where priv is a var_local)
+/// produces the correct error message without follow-up errors (b)
+#[test]
+fn reference_to_private_variable_in_intermediate_fb() {
+    // GIVEN a qualified reference prg.a.f.x where f is a
+    // private member of a functionblock (VAR)
+    // WHEN this is validated
+    let diagnostics = parse_and_validate(
+        "
+            FUNCTION_BLOCK fb1
+                VAR
+                    f: fb2;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK fb2
+                VAR_INPUT
+                    x : INT;                    
+                END_VAR
+            END_FUNCTION_BLOCK
+
+
+            PROGRAM prg
+                VAR
+                    a: fb1;
+                END_VAR
+                a.f.x := 7;
+            END_PROGRAM
+       ",
+    );
+
+    // THEN we get a validtion-error for accessing fb1.f, but no follow-up errors for
+    // the access of fb2 which is legit
+    assert_eq!(
+        diagnostics,
+        vec![Diagnostic::illegal_access("fb1.f", (413..414).into()),]
+    );
+}
