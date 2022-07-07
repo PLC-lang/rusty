@@ -142,6 +142,12 @@ pub fn cast_if_needed<'ctx>(
         .get_intrinsic_type_by_name(value_type.get_name())
         .get_type_information();
 
+    // if the current or target type are generic (unresolved or builtin)
+    // return the value without modification
+    if target_type.is_generic(index) || value_type.is_generic(index) {
+        return Ok(value);
+    }
+
     match target_type {
         DataTypeInformation::Integer {
             signed,

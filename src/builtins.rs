@@ -160,7 +160,7 @@ impl BuiltIn {
         (self.code)(generator, params, location)
     }
 
-    pub fn transform(&self, statement : AstStatement) -> AstStatement {
+    pub fn transform(&self, statement: AstStatement) -> AstStatement {
         (self.transformation)(statement)
     }
 }
@@ -171,7 +171,11 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
         .map(|(_, it)| it.decl)
         .collect::<Vec<&str>>()
         .join(" ");
-    let mut unit = parser::parse(lexer::lex_with_ids(&src, id_provider.clone()), LinkageType::BuiltIn).0;
+    let mut unit = parser::parse(
+        lexer::lex_with_ids(&src, id_provider.clone()),
+        LinkageType::BuiltIn,
+    )
+    .0;
     crate::ast::pre_process(&mut unit, id_provider);
     unit
 }

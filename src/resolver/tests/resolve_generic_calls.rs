@@ -1,6 +1,6 @@
 use crate::{
     assert_type_and_hint,
-    ast::{self, AstStatement},
+    ast::{self, flatten_expression_list, AstStatement},
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::index,
     typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, LWORD_TYPE, REAL_TYPE},
@@ -524,39 +524,41 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
     assert_type_and_hint!(&annotations, &index, call, LWORD_TYPE, None);
 
     //The parameter should have the correct (original) type
-    if let AstStatement::CallStatement {parameters, .. } = call {
-        let params = parameters.as_ref().as_ref().unwrap();
-        assert_type_and_hint!(&annotations, &index, params, DINT_TYPE, None);
-    } else  {
+    if let AstStatement::CallStatement { parameters, .. } = call {
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[0], DINT_TYPE, None);
+    } else {
         panic!("Expected call statement")
     }
     let call = &unit.implementations[0].statements[2];
-    if let AstStatement::CallStatement {parameters, .. } = call {
-        let params = parameters.as_ref().as_ref().unwrap();
-        assert_type_and_hint!(&annotations, &index, params, REAL_TYPE, None);
-    } else  {
+    if let AstStatement::CallStatement { parameters, .. } = call {
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[0], REAL_TYPE, None);
+    } else {
         panic!("Expected call statement")
     }
 }
 
 #[test]
-fn builtint_sel_param_type_is_not_changed() {
+fn builtin_sel_param_type_is_not_changed() {
     let (unit, index) = index(
-    "
+        "
     FUNCTION test : DINT
     VAR
         a,b: DINT;
     END_VAR
         SEL(FALSE,a,b);
     END_FUNCTION
-    ");
+    ",
+    );
 
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     //get the type/hints for a and b in the call, they should be unchanged (DINT, None)
     let call = &unit.implementations[0].statements[0];
-    if let AstStatement::CallStatement { parameters, ..} = call {
-        let params = parameters.as_ref().as_ref().unwrap();
-        assert_type_and_hint!(&annotations, &index, params, DINT_TYPE, None);
+    if let AstStatement::CallStatement { parameters, .. } = call {
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, params[2], DINT_TYPE, None);
     } else {
         panic!("Expected call statement")
     }
