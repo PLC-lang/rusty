@@ -480,8 +480,7 @@ fn function_inline_struct_return_unsupported() {
     // WHEN parsing is done
     let (_parse_result, diagnostics) = parse(function);
     // THEN there should be one diagnostic -> unsupported return type
-    assert_eq!(
-        true,
+    assert!(
         diagnostics.contains(&Diagnostic::function_unsupported_return_type(
             &DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType {

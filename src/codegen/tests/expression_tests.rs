@@ -616,7 +616,8 @@ fn builtin_function_call_move() {
 
 #[test]
 fn test_max_int() {
-    let result = codegen(r"
+    let result = codegen(
+        r"
     {external}
     FUNCTION MAX<U : ANY> : U
     VAR_INPUT in : {sized} U...; END_VAR
@@ -624,7 +625,38 @@ fn test_max_int() {
     
     FUNCTION main : INT
     main := MAX(INT#5,INT#2,INT#1,INT#3,INT#4,INT#7,INT#-1);
-    END_FUNCTION");
-    
-    insta::assert_snapshot!(result, @r###""###);
+    END_FUNCTION",
+    );
+
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    define i16 @main() {
+    entry:
+      %main = alloca i16, align 2
+      store i16 0, i16* %main, align 2
+      %0 = alloca [7 x i16], align 2
+      %1 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 0
+      store i16 5, i16* %1, align 2
+      %2 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 1
+      store i16 2, i16* %2, align 2
+      %3 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 2
+      store i16 1, i16* %3, align 2
+      %4 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 3
+      store i16 3, i16* %4, align 2
+      %5 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 4
+      store i16 4, i16* %5, align 2
+      %6 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 5
+      store i16 7, i16* %6, align 2
+      %7 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 6
+      store i16 -1, i16* %7, align 2
+      %call = call i16 @MAX__INT(i32 7, [7 x i16]* %0)
+      store i16 %call, i16* %main, align 2
+      %main_ret = load i16, i16* %main, align 2
+      ret i16 %main_ret
+    }
+
+    declare i16 @MAX__INT(i32, i16*)
+    "###);
 }

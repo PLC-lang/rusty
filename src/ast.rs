@@ -1,5 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{lexer::IdProvider, typesystem::DataTypeInformation};
+use crate::{
+    lexer::IdProvider,
+    typesystem::{DataTypeInformation, VOID_TYPE},
+};
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
@@ -526,7 +529,12 @@ impl DataType {
             | DataType::StringType { name, .. }
             | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::GenericType { name, .. } => Some(name.as_str()),
-            DataType::VarArgs { .. } => None,
+            DataType::VarArgs {
+                referenced_type, ..
+            } => referenced_type
+                .as_ref()
+                .and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
+                .or(Some(VOID_TYPE)),
         }
     }
 

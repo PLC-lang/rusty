@@ -11,7 +11,7 @@ use crate::{
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
     resolver::AstAnnotations,
-    typesystem::{self, DataTypeInformation, VarArgs},
+    typesystem::{self, VarArgs},
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -163,8 +163,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         };
 
         let variadic = global_index
-            .find_effective_type_info(implementation.get_type_name())
-            .and_then(DataTypeInformation::get_variadic);
+            .get_variadic_member(implementation.get_type_name())
+            .and_then(VariableIndexEntry::get_varargs);
 
         let function_declaration =
             self.create_llvm_function_type(parameters, variadic, return_type)?;
@@ -205,9 +205,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         } else {
             //find the function's parameters
             self.index
-                .get_container_members(implementation.get_call_name())
+                .get_declared_parameters(implementation.get_call_name())
                 .iter()
-                .filter(|v| v.is_parameter())
                 .map(|v| {
                     self.llvm_index
                         .get_associated_type(v.get_type_name())

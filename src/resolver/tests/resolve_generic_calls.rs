@@ -564,9 +564,8 @@ fn builtin_sel_param_type_is_not_changed() {
     }
 }
 
-
 #[test]
-fn resovle_variadic_generics() {
+fn resolve_variadic_generics() {
     let (unit, index) = index(
         "
     FUNCTION ex<U: ANY> : U 
@@ -585,14 +584,22 @@ fn resovle_variadic_generics() {
     );
 
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
-    //get the type/hints for a and b in the call, they should be unchanged (DINT, None)
-    let call = &unit.implementations[0].statements[0];
-    if let AstStatement::CallStatement { parameters, .. } = call {
+    //ex should resolve to ex__dint
+    //a and b have the type dint
+    let call = &unit.implementations[1].statements[0];
+    //The call statement should return a DINT
+    assert_type_and_hint!(&annotations, &index, call, DINT_TYPE, None);
+    if let AstStatement::CallStatement {
+        operator,
+        parameters,
+        ..
+    } = call
+    {
+        assert_eq!(Some("ex__DINT"), annotations.get_call_name(operator));
         let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[0], DINT_TYPE, None);
         assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, None);
-        assert_type_and_hint!(&annotations, &index, params[2], DINT_TYPE, None);
     } else {
         panic!("Expected call statement")
     }
-    
 }

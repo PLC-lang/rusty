@@ -2735,13 +2735,10 @@ fn resolve_function_with_same_name_as_return_type() {
     let effective_type = index.find_effective_type("TIME").unwrap();
     assert_eq!(effective_type, associated_type);
     // AND should be Integer
-    assert_eq!(
-        true,
-        matches!(
-            effective_type.get_type_information(),
-            DataTypeInformation::Integer { .. }
-        )
-    )
+    assert!(matches!(
+        effective_type.get_type_information(),
+        DataTypeInformation::Integer { .. }
+    ))
 }
 
 #[test]
@@ -2975,9 +2972,7 @@ fn call_on_function_block_array() {
         AstStatement::CallStatement { operator, .. } => Some(operator.as_ref()),
         _ => None,
     };
-    assert!(
-        matches!(operator, Some(&AstStatement::ArrayAccess { .. })),
-    );
+    assert!(matches!(operator, Some(&AstStatement::ArrayAccess { .. })),);
 
     let annotation = annotations.get(operator.unwrap());
     assert_eq!(

@@ -26,6 +26,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 154..158,
             },
+            varargs: None,
         },
     ),
     (
@@ -54,6 +55,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 32..33,
             },
+            varargs: None,
         },
     ),
     (
@@ -85,6 +87,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 91..92,
             },
+            varargs: None,
         },
     ),
     (
@@ -116,6 +119,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 93..94,
             },
+            varargs: None,
         },
     ),
     (
@@ -144,6 +148,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 34..35,
             },
+            varargs: None,
         },
     ),
     (
@@ -175,6 +180,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 91..92,
             },
+            varargs: None,
         },
     ),
     (
@@ -206,6 +212,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 93..94,
             },
+            varargs: None,
         },
     ),
     (
@@ -231,6 +238,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 182..254,
             },
+            varargs: None,
         },
     ),
     (
@@ -259,6 +267,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 215..219,
             },
+            varargs: None,
         },
     ),
     (
@@ -290,6 +299,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 32..33,
             },
+            varargs: None,
         },
     ),
     (
@@ -324,6 +334,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 91..92,
             },
+            varargs: None,
         },
     ),
     (
@@ -358,6 +369,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 93..94,
             },
+            varargs: None,
         },
     ),
     (
@@ -389,6 +401,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 34..35,
             },
+            varargs: None,
         },
     ),
     (
@@ -423,6 +436,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 91..92,
             },
+            varargs: None,
         },
     ),
     (
@@ -457,6 +471,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 93..94,
             },
+            varargs: None,
         },
     ),
 ]

@@ -576,10 +576,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // foo(z:= a, x:=c, y := b);
             let declared_parameters = self
                 .index
-                .get_container_members(implementation.get_type_name())
-                .into_iter()
-                .filter(|it| it.is_parameter())
-                .collect::<Vec<_>>();
+                .get_declared_parameters(implementation.get_type_name());
 
             // the parameters to be passed to the function call
             self.generate_function_arguments(pou, call_params, declared_parameters)?
@@ -769,8 +766,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //get the real varargs from the index
         if let Some(VarArgs::Sized(Some(type_name))) = self
             .index
-            .find_effective_type_info(pou.get_name())
-            .and_then(|it| it.get_variadic())
+            .get_variadic_member(pou.get_name())
+            .and_then(|it| it.get_varargs())
         {
             let llvm_type = if pou.is_generic() {
                 //Use the type of the first parameter
