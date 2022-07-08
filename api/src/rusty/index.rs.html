@@ -1357,6 +1357,11 @@
 <span id="1352">1352</span>
 <span id="1353">1353</span>
 <span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 
@@ -2710,6 +2715,11 @@
 <span class="doccomment">/// Returns a default initialization name for a variable or type</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_initializer_name</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
     <span class="macro">format!</span>(<span class="string">&quot;{}__init&quot;</span>, <span class="ident">name</span>)
+}
+<span class="kw">impl</span> <span class="ident">VariableType</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_private</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">return</span> <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">VariableType::Temp</span> <span class="op">|</span> <span class="ident">VariableType::Local</span>);
+    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>

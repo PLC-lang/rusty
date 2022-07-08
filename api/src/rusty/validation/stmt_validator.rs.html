@@ -596,6 +596,23 @@
 <span id="591">591</span>
 <span id="592">592</span>
 <span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::discriminant</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ValidationContext</span>;
@@ -633,10 +650,8 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate_statement</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>) {
         <span class="kw">match</span> <span class="ident">statement</span> {
-            <span class="ident">AstStatement::Reference</span> {
-                <span class="ident">name</span>, <span class="ident">location</span>, <span class="ident">id</span>, ..
-            } =&gt; {
-                <span class="self">self</span>.<span class="ident">validate_reference</span>(<span class="ident">id</span>, <span class="ident">name</span>, <span class="ident">location</span>, <span class="ident">context</span>);
+            <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, <span class="ident">location</span>, .. } =&gt; {
+                <span class="self">self</span>.<span class="ident">validate_reference</span>(<span class="ident">statement</span>, <span class="ident">name</span>, <span class="ident">location</span>, <span class="ident">context</span>);
             }
             <span class="ident">AstStatement::CastStatement</span> {
                 <span class="ident">location</span>,
@@ -935,14 +950,33 @@
 
     <span class="kw">fn</span> <span class="ident">validate_reference</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">usize</span>,
+        <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">ref_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>,
     ) {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">has_type_annotation</span>(<span class="ident">id</span>) {
+        <span class="comment">// unresolved reference</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">has_type_annotation</span>(<span class="ident">statement</span>) {
             <span class="self">self</span>.<span class="ident">diagnostics</span>
                 .<span class="ident">push</span>(<span class="ident">Diagnostic::unresolved_reference</span>(<span class="ident">ref_name</span>, <span class="ident">location</span>.<span class="ident">clone</span>()));
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> {
+            <span class="ident">qualified_name</span>,
+            <span class="ident">variable_type</span>,
+            ..
+        }) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get</span>(<span class="ident">statement</span>)
+        {
+            <span class="comment">//check if we&#39;re accessing a private variable AND the variable&#39;s qualifier is not the</span>
+            <span class="comment">//POU we&#39;re accessing it from</span>
+            <span class="kw">if</span> <span class="ident">variable_type</span>.<span class="ident">is_private</span>()
+                <span class="op">&amp;&amp;</span> <span class="ident">context</span>
+                    .<span class="ident">qualifier</span>
+                    .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="op">!</span><span class="ident">qualified_name</span>.<span class="ident">starts_with</span>(<span class="ident">q</span>))
+            {
+                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::illegal_access</span>(
+                    <span class="ident">qualified_name</span>.<span class="ident">as_str</span>(),
+                    <span class="ident">location</span>.<span class="ident">clone</span>(),
+                ));
+            }
         }
     }
 

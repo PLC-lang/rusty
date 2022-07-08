@@ -1044,7 +1044,7 @@
                     <span class="ident">MemberInfo</span> {
                         <span class="ident">container_name</span>: <span class="ident">struct_name</span>,
                         <span class="ident">variable_name</span>: <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">name</span>,
-                        <span class="ident">variable_linkage</span>: <span class="ident">ArgumentType::ByVal</span>(<span class="ident">VariableType::Local</span>),
+                        <span class="ident">variable_linkage</span>: <span class="ident">ArgumentType::ByVal</span>(<span class="ident">VariableType::Input</span>), <span class="comment">// struct members act like VAR_INPUT in terms of visibility</span>
                         <span class="ident">variable_type_name</span>: <span class="ident">member_type</span>,
                         <span class="ident">is_constant</span>: <span class="bool-val">false</span>, <span class="comment">//struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)</span>
                         <span class="ident">binding</span>,
