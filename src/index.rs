@@ -1398,3 +1398,8 @@ impl Index {
 pub fn get_initializer_name(name: &str) -> String {
     format!("{}__init", name)
 }
+impl VariableType {
+    pub(crate) fn is_private(&self) -> bool {
+        return matches!(self, VariableType::Temp | VariableType::Local);
+    }
+}

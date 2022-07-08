@@ -17,7 +17,7 @@ use crate::{
         self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
         TypeNature, UserTypeDeclaration, Variable,
     },
-    index::{Index, PouIndexEntry, VariableIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
@@ -128,9 +128,15 @@ pub enum StatementAnnotation {
     Value { resulting_type: String },
     /// a reference that resolves to a declared variable (e.g. `a` --> `PLC_PROGRAM.a`)
     Variable {
+        /// the name of the variable's type (e.g. `"INT"`)
         resulting_type: String,
+        /// the fully qualified name of this variable (e.g. `"MyFB.a"`)
         qualified_name: String,
+        /// denotes wheter this variable is declared as a constant
         constant: bool,
+        /// denotes the varialbe type of this varialbe, hence whether it is an input, output, etc.
+        variable_type: VariableType,
+        /// denotes whether this variable-reference should be automatically dereferenced when accessed
         is_auto_deref: bool,
     },
     /// a reference to a function
@@ -349,8 +355,8 @@ impl AnnotationMapImpl {
         self.generic_nature_map.insert(s.get_id(), nature);
     }
 
-    pub fn has_type_annotation(&self, id: &usize) -> bool {
-        self.type_map.contains_key(id)
+    pub fn has_type_annotation(&self, s: &AstStatement) -> bool {
+        self.type_map.contains_key(&s.get_id())
     }
 
     pub fn get_generic_nature(&self, s: &AstStatement) -> Option<&TypeNature> {
@@ -1445,6 +1451,7 @@ fn to_variable_annotation(
         qualified_name: v.get_qualified_name().into(),
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
+        variable_type: v.variable_type.get_variable_type(),
         is_auto_deref,
     }
 }

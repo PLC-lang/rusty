@@ -395,7 +395,7 @@ fn visit_data_type(
                     MemberInfo {
                         container_name: struct_name,
                         variable_name: &var.name,
-                        variable_linkage: ArgumentType::ByVal(VariableType::Local),
+                        variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
                         variable_type_name: member_type,
                         is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
                         binding,

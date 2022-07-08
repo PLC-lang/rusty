@@ -45,7 +45,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "str.a",
             initial_value: None,
             variable_type: ByVal(
-                Local,
+                Input,
             ),
             is_constant: false,
             data_type_name: "DINT",
@@ -74,7 +74,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "str.b",
             initial_value: None,
             variable_type: ByVal(
-                Local,
+                Input,
             ),
             is_constant: false,
             data_type_name: "DINT",
@@ -161,7 +161,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "str.a",
             initial_value: None,
             variable_type: ByVal(
-                Local,
+                Input,
             ),
             is_constant: false,
             data_type_name: "DINT",
@@ -193,7 +193,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "str.b",
             initial_value: None,
             variable_type: ByVal(
-                Local,
+                Input,
             ),
             is_constant: false,
             data_type_name: "DINT",
