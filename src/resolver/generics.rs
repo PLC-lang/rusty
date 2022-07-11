@@ -240,12 +240,45 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
         } else {
-            for (i, (_, dt)) in members.iter().enumerate() {
-                if let Some(p) = parameters.get(i) {
+            //First handle the declared params
+            let mut parameters = parameters.into_iter();
+            for (_, dt) in members {
+                if let Some(p) = parameters.next() {
                     if let Some(TypeAndNature { datatype, nature }) = dt {
-                        self.annotation_map.add_generic_nature(p, *nature);
+                        self.annotation_map.add_generic_nature(p, nature);
                         self.annotation_map
-                            .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
+                        .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
+                    }
+                }
+            }
+            //Then handle the varargs
+            //Get the variadic argument if any
+            if let Some(dt) = self.index.get_variadic_member(function_name)
+                .map(|it| {
+                //if the member is generic
+                if let Some(DataTypeInformation::Generic {
+                    generic_symbol,
+                    nature,
+                    ..
+                }) = self.index.find_effective_type_info(it.get_type_name())
+                {
+                    let real_type = generic_map
+                        .get(generic_symbol)
+                        .and_then(|it| self.index.find_effective_type(it))
+                        .map(|datatype| TypeAndNature {
+                            datatype,
+                            nature: *nature,
+                        });
+                    real_type
+                } else {
+                    None
+                }
+            }) {
+                for p in parameters {
+                    if let Some(TypeAndNature { datatype, nature }) = dt {
+                        self.annotation_map.add_generic_nature(p, nature);
+                        self.annotation_map
+                        .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
                     }
                 }
             }

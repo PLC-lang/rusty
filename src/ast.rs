@@ -1248,8 +1248,8 @@ pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
 
 /// flattens expression-lists and MultipliedStatements into a vec of statements.
 /// It can also handle nested structures like 2(3(4,5))
-pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
-    match condition {
+pub fn flatten_expression_list(list: &AstStatement) -> Vec<&AstStatement> {
+    match list {
         AstStatement::ExpressionList { expressions, .. } => expressions
             .iter()
             .by_ref()
@@ -1263,7 +1263,7 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
             .take(*multiplier as usize)
             .flatten()
             .collect(),
-        _ => vec![condition],
+        _ => vec![list],
     }
 }
 

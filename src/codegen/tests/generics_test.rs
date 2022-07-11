@@ -72,3 +72,22 @@ fn generic_output_parameter() {
     // AND we expect a second call to foo__BYTE with out1 passed as a pointer
     insta::assert_snapshot!(codegen(src));
 }
+
+#[test]
+fn generic_call_gets_cast_to_biggest_type() {
+ let src = r"
+ 
+    {external}
+    FUNCTION MAX<T : ANY> : T
+        VAR_INPUT
+            args : {sized} T...;
+        END_VAR
+    END_FUNCTION
+ 
+ FUNCTION main : LREAL
+    main := MAX(SINT#5,DINT#1,LREAL#1.5,1.2);
+    END_FUNCTION";
+
+    //Expecting all values to be LREAL
+    insta::assert_snapshot!(codegen(src));
+}
