@@ -1,23 +1,19 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1290
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
 %prg_interface = type {}
-%foo_interface = type {}
 
 @prg_instance = global %prg_interface zeroinitializer
 
-declare i32 @foo(%foo_interface*)
+declare i32 @foo()
 
 define void @prg(%prg_interface* %0) {
 entry:
-  %foo_instance = alloca %foo_interface, align 8
-  %call = call i32 @foo(%foo_interface* %foo_instance)
+  %call = call i32 @foo()
   ret void
 }
 

@@ -1,8 +1,6 @@
 ---
 source: src/parser/tests/expressions_parser_tests.rs
-assertion_line: 2658
 expression: ast
-
 ---
 CompilationUnit {
     global_vars: [],
@@ -45,6 +43,7 @@ CompilationUnit {
                 range: 32..60,
             },
             overriding: false,
+            generic: false,
             access: None,
         },
     ],

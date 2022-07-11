@@ -43,7 +43,7 @@ fn exponent_literals_parsed_as_variables() {
             location: SourceRange::undefined(),
         }),
         variable_blocks: vec![VariableBlock {
-            variable_block_type: VariableBlockType::Input,
+            variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
             access: AccessModifier::Internal,
             constant: false,
             retain: false,
@@ -61,6 +61,7 @@ fn exponent_literals_parsed_as_variables() {
             }],
         }],
         location: SourceRange::undefined(),
+        name_location: SourceRange::undefined(),
         generics: vec![],
         linkage: crate::ast::LinkageType::Internal,
     };
@@ -86,6 +87,7 @@ fn exponent_literals_parsed_as_variables() {
         }],
         access: None,
         overriding: false,
+        generic: false,
         location: (105..142).into(),
     };
     assert_eq!(

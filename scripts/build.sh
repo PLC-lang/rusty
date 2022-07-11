@@ -13,6 +13,7 @@ release=0
 debug=0
 container=0
 assume_linux=0
+junit=0
 
 CONTAINER_NAME='rust-llvm'
 
@@ -35,17 +36,16 @@ function set_cargo_options() {
 }
 
 function run_coverage() {
-	CARGO_OPTIONS="+nightly"
 	log "Exporting Flags"
-	export RUSTFLAGS="-Zinstrument-coverage"
+	export RUSTFLAGS="-C instrument-coverage"
 	export LLVM_PROFILE_FILE="rusty-%p-%m.profraw"
 
 	log "Cleaning before build"
 	cargo clean
 	log "Building coverage"
-	cargo $CARGO_OPTIONS build
+	cargo build
 	log "Running coverage tests"
-	cargo $CARGO_OPTIONS test
+	cargo test
 	log "Collecting coverage results"
 	grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
 		--ignore "/*" \
@@ -101,7 +101,18 @@ function run_check_style() {
 function run_test() {
 	CARGO_OPTIONS=$(set_cargo_options)
 	log "Running cargo test"
-	cargo test $CARGO_OPTIONS
+	if [[ $junit -ne 0 ]]; then
+		#Delete the test results if they exist
+		rm -rf "$project_location/test_results"
+		make_dir "$project_location/test_results"
+		#Passing through tail here will remove the first line which is currently empty.
+		cargo test $CARGO_OPTIONS --lib -- --format=junit -Zunstable-options | tail -n +2 > "$project_location"/test_results/rusty_unit_tests.xml
+		# Run only the integration tests
+		#https://stackoverflow.com/questions/62447864/how-can-i-run-only-integration-tests
+		cargo test $CARGO_OPTIONS --test '*' -- --format=junit -Zunstable-options | tail -n +2 > "$project_location"/test_results/rusty_integration_tests.xml
+	else
+		cargo test $CARGO_OPTIONS
+	fi
 }
 
 function generate_sources() {
@@ -149,6 +160,9 @@ function run_in_container() {
 	if [[ $test -ne 0 ]]; then
 		params="$params --test"
 	fi
+	if [[ $junit -ne 0 ]]; then
+		params="$params --junit"
+	fi
 	if [[ $doc -ne 0 ]]; then
 		params="$params --doc"
 	fi
@@ -179,7 +193,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,test,verbose,container,linux,container-name:,coverage
+LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -230,6 +244,9 @@ while true; do
 					;;
 			--test)
 				  test=1
+					;;
+			--junit)
+					junit=1
 					;;
 			--coverage)
 					coverage=1

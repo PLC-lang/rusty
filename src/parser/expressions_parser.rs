@@ -481,7 +481,7 @@ fn parse_literal_number_with_modifier(
     let location = lexer.location();
     let token = lexer.slice_and_advance();
     let number_str = token.split('#').last().expect("token with '#'");
-    let number_str = number_str.replace("_", "");
+    let number_str = number_str.replace('_', "");
 
     // again, the parsed number can be safely unwrapped.
     let value = i128::from_str_radix(number_str.as_str(), radix).expect("valid i128");
@@ -532,7 +532,7 @@ fn parse_literal_number(
     }
 
     // parsed number value can be safely unwrapped
-    let result = result.replace("_", "");
+    let result = result.replace('_', "");
 
     let value = result.parse::<i128>().expect("valid i128");
     let value = if is_negative { -value } else { value };
@@ -550,7 +550,7 @@ pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstState
     let location = lexer.location();
     let result = lexer.slice_and_advance();
     // parsed number value can be safely unwrapped
-    let result = result.replace("_", "");
+    let result = result.replace('_', "");
     if result.to_lowercase().contains('e') {
         Err(Diagnostic::unexpected_token_found(
             "Integer",
@@ -682,8 +682,8 @@ fn parse_time_of_day(
     time: &mut Split<char>,
     location: &SourceRange,
 ) -> Result<(u32, u32, u32, u32), Diagnostic> {
-    let hour = parse_number::<u32>(time.next().expect("valid u32"), location)?;
-    let min = parse_number::<u32>(time.next().expect("valid u32"), location)?;
+    let hour = parse_number::<u32>(time.next().expect("expected hours"), location)?;
+    let min = parse_number::<u32>(time.next().expect("expected minutes"), location)?;
 
     // doesn't necessarily have to have seconds, e.g [12:00] is also valid
     let sec = match time.next() {
@@ -691,7 +691,7 @@ fn parse_time_of_day(
         None => 0.0,
     };
 
-    let milli = (sec.fract() * 1000_f64) as u32;
+    let milli = (sec.fract() * 1000_f64).round() as u32;
 
     Ok((hour, min, sec.floor() as u32, milli))
 }

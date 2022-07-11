@@ -1,8 +1,6 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 169
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
-
 ---
 [
     (
@@ -17,7 +15,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "MainProg_instance",
             qualified_name: "MainProg",
             initial_value: None,
-            variable_type: Global,
+            variable_type: ByVal(
+                Global,
+            ),
             is_constant: false,
             data_type_name: "MainProg",
             location_in_parent: 0,
@@ -44,11 +44,13 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "MainProg.size",
             initial_value: Some(
                 Index {
-                    index: 2,
+                    index: 0,
                     generation: 0,
                 },
             ),
-            variable_type: Local,
+            variable_type: ByVal(
+                Local,
+            ),
             is_constant: true,
             data_type_name: "DINT",
             location_in_parent: 0,
@@ -74,7 +76,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "aFb",
             qualified_name: "MainProg.aFb",
             initial_value: None,
-            variable_type: Local,
+            variable_type: ByVal(
+                Local,
+            ),
             is_constant: false,
             data_type_name: "__MainProg_aFb",
             location_in_parent: 1,
@@ -99,13 +103,13 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 0,
+                                    index: 1,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 1,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
@@ -121,7 +125,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "c",
             qualified_name: "fb.c",
             initial_value: None,
-            variable_type: Local,
+            variable_type: ByVal(
+                Local,
+            ),
             is_constant: false,
             data_type_name: "DINT",
             location_in_parent: 0,
@@ -146,13 +152,13 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 0,
+                                    index: 1,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 1,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
@@ -168,7 +174,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "b",
             qualified_name: "fb.b",
             initial_value: None,
-            variable_type: Local,
+            variable_type: ByVal(
+                Local,
+            ),
             is_constant: false,
             data_type_name: "DINT",
             location_in_parent: 1,

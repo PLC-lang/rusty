@@ -2,7 +2,8 @@ use std::{env, fs};
 
 use crate::get_test_file;
 use rusty::{
-    build, diagnostics::Diagnostic, get_target_triple, link, CompileOptions, FilePath, FormatOption,
+    build, diagnostics::Diagnostic, get_target_triple, link, CompileOptions, ErrorFormat, FilePath,
+    FormatOption,
 };
 
 static TARGET: Option<&str> = Some("x86_64-unkown-linux-gnu");
@@ -32,8 +33,10 @@ fn link_as_shared_object() {
             output: out2.clone(),
             format: FormatOption::Shared,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -46,8 +49,10 @@ fn link_as_shared_object() {
             output: out1.clone(),
             format: FormatOption::Shared,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -94,8 +99,10 @@ fn link_as_pic_object() {
             output: out2.clone(),
             format: FormatOption::PIC,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -108,8 +115,10 @@ fn link_as_pic_object() {
             output: out1.clone(),
             format: FormatOption::PIC,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -156,8 +165,10 @@ fn link_as_static_object() {
             output: out2.clone(),
             format: FormatOption::Static,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -170,8 +181,10 @@ fn link_as_static_object() {
             output: out1.clone(),
             format: FormatOption::Static,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -218,8 +231,10 @@ fn link_as_relocatable_object() {
             output: out2.clone(),
             format: FormatOption::Static,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -232,8 +247,10 @@ fn link_as_relocatable_object() {
             output: out1.clone(),
             format: FormatOption::Relocatable,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();
@@ -271,8 +288,10 @@ fn link_missing_file() {
             output: out.clone(),
             format: FormatOption::Static,
             target: TARGET.map(String::from),
+            optimization: rusty::OptimizationLevel::Default,
         },
         None,
+        &ErrorFormat::Rich,
         &triple,
     )
     .unwrap();

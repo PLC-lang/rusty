@@ -12,6 +12,7 @@ mod correctness {
     mod arrays;
     mod bitaccess;
     mod classes;
+    mod constants;
     mod control_flow;
     mod custom_datatypes;
     mod datatypes;
@@ -28,10 +29,10 @@ mod correctness {
     mod math_operators {
         mod addition;
         mod division;
+        mod expt_tests;
         mod mixed;
         mod multiplication;
         mod substraction;
-        mod expt_tests;
     }
 }
 

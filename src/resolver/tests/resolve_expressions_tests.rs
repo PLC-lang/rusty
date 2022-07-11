@@ -6,8 +6,8 @@ use crate::{
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, REAL_TYPE,
-        SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, LREAL_TYPE,
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LREAL_TYPE,
+        REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -80,7 +80,7 @@ fn expt_binary_expression() {
                 e,f : LREAL;
             END_VAR
             //DINTS
-            a ** b; //DINT * DINT -> hint : REAL * DINT result REAL
+            a ** b; //DINT * DINT -> hint : DINT * DINT result DINT
             a ** d; //DINT * REAL -> hit : REAL * REAL result REAL
             a ** f; //DINT * LREAL -> hit : LREAL * LREAL result LREAL
 
@@ -99,9 +99,9 @@ fn expt_binary_expression() {
     let statements = &unit.implementations[0].statements;
     //DINT
     if let AstStatement::BinaryExpression { left, right, .. } = &statements[0] {
-        assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(REAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
         assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
-        assert_type_and_hint!(&annotations, &index, &statements[0], REAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, &statements[0], DINT_TYPE, None);
     } else {
         unreachable!()
     }
@@ -165,8 +165,6 @@ fn expt_binary_expression() {
     } else {
         unreachable!()
     }
-
-
 }
 
 #[test]
@@ -2990,7 +2988,7 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
 }
 
 #[test]
-fn adress_of_is_annotated_correctly() {
+fn address_of_is_annotated_correctly() {
     //GIVEN a NULL assignment to a pointer
     let (unit, mut index) = index(
         r#"

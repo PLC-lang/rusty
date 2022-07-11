@@ -1,13 +1,16 @@
-use std::ops::Range;
+use std::{
+    fmt::{self, Display},
+    ops::Range,
+};
 
 use codespan_reporting::{
     diagnostic::Label,
-    files::SimpleFiles,
+    files::{Files, Location, SimpleFile, SimpleFiles},
     term::termcolor::{ColorChoice, StandardStream},
 };
 use inkwell::support::LLVMString;
 
-use crate::ast::{DataTypeDeclaration, PouType, SourceRange};
+use crate::ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
@@ -408,6 +411,16 @@ impl Diagnostic {
         }
     }
 
+    pub fn cannot_generate_call_statement<T: DiagnosticInfo>(operator: &T) -> Diagnostic {
+        Diagnostic::codegen_error(
+            &format!(
+                "cannot generate call statement for {:?}",
+                operator.get_description()
+            ),
+            operator.get_location(),
+        )
+    }
+
     pub fn io_read_error(file: &str, reason: &str) -> Diagnostic {
         Diagnostic::GeneralError {
             message: format!("Cannot read file '{:}': {:}'", file, reason),
@@ -544,6 +557,13 @@ impl Diagnostic {
             _ => it,
         }
     }
+
+    pub fn invalid_pragma_location(message: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!("Invalid pragma location: {}", message),
+            range,
+        }
+    }
 }
 
 /// a diagnostics severity
@@ -551,6 +571,17 @@ pub enum Severity {
     Error,
     Warning,
     _Info,
+}
+
+impl Display for Severity {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let severity = match self {
+            Severity::Error => "error",
+            Severity::Warning => "warning",
+            Severity::_Info => "info",
+        };
+        write!(f, "{}", severity)
+    }
 }
 
 /// the assessor determins the severity of a diagnostic
@@ -671,6 +702,101 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
     }
 }
 
+/// a DiagnosticReporter that reports diagnostics using clang-format
+pub struct ClangFormatDiagnosticReporter {
+    files: SimpleFiles<String, String>,
+}
+
+impl ClangFormatDiagnosticReporter {
+    fn new() -> Self {
+        ClangFormatDiagnosticReporter {
+            files: SimpleFiles::new(),
+        }
+    }
+}
+
+impl Default for ClangFormatDiagnosticReporter {
+    fn default() -> Self {
+        ClangFormatDiagnosticReporter::new()
+    }
+}
+
+impl DiagnosticReporter for ClangFormatDiagnosticReporter {
+    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
+        for ad in diagnostics {
+            let file = self.files.get(file_id).ok();
+
+            let diagnostic = &ad.diagnostic;
+            let location = &diagnostic.get_location();
+            let start = self.files.location(file_id, location.get_start());
+            let end = self.files.location(file_id, location.get_end());
+
+            let res = self.build_diagnostic_msg(
+                file,
+                start.as_ref().ok(),
+                end.as_ref().ok(),
+                &ad.severity,
+                diagnostic.get_message(),
+            );
+
+            eprintln!("{}", res);
+        }
+    }
+    fn register(&mut self, path: String, src: String) -> usize {
+        self.files.add(path, src)
+    }
+}
+
+impl ClangFormatDiagnosticReporter {
+    /// returns diagnostic message in clang format
+    /// file-name:{range}: severity: message
+    /// optional parameters that are none will not be included
+    fn build_diagnostic_msg(
+        &self,
+        file: Option<&SimpleFile<String, String>>,
+        start: Option<&Location>,
+        end: Option<&Location>,
+        severity: &Severity,
+        msg: &str,
+    ) -> String {
+        let mut str = String::new();
+        // file name
+        if let Some(f) = file {
+            str.push_str(format!("{}:", f.name().as_str()).as_str());
+            // range
+            if let Some(s) = start {
+                if let Some(e) = end {
+                    // if start and end are equal there is no need to show the range
+                    if s.eq(e) {
+                        str.push_str(format!("{}:{}: ", s.line_number, s.column_number).as_str());
+                    } else {
+                        str.push_str(
+                            format!(
+                                "{}:{}:{{{}:{}-{}:{}}}: ",
+                                s.line_number,
+                                s.column_number,
+                                s.line_number,
+                                s.column_number,
+                                e.line_number,
+                                e.column_number
+                            )
+                            .as_str(),
+                        );
+                    }
+                }
+            } else {
+                str.push(' ');
+            }
+        }
+        // severity
+        str.push_str(format!("{}: ", severity).as_str());
+        // msg
+        str.push_str(msg);
+
+        str
+    }
+}
+
 /// a DiagnosticReporter that swallows all diagnostics
 #[derive(Default)]
 pub struct NullDiagnosticReporter {
@@ -712,6 +838,14 @@ impl Diagnostician {
         }
     }
 
+    /// creates a clang-format-diagnostician that reports diagnostics in clang format
+    pub fn clang_format_diagnostician() -> Diagnostician {
+        Diagnostician {
+            reporter: Box::new(ClangFormatDiagnosticReporter::default()),
+            assessor: Box::new(DefaultDiagnosticAssessor::default()),
+        }
+    }
+
     /// assess and reports the given diagnostics
     pub fn handle(&self, diagnostics: Vec<Diagnostic>, file_id: usize) {
         self.report(&self.assess_all(diagnostics), file_id);
@@ -743,5 +877,109 @@ impl Default for Diagnostician {
             reporter: Box::new(CodeSpanDiagnosticReporter::default()),
             assessor: Box::new(DefaultDiagnosticAssessor::default()),
         }
+    }
+}
+
+#[cfg(test)]
+mod diagnostics_tests {
+    use codespan_reporting::files::{Location, SimpleFile};
+
+    use super::ClangFormatDiagnosticReporter;
+
+    #[test]
+    fn test_build_diagnostic_msg() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let file = SimpleFile::new("test.st".to_string(), "source".to_string());
+        let start = Location {
+            line_number: 4,
+            column_number: 1,
+        };
+        let end = Location {
+            line_number: 4,
+            column_number: 4,
+        };
+        let res = reporter.build_diagnostic_msg(
+            Some(&file),
+            Some(&start),
+            Some(&end),
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        assert_eq!(res, "test.st:4:1:{4:1-4:4}: error: This is an error");
+    }
+
+    #[test]
+    fn test_build_diagnostic_msg_equal_start_end() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let file = SimpleFile::new("test.st".to_string(), "source".to_string());
+        let start = Location {
+            line_number: 4,
+            column_number: 1,
+        };
+        let end = Location {
+            line_number: 4,
+            column_number: 1,
+        };
+        let res = reporter.build_diagnostic_msg(
+            Some(&file),
+            Some(&start),
+            Some(&end),
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        assert_eq!(res, "test.st:4:1: error: This is an error");
+    }
+
+    #[test]
+    fn test_build_diagnostic_msg_no_location() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let file = SimpleFile::new("test.st".to_string(), "source".to_string());
+        let res = reporter.build_diagnostic_msg(
+            Some(&file),
+            None,
+            None,
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        assert_eq!(res, "test.st: error: This is an error");
+    }
+
+    #[test]
+    fn test_build_diagnostic_msg_no_file() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let start = Location {
+            line_number: 4,
+            column_number: 1,
+        };
+        let end = Location {
+            line_number: 4,
+            column_number: 4,
+        };
+        let res = reporter.build_diagnostic_msg(
+            None,
+            Some(&start),
+            Some(&end),
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        assert_eq!(res, "error: This is an error");
+    }
+
+    #[test]
+    fn test_build_diagnostic_msg_no_file_no_location() {
+        let reporter = ClangFormatDiagnosticReporter::default();
+        let res = reporter.build_diagnostic_msg(
+            None,
+            None,
+            None,
+            &super::Severity::Error,
+            "This is an error",
+        );
+
+        assert_eq!(res, "error: This is an error");
     }
 }

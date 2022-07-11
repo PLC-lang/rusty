@@ -348,7 +348,32 @@ z := DT#1970-01-01-16:20:04.123;
 z := DT#1970-01-01-16:20:04.123456789;
 z := DATE_AND_TIME#2000-01-01-20:15:00;
 z := DATE_AND_TIME#2000-01-01-20:15;
-z := DT#2000-01-01-20:15;
+z := DT#2000-01-01-20:15:08.123;
+END_PROGRAM
+"#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn program_with_long_date_assignment() {
+    let result = codegen(
+        r#"PROGRAM prg
+VAR
+w : LTIME;
+x : LDATE;
+y : LDT;
+z : LTOD;
+END_VAR
+w := LTIME#100s12ms;
+w := LTIME#100s12ms;
+x := LDATE#1984-10-01;
+x := LDATE#1970-01-01;
+y := LDT#1984-10-01-20:15:14;
+y := LDT#1970-01-01-16:20:04.123;
+z := LTOD#15:36:30.123;
+z := LTOD#15:36:30.123;
 END_PROGRAM
 "#,
     );
@@ -372,8 +397,8 @@ x := TIME#100s12ms;
 x := T#100s12ms;
 y := DATE#1984-10-01;
 y := D#1970-01-01;
-z := DATE_AND_TIME#1984-10-01-20:15:14;
-z := DT#1970-01-01-16:20:04.123;
+z := DATE_AND_TIME#1984-10-01-20:15;
+z := DT#1970-01-01-16:20:08.123;
 z := DT#1970-01-01-16:20:04.123456789;
 END_PROGRAM
 "#,
@@ -1232,6 +1257,84 @@ fn case_with_ranges_statement() {
         ",
     );
 
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn case_with_constant_expressions_in_case_selectors() {
+    let result = codegen(
+        r##"
+VAR_GLOBAL CONSTANT
+	FORWARD     : DINT := 7;
+	UP          : DINT := FORWARD + 1;
+	DOWN        : DINT := FORWARD + UP;
+END_VAR
+
+FUNCTION drive : DINT
+    VAR
+        input : DINT;
+        horiz, depth : DINT;
+    END_VAR
+
+	CASE input OF
+		FORWARD : 
+			horiz := horiz + 1;
+        FORWARD*2:
+            horiz := horiz + 2;
+		UP :
+			depth := depth - 1;
+		DOWN : 
+			depth := depth + 1;
+
+	END_CASE
+
+END_FUNCTION
+"##,
+    );
+
+    // WHEN we compile, we want to see propagated constant in the switch statement
+    // -> so no references to variables, but int-values (7, 14, 8 and 15)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn case_with_enum_expressions_in_case_selectors() {
+    let result = codegen(
+        r##"
+VAR_GLOBAL CONSTANT
+    BASE     : DINT := 7;
+END_VAR
+
+TYPE Direction: (
+    FORWARD := BASE,
+    UP,
+    DOWN := BASE * 2);
+END_TYPE
+
+FUNCTION drive : DINT
+    VAR
+        input : DINT;
+        horiz, depth : DINT;
+    END_VAR
+
+	CASE input OF
+		FORWARD : 
+			horiz := horiz + 1;
+        FORWARD*2:
+            horiz := horiz + 2;
+		UP :
+			depth := depth - 1;
+		DOWN : 
+			depth := depth + 1;
+
+	END_CASE
+
+END_FUNCTION
+"##,
+    );
+
+    // WHEN we compile, we want to see propagated constant in the switch statement
+    // -> so no references to variables, but int-values (7, 14, 8 and 15)
     insta::assert_snapshot!(result);
 }
 
@@ -2572,8 +2675,6 @@ fn using_global_consts_in_expressions() {
     );
     //WHEN we compile
     // we expect the constants to be inlined
-    //TODO inline constant values into body-expression
-    // https://github.com/ghaith/rusty/issues/291
     insta::assert_snapshot!(result);
 }
 
@@ -2820,5 +2921,39 @@ fn optional_output_assignment() {
 		",
     );
     // codegen should be successful
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn constant_expressions_in_ranged_type_declaration_are_propagated() {
+    //GIVEN a ranged type from 0 .. MIN+1 where MIN is a global constant
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        VAR_GLOBAL CONSTANT
+          MIN : INT := 7;
+        END_VAR 
+
+        FUNCTION CheckRangeSigned: INT 
+          VAR_INPUT
+              value : INT;
+              lower : INT;
+              upper : INT;
+          END_VAR
+          CheckRangeSigned := value;
+        END_FUNCTION
+
+        PROGRAM prg
+          VAR
+            x: INT(0 .. MIN+1);
+          END_VAR
+          x := 5;
+        END_PROGRAM",
+    );
+
+    // THEN we expect that the assignment to the range-typed variable (x := 5) will result
+    // in a call to CheckRangedSigned where the upper bound is a literal i16 8 - NOT an
+    // add-expression that really calculates the upper bound at runtime
+
     insta::assert_snapshot!(result);
 }

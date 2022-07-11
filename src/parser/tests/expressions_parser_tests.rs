@@ -868,6 +868,25 @@ fn literal_date_test() {
 }
 
 #[test]
+fn literal_long_date_test() {
+    let src = "
+        PROGRAM exp 
+            LDATE#1984-10-01; 
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralDate {
+        year: 1984,
+        month: 10,
+        day: 1,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn literal_time_test() {
     let src = "
         PROGRAM exp 
@@ -980,6 +999,41 @@ fn literal_time_test() {
 }
 
 #[test]
+fn literal_long_time_test() {
+    let src = "
+        PROGRAM exp 
+            LTIME#12d;
+            LTIME#12.4d;
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralTime {
+        day: 12.0,
+        hour: 0.0,
+        min: 0.0,
+        sec: 0.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+    LiteralTime {
+        day: 12.4,
+        hour: 0.0,
+        min: 0.0,
+        sec: 0.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn literal_time_of_day_test() {
     let src = "
         PROGRAM exp 
@@ -1042,6 +1096,40 @@ fn literal_time_of_day_test() {
 }
 
 #[test]
+fn literal_long_time_of_day_test() {
+    let src = "
+        PROGRAM exp 
+            LTOD#12:00:00;
+            LTOD#00:12:00;
+            LTOD#00:00:12;
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralTimeOfDay {
+        hour: 12,
+        min: 0,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 0,
+        min: 12,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 0,
+        min: 0,
+        sec: 12,
+        milli: 0,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn literal_date_and_time_test() {
     let src = "
         PROGRAM exp 
@@ -1088,6 +1176,39 @@ fn literal_date_and_time_test() {
         hour: 20,
         min: 15,
         sec: 0,
+        milli: 0,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn literal_long_date_and_time_test() {
+    let src = "
+        PROGRAM exp 
+            LDT#1984-10-01-16:40:22; 
+            LDT#2021-04-20-22:33:14;
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralDateAndTime {
+        year: 1984,
+        month: 10,
+        day: 1,
+        hour: 16,
+        min: 40,
+        sec: 22,
+        milli: 0,
+    },
+    LiteralDateAndTime {
+        year: 2021,
+        month: 4,
+        day: 20,
+        hour: 22,
+        min: 33,
+        sec: 14,
         milli: 0,
     },
 ]"#;
@@ -2589,6 +2710,7 @@ fn sized_string_as_function_return() {
         }),
         variable_blocks: vec![],
         location: SourceRange::undefined(),
+        name_location: SourceRange::undefined(),
         generics: vec![],
         linkage: crate::ast::LinkageType::Internal,
     };
@@ -2636,6 +2758,7 @@ fn array_type_as_function_return() {
         }),
         variable_blocks: vec![],
         location: SourceRange::undefined(),
+        name_location: SourceRange::undefined(),
         generics: vec![],
         linkage: crate::ast::LinkageType::Internal,
     };

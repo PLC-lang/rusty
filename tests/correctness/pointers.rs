@@ -4,6 +4,43 @@ use crate::{compile_and_run, MainType};
 mod references;
 
 #[test]
+fn pointer_test_builtin() {
+    let function = r"
+TYPE MyStruct: STRUCT  x: DINT; y: DINT; END_STRUCT END_TYPE
+TYPE MyRef : REF_TO REF_TO DINT; END_TYPE
+
+FUNCTION main : DINT
+	main := foo();
+END_FUNCTION
+
+FUNCTION foo : DINT
+VAR
+				x : DINT;
+				s : MyStruct;
+				u,y : REF_TO DINT;
+				z : REF_TO REF_TO DINT;
+				v : MyRef;
+
+END_VAR
+u := REF(s.x);
+y := u;
+z := ADR(y);
+s.x := 9;
+z^^ := y^*2;
+v := z;
+y^ := v^^*2;
+
+foo := y^ + 1;
+END_FUNCTION
+ ";
+
+    let mut maintype = MainType::default();
+
+    let res: i32 = compile_and_run(function.to_string(), &mut maintype);
+
+    assert_eq!(37, res);
+}
+#[test]
 fn pointer_test() {
     let function = r"
 TYPE MyStruct: STRUCT  x: DINT; y: DINT; END_STRUCT END_TYPE

@@ -63,6 +63,10 @@ impl ConstExpression {
             _ => None,
         }
     }
+
+    pub fn is_resolved(&self) -> bool {
+        matches!(self, ConstExpression::Resolved(_))
+    }
 }
 
 #[derive(Default, Debug)]
@@ -115,17 +119,23 @@ impl ConstExpressions {
         self.expressions.get(*id).map(|it| &it.expr)
     }
 
-    /// removes the expression from the ConstExpressions and returns all of its elements
-    pub fn remove(&mut self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
-        self.expressions.remove(*id).map(|it| match it.expr {
-            ConstExpression::Unresolved { statement, scope } => {
-                (statement, it.target_type_name, scope)
+    /// clones the expression in the ConstExpressions and returns all of its elements
+    pub fn clone(&self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
+        self.expressions.get(*id).map(|it| match &it.expr {
+            ConstExpression::Unresolved { statement, scope } => (
+                statement.clone(),
+                it.target_type_name.clone(),
+                scope.clone(),
+            ),
+            ConstExpression::Resolved(s) => (s.clone(), it.target_type_name.clone(), None),
+            ConstExpression::Unresolvable { statement: s, .. } => {
+                (s.clone(), it.target_type_name.clone(), None)
             }
-            ConstExpression::Resolved(s) => (s, it.target_type_name, None),
-            ConstExpression::Unresolvable { statement: s, .. } => (s, it.target_type_name, None),
         })
     }
 
+    /// marks the const-expression represented by the given `id` as resolvend and stores the the
+    /// given `new_statement` as it's resolved value.
     pub fn mark_resolved(
         &mut self,
         id: &ConstId,
@@ -140,6 +150,8 @@ impl ConstExpressions {
         Ok(())
     }
 
+    /// marks the const-expression represented by the given `id` as unresolvable with a given
+    /// `reason`.
     pub fn mark_unresolvable(&mut self, id: &ConstId, reason: &str) -> Result<(), String> {
         let wrapper = self
             .expressions
@@ -189,6 +201,15 @@ impl ConstExpressions {
     /// query the constants arena for an expression associated with the given `id`
     pub fn get_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
         self.find_expression(id).0
+    }
+
+    /// query the constants arena for a resolved expression associated with the given `id`.
+    /// this operation returns None, if an unresolved/unresolvable expression was registered
+    /// for the given id (for different behavior see `get_constant_statement`)
+    pub fn get_resolved_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
+        self.find_const_expression(id)
+            .filter(|it| it.is_resolved())
+            .map(|it| it.get_statement())
     }
 
     /// query the constants arena for an expression that can be evaluated to an i128.

@@ -1,6 +1,5 @@
-use crate::{validation::tests::parse_and_validate, Diagnostic};
+use crate::{test_utils::tests::parse_and_validate, Diagnostic};
 
-// unsupported return types
 #[test]
 fn function_no_return_unsupported() {
     // GIVEN FUNCTION with no return type
@@ -9,6 +8,6 @@ fn function_no_return_unsupported() {
     // THEN there should be one diagnostic -> missing return type
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::function_return_missing((0..43).into())]
+        vec![Diagnostic::function_return_missing((9..12).into())]
     );
 }

@@ -14,13 +14,14 @@ pub mod const_evaluator;
 use crate::{
     ast::{
         self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
-        Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+        LinkageType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
-    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
-        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE},
+        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+    },
 };
 
 #[cfg(test)]
@@ -153,6 +154,37 @@ impl StatementAnnotation {
     pub fn new_value(type_name: String) -> Self {
         StatementAnnotation::Value {
             resulting_type: type_name,
+        }
+    }
+}
+
+impl From<&PouIndexEntry> for StatementAnnotation {
+    fn from(e: &PouIndexEntry) -> Self {
+        match e {
+            PouIndexEntry::Program { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::FunctionBlock { name, .. } => StatementAnnotation::Type {
+                type_name: name.to_string(),
+            },
+            PouIndexEntry::Function {
+                name, return_type, ..
+            } => StatementAnnotation::Function {
+                return_type: return_type.to_string(),
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Class { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Method {
+                name, return_type, ..
+            } => StatementAnnotation::Function {
+                return_type: return_type.to_string(),
+                qualified_name: name.to_string(),
+            },
+            PouIndexEntry::Action { name, .. } => StatementAnnotation::Program {
+                qualified_name: name.to_string(),
+            },
         }
     }
 }
@@ -922,10 +954,9 @@ impl<'i> TypeAnnotator<'i> {
                         // 3rd try - look for a method qualifier.name
                         .map_or_else(
                             || {
-                                find_implementation_annotation(
-                                    format!("{}.{}", qualifier, name).as_str(),
-                                    self.index,
-                                )
+                                self.index
+                                    .find_pou(format!("{}.{}", qualifier, name).as_str())
+                                    .map(|it| it.into())
                             },
                             |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
                         )
@@ -936,42 +967,46 @@ impl<'i> TypeAnnotator<'i> {
                             // ... first look at POU-local variables
                             self.index
                                 .find_member(qualifier, name)
+                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
                                     self.index
-                                        .find_implementation(qualifier)
-                                        .and_then(
-                                            ImplementationIndexEntry::get_associated_class_name,
-                                        )
-                                        .and_then(|it| self.index.find_member(it, name))
+                                        .find_pou(qualifier)
+                                        .filter(|it| matches!(it, PouIndexEntry::Method { .. }))
+                                        .and_then(PouIndexEntry::get_instance_struct_type_name)
+                                        .and_then(|class_name| {
+                                            self.index.find_member(class_name, name)
+                                        })
+                                        .map(|v| {
+                                            to_variable_annotation(v, self.index, ctx.constant)
+                                        })
                                 })
-                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
-                                    //Try to find an action with this name
-                                    let action_call_name = format!("{}.{}", qualifier, name);
-                                    self.index.find_implementation(&action_call_name).and_then(
-                                        |entry| {
-                                            find_implementation_annotation(
-                                                entry.get_call_name(),
-                                                self.index,
-                                            )
-                                        },
-                                    )
+                                    // try to find a local action with this name
+                                    self.index
+                                        .find_pou(format!("{}.{}", qualifier, name).as_str())
+                                        .map(StatementAnnotation::from)
                                 })
                         })
                         .or_else(|| {
-                            // ... then try if we find a pou with that name (maybe it's a call?)
-                            let class_name = ctx
-                                .pou
-                                .and_then(|pou_name| self.index.find_implementation(pou_name))
-                                .and_then(ImplementationIndexEntry::get_associated_class_name);
-
-                            //TODO introduce qualified names!
-                            let call_name = class_name
-                                .map(|it| format!("{}.{}", it, name))
-                                .unwrap_or_else(|| name.into());
-                            find_implementation_annotation(&call_name, self.index)
+                            // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
+                            ctx.pou
+                                .and_then(|pou_name| self.index.find_pou(pou_name))
+                                .and_then(|it| {
+                                    self.index
+                                        .find_pou(
+                                            format!("{}.{}", it.get_container(), name).as_str(),
+                                        )
+                                        .map(Into::into)
+                                })
+                        })
+                        .or_else(|| {
+                            // ... then try if we find a global-pou with that name (maybe it's a call to a function or program?)
+                            {
+                                let index = self.index;
+                                index.find_pou(name).map(|it| it.into())
+                            }
                         })
                         .or_else(|| {
                             // ... last option is a global variable, where we ignore the current pou's name as a qualifier
@@ -1066,16 +1101,10 @@ impl<'i> TypeAnnotator<'i> {
                         }
                         StatementAnnotation::Variable { resulting_type, .. } => {
                             //lets see if this is a FB
-                            if let Some(implementation) =
-                                self.index.find_implementation(resulting_type.as_str())
-                            {
-                                if let ImplementationType::FunctionBlock {} =
-                                    implementation.get_implementation_type()
-                                {
-                                    return Some(resulting_type.clone());
-                                }
-                            }
-                            None
+                            self.index
+                                .find_pou(resulting_type.as_str())
+                                .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. }))
+                                .map(|it| it.get_name().to_string())
                         }
                         // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
                         StatementAnnotation::Value { resulting_type } => {
@@ -1178,7 +1207,12 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn visit_binary_expression(&mut self, left: &AstStatement, right: &AstStatement, operator: Operator) -> Option<String> {
+    fn visit_binary_expression(
+        &mut self,
+        left: &AstStatement,
+        right: &AstStatement,
+        operator: Operator,
+    ) -> Option<String> {
         let statement_type = {
             let left_type = self
                 .annotation_map
@@ -1195,23 +1229,23 @@ impl<'i> TypeAnnotator<'i> {
                 let dint = self.index.get_type_or_panic(DINT_TYPE);
                 if operator == Operator::Exponentiation {
                     //Convert left side to either REAL or LREAL
-                    let real = self.index.get_type_or_panic(REAL_TYPE);
-                    let left_converted = get_bigger_type(left_type, real, self.index);
+                    let left_converted = get_bigger_type(left_type, dint, self.index);
                     //Convert the right side to at least DINT
                     let right_converted = get_bigger_type(right_type, dint, self.index);
                     //Use the biggest type of the input for the left/end result
-                    let left_converted = get_bigger_type(left_converted, right_converted, self.index);
+                    let left_converted =
+                        get_bigger_type(left_converted, right_converted, self.index);
                     //If left and right are both reals, use the bigger of the two for the right side
                     let right_converted = if right_converted.get_type_information().is_float() {
-                       left_converted //Left is always atleast as big as right
+                        left_converted //Left is always atleast as big as right
                     } else {
                         right_converted
                     };
                     let left_is_different = left_converted != left_type;
                     let right_is_different = right_converted != right_type;
                     //Clone the values to avoid borrow issues. TODO : Why?
-                    let left_converted = left_converted.clone(); 
-                    let right_converted = right_converted.clone(); 
+                    let left_converted = left_converted.clone();
+                    let right_converted = right_converted.clone();
                     if left_is_different {
                         self.update_expected_types(&left_converted, left);
                     }
@@ -1220,42 +1254,40 @@ impl<'i> TypeAnnotator<'i> {
                     }
                     //Return the left side as result
                     Some(left_converted.get_name().to_string())
-
                 } else {
-                let bigger_type = if left_type.get_type_information().is_bool()
-                    && right_type.get_type_information().is_bool()
-                {
-                    left_type
-                } else {
-                    get_bigger_type(
-                        get_bigger_type(left_type, right_type, self.index),
-                        dint,
-                        self.index,
-                    )
-                };
+                    let bigger_type = if left_type.get_type_information().is_bool()
+                        && right_type.get_type_information().is_bool()
+                    {
+                        left_type
+                    } else {
+                        get_bigger_type(
+                            get_bigger_type(left_type, right_type, self.index),
+                            dint,
+                            self.index,
+                        )
+                    };
 
-                let target_name = if operator.is_bool_type() {
-                    BOOL_TYPE.to_string()
-                } else {
-                    bigger_type.get_name().to_string()
-                };
+                    let target_name = if operator.is_bool_type() {
+                        BOOL_TYPE.to_string()
+                    } else {
+                        bigger_type.get_name().to_string()
+                    };
 
-                let bigger_is_left = bigger_type != right_type;
-                let bigger_is_right = bigger_type != left_type;
+                    let bigger_is_left = bigger_type != right_type;
+                    let bigger_is_right = bigger_type != left_type;
 
-                if bigger_is_left || bigger_is_right {
-                    // if these types are different we need to update the 'other' type's annotation
-                    let bigger_type = bigger_type.clone(); // clone here, so we release the borrow on self
-                    if bigger_is_right {
-                        self.update_expected_types(&bigger_type, left);
+                    if bigger_is_left || bigger_is_right {
+                        // if these types are different we need to update the 'other' type's annotation
+                        let bigger_type = bigger_type.clone(); // clone here, so we release the borrow on self
+                        if bigger_is_right {
+                            self.update_expected_types(&bigger_type, left);
+                        }
+                        if bigger_is_left {
+                            self.update_expected_types(&bigger_type, right);
+                        }
                     }
-                    if bigger_is_left {
-                        self.update_expected_types(&bigger_type, right);
-                    }
-                }
 
-                Some(target_name)
-
+                    Some(target_name)
                 }
             } else if operator.is_bool_type() {
                 Some(BOOL_TYPE.to_string())
@@ -1275,16 +1307,29 @@ impl<'i> TypeAnnotator<'i> {
         statement_type
     }
     // Returns a possible generic for the current statement
+    /// determines a possible generic for the current statement
+    /// returns a pair with the possible generics symbol and the real datatype
+    /// e.g. `( "T", "INT" )`
     fn get_generic_candidate<'idx>(
         index: &'idx Index,
         annotation_map: &'idx AnnotationMapImpl,
         member: &VariableIndexEntry,
         statement: &AstStatement,
     ) -> Option<(&'idx str, &'idx str)> {
+        //find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
+        let effective_type = index.find_effective_type_info(member.get_type_name());
+        let candidate = match effective_type {
+            Some(DataTypeInformation::Pointer {
+                inner_type_name, ..
+            })
+            | Some(DataTypeInformation::Array {
+                inner_type_name, ..
+            }) => index.find_effective_type_info(inner_type_name),
+            _ => effective_type,
+        };
+
         //If generic add a generic annotation
-        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) =
-            index.find_effective_type_info(member.get_type_name())
-        {
+        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
             let statement = match statement {
                 //The right side of the assignment is the source of truth
                 AstStatement::Assignment { right, .. } => right,
@@ -1293,8 +1338,7 @@ impl<'i> TypeAnnotator<'i> {
             //Find the statement's type
             annotation_map
                 .get_type(statement, index)
-                .map(|it| it.get_name())
-                .map(|name| (generic_symbol.as_str(), name))
+                .map(|it| (generic_symbol.as_str(), it.get_name()))
         } else {
             None
         }
@@ -1312,12 +1356,11 @@ impl<'i> TypeAnnotator<'i> {
         parameters: &Option<AstStatement>,
         ctx: VisitorContext,
     ) {
-        let operator_type = self
-            .index
-            .get_effective_type_by_name(implementation_name)
-            .get_type_information();
-        if let DataTypeInformation::Struct { generics, .. } = operator_type {
-            if !generics.is_empty() {
+        if let Some(PouIndexEntry::Function {
+            generics, linkage, ..
+        }) = self.index.find_pou(implementation_name)
+        {
+            if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
                 //Annotate the statement with the new function call
                 if let Some(StatementAnnotation::Function {
@@ -1326,26 +1369,30 @@ impl<'i> TypeAnnotator<'i> {
                 }) = self.annotation_map.get(operator)
                 {
                     //Figure out the new name for the call
-                    let (name, annotation) = self.get_generic_function_annotation(
+                    let (new_name, annotation) = self.get_generic_function_annotation(
                         generics,
                         qualified_name,
                         return_type,
                         generic_map,
                     );
+
                     //Create a new pou and implementation for the function
-                    if let Some((pou, implementation)) = self
-                        .index
-                        .find_effective_type(qualified_name)
-                        .zip(self.index.find_implementation(qualified_name))
-                    {
-                        self.annotation_map.new_index.register_implementation(
-                            &name,
-                            &name,
-                            implementation.get_associated_class_name(),
-                            implementation.get_implementation_type().clone(),
-                        );
-                        self.index_generic_type(pou, &name, generic_map);
+                    let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
+                    if let Some(pou) = self.index.find_pou(qualified_name) {
+                        //only register concrete typed function if it was not indexed yet
+                        if self.index.find_pou(new_name.as_str()).is_none() {
+                            //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
+                            // e.g. call to generic_foo(aInt)
+                            self.register_generic_pou_entries(
+                                pou,
+                                cloned_return_type.as_str(),
+                                new_name.as_str(),
+                                generic_map,
+                            );
+                        }
                     }
+
+                    //annotate the call-statement so it points to the new implementation
                     self.annotation_map.annotate(operator, annotation);
                 }
                 //Adjust annotations on the inner statement
@@ -1357,62 +1404,67 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    /// Only works for Structs
-    pub fn index_generic_type(
+    /// douplicates the given generic_function under the `new_name` (e.g. foo__INT__REAL)using the
+    /// real datatypes for the generics as given in `generics` (e.g. { T=INT, U=REAL})
+    pub fn register_generic_pou_entries(
         &mut self,
-        generic_type: &typesystem::DataType,
-        specific_name: &str,
+        generic_function: &PouIndexEntry,
+        return_type: &str,
+        new_name: &str,
         generics: &HashMap<String, String>,
     ) {
-        let information = if let DataTypeInformation::Struct {
-            member_names,
-            source,
-            varargs,
-            ..
-        } = &generic_type.get_type_information()
-        {
-            let interface_name = format!("{}_interface", specific_name);
-            let information = DataTypeInformation::Struct {
-                name: interface_name,
-                member_names: member_names.clone(),
-                varargs: varargs.clone(),
-                source: source.clone(),
-                generics: vec![],
-            };
-            for member in member_names {
-                if let Some(generic_entry) = self.index.find_member(generic_type.get_name(), member)
-                {
-                    let new_name = if let Some(old_type) = self
-                        .index
-                        .find_effective_type(generic_entry.get_type_name())
-                    {
-                        match old_type.get_type_information() {
-                            DataTypeInformation::Generic { generic_symbol, .. } => generics
+        // the generic implementation
+        if let Some(generic_implementation) = generic_function.find_implementation(self.index) {
+            //register a copy of the generic's implemntation under the new name
+            self.annotation_map.new_index.register_implementation(
+                new_name,
+                new_name,
+                generic_implementation.get_associated_class_name(),
+                generic_implementation.get_implementation_type().clone(),
+                generic_implementation.generic,
+            );
+
+            //register a copy of the pou under the new name
+            self.annotation_map
+                .new_index
+                .register_pou(PouIndexEntry::create_function_entry(
+                    new_name,
+                    return_type,
+                    &[],
+                    LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
+                    generic_function.is_variadic(),
+                ));
+
+            // register the member-variables (interface) of the new function
+            // copy each member-index-entry and make sure to turn the generic (e.g. T)
+            // into the concrete type (e.g. INT)
+            if let Some(generic_function_members) =
+                self.index.get_members(generic_function.get_name())
+            {
+                for (_, member) in generic_function_members {
+                    let new_type_name =
+                        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) =
+                            self.index.find_effective_type_info(member.get_type_name())
+                        {
+                            // this is a generic member, so lets see what it's generic symbol is and translate it
+                            generics
                                 .get(generic_symbol)
                                 .map(String::as_str)
-                                .unwrap_or_else(|| old_type.get_name()),
-                            _ => old_type.get_name(),
-                        }
-                    } else {
-                        unreachable!("Member not indexed")
-                    };
-                    let entry = generic_entry.into_typed(specific_name, new_name);
+                                .unwrap_or_else(|| member.get_type_name())
+                        } else {
+                            // not a generic member, just use the original type
+                            member.get_type_name()
+                        };
+
+                    //register the member under the new container (old: foo__T, new: foo__INT)
+                    //with its new type-name (old: T, new: INT)
+                    let entry = member.into_typed(new_name, new_type_name);
                     self.annotation_map
                         .new_index
-                        .register_member_entry(specific_name, entry);
+                        .register_member_entry(new_name, entry);
                 }
             }
-            information
-        } else {
-            unreachable!("Not a struct");
-        };
-        let datatype = typesystem::DataType {
-            name: specific_name.to_string(),
-            initial_value: generic_type.initial_value,
-            nature: generic_type.nature,
-            information,
-        };
-        self.annotation_map.new_index.register_pou_type(datatype);
+        }
     }
 
     fn update_generic_function_parameters(
@@ -1691,33 +1743,6 @@ fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
     new_type_name
 }
 
-fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
-    index
-        .find_implementation(name)
-        .and_then(|it| match it.get_implementation_type() {
-            ImplementationType::Program | &ImplementationType::Action => {
-                Some(to_programm_annotation(it))
-            }
-            ImplementationType::Function | ImplementationType::Method => {
-                Some(to_function_annotation(it, index))
-            }
-            ImplementationType::FunctionBlock => Some(to_type_annotation(name)),
-            _ => None,
-        })
-}
-
-fn to_type_annotation(name: &str) -> StatementAnnotation {
-    StatementAnnotation::Type {
-        type_name: name.into(),
-    }
-}
-
-fn to_programm_annotation(it: &ImplementationIndexEntry) -> StatementAnnotation {
-    StatementAnnotation::Program {
-        qualified_name: it.get_call_name().into(),
-    }
-}
-
 fn to_variable_annotation(
     v: &VariableIndexEntry,
     index: &Index,
@@ -1742,17 +1767,6 @@ fn to_variable_annotation(
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
         is_auto_deref,
-    }
-}
-
-fn to_function_annotation(it: &ImplementationIndexEntry, index: &Index) -> StatementAnnotation {
-    StatementAnnotation::Function {
-        qualified_name: it.get_call_name().into(),
-        return_type: index
-            .find_return_type(it.get_call_name())
-            .map(|it| it.get_name())
-            .unwrap_or(VOID_TYPE)
-            .into(),
     }
 }
 

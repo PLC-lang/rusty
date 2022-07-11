@@ -1,8 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
-assertion_line: 119
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -24,12 +22,12 @@ entry:
   %2 = bitcast [100 x i8]* %z to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([17 x i8], [17 x i8]* @utf08_literal_1, i32 0, i32 0), i32 17, i1 false)
   %3 = bitcast [100 x i16]* %zz to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 bitcast ([17 x i16]* @utf16_literal_0 to i8*), i32 17, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %3, i8* align 2 bitcast ([17 x i16]* @utf16_literal_0 to i8*), i32 34, i1 false)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nosync nounwind willreturn
+; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nosync nounwind willreturn }
+attributes #0 = { argmemonly nofree nounwind willreturn }
 

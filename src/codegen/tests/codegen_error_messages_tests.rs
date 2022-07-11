@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, diagnostics::Diagnostic, test_utils::tests::codegen_without_unwrap};
+use crate::{diagnostics::Diagnostic, test_utils::tests::codegen_without_unwrap};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -67,31 +67,6 @@ fn continue_not_in_loop() {
                 "Cannot continue loop when not inside a loop",
                 (95..103).into()
             ),
-            msg
-        );
-    } else {
-        panic!("expected code-gen error but got none")
-    }
-}
-
-#[test]
-#[ignore]
-fn unknown_type_should_be_reported_with_line_number() {
-    let result = codegen_without_unwrap(
-        "
-        PROGRAM prg 
-            VAR
-                x : unknown_type;
-            END_VAR
-            x := 7;
-        END_PROGRAM
-        ",
-    );
-    if let Err(msg) = result {
-        // that's not perfect yet, the error is reported for the region of the variable
-        // but better than nothing
-        assert_eq!(
-            Diagnostic::unknown_type("unknown_type", (17..18).into()),
             msg
         );
     } else {
@@ -280,10 +255,7 @@ fn constants_without_initialization() {
 
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::codegen_error(
-                "Cannot generate literal initializer for 'b': Value can not be derived",
-                SourceRange::undefined()
-            ),
+            Diagnostic::codegen_error("Cannot propagate constant value for 'a'", (73..74).into()),
             msg
         )
     } else {
@@ -304,10 +276,7 @@ fn recursive_initial_constant_values() {
 
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::codegen_error(
-                "Cannot generate literal initializer for 'a': Value can not be derived",
-                SourceRange::undefined()
-            ),
+            Diagnostic::codegen_error("Cannot propagate constant value for 'b'", (52..53).into()),
             msg
         )
     } else {

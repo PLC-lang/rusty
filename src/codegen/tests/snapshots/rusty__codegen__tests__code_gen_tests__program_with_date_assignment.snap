@@ -1,7 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 356
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -27,7 +27,7 @@ entry:
   store i64 58804123, i64* %z, align 4
   store i64 946757700000, i64* %z, align 4
   store i64 946757700000, i64* %z, align 4
-  store i64 946757700000, i64* %z, align 4
+  store i64 946757708123, i64* %z, align 4
   ret void
 }
 

@@ -1,8 +1,6 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 12
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
-
 ---
 [
     (
@@ -17,7 +15,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "a",
             qualified_name: "a",
             initial_value: None,
-            variable_type: Global,
+            variable_type: ByVal(
+                Global,
+            ),
             is_constant: false,
             data_type_name: "INT",
             location_in_parent: 0,
@@ -40,7 +40,9 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             name: "b",
             qualified_name: "b",
             initial_value: None,
-            variable_type: Global,
+            variable_type: ByVal(
+                Global,
+            ),
             is_constant: false,
             data_type_name: "INT",
             location_in_parent: 0,
