@@ -2,7 +2,7 @@ use core::panic;
 
 use crate::{
     ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration},
-    index::Index,
+    index::{Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
@@ -1115,7 +1115,8 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             qualified_name: "foo.foo".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false
+            is_auto_deref: false,
+            variable_type: VariableType::Return
         }),
         foo_annotation
     );
@@ -1301,7 +1302,8 @@ fn qualified_expressions_dont_fallback_to_globals() {
             qualified_name: "MyStruct.y".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false
+            is_auto_deref: false,
+            variable_type: VariableType::Input
         }),
         annotations.get(&statements[1])
     );
@@ -1553,7 +1555,8 @@ fn method_references_are_resolved() {
             qualified_name: "cls.foo.foo".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false
+            is_auto_deref: false,
+            variable_type: VariableType::Return
         }),
         annotation
     );
@@ -2575,7 +2578,8 @@ fn action_body_gets_resolved() {
                 qualified_name: "prg.x".to_string(),
                 resulting_type: "DINT".to_string(),
                 constant: false,
-                is_auto_deref: false
+                is_auto_deref: false,
+                variable_type: VariableType::Local
             }),
             a
         );

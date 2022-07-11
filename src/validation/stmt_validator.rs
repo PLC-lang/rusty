@@ -35,10 +35,8 @@ impl StatementValidator {
 
     pub fn validate_statement(&mut self, statement: &AstStatement, context: &ValidationContext) {
         match statement {
-            AstStatement::Reference {
-                name, location, id, ..
-            } => {
-                self.validate_reference(id, name, location, context);
+            AstStatement::Reference { name, location, .. } => {
+                self.validate_reference(statement, name, location, context);
             }
             AstStatement::CastStatement {
                 location,
@@ -337,14 +335,33 @@ impl StatementValidator {
 
     fn validate_reference(
         &mut self,
-        id: &usize,
+        statement: &AstStatement,
         ref_name: &str,
         location: &SourceRange,
         context: &ValidationContext,
     ) {
-        if !context.ast_annotation.has_type_annotation(id) {
+        // unresolved reference
+        if !context.ast_annotation.has_type_annotation(statement) {
             self.diagnostics
                 .push(Diagnostic::unresolved_reference(ref_name, location.clone()));
+        } else if let Some(StatementAnnotation::Variable {
+            qualified_name,
+            variable_type,
+            ..
+        }) = context.ast_annotation.get(statement)
+        {
+            //check if we're accessing a private variable AND the variable's qualifier is not the
+            //POU we're accessing it from
+            if variable_type.is_private()
+                && context
+                    .qualifier
+                    .map_or(false, |q| !qualified_name.starts_with(q))
+            {
+                self.diagnostics.push(Diagnostic::illegal_access(
+                    qualified_name.as_str(),
+                    location.clone(),
+                ));
+            }
         }
     }
 

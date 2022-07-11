@@ -62,6 +62,7 @@ pub enum ErrNo {
 
     //reference related
     reference__unresolved,
+    reference__illegal_access,
 
     //type related
     type__cast_error,
@@ -190,6 +191,14 @@ impl Diagnostic {
             message: format!("Could not resolve reference to {:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
+        }
+    }
+
+    pub fn illegal_access(reference: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Illegal access to private member {:}", reference),
+            range: location,
+            err_no: ErrNo::reference__illegal_access,
         }
     }
 

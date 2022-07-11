@@ -27,6 +27,13 @@ pub struct CompileParameters {
     pub output: Option<String>,
 
     #[clap(
+        long = "check",
+        group = "format",
+        help = "Only validate input program (do not generate any code)"
+    )]
+    pub check_only: bool,
+
+    #[clap(
         long = "ir",
         group = "format",
         help = "Emit IR (LLVM Intermediate Representation) as output"
@@ -192,25 +199,37 @@ impl CompileParameters {
     }
 
     /// return the selected output format, or the default if none.
-    pub fn output_format_or_default(&self) -> FormatOption {
+    pub fn output_format_or_default(&self) -> Option<FormatOption> {
         // structop makes sure only one or zero format flags are
         // selected. So if none are selected, the default is chosen
-        self.output_format().unwrap_or(DEFAULT_FORMAT)
+
+        if self.check_only {
+            // if the --check flag is selected, we aren't supposted
+            // to generate any code, so none of the format options
+            // is valid.
+            return None;
+        }
+
+        Some(self.output_format().unwrap_or(DEFAULT_FORMAT))
     }
 
     /// return the output filename with the correct ending
     pub fn output_name(&self) -> Option<String> {
         let out_format = self.output_format_or_default();
+
         if let Some(n) = &self.output {
             Some(n.to_string())
         } else {
             let ending = match out_format {
-                FormatOption::Bitcode => ".bc",
-                FormatOption::Relocatable => ".o",
-                FormatOption::Static if self.skip_linking => ".o",
-                FormatOption::Static => "",
-                FormatOption::Shared | FormatOption::PIC => ".so",
-                FormatOption::IR => ".ir",
+                Some(out_format) => match out_format {
+                    FormatOption::Bitcode => ".bc",
+                    FormatOption::Relocatable => ".o",
+                    FormatOption::Static if self.skip_linking => ".o",
+                    FormatOption::Static => "",
+                    FormatOption::Shared | FormatOption::PIC => ".so",
+                    FormatOption::IR => ".ir",
+                },
+                None => "",
             };
 
             let output_name = self.input.first().map(String::as_str);
@@ -260,6 +279,10 @@ mod cli_tests {
 
     #[test]
     fn multiple_output_formats_results_in_error() {
+        expect_argument_error(
+            vec_of_strings!["input.st", "--check", "--shared"],
+            ErrorKind::ArgumentConflict,
+        );
         expect_argument_error(
             vec_of_strings!["input.st", "--ir", "--shared"],
             ErrorKind::ArgumentConflict,
@@ -388,28 +411,49 @@ mod cli_tests {
 
     #[test]
     fn test_default_format() {
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--check")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), None);
+
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::IR);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::IR)
+        );
 
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::Shared)
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::PIC);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::PIC)
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
                 .unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::Static)
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::Bitcode);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::Bitcode)
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), super::DEFAULT_FORMAT);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(super::DEFAULT_FORMAT)
+        );
     }
 
     #[test]
