@@ -301,3 +301,78 @@ fn passing_arguments_to_functions_by_ref_and_val() {
     }
     "###);
 }
+
+#[test]
+fn function_with_varargs_called_in_program() {
+    let result = codegen(
+        "
+        @EXTERNAL
+        FUNCTION foo : DINT
+        VAR_INPUT
+          args : ...;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM prg 
+        VAR
+        x : DINT;
+        END_VAR
+        x := foo(FALSE, 3, (x + 1));
+        END_PROGRAM
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn function_with_sized_varargs_called_in_program() {
+    let result = codegen(
+        "
+        @EXTERNAL
+        FUNCTION foo : DINT
+        VAR_INPUT
+          args : {sized} DINT...;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM prg 
+        VAR
+        x : DINT;
+        END_VAR
+        x := foo(0, 3, (x + 1));
+        END_PROGRAM
+        ",
+    );
+
+    // The function definition contains a size and pointer for the parameters
+    // The parameters are stored in a local vector (allocated in place)
+    // Function call with 3 as first parameter (size) and the arguments array as pointer
+    insta::assert_snapshot!(result, @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %prg_interface = type { i32 }
+
+    @prg_instance = global %prg_interface zeroinitializer
+
+    declare i32 @foo(i32, i32*)
+
+    define void @prg(%prg_interface* %0) {
+    entry:
+      %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+      %load_x = load i32, i32* %x, align 4
+      %tmpVar = add i32 %load_x, 1
+      %1 = alloca [3 x i32], align 4
+      %2 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 0
+      store i32 0, i32* %2, align 4
+      %3 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 1
+      store i32 3, i32* %3, align 4
+      %4 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 2
+      store i32 %tmpVar, i32* %4, align 4
+      %call = call i32 @foo(i32 3, [3 x i32]* %1)
+      store i32 %call, i32* %x, align 4
+      ret void
+    }
+    "###);
+}

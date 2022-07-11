@@ -17,12 +17,13 @@ lazy_static! {
         (
             "ADR",
             BuiltIn {
-                decl: "FUNCTION ADR<T: ANY> : LWORD
+                decl: "FUNCTION ADR<U: ANY> : LWORD
                 VAR_INPUT
-                    in : T;
+                    in : U;
                 END_VAR
                 END_FUNCTION
             ",
+                transformation: |it| it,
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
@@ -40,12 +41,13 @@ lazy_static! {
         (
             "REF",
             BuiltIn {
-                decl: "FUNCTION REF<T: ANY> : REF_TO T
+                decl: "FUNCTION REF<U: ANY> : REF_TO U
                 VAR_INPUT
-                    in : T;
+                    in : U;
                 END_VAR
                 END_FUNCTION
                 ",
+                transformation: |it| it,
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
@@ -59,12 +61,88 @@ lazy_static! {
                     }
                 }
             },
+        ),
+        (
+            "MUX",
+            BuiltIn {
+                decl: "FUNCTION MUX<U: ANY> : U
+                VAR_INPUT
+                    K : DINT;
+                    args : {sized} U...;
+                END_VAR
+                END_FUNCTION
+                ",
+                transformation: |it| it,
+                code: |generator, params, location| {
+                    //Generate an access from the first param
+                    if let &[k, ..] = params {
+                        let k = generator.generate_expression(k)?;
+                        let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
+                        //Generate a pointer for the rest of the params
+                        let params = generator.generate_variadic_arguments_list(pou, &params[1..])?;
+                        //First access is into the array
+                        let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), k.into_int_value()],"")?;
+                        Ok(generator.llvm.builder.build_load(ptr, ""))
+                    } else {
+                        Err(Diagnostic::codegen_error("Invalid signature for MUX", location))
+                    }
+
+                }
+            },
+        ),
+        (
+            "SEL",
+            BuiltIn {
+                decl: "FUNCTION SEL<U: ANY> : U
+                VAR_INPUT
+                    G : BOOL;
+                    IN0 : U;
+                    IN1 : U;
+                END_VAR
+                END_FUNCTION
+                ",
+                transformation: |it| it,
+                code: |generator, params, location| {
+                    if let &[g,..] = params {
+                        //evaluate G
+                        let cond = generator.generate_expression(g)?;
+                        //Use the mux definition for the varargs
+                        let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
+                        //Generate a pointer for the rest of the params
+                        let params = generator.generate_variadic_arguments_list(pou, &params[1..])?;
+                        let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), cond.into_int_value()],"")?; //First access is into the array
+                        Ok(generator.llvm.builder.build_load(ptr, ""))
+                    } else {
+                        Err(Diagnostic::codegen_error("Invalid signature for SEL", location))
+                    }
+
+                }
+            }
+        ),
+        (
+            "MOVE",
+            BuiltIn {
+                decl : "FUNCTION MOVE<U: ANY> : U
+                VAR_INPUT
+                    in : U;
+                END_VAR
+                END_FUNCTION",
+                transformation: |it| it,
+                code : |generator, params, location| {
+                    if params.len() == 1 {
+                        generator.generate_expression(params[0])
+                    } else {
+                        Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location))
+                    }
+                }
+            }
         )
     ]);
 }
 
 pub struct BuiltIn {
     decl: &'static str,
+    transformation: fn(AstStatement) -> AstStatement,
     code: for<'ink, 'b> fn(
         &'b ExpressionCodeGenerator<'ink, 'b>,
         &[&AstStatement],
@@ -81,6 +159,10 @@ impl BuiltIn {
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         (self.code)(generator, params, location)
     }
+
+    pub fn transform(&self, statement: AstStatement) -> AstStatement {
+        (self.transformation)(statement)
+    }
 }
 
 pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
@@ -89,7 +171,13 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
         .map(|(_, it)| it.decl)
         .collect::<Vec<&str>>()
         .join(" ");
-    parser::parse(lexer::lex_with_ids(&src, id_provider), LinkageType::BuiltIn).0
+    let mut unit = parser::parse(
+        lexer::lex_with_ids(&src, id_provider.clone()),
+        LinkageType::BuiltIn,
+    )
+    .0;
+    crate::ast::pre_process(&mut unit, id_provider);
+    unit
 }
 
 /// Returns the requested functio from the builtin index or None

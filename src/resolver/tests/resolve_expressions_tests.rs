@@ -76,14 +76,6 @@ fn binary_expressions_resolves_types_for_mixed_signed_ints() {
 fn expt_binary_expression() {
     let (unit, mut index) = index(
         "
-        {external}
-        FUNCTION EXPT<A : ANY_NUM, B : ANY_NUM> : A 
-            VAR_INPUT
-                ELEMENT : A;
-                EXPONANT : B;
-            END_VAR
-        END_FUNCTION
-
         PROGRAM PRG
             VAR 
                 a,b : DINT; 
@@ -2847,13 +2839,10 @@ fn resolve_function_with_same_name_as_return_type() {
     let effective_type = index.find_effective_type("TIME").unwrap();
     assert_eq!(effective_type, associated_type);
     // AND should be Integer
-    assert_eq!(
-        true,
-        matches!(
-            effective_type.get_type_information(),
-            DataTypeInformation::Integer { .. }
-        )
-    )
+    assert!(matches!(
+        effective_type.get_type_information(),
+        DataTypeInformation::Integer { .. }
+    ))
 }
 
 #[test]
@@ -3087,10 +3076,7 @@ fn call_on_function_block_array() {
         AstStatement::CallStatement { operator, .. } => Some(operator.as_ref()),
         _ => None,
     };
-    assert_eq!(
-        matches!(operator, Some(&AstStatement::ArrayAccess { .. })),
-        true
-    );
+    assert!(matches!(operator, Some(&AstStatement::ArrayAccess { .. })),);
 
     let annotation = annotations.get(operator.unwrap());
     assert_eq!(

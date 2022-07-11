@@ -18,10 +18,10 @@
 
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
-		"matklad.rust-analyzer",
 		"bungcip.better-toml",
 		"vadimcn.vscode-lldb",
-		"mutantdino.resourcemonitor"
+		"mutantdino.resourcemonitor",
+		"rust-lang.rust-analyzer"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

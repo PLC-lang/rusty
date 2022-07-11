@@ -95,6 +95,8 @@ pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
         Diagnostician::null_diagnostician(),
     )
     .unwrap();
+    #[cfg(feature = "debug")]
+    code_gen.module.print_to_stderr();
     code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)

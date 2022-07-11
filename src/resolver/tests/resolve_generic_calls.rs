@@ -1,9 +1,9 @@
 use crate::{
     assert_type_and_hint,
-    ast::{self, AstStatement},
+    ast::{self, flatten_expression_list, AstStatement},
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::index,
-    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, LWORD_TYPE, REAL_TYPE},
+    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE},
 };
 
 #[test]
@@ -522,4 +522,123 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
 
     //The return type should have the correct type
     assert_type_and_hint!(&annotations, &index, call, LWORD_TYPE, None);
+
+    //The parameter should have the correct (original) type
+    if let AstStatement::CallStatement { parameters, .. } = call {
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[0], DINT_TYPE, None);
+    } else {
+        panic!("Expected call statement")
+    }
+    let call = &unit.implementations[0].statements[2];
+    if let AstStatement::CallStatement { parameters, .. } = call {
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[0], REAL_TYPE, None);
+    } else {
+        panic!("Expected call statement")
+    }
+}
+
+#[test]
+fn builtin_sel_param_type_is_not_changed() {
+    let (unit, index) = index(
+        "
+    FUNCTION test : DINT
+    VAR
+        a,b: DINT;
+    END_VAR
+        SEL(FALSE,a,b);
+    END_FUNCTION
+    ",
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    //get the type/hints for a and b in the call, they should be unchanged (DINT, None)
+    let call = &unit.implementations[0].statements[0];
+    if let AstStatement::CallStatement { parameters, .. } = call {
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, params[2], DINT_TYPE, None);
+    } else {
+        panic!("Expected call statement")
+    }
+}
+
+#[test]
+fn resolve_variadic_generics() {
+    let (unit, index) = index(
+        "
+    FUNCTION ex<U: ANY> : U 
+    VAR_INPUT
+        ar : {sized}U...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION test : DINT
+    VAR
+        a,b: DINT;
+    END_VAR
+        ex(a,b);
+    END_FUNCTION
+    ",
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    //ex should resolve to ex__dint
+    //a and b have the type dint
+    let call = &unit.implementations[1].statements[0];
+    //The call statement should return a DINT
+    assert_type_and_hint!(&annotations, &index, call, DINT_TYPE, None);
+    if let AstStatement::CallStatement {
+        operator,
+        parameters,
+        ..
+    } = call
+    {
+        assert_eq!(Some("ex__DINT"), annotations.get_call_name(operator));
+        let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[0], DINT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, Some(DINT_TYPE));
+    } else {
+        panic!("Expected call statement")
+    }
+}
+
+#[test]
+fn generic_call_gets_cast_to_biggest_type() {
+    let (unit, index) = index(
+        r"
+ 
+    {external}
+    FUNCTION MAX<T : ANY> : T
+        VAR_INPUT
+            args : {sized} T...;
+        END_VAR
+    END_FUNCTION
+ 
+    FUNCTION main : LREAL
+        MAX(SINT#5,DINT#1,LREAL#1.5,1.2);
+    END_FUNCTION",
+    );
+
+    //Expecting all values to be LREAL
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let call = &unit.implementations[1].statements[0];
+    assert_type_and_hint!(&annotations, &index, call, LREAL_TYPE, None);
+    //Call returns LREAL
+    if let AstStatement::CallStatement { parameters, .. } = call {
+        let params = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, params[0], SINT_TYPE, Some(LREAL_TYPE));
+        assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, Some(LREAL_TYPE));
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            params[2],
+            LREAL_TYPE,
+            Some(LREAL_TYPE)
+        );
+        assert_type_and_hint!(&annotations, &index, params[3], REAL_TYPE, Some(LREAL_TYPE));
+    } else {
+        panic!("Expected call statement")
+    }
 }

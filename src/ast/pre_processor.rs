@@ -322,6 +322,10 @@ fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &HashMap<St
             }
             | DataType::PointerType {
                 referenced_type, ..
+            }
+            | DataType::VarArgs {
+                referenced_type: Some(referenced_type),
+                ..
             } => replace_generic_type_name(referenced_type.as_mut(), generics),
             _ => {}
         },

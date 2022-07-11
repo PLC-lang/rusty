@@ -1,0 +1,32 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32, i32, i32 }
+
+@main_instance = global %main_interface zeroinitializer
+
+define void @main(%main_interface* %0) {
+entry:
+  %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %c = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  %load_b = load i32, i32* %b, align 4
+  %1 = sext i32 %load_b to i64
+  %load_c = load i32, i32* %c, align 4
+  %2 = sext i32 %load_c to i64
+  %3 = alloca [2 x i64], align 8
+  %4 = getelementptr inbounds [2 x i64], [2 x i64]* %3, i32 0, i32 0
+  store i64 %1, i64* %4, align 4
+  %5 = getelementptr inbounds [2 x i64], [2 x i64]* %3, i32 0, i32 1
+  store i64 %2, i64* %5, align 4
+  %6 = getelementptr inbounds [2 x i64], [2 x i64]* %3, i32 0, i8 1
+  %7 = load i64, i64* %6, align 4
+  %8 = trunc i64 %7 to i32
+  store i32 %8, i32* %a, align 4
+  ret void
+}
+

@@ -488,10 +488,7 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
         for exp in expressions {
             if let Some(data_type) = annotations.get_type_hint(exp, &index) {
                 let type_info = data_type.get_type_information();
-                assert_eq!(
-                    true,
-                    matches!(type_info, DataTypeInformation::Integer { .. })
-                )
+                assert!(matches!(type_info, DataTypeInformation::Integer { .. }))
             } else {
                 unreachable!();
             }

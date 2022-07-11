@@ -5,7 +5,7 @@ use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
-use crate::typesystem::TypeSize;
+use crate::typesystem::{TypeSize, INT_TYPE, VOID_TYPE};
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
 #[test]
@@ -239,9 +239,12 @@ fn function_with_varargs_param_marked() {
         END_FUNCTION
         "#,
     );
-    let function = index.find_effective_type("myFunc").unwrap();
-    assert!(function.get_type_information().is_variadic());
-    assert_eq!(None, function.get_type_information().get_variadic_type());
+    let function = index.find_pou("myFunc").unwrap();
+    assert!(function.is_variadic());
+    assert_eq!(
+        VOID_TYPE,
+        index.get_variadic_member("myFunc").unwrap().get_type_name()
+    );
 }
 
 #[test]
@@ -256,11 +259,11 @@ fn function_with_typed_varargs_param_marked() {
         END_FUNCTION
         "#,
     );
-    let function = index.find_effective_type("myFunc").unwrap();
-    assert!(function.get_type_information().is_variadic());
+    let function = index.find_pou("myFunc").unwrap();
+    assert!(function.is_variadic());
     assert_eq!(
-        Some("INT"),
-        function.get_type_information().get_variadic_type()
+        INT_TYPE,
+        index.get_variadic_member("myFunc").unwrap().get_type_name()
     );
 }
 
@@ -509,78 +512,42 @@ fn callable_instances_can_be_retreived() {
     "#,
     );
 
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["fb1_inst"])
-            .is_some()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["fb2_inst"])
-            .is_some()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["fb3_inst"])
-            .is_some()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["fb1_local"])
-            .is_some()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["fb1_local", "fb2_inst", "fb3_inst"])
-            .is_some()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst"])
-            .is_some()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst"])
-            .is_some()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["foo"])
-            .is_none()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["a"])
-            .is_none()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["b"])
-            .is_none()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["c"])
-            .is_none()
-    );
-    assert_eq!(
-        true,
-        index
-            .find_callable_instance_variable(Some("prg"), &["d"])
-            .is_none()
-    );
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["fb1_inst"])
+        .is_some());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["fb2_inst"])
+        .is_some());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["fb3_inst"])
+        .is_some());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["fb1_local"])
+        .is_some());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["fb1_local", "fb2_inst", "fb3_inst"])
+        .is_some());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst"])
+        .is_some());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst"])
+        .is_some());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["foo"])
+        .is_none());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["a"])
+        .is_none());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["b"])
+        .is_none());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["c"])
+        .is_none());
+    assert!(index
+        .find_callable_instance_variable(Some("prg"), &["d"])
+        .is_none());
 }
 
 #[test]
@@ -1747,13 +1714,10 @@ fn function_name_equals_return_type() {
     // with the name "time"
     assert_eq!(data_type.get_name(), "TIME");
     // and DataTypeInformation of the type struct
-    assert_eq!(
-        true,
-        matches!(
-            data_type.get_type_information(),
-            DataTypeInformation::Struct { .. }
-        )
-    );
+    assert!(matches!(
+        data_type.get_type_information(),
+        DataTypeInformation::Struct { .. }
+    ));
 }
 
 #[test]
@@ -1772,7 +1736,7 @@ fn global_vars_for_structs() {
 
     // THEN there should be a global variable for the struct
     let global_var = index.find_global_initializer("__main_x__init");
-    assert_eq!(true, global_var.is_some());
+    assert!(global_var.is_some());
 }
 
 #[test]
@@ -1917,7 +1881,8 @@ fn a_program_pou_is_indexed() {
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
                 binding: None,
-                source_location: SourceRange::new(9..46)
+                source_location: SourceRange::new(9..46),
+                varargs: None,
             }
         }),
         index.find_pou("myProgram"),

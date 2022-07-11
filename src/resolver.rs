@@ -10,11 +10,12 @@ use std::collections::{HashMap, HashSet};
 use indexmap::IndexMap;
 
 pub mod const_evaluator;
+mod generics;
 
 use crate::{
     ast::{
-        self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
-        LinkageType, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+        self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
+        TypeNature, UserTypeDeclaration, Variable,
     },
     index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
@@ -702,6 +703,7 @@ impl<'i> TypeAnnotator<'i> {
             } => self.visit_data_type_declaration(ctx, referenced_type),
             DataType::VarArgs {
                 referenced_type: Some(referenced_type),
+                ..
             } => {
                 self.visit_data_type_declaration(ctx, referenced_type.as_ref());
             }
@@ -904,7 +906,68 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 visit_all_statements!(self, ctx, left, right);
-                let statement_type = self.visit_binary_expression(left, right, *operator);
+                let statement_type = {
+                    let left_type = self
+                        .annotation_map
+                        .get_type_hint(left, self.index)
+                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(left, self.index));
+                    let right_type = self
+                        .annotation_map
+                        .get_type_hint(right, self.index)
+                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(right, self.index));
+
+                    if left_type.get_type_information().is_numerical()
+                        && right_type.get_type_information().is_numerical()
+                    {
+                        let bigger_type = if left_type.get_type_information().is_bool()
+                            && right_type.get_type_information().is_bool()
+                        {
+                            left_type
+                        } else {
+                            let dint = self.index.get_type_or_panic(DINT_TYPE);
+                            get_bigger_type(
+                                get_bigger_type(left_type, right_type, self.index),
+                                dint,
+                                self.index,
+                            )
+                        };
+
+                        let target_name = if operator.is_bool_type() {
+                            BOOL_TYPE.to_string()
+                        } else {
+                            bigger_type.get_name().to_string()
+                        };
+
+                        let bigger_is_left = bigger_type != right_type;
+                        let bigger_is_right = bigger_type != left_type;
+
+                        if bigger_is_left || bigger_is_right {
+                            // if these types are different we need to update the 'other' type's annotation
+                            let bigger_type = bigger_type.clone(); // clone here, so we release the borrow on self
+                            if bigger_is_right {
+                                self.update_expected_types(&bigger_type, left);
+                            }
+                            if bigger_is_left {
+                                self.update_expected_types(&bigger_type, right);
+                            }
+                        }
+
+                        Some(target_name)
+                    } else if operator.is_bool_type() {
+                        Some(BOOL_TYPE.to_string())
+                    } else if left_type.get_type_information().is_pointer()
+                        || right_type.get_type_information().is_pointer()
+                    {
+                        let target_name = if left_type.get_type_information().is_pointer() {
+                            left_type.get_name()
+                        } else {
+                            right_type.get_name()
+                        };
+                        Some(target_name.to_string())
+                    } else {
+                        None
+                    }
+                };
 
                 if let Some(statement_type) = statement_type {
                     self.annotation_map
@@ -1130,26 +1193,58 @@ impl<'i> TypeAnnotator<'i> {
                     self.visit_statement(&ctx, s);
                     if let Some(s) = parameters.as_ref() {
                         let parameters = ast::flatten_expression_list(s);
-                        let all_members = self.index.get_container_members(&operator_qualifier);
-                        let members = all_members.iter().filter(|it| it.is_parameter());
-                        for (i, m) in members.enumerate() {
-                            if let Some(p) = parameters.get(i) {
-                                //Add a possible generic candidate
+                        let mut parameters = parameters.into_iter();
+                        for m in self
+                            .index
+                            .get_declared_parameters(&operator_qualifier)
+                            .into_iter()
+                        {
+                            if let Some(p) = parameters.next() {
+                                let type_name = m.get_type_name();
                                 if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
                                     self.index,
                                     &self.annotation_map,
-                                    m,
+                                    type_name,
                                     p,
                                 ) {
                                     generics_candidates
                                         .entry(key.to_string())
                                         .or_insert_with(std::vec::Vec::new)
-                                        .push(candidate.to_string());
+                                        .push(candidate.to_string())
                                 } else {
-                                    //Don't do this for generics
-                                    params.push((*p, m.get_type_name().to_string()));
+                                    params.push((p, type_name.to_string()))
                                 }
                             }
+                        }
+                        //We possibly did not consume all parameters, see if the variadic arguments are derivable
+                        match self.index.find_pou(&operator_qualifier) {
+                            Some(pou) if pou.is_variadic() => {
+                                //get variadic argument type, if it is generic, update the generic candidates
+                                if let Some(type_name) = self
+                                    .index
+                                    .get_variadic_member(pou.get_name())
+                                    .map(VariableIndexEntry::get_type_name)
+                                {
+                                    for parameter in parameters {
+                                        if let Some((key, candidate)) =
+                                            TypeAnnotator::get_generic_candidate(
+                                                self.index,
+                                                &self.annotation_map,
+                                                type_name,
+                                                parameter,
+                                            )
+                                        {
+                                            generics_candidates
+                                                .entry(key.to_string())
+                                                .or_insert_with(std::vec::Vec::new)
+                                                .push(candidate.to_string())
+                                        } else {
+                                            params.push((parameter, type_name.to_string()))
+                                        }
+                                    }
+                                }
+                            }
+                            _ => {}
                         }
                     }
                 }
@@ -1211,386 +1306,6 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement_literals(ctx, statement);
             }
         }
-    }
-
-    fn visit_binary_expression(
-        &mut self,
-        left: &AstStatement,
-        right: &AstStatement,
-        operator: Operator,
-    ) -> Option<String> {
-        let statement_type = {
-            let left_type = self
-                .annotation_map
-                .get_type_hint(left, self.index)
-                .unwrap_or_else(|| self.annotation_map.get_type_or_void(left, self.index));
-            let right_type = self
-                .annotation_map
-                .get_type_hint(right, self.index)
-                .unwrap_or_else(|| self.annotation_map.get_type_or_void(right, self.index));
-
-            if left_type.get_type_information().is_numerical()
-                && right_type.get_type_information().is_numerical()
-            {
-                let dint = self.index.get_type_or_panic(DINT_TYPE);
-                if operator == Operator::Exponentiation {
-                    //Convert left side to either REAL or LREAL
-                    let left_converted = get_bigger_type(left_type, dint, self.index);
-                    //Convert the right side to at least DINT
-                    let right_converted = get_bigger_type(right_type, dint, self.index);
-                    //Use the biggest type of the input for the left/end result
-                    let left_converted =
-                        get_bigger_type(left_converted, right_converted, self.index);
-                    //If left and right are both reals, use the bigger of the two for the right side
-                    let right_converted = if right_converted.get_type_information().is_float() {
-                        left_converted //Left is always atleast as big as right
-                    } else {
-                        right_converted
-                    };
-                    let left_is_different = left_converted != left_type;
-                    let right_is_different = right_converted != right_type;
-                    //Clone the values to avoid borrow issues. TODO : Why?
-                    let left_converted = left_converted.clone();
-                    let right_converted = right_converted.clone();
-                    if left_is_different {
-                        self.update_expected_types(&left_converted, left);
-                    }
-                    if right_is_different {
-                        self.update_expected_types(&right_converted, right);
-                    }
-                    //Return the left side as result
-                    Some(left_converted.get_name().to_string())
-                } else {
-                    let bigger_type = if left_type.get_type_information().is_bool()
-                        && right_type.get_type_information().is_bool()
-                    {
-                        left_type
-                    } else {
-                        get_bigger_type(
-                            get_bigger_type(left_type, right_type, self.index),
-                            dint,
-                            self.index,
-                        )
-                    };
-
-                    let target_name = if operator.is_bool_type() {
-                        BOOL_TYPE.to_string()
-                    } else {
-                        bigger_type.get_name().to_string()
-                    };
-
-                    let bigger_is_left = bigger_type != right_type;
-                    let bigger_is_right = bigger_type != left_type;
-
-                    if bigger_is_left || bigger_is_right {
-                        // if these types are different we need to update the 'other' type's annotation
-                        let bigger_type = bigger_type.clone(); // clone here, so we release the borrow on self
-                        if bigger_is_right {
-                            self.update_expected_types(&bigger_type, left);
-                        }
-                        if bigger_is_left {
-                            self.update_expected_types(&bigger_type, right);
-                        }
-                    }
-
-                    Some(target_name)
-                }
-            } else if operator.is_bool_type() {
-                Some(BOOL_TYPE.to_string())
-            } else if left_type.get_type_information().is_pointer()
-                || right_type.get_type_information().is_pointer()
-            {
-                let target_name = if left_type.get_type_information().is_pointer() {
-                    left_type.get_name()
-                } else {
-                    right_type.get_name()
-                };
-                Some(target_name.to_string())
-            } else {
-                None
-            }
-        };
-        statement_type
-    }
-    // Returns a possible generic for the current statement
-    /// determines a possible generic for the current statement
-    /// returns a pair with the possible generics symbol and the real datatype
-    /// e.g. `( "T", "INT" )`
-    fn get_generic_candidate<'idx>(
-        index: &'idx Index,
-        annotation_map: &'idx AnnotationMapImpl,
-        member: &VariableIndexEntry,
-        statement: &AstStatement,
-    ) -> Option<(&'idx str, &'idx str)> {
-        //find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
-        let effective_type = index.find_effective_type_info(member.get_type_name());
-        let candidate = match effective_type {
-            Some(DataTypeInformation::Pointer {
-                inner_type_name, ..
-            })
-            | Some(DataTypeInformation::Array {
-                inner_type_name, ..
-            }) => index.find_effective_type_info(inner_type_name),
-            _ => effective_type,
-        };
-
-        //If generic add a generic annotation
-        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
-            let statement = match statement {
-                //The right side of the assignment is the source of truth
-                AstStatement::Assignment { right, .. } => right,
-                _ => statement,
-            };
-            //Find the statement's type
-            annotation_map
-                .get_type(statement, index)
-                .map(|it| (generic_symbol.as_str(), it.get_name()))
-        } else {
-            None
-        }
-    }
-
-    /// Updates the generic information of a function call
-    /// It collects all candidates for a generic function
-    /// Then chooses the best fitting function signature
-    /// And reannotates the function with the found information
-    fn update_generic_call_statement(
-        &mut self,
-        generics_candidates: HashMap<String, Vec<String>>,
-        implementation_name: &str,
-        operator: &AstStatement,
-        parameters: &Option<AstStatement>,
-        ctx: VisitorContext,
-    ) {
-        if let Some(PouIndexEntry::Function {
-            generics, linkage, ..
-        }) = self.index.find_pou(implementation_name)
-        {
-            if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
-                let generic_map = &self.derive_generic_types(generics, generics_candidates);
-                //Annotate the statement with the new function call
-                if let Some(StatementAnnotation::Function {
-                    qualified_name,
-                    return_type,
-                }) = self.annotation_map.get(operator)
-                {
-                    //Figure out the new name for the call
-                    let (new_name, annotation) = self.get_generic_function_annotation(
-                        generics,
-                        qualified_name,
-                        return_type,
-                        generic_map,
-                    );
-
-                    //Create a new pou and implementation for the function
-                    let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
-                    if let Some(pou) = self.index.find_pou(qualified_name) {
-                        //only register concrete typed function if it was not indexed yet
-                        if self.index.find_pou(new_name.as_str()).is_none() {
-                            //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
-                            // e.g. call to generic_foo(aInt)
-                            self.register_generic_pou_entries(
-                                pou,
-                                cloned_return_type.as_str(),
-                                new_name.as_str(),
-                                generic_map,
-                            );
-                        }
-                    }
-
-                    //annotate the call-statement so it points to the new implementation
-                    self.annotation_map.annotate(operator, annotation);
-                }
-                //Adjust annotations on the inner statement
-                if let Some(s) = parameters.as_ref() {
-                    self.visit_statement(&ctx, s);
-                    self.update_generic_function_parameters(s, implementation_name, generic_map);
-                }
-            }
-        }
-    }
-
-    /// douplicates the given generic_function under the `new_name` (e.g. foo__INT__REAL)using the
-    /// real datatypes for the generics as given in `generics` (e.g. { T=INT, U=REAL})
-    pub fn register_generic_pou_entries(
-        &mut self,
-        generic_function: &PouIndexEntry,
-        return_type: &str,
-        new_name: &str,
-        generics: &HashMap<String, String>,
-    ) {
-        // the generic implementation
-        if let Some(generic_implementation) = generic_function.find_implementation(self.index) {
-            //register a copy of the generic's implemntation under the new name
-            self.annotation_map.new_index.register_implementation(
-                new_name,
-                new_name,
-                generic_implementation.get_associated_class_name(),
-                generic_implementation.get_implementation_type().clone(),
-                generic_implementation.generic,
-            );
-
-            //register a copy of the pou under the new name
-            self.annotation_map
-                .new_index
-                .register_pou(PouIndexEntry::create_function_entry(
-                    new_name,
-                    return_type,
-                    &[],
-                    LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
-                    generic_function.is_variadic(),
-                ));
-
-            // register the member-variables (interface) of the new function
-            // copy each member-index-entry and make sure to turn the generic (e.g. T)
-            // into the concrete type (e.g. INT)
-            if let Some(generic_function_members) =
-                self.index.get_members(generic_function.get_name())
-            {
-                for (_, member) in generic_function_members {
-                    let new_type_name =
-                        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) =
-                            self.index.find_effective_type_info(member.get_type_name())
-                        {
-                            // this is a generic member, so lets see what it's generic symbol is and translate it
-                            generics
-                                .get(generic_symbol)
-                                .map(String::as_str)
-                                .unwrap_or_else(|| member.get_type_name())
-                        } else {
-                            // not a generic member, just use the original type
-                            member.get_type_name()
-                        };
-
-                    //register the member under the new container (old: foo__T, new: foo__INT)
-                    //with its new type-name (old: T, new: INT)
-                    let entry = member.into_typed(new_name, new_type_name);
-                    self.annotation_map
-                        .new_index
-                        .register_member_entry(new_name, entry);
-                }
-            }
-        }
-    }
-
-    fn update_generic_function_parameters(
-        &mut self,
-        s: &AstStatement,
-        function_name: &str,
-        generic_map: &HashMap<String, String>,
-    ) {
-        /// An internal struct used to hold the type and nature of a generic parameter
-        struct TypeAndNature<'a> {
-            datatype: &'a typesystem::DataType,
-            nature: TypeNature,
-        }
-
-        // Map the input or output parameters of the function into a list of Index Entry with an optional generic type discription
-        let parameters = ast::flatten_expression_list(s);
-        let all_members = self.index.get_container_members(function_name);
-        let members: Vec<(&VariableIndexEntry, Option<TypeAndNature>)> = all_members
-            .iter()
-            .filter(|it| it.is_parameter())
-            .copied()
-            .map(|it| {
-                //if the member is generic
-                if let Some(DataTypeInformation::Generic {
-                    generic_symbol,
-                    nature,
-                    ..
-                }) = self.index.find_effective_type_info(it.get_type_name())
-                {
-                    let real_type = generic_map
-                        .get(generic_symbol)
-                        .and_then(|it| self.index.find_effective_type(it))
-                        .map(|datatype| TypeAndNature {
-                            datatype,
-                            nature: *nature,
-                        });
-                    (it, real_type)
-                } else {
-                    (it, None)
-                }
-            })
-            .collect();
-
-        //See if parameters have assignments, as they need to be treated differently
-        if parameters.iter().any(|it| {
-            matches!(
-                it,
-                AstStatement::Assignment { .. } | AstStatement::OutputAssignment { .. }
-            )
-        }) {
-            for p in parameters {
-                match p {
-                    AstStatement::Assignment { left, right, .. }
-                    | AstStatement::OutputAssignment { left, right, .. } => {
-                        if let AstStatement::Reference { name, .. } = &**left {
-                            //Find the member with that name
-                            if let Some((_, Some(TypeAndNature { datatype, nature }))) =
-                                members.iter().find(|(it, _)| it.get_name() == name)
-                            {
-                                self.annotation_map.add_generic_nature(p, *nature);
-                                self.annotation_map.annotate(
-                                    left,
-                                    StatementAnnotation::value(datatype.get_name()),
-                                );
-                                self.update_right_hand_side_expected_type(left, right);
-                            }
-                        }
-                    }
-                    _ => { /*do nothing*/ }
-                }
-            }
-        } else {
-            for (i, (_, dt)) in members.iter().enumerate() {
-                if let Some(p) = parameters.get(i) {
-                    if let Some(TypeAndNature { datatype, nature }) = dt {
-                        self.annotation_map.add_generic_nature(p, *nature);
-                        self.annotation_map
-                            .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
-                    }
-                }
-            }
-        }
-    }
-
-    fn get_generic_function_annotation(
-        &self,
-        generics: &[GenericBinding],
-        qualified_name: &str,
-        return_type: &str,
-        generic_map: &HashMap<String, String>,
-    ) -> (String, StatementAnnotation) {
-        let generic_name = generics
-            .iter()
-            .map(|it| {
-                generic_map
-                    .get(&it.name)
-                    .map(String::as_str)
-                    .unwrap_or_else(|| it.name.as_str())
-            })
-            .collect::<Vec<&str>>()
-            .join("__");
-        let function_name = format!("{}__{}", qualified_name, generic_name);
-        let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
-            self.index.get_type_information_or_void(return_type)
-        {
-            generic_map
-                .get(generic_symbol)
-                .map(String::as_str)
-                .unwrap_or(return_type)
-        } else {
-            return_type
-        }
-        .to_string();
-        (
-            function_name.clone(),
-            StatementAnnotation::Function {
-                qualified_name: function_name,
-                return_type,
-            },
-        )
     }
 
     fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
@@ -1668,42 +1383,6 @@ impl<'i> TypeAnnotator<'i> {
 
             _ => {}
         }
-    }
-
-    fn derive_generic_types(
-        &self,
-        generics: &[GenericBinding],
-        generics_candidates: HashMap<String, Vec<String>>,
-    ) -> HashMap<String, String> {
-        let mut generic_map: HashMap<String, String> = HashMap::new();
-        for GenericBinding { name, .. } in generics {
-            //Get the current binding
-            if let Some(candidates) = generics_candidates.get(name) {
-                //Find the best suiting type
-                let winner = candidates
-                    .iter()
-                    .fold(
-                        None,
-                        |previous_type: Option<&DataTypeInformation>, current| {
-                            let current_type = self
-                                .index
-                                .find_effective_type_info(current)
-                                .map(|it| self.index.find_intrinsic_type(it));
-                            //Find bigger
-                            if let Some((previous, current)) = previous_type.zip(current_type) {
-                                Some(typesystem::get_bigger_type(previous, current, self.index))
-                            } else {
-                                current_type
-                            }
-                        },
-                    )
-                    .map(DataTypeInformation::get_name);
-                if let Some(winner) = winner {
-                    generic_map.insert(name.into(), winner.into());
-                }
-            }
-        }
-        generic_map
     }
 }
 

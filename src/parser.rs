@@ -569,11 +569,13 @@ fn parse_full_data_type_definition(
         KeywordSemicolon
     };
     parse_any_in_region(lexer, vec![end_keyword], |lexer| {
+        let sized = lexer.allow(&PropertySized);
         if lexer.allow(&KeywordDotDotDot) {
             Some((
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::VarArgs {
                         referenced_type: None,
+                        sized,
                     },
                     location: lexer.last_range.clone().into(),
                     scope: lexer.scope.clone(),
@@ -587,6 +589,7 @@ fn parse_full_data_type_definition(
                         DataTypeDeclaration::DataTypeDefinition {
                             data_type: DataType::VarArgs {
                                 referenced_type: Some(Box::new(type_def)),
+                                sized,
                             },
                             location: lexer.last_range.clone().into(),
                             scope: lexer.scope.clone(),

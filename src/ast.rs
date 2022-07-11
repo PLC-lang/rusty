@@ -1,5 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{lexer::IdProvider, typesystem::DataTypeInformation};
+use crate::{
+    lexer::IdProvider,
+    typesystem::{DataTypeInformation, VOID_TYPE},
+};
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
@@ -494,6 +497,7 @@ pub enum DataType {
     },
     VarArgs {
         referenced_type: Option<Box<DataTypeDeclaration>>,
+        sized: bool, //If the variadic has the sized property
     },
     GenericType {
         name: String,
@@ -525,7 +529,12 @@ impl DataType {
             | DataType::StringType { name, .. }
             | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::GenericType { name, .. } => Some(name.as_str()),
-            DataType::VarArgs { .. } => None,
+            DataType::VarArgs {
+                referenced_type, ..
+            } => referenced_type
+                .as_ref()
+                .and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
+                .or(Some(VOID_TYPE)),
         }
     }
 
@@ -1241,8 +1250,8 @@ pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
 
 /// flattens expression-lists and MultipliedStatements into a vec of statements.
 /// It can also handle nested structures like 2(3(4,5))
-pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
-    match condition {
+pub fn flatten_expression_list(list: &AstStatement) -> Vec<&AstStatement> {
+    match list {
         AstStatement::ExpressionList { expressions, .. } => expressions
             .iter()
             .by_ref()
@@ -1256,7 +1265,7 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
             .take(*multiplier as usize)
             .flatten()
             .collect(),
-        _ => vec![condition],
+        _ => vec![list],
     }
 }
 

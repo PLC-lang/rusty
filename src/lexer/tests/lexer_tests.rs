@@ -69,11 +69,13 @@ fn undefined_pragmas_are_ignored_by_the_lexer() {
 #[test]
 fn registered_pragmas_parsed() {
     let mut lexer = lex(r"
-        {external}{ref}{not_registerd}
+        {external}{ref}{sized}{not_registerd}
         ");
     assert_eq!(lexer.token, PropertyExternal, "Token : {}", lexer.slice());
     lexer.advance();
     assert_eq!(lexer.token, PropertyByRef, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, PropertySized, "Token : {}", lexer.slice());
     lexer.advance();
 }
 
