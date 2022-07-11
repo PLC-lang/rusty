@@ -75,7 +75,7 @@ fn generic_output_parameter() {
 
 #[test]
 fn generic_call_gets_cast_to_biggest_type() {
- let src = r"
+    let src = r"
  
     {external}
     FUNCTION MAX<T : ANY> : T

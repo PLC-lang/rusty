@@ -247,14 +247,13 @@ impl<'i> TypeAnnotator<'i> {
                     if let Some(TypeAndNature { datatype, nature }) = dt {
                         self.annotation_map.add_generic_nature(p, nature);
                         self.annotation_map
-                        .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
+                            .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
                     }
                 }
             }
             //Then handle the varargs
             //Get the variadic argument if any
-            if let Some(dt) = self.index.get_variadic_member(function_name)
-                .map(|it| {
+            if let Some(dt) = self.index.get_variadic_member(function_name).map(|it| {
                 //if the member is generic
                 if let Some(DataTypeInformation::Generic {
                     generic_symbol,
@@ -278,7 +277,7 @@ impl<'i> TypeAnnotator<'i> {
                     if let Some(TypeAndNature { datatype, nature }) = dt {
                         self.annotation_map.add_generic_nature(p, nature);
                         self.annotation_map
-                        .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
+                            .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
                     }
                 }
             }
