@@ -136,7 +136,23 @@ fn parse_multiplication_expression(lexer: &mut ParseSession) -> AstStatement {
 
 // Expoent **
 fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
-    parse_left_associative_expression!(lexer, parse_unary_expression, OperatorExponent,)
+    //This is always parsed as a function call to the EXPT function
+    //Parse left
+    let mut left = parse_unary_expression(lexer);
+    while matches!(lexer.token, OperatorExponent) {
+        let start_location = lexer.last_location();
+        let op_location = lexer.location();
+        lexer.advance();
+        let right = parse_unary_expression(lexer);
+        left = AstStatement::CallStatement { 
+            operator: Box::new(AstStatement::Reference { name: "EXPT".to_string(), location: op_location, id: lexer.next_id() }) , 
+            parameters: Box::new(Some(AstStatement::ExpressionList { expressions: vec![left,right], id: lexer.next_id() })), 
+            location: (start_location.get_start()..lexer.last_location().get_end()).into(), 
+            id: lexer.next_id() 
+        }
+
+    }
+    left
 }
 
 // UNARY -x, NOT x

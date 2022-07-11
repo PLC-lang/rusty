@@ -1,15 +1,21 @@
 ---
 source: src/parser/tests/expressions_parser_tests.rs
-assertion_line: 407
 expression: statement
-
 ---
-BinaryExpression {
-    operator: Exponentiation,
-    left: LiteralInteger {
-        value: 1,
+CallStatement {
+    operator: Reference {
+        name: "EXPT",
     },
-    right: LiteralInteger {
-        value: 2,
-    },
+    parameters: Some(
+        ExpressionList {
+            expressions: [
+                LiteralInteger {
+                    value: 1,
+                },
+                LiteralInteger {
+                    value: 2,
+                },
+            ],
+        },
+    ),
 }

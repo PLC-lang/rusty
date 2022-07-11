@@ -1,5 +1,7 @@
 use core::panic;
 
+use num::traits::Pow;
+
 use crate::{
     ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration},
     index::{Index, VariableType},
@@ -73,7 +75,16 @@ fn binary_expressions_resolves_types_for_mixed_signed_ints() {
 #[test]
 fn expt_binary_expression() {
     let (unit, mut index) = index(
-        "PROGRAM PRG
+        "
+        {external}
+        FUNCTION EXPT<A : ANY_NUM, B : ANY_NUM> : A 
+            VAR_INPUT
+                ELEMENT : A;
+                EXPONANT : B;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM PRG
             VAR 
                 a,b : DINT; 
                 c,d : REAL;
@@ -81,8 +92,8 @@ fn expt_binary_expression() {
             END_VAR
             //DINTS
             a ** b; //DINT * DINT -> hint : DINT * DINT result DINT
-            a ** d; //DINT * REAL -> hit : REAL * REAL result REAL
-            a ** f; //DINT * LREAL -> hit : LREAL * LREAL result LREAL
+            a ** d; //DINT * REAL -> hint : REAL * REAL result REAL
+            a ** f; //DINT * LREAL -> hint : LREAL * LREAL result LREAL
 
             // REALS
             c ** b; //REAL * DINT -> hint : REAL * DINT result REAL

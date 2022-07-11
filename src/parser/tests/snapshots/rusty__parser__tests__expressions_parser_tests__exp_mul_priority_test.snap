@@ -28,14 +28,22 @@ CompilationUnit {
                     left: Reference {
                         name: "a",
                     },
-                    right: BinaryExpression {
-                        operator: Exponentiation,
-                        left: Reference {
-                            name: "b",
+                    right: CallStatement {
+                        operator: Reference {
+                            name: "EXPT",
                         },
-                        right: Reference {
-                            name: "c",
-                        },
+                        parameters: Some(
+                            ExpressionList {
+                                expressions: [
+                                    Reference {
+                                        name: "b",
+                                    },
+                                    Reference {
+                                        name: "c",
+                                    },
+                                ],
+                            },
+                        ),
                     },
                 },
             ],
