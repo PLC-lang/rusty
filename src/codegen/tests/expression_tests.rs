@@ -509,40 +509,7 @@ fn builtin_function_call_mux() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
-
-    %main_interface = type { i32, i32, i32, i32, i32 }
-
-    @main_instance = global %main_interface zeroinitializer
-
-    define void @main(%main_interface* %0) {
-    entry:
-      %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
-      %c = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
-      %d = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 3
-      %e = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 4
-      %load_b = load i32, i32* %b, align 4
-      %load_c = load i32, i32* %c, align 4
-      %load_d = load i32, i32* %d, align 4
-      %load_e = load i32, i32* %e, align 4
-      %1 = alloca [4 x i32], align 4
-      %2 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 0
-      store i32 %load_b, i32* %2, align 4
-      %3 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 1
-      store i32 %load_c, i32* %3, align 4
-      %4 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 2
-      store i32 %load_d, i32* %4, align 4
-      %5 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 3
-      store i32 %load_e, i32* %5, align 4
-      %6 = getelementptr inbounds [4 x i32], [4 x i32]* %1, i32 0, i32 3
-      %7 = load i32, i32* %6, align 4
-      store i32 %7, i32* %a, align 4
-      ret void
-    }
-    "###);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -556,26 +523,7 @@ fn builtin_function_call_sel() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
-
-    %main_interface = type { i32, i32, i32 }
-
-    @main_instance = global %main_interface zeroinitializer
-
-    define void @main(%main_interface* %0) {
-    entry:
-      %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
-      %c = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
-      %load_b = load i32, i32* %b, align 4
-      %load_c = load i32, i32* %c, align 4
-      %1 = select i8 1, i32 %load_c, i32 %load_b
-      store i32 %1, i32* %a, align 4
-      ret void
-    }
-    "###);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -589,23 +537,7 @@ fn builtin_function_call_move() {
         END_PROGRAM",
     );
 
-    insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
-
-    %main_interface = type { i32, i32 }
-
-    @main_instance = global %main_interface zeroinitializer
-
-    define void @main(%main_interface* %0) {
-    entry:
-      %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
-      %load_b = load i32, i32* %b, align 4
-      store i32 %load_b, i32* %a, align 4
-      ret void
-    }
-    "###);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -622,35 +554,5 @@ fn test_max_int() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(result, @r###"
-    ; ModuleID = 'main'
-    source_filename = "main"
-
-    define i16 @main() {
-    entry:
-      %main = alloca i16, align 2
-      store i16 0, i16* %main, align 2
-      %0 = alloca [7 x i16], align 2
-      %1 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 0
-      store i16 5, i16* %1, align 2
-      %2 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 1
-      store i16 2, i16* %2, align 2
-      %3 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 2
-      store i16 1, i16* %3, align 2
-      %4 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 3
-      store i16 3, i16* %4, align 2
-      %5 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 4
-      store i16 4, i16* %5, align 2
-      %6 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 5
-      store i16 7, i16* %6, align 2
-      %7 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 6
-      store i16 -1, i16* %7, align 2
-      %call = call i16 @MAX__INT(i32 7, [7 x i16]* %0)
-      store i16 %call, i16* %main, align 2
-      %main_ret = load i16, i16* %main, align 2
-      ret i16 %main_ret
-    }
-
-    declare i16 @MAX__INT(i32, i16*)
-    "###);
+    insta::assert_snapshot!(result);
 }
