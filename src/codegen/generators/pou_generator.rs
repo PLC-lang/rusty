@@ -322,9 +322,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     ) -> Result<FunctionType<'ink>, Diagnostic> {
         //Sized variadic is not considered a variadic function, but receives 2 extra parameters, size and a pointer
         let is_var_args = variadic.map(|it| !it.is_sized()).unwrap_or_default();
-        let sized_variadics = self.get_sized_variadic_params(variadic);
+        let size_and_pointer = self.get_size_and_pointer(variadic);
         let mut params = parameters;
-        if let Some(sized_variadics) = sized_variadics {
+        if let Some(sized_variadics) = size_and_pointer {
             params.extend_from_slice(&sized_variadics);
         };
 
@@ -582,7 +582,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(())
     }
 
-    fn get_sized_variadic_params(
+    fn get_size_and_pointer(
         &self,
         variadic: Option<&'cg VarArgs>,
     ) -> Option<[BasicMetadataTypeEnum<'ink>; 2]> {

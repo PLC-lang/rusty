@@ -6,8 +6,8 @@ use crate::{
     index::{ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
-        self, is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE,
-        INT_TYPE, LINT_TYPE,
+        is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE,
+        LINT_TYPE,
     },
 };
 use inkwell::{
@@ -632,7 +632,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
 
             //None -> possibly variadic
-            let param /*(declaration_type, type_name)*/ = declared_parameters
+            let param = declared_parameters
                 //get paremeter at location
                 .get(location)
                 //find the parameter's type and name
@@ -771,18 +771,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         {
             let llvm_type = if pou.is_generic() {
                 //Use the type of the first parameter
+                //TODO : We should probably be doing this in the resolver
                 let type_info = self.get_type_hint_info_for(variadic_params[0])?;
                 self.llvm_index.get_associated_type(type_info.get_name())
             } else {
                 self.llvm_index.get_associated_type(type_name)
             }?;
             let size = generated_params.len();
-            let size_param = self
-                .llvm_index
-                .get_associated_type(typesystem::DINT_TYPE)
-                .expect("DINT always exists")
-                .into_int_type()
-                .const_int(size as u64, true);
+            let size_param = self.llvm.i32_type().const_int(size as u64, true);
             let arr = Llvm::get_array_type(llvm_type, size as u32);
             let arr_storage = self.llvm.builder.build_alloca(arr, "");
             for (i, ele) in generated_params.iter().enumerate() {

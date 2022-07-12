@@ -571,14 +571,8 @@ fn builtin_function_call_sel() {
       %c = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
       %load_b = load i32, i32* %b, align 4
       %load_c = load i32, i32* %c, align 4
-      %1 = alloca [2 x i32], align 4
-      %2 = getelementptr inbounds [2 x i32], [2 x i32]* %1, i32 0, i32 0
-      store i32 %load_b, i32* %2, align 4
-      %3 = getelementptr inbounds [2 x i32], [2 x i32]* %1, i32 0, i32 1
-      store i32 %load_c, i32* %3, align 4
-      %4 = getelementptr inbounds [2 x i32], [2 x i32]* %1, i32 0, i8 1
-      %5 = load i32, i32* %4, align 4
-      store i32 %5, i32* %a, align 4
+      %1 = select i8 1, i32 %load_c, i32 %load_b
+      store i32 %1, i32* %a, align 4
       ret void
     }
     "###);

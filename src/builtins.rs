@@ -23,7 +23,6 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
             ",
-                transformation: |it| it,
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
@@ -47,7 +46,6 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                transformation: |it| it,
                 code: |generator, params, location| {
                     if let [reference] = params {
                         generator
@@ -72,14 +70,13 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                transformation: |it| it,
                 code: |generator, params, location| {
                     //Generate an access from the first param
-                    if let &[k, ..] = params {
+                    if let (&[k], params) = params.split_at(1) {
                         let k = generator.generate_expression(k)?;
                         let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
                         //Generate a pointer for the rest of the params
-                        let params = generator.generate_variadic_arguments_list(pou, &params[1..])?;
+                        let params = generator.generate_variadic_arguments_list(pou, params)?;
                         //First access is into the array
                         let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), k.into_int_value()],"")?;
                         Ok(generator.llvm.builder.build_load(ptr, ""))
@@ -101,17 +98,14 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                transformation: |it| it,
                 code: |generator, params, location| {
-                    if let &[g,..] = params {
-                        //evaluate G
+                    if let &[g,in0,in1] = params {
+                        //Evaluate the parameters
                         let cond = generator.generate_expression(g)?;
-                        //Use the mux definition for the varargs
-                        let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
-                        //Generate a pointer for the rest of the params
-                        let params = generator.generate_variadic_arguments_list(pou, &params[1..])?;
-                        let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), cond.into_int_value()],"")?; //First access is into the array
-                        Ok(generator.llvm.builder.build_load(ptr, ""))
+                        let in0 = generator.generate_expression(in0)?;
+                        let in1 = generator.generate_expression(in1)?;
+                        //Generate an llvm select instruction
+                        Ok(generator.llvm.builder.build_select(cond.into_int_value(), in1, in0, ""))
                     } else {
                         Err(Diagnostic::codegen_error("Invalid signature for SEL", location))
                     }
@@ -127,7 +121,6 @@ lazy_static! {
                     in : U;
                 END_VAR
                 END_FUNCTION",
-                transformation: |it| it,
                 code : |generator, params, location| {
                     if params.len() == 1 {
                         generator.generate_expression(params[0])
@@ -142,7 +135,6 @@ lazy_static! {
 
 pub struct BuiltIn {
     decl: &'static str,
-    transformation: fn(AstStatement) -> AstStatement,
     code: for<'ink, 'b> fn(
         &'b ExpressionCodeGenerator<'ink, 'b>,
         &[&AstStatement],
@@ -158,10 +150,6 @@ impl BuiltIn {
         location: SourceRange,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         (self.code)(generator, params, location)
-    }
-
-    pub fn transform(&self, statement: AstStatement) -> AstStatement {
-        (self.transformation)(statement)
     }
 }
 
