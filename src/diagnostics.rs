@@ -79,6 +79,7 @@ pub enum ErrNo {
     type__invalid_nature,
     type__unknown_nature,
     type__unresolved_generic,
+    type__incompatible_size,
 
     //codegen related
     codegen__general,
@@ -510,6 +511,14 @@ impl Diagnostic {
             message: format!("Unknown type nature {}.", nature),
             range: location,
             err_no: ErrNo::type__unknown_nature,
+        }
+    }
+
+    pub fn incompatible_type_size(nature: &str, size: u32, error: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError { 
+            message: format!("The type {} {} is too small to {} Pointer",nature, size, error),
+            range: location, 
+            err_no: ErrNo::type__incompatible_size,
         }
     }
 
