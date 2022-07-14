@@ -27,6 +27,7 @@ pub type NativeDwordType = u32;
 pub type NativeLwordType = u64;
 pub type NativeRealType = f32;
 pub type NativeLrealType = f64;
+pub type NativePointerType = usize;
 
 //TODO should we change this to usize?
 pub const U1_SIZE: u32 = 1;
@@ -39,6 +40,7 @@ pub const LINT_SIZE: u32 = NativeLintType::BITS as u32;
 pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
 pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
 pub const DATE_TIME_SIZE: u32 = 64;
+pub const POINTER_SIZE: u32 = NativePointerType::BITS as u32;
 
 pub const U1_TYPE: &str = "__U1";
 /// used internally for forced casts to u1
