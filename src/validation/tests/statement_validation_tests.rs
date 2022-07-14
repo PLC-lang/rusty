@@ -22,9 +22,12 @@ fn assign_pointer_to_too_small_type_result_in_an_error() {
     //THEN assignment with different type sizes are reported
     assert_eq!(
         diagnostics,
-        vec![
-            Diagnostic::incompatible_type_size("DWORD",32,"hold a",(204..218).into()),
-        ]
+        vec![Diagnostic::incompatible_type_size(
+            "DWORD",
+            32,
+            "hold a",
+            (204..218).into()
+        ),]
     );
 }
 
@@ -49,9 +52,12 @@ fn assign_too_small_type_to_pointer_result_in_an_error() {
     //THEN assignment with different type sizes are reported
     assert_eq!(
         diagnostics,
-        vec![
-            Diagnostic::incompatible_type_size("DWORD",32,"to be stored in a",(204..218).into()),
-        ]
+        vec![Diagnostic::incompatible_type_size(
+            "DWORD",
+            32,
+            "to be stored in a",
+            (204..218).into()
+        ),]
     );
 }
 
@@ -74,10 +80,7 @@ fn assign_pointer_to_lword() {
     );
 
     //THEN every assignment is valid
-    assert_eq!(
-        diagnostics,
-        vec![]
-    );
+    assert_eq!(diagnostics, vec![]);
 }
 
 #[test]
