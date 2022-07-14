@@ -290,10 +290,11 @@ fn test_unexpected_type_declaration_error_message() {
             ),
             Diagnostic::unexpected_token_found(
                 "KeywordSemicolon",
-                "'PROGRAM\n                END_PROGRAM\n            END_TYPE'",
-                (29..85).into(),
+                "'PROGRAM\n                END_PROGRAM'",
+                (29..64).into(),
             ),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "''", (90..90).into(),),
+            Diagnostic::missing_token("[KeywordSemicolon]", (77..85).into(),),
+            Diagnostic::unexpected_token_found("KeywordSemicolon", "'END_TYPE'", (77..85).into(),),
         ],
         diagnostics
     );

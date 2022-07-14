@@ -1,0 +1,64 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+assertion_line: 18
+expression: result
+---
+CompilationUnit {
+    global_vars: [],
+    units: [],
+    implementations: [],
+    types: [
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "Point2D",
+                ),
+                variables: [
+                    Variable {
+                        name: "x",
+                        data_type: DataTypeReference {
+                            referenced_type: "INT",
+                        },
+                    },
+                    Variable {
+                        name: "y",
+                        data_type: DataTypeReference {
+                            referenced_type: "INT",
+                        },
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        },
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "Point3D",
+                ),
+                variables: [
+                    Variable {
+                        name: "x",
+                        data_type: DataTypeReference {
+                            referenced_type: "INT",
+                        },
+                    },
+                    Variable {
+                        name: "y",
+                        data_type: DataTypeReference {
+                            referenced_type: "INT",
+                        },
+                    },
+                    Variable {
+                        name: "z",
+                        data_type: DataTypeReference {
+                            referenced_type: "INT",
+                        },
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        },
+    ],
+}

@@ -24,7 +24,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 154..158,
+                range: 167..171,
             },
         },
     ),
@@ -83,7 +83,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 91..92,
+                range: 104..105,
             },
         },
     ),
@@ -114,7 +114,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 93..94,
+                range: 106..107,
             },
         },
     ),
@@ -173,7 +173,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 91..92,
+                range: 104..105,
             },
         },
     ),
@@ -204,7 +204,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 93..94,
+                range: 106..107,
             },
         },
     ),
@@ -229,7 +229,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 182..254,
+                range: 195..267,
             },
         },
     ),
@@ -257,7 +257,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 215..219,
+                range: 228..232,
             },
         },
     ),
@@ -322,7 +322,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 91..92,
+                range: 104..105,
             },
         },
     ),
@@ -356,7 +356,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 93..94,
+                range: 106..107,
             },
         },
     ),
@@ -421,7 +421,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 91..92,
+                range: 104..105,
             },
         },
     ),
@@ -455,7 +455,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceRange {
-                range: 93..94,
+                range: 106..107,
             },
         },
     ),
