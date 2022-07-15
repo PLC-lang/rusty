@@ -215,3 +215,27 @@ fn non_resolved_generics_reported() {
         ),]
     );
 }
+
+#[test]
+fn function_without_return_type_result_in_error() {
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION smaller_than_ten
+            VAR_INPUT
+                n : SINT;
+            END_VAR
+
+            IF n < 10 THEN
+                smaller_than_ten := TRUE;
+                RETURN;
+            END_IF;
+            smaller_than_ten := FALSE;
+        END_FUNCTION
+        ",
+    );
+
+    assert_eq!(
+        diagnostics,
+        vec![Diagnostic::function_return_missing((18..34).into())]
+    );
+}
