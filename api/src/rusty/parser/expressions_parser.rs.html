@@ -1027,7 +1027,7 @@
 
 <span class="comment">// AND</span>
 <span class="kw">fn</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
-    <span class="macro">parse_left_associative_expression!</span>(<span class="ident">lexer</span>, <span class="ident">parse_equality_expression</span>, <span class="ident">OperatorAnd</span>,)
+    <span class="macro">parse_left_associative_expression!</span>(<span class="ident">lexer</span>, <span class="ident">parse_equality_expression</span>, <span class="ident">OperatorAmp</span> <span class="op">|</span> <span class="ident">OperatorAnd</span>,)
 }
 
 <span class="comment">//EQUALITY  =, &lt;&gt;</span>
@@ -1131,7 +1131,7 @@
         <span class="ident">OperatorLessOrEqual</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::LessOrEqual</span>),
         <span class="ident">OperatorGreaterOrEqual</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::GreaterOrEqual</span>),
         <span class="ident">OperatorModulo</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Modulo</span>),
-        <span class="ident">OperatorAnd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::And</span>),
+        <span class="ident">OperatorAnd</span> <span class="op">|</span> <span class="ident">OperatorAmp</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::And</span>),
         <span class="ident">OperatorOr</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Or</span>),
         <span class="ident">OperatorXor</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Xor</span>),
         <span class="ident">OperatorNot</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Not</span>),
