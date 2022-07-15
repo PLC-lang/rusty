@@ -228,11 +228,11 @@ fn amp_as_and_correctness_test() {
     #[derive(Default)]
     #[repr(C)]
     struct Main {
-        a : bool,
-        b : bool,
-        c : bool,
-        d : bool,
-        e : bool,
+        a: bool,
+        b: bool,
+        c: bool,
+        d: bool,
+        e: bool,
     }
 
     let mut main = Main::default();
