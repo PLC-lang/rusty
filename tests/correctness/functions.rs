@@ -183,6 +183,51 @@ fn test_and_sideeffects() {
 }
 
 #[test]
+fn test_amp_as_and_sideeffects() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: bool,
+    }
+
+    let function = r#"
+    VAR_GLOBAL
+        res_and : INT;
+    END_VAR
+
+    FUNCTION AND_BRANCH : BOOL 
+        VAR_INPUT 
+            a : BOOL;
+            b : INT;
+        END_VAR
+
+        AND_BRANCH := a;
+        res_and := res_and + b;
+
+    END_FUNCTION
+
+    FUNCTION main : DINT
+        VAR
+            y : BOOL;
+        END_VAR
+
+        y := AND_BRANCH(FALSE,1) & AND_BRANCH(TRUE,2);
+        y := AND_BRANCH(TRUE,10) & AND_BRANCH(FALSE,20) & AND_BRANCH(TRUE,50);
+        main := res_and;
+
+    END_FUNCTION
+
+    "#
+    .to_string();
+
+    let context: Context = Context::create();
+    let engine = compile(&context, function);
+    let mut case1 = MainType { x: false };
+    let res: i32 = run(&engine, "main", &mut case1);
+    assert_eq!(res, 31);
+}
+
+#[test]
 fn function_block_instances_save_state_per_instance() {
     #[allow(dead_code)]
     #[repr(C)]
