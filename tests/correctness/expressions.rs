@@ -225,12 +225,17 @@ fn enums_can_be_compared() {
 
 #[test]
 fn amp_as_and_correctness_test() {
+    #[derive(Default)]
+    #[repr(C)]
     struct Main {
-        d: bool,
-        e: bool,
+        a : bool,
+        b : bool,
+        c : bool,
+        d : bool,
+        e : bool,
     }
 
-    let mut main = Main { d: false, e: false };
+    let mut main = Main::default();
 
     let function = "
         PROGRAM main
