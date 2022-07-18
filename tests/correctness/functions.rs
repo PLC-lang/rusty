@@ -790,6 +790,23 @@ fn sel_test_true_vars() {
 }
 
 #[test]
+fn sel_expression_test() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR a,b : DINT; END_VAR
+            a := 4;
+            b := 5;
+            main := SEL(TRUE,a,b) + 10; //Result is 15
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 15);
+}
+
+#[test]
 fn move_test() {
     let function = r#"
         FUNCTION main : DINT

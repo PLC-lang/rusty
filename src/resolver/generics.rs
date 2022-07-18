@@ -57,7 +57,7 @@ impl<'i> TypeAnnotator<'i> {
         generics_candidates: HashMap<String, Vec<String>>,
         implementation_name: &str,
         operator: &AstStatement,
-        parameters: &Option<AstStatement>,
+        parameters: Option<&AstStatement>,
         ctx: VisitorContext,
     ) {
         if let Some(PouIndexEntry::Function {

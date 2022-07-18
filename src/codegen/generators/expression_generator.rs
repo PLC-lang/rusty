@@ -769,14 +769,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_variadic_member(pou.get_name())
             .and_then(|it| it.get_varargs())
         {
-            let llvm_type = if pou.is_generic() {
-                //Use the type of the first parameter
-                //TODO : We should probably be doing this in the resolver
-                let type_info = self.get_type_hint_info_for(variadic_params[0])?;
-                self.llvm_index.get_associated_type(type_info.get_name())
-            } else {
-                self.llvm_index.get_associated_type(type_name)
-            }?;
+            let llvm_type = generated_params
+                .get(0)
+                .map(|it| Ok(it.get_type()))
+                .unwrap_or_else(|| self.llvm_index.get_associated_type(type_name))?;
             let size = generated_params.len();
             let size_param = self.llvm.i32_type().const_int(size as u64, true);
             let arr = Llvm::get_array_type(llvm_type, size as u32);

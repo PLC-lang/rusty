@@ -527,6 +527,20 @@ fn builtin_function_call_sel() {
 }
 
 #[test]
+fn builtin_function_call_sel_as_expression() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b,c : DINT;
+        END_VAR
+            a := SEL(TRUE, b,c) + 10;
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn builtin_function_call_move() {
     let result = codegen(
         "PROGRAM main

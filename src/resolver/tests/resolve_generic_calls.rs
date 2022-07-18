@@ -557,8 +557,8 @@ fn builtin_sel_param_type_is_not_changed() {
     let call = &unit.implementations[0].statements[0];
     if let AstStatement::CallStatement { parameters, .. } = call {
         let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, None);
-        assert_type_and_hint!(&annotations, &index, params[2], DINT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, params[1], DINT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, params[2], DINT_TYPE, Some(DINT_TYPE));
     } else {
         panic!("Expected call statement")
     }
@@ -641,4 +641,78 @@ fn generic_call_gets_cast_to_biggest_type() {
     } else {
         panic!("Expected call statement")
     }
+}
+
+#[test]
+fn sel_return_type_follows_params() {
+    let (unit, index) = index(
+        "
+    FUNCTION main
+        SEL(TRUE,1,2);
+        SEL(TRUE,1,2) + 10;
+        15 + SEL(TRUE,1,2);
+    END_FUNCTION",
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &unit.implementations[0].statements[0],
+        DINT_TYPE,
+        None
+    );
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &unit.implementations[0].statements[1],
+        DINT_TYPE,
+        None
+    );
+    //Also test that the left side of the operator is dint
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &unit.implementations[0].statements[2],
+        DINT_TYPE,
+        None
+    );
+    //Also test that the right side of the operator is dint
+}
+
+#[test]
+fn mux_return_type_follows_params() {
+    let (unit, index) = index(
+        "
+    FUNCTION main
+        MUX(0,1,2);
+        MUX(0,1,2) + 10;
+        15 + MUX(0,1,2);
+    END_FUNCTION",
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &unit.implementations[0].statements[0],
+        DINT_TYPE,
+        None
+    );
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &unit.implementations[0].statements[1],
+        DINT_TYPE,
+        None
+    );
+    //Also test that the left side of the operator is dint
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &unit.implementations[0].statements[2],
+        DINT_TYPE,
+        None
+    );
+    //Also test that the right side of the operator is dint
 }

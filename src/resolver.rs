@@ -14,9 +14,10 @@ mod generics;
 
 use crate::{
     ast::{
-        self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
-        TypeNature, UserTypeDeclaration, Variable,
+        flatten_expression_list, AstId, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
+    builtins::{self, BuiltIn},
     index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
@@ -47,7 +48,7 @@ macro_rules! visit_all_statements {
 /// Helper methods `qualifier`, `current_pou` and `lhs_pou` copy the current context and
 /// change one field.
 #[derive(Clone)]
-struct VisitorContext<'s> {
+pub struct VisitorContext<'s> {
     /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<String>,
     /// optional context for references (e.g. `x` may mean `POU.x` if used inside `POU`'s body)
@@ -117,8 +118,8 @@ impl<'s> VisitorContext<'s> {
 }
 
 pub struct TypeAnnotator<'i> {
-    index: &'i Index,
-    annotation_map: AnnotationMapImpl,
+    pub(crate) index: &'i Index,
+    pub(crate) annotation_map: AnnotationMapImpl,
     string_literals: StringLiterals,
 }
 
@@ -196,7 +197,7 @@ impl From<&PouIndexEntry> for StatementAnnotation {
     }
 }
 
-fn get_type_for_annotation<'a>(
+pub fn get_type_for_annotation<'a>(
     index: &'a Index,
     annotation: &StatementAnnotation,
 ) -> Option<&'a typesystem::DataType> {
@@ -1152,125 +1153,8 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 self.update_right_hand_side_expected_type(left, right);
             }
-            AstStatement::CallStatement {
-                parameters,
-                operator,
-                ..
-            } => {
-                self.visit_statement(ctx, operator);
-                let operator_qualifier = self
-                    .annotation_map
-                    .get(operator)
-                    .and_then(|it| match it {
-                        StatementAnnotation::Function { qualified_name, .. } => {
-                            Some(qualified_name.clone())
-                        }
-                        StatementAnnotation::Program { qualified_name } => {
-                            Some(qualified_name.clone())
-                        }
-                        StatementAnnotation::Variable { resulting_type, .. } => {
-                            //lets see if this is a FB
-                            self.index
-                                .find_pou(resulting_type.as_str())
-                                .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. }))
-                                .map(|it| it.get_name().to_string())
-                        }
-                        // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
-                        StatementAnnotation::Value { resulting_type } => {
-                            // make sure we come from an array access
-                            if let AstStatement::ArrayAccess { .. } = operator.as_ref() {
-                                return Some(resulting_type.clone());
-                            }
-                            None
-                        }
-                        _ => None,
-                    })
-                    .unwrap_or_else(|| VOID_TYPE.to_string());
-                let ctx = ctx.with_call(operator_qualifier.as_str());
-                let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
-                let mut params = vec![];
-                if let Some(s) = parameters.as_ref() {
-                    self.visit_statement(&ctx, s);
-                    if let Some(s) = parameters.as_ref() {
-                        let parameters = ast::flatten_expression_list(s);
-                        let mut parameters = parameters.into_iter();
-                        for m in self
-                            .index
-                            .get_declared_parameters(&operator_qualifier)
-                            .into_iter()
-                        {
-                            if let Some(p) = parameters.next() {
-                                let type_name = m.get_type_name();
-                                if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
-                                    self.index,
-                                    &self.annotation_map,
-                                    type_name,
-                                    p,
-                                ) {
-                                    generics_candidates
-                                        .entry(key.to_string())
-                                        .or_insert_with(std::vec::Vec::new)
-                                        .push(candidate.to_string())
-                                } else {
-                                    params.push((p, type_name.to_string()))
-                                }
-                            }
-                        }
-                        //We possibly did not consume all parameters, see if the variadic arguments are derivable
-                        match self.index.find_pou(&operator_qualifier) {
-                            Some(pou) if pou.is_variadic() => {
-                                //get variadic argument type, if it is generic, update the generic candidates
-                                if let Some(type_name) = self
-                                    .index
-                                    .get_variadic_member(pou.get_name())
-                                    .map(VariableIndexEntry::get_type_name)
-                                {
-                                    for parameter in parameters {
-                                        if let Some((key, candidate)) =
-                                            TypeAnnotator::get_generic_candidate(
-                                                self.index,
-                                                &self.annotation_map,
-                                                type_name,
-                                                parameter,
-                                            )
-                                        {
-                                            generics_candidates
-                                                .entry(key.to_string())
-                                                .or_insert_with(std::vec::Vec::new)
-                                                .push(candidate.to_string())
-                                        } else {
-                                            params.push((parameter, type_name.to_string()))
-                                        }
-                                    }
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-                for (p, name) in params {
-                    self.annotate_parameters(p, &name);
-                }
-
-                //Attempt to resolve the generic signature here
-                self.update_generic_call_statement(
-                    generics_candidates,
-                    &operator_qualifier,
-                    operator,
-                    parameters,
-                    ctx,
-                );
-
-                if let Some(StatementAnnotation::Function { return_type, .. }) =
-                    self.annotation_map.get(operator)
-                {
-                    if let Some(return_type) = self.index.find_effective_type(return_type) {
-                        self.annotation_map.annotate(
-                            statement,
-                            StatementAnnotation::value(return_type.get_name()),
-                        );
-                    }
-                }
+            AstStatement::CallStatement { .. } => {
+                self.visit_call_statement(statement, ctx);
             }
             AstStatement::CastStatement {
                 target, type_name, ..
@@ -1308,7 +1192,140 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
+    fn visit_call_statement(&mut self, statement: &AstStatement, ctx: &VisitorContext) {
+        let (operator, parameters_stmt) = if let AstStatement::CallStatement {
+            operator,
+            parameters,
+            ..
+        } = statement
+        {
+            (operator.as_ref(), parameters.as_ref().as_ref())
+        } else {
+            unreachable!("Always a call statement");
+        };
+        self.visit_statement(ctx, operator);
+        let operator_qualifier = self.get_call_name(operator);
+        let ctx = ctx.with_call(operator_qualifier.as_str());
+        let parameters = if let Some(parameters) = parameters_stmt {
+            self.visit_statement(&ctx, parameters);
+            flatten_expression_list(parameters)
+        } else {
+            vec![]
+        };
+        if let Some(anntation) =
+            builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
+        {
+            anntation(self, operator, &parameters).unwrap();
+        } else {
+            //If builtin, skip this
+            let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
+            let mut params = vec![];
+            let mut parameters = parameters.into_iter();
+            for m in self
+                .index
+                .get_declared_parameters(&operator_qualifier)
+                .into_iter()
+            {
+                if let Some(p) = parameters.next() {
+                    let type_name = m.get_type_name();
+                    if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
+                        self.index,
+                        &self.annotation_map,
+                        type_name,
+                        p,
+                    ) {
+                        generics_candidates
+                            .entry(key.to_string())
+                            .or_insert_with(std::vec::Vec::new)
+                            .push(candidate.to_string())
+                    } else {
+                        params.push((p, type_name.to_string()))
+                    }
+                }
+            }
+            //We possibly did not consume all parameters, see if the variadic arguments are derivable
+            match self.index.find_pou(&operator_qualifier) {
+                Some(pou) if pou.is_variadic() => {
+                    //get variadic argument type, if it is generic, update the generic candidates
+                    if let Some(type_name) = self
+                        .index
+                        .get_variadic_member(pou.get_name())
+                        .map(VariableIndexEntry::get_type_name)
+                    {
+                        for parameter in parameters {
+                            if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
+                                self.index,
+                                &self.annotation_map,
+                                type_name,
+                                parameter,
+                            ) {
+                                generics_candidates
+                                    .entry(key.to_string())
+                                    .or_insert_with(std::vec::Vec::new)
+                                    .push(candidate.to_string())
+                            } else {
+                                params.push((parameter, type_name.to_string()))
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
+            for (p, name) in params {
+                self.annotate_parameters(p, &name);
+            }
+            //Attempt to resolve the generic signature here
+            self.update_generic_call_statement(
+                generics_candidates,
+                &operator_qualifier,
+                operator,
+                parameters_stmt,
+                ctx,
+            );
+        }
+        if let Some(StatementAnnotation::Function { return_type, .. }) =
+            self.annotation_map.get(operator)
+        {
+            if let Some(return_type) = self.index.find_effective_type(return_type) {
+                self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::value(return_type.get_name()),
+                );
+            }
+        }
+    }
+
+    fn get_call_name(&mut self, operator: &AstStatement) -> String {
+        let operator_qualifier = self
+            .annotation_map
+            .get(operator)
+            .and_then(|it| match it {
+                StatementAnnotation::Function { qualified_name, .. } => {
+                    Some(qualified_name.clone())
+                }
+                StatementAnnotation::Program { qualified_name } => Some(qualified_name.clone()),
+                StatementAnnotation::Variable { resulting_type, .. } => {
+                    //lets see if this is a FB
+                    self.index
+                        .find_pou(resulting_type.as_str())
+                        .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. }))
+                        .map(|it| it.get_name().to_string())
+                }
+                // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
+                StatementAnnotation::Value { resulting_type } => {
+                    // make sure we come from an array access
+                    if let AstStatement::ArrayAccess { .. } = operator {
+                        return Some(resulting_type.clone());
+                    }
+                    None
+                }
+                _ => None,
+            })
+            .unwrap_or_else(|| VOID_TYPE.to_string());
+        operator_qualifier
+    }
+
+    pub(crate) fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
         if !matches!(p, AstStatement::Assignment { .. }) {
             if let Some(effective_member_type) = self.index.find_effective_type(type_name) {
                 //update the type hint

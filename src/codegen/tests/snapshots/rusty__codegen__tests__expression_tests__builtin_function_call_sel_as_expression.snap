@@ -17,7 +17,8 @@ entry:
   %load_b = load i32, i32* %b, align 4
   %load_c = load i32, i32* %c, align 4
   %1 = select i1 true, i32 %load_c, i32 %load_b
-  store i32 %1, i32* %a, align 4
+  %tmpVar = add i32 %1, 10
+  store i32 %tmpVar, i32* %a, align 4
   ret void
 }
 
