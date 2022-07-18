@@ -1694,6 +1694,84 @@ fn addition_compare_or_priority_test() {
 }
 
 #[test]
+fn and_test() {
+    let src = "
+        PROGRAM amp
+        b AND c;
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"BinaryExpression {
+    operator: And,
+    left: Reference {
+        name: "b",
+    },
+    right: Reference {
+        name: "c",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn amp_as_and_test() {
+    let src = "
+        PROGRAM amp
+        b & c;
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+    println!("result= {:?}", result);
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"BinaryExpression {
+    operator: And,
+    left: Reference {
+        name: "b",
+    },
+    right: Reference {
+        name: "c",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn amp_as_and_with_address_test() {
+    let src = "
+    PROGRAM amp
+    b & &c;
+    END_PROGRAM
+    ";
+    let result = parse(src).0;
+    println!("result= {:?}", result);
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"BinaryExpression {
+    operator: And,
+    left: Reference {
+        name: "b",
+    },
+    right: UnaryExpression {
+        operator: Address,
+        value: Reference {
+            name: "c",
+        },
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn boolean_priority_test() {
     let src = "
         PROGRAM exp 

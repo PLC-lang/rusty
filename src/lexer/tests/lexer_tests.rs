@@ -77,6 +77,7 @@ fn registered_pragmas_parsed() {
     lexer.advance();
     assert_eq!(lexer.token, PropertySized, "Token : {}", lexer.slice());
     lexer.advance();
+    assert_eq!(lexer.token, End);
 }
 
 #[test]

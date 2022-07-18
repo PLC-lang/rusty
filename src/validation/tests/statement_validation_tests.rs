@@ -2,6 +2,88 @@ use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
 #[test]
+fn assign_pointer_to_too_small_type_result_in_an_error() {
+    //GIVEN assignment statements to DWORD
+    //WHEN it is validated
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        PROGRAM FOO
+            VAR
+                ptr : POINTER TO INT;
+                address : DWORD;
+            END_VAR
+            
+            address := 16#DEAD_BEEF;              
+            address := ptr;         //should throw error as address is too small to store full pointer
+        END_PROGRAM
+        ",
+    );
+
+    //THEN assignment with different type sizes are reported
+    assert_eq!(
+        diagnostics,
+        vec![Diagnostic::incompatible_type_size(
+            "DWORD",
+            32,
+            "hold a",
+            (204..218).into()
+        ),]
+    );
+}
+
+#[test]
+fn assign_too_small_type_to_pointer_result_in_an_error() {
+    //GIVEN assignment statements to pointer
+    //WHEN it is validated
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        PROGRAM FOO
+            VAR
+                ptr : POINTER TO INT;
+                address : DWORD;
+            END_VAR
+            
+            address := 16#DEAD_BEEF;              
+            ptr := address;         //should throw error as address is too small to store full pointer
+        END_PROGRAM
+        ",
+    );
+
+    //THEN assignment with different type sizes are reported
+    assert_eq!(
+        diagnostics,
+        vec![Diagnostic::incompatible_type_size(
+            "DWORD",
+            32,
+            "to be stored in a",
+            (204..218).into()
+        ),]
+    );
+}
+
+#[test]
+fn assign_pointer_to_lword() {
+    //GIVEN assignment statements to lword
+    //WHEN it is validated
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        PROGRAM FOO
+            VAR
+                ptr : POINTER TO INT;
+                address : LWORD;
+            END_VAR
+            
+            address := 16#DEAD_BEEF;              
+            address := ptr;         //should throw error as address is too small to store full pointer
+        END_PROGRAM
+        ",
+    );
+
+    //THEN every assignment is valid
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
 fn assignment_to_constants_result_in_an_error() {
     // GIVEN assignment statements to constants, some to writable variables
     // WHEN it is validated

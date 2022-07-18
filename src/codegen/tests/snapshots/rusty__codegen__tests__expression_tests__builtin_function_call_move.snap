@@ -14,9 +14,7 @@ entry:
   %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
   %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
   %load_b = load i32, i32* %b, align 4
-  %1 = sext i32 %load_b to i64
-  %2 = trunc i64 %1 to i32
-  store i32 %2, i32* %a, align 4
+  store i32 %load_b, i32* %a, align 4
   ret void
 }
 

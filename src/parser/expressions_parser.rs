@@ -95,7 +95,7 @@ fn parse_xor_expression(lexer: &mut ParseSession) -> AstStatement {
 
 // AND
 fn parse_and_expression(lexer: &mut ParseSession) -> AstStatement {
-    parse_left_associative_expression!(lexer, parse_equality_expression, OperatorAnd,)
+    parse_left_associative_expression!(lexer, parse_equality_expression, OperatorAmp | OperatorAnd,)
 }
 
 //EQUALITY  =, <>
@@ -221,7 +221,7 @@ fn to_operator(token: &Token) -> Option<Operator> {
         OperatorLessOrEqual => Some(Operator::LessOrEqual),
         OperatorGreaterOrEqual => Some(Operator::GreaterOrEqual),
         OperatorModulo => Some(Operator::Modulo),
-        OperatorAnd => Some(Operator::And),
+        OperatorAnd | OperatorAmp => Some(Operator::And),
         OperatorOr => Some(Operator::Or),
         OperatorXor => Some(Operator::Xor),
         OperatorNot => Some(Operator::Not),

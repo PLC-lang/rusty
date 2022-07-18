@@ -222,3 +222,38 @@ fn enums_can_be_compared() {
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!([true, true, true], [main.a, main.b, main.c]);
 }
+
+#[test]
+fn amp_as_and_correctness_test() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct Main {
+        a: bool,
+        b: bool,
+        c: bool,
+        d: bool,
+        e: bool,
+    }
+
+    let mut main = Main::default();
+
+    let function = "
+        PROGRAM main
+            VAR a,b,c,d,e : BOOL; END_VAR
+            a := TRUE;
+            b := TRUE;
+            c := FALSE;
+            
+            IF a & b THEN
+                d := TRUE;
+            END_IF
+
+            IF a & NOT c THEN
+                e := TRUE;
+            END_IF
+
+        END_PROGRAM
+    ";
+    let _: i32 = compile_and_run(function, &mut main);
+    assert_eq!([true, true], [main.d, main.e]);
+}
