@@ -571,82 +571,93 @@ fn test_max_int() {
     insta::assert_snapshot!(result);
 }
 
-
 #[test]
 fn int_to_int_expt() {
-    let result = codegen("
+    let result = codegen(
+        "
     FUNCTION main : DINT
         main := 2**3;
     END_FUNCTION
-    ");
+    ",
+    );
 
     insta::assert_snapshot!(result);
-
 }
 
 #[test]
 fn int_to_real_expt() {
-    let result = codegen("
+    let result = codegen(
+        "
     FUNCTION main : REAL
         main := 2**REAL#0.5;
     END_FUNCTION
-    ");
-
+    ",
+    );
 
     insta::assert_snapshot!(result);
 }
 
 #[test]
 fn real_to_real_expt() {
-    let result = codegen("
+    let result = codegen(
+        "
     FUNCTION main : REAL
         main := REAL#2**REAL#0.1;
     END_FUNCTION
-    ");
+    ",
+    );
 
     insta::assert_snapshot!(result);
 }
 
 #[test]
 fn real_to_int_expt() {
-    let result = codegen("
+    let result = codegen(
+        "
     FUNCTION main : REAL
         main := REAL#3.0**2;
     END_FUNCTION
-    ");
+    ",
+    );
 
     insta::assert_snapshot!(result);
 }
 
 #[test]
 fn lreal_to_real_expt() {
-    let result = codegen("
+    let result = codegen(
+        "
     FUNCTION main : LREAL
         main := LREAL#3**REAL#0.2;
     END_FUNCTION
-    ");
+    ",
+    );
 
     insta::assert_snapshot!(result);
 }
 
 #[test]
 fn real_to_lreal_expt() {
-    let result = codegen("
+    let result = codegen(
+        "
     FUNCTION main : LREAL
         main := REAL#4**LREAL#0.3;
     END_FUNCTION
-    ");
+    ",
+    );
 
     insta::assert_snapshot!(result);
 }
 
 #[test]
 fn lreal_to_lreal_expt() {
-    let result = codegen("
+    let result = codegen(
+        "
     FUNCTION main : LREAL
         main := LREAL#3**LREAL#0.2;
     END_FUNCTION
-    ");
+    ",
+    );
 
     insta::assert_snapshot!(result);
 }

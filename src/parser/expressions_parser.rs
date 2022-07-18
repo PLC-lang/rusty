@@ -144,13 +144,19 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
         let op_location = lexer.location();
         lexer.advance();
         let right = parse_unary_expression(lexer);
-        left = AstStatement::CallStatement { 
-            operator: Box::new(AstStatement::Reference { name: "EXPT".to_string(), location: op_location, id: lexer.next_id() }) , 
-            parameters: Box::new(Some(AstStatement::ExpressionList { expressions: vec![left,right], id: lexer.next_id() })), 
-            location: (start_location.get_start()..lexer.last_location().get_end()).into(), 
-            id: lexer.next_id() 
+        left = AstStatement::CallStatement {
+            operator: Box::new(AstStatement::Reference {
+                name: "EXPT".to_string(),
+                location: op_location,
+                id: lexer.next_id(),
+            }),
+            parameters: Box::new(Some(AstStatement::ExpressionList {
+                expressions: vec![left, right],
+                id: lexer.next_id(),
+            })),
+            location: (start_location.get_start()..lexer.last_location().get_end()).into(),
+            id: lexer.next_id(),
         }
-
     }
     left
 }

@@ -526,14 +526,14 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
     //The parameter should have the correct (original) type
     if let AstStatement::CallStatement { parameters, .. } = call {
         let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, params[0], DINT_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, params[0], DINT_TYPE, Some(DINT_TYPE));
     } else {
         panic!("Expected call statement")
     }
     let call = &unit.implementations[0].statements[2];
     if let AstStatement::CallStatement { parameters, .. } = call {
         let params = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, params[0], REAL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, params[0], REAL_TYPE, Some(REAL_TYPE));
     } else {
         panic!("Expected call statement")
     }
