@@ -64,7 +64,7 @@ impl<'i> TypeAnnotator<'i> {
             generics, linkage, ..
         }) = self.index.find_pou(implementation_name)
         {
-            if linkage != &LinkageType::BuiltIn && !generics.is_empty() {
+            if !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
                 //Annotate the statement with the new function call
                 if let Some(StatementAnnotation::Function {
@@ -72,8 +72,10 @@ impl<'i> TypeAnnotator<'i> {
                     return_type,
                 }) = self.annotation_map.get(operator)
                 {
-                    //Figure out the new name for the call
+                    let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
+                                                                  //Figure out the new name for the call
                     let (new_name, annotation) = self.get_generic_function_annotation(
+                        *linkage,
                         generics,
                         qualified_name,
                         return_type,
@@ -81,7 +83,6 @@ impl<'i> TypeAnnotator<'i> {
                     );
 
                     //Create a new pou and implementation for the function
-                    let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
                     if let Some(pou) = self.index.find_pou(qualified_name) {
                         //only register concrete typed function if it was not indexed yet
                         if self.index.find_pou(new_name.as_str()).is_none() {
@@ -285,6 +286,7 @@ impl<'i> TypeAnnotator<'i> {
     }
     pub fn get_generic_function_annotation(
         &self,
+        linkage: LinkageType,
         generics: &[GenericBinding],
         qualified_name: &str,
         return_type: &str,
@@ -300,7 +302,11 @@ impl<'i> TypeAnnotator<'i> {
             })
             .collect::<Vec<&str>>()
             .join("__");
-        let function_name = format!("{}__{}", qualified_name, generic_name);
+        let function_name = if linkage == LinkageType::BuiltIn {
+            qualified_name.to_string()
+        } else {
+            format!("{}__{}", qualified_name, generic_name)
+        };
         let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
             self.index.get_type_information_or_void(return_type)
         {
