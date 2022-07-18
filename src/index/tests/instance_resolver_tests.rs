@@ -87,6 +87,7 @@ fn nested_global_struct_variables_are_retrieved() {
     TYPE str : STRUCT 
         a,b : str2;
     END_STRUCT
+    END_TYPE
     TYPE str2 : STRUCT 
         c,d : DINT;
     END_STRUCT
