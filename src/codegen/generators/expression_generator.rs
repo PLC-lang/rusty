@@ -36,7 +36,7 @@ use super::{llvm::Llvm, statement_generator::FunctionContext};
 pub struct ExpressionCodeGenerator<'a, 'b> {
     pub llvm: &'b Llvm<'a>,
     pub index: &'b Index,
-    annotations: &'b AstAnnotations,
+    pub(crate) annotations: &'b AstAnnotations,
     llvm_index: &'b LlvmTypedIndex<'a>,
     /// the current function to create blocks in
     function_context: Option<&'b FunctionContext<'a>>,
@@ -469,7 +469,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ///
     /// - `operator` - the expression that points to the callable instance (e.g. a PROGRAM, FUNCTION or FUNCTION_BLOCK instance)
     /// - `parameters` - an optional StatementList of parameters
-    fn generate_call_statement(
+    pub fn generate_call_statement(
         &self,
         operator: &AstStatement,
         parameters: &Option<AstStatement>,

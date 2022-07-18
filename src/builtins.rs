@@ -5,12 +5,12 @@ use lazy_static::lazy_static;
 
 use crate::{
     ast::{AstStatement, CompilationUnit, LinkageType, SourceRange},
-    codegen::generators::expression_generator::ExpressionCodeGenerator,
+    codegen::generators::{expression_generator::ExpressionCodeGenerator, llvm},
     diagnostics::Diagnostic,
     lexer::{self, IdProvider},
     parser,
     resolver::{get_type_for_annotation, AnnotationMap, StatementAnnotation, TypeAnnotator},
-    typesystem,
+    typesystem::{self, get_bigger_type, DataType, DataTypeInformation, DINT_TYPE},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -125,7 +125,7 @@ lazy_static! {
                 decl: "FUNCTION SEL<U: ANY> : U
                 VAR_INPUT
                     G : BOOL;
-                    IN0 : U;
+                   & IN0 : U;
                     IN1 : U;
                 END_VAR
                 END_FUNCTION
@@ -204,6 +204,87 @@ lazy_static! {
                         generator.generate_expression(params[0])
                     } else {
                         Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location))
+                    }
+                }
+            }
+        ),
+        (
+            "EXPT",
+            BuiltIn {
+                decl : "FUNCTION EXPT<U : ANY_NUM, V: ANY_NUM, W: ANY_NUM> : W
+                VAR_INPUT
+                    ELEMENT: U;
+                    EXPONENT: V;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, operator, params| {
+                    if let [element, exponant] = params {
+                        //Resolve the parameter types
+                        let element_type = annotator.annotation_map.get(element).and_then(|it| get_type_for_annotation(annotator.index, it));
+                        let exponant_type = annotator.annotation_map.get(exponant).and_then(|it| get_type_for_annotation(annotator.index, it));
+                        //Annotate the correct expected types
+                        //Choose the best function fit based on the parameter types
+                        //Adjust the return type
+                        let (element_type, exponant_type) = if let (Some(element_type), Some(exponant_type)) = (element_type, exponant_type) {
+                            match (element_type.get_type_information(), exponant_type.get_type_information()) {
+
+                            //If both params are int types, convert to a common type and call an int power function
+                            (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {..}) => {
+                                //Convert both to minimum dint
+                                let dint_type = annotator.index.get_type_or_panic(DINT_TYPE);
+                                let target_type = get_bigger_type(
+                                    get_bigger_type(element_type, exponant_type, annotator.index), dint_type, annotator.index);
+                                //Set the function name as EXPT__<TYPE>__<TYPE>
+                                //Set the return type to <TYPE>
+                                (target_type, target_type)
+                            },
+                            //If left is real, then if right is int call powi
+                            (DataTypeInformation::Float { .. }, DataTypeInformation::Integer {..}) => {
+                                //Convert the exponent to minimum DINT
+                                //Set the function name as EXPT__<ELE_TYPE>__<EXP_TYPE>
+                                //Set the return type to <ELE_TYPE>
+                            },
+                            //If right is real convert to common real type and call powf
+                            _ => {
+                                //Convert left and right to minimum REAL
+                                //Set the function name as EXPT__<TYPE>__<TYPE>
+                                //Set the return type to <TYPE>
+                            }
+
+                        }
+                        }
+                    }
+                    Ok(())
+                }),
+                code : |generator, params, location| {
+                    if let [element, exponant] = params {
+                        let element_type = generator.annotations.get_type(element, generator.index).map(|it| it.get_type_information());
+                        let exponant_type = generator.annotations.get_type(exponant, generator.index).map(|it| it.get_type_information());
+                        let element = generator.generate_expression(element);
+                        let exponant = generator.generate_expression(exponant);
+                        match (element_type,exponant_type) {
+                            //If both params are int types, convert to a common type and call an int power function
+                            (Some(DataTypeInformation::Integer { .. }), Some(DataTypeInformation::Integer {..})) => {
+
+                            },
+                            //If left is real, then if right is int call powi
+                            (Some(DataTypeInformation::Float { .. }), Some(DataTypeInformation::Integer {..})) => {
+
+                            },
+                            //If right is real convert to common real type and call powf
+                            _ => {
+                                // let element = crate::codegen::llvm_typesystem::promote_value_if_needed(
+
+
+                                // )?;
+                            }
+
+                        }
+
+                        todo!("Comming soon");
+                    } else {
+                        Err(Diagnostic::codegen_error("Malformed exponent instruction", location))
                     }
                 }
             }
