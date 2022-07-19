@@ -17,6 +17,8 @@ pub type ParameterError = clap::Error;
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
     version,
 )]
+#[clap(propagate_version = true)]
+#[clap(subcommand_negates_reqs = true)]
 pub struct CompileParameters {
     #[clap(
         short,
@@ -149,21 +151,15 @@ pub struct CompileParameters {
     )]
     pub error_format: ErrorFormat,
 
-    #[clap(
-        name = "build-config",
-        long,
-        help = "Build from config file",
-        group = "format"
-    )]
-    pub build_config: Option<String>,
-
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
 
 #[derive(Debug, Subcommand)]
 pub enum SubCommands {
-    Build { build_config: Option<String> },
+    Build { 
+        build_config: Option<String> 
+    }
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -599,20 +595,6 @@ mod cli_tests {
             Ok(_) => panic!("expected help output, but found OK"),
             Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
         }
-    }
-
-    #[test]
-    fn build_config_added() {
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "input.st",
-            "--build-config",
-            "src/ProjectPlc.json"
-        ))
-        .unwrap();
-        assert_eq!(
-            parameters.build_config,
-            Some("src/ProjectPlc.json".to_string())
-        );
     }
 
     #[test]

@@ -1,6 +1,6 @@
 {
     "files" : [
-        "examples/pointer.st",
+        "examples/hw.st",
         "examples/hello_world.st"
     ],
     "compile_type" : "Shared",

@@ -588,7 +588,6 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
 /// Links any provided libraries
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    let mut files = create_file_paths(&parameters.input)?;
     let includes = if parameters.includes.is_empty() {
         vec![]
     } else {
@@ -631,6 +630,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         None
     };
 
+    let mut files = vec![];
     let target = get_target_triple(compile_options.target.as_deref());
 
     if let Some(commands) = parameters.commands {
@@ -644,15 +644,8 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
                 }
             }
         };
-    }
-
-    let build_config = parameters.build_config;
-    println!("{:?}", build_config);
-    if let Some(build) = build_config {
-        let project = get_project_from_file(build);
-        files = project.files;
-        compile_options.format = project.compile_type;
-        compile_options.output = project.output;
+    } else {
+        files = create_file_paths(&parameters.input)?;
     }
 
     let compile_result = build(
