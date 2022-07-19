@@ -1,0 +1,8 @@
+{
+    "files" : [
+        "examples/pointer.st",
+        "examples/hello_world.st"
+    ],
+    "compile_type" : "Shared",
+    "output" : "proj.so"
+}

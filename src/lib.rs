@@ -21,14 +21,16 @@ use std::fs;
 use std::io::Write;
 use std::str::FromStr;
 
+use build::get_project_from_file;
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
 use inkwell::passes::PassBuilderOptions;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 use ast::{LinkageType, PouType, SourceRange};
-use cli::CompileParameters;
+use cli::{CompileParameters, SubCommands};
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
@@ -46,6 +48,7 @@ use crate::ast::CompilationUnit;
 use crate::diagnostics::Diagnostician;
 use crate::resolver::{AnnotationMapImpl, TypeAnnotator};
 mod ast;
+pub mod build;
 mod builtins;
 pub mod cli;
 mod codegen;
@@ -67,7 +70,7 @@ mod validation;
 #[cfg(test)]
 extern crate pretty_assertions;
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
     Static,
     PIC,
@@ -95,6 +98,7 @@ impl FromStr for ConfigFormat {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct CompileOptions {
     pub format: Option<FormatOption>,
     pub output: String,
@@ -120,7 +124,7 @@ pub enum ErrorFormat {
     Clang,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize)]
 pub enum OptimizationLevel {
     None,
     Less,
@@ -166,7 +170,7 @@ pub trait SourceContainer {
     fn get_location(&self) -> &str;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct FilePath {
     pub path: String,
 }
@@ -584,7 +588,7 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
 /// Links any provided libraries
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    let files = create_file_paths(&parameters.input)?;
+    let mut files = create_file_paths(&parameters.input)?;
     let includes = if parameters.includes.is_empty() {
         vec![]
     } else {
@@ -605,7 +609,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
             output: config.to_owned(),
         });
 
-    let compile_options = CompileOptions {
+    let mut compile_options = CompileOptions {
         output,
         target: parameters.target,
         format: out_format,
@@ -628,6 +632,29 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     };
 
     let target = get_target_triple(compile_options.target.as_deref());
+
+    if let Some(commands) = parameters.commands {
+        match commands {
+            SubCommands::Build { build_config } => {
+                if let Some(build) = build_config {
+                    let project = get_project_from_file(build);
+                    files = project.files;
+                    compile_options.format = project.compile_type;
+                    compile_options.output = project.output;
+                }
+            }
+        };
+    }
+
+    let build_config = parameters.build_config;
+    println!("{:?}", build_config);
+    if let Some(build) = build_config {
+        let project = get_project_from_file(build);
+        files = project.files;
+        compile_options.format = project.compile_type;
+        compile_options.output = project.output;
+    }
+
     let compile_result = build(
         files,
         includes,

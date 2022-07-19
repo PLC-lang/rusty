@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, Parser};
+use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
@@ -148,6 +148,22 @@ pub struct CompileParameters {
         default_value = "rich"
     )]
     pub error_format: ErrorFormat,
+
+    #[clap(
+        name = "build-config",
+        long,
+        help = "Build from config file",
+        group = "format"
+    )]
+    pub build_config: Option<String>,
+
+    #[clap(subcommand)]
+    pub commands: Option<SubCommands>,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum SubCommands {
+    Build { build_config: Option<String> },
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -248,7 +264,7 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use super::CompileParameters;
+    use super::{CompileParameters, SubCommands};
     use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
     use clap::ErrorKind;
     use pretty_assertions::assert_eq;
@@ -582,6 +598,34 @@ mod cli_tests {
         match CompileParameters::parse(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
             Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
+        }
+    }
+
+    #[test]
+    fn build_config_added() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--build-config",
+            "src/ProjectPlc.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            parameters.build_config,
+            Some("src/ProjectPlc.json".to_string())
+        );
+    }
+
+    #[test]
+    fn build_subcommand() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "build", "src/ProjectPlc.json"))
+                .unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Build { build_config } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                }
+            };
         }
     }
 
