@@ -106,7 +106,7 @@ pub struct CompileParameters {
         short = 'L',
         help = "Search path for libraries, used for linking"
     )]
-    pub library_pathes: Vec<String>,
+    pub library_paths: Vec<String>,
 
     #[clap(name = "library", long, short = 'l', help = "Library name to link")]
     pub libraries: Vec<String>,
@@ -157,9 +157,12 @@ pub struct CompileParameters {
 
 #[derive(Debug, Subcommand)]
 pub enum SubCommands {
-    Build { 
-        build_config: Option<String> 
-    }
+    /// Uses build description file for building <build-file>.
+    /// Supported formats: json, toml.
+    Build {
+        #[clap(parse(try_from_str = validate_config))]
+        build_config: String,
+    },
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -564,7 +567,7 @@ mod cli_tests {
             "-L/tmp"
         ))
         .unwrap();
-        assert_eq!(parameters.library_pathes, vec!["xxx", "test", ".", "/tmp"]);
+        assert_eq!(parameters.library_paths, vec!["xxx", "test", ".", "/tmp"]);
     }
 
     #[test]
@@ -600,12 +603,11 @@ mod cli_tests {
     #[test]
     fn build_subcommand() {
         let parameters =
-            CompileParameters::parse(vec_of_strings!("input.st", "build", "src/ProjectPlc.json"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("build", "src/ProjectPlc.json")).unwrap();
         if let Some(commands) = parameters.commands {
             match commands {
                 SubCommands::Build { build_config } => {
-                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    assert_eq!(build_config, "src/ProjectPlc.json".to_string());
                 }
             };
         }

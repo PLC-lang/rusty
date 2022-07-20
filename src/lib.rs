@@ -118,7 +118,7 @@ struct ConfigurationOptions {
     output: String,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize)]
 pub enum ErrorFormat {
     Rich,
     Clang,
@@ -588,7 +588,7 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
 /// Links any provided libraries
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    let includes = if parameters.includes.is_empty() {
+    let mut includes = if parameters.includes.is_empty() {
         vec![]
     } else {
         create_file_paths(&parameters.includes)?
@@ -615,45 +615,72 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         optimization: parameters.optimization,
     };
 
-    let link_options = if let Some(format) = out_format {
-        if !parameters.skip_linking {
-            Some(LinkOptions {
-                libraries: parameters.libraries,
-                library_pathes: parameters.library_pathes,
-                sysroot: parameters.sysroot,
-                format,
-            })
-        } else {
-            None
-        }
-    } else {
-        None
-    };
-
+    // TODO this is not a neat solution ask how you could improve that
+    let mut link_options: Option<LinkOptions> = None;
     let mut files = vec![];
-    let target = get_target_triple(compile_options.target.as_deref());
+
+    let mut error_format = parameters.error_format;
 
     if let Some(commands) = parameters.commands {
         match commands {
             SubCommands::Build { build_config } => {
-                if let Some(build) = build_config {
-                    let project = get_project_from_file(build);
-                    files = project.files;
-                    compile_options.format = project.compile_type;
-                    compile_options.output = project.output;
-                }
+                let project = get_project_from_file(build_config);
+                files = project.files;
+                compile_options.format = project.compile_type;
+                compile_options.output = project.output;
+                compile_options.optimization = project.optimization;
+                compile_options.target = project.target;
+
+                error_format = project.error_format;
+                includes = if project.includes.is_empty() {
+                    vec![]
+                } else {
+                    project.includes
+                };
+
+                link_options = if let Some(format) = project.compile_type {
+                    if !project.skip_linking {
+                        Some(LinkOptions {
+                            libraries: project.libraries,
+                            library_pathes: project.library_paths,
+                            sysroot: project.sysroot,
+                            format,
+                        })
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
             }
         };
     } else {
         files = create_file_paths(&parameters.input)?;
+
+        link_options = if let Some(format) = out_format {
+            if !parameters.skip_linking {
+                Some(LinkOptions {
+                    libraries: parameters.libraries,
+                    library_pathes: parameters.library_paths,
+                    sysroot: parameters.sysroot,
+                    format,
+                })
+            } else {
+                None
+            }
+        } else {
+            None
+        };
     }
+
+    let target = get_target_triple(compile_options.target.as_deref());
 
     let compile_result = build(
         files,
         includes,
         &compile_options,
         parameters.encoding,
-        &parameters.error_format,
+        &error_format,
         &target,
     )?;
 
