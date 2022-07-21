@@ -37,9 +37,9 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     pub llvm: &'b Llvm<'a>,
     pub index: &'b Index,
     annotations: &'b AstAnnotations,
-    llvm_index: &'b LlvmTypedIndex<'a>,
+    pub llvm_index: &'b LlvmTypedIndex<'a>,
     /// the current function to create blocks in
-    function_context: Option<&'b FunctionContext<'a>>,
+    pub function_context: Option<&'b FunctionContext<'a>>,
 
     /// the string-prefix to use for temporary variables
     pub temp_variable_prefix: String,
@@ -116,7 +116,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     /// returns the function context or returns a Compile-Error
-    fn get_function_context(
+    pub fn get_function_context(
         &self,
         statement: &AstStatement,
     ) -> Result<&'b FunctionContext<'ink>, Diagnostic> {
