@@ -6,7 +6,7 @@ use super::{
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
 use crate::{
-    ast::Pou,
+    ast::{AstStatement, Pou},
     codegen::llvm_index::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
@@ -24,12 +24,15 @@ use crate::{
     ast::{Implementation, PouType, SourceRange},
     index::Index,
 };
-use inkwell::types::{BasicType, StructType};
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
-    values::{BasicValueEnum, FunctionValue},
+    values::{BasicValue, BasicValueEnum, FunctionValue},
     AddressSpace,
+};
+use inkwell::{
+    types::{BasicType, StructType},
+    values::PointerValue,
 };
 
 pub struct PouGenerator<'ink, 'cg> {
@@ -479,70 +482,96 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     ),
                     None => None,
                 };
-                // for initializations we might have a global variable with the initial values
-                // the idea is to memcpy the global variable
-                let size = self
-                    .llvm_index
-                    .find_associated_type(variable.get_type_name())
-                    .and_then(|associated_type| associated_type.size_of())
-                    .ok_or("Couldn't determine type size");
-                //First try to get a saved global constant
-                let name = index::get_initializer_name(variable.get_qualified_name());
-                let type_init_name = index::get_initializer_name(variable.get_type_name());
-                if let Some(global_value) = self
-                    .llvm_index
-                    .find_global_value(&name)
-                    .or_else(|| self.llvm_index.find_global_value(&type_init_name))
-                {
-                    size.and_then(|size| {
-                        let alignment = std::cmp::max(1, global_value.get_alignment()); //TODO: This seems to always be 0
-                        self.llvm.builder.build_memcpy(
-                            left,
-                            alignment,
-                            global_value.as_pointer_value(),
-                            alignment,
-                            size,
-                        )
-                    })
-                    .map_err(|err| {
-                        Diagnostic::codegen_error(err, variable.source_location.clone())
-                    })?;
-                } else if left.get_type().get_element_type().is_array_type() {
-                    //If nothint was found see if this is an array to set its value to 0
-                    size.and_then(|size| {
-                        self.llvm.builder.build_memset(
-                            left,
-                            1,
-                            self.llvm.context.i8_type().const_zero(),
-                            size,
-                        )
-                    })
-                    .map_err(|it| {
-                        Diagnostic::codegen_error(it, variable.source_location.clone())
-                    })?;
-                } else {
-                    //Otherwise just generate a store expression
-                    let value = if let Some(stmt) = right_stmt {
-                        exp_gen.generate_expression(stmt)
-                    } else {
-                        self.llvm_index
-                            .find_associated_type(variable.get_type_name())
-                            .map(get_default_for)
-                            .ok_or_else(|| {
-                                Diagnostic::cannot_generate_initializer(
-                                    variable.get_qualified_name(),
-                                    variable.source_location.clone(),
-                                )
-                            })
-                    }?;
-                    self.llvm.builder.build_store(left, value);
-                }
+                self.generate_variable_initializer(variable, left, right_stmt, &exp_gen)?;
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
                     variable.source_location.clone(),
                 ));
             }
+        }
+        Ok(())
+    }
+
+    /// initializes the variable represented by `variable` by storing into the given `variable_to_initialize` pointer using either
+    /// the optional `initializer_statement` (hence code like: `variable : type := initializer_statement`), or determine the initial
+    /// value with the help of the `variable`'s index entry by e.g. looking for a default value of the variable's type
+    fn generate_variable_initializer(
+        &self,
+        variable: &&VariableIndexEntry,
+        variable_to_initialize: PointerValue,
+        initializer_statement: Option<&AstStatement>,
+        exp_gen: &ExpressionCodeGenerator,
+    ) -> Result<(), Diagnostic> {
+        let variable_type = self
+            .llvm_index
+            .get_associated_type(variable.get_type_name())
+            .map_err(|err| Diagnostic::relocate(err, variable.source_location.clone()))?;
+
+        let type_size = variable_type.size_of().ok_or_else(|| {
+            Diagnostic::codegen_error(
+                "Couldn't determine type size",
+                variable.source_location.clone(),
+            )
+        });
+
+        const DEFAULT_ALIGNMENT: u32 = 1;
+        let (value, alignment) =
+        // 1st try: see if there is a global variable with the right name - naming convention :-(
+        if let Some(global_variable) =  self.llvm_index.find_global_value(&index::get_initializer_name(variable.get_qualified_name())) {
+            (global_variable.as_basic_value_enum(), global_variable.get_alignment())
+        // 2nd try: see if there is an initializer-statement
+        } else if let Some(initializer) = initializer_statement {
+            (exp_gen.generate_expression(initializer)?, DEFAULT_ALIGNMENT)
+        // 3rd try: see if ther is a global variable with the variable's type name - naming convention :-(
+        } else if let Some(global_variable) = self.llvm_index.find_global_value(&index::get_initializer_name(variable.get_type_name())) {
+            (global_variable.as_basic_value_enum(), global_variable.get_alignment())
+        // 4th try, see if the datatype has a default initializer
+        } else if let Some(initial_value) = self.llvm_index.find_associated_initial_value(variable.get_type_name()) {
+            (initial_value, DEFAULT_ALIGNMENT)
+        // no inital value defined + array type - so we use a 0 byte the memset the array to 0
+        }else if variable_to_initialize.get_type().get_element_type().is_array_type() {
+            (self.llvm.context.i8_type().const_zero().as_basic_value_enum(), DEFAULT_ALIGNMENT)
+        // no initial value defined + no-array
+        } else {
+            (get_default_for(variable_type), DEFAULT_ALIGNMENT)
+        };
+
+        // initialize the variable with the initial_value
+        let variable_type = variable_to_initialize.get_type().get_element_type();
+        if variable_type.is_array_type() || variable_type.is_struct_type() {
+            // for arrays/structs, we prefere a memcpy, not a store operation
+            // we assume that we got a global variable with the initial value that we can copy from
+            let init_result: Result<(), &str> = if value.is_pointer_value() {
+                // mem-copy from an global constant variable
+                self.llvm
+                    .builder
+                    .build_memcpy(
+                        variable_to_initialize,
+                        std::cmp::max(1, alignment),
+                        value.into_pointer_value(),
+                        std::cmp::max(1, alignment),
+                        type_size?,
+                    )
+                    .map(|_| ())
+            } else if value.is_int_value() {
+                // mem-set the value (usually 0) over the whole memory-area
+                self.llvm
+                    .builder
+                    .build_memset(
+                        variable_to_initialize,
+                        std::cmp::max(1, alignment),
+                        value.into_int_value(),
+                        type_size?,
+                    )
+                    .map(|_| ())
+            } else {
+                unreachable!("initializing an array should be memcpy-able or memset-able");
+            };
+            init_result
+                .map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))?;
+        } else {
+            self.llvm.builder.build_store(variable_to_initialize, value);
         }
         Ok(())
     }

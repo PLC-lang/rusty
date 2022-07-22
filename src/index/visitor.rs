@@ -633,6 +633,20 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::String,
             });
+
+            if init.is_some() {
+                // register a global variable with the initial value to memcopy from
+                let global_init_name = crate::index::get_initializer_name(name);
+                let initializer_global = VariableIndexEntry::create_global(
+                    global_init_name.as_str(),
+                    global_init_name.as_str(),
+                    name,
+                    type_declaration.location.clone(),
+                )
+                .set_constant(true)
+                .set_initial_value(init);
+                index.register_global_initializer(global_init_name.as_str(), initializer_global);
+            }
         }
         DataType::VarArgs { .. } => {} //Varargs are not indexed,
         DataType::GenericType {
