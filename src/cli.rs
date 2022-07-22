@@ -161,7 +161,7 @@ pub enum SubCommands {
     /// Supported formats: json, toml.
     Build {
         #[clap(parse(try_from_str = validate_config))]
-        build_config: String,
+        build_config: Option<String>,
     },
 }
 
@@ -607,7 +607,7 @@ mod cli_tests {
         if let Some(commands) = parameters.commands {
             match commands {
                 SubCommands::Build { build_config } => {
-                    assert_eq!(build_config, "src/ProjectPlc.json".to_string());
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
                 }
             };
         }

@@ -624,7 +624,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     if let Some(commands) = parameters.commands {
         match commands {
             SubCommands::Build { build_config } => {
-                let project = get_project_from_file(build_config);
+                let project = get_project_from_file(build_config)?;
                 files = project.files;
                 compile_options.format = project.compile_type;
                 compile_options.output = project.output;
@@ -632,17 +632,18 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
                 compile_options.target = project.target;
 
                 error_format = project.error_format;
-                includes = if project.includes.is_empty() {
+
+                includes = if project.libraries.include_path.is_empty() {
                     vec![]
                 } else {
-                    project.includes
+                    project.libraries.include_path
                 };
 
                 link_options = if let Some(format) = project.compile_type {
                     if !project.skip_linking {
                         Some(LinkOptions {
-                            libraries: project.libraries,
-                            library_pathes: project.library_paths,
+                            libraries: project.libraries.name,
+                            library_pathes: project.libraries.path,
                             sysroot: project.sysroot,
                             format,
                         })
