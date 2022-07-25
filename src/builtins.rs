@@ -4,13 +4,19 @@ use inkwell::values::{BasicValue, BasicValueEnum};
 use lazy_static::lazy_static;
 
 use crate::{
-    ast::{AstStatement, CompilationUnit, LinkageType, SourceRange},
+    ast::{
+        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType,
+        SourceRange,
+    },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator},
     diagnostics::Diagnostic,
     lexer::{self, IdProvider},
     parser,
-    resolver::{get_type_for_annotation, AnnotationMap, TypeAnnotator},
-    typesystem::{get_bigger_type, DataTypeInformation, DINT_TYPE},
+    resolver::{
+        generics::{generic_name_resolver, no_generic_name_resolver},
+        get_type_for_annotation, AnnotationMap, TypeAnnotator, VisitorContext,
+    },
+    typesystem::{get_bigger_type, DataTypeInformation, DINT_TYPE, REAL_TYPE},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -26,7 +32,8 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
-                code: |generator, params, location| {
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, _, params, location| {
                     if let [reference] = params {
                         generator
                             .generate_element_pointer(reference)
@@ -50,7 +57,8 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: None,
-                code: |generator, params, location| {
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, _, params, location| {
                     if let [reference] = params {
                         generator
                             .generate_element_pointer(reference)
@@ -75,7 +83,8 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation : None,
-                code: |generator, params, location| {
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, _, params, location| {
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
                         let k = generator.generate_expression(k)?;
@@ -104,7 +113,8 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: None,
-                code: |generator, params, location| {
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, _, params, location| {
                     if let &[g,in0,in1] = params {
                         //Evaluate the parameters
                         let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder);
@@ -128,7 +138,8 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
-                code : |generator, params, location| {
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, _, params, location| {
                     if params.len() == 1 {
                         generator.generate_expression(params[0])
                     } else {
@@ -140,97 +151,80 @@ lazy_static! {
         (
             "EXPT",
             BuiltIn {
-                decl : "FUNCTION EXPT<U : ANY_NUM, V: ANY_NUM, W: ANY_NUM> : W
+                decl : "FUNCTION EXPT<U : ANY_NUM, V: ANY_NUM> : U
                 VAR_INPUT
                     ELEMENT: U;
                     EXPONENT: V;
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, params| {
-                    if let [element, exponant] = params {
+                annotation: Some(|annotator, operator , parameters, ctx| {
+                    let params = parameters.ok_or_else(|| Diagnostic::codegen_error("EXPT requires parameters", operator.get_location()))?;
+                    if let [element, exponant] = flatten_expression_list(params)[..] {
                         //Resolve the parameter types
                         let element_type = annotator.annotation_map.get(element).and_then(|it| get_type_for_annotation(annotator.index, it));
                         let exponant_type = annotator.annotation_map.get(exponant).and_then(|it| get_type_for_annotation(annotator.index, it));
-                        //Annotate the correct expected types
-                        //Choose the best function fit based on the parameter types
-                        //Adjust the return type
-                        let (element_type, exponant_type) = if let (Some(element_type), Some(exponant_type)) = (element_type, exponant_type) {
-                            match (element_type.get_type_information(), exponant_type.get_type_information()) {
-
-                            //If both params are int types, convert to a common type and call an int power function
-                            (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {..}) => {
-                                //Convert both to minimum dint
-                                let dint_type = annotator.index.get_type_or_panic(DINT_TYPE);
-                                let target_type = get_bigger_type(
-                                    get_bigger_type(element_type, exponant_type, annotator.index), dint_type, annotator.index);
-                                //Set the function name as EXPT__<TYPE>__<TYPE>
-                                //Set the return type to <TYPE>
-                                (target_type, target_type)
-                            },
-                            //If left is real, then if right is int call powi
-                            (DataTypeInformation::Float { .. }, DataTypeInformation::Integer {..}) => {
-                                //Convert the exponent to minimum DINT
-                                //Set the function name as EXPT__<ELE_TYPE>__<EXP_TYPE>
-                                //Set the return type to <ELE_TYPE>
-                            },
-                            //If right is real convert to common real type and call powf
-                            _ => {
-                                //Convert left and right to minimum REAL
-                                //Set the function name as EXPT__<TYPE>__<TYPE>
-                                //Set the return type to <TYPE>
-                            }
-
+                        let dint_type = annotator.index.get_type_or_panic(DINT_TYPE);
+                        let real_type = annotator.index.get_type_or_panic(REAL_TYPE);
+                        if let (Some(element_type), Some(exponant_type)) = (element_type, exponant_type) {
+                            let (element_type, exponant_type)  = match (element_type.get_type_information(), exponant_type.get_type_information()) {
+                                //If both params are int types, convert to a common type and call an int power function
+                                (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {..}) => {
+                                    //Convert both to minimum dint
+                                    let target_type = get_bigger_type(
+                                        get_bigger_type(element_type, exponant_type, annotator.index), dint_type, annotator.index);
+                                    (target_type.get_name(), target_type.get_name())
+                                },
+                                //If left is real, then if right is int call powi
+                                (DataTypeInformation::Float { .. }, DataTypeInformation::Integer {..}) => {
+                                    //Convert the exponent to minimum DINT
+                                    let target_type = get_bigger_type(element_type, real_type, annotator.index);
+                                    let exponant_type = get_bigger_type(exponant_type, dint_type, annotator.index);
+                                    (target_type.get_name(), exponant_type.get_name())
+                                },
+                                //If right is real convert to common real type and call powf
+                                _ => {
+                                    //Convert left and right to minimum REAL
+                                    let target_type = get_bigger_type(
+                                        get_bigger_type(element_type, exponant_type, annotator.index), real_type, annotator.index);
+                                    (target_type.get_name(), target_type.get_name())
+                                }
+                            };
+                            let mut generics_candidates = HashMap::new();
+                            generics_candidates.insert("U".to_string(), vec![element_type.to_string()]);
+                            generics_candidates.insert("V".to_string(), vec![exponant_type.to_string()]);
+                            annotator.update_generic_call_statement(generics_candidates, "EXPT", operator, parameters, ctx)
                         }
-                        }
+
                     }
                     Ok(())
                 }),
-                code : |generator, params, location| {
-                    if let [element, exponant] = params {
-                        let element_type = generator.annotations.get_type(element, generator.index).map(|it| it.get_type_information());
-                        let exponant_type = generator.annotations.get_type(exponant, generator.index).map(|it| it.get_type_information());
-                        let element = generator.generate_expression(element);
-                        let exponant = generator.generate_expression(exponant);
-                        match (element_type,exponant_type) {
-                            //If both params are int types, convert to a common type and call an int power function
-                            (Some(DataTypeInformation::Integer { .. }), Some(DataTypeInformation::Integer {..})) => {
-
-                            },
-                            //If left is real, then if right is int call powi
-                            (Some(DataTypeInformation::Float { .. }), Some(DataTypeInformation::Integer {..})) => {
-
-                            },
-                            //If right is real convert to common real type and call powf
-                            _ => {
-                                // let element = crate::codegen::llvm_typesystem::promote_value_if_needed(
-
-
-                                // )?;
-                            }
-
-                        }
-
-                        todo!("Comming soon");
-                    } else {
-                        Err(Diagnostic::codegen_error("Malformed exponent instruction", location))
-                    }
+                generic_name_resolver,
+                code : |_,_,_,_| {
+                    unreachable!("Expt will always end up calling the real functions by the resolver magic")
                 }
             }
         )
     ]);
 }
 
-type AnnotationFunction =
-    fn(&mut TypeAnnotator, &AstStatement, &[&AstStatement]) -> Result<(), Diagnostic>;
+type AnnotationFunction = fn(
+    &mut TypeAnnotator,
+    &AstStatement,
+    Option<&AstStatement>,
+    VisitorContext,
+) -> Result<(), Diagnostic>;
+type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, String>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
+    &AstStatement,
     &[&AstStatement],
     SourceRange,
 ) -> Result<BasicValueEnum<'ink>, Diagnostic>;
 pub struct BuiltIn {
     decl: &'static str,
     annotation: Option<AnnotationFunction>,
+    generic_name_resolver: GenericNameResolver,
     code: CodegenFunction,
 }
 
@@ -238,13 +232,18 @@ impl BuiltIn {
     pub fn codegen<'ink, 'b>(
         &self,
         generator: &'b ExpressionCodeGenerator<'ink, 'b>,
+        operator: &AstStatement,
         params: &[&AstStatement],
         location: SourceRange,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        (self.code)(generator, params, location)
+        (self.code)(generator, operator, params, location)
     }
     pub(crate) fn get_annotation(&self) -> Option<AnnotationFunction> {
         self.annotation
+    }
+
+    pub(crate) fn get_generic_name_resolver(&self) -> GenericNameResolver {
+        self.generic_name_resolver
     }
 }
 

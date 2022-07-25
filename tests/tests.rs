@@ -29,7 +29,6 @@ mod correctness {
     mod math_operators {
         mod addition;
         mod division;
-        mod expt_tests;
         mod mixed;
         mod multiplication;
         mod substraction;

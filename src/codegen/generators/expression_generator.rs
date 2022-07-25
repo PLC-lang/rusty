@@ -477,8 +477,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let function_context = self.get_function_context(operator)?;
 
         //find the pou we're calling
-        let pou = self.annotations.get_call_name(operator)
-            .and_then(|it| self.index.find_pou(it))
+        let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
+            .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)
+            //For some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
+            .or_else(|| self.index.find_pou(qualified_name)))
             .or_else(||
                 // some rare situations have a callstatement that's not properly annotated (e.g. checkRange-call of ranged datatypes)
                 if let AstStatement::Reference { name, .. } = operator {
@@ -501,6 +503,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             //adr, ref, etc.
             return builtin.codegen(
                 self,
+                operator,
                 parameters
                     .as_ref()
                     .map(ast::flatten_expression_list)

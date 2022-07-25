@@ -906,7 +906,8 @@ fn pou_expressions_resolve_types() {
     assert_eq!(
         Some(&StatementAnnotation::Function {
             qualified_name: "OtherFunc".into(),
-            return_type: "INT".into()
+            return_type: "INT".into(),
+            call_name: None,
         }),
         annotations.get(&statements[1])
     );
@@ -1085,7 +1086,8 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     assert_eq!(
         Some(&StatementAnnotation::Function {
             qualified_name: "foo".into(),
-            return_type: "INT".into()
+            return_type: "INT".into(),
+            call_name: None,
         }),
         foo_annotation
     );
@@ -1343,7 +1345,8 @@ fn function_parameter_assignments_resolve_types() {
             annotations.get(operator),
             Some(&StatementAnnotation::Function {
                 qualified_name: "foo".into(),
-                return_type: "MyType".into()
+                return_type: "MyType".into(),
+                call_name: None,
             })
         );
 
@@ -1551,6 +1554,7 @@ fn method_references_are_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".into(),
                 qualified_name: "cls.foo".into(),
+                call_name: None,
             }),
             annotations.get(operator)
         );
