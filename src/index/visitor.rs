@@ -45,13 +45,17 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     let mut member_names = vec![];
 
     //register the pou's member variables
+    let mut member_varargs = None;
     let mut count = 0;
-    let mut varargs = None;
     for block in &pou.variable_blocks {
         let block_type = get_declaration_type_for(block);
         for var in &block.variables {
-            if let DataTypeDeclaration::DataTypeDefinition {
-                data_type: ast::DataType::VarArgs { referenced_type },
+            let varargs = if let DataTypeDeclaration::DataTypeDefinition {
+                data_type:
+                    ast::DataType::VarArgs {
+                        referenced_type,
+                        sized,
+                    },
                 ..
             } = &var.data_type
             {
@@ -60,45 +64,56 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                     .map(|it| &**it)
                     .and_then(DataTypeDeclaration::get_name)
                     .map(|it| it.to_string());
-                varargs = Some(name);
-                continue;
+                Some(if *sized {
+                    VarArgs::Sized(name)
+                } else {
+                    VarArgs::Unsized(name)
+                })
+            } else {
+                None
+            };
+
+            if varargs.is_some() {
+                member_varargs = varargs.clone();
             }
+
             member_names.push(var.name.clone());
 
-            let var_type_name = var.data_type.get_name().expect("named datatype");
-            let type_name = if block_type.is_by_ref() {
-                //register a pointer type for argument
-                register_byref_pointer_type_for(index, var_type_name)
-            } else {
-                var_type_name.to_string()
-            };
-            let initial_value = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    var.initializer.clone(),
-                    type_name.as_str(),
-                    Some(pou.name.clone()),
+            if let Some(var_type_name) = var.data_type.get_name() {
+                let type_name = if block_type.is_by_ref() {
+                    //register a pointer type for argument
+                    register_byref_pointer_type_for(index, var_type_name)
+                } else {
+                    var_type_name.to_string()
+                };
+                let initial_value = index
+                    .get_mut_const_expressions()
+                    .maybe_add_constant_expression(
+                        var.initializer.clone(),
+                        type_name.as_str(),
+                        Some(pou.name.clone()),
+                    );
+
+                let binding = var.address.as_ref().and_then(|it| {
+                    HardwareBinding::from_statement(index, it, Some(pou.name.clone()))
+                });
+
+                index.register_member_variable(
+                    MemberInfo {
+                        container_name: &pou.name,
+                        variable_name: &var.name,
+                        variable_linkage: block_type,
+                        variable_type_name: &type_name,
+                        is_constant: block.constant,
+                        binding,
+                        varargs,
+                    },
+                    initial_value,
+                    var.location.clone(),
+                    count,
                 );
-
-            let binding = var
-                .address
-                .as_ref()
-                .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
-
-            index.register_member_variable(
-                MemberInfo {
-                    container_name: &pou.name,
-                    variable_name: &var.name,
-                    variable_linkage: block_type,
-                    variable_type_name: &type_name,
-                    is_constant: block.constant,
-                    binding,
-                },
-                initial_value,
-                var.location.clone(),
-                count,
-            );
-            count += 1;
+                count += 1;
+            }
         }
     }
 
@@ -119,6 +134,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 variable_type_name: return_type_name,
                 is_constant: false, //return variables are not constants
                 binding: None,
+                varargs: None,
             },
             None,
             source_location,
@@ -126,14 +142,13 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         )
     }
 
-    let has_varargs = varargs.is_some();
+    let has_varargs = member_varargs.is_some();
     let datatype = typesystem::DataType {
         name: pou.name.to_string(),
         initial_value: None,
         information: DataTypeInformation::Struct {
             name: interface_name,
             member_names,
-            varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
         },
         nature: TypeNature::Any,
@@ -317,7 +332,6 @@ fn visit_data_type(
             let information = DataTypeInformation::Struct {
                 name: type_name.clone(),
                 member_names,
-                varargs: None,
                 source: StructSource::OriginalDeclaration,
             };
 
@@ -385,6 +399,7 @@ fn visit_data_type(
                         variable_type_name: member_type,
                         is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
                         binding,
+                        varargs: None,
                     },
                     init,
                     var.location.clone(),
@@ -633,6 +648,20 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::String,
             });
+
+            if init.is_some() {
+                // register a global variable with the initial value to memcopy from
+                let global_init_name = crate::index::get_initializer_name(name);
+                let initializer_global = VariableIndexEntry::create_global(
+                    global_init_name.as_str(),
+                    global_init_name.as_str(),
+                    name,
+                    type_declaration.location.clone(),
+                )
+                .set_constant(true)
+                .set_initial_value(init);
+                index.register_global_initializer(global_init_name.as_str(), initializer_global);
+            }
         }
         DataType::VarArgs { .. } => {} //Varargs are not indexed,
         DataType::GenericType {

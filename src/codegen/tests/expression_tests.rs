@@ -497,3 +497,76 @@ fn builtin_function_call_ref() {
     // We expect a direct conversion and subsequent assignment to pointer(no call)
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn builtin_function_call_mux() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b,c,d,e : DINT;
+        END_VAR
+            a := MUX(3, b,c,d,e); //3 = d
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_sel() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b,c : DINT;
+        END_VAR
+            a := SEL(TRUE, b,c);
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_sel_as_expression() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b,c : DINT;
+        END_VAR
+            a := SEL(TRUE, b,c) + 10;
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_move() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b : DINT;
+        END_VAR
+            a := MOVE(b);
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn test_max_int() {
+    let result = codegen(
+        r"
+    {external}
+    FUNCTION MAX<U : ANY> : U
+    VAR_INPUT in : {sized} U...; END_VAR
+    END_FUNCTION
+    
+    FUNCTION main : INT
+    main := MAX(INT#5,INT#2,INT#1,INT#3,INT#4,INT#7,INT#-1);
+    END_FUNCTION",
+    );
+
+    insta::assert_snapshot!(result);
+}

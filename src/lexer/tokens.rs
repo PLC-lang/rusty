@@ -19,6 +19,9 @@ pub enum Token {
     #[token("{ref}")]
     PropertyByRef,
 
+    #[token("{sized}")]
+    PropertySized,
+
     #[token("PROGRAM", ignore(case))]
     KeywordProgram,
 

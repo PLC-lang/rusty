@@ -1,0 +1,33 @@
+---
+source: src/codegen/tests/function_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32 }
+
+@main_instance = global %main_interface zeroinitializer
+
+define i32 @func(i32 %0) {
+entry:
+  %x = alloca i32, align 4
+  store i32 %0, i32* %x, align 4
+  %func = alloca i32, align 4
+  store i32 0, i32* %func, align 4
+  %func_ret = load i32, i32* %func, align 4
+  ret i32 %func_ret
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %load_a = load i32, i32* %a, align 4
+  %call = call i32 @func(i32 %load_a)
+  %call1 = call i32 @func(i32 1)
+  %load_a2 = load i32, i32* %a, align 4
+  %tmpVar = add i32 1, %load_a2
+  %call3 = call i32 @func(i32 %tmpVar)
+  ret void
+}
+
