@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/logos-0.12.0/src/internal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>internal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/logos-0.12.1/src/internal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>internal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../logos/index.html"><div class="logo-container"><img src="https://maciej.codes/kosz/logos.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -128,8 +128,24 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::source::Chunk</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Filter</span>, <span class="ident">Lexer</span>, <span class="ident">Logos</span>, <span class="ident">Skip</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Filter</span>, <span class="ident">FilterResult</span>, <span class="ident">Lexer</span>, <span class="ident">Logos</span>, <span class="ident">Skip</span>};
 
 <span class="doccomment">/// Trait used by the functions contained in the `Lexicon`.</span>
 <span class="doccomment">///</span>
@@ -248,6 +264,22 @@
                 <span class="ident">lex</span>.<span class="ident">trivia</span>();
                 <span class="ident">T::lex</span>(<span class="ident">lex</span>);
             }
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span>, <span class="ident">P</span>, <span class="ident">T</span>: <span class="ident">Logos</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">CallbackResult</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span>, <span class="ident">P</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FilterResult</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">construct</span><span class="op">&lt;</span><span class="ident">Constructor</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">c</span>: <span class="ident">Constructor</span>, <span class="ident">lex</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span>, <span class="ident">T</span><span class="op">&gt;</span>)
+    <span class="kw">where</span>
+        <span class="ident">Constructor</span>: <span class="ident">Fn</span>(<span class="ident">P</span>) -&gt; <span class="ident">T</span>,
+    {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">FilterResult::Emit</span>(<span class="ident">product</span>) =&gt; <span class="ident">lex</span>.<span class="ident">set</span>(<span class="ident">c</span>(<span class="ident">product</span>)),
+            <span class="ident">FilterResult::Skip</span> =&gt; {
+                <span class="ident">lex</span>.<span class="ident">trivia</span>();
+                <span class="ident">T::lex</span>(<span class="ident">lex</span>);
+            }
+            <span class="ident">FilterResult::Error</span> =&gt; <span class="ident">lex</span>.<span class="ident">set</span>(<span class="ident">T::ERROR</span>),
         }
     }
 }

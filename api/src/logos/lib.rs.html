@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/logos-0.12.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/logos-0.12.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../logos/index.html"><div class="logo-container"><img src="https://maciej.codes/kosz/logos.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -348,6 +348,62 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
 </pre><pre class="rust"><code><span class="doccomment">//! &lt;img src=&quot;https://raw.githubusercontent.com/maciejhirsz/logos/master/logos.svg?sanitize=true&quot; alt=&quot;Logos logo&quot; width=&quot;250&quot; align=&quot;right&quot;&gt;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Logos</span>
@@ -647,6 +703,62 @@
     <span class="ident">Skip</span>,
 }
 
+<span class="doccomment">/// Type that can be returned from a callback, either producing a field</span>
+<span class="doccomment">/// for a token, skipping it, or emitting an error.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```rust</span>
+<span class="doccomment">/// use logos::{Logos, FilterResult};</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[derive(Logos, Debug, PartialEq)]</span>
+<span class="doccomment">/// enum Token {</span>
+<span class="doccomment">///     #[regex(r&quot;[ \n\f\t]+&quot;, logos::skip)]</span>
+<span class="doccomment">///     #[error]</span>
+<span class="doccomment">///     Error,</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///     #[regex(&quot;[0-9]+&quot;, |lex| {</span>
+<span class="doccomment">///         let n: u64 = lex.slice().parse().unwrap();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///         // Only emit a token if `n` is an even number.</span>
+<span class="doccomment">///         if n % 2 == 0 {</span>
+<span class="doccomment">///             // Emit an error if `n` is 10.</span>
+<span class="doccomment">///             if n == 10 {</span>
+<span class="doccomment">///                 FilterResult::Error</span>
+<span class="doccomment">///             } else {</span>
+<span class="doccomment">///                 FilterResult::Emit(n)</span>
+<span class="doccomment">///             }</span>
+<span class="doccomment">///         } else {</span>
+<span class="doccomment">///             FilterResult::Skip</span>
+<span class="doccomment">///         }</span>
+<span class="doccomment">///     })]</span>
+<span class="doccomment">///     NiceEvenNumber(u64)</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let tokens: Vec&lt;_&gt; = Token::lexer(&quot;20 11 42 23 100 10&quot;).collect();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(</span>
+<span class="doccomment">///     tokens,</span>
+<span class="doccomment">///     &amp;[</span>
+<span class="doccomment">///         Token::NiceEvenNumber(20),</span>
+<span class="doccomment">///         // skipping 11</span>
+<span class="doccomment">///         Token::NiceEvenNumber(42),</span>
+<span class="doccomment">///         // skipping 23</span>
+<span class="doccomment">///         Token::NiceEvenNumber(100),</span>
+<span class="doccomment">///         // error at 10</span>
+<span class="doccomment">///         Token::Error,</span>
+<span class="doccomment">///     ]</span>
+<span class="doccomment">/// );</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FilterResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Emit a token with a given value `T`. Use `()` for unit variants without fields.</span>
+    <span class="ident">Emit</span>(<span class="ident">T</span>),
+    <span class="doccomment">/// Skip current match, analog to [`Skip`](./struct.Skip.html).</span>
+    <span class="ident">Skip</span>,
+    <span class="doccomment">/// Emit a `&lt;Token as Logos&gt;::ERROR` token.</span>
+    <span class="ident">Error</span>,
+}
+
 <span class="doccomment">/// Predefined callback that will inform the `Lexer` to skip a definition.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
@@ -683,11 +795,11 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">doctest</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test_readme</span> {
     <span class="macro">macro_rules!</span> <span class="ident">external_doc_test</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>]</span>
-        <span class="kw">extern</span> {}
-    };
-  }
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>) =&gt; {
+            <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>]</span>
+            <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {}
+        };
+    }
 
     <span class="macro">external_doc_test!</span>(<span class="macro">include_str!</span>(<span class="string">&quot;../../README.md&quot;</span>));
 }

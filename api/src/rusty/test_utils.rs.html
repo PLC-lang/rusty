@@ -112,6 +112,7 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
+<span id="110">110</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
 
@@ -152,6 +153,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">Index::default</span>();
         <span class="comment">//Import builtins</span>
         <span class="kw">let</span> <span class="ident">builtins</span> <span class="op">=</span> <span class="ident">builtins::parse_built_ins</span>(<span class="ident">id_provider</span>.<span class="ident">clone</span>());
+
         <span class="ident">index</span>.<span class="ident">import</span>(<span class="ident">index::visitor::visit</span>(<span class="kw-2">&amp;</span><span class="ident">builtins</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>()));
 
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">unit</span>, ..) <span class="op">=</span> <span class="ident">parser::parse</span>(

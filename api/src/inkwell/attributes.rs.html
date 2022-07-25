@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/7253f92/src/attributes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>attributes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/25b9fc5/src/attributes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>attributes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -271,6 +271,55 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `Attribute`s are optional modifiers to functions, function parameters, and return types.</span>
 
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
@@ -286,6 +335,7 @@
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::ffi::CStr</span>;
 
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">12.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::AnyTypeEnum</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LLVMReference</span>;
@@ -397,10 +447,58 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(enum_attribute.get_enum_kind_id(), 0);</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.6</span>..<span class="number">12.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_enum_kind_id</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">is_enum</span>()); <span class="comment">// FIXME: SubTypes</span>
+        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">get_enum_kind_id_is_valid</span>()); <span class="comment">// FIXME: SubTypes</span>
 
         <span class="kw">unsafe</span> { <span class="ident">LLVMGetEnumAttributeKind</span>(<span class="self">self</span>.<span class="ident">attribute</span>) }
+    }
+
+    <span class="doccomment">/// Gets the kind id associated with an enum `Attribute`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```no_run</span>
+    <span class="doccomment">/// use inkwell::context::Context;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let context = Context::create();</span>
+    <span class="doccomment">/// let enum_attribute = context.create_enum_attribute(0, 10);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(enum_attribute.get_enum_kind_id(), 0);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function also works for type `Attribute`s.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```no_run</span>
+    <span class="doccomment">/// use inkwell::context::Context;</span>
+    <span class="doccomment">/// use inkwell::attributes::Attribute;</span>
+    <span class="doccomment">/// use inkwell::types::AnyType;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let context = Context::create();</span>
+    <span class="doccomment">/// let kind_id = Attribute::get_named_enum_kind_id(&quot;sret&quot;);</span>
+    <span class="doccomment">/// let any_type = context.i32_type().as_any_type_enum();</span>
+    <span class="doccomment">/// let type_attribute = context.create_type_attribute(</span>
+    <span class="doccomment">///     kind_id,</span>
+    <span class="doccomment">///     any_type,</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(type_attribute.get_enum_kind_id(), kind_id);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">12.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_enum_kind_id</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
+        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">get_enum_kind_id_is_valid</span>()); <span class="comment">// FIXME: SubTypes</span>
+
+        <span class="kw">unsafe</span> { <span class="ident">LLVMGetEnumAttributeKind</span>(<span class="self">self</span>.<span class="ident">attribute</span>) }
+    }
+
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.6</span>..<span class="number">12.0</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">get_enum_kind_id_is_valid</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">is_enum</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">12.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">get_enum_kind_id_is_valid</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">is_enum</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_type</span>()
     }
 
     <span class="doccomment">/// Gets the last enum kind id associated with builtin names.</span>

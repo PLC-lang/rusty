@@ -1014,6 +1014,15 @@
 <span id="1009">1009</span>
 <span id="1010">1010</span>
 <span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
     <span class="ident">ops::Range</span>,
@@ -1075,6 +1084,7 @@
     <span class="ident">var__invalid_constant</span>,
     <span class="ident">var__cannot_assign_to_const</span>,
     <span class="ident">var__invalid_assignment</span>,
+    <span class="ident">var__missing_type</span>,
 
     <span class="comment">//reference related</span>
     <span class="ident">reference__unresolved</span>,
@@ -1527,6 +1537,14 @@
             <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Unknown type nature {}.&quot;</span>, <span class="ident">nature</span>),
             <span class="ident">range</span>: <span class="ident">location</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::type__unknown_nature</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_datatype</span>(<span class="ident">reason</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">location</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Missing datatype {}&quot;</span>, <span class="ident">reason</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>)),
+            <span class="ident">range</span>: <span class="ident">location</span>,
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::var__missing_type</span>,
         }
     }
 

@@ -208,6 +208,9 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">AstStatement</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>,
@@ -233,7 +236,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate_variable_block</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate_variable_block</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>) {
         <span class="kw">if</span> <span class="ident">block</span>.<span class="ident">constant</span>
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches!</span>(
                 <span class="ident">block</span>.<span class="ident">variable_block_type</span>,
@@ -242,10 +245,6 @@
         {
             <span class="self">self</span>.<span class="ident">diagnostics</span>
                 .<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_constant_block</span>(<span class="ident">block</span>.<span class="ident">location</span>.<span class="ident">clone</span>()))
-        }
-
-        <span class="kw">for</span> <span class="ident">variable</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">variables</span> {
-            <span class="self">self</span>.<span class="ident">validate_variable</span>(<span class="ident">variable</span>, <span class="ident">context</span>);
         }
     }
 
@@ -314,6 +313,13 @@
                 <span class="self">self</span>.<span class="ident">diagnostics</span>
                     .<span class="ident">push</span>(<span class="ident">Diagnostic::empty_variable_block</span>(<span class="ident">location</span>.<span class="ident">clone</span>()));
             }
+            <span class="ident">DataType::VarArgs</span> {
+                <span class="ident">referenced_type</span>: <span class="prelude-val">None</span>,
+                <span class="ident">sized</span>: <span class="bool-val">true</span>,
+            } =&gt; <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::missing_datatype</span>(
+                <span class="prelude-val">Some</span>(<span class="string">&quot;: Sized Variadics require a known datatype.&quot;</span>),
+                <span class="ident">location</span>.<span class="ident">clone</span>(),
+            )),
             <span class="kw">_</span> =&gt; {}
         }
     }
