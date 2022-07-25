@@ -53,6 +53,7 @@ fn a_function_with_varargs_can_be_parsed() {
                 data_type: DataTypeDefinition {
                     data_type: VarArgs {
                         referenced_type: None,
+                        sized: false,
                     },
                 },
             },
@@ -90,6 +91,79 @@ fn a_function_with_typed_varargs_can_be_parsed() {
                                 referenced_type: "INT",
                             },
                         ),
+                        sized: false,
+                    },
+                },
+            },
+        ],
+        variable_block_type: Input(
+            ByVal,
+        ),
+    }
+    "###);
+}
+
+#[test]
+fn a_function_with_sized_varargs_can_be_parsed() {
+    let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : {sized} ...; END_VAR END_FUNCTION";
+    let result = parse(src).0;
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    insta::assert_snapshot!(ast_string,  @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: DataTypeReference {
+                    referenced_type: "INT",
+                },
+            },
+            Variable {
+                name: "y",
+                data_type: DataTypeDefinition {
+                    data_type: VarArgs {
+                        referenced_type: None,
+                        sized: true,
+                    },
+                },
+            },
+        ],
+        variable_block_type: Input(
+            ByVal,
+        ),
+    }
+    "###);
+}
+
+#[test]
+fn a_function_with_sized_typed_varargs_can_be_parsed() {
+    let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : {sized} INT...; END_VAR END_FUNCTION";
+    let result = parse(src).0;
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    insta::assert_snapshot!(ast_string,@r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: DataTypeReference {
+                    referenced_type: "INT",
+                },
+            },
+            Variable {
+                name: "y",
+                data_type: DataTypeDefinition {
+                    data_type: VarArgs {
+                        referenced_type: Some(
+                            DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        ),
+                        sized: true,
                     },
                 },
             },
@@ -139,6 +213,7 @@ fn varargs_parameters_can_be_parsed() {
                     data_type: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs {
                             referenced_type: None,
+                            sized: false,
                         },
                         location: SourceRange::undefined(),
                         scope: Some("foo".into()),
@@ -157,6 +232,84 @@ fn varargs_parameters_can_be_parsed() {
                                     location: SourceRange::undefined(),
                                 },
                             )),
+                            sized: false,
+                        },
+                        location: SourceRange::undefined(),
+                        scope: Some("foo".into()),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                },
+            ],
+        }],
+        location: SourceRange::undefined(),
+        name_location: SourceRange::undefined(),
+        poly_mode: None,
+        generics: vec![],
+        linkage: crate::ast::LinkageType::Internal,
+    };
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
+}
+
+#[test]
+fn sized_varargs_parameters_can_be_parsed() {
+    let src = "
+            FUNCTION foo : DINT
+            VAR_INPUT
+            args1 : {sized} ...;
+            args2 : {sized} INT...;
+            END_VAR
+            END_FUNCTION
+           ";
+    let (parse_result, diagnostics) = parse(src);
+
+    assert_eq!(
+        format!("{:#?}", diagnostics),
+        format!("{:#?}", Vec::<Diagnostic>::new()).as_str()
+    );
+
+    let x = &parse_result.units[0];
+    let expected = Pou {
+        name: "foo".into(),
+        pou_type: PouType::Function,
+        return_type: Some(DataTypeDeclaration::DataTypeReference {
+            referenced_type: "DINT".into(),
+            location: SourceRange::undefined(),
+        }),
+        variable_blocks: vec![VariableBlock {
+            constant: false,
+            access: AccessModifier::Protected,
+            retain: false,
+            variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
+            location: SourceRange::undefined(),
+            linkage: LinkageType::Internal,
+            variables: vec![
+                Variable {
+                    name: "args1".into(),
+                    data_type: DataTypeDeclaration::DataTypeDefinition {
+                        data_type: DataType::VarArgs {
+                            referenced_type: None,
+                            sized: true,
+                        },
+                        location: SourceRange::undefined(),
+                        scope: Some("foo".into()),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                },
+                Variable {
+                    name: "args2".into(),
+                    data_type: DataTypeDeclaration::DataTypeDefinition {
+                        data_type: DataType::VarArgs {
+                            referenced_type: Some(Box::new(
+                                DataTypeDeclaration::DataTypeReference {
+                                    referenced_type: "INT".into(),
+                                    location: SourceRange::undefined(),
+                                },
+                            )),
+                            sized: true,
                         },
                         location: SourceRange::undefined(),
                         scope: Some("foo".into()),
@@ -327,8 +480,7 @@ fn function_inline_struct_return_unsupported() {
     // WHEN parsing is done
     let (_parse_result, diagnostics) = parse(function);
     // THEN there should be one diagnostic -> unsupported return type
-    assert_eq!(
-        true,
+    assert!(
         diagnostics.contains(&Diagnostic::function_unsupported_return_type(
             &DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType {

@@ -1,0 +1,23 @@
+---
+source: src/codegen/tests/function_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+declare i32 @foo(...)
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %load_x = load i32, i32* %x, align 4
+  %tmpVar = add i32 %load_x, 1
+  %call = call i32 (...) @foo(i1 false, i32 3, i32 %tmpVar)
+  store i32 %call, i32* %x, align 4
+  ret void
+}
+

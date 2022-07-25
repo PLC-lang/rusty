@@ -1,6 +1,6 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-expression: "index.filter_instances(|it, _|\n                           !it.is_constant()).collect::<Vec<Instance<'_>>>()"
+expression: "index.filter_instances(|it, _|\n            !it.is_constant()).collect::<Vec<Instance<'_>>>()"
 ---
 [
     (
@@ -26,6 +26,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
             source_location: SourceRange {
                 range: 194..197,
             },
+            varargs: None,
         },
     ),
     (
@@ -51,6 +52,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
             source_location: SourceRange {
                 range: 91..161,
             },
+            varargs: None,
         },
     ),
     (
@@ -79,6 +81,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
             source_location: SourceRange {
                 range: 124..127,
             },
+            varargs: None,
         },
     ),
     (
@@ -110,6 +113,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
             source_location: SourceRange {
                 range: 40..41,
             },
+            varargs: None,
         },
     ),
     (
@@ -141,6 +145,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
             source_location: SourceRange {
                 range: 42..43,
             },
+            varargs: None,
         },
     ),
 ]
