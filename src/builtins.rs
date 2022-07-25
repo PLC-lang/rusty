@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use inkwell::values::{BasicValue, BasicValueEnum};
+use inkwell::{
+    basic_block::BasicBlock,
+    values::{BasicValue, BasicValueEnum, IntValue},
+};
 use lazy_static::lazy_static;
 
 use crate::{
@@ -33,7 +36,7 @@ lazy_static! {
             ",
                 annotation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code: |generator, _, params, location| {
+                code: |generator, params, location| {
                     if let [reference] = params {
                         generator
                             .generate_element_pointer(reference)
@@ -58,7 +61,7 @@ lazy_static! {
                 ",
                 annotation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code: |generator, _, params, location| {
+                code: |generator, params, location| {
                     if let [reference] = params {
                         generator
                             .generate_element_pointer(reference)
@@ -84,20 +87,47 @@ lazy_static! {
                 ",
                 annotation : None,
                 generic_name_resolver: no_generic_name_resolver,
-                code: |generator, _, params, location| {
+                code: |generator, params, location| {
+                    let llvm = generator.llvm;
+                    let context = llvm.context;
+                    let builder = &llvm.builder;
+
+                    let function_context = generator.get_function_context(params.get(0).expect("Param 0 exists"))?;
+                    let insert_block = builder.get_insert_block().expect("Builder should have a block at this point");
+
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
+                        //Create a temp var
+                        let result_type = params.get(0)
+                            .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location))
+                            .and_then(|it| generator.get_type_hint_info_for(it))
+                            .and_then(|it| generator.llvm_index.get_associated_type(it.get_name()))?;
+                        let result_var = generator.llvm.create_local_variable("", &result_type);
                         let k = generator.generate_expression(k)?;
-                        let pou = generator.index.find_pou("MUX").expect("MUX exists as builtin");
-                        //Generate a pointer for the rest of the params
-                        let params = generator.generate_variadic_arguments_list(pou, params)?;
-                        //First access is into the array
-                        let ptr = generator.llvm.load_array_element(params[1].into_pointer_value(),&[generator.llvm.context.i32_type().const_zero(), k.into_int_value()],"")?;
-                        Ok(generator.llvm.builder.build_load(ptr, ""))
+
+                        let mut blocks = vec![];
+                        for it in params.iter() {
+                            let block = context.append_basic_block(function_context.function, "");
+                            blocks.push((*it,block))
+                        }
+                        let continue_block = context.append_basic_block(function_context.function, "continue_block");
+
+                        let cases = blocks.into_iter().enumerate().map::<Result<(IntValue, BasicBlock), Diagnostic>, _>(|(index, (it, block))| {
+                            let value = context.i32_type().const_int(index as u64, false);
+                            builder.position_at_end(block);
+                            let expr = generator.generate_expression(it)?;
+                            builder.build_store(result_var, expr);
+                            builder.build_unconditional_branch(continue_block);
+                            Ok((value,block))
+                        }).collect::<Result<Vec<_>,_>>()?;
+                        builder.position_at_end(insert_block);
+                        builder.build_switch(k.into_int_value(), continue_block, &cases);
+                        builder.position_at_end(continue_block);
+                        let result_var = builder.build_load(result_var, "");
+                        Ok(result_var)
                     } else {
                         Err(Diagnostic::codegen_error("Invalid signature for MUX", location))
                     }
-
                 }
             },
         ),
@@ -114,7 +144,7 @@ lazy_static! {
                 ",
                 annotation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code: |generator, _, params, location| {
+                code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
                         //Evaluate the parameters
                         let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder);
@@ -139,7 +169,7 @@ lazy_static! {
                 END_FUNCTION",
                 annotation: None,
                 generic_name_resolver: no_generic_name_resolver,
-                code : |generator, _, params, location| {
+                code : |generator, params, location| {
                     if params.len() == 1 {
                         generator.generate_expression(params[0])
                     } else {
@@ -200,7 +230,7 @@ lazy_static! {
                     Ok(())
                 }),
                 generic_name_resolver,
-                code : |_,_,_,_| {
+                code : |_,_,_| {
                     unreachable!("Expt will always end up calling the real functions by the resolver magic")
                 }
             }
@@ -217,7 +247,6 @@ type AnnotationFunction = fn(
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, String>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
-    &AstStatement,
     &[&AstStatement],
     SourceRange,
 ) -> Result<BasicValueEnum<'ink>, Diagnostic>;
@@ -232,11 +261,10 @@ impl BuiltIn {
     pub fn codegen<'ink, 'b>(
         &self,
         generator: &'b ExpressionCodeGenerator<'ink, 'b>,
-        operator: &AstStatement,
         params: &[&AstStatement],
         location: SourceRange,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        (self.code)(generator, operator, params, location)
+        (self.code)(generator, params, location)
     }
     pub(crate) fn get_annotation(&self) -> Option<AnnotationFunction> {
         self.annotation

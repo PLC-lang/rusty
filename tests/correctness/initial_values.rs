@@ -1294,3 +1294,122 @@ fn intial_values_diverge_from_type() {
     assert_eq!([5, 6, 7, 8], maintype.arr);
     assert_eq!(5, maintype.my_int);
 }
+
+#[test]
+fn initial_value_of_function_return_dint() {
+    // GIVEN a DataType myInt with a default = 4
+    // AND a function that returns a myINT
+
+    // WHEN I only increment the function's return before returning it
+    let function = "
+    
+    TYPE myInt : DINT := 4; END_TYPE
+
+    FUNCTION target : myInt
+        target := target + 1;
+    END_FUNCTION
+
+    PROGRAM main
+    VAR
+        i : DINT;
+    END_VAR
+    
+    i := target();
+    END_PROGRAM
+		";
+    #[allow(dead_code)]
+    struct MainType {
+        i: i32,
+    }
+
+    // THEN i expect to get 5 (hence the return type's default is 4)
+    let mut maintype = MainType { i: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(5, maintype.i);
+}
+
+#[test]
+fn initial_value_of_function_return_array() {
+    // GIVEN an Array-DataType myArray with a default = [1,2,3,4]
+    // AND a function that returns a myArray
+
+    // WHEN I only increment the function's return at position [2] before returning it
+    let function = "
+    TYPE myArray : ARRAY[0..3] OF DINT := [1,2,3,4]; END_TYPE
+
+    FUNCTION target : myArray
+        target[2] := target[2] + 1;
+    END_FUNCTION
+
+    PROGRAM main
+    VAR
+        arr : ARRAY[0..3] OF DINT;
+    END_VAR
+    
+    arr := target();
+    END_PROGRAM
+		";
+
+    #[allow(dead_code)]
+    struct MainType {
+        arr: [i32; 4],
+    }
+
+    // THEN i expect to get [1,2,4,4]
+    let mut maintype = MainType { arr: [0; 4] };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!([1, 2, 4, 4], maintype.arr);
+}
+
+#[test]
+fn initial_value_of_function_return_struct() {
+    // GIVEN an Struct-DataType myStruct with a default = { a = 10, b = 20, c = 30 }
+    // AND a function that returns a myArray
+
+    // WHEN I only increment a by 1, b by 2 and c by 3 before returning it
+    let function = "
+    
+    TYPE myStruct : STRUCT 
+            a : DINT := 10; 
+            b : DINT := 20; 
+            c : DINT := 30; 
+        END_STRUCT
+    END_TYPE
+
+    FUNCTION target : myStruct
+        target.a := target.a + 1;
+        target.b := target.b + 2;
+        target.c := target.c + 3;
+    END_FUNCTION
+
+    PROGRAM main
+        VAR
+            a,b,c : DINT;
+            str : myStruct;
+        END_VAR
+        
+        str := target();
+        a := str.a;
+        b := str.b;
+        c := str.c;
+    END_PROGRAM
+		";
+
+    #[allow(dead_code)]
+    struct MainType {
+        a: i32,
+        b: i32,
+        c: i32,
+        buffer: [i32; 3],
+    }
+    let mut maintype = MainType {
+        a: 0,
+        b: 0,
+        c: 0,
+        buffer: [0; 3],
+    };
+
+    // THEN i expect to get { a = 11, b = 22, c = 33 }
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!([11, 22, 33], [maintype.a, maintype.b, maintype.c]);
+}
