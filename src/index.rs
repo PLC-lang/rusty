@@ -44,6 +44,8 @@ pub struct VariableIndexEntry {
     binding: Option<HardwareBinding>,
     /// the location in the original source-file
     pub source_location: SourceRange,
+    /// Variadic information placeholder for the variable, if any
+    varargs: Option<VarArgs>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -97,6 +99,7 @@ pub struct MemberInfo<'b> {
     variable_type_name: &'b str,
     binding: Option<HardwareBinding>,
     is_constant: bool,
+    varargs: Option<VarArgs>,
 }
 
 impl VariableIndexEntry {
@@ -119,6 +122,7 @@ impl VariableIndexEntry {
             linkage: LinkageType::Internal,
             binding: None,
             source_location,
+            varargs: None,
         }
     }
 
@@ -139,6 +143,7 @@ impl VariableIndexEntry {
             linkage: LinkageType::Internal,
             binding: None,
             source_location,
+            varargs: None,
         }
     }
 
@@ -162,6 +167,11 @@ impl VariableIndexEntry {
         self
     }
 
+    pub fn set_varargs(mut self, varargs: Option<VarArgs>) -> Self {
+        self.varargs = varargs;
+        self
+    }
+
     /// Creates a new VariableIndexEntry from the current entry with a new container and type
     /// This is used to create new entries from previously generic entries
     pub fn into_typed(&self, container: &str, new_type: &str) -> Self {
@@ -170,10 +180,16 @@ impl VariableIndexEntry {
         } else {
             &self.name
         };
+        let varargs = self
+            .varargs
+            .as_ref()
+            .map(|varargs| varargs.as_typed(new_type));
+
         VariableIndexEntry {
             name: name.to_string(),
             qualified_name: format!("{}.{}", container, name),
             data_type_name: new_type.to_string(),
+            varargs,
             ..self.to_owned()
         }
     }
@@ -229,11 +245,19 @@ impl VariableIndexEntry {
         self.binding.as_ref()
     }
 
-    pub(crate) fn is_parameter(&self) -> bool {
+    pub fn is_parameter(&self) -> bool {
         matches!(
             self.get_variable_type(),
             VariableType::Input | VariableType::Output | VariableType::InOut
         )
+    }
+
+    pub fn is_variadic(&self) -> bool {
+        self.varargs.is_some()
+    }
+
+    pub fn get_varargs(&self) -> Option<&VarArgs> {
+        self.varargs.as_ref()
     }
 }
 
@@ -321,6 +345,10 @@ impl ImplementationIndexEntry {
     }
     pub fn get_implementation_type(&self) -> &ImplementationType {
         &self.implementation_type
+    }
+
+    pub fn is_generic(&self) -> bool {
+        self.generic
     }
 }
 
@@ -979,6 +1007,17 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
+    pub fn get_declared_parameters(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
+        self.member_variables
+            .get(&container_name.to_lowercase())
+            .map(|it| {
+                it.values()
+                    .filter(|it| it.is_parameter() && !it.is_variadic())
+            })
+            .map(|it| it.collect())
+            .unwrap_or_else(Vec::new)
+    }
+
     /// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
     /// In other words it returns whether the member variable at `index` of the given container is a possible parameter in
     /// call to it
@@ -987,10 +1026,16 @@ impl Index {
             .get(&container_name.to_lowercase())
             .and_then(|map| {
                 map.values()
-                    .filter(|item| item.is_parameter())
+                    .filter(|item| item.is_parameter() && !item.is_variadic())
                     .find(|item| item.location_in_parent == index)
             })
             .is_some()
+    }
+
+    pub fn get_variadic_member(&self, container_name: &str) -> Option<&VariableIndexEntry> {
+        self.member_variables
+            .get(&container_name.to_lowercase())
+            .and_then(|map| map.values().find(|it| it.is_variadic()))
     }
 
     pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
@@ -1210,7 +1255,8 @@ impl Index {
         )
         .set_constant(member_info.is_constant)
         .set_initial_value(initial_value)
-        .set_hardware_binding(member_info.binding);
+        .set_hardware_binding(member_info.binding)
+        .set_varargs(member_info.varargs);
 
         self.register_member_entry(container_name, entry);
     }

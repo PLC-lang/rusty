@@ -1,0 +1,52 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32, i32, i32, i32, i32 }
+
+@main_instance = global %main_interface zeroinitializer
+
+define void @main(%main_interface* %0) {
+entry:
+  %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %c = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  %d = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 3
+  %e = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 4
+  %1 = alloca i32, align 4
+  switch i32 3, label %continue_block [
+    i32 0, label %2
+    i32 1, label %3
+    i32 2, label %4
+    i32 3, label %5
+  ]
+
+2:                                                ; preds = %entry
+  %load_b = load i32, i32* %b, align 4
+  store i32 %load_b, i32* %1, align 4
+  br label %continue_block
+
+3:                                                ; preds = %entry
+  %load_c = load i32, i32* %c, align 4
+  store i32 %load_c, i32* %1, align 4
+  br label %continue_block
+
+4:                                                ; preds = %entry
+  %load_d = load i32, i32* %d, align 4
+  store i32 %load_d, i32* %1, align 4
+  br label %continue_block
+
+5:                                                ; preds = %entry
+  %load_e = load i32, i32* %e, align 4
+  store i32 %load_e, i32* %1, align 4
+  br label %continue_block
+
+continue_block:                                   ; preds = %entry, %5, %4, %3, %2
+  %6 = load i32, i32* %1, align 4
+  store i32 %6, i32* %a, align 4
+  ret void
+}
+
