@@ -142,8 +142,11 @@ pub enum StatementAnnotation {
     },
     /// a reference to a function
     Function {
+        /// The defined return type of the function
         return_type: String,
+        /// The defined qualified name of the function
         qualified_name: String,
+        /// The call name of the function iff it defers from the qualified name (generics)
         call_name: Option<String>,
     },
     /// a reference to a type (e.g. `INT`)
