@@ -26,26 +26,24 @@ pub struct Library {
 pub struct ParseProj {
     pub files: Vec<String>,
     pub compile_type: Option<FormatOption>,
-    pub optimization: OptimizationLevel,
+    pub optimization: Option<OptimizationLevel>,
     pub target: Option<String>,
     pub output: String,
     pub error_format: ErrorFormat,
     pub libraries: Vec<ParseLibrary>,
     pub sysroot: Option<String>,
-    pub skip_linking: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Proj {
     pub files: Vec<FilePath>,
     pub compile_type: Option<FormatOption>,
-    pub optimization: OptimizationLevel,
+    pub optimization: Option<OptimizationLevel>,
     pub target: Option<String>,
     pub output: String,
     pub error_format: ErrorFormat,
     pub libraries: Library,
     pub sysroot: Option<String>,
-    pub skip_linking: bool,
 }
 
 impl From<ParseProj> for Proj {
@@ -58,7 +56,6 @@ impl From<ParseProj> for Proj {
             output: p.output,
             error_format: p.error_format,
             libraries: get_libraries_from_parselibraries(p.libraries),
-            skip_linking: p.skip_linking,
             sysroot: p.sysroot,
         }
     }
@@ -99,7 +96,6 @@ pub fn get_project_from_file(build_config: Option<String>) -> Result<Proj, Diagn
     };
 
     let proj = get_path_when_empty(Proj::from(parse_project))?;
-
     Ok(proj)
 }
 

@@ -157,8 +157,8 @@ pub struct CompileParameters {
 
 #[derive(Debug, Subcommand)]
 pub enum SubCommands {
-    /// Uses build description file for building <build-file>.
-    /// Supported formats: json, toml.
+    /// Uses build description file.
+    /// Supported format: json
     Build {
         #[clap(parse(try_from_str = validate_config))]
         build_config: Option<String>,

@@ -11,18 +11,17 @@
     "libraries" : [
         {
             "name" : "iec61131std",
-            "path" : "",
+            "path" : "examples/hw.st",
             "include_path" : [
                 "examples/hw.st"
             ]
         },
         {
             "name" : "other_iec61131std",
-            "path" : "",
+            "path" : "examples/hw.st",
             "include_path" : [
                 "examples/hello_world.st"
             ]
         }
-    ],
-    "skip_linking" : false
+    ]
 }

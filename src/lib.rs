@@ -615,9 +615,8 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         optimization: parameters.optimization,
     };
 
-    // TODO this is not a neat solution ask how you could improve that
-    let mut link_options: Option<LinkOptions> = None;
-    let mut files = vec![];
+    let link_options;
+    let files;
 
     let mut error_format = parameters.error_format;
 
@@ -628,7 +627,9 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
                 files = project.files;
                 compile_options.format = project.compile_type;
                 compile_options.output = project.output;
-                compile_options.optimization = project.optimization;
+                if let Some(optimization) = project.optimization {
+                    compile_options.optimization = optimization;
+                }
                 compile_options.target = project.target;
 
                 error_format = project.error_format;
@@ -640,16 +641,12 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
                 };
 
                 link_options = if let Some(format) = project.compile_type {
-                    if !project.skip_linking {
-                        Some(LinkOptions {
-                            libraries: project.libraries.name,
-                            library_pathes: project.libraries.path,
-                            sysroot: project.sysroot,
-                            format,
-                        })
-                    } else {
-                        None
-                    }
+                    Some(LinkOptions {
+                        libraries: project.libraries.name,
+                        library_pathes: project.libraries.path,
+                        sysroot: project.sysroot,
+                        format,
+                    })
                 } else {
                     None
                 };
