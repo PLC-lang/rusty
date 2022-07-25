@@ -232,13 +232,15 @@ fn function_return_value_is_initialized() {
 }
 
 #[test]
-#[ignore = "https://github.com/PLC-lang/rusty/issues/449"]
 fn function_return_value_with_initializers_is_initialized() {
+    // GIVEN a custom Int, a custom String, a custom Array and a custom struct with initializers
+    // AND functions that return these types without touching them
     let function = codegen(
         r"
-        TYPE MyInt : INT := 7; END_TYPE
-        TYPE MyStr : STRING[10] := 'init'; END_TYPE
-        TYPE MyArr : ARRAY[0..9] OF REAL := [0.0, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9]; END_TYPE
+        TYPE MyInt : INT := 7; END_TYPE;
+        TYPE MyStr : STRING[10] := 'init'; END_TYPE;
+        TYPE MyArr : ARRAY[0..9] OF REAL := [0.0, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9]; END_TYPE;
+        TYPE MyStrct : STRUCT a : DINT := 1; b : DINT := 2; c : DINT := 3; END_STRUCT END_TYPE;
 
         FUNCTION foo_int : MyInt
         END_FUNCTION
@@ -248,8 +250,47 @@ fn function_return_value_with_initializers_is_initialized() {
 
         FUNCTION foo_arr : MyArr
         END_FUNCTION
+
+        FUNCTION foo_strct : MyStrct
+        END_FUNCTION
         ",
     );
-    //expect datatype's initials
+    //THEN I expect datatype's initials as declared
+    // store 7 to foo_int return
+    // memcpy from MyStr__init to foo_str
+    // memcpy from MyArr__init to foo_arr
+    // memcpy from MyStrct__init to foo_strct
+    insta::assert_snapshot!(function)
+}
+
+#[test]
+fn function_return_value_without_initializers_is_initialized() {
+    // GIVEN a custom Int, a custom String, a custom Array and a custom struct without initializers
+    // AND functions that return these types without touching them
+    let function = codegen(
+        r"
+        TYPE MyInt : INT; END_TYPE;
+        TYPE MyStr : STRING[10]; END_TYPE;
+        TYPE MyArr : ARRAY[0..9] OF REAL; END_TYPE;
+        TYPE MyStrct : STRUCT a : DINT; b : DINT; c : DINT; END_STRUCT END_TYPE;
+
+        FUNCTION foo_int : MyInt
+        END_FUNCTION
+
+        FUNCTION foo_str : MyStr
+        END_FUNCTION
+
+        FUNCTION foo_arr : MyArr
+        END_FUNCTION
+
+        FUNCTION foo_strct : MyStrct
+        END_FUNCTION
+        ",
+    );
+    //THEN I expect returns are initialized to 0
+    // store 0 to foo_int return
+    // memset 0 to foo_str
+    // memset 0 to foo_arr
+    // memcpy from zeroinitializer global to foo_strct
     insta::assert_snapshot!(function)
 }
