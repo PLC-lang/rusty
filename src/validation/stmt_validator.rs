@@ -381,7 +381,11 @@ impl StatementValidator {
             if variable_type.is_private()
                 && context
                     .qualifier
-                    .map_or(false, |q| !qualified_name.starts_with(q))
+                    .and_then(|it| context.index.find_pou(it)) //Get the container pou (for actions this is the program/fb)
+                    .map(|it| (it.get_name(), it.get_container()))
+                    .map_or(false, |(it, container)| {
+                        !qualified_name.starts_with(it) && !qualified_name.starts_with(container)
+                    })
             {
                 self.diagnostics.push(Diagnostic::illegal_access(
                     qualified_name.as_str(),

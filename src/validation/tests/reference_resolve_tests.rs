@@ -298,3 +298,23 @@ fn reference_to_private_variable_in_intermediate_fb() {
         vec![Diagnostic::illegal_access("fb1.f", (413..414).into()),]
     );
 }
+
+#[test]
+fn program_vars_are_allowed_in_their_actions() {
+    let diagnostics = parse_and_validate(
+        "
+            PROGRAM prg
+                VAR 
+                    s : INT;
+                END_VAR
+            END_PROGRAM
+
+            ACTION prg.foo
+                prg.s := 7;
+                s := 7;
+            END_ACTION
+       ",
+    );
+
+    assert_eq!(diagnostics, vec![]);
+}
