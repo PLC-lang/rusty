@@ -26,6 +26,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 91..168,
             },
+            varargs: None,
         },
     ),
     (
@@ -54,6 +55,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 124..127,
             },
+            varargs: None,
         },
     ),
 ]

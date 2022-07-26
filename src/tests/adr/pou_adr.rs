@@ -65,7 +65,6 @@ fn programs_state_is_stored_in_a_struct() {
                     "v",
                     "vt",
                 ],
-                varargs: None,
                 source: Pou(
                     Program,
                 ),

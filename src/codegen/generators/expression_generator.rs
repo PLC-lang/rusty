@@ -3,13 +3,11 @@ use crate::{
     ast::{self, DirectAccessType, SourceRange},
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    index::{
-        ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry,
-        VariableType,
-    },
+    index::{ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
-        is_same_type_class, Dimension, StringEncoding, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
+        is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE,
+        LINT_TYPE,
     },
 };
 use inkwell::{
@@ -36,12 +34,12 @@ use super::{llvm::Llvm, statement_generator::FunctionContext};
 
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
-    llvm: &'b Llvm<'a>,
-    index: &'b Index,
+    pub llvm: &'b Llvm<'a>,
+    pub index: &'b Index,
     annotations: &'b AstAnnotations,
-    llvm_index: &'b LlvmTypedIndex<'a>,
+    pub llvm_index: &'b LlvmTypedIndex<'a>,
     /// the current function to create blocks in
-    function_context: Option<&'b FunctionContext<'a>>,
+    pub function_context: Option<&'b FunctionContext<'a>>,
 
     /// the string-prefix to use for temporary variables
     pub temp_variable_prefix: String,
@@ -118,7 +116,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     /// returns the function context or returns a Compile-Error
-    fn get_function_context(
+    pub fn get_function_context(
         &self,
         statement: &AstStatement,
     ) -> Result<&'b FunctionContext<'ink>, Diagnostic> {
@@ -578,10 +576,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // foo(z:= a, x:=c, y := b);
             let declared_parameters = self
                 .index
-                .get_container_members(implementation.get_type_name())
-                .into_iter()
-                .filter(|it| it.is_parameter())
-                .collect::<Vec<_>>();
+                .get_declared_parameters(implementation.get_type_name());
 
             // the parameters to be passed to the function call
             self.generate_function_arguments(pou, call_params, declared_parameters)?
@@ -631,23 +626,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         declared_parameters: Vec<&VariableIndexEntry>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = Vec::new();
+        let mut variadic_params = Vec::new();
         for (idx, param_statement) in arguments.into_iter().enumerate() {
             let (location, param_statement) =
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
 
             //None -> possibly variadic
-            let (declaration_type, type_name) = declared_parameters
+            let param = declared_parameters
                 //get paremeter at location
                 .get(location)
                 //find the parameter's type and name
-                .map(|it| (it.get_declaration_type(), it.get_type_name()))
+                .map(|it| Some((it.get_declaration_type(), it.get_type_name())))
                 //TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
                 .map(Ok)
                 .unwrap_or_else(|| {
                     //If we are dealing with a variadic function, we can accept all extra parameters
                     if pou.is_variadic() {
-                        self.get_type_hint_for(param_statement)
-                            .map(|it| (ArgumentType::ByVal(VariableType::Input), it.get_name()))
+                        variadic_params.push(param_statement);
+                        Ok(None)
                     } else {
                         //We are not variadic, we have too many parameters here
                         Err(Diagnostic::codegen_error(
@@ -657,14 +653,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            let argument: BasicValueEnum = if declaration_type.is_by_ref() {
-                self.generate_argument_by_ref(param_statement, type_name)?
-            } else {
-                //pass by val
-                self.generate_argument_by_val(type_name, param_statement)?
-            };
-
-            result.push((location, argument));
+            if let Some((declaration_type, type_name)) = param {
+                let argument: BasicValueEnum = if declaration_type.is_by_ref() {
+                    self.generate_argument_by_ref(param_statement, type_name)?
+                } else {
+                    //pass by val
+                    self.generate_argument_by_val(type_name, param_statement)?
+                };
+                result.push((location, argument));
+            }
+        }
+        //Push variadic collection and optionally the variadic size
+        if pou.is_variadic() {
+            let last_location = result.len();
+            let variadic_params = self.generate_variadic_arguments_list(pou, &variadic_params)?;
+            for (i, param) in variadic_params.into_iter().enumerate() {
+                result.push((i + last_location, param));
+            }
         }
         result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
         Ok(result
@@ -743,6 +748,50 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 })
         }
         .map(Into::into)
+    }
+
+    pub fn generate_variadic_arguments_list(
+        &self,
+        pou: &PouIndexEntry,
+        variadic_params: &[&AstStatement],
+    ) -> Result<Vec<BasicValueEnum<'ink>>, Diagnostic> {
+        let generated_params = variadic_params
+            .iter()
+            .map(|param_statement| {
+                self.get_type_hint_for(param_statement)
+                    .map(|it| it.get_name())
+                    .and_then(|type_name| self.generate_argument_by_val(type_name, param_statement))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        //get the real varargs from the index
+        if let Some(VarArgs::Sized(Some(type_name))) = self
+            .index
+            .get_variadic_member(pou.get_name())
+            .and_then(|it| it.get_varargs())
+        {
+            let llvm_type = generated_params
+                .get(0)
+                .map(|it| Ok(it.get_type()))
+                .unwrap_or_else(|| self.llvm_index.get_associated_type(type_name))?;
+            let size = generated_params.len();
+            let size_param = self.llvm.i32_type().const_int(size as u64, true);
+            let arr = Llvm::get_array_type(llvm_type, size as u32);
+            let arr_storage = self.llvm.builder.build_alloca(arr, "");
+            for (i, ele) in generated_params.iter().enumerate() {
+                let ele_ptr = self.llvm.load_array_element(
+                    arr_storage,
+                    &[
+                        self.llvm.context.i32_type().const_zero(),
+                        self.llvm.context.i32_type().const_int(i as u64, true),
+                    ],
+                    "",
+                )?;
+                self.llvm.builder.build_store(ele_ptr, *ele);
+            }
+            Ok(vec![size_param.into(), arr_storage.into()])
+        } else {
+            Ok(generated_params)
+        }
     }
 
     /// generates a new instance of a function called `function_name` and returns a PointerValue to it

@@ -1,0 +1,30 @@
+---
+source: src/codegen/tests/function_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { [6 x i8] }
+
+@main_instance = global %main_interface zeroinitializer
+@utf08_literal_0 = unnamed_addr constant [6 x i8] c"12345\00"
+
+define i32 @func([6 x i8]* %0) {
+entry:
+  %x = alloca [6 x i8]*, align 8
+  store [6 x i8]* %0, [6 x i8]** %x, align 8
+  %func = alloca i32, align 4
+  store i32 0, i32* %func, align 4
+  %func_ret = load i32, i32* %func, align 4
+  ret i32 %func_ret
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %call = call i32 @func([6 x i8]* %a)
+  %call1 = call i32 @func([6 x i8]* @utf08_literal_0)
+  ret void
+}
+

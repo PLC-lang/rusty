@@ -1,0 +1,20 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32, i32 }
+
+@main_instance = global %main_interface zeroinitializer
+
+define void @main(%main_interface* %0) {
+entry:
+  %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %load_b = load i32, i32* %b, align 4
+  store i32 %load_b, i32* %a, align 4
+  ret void
+}
+

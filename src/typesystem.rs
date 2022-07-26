@@ -108,7 +108,25 @@ impl DataType {
     }
 }
 
-type VarArgs = Option<String>;
+#[derive(Debug, Clone, PartialEq)]
+pub enum VarArgs {
+    Sized(Option<String>),
+    Unsized(Option<String>),
+}
+
+impl VarArgs {
+    pub fn is_sized(&self) -> bool {
+        matches!(self, VarArgs::Sized(..))
+    }
+
+    pub fn as_typed(&self, new_type: &str) -> VarArgs {
+        match self {
+            VarArgs::Sized(Some(_)) => VarArgs::Sized(Some(new_type.to_string())),
+            VarArgs::Unsized(Some(_)) => VarArgs::Unsized(Some(new_type.to_string())),
+            _ => self.clone(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StringEncoding {
@@ -177,7 +195,6 @@ pub enum DataTypeInformation {
     Struct {
         name: TypeId,
         member_names: Vec<String>,
-        varargs: Option<VarArgs>,
         source: StructSource,
     },
     Array {
@@ -312,28 +329,6 @@ impl DataTypeInformation {
                 | DataTypeInformation::Float { .. }
                 | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
         )
-    }
-
-    pub fn is_variadic(&self) -> bool {
-        matches!(
-            self,
-            DataTypeInformation::Struct {
-                varargs: Some(_),
-                ..
-            }
-        )
-    }
-
-    pub fn get_variadic_type(&self) -> Option<&str> {
-        if let DataTypeInformation::Struct {
-            varargs: Some(inner_type),
-            ..
-        } = &self
-        {
-            inner_type.as_ref().map(String::as_str)
-        } else {
-            None
-        }
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {
