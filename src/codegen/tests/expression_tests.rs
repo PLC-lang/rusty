@@ -581,6 +581,66 @@ fn int_to_int_expt() {
     ",
     );
 
+    // expecting a int to uint operation because 1 is positive
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn int_to_uint_expt() {
+    let result = codegen(
+        "
+    FUNCTION main : DINT
+        main := 2**UDINT#3;
+    END_FUNCTION
+    ",
+    );
+
+    // Expecting a int to uint operation
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn int_to_negative_expt() {
+    let result = codegen(
+        "
+    FUNCTION main : DINT
+        main := 2**-1;
+    END_FUNCTION
+    ",
+    );
+
+    // Expecting a real to int operation
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn int_to_intvar() {
+    let result = codegen(
+        "
+    FUNCTION main : DINT
+    VAR
+        x,y : DINT;
+    END_VAR
+        main := x**y;
+    END_FUNCTION
+    ",
+    );
+
+    // Expecting a real to int operation
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn uint_to_int_expt() {
+    let result = codegen(
+        "
+    FUNCTION main : DINT
+        main := UDINT#2**3;
+    END_FUNCTION
+    ",
+    );
+
+    // Expecting a udint to udint operation because 3 is positive
     insta::assert_snapshot!(result);
 }
 

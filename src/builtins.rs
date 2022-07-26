@@ -19,7 +19,7 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver},
         get_type_for_annotation, AnnotationMap, TypeAnnotator, VisitorContext,
     },
-    typesystem::{get_bigger_type, DataTypeInformation, DINT_TYPE, REAL_TYPE},
+    typesystem::{get_bigger_type, DataTypeInformation, DINT_TYPE, REAL_TYPE, UDINT_TYPE},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -195,18 +195,25 @@ lazy_static! {
                         let element_type = annotator.annotation_map.get(element).and_then(|it| get_type_for_annotation(annotator.index, it));
                         let exponant_type = annotator.annotation_map.get(exponant).and_then(|it| get_type_for_annotation(annotator.index, it));
                         let dint_type = annotator.index.get_type_or_panic(DINT_TYPE);
+                        let udint_type = annotator.index.get_type_or_panic(UDINT_TYPE);
                         let real_type = annotator.index.get_type_or_panic(REAL_TYPE);
+                        let is_exponent_positive_literal = if let AstStatement::LiteralInteger { value, .. } = exponant { value.is_positive() } else {false};
                         if let (Some(element_type), Some(exponant_type)) = (element_type, exponant_type) {
                             let (element_type, exponant_type)  = match (element_type.get_type_information(), exponant_type.get_type_information()) {
                                 //If both params are int types, convert to a common type and call an int power function
-                                (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {..}) => {
+                                (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {signed : false, size, ..})
+                                | (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {signed : true, size, ..}) if is_exponent_positive_literal => {
                                     //Convert both to minimum dint
-                                    let target_type = get_bigger_type(
-                                        get_bigger_type(element_type, exponant_type, annotator.index), dint_type, annotator.index);
-                                    (target_type.get_name(), target_type.get_name())
+                                    let element_type = get_bigger_type(element_type, dint_type, annotator.index);
+                                    let exponant_type = if *size <= udint_type.get_type_information().get_size() {
+                                        udint_type
+                                    } else {
+                                        exponant_type
+                                    };
+                                    (element_type.get_name(), exponant_type.get_name())
                                 },
                                 //If left is real, then if right is int call powi
-                                (DataTypeInformation::Float { .. }, DataTypeInformation::Integer {..}) => {
+                                (_, DataTypeInformation::Integer {..}) => {
                                     //Convert the exponent to minimum DINT
                                     let target_type = get_bigger_type(element_type, real_type, annotator.index);
                                     let exponant_type = get_bigger_type(exponant_type, dint_type, annotator.index);

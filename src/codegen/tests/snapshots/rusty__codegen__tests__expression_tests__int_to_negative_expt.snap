@@ -9,11 +9,12 @@ define i32 @main() {
 entry:
   %main = alloca i32, align 4
   store i32 0, i32* %main, align 4
-  %call = call i32 @EXPT__DINT__UDINT(i32 2, i32 3)
-  store i32 %call, i32* %main, align 4
+  %call = call float @EXPT__REAL__DINT(float 2.000000e+00, i32 -1)
+  %0 = fptosi float %call to i32
+  store i32 %0, i32* %main, align 4
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }
 
-declare i32 @EXPT__DINT__UDINT(i32, i32)
+declare float @EXPT__REAL__DINT(float, i32)
 
