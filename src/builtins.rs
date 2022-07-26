@@ -19,7 +19,9 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver},
         get_type_for_annotation, AnnotationMap, TypeAnnotator, VisitorContext,
     },
-    typesystem::{get_bigger_type, DataTypeInformation, DINT_TYPE, REAL_TYPE, UDINT_TYPE},
+    typesystem::{
+        get_bigger_type, DataTypeInformation, DINT_SIZE, DINT_TYPE, REAL_TYPE, UDINT_TYPE,
+    },
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -205,7 +207,7 @@ lazy_static! {
                                 | (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {signed : true, size, ..}) if is_exponent_positive_literal => {
                                     //Convert both to minimum dint
                                     let element_type = get_bigger_type(element_type, dint_type, annotator.index);
-                                    let exponant_type = if *size <= udint_type.get_type_information().get_size() {
+                                    let exponant_type = if *size <= DINT_SIZE {
                                         udint_type
                                     } else {
                                         exponant_type
@@ -213,10 +215,18 @@ lazy_static! {
                                     (element_type.get_name(), exponant_type.get_name())
                                 },
                                 //If left is real, then if right is int call powi
-                                (_, DataTypeInformation::Integer {..}) => {
+                                (_, DataTypeInformation::Integer {size, ..}) => {
                                     //Convert the exponent to minimum DINT
                                     let target_type = get_bigger_type(element_type, real_type, annotator.index);
-                                    let exponant_type = get_bigger_type(exponant_type, dint_type, annotator.index);
+
+                                    // For integer powers, only a 32 bit integer is allowed
+                                    let exponant_type = if *size <= DINT_SIZE {
+                                        dint_type
+                                    } else {
+                                        //For bigger types, we move to the target type (Effectively always LREAL)
+                                        get_bigger_type(target_type, exponant_type, annotator.index)
+                                    };
+                                    let target_type = get_bigger_type(target_type, exponant_type, annotator.index);
                                     (target_type.get_name(), exponant_type.get_name())
                                 },
                                 //If right is real convert to common real type and call powf

@@ -684,6 +684,20 @@ fn real_to_int_expt() {
 }
 
 #[test]
+fn real_to_lint_expt() {
+    let result = codegen(
+        "
+    FUNCTION main : REAL
+        main := REAL#3.0**LINT#2;
+    END_FUNCTION
+    ",
+    );
+
+    // Expecting an lreal to lreal conversion
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn lreal_to_real_expt() {
     let result = codegen(
         "
