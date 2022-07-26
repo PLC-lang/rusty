@@ -9,84 +9,44 @@ use std::fs;
 use std::path::Path;
 
 #[derive(Serialize, Deserialize)]
-pub struct ParseLibrary {
+pub struct Libraries {
     pub name: String,
     pub path: String,
     pub include_path: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Library {
-    pub name: Vec<String>,
-    pub path: Vec<String>,
-    pub include_path: Vec<FilePath>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct ParseProj {
+pub struct Proj {
     pub files: Vec<String>,
     pub compile_type: Option<FormatOption>,
     pub optimization: Option<OptimizationLevel>,
     pub target: Option<String>,
     pub output: String,
     pub error_format: ErrorFormat,
-    pub libraries: Vec<ParseLibrary>,
+    pub libraries: Option<Vec<Libraries>>,
     pub sysroot: Option<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Proj {
-    pub files: Vec<FilePath>,
-    pub compile_type: Option<FormatOption>,
-    pub optimization: Option<OptimizationLevel>,
-    pub target: Option<String>,
-    pub output: String,
-    pub error_format: ErrorFormat,
-    pub libraries: Library,
-    pub sysroot: Option<String>,
-}
-
-impl From<ParseProj> for Proj {
-    fn from(p: ParseProj) -> Proj {
-        Proj {
-            files: string_to_filepath(p.files),
-            compile_type: p.compile_type,
-            optimization: p.optimization,
-            target: p.target,
-            output: p.output,
-            error_format: p.error_format,
-            libraries: get_libraries_from_parselibraries(p.libraries),
-            sysroot: p.sysroot,
-        }
-    }
 }
 
 pub fn get_project_from_file(build_config: Option<String>) -> Result<Proj, Diagnostic> {
-    let mut filepath: String = String::from("plc.json");
-
-    if let Some(filename) = build_config {
-        filepath = filename;
-    }
+    let filepath = build_config.unwrap_or_else(|| String::from("plc.json"));
 
     //read from file
     let content = fs::read_to_string(filepath);
 
     let content = match content {
         Ok(file_content) => file_content,
-        Err(_e) => {
+        Err(e) => {
             return Err(Diagnostic::GeneralError {
-                message: String::from(
-                    r#"No such file or directory found, please add the path of "plc.json""#,
-                ),
+                message: e.to_string(),
                 err_no: ErrNo::general__io_err,
             })
         }
     };
 
     //convert file to Object
-    let parse_project = serde_json::from_str(&content);
-    let parse_project: ParseProj = match parse_project {
-        Ok(pp) => pp,
+    let project = serde_json::from_str(&content);
+    let project: Proj = match project {
+        Ok(project) => project,
         Err(_e) => {
             return Err(Diagnostic::GeneralError {
                 message: String::from(r#"An error occured whilest parsing!"#),
@@ -95,11 +55,11 @@ pub fn get_project_from_file(build_config: Option<String>) -> Result<Proj, Diagn
         }
     };
 
-    let proj = get_path_when_empty(Proj::from(parse_project))?;
-    Ok(proj)
+    let project = get_path_when_empty(project)?;
+    Ok(project)
 }
 
-fn string_to_filepath(content: Vec<String>) -> Vec<FilePath> {
+pub fn string_to_filepath(content: Vec<String>) -> Vec<FilePath> {
     let mut filepath: Vec<FilePath> = vec![];
     for item in content {
         filepath.push(FilePath::from(item));
@@ -107,28 +67,23 @@ fn string_to_filepath(content: Vec<String>) -> Vec<FilePath> {
     filepath
 }
 
-fn get_libraries_from_parselibraries(l: Vec<ParseLibrary>) -> Library {
-    let string_paths: Vec<String> = l.iter().flat_map(|it| it.include_path.clone()).collect();
-
-    Library {
-        name: l.iter().map(|it| it.name.clone()).collect(),
-        path: l.iter().map(|it| it.path.clone()).collect(),
-        include_path: string_to_filepath(string_paths),
-    }
-}
-
 fn get_path_when_empty(p: Proj) -> Result<Proj, Diagnostic> {
-    for i in 0..p.libraries.name.len() {
-        if p.libraries.path.get(i).is_some() && p.libraries.path.get(i) != Some(&String::from("")) {
-            continue;
-        } else if let Some(name) = p.libraries.name.get(i) {
-            if Path::new(&format!("{}.so", name)).is_file() {
+    if let Some(ref libraries) = p.libraries {
+        for i in 0..libraries.len() {
+            if libraries.get(i).is_some()
+                && libraries.get(i).unwrap().name != *""
+                && libraries.get(i).unwrap().path != *""
+            {
                 continue;
-            } else {
-                return Err(Diagnostic::GeneralError {
-                    message: String::from("Lib path can not be found, please add Path"),
-                    err_no: ErrNo::general__io_err,
-                });
+            } else if let Some(library) = libraries.get(i) {
+                if Path::new(&format!("{}.so", library.name)).is_file() {
+                    continue;
+                } else {
+                    return Err(Diagnostic::GeneralError {
+                        message: String::from("Lib path can not be found, please add Path"),
+                        err_no: ErrNo::general__io_err,
+                    });
+                }
             }
         }
     }

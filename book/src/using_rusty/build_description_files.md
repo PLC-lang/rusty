@@ -2,22 +2,22 @@
 
 In addition to the comprehensive help, `rustyc` offers a build description file, that simplifies the build process. Instead of having numerous inline arguments, using the build description file makes passing the arguments easier and neater. The build description file needs to be safed as a [json](https://en.wikipedia.org/wiki/JSON) format.
 
-`rustyc [Options] <SUBCOMMAND>`
+`rustyc build [Config]`
 
-Note that if `rustyc` cannot find the `plc.json` file, it will throw an error and request the path. The default location for the build file is the current directory. The command for building with additional path looks like this:
+Note that if `rustyc` cannot find the `plc.json` file, it will throw an error and request the path. The default location for the build file is the current directory. The command for building with an additional path looks like this:
 
 `rustyc build src/plc.json`
 
 
 # Plc.json
 
-For the build description file to work, the [json](https://en.wikipedia.org/wiki/JavaScript_Object_Notation) format needs to be used. All the keys used in the build description file are described in the following sections. 
+For the build description file to work, the build description file must be the [json](https://en.wikipedia.org/wiki/JavaScript_Object_Notation) format. All the keys used in the build description file are described in the following sections. 
 
 
 ## files
 
-The key `files` is the equivalent to the `--include` flag which adds all the `.st` files, which needs to be compiled. The value of `files` is an array of strings, definied as followed:
-```
+The key `files` is the equivalent to the `input` parameter, which adds all the `.st` files that needs to be compiled. The value of `files` is an array of strings, definied as followed:
+```json
 "files" : [
     "examples/hello_world.st",
     "examples/hw.st"
@@ -46,9 +46,9 @@ By default `rustyc` will use `default` which corresponds to clang's `-o2`.
 
 ## libraries
 
-To like several executables `rustyc` has the option to add libraries and automatically build and like them together. if no compile type has been selected `rustyc` will link the files on default.
+To link several executables `rustyc` has the option to add libraries and automatically build and like them together. if no compile type has been selected `rustyc` will link the files on default.
 
-```
+```json
 "libraries" : [
     {
         "name" : "iec61131std",
@@ -91,7 +91,7 @@ There are six options for choosing the `compile_type`. The valid options are:
 To specify which of the above mentioned compile formats is wanted, it needs to be added to the build description file as followed: `"compile_type" : "Shared"`.
 
 # Example
-```
+```json
 {
     "files" : [
         "examples/hw.st",

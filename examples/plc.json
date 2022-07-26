@@ -11,7 +11,7 @@
     "libraries" : [
         {
             "name" : "iec61131std",
-            "path" : "examples/hw.st",
+            "path" : "",
             "include_path" : [
                 "examples/hw.st"
             ]

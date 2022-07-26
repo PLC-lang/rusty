@@ -21,7 +21,7 @@ use std::fs;
 use std::io::Write;
 use std::str::FromStr;
 
-use build::get_project_from_file;
+use build::{get_project_from_file, string_to_filepath};
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
@@ -581,6 +581,145 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
     Ok(sources)
 }
 
+pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagnostic> {
+    let config_options = parameters
+        .hardware_config
+        .as_ref()
+        .map(|config| ConfigurationOptions {
+            format: parameters
+                .config_format()
+                .expect("Never none for valid parameters"),
+            output: config.to_owned(),
+        });
+
+    match parameters.commands.unwrap() {
+        SubCommands::Build { build_config } => {
+            let project = get_project_from_file(build_config)?;
+            let files = project.files;
+            let compile_options = CompileOptions {
+                output: project.output,
+                target: if project.target.is_some() {
+                    project.target
+                } else {
+                    parameters.target
+                },
+                format: project.compile_type,
+                optimization: if project.optimization.is_some() {
+                    project.optimization.unwrap()
+                } else {
+                    parameters.optimization
+                },
+            };
+
+            let error_format = project.error_format;
+            let string_paths = if project.libraries.is_some() {
+                string_to_filepath(
+                    project
+                        .libraries
+                        .as_ref()
+                        .unwrap()
+                        .iter()
+                        .flat_map(|it| it.include_path.clone())
+                        .collect(),
+                )
+            } else {
+                vec![]
+            };
+
+            let includes = if string_paths.is_empty() {
+                vec![]
+            } else {
+                string_paths
+            };
+
+            let link_options = if let Some(format) = project.compile_type {
+                Some(LinkOptions {
+                    libraries: if project.libraries.is_some() {
+                        project
+                            .libraries
+                            .as_ref()
+                            .unwrap()
+                            .iter()
+                            .map(|it| it.name.clone())
+                            .collect()
+                    } else {
+                        vec![]
+                    },
+                    library_pathes: if project.libraries.is_some() {
+                        project
+                            .libraries
+                            .as_ref()
+                            .unwrap()
+                            .iter()
+                            .map(|it| it.path.clone())
+                            .collect()
+                    } else {
+                        vec![]
+                    },
+                    sysroot: project.sysroot,
+                    format,
+                })
+            } else {
+                None
+            };
+
+            let target = get_target_triple(compile_options.target.as_deref());
+
+            let compile_result = build(
+                string_to_filepath(files),
+                includes,
+                &compile_options,
+                parameters.encoding,
+                &error_format,
+                &target,
+            )?;
+
+            link_and_create(
+                link_options,
+                &compile_result,
+                &compile_options,
+                &target,
+                config_options,
+            )?;
+        }
+    }
+    Ok(())
+}
+
+fn link_and_create(
+    link_options: Option<LinkOptions>,
+    compile_result: &CompileResult,
+    compile_options: &CompileOptions,
+    target: &TargetTriple,
+    config_options: Option<ConfigurationOptions>,
+) -> Result<(), Diagnostic> {
+    if let Some(link_options) = link_options {
+        link(
+            &compile_options.output,
+            link_options.format,
+            &compile_result.objects,
+            link_options.library_pathes,
+            link_options.libraries,
+            target,
+            link_options.sysroot,
+        )?;
+    }
+
+    if let Some(config) = config_options {
+        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
+        let generated_conf =
+            hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
+
+        File::create(config.output)
+            .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
+            .map_err(|it| Diagnostic::GeneralError {
+                err_no: diagnostics::ErrNo::general__io_err,
+                message: it.to_string(),
+            })?;
+    }
+    Ok(())
+}
+
 /// The driver function for the compilation
 /// Sorts files that need compilation
 /// Parses, validates and generates code for the given source files
@@ -588,7 +727,7 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
 /// Links any provided libraries
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    let mut includes = if parameters.includes.is_empty() {
+    let includes = if parameters.includes.is_empty() {
         vec![]
     } else {
         create_file_paths(&parameters.includes)?
@@ -608,68 +747,31 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
             output: config.to_owned(),
         });
 
-    let mut compile_options = CompileOptions {
+    let compile_options = CompileOptions {
         output,
         target: parameters.target,
         format: out_format,
         optimization: parameters.optimization,
     };
 
-    let link_options;
-    let files;
+    let error_format = parameters.error_format;
 
-    let mut error_format = parameters.error_format;
+    let files = create_file_paths(&parameters.input)?;
 
-    if let Some(commands) = parameters.commands {
-        match commands {
-            SubCommands::Build { build_config } => {
-                let project = get_project_from_file(build_config)?;
-                files = project.files;
-                compile_options.format = project.compile_type;
-                compile_options.output = project.output;
-                if let Some(optimization) = project.optimization {
-                    compile_options.optimization = optimization;
-                }
-                compile_options.target = project.target;
-
-                error_format = project.error_format;
-
-                includes = if project.libraries.include_path.is_empty() {
-                    vec![]
-                } else {
-                    project.libraries.include_path
-                };
-
-                link_options = if let Some(format) = project.compile_type {
-                    Some(LinkOptions {
-                        libraries: project.libraries.name,
-                        library_pathes: project.libraries.path,
-                        sysroot: project.sysroot,
-                        format,
-                    })
-                } else {
-                    None
-                };
-            }
-        };
-    } else {
-        files = create_file_paths(&parameters.input)?;
-
-        link_options = if let Some(format) = out_format {
-            if !parameters.skip_linking {
-                Some(LinkOptions {
-                    libraries: parameters.libraries,
-                    library_pathes: parameters.library_paths,
-                    sysroot: parameters.sysroot,
-                    format,
-                })
-            } else {
-                None
-            }
+    let link_options = if let Some(format) = out_format {
+        if !parameters.skip_linking {
+            Some(LinkOptions {
+                libraries: parameters.libraries,
+                library_pathes: parameters.library_paths,
+                sysroot: parameters.sysroot,
+                format,
+            })
         } else {
             None
-        };
-    }
+        }
+    } else {
+        None
+    };
 
     let target = get_target_triple(compile_options.target.as_deref());
 
@@ -682,30 +784,13 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         &target,
     )?;
 
-    if let Some(link_options) = link_options {
-        link(
-            &compile_options.output,
-            link_options.format,
-            &compile_result.objects,
-            link_options.library_pathes,
-            link_options.libraries,
-            &target,
-            link_options.sysroot,
-        )?;
-    }
-
-    if let Some(config) = config_options {
-        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
-        let generated_conf =
-            hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
-
-        File::create(config.output)
-            .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
-            .map_err(|it| Diagnostic::GeneralError {
-                err_no: diagnostics::ErrNo::general__io_err,
-                message: it.to_string(),
-            })?;
-    }
+    link_and_create(
+        link_options,
+        &compile_result,
+        &compile_options,
+        &target,
+        config_options,
+    )?;
 
     Ok(())
 }
