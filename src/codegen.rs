@@ -149,7 +149,17 @@ impl<'ink> CodeGen<'ink> {
             }
         }
 
-        Ok(())
+        self.module.verify().map_err(|it| Diagnostic::GeneralError { message: it.to_string(), err_no: crate::diagnostics::ErrNo::codegen__general })
+    }
+
+    pub fn generate_to_string(
+        &self,
+        unit: &CompilationUnit,
+        annotations: &AstAnnotations,
+        global_index: &Index,
+        llvm_index: &LlvmTypedIndex,
+    ) -> Result<String, Diagnostic> {
+        self.generate(unit, annotations, global_index, llvm_index).map(|_| self.module.print_to_string().to_string())
     }
 }
 
