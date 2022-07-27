@@ -2934,3 +2934,27 @@ fn constant_expressions_in_ranged_type_declaration_are_propagated() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn constant_expression_in_function_blocks_are_propagated() {
+    //GIVEN a constant in a function block
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        FUNCTION_BLOCK fbWithConstant 
+        VAR
+            x : INT;
+        END_VAR
+        VAR CONSTANT
+            const : INT := 2;
+        END_VAR
+          x := const;
+        END_FUNCTION
+        ",
+    );
+
+    // THEN we expect that the assignment to the variable (x := const) will be replaced
+    // With x := 2
+
+    insta::assert_snapshot!(result);
+}
