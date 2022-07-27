@@ -2958,3 +2958,23 @@ fn constant_expression_in_function_blocks_are_propagated() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn date_and_time_addition_in_var_output() {
+    //GIVEN a date and time and a time addition on output variables
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        FUNCTION func : DINT
+        VAR_OUTPUT
+            d_and_t : DT;
+            time_var : TIME;
+        END_VAR
+            d_and_t := d_and_t + time_var;
+        END_FUNCTION
+        ",
+    );
+
+    //Then the time variable is added to the date time variable 
+    insta::assert_snapshot!(result);
+}

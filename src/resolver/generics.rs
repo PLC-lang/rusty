@@ -242,7 +242,7 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     let real_type = generic_map
                         .get(generic_symbol)
-                        .and_then(|it| self.index.find_effective_type(it))
+                        .and_then(|it| self.index.find_effective_type_by_name(it))
                         .map(|datatype| TypeAndNature {
                             datatype,
                             nature: *nature,
@@ -306,7 +306,7 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     let real_type = generic_map
                         .get(generic_symbol)
-                        .and_then(|it| self.index.find_effective_type(it))
+                        .and_then(|it| self.index.find_effective_type_by_name(it))
                         .map(|datatype| TypeAndNature {
                             datatype,
                             nature: *nature,
