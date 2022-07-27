@@ -232,7 +232,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let const_expression = self
             .index
             // try to find a constant variable
-            .find_variable(None, &[qualified_name])
+            .find_variable(None, &qualified_name.split('.').collect::<Vec<_>>())
             // or else try to find an enum element
             .or_else(|| self.index.find_qualified_enum_element(qualified_name))
             // if this is no constant we have a problem
