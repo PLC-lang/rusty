@@ -593,16 +593,16 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         });
 
     match parameters.commands.unwrap() {
-        SubCommands::Build { build_config } => {
+        SubCommands::Build {
+            build_config,
+            sysroot,
+            target,
+        } => {
             let project = get_project_from_file(build_config)?;
             let files = project.files;
             let compile_options = CompileOptions {
                 output: project.output,
-                target: if project.target.is_some() {
-                    project.target
-                } else {
-                    parameters.target
-                },
+                target,
                 format: project.compile_type,
                 optimization: if project.optimization.is_some() {
                     project.optimization.unwrap()
@@ -649,7 +649,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                     } else {
                         vec![]
                     },
-                    sysroot: project.sysroot,
+                    sysroot,
                     format,
                 })
             } else {

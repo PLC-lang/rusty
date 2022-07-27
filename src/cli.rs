@@ -158,10 +158,22 @@ pub struct CompileParameters {
 #[derive(Debug, Subcommand)]
 pub enum SubCommands {
     /// Uses build description file.
-    /// Supported format: json
+    /// Supported format: json                              build <plc.json> --sysroot <sysroot> --target <target-triple>
     Build {
-        #[clap(parse(try_from_str = validate_config))]
+        #[clap(
+            parse(try_from_str = validate_config)
+        )]
         build_config: Option<String>,
+
+        #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
+        sysroot: Option<String>,
+
+        #[clap(
+            long,
+            name = "target-triple",
+            help = "A target-tripple supported by LLVM"
+        )]
+        target: Option<String>,
     },
 }
 
@@ -602,12 +614,25 @@ mod cli_tests {
 
     #[test]
     fn build_subcommand() {
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("build", "src/ProjectPlc.json")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "build",
+            "src/ProjectPlc.json",
+            "--sysroot",
+            "systest",
+            "--target",
+            "targettest"
+        ))
+        .unwrap();
         if let Some(commands) = parameters.commands {
             match commands {
-                SubCommands::Build { build_config } => {
+                SubCommands::Build {
+                    build_config,
+                    sysroot,
+                    target,
+                } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    assert_eq!(sysroot, Some("systest".to_string()));
+                    assert_eq!(target, Some("targettest".to_string()));
                 }
             };
         }

@@ -20,11 +20,9 @@ pub struct Proj {
     pub files: Vec<String>,
     pub compile_type: Option<FormatOption>,
     pub optimization: Option<OptimizationLevel>,
-    pub target: Option<String>,
     pub output: String,
     pub error_format: ErrorFormat,
     pub libraries: Option<Vec<Libraries>>,
-    pub sysroot: Option<String>,
 }
 
 pub fn get_project_from_file(build_config: Option<String>) -> Result<Proj, Diagnostic> {
