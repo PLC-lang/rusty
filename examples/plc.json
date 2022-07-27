@@ -12,7 +12,6 @@
         "ls",
         "pwd",
         "cd CommandFolder",
-        "./first.sh",
         "touch NewFile.txt"
     ]
 }

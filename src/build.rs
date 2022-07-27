@@ -32,17 +32,7 @@ pub fn get_project_from_file(build_config: Option<String>) -> Result<Proj, Diagn
     let filepath = build_config.unwrap_or_else(|| String::from("plc.json"));
 
     //read from file
-    let content = fs::read_to_string(filepath);
-
-    let content = match content {
-        Ok(file_content) => file_content,
-        Err(e) => {
-            return Err(Diagnostic::GeneralError {
-                message: e.to_string(),
-                err_no: ErrNo::general__io_err,
-            })
-        }
-    };
+    let content = fs::read_to_string(filepath)?;
 
     //convert file to Object
     let project = serde_json::from_str(&content);

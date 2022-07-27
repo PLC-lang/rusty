@@ -32,7 +32,7 @@ use std::path::Path;
 
 use ast::{LinkageType, PouType, SourceRange};
 use cli::{CompileParameters, SubCommands};
-use diagnostics::{Diagnostic, ErrNo};
+use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
@@ -694,94 +694,27 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
 }
 
 fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
+    let root = env::current_dir()?;
     for command in commands {
-        let args = shell_words::split(&command);
-        match args {
-            Ok(args) => {
-                if args[0].as_str() == "cd" {
-                    if let Err(e) = io::stdout()
-                        .write(&[b">>> ", args[0..2].join(" ").as_bytes(), b"\n"].concat())
-                    {
-                        return Err(Diagnostic::GeneralError {
-                            message: e.to_string(),
-                            err_no: ErrNo::general__io_err,
-                        });
-                    };
-                    let cd = env::set_current_dir(args[1].as_str());
-                    match cd {
-                        Ok(()) => continue,
-                        Err(e) => {
-                            return Err(Diagnostic::GeneralError {
-                                message: e.to_string(),
-                                err_no: ErrNo::general__io_err,
-                            })
-                        }
-                    };
-                } else {
-                    let output = Command::new(args[0].as_str())
-                        .args(args[1..args.len()].to_vec())
-                        .output();
-                    match output {
-                        Ok(output) => {
-                            if let Err(e) = io::stdout()
-                                .write(&[b">>> ", args.join(" ").as_bytes(), b"\n"].concat())
-                            {
-                                return Err(Diagnostic::GeneralError {
-                                    message: e.to_string(),
-                                    err_no: ErrNo::general__io_err,
-                                });
-                            };
-                            if !output.stdout.is_empty() {
-                                if let Err(e) = io::stdout().write(&output.stdout) {
-                                    return Err(Diagnostic::GeneralError {
-                                        message: e.to_string(),
-                                        err_no: ErrNo::general__io_err,
-                                    });
-                                };
-                            }
-                            if !output.stderr.is_empty() {
-                                return Err(Diagnostic::GeneralError {
-                                    message: String::from_utf8_lossy(&output.stderr).to_string(),
-                                    err_no: ErrNo::general__io_err,
-                                });
-                            }
-                        }
-                        Err(e) => {
-                            return Err(Diagnostic::GeneralError {
-                                message: e.to_string(),
-                                err_no: ErrNo::general__io_err,
-                            })
-                        }
-                    };
-                }
+        let args = shell_words::split(&command)?;
+
+        if args[0].as_str() == "cd" {
+            io::stdout().write_all(&[b">>> ", args[0..2].join(" ").as_bytes(), b"\n"].concat())?;
+
+            env::set_current_dir(args[1].as_str())?;
+        } else {
+            let output = Command::new(args[0].as_str())
+                .args(args[1..args.len()].to_vec())
+                .output()?;
+
+            io::stdout().write_all(&[b">>> ", args.join(" ").as_bytes(), b"\n"].concat())?;
+
+            if !output.stdout.is_empty() {
+                io::stdout().write_all(&output.stdout)?;
             }
-            Err(e) => {
-                return Err(Diagnostic::GeneralError {
-                    message: e.to_string(),
-                    err_no: ErrNo::general__io_err,
-                })
-            }
-        };
+        }
     }
-    match project_root::get_project_root() {
-        Ok(p) => {
-            match env::set_current_dir(p) {
-                Ok(p) => p,
-                Err(e) => {
-                    return Err(Diagnostic::GeneralError {
-                        message: e.to_string(),
-                        err_no: ErrNo::general__io_err,
-                    })
-                }
-            };
-        }
-        Err(e) => {
-            return Err(Diagnostic::GeneralError {
-                message: e.to_string(),
-                err_no: ErrNo::general__io_err,
-            })
-        }
-    };
+    env::set_current_dir(root)?;
     Ok(())
 }
 
