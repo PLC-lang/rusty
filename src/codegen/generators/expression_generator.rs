@@ -685,7 +685,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         type_name: &str,
         param_statement: &AstStatement,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        Ok(match self.index.find_effective_type(type_name) {
+        Ok(match self.index.find_effective_type_by_name(type_name) {
             Some(type_info) if type_info.information.is_string() => {
                 self.generate_string_argument(type_info, param_statement)?
             }
@@ -921,7 +921,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .or_else(|| {
                     self.index
                         .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_effective_type(var.get_type_name()))
+                        .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
                 })
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
@@ -980,7 +980,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .find_member(function_name, name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
-            let param_type = self.index.find_effective_type(parameter.get_type_name());
+            let param_type = self.index.find_effective_type_by_name(parameter.get_type_name());
             self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment_statement: right,
                 function_name,

@@ -42,7 +42,7 @@ fn index_not_case_sensitive() {
     let entry = index.find_member("ST", "X").unwrap();
     assert_eq!("x", entry.name);
     assert_eq!("INT", entry.data_type_name);
-    let entry = index.find_effective_type("APROGRAM").unwrap();
+    let entry = index.find_effective_type_by_name("APROGRAM").unwrap();
     assert_eq!("aProgram", entry.name);
     let entry = index.find_implementation_by_name("Foo").unwrap();
     assert_eq!("foo", entry.call_name);
@@ -78,7 +78,7 @@ fn program_is_indexed() {
     "#,
     );
 
-    index.find_effective_type("myProgram").unwrap();
+    index.find_effective_type_by_name("myProgram").unwrap();
 }
 
 #[test]
@@ -219,7 +219,7 @@ fn function_is_indexed() {
     "#,
     );
 
-    index.find_effective_type("myFunction").unwrap();
+    index.find_effective_type_by_name("myFunction").unwrap();
 
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
@@ -290,11 +290,11 @@ fn pous_are_indexed() {
     "#,
     );
 
-    index.find_effective_type("myFunction").unwrap();
-    index.find_effective_type("myProgram").unwrap();
-    index.find_effective_type("myFunctionBlock").unwrap();
-    index.find_effective_type("myClass").unwrap();
-    index.find_effective_type("myProgram.act").unwrap();
+    index.find_effective_type_by_name("myFunction").unwrap();
+    index.find_effective_type_by_name("myProgram").unwrap();
+    index.find_effective_type_by_name("myFunctionBlock").unwrap();
+    index.find_effective_type_by_name("myClass").unwrap();
+    index.find_effective_type_by_name("myProgram.act").unwrap();
 }
 
 #[test]
@@ -583,19 +583,19 @@ fn find_effective_type_finds_the_inner_effective_type() {
     );
 
     let my_alias = "MyAlias";
-    let int = index.find_effective_type(my_alias).unwrap();
+    let int = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
     let my_alias = "MySecondAlias";
-    let int = index.find_effective_type(my_alias).unwrap();
+    let int = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
     let my_alias = "MyArrayAlias";
-    let array = index.find_effective_type(my_alias).unwrap();
+    let array = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 
     let my_alias = "MyArray";
-    let array = index.find_effective_type(my_alias).unwrap();
+    let array = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 }
 

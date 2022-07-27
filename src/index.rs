@@ -1055,26 +1055,32 @@ impl Index {
     }
 
     /// returns the effective DataType of the type with the given name if it exists
-    pub fn find_effective_type(&self, type_name: &str) -> Option<&DataType> {
+    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
     }
 
+    /// returns the effective DataType of the given type if it exists
+    pub fn find_effective_type<'ret>(&'ret self, data_type: &'ret DataType) -> Option<&'ret DataType> {
+        self.type_index.find_effective_type(data_type)
+    }
+
     /// returns the effective DataType of the type with the given name or an Error
-    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
+    pub fn get_effective_type_by_name(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
             .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
+
     /// returns the effective DataTypeInformation of the type with the given name if it exists
     pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
-        self.find_effective_type(type_name)
+        self.find_effective_type_by_name(type_name)
             .map(DataType::get_type_information)
     }
 
     /// returns the effective type of the type with the with the given name or the
     /// void-type if the given name does not exist
-    pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
+    pub fn get_effective_type_or_void_by_name(&self, type_name: &str) -> &DataType {
         self.type_index.get_effective_type_by_name(type_name)
     }
 
@@ -1125,7 +1131,7 @@ impl Index {
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
-        self.find_effective_type(type_name)
+        self.find_effective_type_by_name(type_name)
             .map(|it| it.get_type_information())
             .unwrap_or_else(|| self.get_void_type().get_type_information())
     }
