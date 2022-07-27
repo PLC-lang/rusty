@@ -69,21 +69,23 @@ pub fn string_to_filepath(content: Vec<String>) -> Vec<FilePath> {
 
 fn get_path_when_empty(p: Proj) -> Result<Proj, Diagnostic> {
     if let Some(ref libraries) = p.libraries {
-        for i in 0..libraries.len() {
-            if libraries.get(i).is_some()
-                && libraries.get(i).unwrap().name != *""
-                && libraries.get(i).unwrap().path != *""
-            {
-                continue;
-            } else if let Some(library) = libraries.get(i) {
-                if Path::new(&format!("{}.so", library.name)).is_file() {
-                    continue;
-                } else {
-                    return Err(Diagnostic::GeneralError {
-                        message: String::from("Lib path can not be found, please add Path"),
-                        err_no: ErrNo::general__io_err,
-                    });
-                }
+        for library in libraries {
+            let path = if library.path.is_empty() {
+                None
+            } else {
+                Some(&library.path)
+            };
+            let path = path
+                .map_or(Path::new("."), Path::new)
+                .join(&format!("lib{}.so", library.name));
+            if !Path::new(&path).is_file() {
+                return Err(Diagnostic::GeneralError {
+                    message: format!(
+                        "The library could not be found at : {}",
+                        path.to_string_lossy()
+                    ),
+                    err_no: ErrNo::general__io_err,
+                });
             }
         }
     }
