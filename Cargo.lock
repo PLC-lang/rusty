@@ -540,6 +540,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "project-root"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bccbff07d5ed689c4087d20d7307a52ab6141edeedf487c3876a55b86cf63df"
+
+[[package]]
 name = "quote"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -593,9 +599,11 @@ dependencies = [
  "logos",
  "num",
  "pretty_assertions",
+ "project-root",
  "regex",
  "serde",
  "serde_json",
+ "shell-words",
  "thiserror",
  "toml",
 ]
@@ -687,6 +695,12 @@ dependencies = [
  "serde",
  "yaml-rust",
 ]
+
+[[package]]
+name = "shell-words"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24188a676b6ae68c3b2cb3a01be17fbf7240ce009799bb56d5b1409051e78fde"
 
 [[package]]
 name = "similar"

@@ -25,6 +25,7 @@ pub struct Proj {
     pub error_format: ErrorFormat,
     pub libraries: Option<Vec<Libraries>>,
     pub sysroot: Option<String>,
+    pub package_commands: Option<Vec<String>>,
 }
 
 pub fn get_project_from_file(build_config: Option<String>) -> Result<Proj, Diagnostic> {

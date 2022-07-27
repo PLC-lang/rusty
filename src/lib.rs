@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-//! A Structured Text LLVM Frontent
+//! A St&ructured Text LLVM Frontent
 //!
 //! RuSTy is an [`ST`] Compiler using LLVM
 //!
@@ -17,9 +17,10 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
-use std::fs;
-use std::io::Write;
+use std::io::{self, Write};
+use std::process::Command;
 use std::str::FromStr;
+use std::{env, fs};
 
 use build::{get_project_from_file, string_to_filepath};
 use clap::ArgEnum;
@@ -31,7 +32,7 @@ use std::path::Path;
 
 use ast::{LinkageType, PouType, SourceRange};
 use cli::{CompileParameters, SubCommands};
-use diagnostics::Diagnostic;
+use diagnostics::{Diagnostic, ErrNo};
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
@@ -69,6 +70,8 @@ mod validation;
 #[macro_use]
 #[cfg(test)]
 extern crate pretty_assertions;
+
+extern crate shell_words;
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
@@ -681,8 +684,104 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 &target,
                 config_options,
             )?;
+
+            if let Some(commands) = project.package_commands {
+                execute_commands(commands)?;
+            }
         }
     }
+    Ok(())
+}
+
+fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
+    for command in commands {
+        let args = shell_words::split(&command);
+        match args {
+            Ok(args) => {
+                if args[0].as_str() == "cd" {
+                    if let Err(e) = io::stdout()
+                        .write(&[b">>> ", args[0..2].join(" ").as_bytes(), b"\n"].concat())
+                    {
+                        return Err(Diagnostic::GeneralError {
+                            message: e.to_string(),
+                            err_no: ErrNo::general__io_err,
+                        });
+                    };
+                    let cd = env::set_current_dir(args[1].as_str());
+                    match cd {
+                        Ok(()) => continue,
+                        Err(e) => {
+                            return Err(Diagnostic::GeneralError {
+                                message: e.to_string(),
+                                err_no: ErrNo::general__io_err,
+                            })
+                        }
+                    };
+                } else {
+                    let output = Command::new(args[0].as_str())
+                        .args(args[1..args.len()].to_vec())
+                        .output();
+                    match output {
+                        Ok(output) => {
+                            if let Err(e) = io::stdout()
+                                .write(&[b">>> ", args.join(" ").as_bytes(), b"\n"].concat())
+                            {
+                                return Err(Diagnostic::GeneralError {
+                                    message: e.to_string(),
+                                    err_no: ErrNo::general__io_err,
+                                });
+                            };
+                            if !output.stdout.is_empty() {
+                                if let Err(e) = io::stdout().write(&output.stdout) {
+                                    return Err(Diagnostic::GeneralError {
+                                        message: e.to_string(),
+                                        err_no: ErrNo::general__io_err,
+                                    });
+                                };
+                            }
+                            if !output.stderr.is_empty() {
+                                return Err(Diagnostic::GeneralError {
+                                    message: String::from_utf8_lossy(&output.stderr).to_string(),
+                                    err_no: ErrNo::general__io_err,
+                                });
+                            }
+                        }
+                        Err(e) => {
+                            return Err(Diagnostic::GeneralError {
+                                message: e.to_string(),
+                                err_no: ErrNo::general__io_err,
+                            })
+                        }
+                    };
+                }
+            }
+            Err(e) => {
+                return Err(Diagnostic::GeneralError {
+                    message: e.to_string(),
+                    err_no: ErrNo::general__io_err,
+                })
+            }
+        };
+    }
+    match project_root::get_project_root() {
+        Ok(p) => {
+            match env::set_current_dir(p) {
+                Ok(p) => p,
+                Err(e) => {
+                    return Err(Diagnostic::GeneralError {
+                        message: e.to_string(),
+                        err_no: ErrNo::general__io_err,
+                    })
+                }
+            };
+        }
+        Err(e) => {
+            return Err(Diagnostic::GeneralError {
+                message: e.to_string(),
+                err_no: ErrNo::general__io_err,
+            })
+        }
+    };
     Ok(())
 }
 
