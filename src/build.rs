@@ -8,10 +8,17 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 
+#[derive(PartialEq, Eq, Serialize, Deserialize)]
+pub enum PackageFormat {
+    Copy,
+    System,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Libraries {
     pub name: String,
     pub path: String,
+    pub package: PackageFormat,
     pub include_path: Vec<String>,
 }
 

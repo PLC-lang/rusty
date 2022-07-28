@@ -158,12 +158,17 @@ pub struct CompileParameters {
 #[derive(Debug, Subcommand)]
 pub enum SubCommands {
     /// Uses build description file.
-    /// Supported format: json                              build <plc.json> --sysroot <sysroot> --target <target-triple>
+    /// Supported format: json                              build
+    /// <plc.json>                                                                   Options:
+    /// --sysroot <sysroot> --target <target-triple> --build-location <path>
     Build {
         #[clap(
             parse(try_from_str = validate_config)
         )]
         build_config: Option<String>,
+
+        #[clap(name = "build-location", long)]
+        build_location: Option<String>,
 
         #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
         sysroot: Option<String>,
@@ -617,6 +622,8 @@ mod cli_tests {
         let parameters = CompileParameters::parse(vec_of_strings!(
             "build",
             "src/ProjectPlc.json",
+            "--build-location",
+            "bin/build",
             "--sysroot",
             "systest",
             "--target",
@@ -627,12 +634,14 @@ mod cli_tests {
             match commands {
                 SubCommands::Build {
                     build_config,
+                    build_location,
                     sysroot,
                     target,
                 } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
                     assert_eq!(sysroot, Some("systest".to_string()));
                     assert_eq!(target, Some("targettest".to_string()));
+                    assert_eq!(build_location, Some("bin/build".to_string()));
                 }
             };
         }

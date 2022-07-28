@@ -1,8 +1,6 @@
 {
     "files" : [
-        "examples/hw.st",
-        "examples/hello_world.st",
-        "examples/ExternalFunctions.st"
+        "examples/simple_program.st"
     ],
     "compile_type" : "Shared",
     "optimization" : "Default",
@@ -10,17 +8,19 @@
     "error_format": "Rich",
     "libraries" : [
         {
-            "name" : "iec61131std",
-            "path" : "",
+            "name" : "copy",
+            "path" : "examples/testlibs/",
+            "package" : "Copy",
             "include_path" : [
-                "examples/hw.st"
+                "examples/simple_program.st"
             ]
         },
         {
-            "name" : "other_iec61131std",
-            "path" : "examples/hw.st",
+            "name" : "nocopy",
+            "path" : "examples/testlibs/",
+            "package" : "System",
             "include_path" : [
-                "examples/hello_world.st"
+                "examples/simple_program.st"
             ]
         }
     ]
