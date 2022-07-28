@@ -79,7 +79,7 @@ pub struct CompileParameters {
     #[clap(
         long,
         name = "target-triple",
-        help = "A target-tripple supported by LLVM"
+        help = "A target-triple supported by LLVM"
     )]
     pub target: Option<String>,
 
@@ -176,7 +176,7 @@ pub enum SubCommands {
         #[clap(
             long,
             name = "target-triple",
-            help = "A target-tripple supported by LLVM"
+            help = "A target-triple supported by LLVM"
         )]
         target: Option<String>,
     },
