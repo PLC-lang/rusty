@@ -724,9 +724,9 @@ fn copy_libs_to_build(libraries: &Option<Vec<Libraries>>) -> Result<(), Diagnost
     Ok(())
 }
 
-fn change_filepath_realtiv_to_build_folder(project: Proj, n: usize) -> Proj {
+pub fn change_filepath_realtiv_to_build_folder(project: Proj, n: usize) -> Proj {
     let proj = Proj {
-        files: prefix_string_vec(&project.files),
+        files: prefix_path_vec(&project.files),
         libraries: prefix_path_libraries(project.libraries),
         ..project
     };
@@ -743,7 +743,7 @@ fn prefix_path_libraries(libraries: Option<Vec<Libraries>>) -> Option<Vec<Librar
         for library in libraries {
             result.push(Libraries {
                 path: format!("../{}", &library.path),
-                include_path: prefix_string_vec(&library.include_path),
+                include_path: prefix_path_vec(&library.include_path),
                 ..library
             });
         }
@@ -751,7 +751,7 @@ fn prefix_path_libraries(libraries: Option<Vec<Libraries>>) -> Option<Vec<Librar
     Some(result)
 }
 
-fn prefix_string_vec(items: &Vec<String>) -> Vec<String> {
+fn prefix_path_vec(items: &Vec<String>) -> Vec<String> {
     let mut result = vec![];
     for item in items {
         result.push(format!("../{}", item));
