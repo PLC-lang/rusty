@@ -9,7 +9,7 @@ written as [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming)).
 Note that you can only specify at most one output format. In the case that no output
 format switch has been specified, the compiler will select `--static` by default.
 
-Similarily, if you do not specify an output filename via the `-o` or `--output` options,
+Similarly, if you do not specify an output filename via the `-o` or `--output` options,
 the output filename will consist of the first input filename, but with an appropriate
 file extension depending on the output file format. A minimal invocation looks like this:
 
