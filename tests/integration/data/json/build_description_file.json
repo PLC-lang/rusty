@@ -1,6 +1,6 @@
 {
     "files" : [
-        "tests/integration/data/json/simple_program.st"
+        "simple_program.st"
     ],
     "compile_type" : "Shared",
     "optimization" : "Default",
@@ -9,18 +9,18 @@
     "libraries" : [
         {
             "name" : "copy",
-            "path" : "tests/integration/data/json/libs/",
+            "path" : "libs/",
             "package" : "Copy",
             "include_path" : [
-                "tests/integration/data/json/simple_program.st"
+                "simple_program.st"
             ]
         },
         {
             "name" : "nocopy",
-            "path" : "tests/integration/data/json/libs/",
+            "path" : "libs/",
             "package" : "System",
             "include_path" : [
-                "tests/integration/data/json/simple_program.st"
+                "simple_program.st"
             ]
         }
     ]

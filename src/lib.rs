@@ -17,12 +17,13 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use std::fmt::Display;
 use std::io::{self, Write};
 use std::process::Command;
 use std::str::FromStr;
 use std::{env, fs};
 
-use build::{get_project_from_file, string_to_filepath, Libraries, PackageFormat, Proj};
+use build::{get_project_from_file, Libraries, PackageFormat, Proj};
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
@@ -173,7 +174,7 @@ pub trait SourceContainer {
     fn get_location(&self) -> &str;
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct FilePath {
     pub path: String,
 }
@@ -181,6 +182,14 @@ pub struct FilePath {
 impl From<String> for FilePath {
     fn from(it: String) -> Self {
         FilePath { path: it }
+    }
+}
+
+impl From<PathBuf> for FilePath {
+    fn from(it: PathBuf) -> Self {
+        FilePath {
+            path: it.to_string_lossy().to_string(),
+        }
     }
 }
 
@@ -560,10 +569,12 @@ fn parse_and_index<T: SourceContainer>(
     Ok((index, units))
 }
 
-fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
+fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
+    inputs: &[T],
+) -> Result<Vec<FilePath>, Diagnostic> {
     let mut sources = Vec::new();
     for input in inputs {
-        let paths = glob(input).map_err(|e| {
+        let paths = glob(&input).map_err(|e| {
             Diagnostic::param_error(&format!("Failed to read glob pattern: {}, ({})", input, e))
         })?;
 
@@ -575,10 +586,14 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
             });
         }
     }
-    if sources.is_empty() {
+    if !inputs.is_empty() && sources.is_empty() {
         return Err(Diagnostic::param_error(&format!(
             "No such file(s): {}",
-            inputs.join(",")
+            inputs
+                .iter()
+                .map(|it| it.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
         )));
     }
     Ok(sources)
@@ -602,8 +617,16 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             sysroot,
             target,
         } => {
-            let root = env::current_dir()?;
-            let project = get_project_from_file(build_config)?;
+            let build_config = build_config
+                .or(Some("plc.json".to_string()))
+                .map(PathBuf::from)
+                .map(|it| env::current_dir().map(|cd| cd.join(it)))
+                .unwrap()?;
+            let root = build_config
+                .parent()
+                .map(|it| Ok(it.to_path_buf()))
+                .unwrap_or_else(|| env::current_dir())?;
+            let project = get_project_from_file(&build_config, &root)?;
             if let Some(location) = build_location.as_deref().or(Some("build")) {
                 if !Path::new(location).is_dir() {
                     std::fs::create_dir_all(location)?;
@@ -614,7 +637,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
 
             copy_libs_to_build(&project.libraries)?;
 
-            let files = project.files;
             let compile_options = CompileOptions {
                 output: project.output,
                 target,
@@ -626,44 +648,34 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 },
             };
 
-            let includes = if project.libraries.is_some() {
-                string_to_filepath(
-                    project
+            let includes = if !project.libraries.is_empty() {
+                create_file_paths(
+                    &project
                         .libraries
-                        .as_ref()
-                        .unwrap()
                         .iter()
-                        .flat_map(|it| it.include_path.clone())
-                        .collect(),
-                )
+                        .flat_map(|it| &it.include_path)
+                        .map(|it| it.as_os_str().to_str())
+                        .filter(Option::is_some)
+                        .map(Option::unwrap)
+                        .collect::<Vec<_>>(),
+                )?
             } else {
                 vec![]
             };
 
             let link_options = if let Some(format) = project.compile_type {
                 Some(LinkOptions {
-                    libraries: if project.libraries.is_some() {
-                        project
-                            .libraries
-                            .as_ref()
-                            .unwrap()
-                            .iter()
-                            .map(|it| it.name.clone())
-                            .collect()
-                    } else {
-                        vec![]
-                    },
-                    library_pathes: if project.libraries.is_some() {
-                        project
-                            .libraries
-                            .as_ref()
-                            .unwrap()
-                            .iter()
-                            .map(|it| it.path.clone())
-                            .collect()
-                    } else {
-                        vec![]
-                    },
+                    libraries: project
+                        .libraries
+                        .iter()
+                        .map(|it| it.name.clone())
+                        .collect::<Vec<_>>(),
+                    library_pathes: project
+                        .libraries
+                        .iter()
+                        .map(|it| it.path.to_string_lossy())
+                        .map(|it| it.to_string())
+                        .collect(),
                     sysroot,
                     format,
                 })
@@ -673,8 +685,16 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
 
             let target = get_target_triple(compile_options.target.as_deref());
 
+            let files = create_file_paths(
+                &project
+                    .files
+                    .iter()
+                    .map(|it| it.to_string_lossy())
+                    .map(|it| it.to_string())
+                    .collect::<Vec<_>>(),
+            )?;
             let compile_result = build(
-                string_to_filepath(files),
+                files,
                 includes,
                 &compile_options,
                 parameters.encoding,
@@ -706,27 +726,23 @@ fn change_filepath_to_absolute(root: PathBuf, project: Proj) -> Proj {
     }
 }
 
-fn change_vec_path_for_libraries(
-    libraries: Option<Vec<Libraries>>,
-    root: &Path,
-) -> Option<Vec<Libraries>> {
+fn change_vec_path_for_libraries(libraries: Vec<Libraries>, root: &Path) -> Vec<Libraries> {
     let mut result = vec![];
-    if let Some(libraries) = libraries {
-        for library in libraries {
-            result.push(Libraries {
-                path: format!("{}/{}", root.display(), library.path),
-                include_path: change_vec_path_to_absolute(&library.include_path, root),
-                ..library
-            });
-        }
+    for library in libraries {
+        result.push(Libraries {
+            path: root.join(library.path),
+            include_path: change_vec_path_to_absolute(&library.include_path, root),
+            ..library
+        });
     }
-    Some(result)
+    result
 }
 
-fn change_vec_path_to_absolute(items: &Vec<String>, root: &Path) -> Vec<String> {
+fn change_vec_path_to_absolute(items: &Vec<PathBuf>, root: &Path) -> Vec<PathBuf> {
     let mut result = vec![];
     for item in items {
-        result.push(format!("{}/{}", root.display(), item));
+        let path = root.join(item);
+        result.push(path);
     }
     result
 }
@@ -756,15 +772,13 @@ fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     Ok(())
 }
 
-fn copy_libs_to_build(libraries: &Option<Vec<Libraries>>) -> Result<(), Diagnostic> {
-    if let Some(libraries) = libraries {
-        for library in libraries {
-            if library.package == PackageFormat::Copy {
-                std::fs::copy(
-                    format!("{}lib{}.so", library.path, library.name),
-                    format!("lib{}.so", library.name),
-                )?;
-            }
+fn copy_libs_to_build(libraries: &[Libraries]) -> Result<(), Diagnostic> {
+    for library in libraries {
+        if library.package == PackageFormat::Copy {
+            std::fs::copy(
+                library.path.join(format!("lib{}.so", library.name)),
+                format!("lib{}.so", library.name),
+            )?;
         }
     }
     Ok(())
@@ -814,7 +828,13 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     let includes = if parameters.includes.is_empty() {
         vec![]
     } else {
-        create_file_paths(&parameters.includes)?
+        create_file_paths(
+            &parameters
+                .includes
+                .iter()
+                .map(|it| it.as_str())
+                .collect::<Vec<_>>(),
+        )?
     };
     let output = parameters
         .output_name()
@@ -840,7 +860,13 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
 
     let error_format = parameters.error_format;
 
-    let files = create_file_paths(&parameters.input)?;
+    let files = create_file_paths(
+        &parameters
+            .includes
+            .iter()
+            .map(|it| it.as_str())
+            .collect::<Vec<_>>(),
+    )?;
 
     let link_options = if let Some(format) = out_format {
         if !parameters.skip_linking {
