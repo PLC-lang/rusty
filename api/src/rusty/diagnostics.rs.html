@@ -1023,7 +1023,18 @@
 <span id="1018">1018</span>
 <span id="1019">1019</span>
 <span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">error::Error</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
     <span class="ident">ops::Range</span>,
 };
@@ -1114,6 +1125,15 @@
 
     <span class="comment">//linker</span>
     <span class="ident">linker__generic_error</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Error</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Diagnostic</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Diagnostic::GeneralError</span> {
+            <span class="ident">message</span>: <span class="ident">e</span>.<span class="ident">to_string</span>(),
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::general__io_err</span>,
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Diagnostic</span> {
