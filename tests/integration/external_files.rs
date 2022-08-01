@@ -18,7 +18,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![FilePath { path: path.clone() }],
         vec![],
         &CompileOptions {
-            format: rusty::FormatOption::IR,
+            format: Some(rusty::FormatOption::IR),
             output: out.clone(),
             target: None,
             optimization: rusty::OptimizationLevel::Default,
@@ -33,7 +33,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![FilePath { path: path.clone() }],
         vec![],
         &CompileOptions {
-            format: rusty::FormatOption::Bitcode,
+            format: Some(rusty::FormatOption::Bitcode),
             output: out.clone(),
             target: None,
             optimization: rusty::OptimizationLevel::Default,
@@ -48,7 +48,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![FilePath { path: path.clone() }],
         vec![],
         &CompileOptions {
-            format: rusty::FormatOption::Shared,
+            format: Some(rusty::FormatOption::Shared),
             output: out.clone(),
             target: None,
             optimization: rusty::OptimizationLevel::Default,
@@ -63,7 +63,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![FilePath { path: path.clone() }],
         vec![],
         &CompileOptions {
-            format: rusty::FormatOption::PIC,
+            format: Some(rusty::FormatOption::PIC),
             output: out.clone(),
             target: None,
             optimization: rusty::OptimizationLevel::Default,
@@ -78,7 +78,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![FilePath { path }],
         vec![],
         &CompileOptions {
-            format: rusty::FormatOption::Static,
+            format: Some(rusty::FormatOption::Static),
             output: out.clone(),
             target: None,
             optimization: rusty::OptimizationLevel::Default,

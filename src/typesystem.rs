@@ -27,6 +27,7 @@ pub type NativeDwordType = u32;
 pub type NativeLwordType = u64;
 pub type NativeRealType = f32;
 pub type NativeLrealType = f64;
+pub type NativePointerType = usize;
 
 //TODO should we change this to usize?
 pub const U1_SIZE: u32 = 1;
@@ -39,6 +40,7 @@ pub const LINT_SIZE: u32 = NativeLintType::BITS as u32;
 pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
 pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
 pub const DATE_TIME_SIZE: u32 = 64;
+pub const POINTER_SIZE: u32 = NativePointerType::BITS as u32;
 
 pub const U1_TYPE: &str = "__U1";
 /// used internally for forced casts to u1
@@ -106,7 +108,25 @@ impl DataType {
     }
 }
 
-type VarArgs = Option<String>;
+#[derive(Debug, Clone, PartialEq)]
+pub enum VarArgs {
+    Sized(Option<String>),
+    Unsized(Option<String>),
+}
+
+impl VarArgs {
+    pub fn is_sized(&self) -> bool {
+        matches!(self, VarArgs::Sized(..))
+    }
+
+    pub fn as_typed(&self, new_type: &str) -> VarArgs {
+        match self {
+            VarArgs::Sized(Some(_)) => VarArgs::Sized(Some(new_type.to_string())),
+            VarArgs::Unsized(Some(_)) => VarArgs::Unsized(Some(new_type.to_string())),
+            _ => self.clone(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StringEncoding {
@@ -175,7 +195,6 @@ pub enum DataTypeInformation {
     Struct {
         name: TypeId,
         member_names: Vec<String>,
-        varargs: Option<VarArgs>,
         source: StructSource,
     },
     Array {
@@ -310,28 +329,6 @@ impl DataTypeInformation {
                 | DataTypeInformation::Float { .. }
                 | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
         )
-    }
-
-    pub fn is_variadic(&self) -> bool {
-        matches!(
-            self,
-            DataTypeInformation::Struct {
-                varargs: Some(_),
-                ..
-            }
-        )
-    }
-
-    pub fn get_variadic_type(&self) -> Option<&str> {
-        if let DataTypeInformation::Struct {
-            varargs: Some(inner_type),
-            ..
-        } = &self
-        {
-            inner_type.as_ref().map(String::as_str)
-        } else {
-            None
-        }
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {

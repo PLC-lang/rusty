@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, Parser};
+use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
@@ -17,6 +17,8 @@ pub type ParameterError = clap::Error;
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
     version,
 )]
+#[clap(propagate_version = true)]
+#[clap(subcommand_negates_reqs = true)]
 pub struct CompileParameters {
     #[clap(
         short,
@@ -25,6 +27,13 @@ pub struct CompileParameters {
         help = "Write output to <output-file>"
     )]
     pub output: Option<String>,
+
+    #[clap(
+        long = "check",
+        group = "format",
+        help = "Only validate input program (do not generate any code)"
+    )]
+    pub check_only: bool,
 
     #[clap(
         long = "ir",
@@ -97,7 +106,7 @@ pub struct CompileParameters {
         short = 'L',
         help = "Search path for libraries, used for linking"
     )]
-    pub library_pathes: Vec<String>,
+    pub library_paths: Vec<String>,
 
     #[clap(name = "library", long, short = 'l', help = "Library name to link")]
     pub libraries: Vec<String>,
@@ -141,6 +150,31 @@ pub struct CompileParameters {
         default_value = "rich"
     )]
     pub error_format: ErrorFormat,
+
+    #[clap(subcommand)]
+    pub commands: Option<SubCommands>,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum SubCommands {
+    /// Uses build description file.
+    /// Supported format: json                              build <plc.json> --sysroot <sysroot> --target <target-triple>
+    Build {
+        #[clap(
+            parse(try_from_str = validate_config)
+        )]
+        build_config: Option<String>,
+
+        #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
+        sysroot: Option<String>,
+
+        #[clap(
+            long,
+            name = "target-triple",
+            help = "A target-tripple supported by LLVM"
+        )]
+        target: Option<String>,
+    },
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -192,25 +226,37 @@ impl CompileParameters {
     }
 
     /// return the selected output format, or the default if none.
-    pub fn output_format_or_default(&self) -> FormatOption {
+    pub fn output_format_or_default(&self) -> Option<FormatOption> {
         // structop makes sure only one or zero format flags are
         // selected. So if none are selected, the default is chosen
-        self.output_format().unwrap_or(DEFAULT_FORMAT)
+
+        if self.check_only {
+            // if the --check flag is selected, we aren't supposted
+            // to generate any code, so none of the format options
+            // is valid.
+            return None;
+        }
+
+        Some(self.output_format().unwrap_or(DEFAULT_FORMAT))
     }
 
     /// return the output filename with the correct ending
     pub fn output_name(&self) -> Option<String> {
         let out_format = self.output_format_or_default();
+
         if let Some(n) = &self.output {
             Some(n.to_string())
         } else {
             let ending = match out_format {
-                FormatOption::Bitcode => ".bc",
-                FormatOption::Relocatable => ".o",
-                FormatOption::Static if self.skip_linking => ".o",
-                FormatOption::Static => "",
-                FormatOption::Shared | FormatOption::PIC => ".so",
-                FormatOption::IR => ".ir",
+                Some(out_format) => match out_format {
+                    FormatOption::Bitcode => ".bc",
+                    FormatOption::Relocatable => ".o",
+                    FormatOption::Static if self.skip_linking => ".o",
+                    FormatOption::Static => "",
+                    FormatOption::Shared | FormatOption::PIC => ".so",
+                    FormatOption::IR => ".ir",
+                },
+                None => "",
             };
 
             let output_name = self.input.first().map(String::as_str);
@@ -229,7 +275,7 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use super::CompileParameters;
+    use super::{CompileParameters, SubCommands};
     use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
     use clap::ErrorKind;
     use pretty_assertions::assert_eq;
@@ -260,6 +306,10 @@ mod cli_tests {
 
     #[test]
     fn multiple_output_formats_results_in_error() {
+        expect_argument_error(
+            vec_of_strings!["input.st", "--check", "--shared"],
+            ErrorKind::ArgumentConflict,
+        );
         expect_argument_error(
             vec_of_strings!["input.st", "--ir", "--shared"],
             ErrorKind::ArgumentConflict,
@@ -388,28 +438,49 @@ mod cli_tests {
 
     #[test]
     fn test_default_format() {
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--check")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), None);
+
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::IR);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::IR)
+        );
 
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::Shared)
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::PIC);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::PIC)
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
                 .unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::Static)
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::Bitcode);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(FormatOption::Bitcode)
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), super::DEFAULT_FORMAT);
+        assert_eq!(
+            parameters.output_format_or_default(),
+            Some(super::DEFAULT_FORMAT)
+        );
     }
 
     #[test]
@@ -508,7 +579,7 @@ mod cli_tests {
             "-L/tmp"
         ))
         .unwrap();
-        assert_eq!(parameters.library_pathes, vec!["xxx", "test", ".", "/tmp"]);
+        assert_eq!(parameters.library_paths, vec!["xxx", "test", ".", "/tmp"]);
     }
 
     #[test]
@@ -538,6 +609,32 @@ mod cli_tests {
         match CompileParameters::parse(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
             Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
+        }
+    }
+
+    #[test]
+    fn build_subcommand() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "build",
+            "src/ProjectPlc.json",
+            "--sysroot",
+            "systest",
+            "--target",
+            "targettest"
+        ))
+        .unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Build {
+                    build_config,
+                    sysroot,
+                    target,
+                } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    assert_eq!(sysroot, Some("systest".to_string()));
+                    assert_eq!(target, Some("targettest".to_string()));
+                }
+            };
         }
     }
 

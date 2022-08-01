@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-//! A Structured Text LLVM Frontent
+//! A St&ructured Text LLVM Frontent
 //!
 //! RuSTy is an [`ST`] Compiler using LLVM
 //!
@@ -17,18 +17,21 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
-use std::fs;
-use std::io::Write;
+use std::io::{self, Write};
+use std::process::Command;
 use std::str::FromStr;
+use std::{env, fs};
 
+use build::{get_project_from_file, string_to_filepath};
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
 use inkwell::passes::PassBuilderOptions;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 use ast::{LinkageType, PouType, SourceRange};
-use cli::CompileParameters;
+use cli::{CompileParameters, SubCommands};
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
@@ -46,6 +49,7 @@ use crate::ast::CompilationUnit;
 use crate::diagnostics::Diagnostician;
 use crate::resolver::{AnnotationMapImpl, TypeAnnotator};
 mod ast;
+pub mod build;
 mod builtins;
 pub mod cli;
 mod codegen;
@@ -67,7 +71,9 @@ mod validation;
 #[cfg(test)]
 extern crate pretty_assertions;
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+extern crate shell_words;
+
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
     Static,
     PIC,
@@ -95,8 +101,9 @@ impl FromStr for ConfigFormat {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct CompileOptions {
-    pub format: FormatOption,
+    pub format: Option<FormatOption>,
     pub output: String,
     pub target: Option<String>,
     pub optimization: OptimizationLevel,
@@ -106,6 +113,7 @@ pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
     pub sysroot: Option<String>,
+    pub format: FormatOption,
 }
 
 struct ConfigurationOptions {
@@ -113,13 +121,13 @@ struct ConfigurationOptions {
     output: String,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize)]
 pub enum ErrorFormat {
     Rich,
     Clang,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize)]
 pub enum OptimizationLevel {
     None,
     Less,
@@ -165,7 +173,7 @@ pub trait SourceContainer {
     fn get_location(&self) -> &str;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct FilePath {
     pub path: String,
 }
@@ -404,23 +412,21 @@ pub fn persist_to_ir(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
         .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
 }
 
-///
-/// Compiles the given source into a `codegen::CodeGen` using the provided context
-///
-/// # Arguments
-///
-/// * `context` - the LLVM Context to be used for the compilation
-/// * `sources` - the source to be compiled
-/// * `encoding` - The encoding to parse the files, None for UTF-8
-pub fn compile_module<'c, T: SourceContainer>(
-    context: &'c Context,
+struct IndexComponents {
+    id_provider: IdProvider,
+    all_annotations: AnnotationMapImpl,
+    all_literals: StringLiterals,
+    annotated_units: Vec<CompilationUnit>,
+}
+
+fn index_module<T: SourceContainer>(
     sources: Vec<T>,
     includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     mut diagnostician: Diagnostician,
-) -> Result<(Index, CodeGen<'c>), Diagnostic> {
+) -> Result<(Index, IndexComponents), Diagnostic> {
     let mut full_index = Index::default();
-    let mut id_provider = IdProvider::default();
+    let id_provider = IdProvider::default();
 
     let mut all_units = Vec::new();
 
@@ -472,14 +478,43 @@ pub fn compile_module<'c, T: SourceContainer>(
     //Merge the new indices with the full index
     full_index.import(std::mem::take(&mut all_annotations.new_index));
 
+    Ok((
+        full_index,
+        IndexComponents {
+            id_provider,
+            all_annotations,
+            all_literals,
+            annotated_units,
+        },
+    ))
+}
+
+///
+/// Compiles the given source into a `codegen::CodeGen` using the provided context
+///
+/// # Arguments
+///
+/// * `context` - the LLVM Context to be used for the compilation
+/// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
+pub fn compile_module<'c, T: SourceContainer>(
+    context: &'c Context,
+    sources: Vec<T>,
+    includes: Vec<T>,
+    encoding: Option<&'static Encoding>,
+    diagnostician: Diagnostician,
+) -> Result<(Index, CodeGen<'c>), Diagnostic> {
+    let (full_index, mut index) = index_module(sources, includes, encoding, diagnostician)?;
+
     // ### PHASE 3 ###
     // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
 
-    let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
+    let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
-    let llvm_index = code_generator.generate_llvm_index(&annotations, all_literals, &full_index)?;
-    for unit in annotated_units {
+    let llvm_index =
+        code_generator.generate_llvm_index(&annotations, index.all_literals, &full_index)?;
+    for unit in index.annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
 
@@ -549,6 +584,167 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
     Ok(sources)
 }
 
+pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagnostic> {
+    let config_options = parameters
+        .hardware_config
+        .as_ref()
+        .map(|config| ConfigurationOptions {
+            format: parameters
+                .config_format()
+                .expect("Never none for valid parameters"),
+            output: config.to_owned(),
+        });
+
+    match parameters.commands.unwrap() {
+        SubCommands::Build {
+            build_config,
+            sysroot,
+            target,
+        } => {
+            let project = get_project_from_file(build_config)?;
+            let files = project.files;
+            let compile_options = CompileOptions {
+                output: project.output,
+                target,
+                format: project.compile_type,
+                optimization: if project.optimization.is_some() {
+                    project.optimization.unwrap()
+                } else {
+                    parameters.optimization
+                },
+            };
+
+            let includes = if project.libraries.is_some() {
+                string_to_filepath(
+                    project
+                        .libraries
+                        .as_ref()
+                        .unwrap()
+                        .iter()
+                        .flat_map(|it| it.include_path.clone())
+                        .collect(),
+                )
+            } else {
+                vec![]
+            };
+
+            let link_options = if let Some(format) = project.compile_type {
+                Some(LinkOptions {
+                    libraries: if project.libraries.is_some() {
+                        project
+                            .libraries
+                            .as_ref()
+                            .unwrap()
+                            .iter()
+                            .map(|it| it.name.clone())
+                            .collect()
+                    } else {
+                        vec![]
+                    },
+                    library_pathes: if project.libraries.is_some() {
+                        project
+                            .libraries
+                            .as_ref()
+                            .unwrap()
+                            .iter()
+                            .map(|it| it.path.clone())
+                            .collect()
+                    } else {
+                        vec![]
+                    },
+                    sysroot,
+                    format,
+                })
+            } else {
+                None
+            };
+
+            let target = get_target_triple(compile_options.target.as_deref());
+
+            let compile_result = build(
+                string_to_filepath(files),
+                includes,
+                &compile_options,
+                parameters.encoding,
+                &project.error_format,
+                &target,
+            )?;
+
+            link_and_create(
+                link_options,
+                &compile_result,
+                &compile_options,
+                &target,
+                config_options,
+            )?;
+
+            if let Some(commands) = project.package_commands {
+                execute_commands(commands)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
+    let root = env::current_dir()?;
+    for command in commands {
+        let args = shell_words::split(&command)?;
+
+        if args[0].as_str() == "cd" {
+            io::stdout().write_all(&[b">>> ", args[0..2].join(" ").as_bytes(), b"\n"].concat())?;
+
+            env::set_current_dir(args[1].as_str())?;
+        } else {
+            let output = Command::new(args[0].as_str())
+                .args(args[1..args.len()].to_vec())
+                .output()?;
+
+            io::stdout().write_all(&[b">>> ", args.join(" ").as_bytes(), b"\n"].concat())?;
+
+            if !output.stdout.is_empty() {
+                io::stdout().write_all(&output.stdout)?;
+            }
+        }
+    }
+    env::set_current_dir(root)?;
+    Ok(())
+}
+
+fn link_and_create(
+    link_options: Option<LinkOptions>,
+    compile_result: &CompileResult,
+    compile_options: &CompileOptions,
+    target: &TargetTriple,
+    config_options: Option<ConfigurationOptions>,
+) -> Result<(), Diagnostic> {
+    if let Some(link_options) = link_options {
+        link(
+            &compile_options.output,
+            link_options.format,
+            &compile_result.objects,
+            link_options.library_pathes,
+            link_options.libraries,
+            target,
+            link_options.sysroot,
+        )?;
+    }
+
+    if let Some(config) = config_options {
+        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
+        let generated_conf =
+            hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
+
+        File::create(config.output)
+            .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
+            .map_err(|it| Diagnostic::GeneralError {
+                err_no: diagnostics::ErrNo::general__io_err,
+                message: it.to_string(),
+            })?;
+    }
+    Ok(())
+}
+
 /// The driver function for the compilation
 /// Sorts files that need compilation
 /// Parses, validates and generates code for the given source files
@@ -556,7 +752,6 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
 /// Links any provided libraries
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    let files = create_file_paths(&parameters.input)?;
     let includes = if parameters.includes.is_empty() {
         vec![]
     } else {
@@ -584,50 +779,43 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         optimization: parameters.optimization,
     };
 
-    let link_options = if !parameters.skip_linking {
-        Some(LinkOptions {
-            libraries: parameters.libraries,
-            library_pathes: parameters.library_pathes,
-            sysroot: parameters.sysroot,
-        })
+    let error_format = parameters.error_format;
+
+    let files = create_file_paths(&parameters.input)?;
+
+    let link_options = if let Some(format) = out_format {
+        if !parameters.skip_linking {
+            Some(LinkOptions {
+                libraries: parameters.libraries,
+                library_pathes: parameters.library_paths,
+                sysroot: parameters.sysroot,
+                format,
+            })
+        } else {
+            None
+        }
     } else {
         None
     };
 
     let target = get_target_triple(compile_options.target.as_deref());
+
     let compile_result = build(
         files,
         includes,
         &compile_options,
         parameters.encoding,
-        &parameters.error_format,
+        &error_format,
         &target,
     )?;
 
-    if let Some(link_options) = link_options {
-        link(
-            &compile_options.output,
-            compile_options.format,
-            &compile_result.objects,
-            link_options.library_pathes,
-            link_options.libraries,
-            &target,
-            link_options.sysroot,
-        )?;
-    }
-
-    if let Some(config) = config_options {
-        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
-        let generated_conf =
-            hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
-
-        File::create(config.output)
-            .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
-            .map_err(|it| Diagnostic::GeneralError {
-                err_no: diagnostics::ErrNo::general__io_err,
-                message: it.to_string(),
-            })?;
-    }
+    link_and_create(
+        link_options,
+        &compile_result,
+        &compile_options,
+        &target,
+        config_options,
+    )?;
 
     Ok(())
 }
@@ -660,14 +848,24 @@ pub fn build(
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
-    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
-    objects.push(persist(
-        codegen,
-        &compile_options.output,
-        compile_options.format,
-        target,
-        compile_options.optimization,
-    )?);
+
+    let index = match compile_options.format {
+        None => index_module(sources, includes, encoding, diagnostician)?.0,
+        Some(out_format) => {
+            let (index, codegen) =
+                compile_module(&context, sources, includes, encoding, diagnostician)?;
+
+            objects.push(persist(
+                codegen,
+                &compile_options.output,
+                out_format,
+                target,
+                compile_options.optimization,
+            )?);
+
+            index
+        }
+    };
 
     Ok(CompileResult { index, objects })
 }

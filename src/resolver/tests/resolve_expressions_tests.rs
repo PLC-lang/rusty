@@ -2,7 +2,7 @@ use core::panic;
 
 use crate::{
     ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration},
-    index::Index,
+    index::{Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
@@ -1018,7 +1018,8 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             qualified_name: "foo.foo".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false
+            is_auto_deref: false,
+            variable_type: VariableType::Return
         }),
         foo_annotation
     );
@@ -1204,7 +1205,8 @@ fn qualified_expressions_dont_fallback_to_globals() {
             qualified_name: "MyStruct.y".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false
+            is_auto_deref: false,
+            variable_type: VariableType::Input
         }),
         annotations.get(&statements[1])
     );
@@ -1456,7 +1458,8 @@ fn method_references_are_resolved() {
             qualified_name: "cls.foo.foo".into(),
             resulting_type: "INT".into(),
             constant: false,
-            is_auto_deref: false
+            is_auto_deref: false,
+            variable_type: VariableType::Return
         }),
         annotation
     );
@@ -2478,7 +2481,8 @@ fn action_body_gets_resolved() {
                 qualified_name: "prg.x".to_string(),
                 resulting_type: "DINT".to_string(),
                 constant: false,
-                is_auto_deref: false
+                is_auto_deref: false,
+                variable_type: VariableType::Local
             }),
             a
         );
@@ -2735,13 +2739,10 @@ fn resolve_function_with_same_name_as_return_type() {
     let effective_type = index.find_effective_type("TIME").unwrap();
     assert_eq!(effective_type, associated_type);
     // AND should be Integer
-    assert_eq!(
-        true,
-        matches!(
-            effective_type.get_type_information(),
-            DataTypeInformation::Integer { .. }
-        )
-    )
+    assert!(matches!(
+        effective_type.get_type_information(),
+        DataTypeInformation::Integer { .. }
+    ))
 }
 
 #[test]
@@ -2975,10 +2976,7 @@ fn call_on_function_block_array() {
         AstStatement::CallStatement { operator, .. } => Some(operator.as_ref()),
         _ => None,
     };
-    assert_eq!(
-        matches!(operator, Some(&AstStatement::ArrayAccess { .. })),
-        true
-    );
+    assert!(matches!(operator, Some(&AstStatement::ArrayAccess { .. })),);
 
     let annotation = annotations.get(operator.unwrap());
     assert_eq!(

@@ -1,4 +1,5 @@
 use std::{
+    error::Error,
     fmt::{self, Display},
     ops::Range,
 };
@@ -59,9 +60,11 @@ pub enum ErrNo {
     var__invalid_constant,
     var__cannot_assign_to_const,
     var__invalid_assignment,
+    var__missing_type,
 
     //reference related
     reference__unresolved,
+    reference__illegal_access,
 
     //type related
     type__cast_error,
@@ -78,6 +81,7 @@ pub enum ErrNo {
     type__invalid_nature,
     type__unknown_nature,
     type__unresolved_generic,
+    type__incompatible_size,
 
     //codegen related
     codegen__general,
@@ -86,6 +90,15 @@ pub enum ErrNo {
 
     //linker
     linker__generic_error,
+}
+
+impl<T: Error> From<T> for Diagnostic {
+    fn from(e: T) -> Self {
+        Diagnostic::GeneralError {
+            message: e.to_string(),
+            err_no: ErrNo::general__io_err,
+        }
+    }
 }
 
 impl Diagnostic {
@@ -190,6 +203,14 @@ impl Diagnostic {
             message: format!("Could not resolve reference to {:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
+        }
+    }
+
+    pub fn illegal_access(reference: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Illegal access to private member {:}", reference),
+            range: location,
+            err_no: ErrNo::reference__illegal_access,
         }
     }
 
@@ -501,6 +522,30 @@ impl Diagnostic {
             message: format!("Unknown type nature {}.", nature),
             range: location,
             err_no: ErrNo::type__unknown_nature,
+        }
+    }
+
+    pub fn missing_datatype(reason: Option<&str>, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Missing datatype {}", reason.unwrap_or("")),
+            range: location,
+            err_no: ErrNo::var__missing_type,
+        }
+    }
+
+    pub fn incompatible_type_size(
+        nature: &str,
+        size: u32,
+        error: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "The type {} {} is too small to {} Pointer",
+                nature, size, error
+            ),
+            range: location,
+            err_no: ErrNo::type__incompatible_size,
         }
     }
 

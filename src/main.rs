@@ -18,8 +18,8 @@
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 
-use rusty::build_with_params;
 use rusty::cli::{CompileParameters, ParameterError};
+use rusty::{build_with_params, build_with_subcommand};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -28,7 +28,12 @@ fn main() {
         CompileParameters::parse(args);
     match compile_parameters {
         Ok(cp) => {
-            if let Err(msg) = build_with_params(cp) {
+            if cp.commands.is_some() {
+                if let Err(msg) = build_with_subcommand(cp) {
+                    println!("Error: {:?}", msg);
+                    std::process::exit(1);
+                }
+            } else if let Err(msg) = build_with_params(cp) {
                 println!("Error: {:?}", msg);
                 std::process::exit(1);
             }

@@ -63,8 +63,9 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType) -> ParsedAst {
                 unit.implementations.append(&mut actions);
             }
             KeywordType => {
-                if let Some(unit_type) = parse_type(&mut lexer) {
-                    unit.types.push(unit_type);
+                let unit_type = parse_type(&mut lexer);
+                for utype in unit_type {
+                    unit.types.push(utype);
                 }
             }
             KeywordEndActions | End => return (unit, lexer.diagnostics),
@@ -535,26 +536,32 @@ fn parse_action(
 }
 
 // TYPE ... END_TYPE
-fn parse_type(lexer: &mut ParseSession) -> Option<UserTypeDeclaration> {
+fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
     lexer.advance(); // consume the TYPE
-    let start = lexer.location().get_start();
-    let name = lexer.slice_and_advance();
-    lexer.consume_or_report(KeywordColon);
 
-    let result = parse_full_data_type_definition(lexer, Some(name));
+    parse_any_in_region(lexer, vec![KeywordEndType], |lexer| {
+        let mut declarations = vec![];
+        while !lexer.closes_open_region(&lexer.token) {
+            let start = lexer.location().get_start();
+            let name = lexer.slice_and_advance();
+            lexer.consume_or_report(KeywordColon);
 
-    if let Some((DataTypeDeclaration::DataTypeDefinition { data_type, .. }, initializer)) = result {
-        let end = lexer.last_range.end;
-        lexer.consume_or_report(KeywordEndType);
-        Some(UserTypeDeclaration {
-            data_type,
-            initializer,
-            location: (start..end).into(),
-            scope: lexer.scope.clone(),
-        })
-    } else {
-        None
-    }
+            let result = parse_full_data_type_definition(lexer, Some(name));
+
+            if let Some((DataTypeDeclaration::DataTypeDefinition { data_type, .. }, initializer)) =
+                result
+            {
+                let end = lexer.last_range.end;
+                declarations.push(UserTypeDeclaration {
+                    data_type,
+                    initializer,
+                    location: (start..end).into(),
+                    scope: lexer.scope.clone(),
+                });
+            }
+        }
+        declarations
+    })
 }
 
 type DataTypeWithInitializer = (DataTypeDeclaration, Option<AstStatement>);
@@ -569,11 +576,13 @@ fn parse_full_data_type_definition(
         KeywordSemicolon
     };
     parse_any_in_region(lexer, vec![end_keyword], |lexer| {
+        let sized = lexer.allow(&PropertySized);
         if lexer.allow(&KeywordDotDotDot) {
             Some((
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::VarArgs {
                         referenced_type: None,
+                        sized,
                     },
                     location: lexer.last_range.clone().into(),
                     scope: lexer.scope.clone(),
@@ -587,6 +596,7 @@ fn parse_full_data_type_definition(
                         DataTypeDeclaration::DataTypeDefinition {
                             data_type: DataType::VarArgs {
                                 referenced_type: Some(Box::new(type_def)),
+                                sized,
                             },
                             location: lexer.last_range.clone().into(),
                             scope: lexer.scope.clone(),

@@ -26,6 +26,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 95..99,
             },
+            varargs: None,
         },
     ),
     (
@@ -44,7 +45,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "str.a",
             initial_value: None,
             variable_type: ByVal(
-                Local,
+                Input,
             ),
             is_constant: false,
             data_type_name: "DINT",
@@ -54,6 +55,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 32..33,
             },
+            varargs: None,
         },
     ),
     (
@@ -72,7 +74,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "str.b",
             initial_value: None,
             variable_type: ByVal(
-                Local,
+                Input,
             ),
             is_constant: false,
             data_type_name: "DINT",
@@ -82,6 +84,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 34..35,
             },
+            varargs: None,
         },
     ),
     (
@@ -107,6 +110,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 123..195,
             },
+            varargs: None,
         },
     ),
     (
@@ -135,6 +139,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 156..160,
             },
+            varargs: None,
         },
     ),
     (
@@ -156,7 +161,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "str.a",
             initial_value: None,
             variable_type: ByVal(
-                Local,
+                Input,
             ),
             is_constant: false,
             data_type_name: "DINT",
@@ -166,6 +171,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 32..33,
             },
+            varargs: None,
         },
     ),
     (
@@ -187,7 +193,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             qualified_name: "str.b",
             initial_value: None,
             variable_type: ByVal(
-                Local,
+                Input,
             ),
             is_constant: false,
             data_type_name: "DINT",
@@ -197,6 +203,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             source_location: SourceRange {
                 range: 34..35,
             },
+            varargs: None,
         },
     ),
 ]

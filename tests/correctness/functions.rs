@@ -1,3 +1,5 @@
+use rusty::runner::run_no_param;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::super::*;
 
@@ -168,6 +170,51 @@ fn test_and_sideeffects() {
 
         y := AND_BRANCH(FALSE,1) AND AND_BRANCH(TRUE,2);
         y := AND_BRANCH(TRUE,10) AND AND_BRANCH(FALSE,20) AND AND_BRANCH(TRUE,50);
+        main := res_and;
+
+    END_FUNCTION
+
+    "#
+    .to_string();
+
+    let context: Context = Context::create();
+    let engine = compile(&context, function);
+    let mut case1 = MainType { x: false };
+    let res: i32 = run(&engine, "main", &mut case1);
+    assert_eq!(res, 31);
+}
+
+#[test]
+fn test_amp_as_and_sideeffects() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: bool,
+    }
+
+    let function = r#"
+    VAR_GLOBAL
+        res_and : INT;
+    END_VAR
+
+    FUNCTION AND_BRANCH : BOOL 
+        VAR_INPUT 
+            a : BOOL;
+            b : INT;
+        END_VAR
+
+        AND_BRANCH := a;
+        res_and := res_and + b;
+
+    END_FUNCTION
+
+    FUNCTION main : DINT
+        VAR
+            y : BOOL;
+        END_VAR
+
+        y := AND_BRANCH(FALSE,1) & AND_BRANCH(TRUE,2);
+        y := AND_BRANCH(TRUE,10) & AND_BRANCH(FALSE,20) & AND_BRANCH(TRUE,50);
         main := res_and;
 
     END_FUNCTION
@@ -699,4 +746,123 @@ fn by_ref_and_by_val_mixed_function_call() {
 
     let res: i32 = compile_and_run(function.to_string(), &mut MainType::default());
     assert_eq!(res, 11_110)
+}
+
+#[test]
+fn mux_test() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR
+            num,b : DINT := 2;
+        END_VAR
+            b := num;
+            main := MUX(num,b,5,6,7,8); //Result is 6 
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 6)
+}
+
+#[test]
+fn mux_test_variables() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR
+            num,b,c,d,e,f : DINT;
+        END_VAR
+            num := 2;
+            b := 4;
+            c := 5;
+            d := 6;
+            e := 7;
+            f := 8;
+            main := MUX(num,b,c,d,e,f); //Result is 6 (d)
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 6)
+}
+
+#[test]
+fn sel_test_false() {
+    let function = r#"
+        FUNCTION main : DINT
+            main := SEL(FALSE,4,5); //Result is 4
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 4)
+}
+
+#[test]
+fn sel_test_true() {
+    let function = r#"
+        FUNCTION main : DINT
+            main := SEL(TRUE,4,5); //Result is 5 
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 5)
+}
+
+#[test]
+fn sel_test_true_vars() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR a,b : DINT; END_VAR
+            a := 4;
+            b := 5;
+            main := SEL(TRUE,a,b); //Result is 5 
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 5)
+}
+
+#[test]
+fn sel_expression_test() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR a,b : DINT; END_VAR
+            a := 4;
+            b := 5;
+            main := SEL(TRUE,a,b) + 10; //Result is 15
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 15);
+}
+
+#[test]
+fn move_test() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR a : DINT; END_VAR
+            a := 4;
+            main := MOVE(a); //Result is 4
+        END_FUNCTION
+        "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, function);
+    let res: i32 = run_no_param(&exec_engine, "main");
+    assert_eq!(res, 4)
 }

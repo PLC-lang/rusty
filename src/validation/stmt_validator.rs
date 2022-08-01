@@ -7,8 +7,9 @@ use crate::{
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{
         DataType, DataTypeInformation, Dimension, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE,
-        DINT_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE,
-        TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
+        DINT_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, POINTER_SIZE, SINT_TYPE, STRING_TYPE,
+        TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE,
+        WSTRING_TYPE,
     },
     Diagnostic,
 };
@@ -35,10 +36,8 @@ impl StatementValidator {
 
     pub fn validate_statement(&mut self, statement: &AstStatement, context: &ValidationContext) {
         match statement {
-            AstStatement::Reference {
-                name, location, id, ..
-            } => {
-                self.validate_reference(id, name, location, context);
+            AstStatement::Reference { name, location, .. } => {
+                self.validate_reference(statement, name, location, context);
             }
             AstStatement::CastStatement {
                 location,
@@ -138,6 +137,31 @@ impl StatementValidator {
                         .ast_annotation
                         .get_type_or_void(right, context.index)
                         .get_type_information();
+
+                    //check if Datatype can hold a Pointer (u64)
+                    if r_effective_type.is_pointer()
+                        && !l_effective_type.is_pointer()
+                        && l_effective_type.get_size() < POINTER_SIZE
+                    {
+                        self.diagnostics.push(Diagnostic::incompatible_type_size(
+                            l_effective_type.get_name(),
+                            l_effective_type.get_size(),
+                            "hold a",
+                            statement.get_location(),
+                        ));
+                    }
+                    //check if size allocated to Pointer is standart pointer size (u64)
+                    else if l_effective_type.is_pointer()
+                        && !r_effective_type.is_pointer()
+                        && r_effective_type.get_size() < POINTER_SIZE
+                    {
+                        self.diagnostics.push(Diagnostic::incompatible_type_size(
+                            r_effective_type.get_name(),
+                            r_effective_type.get_size(),
+                            "to be stored in a",
+                            statement.get_location(),
+                        ));
+                    }
 
                     // valid assignments -> char := literalString, char := char
                     // check if we assign to a character variable -> char := ..
@@ -337,14 +361,37 @@ impl StatementValidator {
 
     fn validate_reference(
         &mut self,
-        id: &usize,
+        statement: &AstStatement,
         ref_name: &str,
         location: &SourceRange,
         context: &ValidationContext,
     ) {
-        if !context.ast_annotation.has_type_annotation(id) {
+        // unresolved reference
+        if !context.ast_annotation.has_type_annotation(statement) {
             self.diagnostics
                 .push(Diagnostic::unresolved_reference(ref_name, location.clone()));
+        } else if let Some(StatementAnnotation::Variable {
+            qualified_name,
+            variable_type,
+            ..
+        }) = context.ast_annotation.get(statement)
+        {
+            //check if we're accessing a private variable AND the variable's qualifier is not the
+            //POU we're accessing it from
+            if variable_type.is_private()
+                && context
+                    .qualifier
+                    .and_then(|it| context.index.find_pou(it)) //Get the container pou (for actions this is the program/fb)
+                    .map(|it| (it.get_name(), it.get_container()))
+                    .map_or(false, |(it, container)| {
+                        !qualified_name.starts_with(it) && !qualified_name.starts_with(container)
+                    })
+            {
+                self.diagnostics.push(Diagnostic::illegal_access(
+                    qualified_name.as_str(),
+                    location.clone(),
+                ));
+            }
         }
     }
 

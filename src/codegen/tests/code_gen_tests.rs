@@ -1470,29 +1470,6 @@ fn function_with_two_parameters_called_in_program() {
 }
 
 #[test]
-fn function_with_varargs_called_in_program() {
-    let result = codegen(
-        "
-        @EXTERNAL
-        FUNCTION foo : DINT
-        VAR_INPUT
-          args : ...;
-        END_VAR
-        END_FUNCTION
-
-        PROGRAM prg 
-        VAR
-        x : DINT;
-        END_VAR
-        x := foo(FALSE, 3, (x + 1));
-        END_PROGRAM
-        ",
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
 fn function_with_local_var_initialization_and_call() {
     let result = codegen(
         "
@@ -2921,5 +2898,39 @@ fn optional_output_assignment() {
 		",
     );
     // codegen should be successful
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn constant_expressions_in_ranged_type_declaration_are_propagated() {
+    //GIVEN a ranged type from 0 .. MIN+1 where MIN is a global constant
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        VAR_GLOBAL CONSTANT
+          MIN : INT := 7;
+        END_VAR 
+
+        FUNCTION CheckRangeSigned: INT 
+          VAR_INPUT
+              value : INT;
+              lower : INT;
+              upper : INT;
+          END_VAR
+          CheckRangeSigned := value;
+        END_FUNCTION
+
+        PROGRAM prg
+          VAR
+            x: INT(0 .. MIN+1);
+          END_VAR
+          x := 5;
+        END_PROGRAM",
+    );
+
+    // THEN we expect that the assignment to the range-typed variable (x := 5) will result
+    // in a call to CheckRangedSigned where the upper bound is a literal i16 8 - NOT an
+    // add-expression that really calculates the upper bound at runtime
+
     insta::assert_snapshot!(result);
 }
