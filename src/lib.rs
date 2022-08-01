@@ -596,16 +596,16 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         });
 
     match parameters.commands.unwrap() {
-        SubCommands::Build { build_config } => {
+        SubCommands::Build {
+            build_config,
+            sysroot,
+            target,
+        } => {
             let project = get_project_from_file(build_config)?;
             let files = project.files;
             let compile_options = CompileOptions {
                 output: project.output,
-                target: if project.target.is_some() {
-                    project.target
-                } else {
-                    parameters.target
-                },
+                target,
                 format: project.compile_type,
                 optimization: if project.optimization.is_some() {
                     project.optimization.unwrap()
@@ -614,8 +614,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 },
             };
 
-            let error_format = project.error_format;
-            let string_paths = if project.libraries.is_some() {
+            let includes = if project.libraries.is_some() {
                 string_to_filepath(
                     project
                         .libraries
@@ -627,12 +626,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 )
             } else {
                 vec![]
-            };
-
-            let includes = if string_paths.is_empty() {
-                vec![]
-            } else {
-                string_paths
             };
 
             let link_options = if let Some(format) = project.compile_type {
@@ -659,7 +652,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                     } else {
                         vec![]
                     },
-                    sysroot: project.sysroot,
+                    sysroot,
                     format,
                 })
             } else {
@@ -673,7 +666,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 includes,
                 &compile_options,
                 parameters.encoding,
-                &error_format,
+                &project.error_format,
                 &target,
             )?;
 
