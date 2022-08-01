@@ -23,5 +23,13 @@
                 "examples/simple_program.st"
             ]
         }
+    ],
+    "package_commands" : [
+        "cd examples",
+        "mkdir CommandTestFolder",
+        "ls",
+        "pwd",
+        "cd CommandFolder",
+        "touch NewFile.txt"
     ]
 }

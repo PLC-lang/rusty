@@ -158,9 +158,15 @@ pub struct CompileParameters {
 #[derive(Debug, Subcommand)]
 pub enum SubCommands {
     /// Uses build description file.
-    /// Supported format: json                              build
-    /// <plc.json>                                                                   Options:
-    /// --sysroot <sysroot> --target <target-triple> --build-location <path>
+    ///
+    /// build
+    ///
+    /// Options:
+    /// --sysroot <sysroot> --target <target-triple>
+    ///
+    /// Supported format: json
+    ///
+    /// build <plc.json> --sysroot <sysroot> --target <target-triple> --build-location <path>
     Build {
         #[clap(
             parse(try_from_str = validate_config)
