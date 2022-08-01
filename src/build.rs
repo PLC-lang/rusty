@@ -90,56 +90,45 @@ fn get_path_when_empty(p: Proj) -> Result<Proj, Diagnostic> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
     use std::vec;
 
     use crate::build::get_project_from_file;
-    use crate::{change_filepath_realtiv_to_build_folder, get_number_nested_path, ErrorFormat};
+    use crate::ErrorFormat;
     use crate::{FormatOption, OptimizationLevel};
 
     use super::Libraries;
     use super::{PackageFormat, Proj};
 
     #[test]
-    fn test_change_filepath_realtiv_to_build_folder() {
-        let proj = get_proj();
-
-        let proj_new_paths = change_filepath_realtiv_to_build_folder(proj, 2);
-
-        assert_eq!(
-            proj_new_paths.files,
-            vec![String::from("../../examples/simple_program.st")]
-        );
-        if let Some(library) = proj_new_paths.libraries {
-            assert_eq!(
-                library[0].path,
-                String::from("../../tests/integration/data/json/libs/")
-            );
-            assert_eq!(
-                library[0].include_path,
-                vec![String::from("../../examples/simple_program.st")]
-            );
-            assert_eq!(
-                library[1].path,
-                String::from("../../tests/integration/data/json/libs/")
-            );
-            assert_eq!(
-                library[1].include_path,
-                vec![String::from("../../examples/simple_program.st")]
-            );
-        }
-    }
-
-    #[test]
-    fn test_get_number_nested_path() {
-        let root = PathBuf::from("tests/integration");
-        let build_dir = PathBuf::from("tests/integration/data/json/libs");
-        assert_eq!(get_number_nested_path(root, build_dir), 3);
-    }
-
-    #[test]
     fn check_build_struct_from_file() {
-        let test_project = get_proj();
+        let test_project = Proj {
+            files: vec![String::from(
+                "tests/integration/data/json/simple_program.st",
+            )],
+            compile_type: Some(FormatOption::Shared),
+            optimization: Some(OptimizationLevel::Default),
+            output: String::from("proj.so"),
+            error_format: ErrorFormat::Rich,
+            libraries: Some(vec![
+                Libraries {
+                    name: String::from("copy"),
+                    path: String::from("tests/integration/data/json/libs/"),
+                    package: PackageFormat::Copy,
+                    include_path: vec![String::from(
+                        "tests/integration/data/json/simple_program.st",
+                    )],
+                },
+                Libraries {
+                    name: String::from("nocopy"),
+                    path: String::from("tests/integration/data/json/libs/"),
+                    package: PackageFormat::System,
+                    include_path: vec![String::from(
+                        "tests/integration/data/json/simple_program.st",
+                    )],
+                },
+            ]),
+            package_commands: Some(vec![]),
+        };
         let proj = get_project_from_file(Some(String::from(
             "tests/integration/data/json/build_description_file.json",
         )))
@@ -160,31 +149,6 @@ mod tests {
                 assert_eq!(testproj_lib[1].package, proj_lib[1].package);
                 assert_eq!(testproj_lib[1].include_path, proj_lib[1].include_path);
             }
-        }
-    }
-
-    fn get_proj() -> Proj {
-        Proj {
-            files: vec![String::from("examples/simple_program.st")],
-            compile_type: Some(FormatOption::Shared),
-            optimization: Some(OptimizationLevel::Default),
-            output: String::from("proj.so"),
-            error_format: ErrorFormat::Rich,
-            libraries: Some(vec![
-                Libraries {
-                    name: String::from("copy"),
-                    path: String::from("tests/integration/data/json/libs/"),
-                    package: PackageFormat::Copy,
-                    include_path: vec![String::from("examples/simple_program.st")],
-                },
-                Libraries {
-                    name: String::from("nocopy"),
-                    path: String::from("tests/integration/data/json/libs/"),
-                    package: PackageFormat::System,
-                    include_path: vec![String::from("examples/simple_program.st")],
-                },
-            ]),
-            package_commands: Some(vec![]),
         }
     }
 }

@@ -610,10 +610,8 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 }
                 env::set_current_dir(location)?;
             }
-            let builddir = env::current_dir()?;
-            let number_nested_path = get_number_nested_path(root, builddir);
+            let project = change_filepath_to_absolute(root, project);
 
-            let project = change_filepath_realtiv_to_build_folder(project, number_nested_path);
             copy_libs_to_build(&project.libraries)?;
 
             let files = project.files;
@@ -700,6 +698,39 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
     Ok(())
 }
 
+fn change_filepath_to_absolute(root: PathBuf, project: Proj) -> Proj {
+    Proj {
+        files: change_vec_path_to_absolute(&project.files, &root),
+        libraries: change_vec_path_for_libraries(project.libraries, &root),
+        ..project
+    }
+}
+
+fn change_vec_path_for_libraries(
+    libraries: Option<Vec<Libraries>>,
+    root: &Path,
+) -> Option<Vec<Libraries>> {
+    let mut result = vec![];
+    if let Some(libraries) = libraries {
+        for library in libraries {
+            result.push(Libraries {
+                path: format!("{}/{}", root.display(), library.path),
+                include_path: change_vec_path_to_absolute(&library.include_path, root),
+                ..library
+            });
+        }
+    }
+    Some(result)
+}
+
+fn change_vec_path_to_absolute(items: &Vec<String>, root: &Path) -> Vec<String> {
+    let mut result = vec![];
+    for item in items {
+        result.push(format!("{}/{}", root.display(), item));
+    }
+    result
+}
+
 fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     let root = env::current_dir()?;
     for command in commands {
@@ -725,20 +756,6 @@ fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     Ok(())
 }
 
-fn get_number_nested_path(root: PathBuf, builddir: PathBuf) -> usize {
-    let str_root = root.into_os_string().into_string().unwrap();
-    let root: Vec<&str> = str_root.split('/').collect();
-    let str_builddir = builddir.into_os_string().into_string().unwrap();
-    let mut builddir: Vec<&str> = str_builddir.split('/').collect();
-
-    for root_item in root {
-        if builddir.contains(&root_item) {
-            builddir.drain(0..1);
-        }
-    }
-    builddir.len()
-}
-
 fn copy_libs_to_build(libraries: &Option<Vec<Libraries>>) -> Result<(), Diagnostic> {
     if let Some(libraries) = libraries {
         for library in libraries {
@@ -751,41 +768,6 @@ fn copy_libs_to_build(libraries: &Option<Vec<Libraries>>) -> Result<(), Diagnost
         }
     }
     Ok(())
-}
-
-pub fn change_filepath_realtiv_to_build_folder(project: Proj, n: usize) -> Proj {
-    let proj = Proj {
-        files: prefix_path_vec(&project.files),
-        libraries: prefix_path_libraries(project.libraries),
-        ..project
-    };
-    if n == 1 {
-        proj
-    } else {
-        change_filepath_realtiv_to_build_folder(proj, n - 1)
-    }
-}
-
-fn prefix_path_libraries(libraries: Option<Vec<Libraries>>) -> Option<Vec<Libraries>> {
-    let mut result = vec![];
-    if let Some(libraries) = libraries {
-        for library in libraries {
-            result.push(Libraries {
-                path: format!("../{}", &library.path),
-                include_path: prefix_path_vec(&library.include_path),
-                ..library
-            });
-        }
-    }
-    Some(result)
-}
-
-fn prefix_path_vec(items: &Vec<String>) -> Vec<String> {
-    let mut result = vec![];
-    for item in items {
-        result.push(format!("../{}", item));
-    }
-    result
 }
 
 fn link_and_create(

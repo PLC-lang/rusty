@@ -37,7 +37,6 @@ shell-words = "1.1.0"
 num = "0.4"
 insta = "1.8.0"
 pretty_assertions = "0.6.1"
-serial_test = "0.8.0"
 
 [lib]
 name = "rusty"

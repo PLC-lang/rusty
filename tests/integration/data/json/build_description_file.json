@@ -1,6 +1,6 @@
 {
     "files" : [
-        "examples/simple_program.st"
+        "tests/integration/data/json/simple_program.st"
     ],
     "compile_type" : "Shared",
     "optimization" : "Default",
@@ -12,7 +12,7 @@
             "path" : "tests/integration/data/json/libs/",
             "package" : "Copy",
             "include_path" : [
-                "examples/simple_program.st"
+                "tests/integration/data/json/simple_program.st"
             ]
         },
         {
@@ -20,7 +20,7 @@
             "path" : "tests/integration/data/json/libs/",
             "package" : "System",
             "include_path" : [
-                "examples/simple_program.st"
+                "tests/integration/data/json/simple_program.st"
             ]
         }
     ]
