@@ -41,6 +41,11 @@
 <span id="36">36</span>
 <span id="37">37</span>
 <span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -61,8 +66,8 @@
 <span class="doccomment">//! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3</span>
 <span class="doccomment">//! [`IR`]: https://llvm.org/docs/LangRef.html</span>
 
-<span class="kw">use</span> <span class="ident">rusty::build_with_params</span>;
 <span class="kw">use</span> <span class="ident">rusty::cli</span>::{<span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span>};
+<span class="kw">use</span> <span class="ident">rusty</span>::{<span class="ident">build_with_params</span>, <span class="ident">build_with_subcommand</span>};
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="kw">let</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::env::args</span>().<span class="ident">collect</span>();
@@ -71,7 +76,12 @@
         <span class="ident">CompileParameters::parse</span>(<span class="ident">args</span>);
     <span class="kw">match</span> <span class="ident">compile_parameters</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">cp</span>) =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">build_with_params</span>(<span class="ident">cp</span>) {
+            <span class="kw">if</span> <span class="ident">cp</span>.<span class="ident">commands</span>.<span class="ident">is_some</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">build_with_subcommand</span>(<span class="ident">cp</span>) {
+                    <span class="macro">println!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <span class="ident">msg</span>);
+                    <span class="ident">std::process::exit</span>(<span class="number">1</span>);
+                }
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">build_with_params</span>(<span class="ident">cp</span>) {
                 <span class="macro">println!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <span class="ident">msg</span>);
                 <span class="ident">std::process::exit</span>(<span class="number">1</span>);
             }

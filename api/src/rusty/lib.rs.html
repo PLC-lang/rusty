@@ -850,6 +850,129 @@
 <span id="845">845</span>
 <span id="846">846</span>
 <span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -873,14 +996,16 @@
 <span class="kw">use</span> <span class="ident">std::io::Write</span>;
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 
+<span class="kw">use</span> <span class="ident">build</span>::{<span class="ident">get_project_from_file</span>, <span class="ident">string_to_filepath</span>};
 <span class="kw">use</span> <span class="ident">clap::ArgEnum</span>;
 <span class="kw">use</span> <span class="ident">codegen::CodeGen</span>;
 <span class="kw">use</span> <span class="ident">glob::glob</span>;
 <span class="kw">use</span> <span class="ident">inkwell::passes::PassBuilderOptions</span>;
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 
 <span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">LinkageType</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>};
-<span class="kw">use</span> <span class="ident">cli::CompileParameters</span>;
+<span class="kw">use</span> <span class="ident">cli</span>::{<span class="ident">CompileParameters</span>, <span class="ident">SubCommands</span>};
 <span class="kw">use</span> <span class="ident">diagnostics::Diagnostic</span>;
 <span class="kw">use</span> <span class="ident">encoding_rs::Encoding</span>;
 <span class="kw">use</span> <span class="ident">encoding_rs_io::DecodeReaderBytesBuilder</span>;
@@ -898,6 +1023,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostician</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resolver</span>::{<span class="ident">AnnotationMapImpl</span>, <span class="ident">TypeAnnotator</span>};
 <span class="kw">mod</span> <span class="ident">ast</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">build</span>;
 <span class="kw">mod</span> <span class="ident">builtins</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">cli</span>;
 <span class="kw">mod</span> <span class="ident">codegen</span>;
@@ -919,7 +1045,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">pretty_assertions</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FormatOption</span> {
     <span class="ident">Static</span>,
     <span class="ident">PIC</span>,
@@ -947,6 +1073,7 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompileOptions</span> {
     <span class="kw">pub</span> <span class="ident">format</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FormatOption</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">output</span>: <span class="ident">String</span>,
@@ -966,13 +1093,13 @@
     <span class="ident">output</span>: <span class="ident">String</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">ArgEnum</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">ArgEnum</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorFormat</span> {
     <span class="ident">Rich</span>,
     <span class="ident">Clang</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">ArgEnum</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">ArgEnum</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OptimizationLevel</span> {
     <span class="prelude-val">None</span>,
     <span class="ident">Less</span>,
@@ -1018,7 +1145,7 @@
     <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span>;
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FilePath</span> {
     <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">String</span>,
 }
@@ -1429,6 +1556,138 @@
     <span class="prelude-val">Ok</span>(<span class="ident">sources</span>)
 }
 
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_with_subcommand</span>(<span class="ident">parameters</span>: <span class="ident">CompileParameters</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">config_options</span> <span class="op">=</span> <span class="ident">parameters</span>
+        .<span class="ident">hardware_config</span>
+        .<span class="ident">as_ref</span>()
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="ident">ConfigurationOptions</span> {
+            <span class="ident">format</span>: <span class="ident">parameters</span>
+                .<span class="ident">config_format</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;Never none for valid parameters&quot;</span>),
+            <span class="ident">output</span>: <span class="ident">config</span>.<span class="ident">to_owned</span>(),
+        });
+
+    <span class="kw">match</span> <span class="ident">parameters</span>.<span class="ident">commands</span>.<span class="ident">unwrap</span>() {
+        <span class="ident">SubCommands::Build</span> {
+            <span class="ident">build_config</span>,
+            <span class="ident">sysroot</span>,
+            <span class="ident">target</span>,
+        } =&gt; {
+            <span class="kw">let</span> <span class="ident">project</span> <span class="op">=</span> <span class="ident">get_project_from_file</span>(<span class="ident">build_config</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="ident">project</span>.<span class="ident">files</span>;
+            <span class="kw">let</span> <span class="ident">compile_options</span> <span class="op">=</span> <span class="ident">CompileOptions</span> {
+                <span class="ident">output</span>: <span class="ident">project</span>.<span class="ident">output</span>,
+                <span class="ident">target</span>,
+                <span class="ident">format</span>: <span class="ident">project</span>.<span class="ident">compile_type</span>,
+                <span class="ident">optimization</span>: <span class="kw">if</span> <span class="ident">project</span>.<span class="ident">optimization</span>.<span class="ident">is_some</span>() {
+                    <span class="ident">project</span>.<span class="ident">optimization</span>.<span class="ident">unwrap</span>()
+                } <span class="kw">else</span> {
+                    <span class="ident">parameters</span>.<span class="ident">optimization</span>
+                },
+            };
+
+            <span class="kw">let</span> <span class="ident">includes</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">project</span>.<span class="ident">libraries</span>.<span class="ident">is_some</span>() {
+                <span class="ident">string_to_filepath</span>(
+                    <span class="ident">project</span>
+                        .<span class="ident">libraries</span>
+                        .<span class="ident">as_ref</span>()
+                        .<span class="ident">unwrap</span>()
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">include_path</span>.<span class="ident">clone</span>())
+                        .<span class="ident">collect</span>(),
+                )
+            } <span class="kw">else</span> {
+                <span class="macro">vec!</span>[]
+            };
+
+            <span class="kw">let</span> <span class="ident">link_options</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">format</span>) <span class="op">=</span> <span class="ident">project</span>.<span class="ident">compile_type</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">LinkOptions</span> {
+                    <span class="ident">libraries</span>: <span class="kw">if</span> <span class="ident">project</span>.<span class="ident">libraries</span>.<span class="ident">is_some</span>() {
+                        <span class="ident">project</span>
+                            .<span class="ident">libraries</span>
+                            .<span class="ident">as_ref</span>()
+                            .<span class="ident">unwrap</span>()
+                            .<span class="ident">iter</span>()
+                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">name</span>.<span class="ident">clone</span>())
+                            .<span class="ident">collect</span>()
+                    } <span class="kw">else</span> {
+                        <span class="macro">vec!</span>[]
+                    },
+                    <span class="ident">library_pathes</span>: <span class="kw">if</span> <span class="ident">project</span>.<span class="ident">libraries</span>.<span class="ident">is_some</span>() {
+                        <span class="ident">project</span>
+                            .<span class="ident">libraries</span>
+                            .<span class="ident">as_ref</span>()
+                            .<span class="ident">unwrap</span>()
+                            .<span class="ident">iter</span>()
+                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">path</span>.<span class="ident">clone</span>())
+                            .<span class="ident">collect</span>()
+                    } <span class="kw">else</span> {
+                        <span class="macro">vec!</span>[]
+                    },
+                    <span class="ident">sysroot</span>,
+                    <span class="ident">format</span>,
+                })
+            } <span class="kw">else</span> {
+                <span class="prelude-val">None</span>
+            };
+
+            <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">get_target_triple</span>(<span class="ident">compile_options</span>.<span class="ident">target</span>.<span class="ident">as_deref</span>());
+
+            <span class="kw">let</span> <span class="ident">compile_result</span> <span class="op">=</span> <span class="ident">build</span>(
+                <span class="ident">string_to_filepath</span>(<span class="ident">files</span>),
+                <span class="ident">includes</span>,
+                <span class="kw-2">&amp;</span><span class="ident">compile_options</span>,
+                <span class="ident">parameters</span>.<span class="ident">encoding</span>,
+                <span class="kw-2">&amp;</span><span class="ident">project</span>.<span class="ident">error_format</span>,
+                <span class="kw-2">&amp;</span><span class="ident">target</span>,
+            )<span class="question-mark">?</span>;
+
+            <span class="ident">link_and_create</span>(
+                <span class="ident">link_options</span>,
+                <span class="kw-2">&amp;</span><span class="ident">compile_result</span>,
+                <span class="kw-2">&amp;</span><span class="ident">compile_options</span>,
+                <span class="kw-2">&amp;</span><span class="ident">target</span>,
+                <span class="ident">config_options</span>,
+            )<span class="question-mark">?</span>;
+        }
+    }
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn</span> <span class="ident">link_and_create</span>(
+    <span class="ident">link_options</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LinkOptions</span><span class="op">&gt;</span>,
+    <span class="ident">compile_result</span>: <span class="kw-2">&amp;</span><span class="ident">CompileResult</span>,
+    <span class="ident">compile_options</span>: <span class="kw-2">&amp;</span><span class="ident">CompileOptions</span>,
+    <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
+    <span class="ident">config_options</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConfigurationOptions</span><span class="op">&gt;</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">link_options</span>) <span class="op">=</span> <span class="ident">link_options</span> {
+        <span class="ident">link</span>(
+            <span class="kw-2">&amp;</span><span class="ident">compile_options</span>.<span class="ident">output</span>,
+            <span class="ident">link_options</span>.<span class="ident">format</span>,
+            <span class="kw-2">&amp;</span><span class="ident">compile_result</span>.<span class="ident">objects</span>,
+            <span class="ident">link_options</span>.<span class="ident">library_pathes</span>,
+            <span class="ident">link_options</span>.<span class="ident">libraries</span>,
+            <span class="ident">target</span>,
+            <span class="ident">link_options</span>.<span class="ident">sysroot</span>,
+        )<span class="question-mark">?</span>;
+    }
+
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">config</span>) <span class="op">=</span> <span class="ident">config_options</span> {
+        <span class="kw">let</span> <span class="ident">hw_config</span> <span class="op">=</span> <span class="ident">hardware_binding::collect_hardware_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">compile_result</span>.<span class="ident">index</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">generated_conf</span> <span class="op">=</span>
+            <span class="ident">hardware_binding::generate_hardware_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">hw_config</span>, <span class="ident">config</span>.<span class="ident">format</span>)<span class="question-mark">?</span>;
+
+        <span class="ident">File::create</span>(<span class="ident">config</span>.<span class="ident">output</span>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">write_all</span>(<span class="ident">generated_conf</span>.<span class="ident">as_bytes</span>()))
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::GeneralError</span> {
+                <span class="ident">err_no</span>: <span class="ident">diagnostics::ErrNo::general__io_err</span>,
+                <span class="ident">message</span>: <span class="ident">it</span>.<span class="ident">to_string</span>(),
+            })<span class="question-mark">?</span>;
+    }
+    <span class="prelude-val">Ok</span>(())
+}
+
 <span class="doccomment">/// The driver function for the compilation</span>
 <span class="doccomment">/// Sorts files that need compilation</span>
 <span class="doccomment">/// Parses, validates and generates code for the given source files</span>
@@ -1436,7 +1695,6 @@
 <span class="doccomment">/// Links any provided libraries</span>
 <span class="doccomment">/// Returns the location of the output file</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_with_params</span>(<span class="ident">parameters</span>: <span class="ident">CompileParameters</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="ident">create_file_paths</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">includes</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">includes</span>.<span class="ident">is_empty</span>() {
         <span class="macro">vec!</span>[]
     } <span class="kw">else</span> {
@@ -1464,11 +1722,15 @@
         <span class="ident">optimization</span>: <span class="ident">parameters</span>.<span class="ident">optimization</span>,
     };
 
+    <span class="kw">let</span> <span class="ident">error_format</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">error_format</span>;
+
+    <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="ident">create_file_paths</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">input</span>)<span class="question-mark">?</span>;
+
     <span class="kw">let</span> <span class="ident">link_options</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">format</span>) <span class="op">=</span> <span class="ident">out_format</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">skip_linking</span> {
             <span class="prelude-val">Some</span>(<span class="ident">LinkOptions</span> {
                 <span class="ident">libraries</span>: <span class="ident">parameters</span>.<span class="ident">libraries</span>,
-                <span class="ident">library_pathes</span>: <span class="ident">parameters</span>.<span class="ident">library_pathes</span>,
+                <span class="ident">library_pathes</span>: <span class="ident">parameters</span>.<span class="ident">library_paths</span>,
                 <span class="ident">sysroot</span>: <span class="ident">parameters</span>.<span class="ident">sysroot</span>,
                 <span class="ident">format</span>,
             })
@@ -1480,39 +1742,23 @@
     };
 
     <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">get_target_triple</span>(<span class="ident">compile_options</span>.<span class="ident">target</span>.<span class="ident">as_deref</span>());
+
     <span class="kw">let</span> <span class="ident">compile_result</span> <span class="op">=</span> <span class="ident">build</span>(
         <span class="ident">files</span>,
         <span class="ident">includes</span>,
         <span class="kw-2">&amp;</span><span class="ident">compile_options</span>,
         <span class="ident">parameters</span>.<span class="ident">encoding</span>,
-        <span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">error_format</span>,
+        <span class="kw-2">&amp;</span><span class="ident">error_format</span>,
         <span class="kw-2">&amp;</span><span class="ident">target</span>,
     )<span class="question-mark">?</span>;
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">link_options</span>) <span class="op">=</span> <span class="ident">link_options</span> {
-        <span class="ident">link</span>(
-            <span class="kw-2">&amp;</span><span class="ident">compile_options</span>.<span class="ident">output</span>,
-            <span class="ident">link_options</span>.<span class="ident">format</span>,
-            <span class="kw-2">&amp;</span><span class="ident">compile_result</span>.<span class="ident">objects</span>,
-            <span class="ident">link_options</span>.<span class="ident">library_pathes</span>,
-            <span class="ident">link_options</span>.<span class="ident">libraries</span>,
-            <span class="kw-2">&amp;</span><span class="ident">target</span>,
-            <span class="ident">link_options</span>.<span class="ident">sysroot</span>,
-        )<span class="question-mark">?</span>;
-    }
-
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">config</span>) <span class="op">=</span> <span class="ident">config_options</span> {
-        <span class="kw">let</span> <span class="ident">hw_config</span> <span class="op">=</span> <span class="ident">hardware_binding::collect_hardware_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">compile_result</span>.<span class="ident">index</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">generated_conf</span> <span class="op">=</span>
-            <span class="ident">hardware_binding::generate_hardware_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">hw_config</span>, <span class="ident">config</span>.<span class="ident">format</span>)<span class="question-mark">?</span>;
-
-        <span class="ident">File::create</span>(<span class="ident">config</span>.<span class="ident">output</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">write_all</span>(<span class="ident">generated_conf</span>.<span class="ident">as_bytes</span>()))
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::GeneralError</span> {
-                <span class="ident">err_no</span>: <span class="ident">diagnostics::ErrNo::general__io_err</span>,
-                <span class="ident">message</span>: <span class="ident">it</span>.<span class="ident">to_string</span>(),
-            })<span class="question-mark">?</span>;
-    }
+    <span class="ident">link_and_create</span>(
+        <span class="ident">link_options</span>,
+        <span class="kw-2">&amp;</span><span class="ident">compile_result</span>,
+        <span class="kw-2">&amp;</span><span class="ident">compile_options</span>,
+        <span class="kw-2">&amp;</span><span class="ident">target</span>,
+        <span class="ident">config_options</span>,
+    )<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }
