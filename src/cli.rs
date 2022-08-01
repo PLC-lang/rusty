@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, Parser};
+use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
@@ -17,6 +17,8 @@ pub type ParameterError = clap::Error;
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
     version,
 )]
+#[clap(propagate_version = true)]
+#[clap(subcommand_negates_reqs = true)]
 pub struct CompileParameters {
     #[clap(
         short,
@@ -104,7 +106,7 @@ pub struct CompileParameters {
         short = 'L',
         help = "Search path for libraries, used for linking"
     )]
-    pub library_pathes: Vec<String>,
+    pub library_paths: Vec<String>,
 
     #[clap(name = "library", long, short = 'l', help = "Library name to link")]
     pub libraries: Vec<String>,
@@ -148,6 +150,31 @@ pub struct CompileParameters {
         default_value = "rich"
     )]
     pub error_format: ErrorFormat,
+
+    #[clap(subcommand)]
+    pub commands: Option<SubCommands>,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum SubCommands {
+    /// Uses build description file.
+    /// Supported format: json                              build <plc.json> --sysroot <sysroot> --target <target-triple>
+    Build {
+        #[clap(
+            parse(try_from_str = validate_config)
+        )]
+        build_config: Option<String>,
+
+        #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
+        sysroot: Option<String>,
+
+        #[clap(
+            long,
+            name = "target-triple",
+            help = "A target-tripple supported by LLVM"
+        )]
+        target: Option<String>,
+    },
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -248,7 +275,7 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use super::CompileParameters;
+    use super::{CompileParameters, SubCommands};
     use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
     use clap::ErrorKind;
     use pretty_assertions::assert_eq;
@@ -552,7 +579,7 @@ mod cli_tests {
             "-L/tmp"
         ))
         .unwrap();
-        assert_eq!(parameters.library_pathes, vec!["xxx", "test", ".", "/tmp"]);
+        assert_eq!(parameters.library_paths, vec!["xxx", "test", ".", "/tmp"]);
     }
 
     #[test]
@@ -582,6 +609,32 @@ mod cli_tests {
         match CompileParameters::parse(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
             Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
+        }
+    }
+
+    #[test]
+    fn build_subcommand() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "build",
+            "src/ProjectPlc.json",
+            "--sysroot",
+            "systest",
+            "--target",
+            "targettest"
+        ))
+        .unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Build {
+                    build_config,
+                    sysroot,
+                    target,
+                } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    assert_eq!(sysroot, Some("systest".to_string()));
+                    assert_eq!(target, Some("targettest".to_string()));
+                }
+            };
         }
     }
 
