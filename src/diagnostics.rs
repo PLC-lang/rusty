@@ -1,4 +1,5 @@
 use std::{
+    error::Error,
     fmt::{self, Display},
     ops::Range,
 };
@@ -89,6 +90,15 @@ pub enum ErrNo {
 
     //linker
     linker__generic_error,
+}
+
+impl<T: Error> From<T> for Diagnostic {
+    fn from(e: T) -> Self {
+        Diagnostic::GeneralError {
+            message: e.to_string(),
+            err_no: ErrNo::general__io_err,
+        }
+    }
 }
 
 impl Diagnostic {

@@ -1,8 +1,6 @@
 {
     "files" : [
-        "examples/hw.st",
-        "examples/hello_world.st",
-        "examples/ExternalFunctions.st"
+        "examples/simple_program.st"
     ],
     "compile_type" : "Shared",
     "optimization" : "Default",
@@ -23,5 +21,13 @@
                 "examples/hello_world.st"
             ]
         }
+    ],
+    "package_commands" : [
+        "cd examples",
+        "mkdir CommandTestFolder",
+        "ls",
+        "pwd",
+        "cd CommandFolder",
+        "touch NewFile.txt"
     ]
 }
