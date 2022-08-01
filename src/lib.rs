@@ -604,13 +604,11 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         } => {
             let root = env::current_dir()?;
             let project = get_project_from_file(build_config)?;
-            if !Path::new("build").is_dir() && build_location.is_none() {
-                Command::new("mkdir").arg("build").output()?;
-            }
-            if build_location.is_none() {
-                env::set_current_dir("build")?;
-            } else {
-                env::set_current_dir(build_location.unwrap())?;
+            if let Some(location) = build_location.as_deref().or(Some("build")) {
+                if !Path::new(location).is_dir() {
+                    std::fs::create_dir_all(location)?;
+                }
+                env::set_current_dir(location)?;
             }
             let builddir = env::current_dir()?;
             let number_nested_path = get_number_nested_path(root, builddir);
@@ -745,10 +743,10 @@ fn copy_libs_to_build(libraries: &Option<Vec<Libraries>>) -> Result<(), Diagnost
     if let Some(libraries) = libraries {
         for library in libraries {
             if library.package == PackageFormat::Copy {
-                Command::new("cp")
-                    .arg(format!("{}lib{}.so", library.path, library.name))
-                    .arg(format!("lib{}.so", library.name))
-                    .output()?;
+                std::fs::copy(
+                    format!("{}lib{}.so", library.path, library.name),
+                    format!("lib{}.so", library.name),
+                )?;
             }
         }
     }
