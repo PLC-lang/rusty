@@ -17,6 +17,8 @@ fn build_to_temp() -> Result<(), Diagnostic> {
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
         get_test_file("json/build_description_file.json"),
+        "--target",
+        "x86_64-unkown-linux-gnu",
         "--build-location",
         dir.display()
     ))
@@ -29,9 +31,9 @@ fn build_to_temp() -> Result<(), Diagnostic> {
     let mut new_build = File::open(&format!("{}/proj.so", dir.display()))?;
     let mut old_build = File::open(&get_test_file("json/test_build/proj.so"))?;
 
-    assert!(diff_files(&mut new_build, &mut old_build));
     assert!(Path::new(&format!("{}/libcopy.so", dir.display())).is_file());
     assert!(Path::new(&format!("{}/proj.so", dir.display())).is_file());
+    assert!(diff_files(&mut new_build, &mut old_build));
 
     Ok(())
 }
@@ -47,6 +49,8 @@ pub fn diff_files(f1: &mut File, f2: &mut File) -> bool {
                 Err(_) => return false,
                 Ok(f2_read_len) => {
                     if f1_read_len != f2_read_len {
+                        println!("uneven found");
+
                         return false;
                     }
                     if f1_read_len == 0 {
