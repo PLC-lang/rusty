@@ -5,10 +5,6 @@ use std::{ffi::OsStr, path::Path};
 
 use crate::{ConfigFormat, ErrorFormat, FormatOption};
 
-// => Set the default output format here:
-const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
-const DEFAULT_OUTPUT_NAME: &str = "out";
-
 pub type ParameterError = clap::Error;
 
 #[derive(Parser, Debug)]
@@ -176,6 +172,9 @@ pub enum SubCommands {
         #[clap(name = "build-location", long)]
         build_location: Option<String>,
 
+        #[clap(name = "lib-location", long)]
+        lib_location: Option<String>,
+
         #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
         sysroot: Option<String>,
 
@@ -237,46 +236,27 @@ impl CompileParameters {
     }
 
     /// return the selected output format, or the default if none.
-    pub fn output_format_or_default(&self) -> Option<FormatOption> {
+    pub fn output_format_or_default(&self) -> FormatOption {
         // structop makes sure only one or zero format flags are
         // selected. So if none are selected, the default is chosen
-
-        if self.check_only {
-            // if the --check flag is selected, we aren't supposted
-            // to generate any code, so none of the format options
-            // is valid.
-            return None;
-        }
-
-        Some(self.output_format().unwrap_or(DEFAULT_FORMAT))
+        self.output_format().unwrap_or_default()
     }
 
     /// return the output filename with the correct ending
-    pub fn output_name(&self) -> Option<String> {
-        let out_format = self.output_format_or_default();
-
-        if let Some(n) = &self.output {
-            Some(n.to_string())
-        } else {
-            let ending = match out_format {
-                Some(out_format) => match out_format {
-                    FormatOption::Bitcode => ".bc",
-                    FormatOption::Relocatable => ".o",
-                    FormatOption::Static if self.skip_linking => ".o",
-                    FormatOption::Static => "",
-                    FormatOption::Shared | FormatOption::PIC => ".so",
-                    FormatOption::IR => ".ir",
-                },
-                None => "",
-            };
-
-            let output_name = self.input.first().map(String::as_str);
-            let basename = output_name
-                .and_then(|it| Path::new(it).file_stem())
-                .and_then(OsStr::to_str)
-                .unwrap_or(DEFAULT_OUTPUT_NAME);
-            Some(format!("{}{}", basename, ending))
-        }
+    pub fn output_name(&self) -> String {
+        let input = self
+            .input
+            .first()
+            .map(Path::new)
+            .and_then(Path::file_stem)
+            .and_then(OsStr::to_str)
+            .unwrap_or(crate::DEFAULT_OUTPUT_NAME);
+        crate::get_output_name(
+            self.output.as_deref(),
+            self.output_format_or_default(),
+            self.skip_linking,
+            input,
+        )
     }
 
     pub fn config_format(&self) -> Option<ConfigFormat> {
@@ -361,7 +341,7 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out"))
                 .unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "myout.out".to_string());
+        assert_eq!(parameters.output_name(), "myout.out".to_string());
 
         //long --output
         let parameters = CompileParameters::parse(vec_of_strings!(
@@ -371,33 +351,33 @@ mod cli_tests {
             "myout2.out"
         ))
         .unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "myout2.out".to_string());
+        assert_eq!(parameters.output_name(), "myout2.out".to_string());
     }
 
     #[test]
     fn test_default_output_names() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "alpha.ir".to_string());
+        assert_eq!(parameters.output_name(), "alpha.ir".to_string());
 
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "bravo.so".to_string());
+        assert_eq!(parameters.output_name(), "bravo.so".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "charlie.so".to_string());
+        assert_eq!(parameters.output_name(), "charlie.so".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static", "-c"))
                 .unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "delta.o".to_string());
+        assert_eq!(parameters.output_name(), "delta.o".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "echo.bc".to_string());
+        assert_eq!(parameters.output_name(), "echo.bc".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "echo".to_string());
+        assert_eq!(parameters.output_name(), "echo".to_string());
     }
 
     #[test]
@@ -450,47 +430,32 @@ mod cli_tests {
     #[test]
     fn test_default_format() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--check")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), None);
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
 
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
-        assert_eq!(
-            parameters.output_format_or_default(),
-            Some(FormatOption::IR)
-        );
+        assert_eq!(parameters.output_format_or_default(), FormatOption::IR);
 
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
-        assert_eq!(
-            parameters.output_format_or_default(),
-            Some(FormatOption::Shared)
-        );
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
-        assert_eq!(
-            parameters.output_format_or_default(),
-            Some(FormatOption::PIC)
-        );
+        assert_eq!(parameters.output_format_or_default(), FormatOption::PIC);
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
                 .unwrap();
-        assert_eq!(
-            parameters.output_format_or_default(),
-            Some(FormatOption::Static)
-        );
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
-        assert_eq!(
-            parameters.output_format_or_default(),
-            Some(FormatOption::Bitcode)
-        );
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Bitcode);
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
         assert_eq!(
             parameters.output_format_or_default(),
-            Some(super::DEFAULT_FORMAT)
+            FormatOption::default()
         );
     }
 
@@ -630,6 +595,8 @@ mod cli_tests {
             "src/ProjectPlc.json",
             "--build-location",
             "bin/build",
+            "--lib-location",
+            "bin/build/libs",
             "--sysroot",
             "systest",
             "--target",
@@ -641,6 +608,7 @@ mod cli_tests {
                 SubCommands::Build {
                     build_config,
                     build_location,
+                    lib_location,
                     sysroot,
                     target,
                 } => {
@@ -648,6 +616,7 @@ mod cli_tests {
                     assert_eq!(sysroot, Some("systest".to_string()));
                     assert_eq!(target, Some("targettest".to_string()));
                     assert_eq!(build_location, Some("bin/build".to_string()));
+                    assert_eq!(lib_location, Some("bin/build/libs".to_string()));
                 }
             };
         }

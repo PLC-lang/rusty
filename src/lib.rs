@@ -17,6 +17,7 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
 use std::process::Command;
@@ -74,6 +75,8 @@ extern crate pretty_assertions;
 
 extern crate shell_words;
 
+pub(crate) const DEFAULT_OUTPUT_NAME: &str = "out";
+
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
     Static,
@@ -82,6 +85,12 @@ pub enum FormatOption {
     Relocatable,
     Bitcode,
     IR,
+}
+
+impl Default for FormatOption {
+    fn default() -> Self {
+        FormatOption::Static
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
@@ -126,6 +135,12 @@ struct ConfigurationOptions {
 pub enum ErrorFormat {
     Rich,
     Clang,
+}
+
+impl Default for ErrorFormat {
+    fn default() -> Self {
+        ErrorFormat::Rich
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize)]
@@ -574,7 +589,7 @@ fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
 ) -> Result<Vec<FilePath>, Diagnostic> {
     let mut sources = Vec::new();
     for input in inputs {
-        let paths = glob(&input).map_err(|e| {
+        let paths = glob(input).map_err(|e| {
             Diagnostic::param_error(&format!("Failed to read glob pattern: {}, ({})", input, e))
         })?;
 
@@ -614,31 +629,45 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         SubCommands::Build {
             build_config,
             build_location,
+            lib_location,
             sysroot,
             target,
         } => {
             let build_config = build_config
-                .or(Some("plc.json".to_string()))
+                .as_deref()
+                .or(Some("plc.json"))
                 .map(PathBuf::from)
                 .map(|it| env::current_dir().map(|cd| cd.join(it)))
                 .unwrap()?;
             let root = build_config
                 .parent()
                 .map(|it| Ok(it.to_path_buf()))
-                .unwrap_or_else(|| env::current_dir())?;
+                .unwrap_or_else(env::current_dir)?;
             let project = get_project_from_file(&build_config, &root)?;
-            if let Some(location) = build_location.as_deref().or(Some("build")) {
-                if !Path::new(location).is_dir() {
-                    std::fs::create_dir_all(location)?;
-                }
-                env::set_current_dir(location)?;
+            let location = Path::new(build_location.as_deref().unwrap_or("build"));
+            if !location.is_dir() {
+                std::fs::create_dir_all(location)?;
             }
+            env::set_current_dir(location)?;
             let project = change_filepath_to_absolute(root, project);
 
-            copy_libs_to_build(&project.libraries)?;
+            let lib_location = lib_location.as_deref().map(Path::new).unwrap_or(location);
+            copy_libs_to_build(&project.libraries, lib_location)?;
 
+            let input = project
+                .files
+                .first()
+                .and_then(|it| it.file_stem())
+                .and_then(OsStr::to_str)
+                .unwrap_or("out");
             let compile_options = CompileOptions {
-                output: project.output.unwrap_or(String::from("proj.so")),
+                //Skip linking is always false for the build subcommand
+                output: get_output_name(
+                    project.output.as_deref(),
+                    project.compile_type.unwrap_or_default(),
+                    false,
+                    input,
+                ),
                 target,
                 format: project.compile_type,
                 optimization: if project.optimization.is_some() {
@@ -654,9 +683,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                         .libraries
                         .iter()
                         .flat_map(|it| &it.include_path)
-                        .map(|it| it.as_os_str().to_str())
-                        .filter(Option::is_some)
-                        .map(Option::unwrap)
+                        .flat_map(|it| it.as_os_str().to_str())
                         .collect::<Vec<_>>(),
                 )?
             } else {
@@ -685,8 +712,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
 
             let target = get_target_triple(compile_options.target.as_deref());
 
-            let error_format = project.error_format.unwrap_or(ErrorFormat::Clang);
-
             let files = create_file_paths(
                 &project
                     .files
@@ -700,7 +725,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 includes,
                 &compile_options,
                 parameters.encoding,
-                &error_format,
+                &project.error_format,
                 &target,
             )?;
 
@@ -774,12 +799,12 @@ fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     Ok(())
 }
 
-fn copy_libs_to_build(libraries: &[Libraries]) -> Result<(), Diagnostic> {
+fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<(), Diagnostic> {
     for library in libraries {
         if library.package == PackageFormat::Copy {
             std::fs::copy(
                 library.path.join(format!("lib{}.so", library.name)),
-                format!("lib{}.so", library.name),
+                lib_location.join(format!("lib{}.so", library.name)),
             )?;
         }
     }
@@ -838,9 +863,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
                 .collect::<Vec<_>>(),
         )?
     };
-    let output = parameters
-        .output_name()
-        .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
+    let output = parameters.output_name();
     let out_format = parameters.output_format_or_default();
 
     let config_options = parameters
@@ -856,7 +879,11 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     let compile_options = CompileOptions {
         output,
         target: parameters.target,
-        format: out_format,
+        format: if parameters.check_only {
+            None
+        } else {
+            Some(out_format)
+        },
         optimization: parameters.optimization,
     };
 
@@ -870,17 +897,13 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
             .collect::<Vec<_>>(),
     )?;
 
-    let link_options = if let Some(format) = out_format {
-        if !parameters.skip_linking {
-            Some(LinkOptions {
-                libraries: parameters.libraries,
-                library_pathes: parameters.library_paths,
-                sysroot: parameters.sysroot,
-                format,
-            })
-        } else {
-            None
-        }
+    let link_options = if !parameters.skip_linking && !parameters.check_only {
+        Some(LinkOptions {
+            libraries: parameters.libraries,
+            library_pathes: parameters.library_paths,
+            sysroot: parameters.sysroot,
+            format: out_format,
+        })
     } else {
         None
     };
@@ -1022,6 +1045,31 @@ pub fn link(
         }
     }
     Ok(())
+}
+
+/// Returns an output name with the correct extension
+/// If an output name is already given, this method returns it, otherwise it builds the name from the input and format
+pub fn get_output_name(
+    output_name: Option<&str>,
+    out_format: FormatOption,
+    skip_linking: bool,
+    input: &str,
+) -> String {
+    match output_name {
+        Some(n) => n.to_string(),
+        _ => {
+            let ending = match out_format {
+                FormatOption::Bitcode => ".bc",
+                FormatOption::Relocatable => ".o",
+                FormatOption::Static if skip_linking => ".o",
+                FormatOption::Static => "",
+                FormatOption::Shared | FormatOption::PIC => ".so",
+                FormatOption::IR => ".ir",
+            };
+
+            format!("{}{}", output_name.unwrap_or(input), ending)
+        }
+    }
 }
 
 #[cfg(test)]

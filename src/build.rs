@@ -28,7 +28,8 @@ pub struct Proj {
     pub compile_type: Option<FormatOption>,
     pub optimization: Option<OptimizationLevel>,
     pub output: Option<String>,
-    pub error_format: Option<ErrorFormat>,
+    #[serde(default)]
+    pub error_format: ErrorFormat,
     #[serde(default)]
     pub libraries: Vec<Libraries>,
     #[serde(default)]
@@ -68,7 +69,6 @@ mod tests {
     use std::path::PathBuf;
     use std::vec;
 
-    use crate::build::get_project_from_file;
     use crate::ErrorFormat;
     use crate::{FormatOption, OptimizationLevel};
 
@@ -82,7 +82,7 @@ mod tests {
             compile_type: Some(FormatOption::Shared),
             optimization: Some(OptimizationLevel::Default),
             output: Some(String::from("proj.so")),
-            error_format: Some(ErrorFormat::Rich),
+            error_format: ErrorFormat::Rich,
             libraries: vec![
                 Libraries {
                     name: String::from("copy"),
@@ -99,9 +99,36 @@ mod tests {
             ],
             package_commands: vec![],
         };
-        let proj = get_project_from_file(
-            &PathBuf::from("tests/integration/data/json/build_description_file.json"),
-            &PathBuf::from("tests/integration/data/json"),
+        let proj: Proj = serde_json::from_str(
+            r#"
+            {
+                "files" : [
+                    "simple_program.st"
+                ],
+                "compile_type" : "Shared",
+                "optimization" : "Default",
+                "output" : "proj.so",
+                "error_format": "Rich",
+                "libraries" : [
+                    {
+                        "name" : "copy",
+                        "path" : "libs/",
+                        "package" : "Copy",
+                        "include_path" : [
+                            "simple_program.st"
+                        ]
+                    },
+                    {
+                        "name" : "nocopy",
+                        "path" : "libs/",
+                        "package" : "System",
+                        "include_path" : [
+                            "simple_program.st"
+                        ]
+                    }
+                ]
+            }
+        "#,
         )
         .unwrap();
 
