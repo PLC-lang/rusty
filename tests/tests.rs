@@ -37,6 +37,7 @@ mod correctness {
 
 mod integration {
     mod external_files;
+    mod json_file;
     mod linking;
     mod multi_files;
 }

@@ -1,0 +1,27 @@
+{
+    "files" : [
+        "simple_program.st"
+    ],
+    "compile_type" : "Shared",
+    "optimization" : "Default",
+    "output" : "proj.so",
+    "error_format": "Rich",
+    "libraries" : [
+        {
+            "name" : "copy",
+            "path" : "libs/",
+            "package" : "Copy",
+            "include_path" : [
+                "simple_program.st"
+            ]
+        },
+        {
+            "name" : "nocopy",
+            "path" : "libs/",
+            "package" : "System",
+            "include_path" : [
+                "simple_program.st"
+            ]
+        }
+    ]
+}

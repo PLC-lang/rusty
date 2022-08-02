@@ -75,7 +75,7 @@ Similarly to specifying an output file via the `-o` or `--output` option, in the
 
 ### target
 
-To build and compile [structured text](https://en.wikipedia.org/wiki/Structured_text) for the rigth platform we need to specify the `target`. As `rustyc` is using [LLVM](https://en.wikipedia.org/wiki/LLVM) a target-tripple supported by LLVM needs to be selected. The default `target` is `x86_64-linux-gnu`.
+To build and compile [structured text](https://en.wikipedia.org/wiki/Structured_text) for the rigth platform we need to specify the `target`. As `rustyc` is using [LLVM](https://en.wikipedia.org/wiki/LLVM) a target-tripple supported by LLVM needs to be selected. The default `target` is the host machine's target. So if a dev container on an `x86_64-docker` is used the target is `x86_64-linux-gnu`.
 
 
 ### compile_type
