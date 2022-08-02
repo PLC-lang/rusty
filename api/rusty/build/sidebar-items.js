@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_project_from_file",""],["string_to_filepath",""]],"struct":[["Libraries",""],["Proj",""]]});
+initSidebarItems({"enum":[["PackageFormat",""]],"fn":[["get_project_from_file",""]],"struct":[["Libraries",""],["Proj",""]]});

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/os_str_bytes-6.1.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/os_str_bytes-6.2.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -435,6 +435,26 @@
 <span id="430">430</span>
 <span id="431">431</span>
 <span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This crate allows interacting with the data stored by [`OsStr`] and</span>
 <span class="doccomment">//! [`OsString`], without resorting to panics or corruption for invalid UTF-8.</span>
 <span class="doccomment">//! Thus, methods can be used that are already defined on [`[u8]`][slice] and</span>
@@ -510,7 +530,7 @@
 <span class="doccomment">//!   For more information, see [`RawOsStr`][memchr complexity].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! - **raw\_os\_str** -</span>
-<span class="doccomment">//!   Enables use of [`RawOsStr`] and [`RawOsString`].</span>
+<span class="doccomment">//!   Provides [`RawOsStr`] and [`RawOsString`].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Optional Features</span>
 <span class="doccomment">//!</span>
@@ -544,12 +564,15 @@
 <span class="doccomment">//! # Examples</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
+<span class="doccomment">//! # use std::io;</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # #[cfg(feature = &quot;raw_os_str&quot;)]</span>
+<span class="doccomment">//! # {</span>
 <span class="doccomment">//! # #[cfg(any())]</span>
 <span class="doccomment">//! use std::env;</span>
 <span class="doccomment">//! use std::fs;</span>
-<span class="doccomment">//! # use std::io;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! use os_str_bytes::OsStrBytes;</span>
+<span class="doccomment">//! use os_str_bytes::RawOsStr;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # mod env {</span>
 <span class="doccomment">//! #   use std::env;</span>
@@ -563,12 +586,13 @@
 <span class="doccomment">//! # }</span>
 <span class="doccomment">//! #</span>
 <span class="doccomment">//! for file in env::args_os().skip(1) {</span>
-<span class="doccomment">//!     if file.to_raw_bytes().first() != Some(&amp;b&#39;-&#39;) {</span>
+<span class="doccomment">//!     if !RawOsStr::new(&amp;file).starts_with(&#39;-&#39;) {</span>
 <span class="doccomment">//!         let string = &quot;Hello, world!&quot;;</span>
 <span class="doccomment">//!         fs::write(&amp;file, string)?;</span>
 <span class="doccomment">//!         assert_eq!(string, fs::read_to_string(file)?);</span>
 <span class="doccomment">//!     }</span>
 <span class="doccomment">//! }</span>
+<span class="doccomment">//! # }</span>
 <span class="doccomment">//! #</span>
 <span class="doccomment">//! # Ok::&lt;_, io::Error&gt;(())</span>
 <span class="doccomment">//! ```</span>
@@ -616,17 +640,33 @@
     };
 }
 
+<span class="macro">if_raw_str!</span> {
+    <span class="macro">macro_rules!</span> <span class="ident">expect_encoded</span> {
+        ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>:<span class="ident">expr</span> ) =&gt; {
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>.<span class="ident">expect</span>(<span class="string">&quot;invalid raw bytes&quot;</span>)
+        };
+    }
+}
+
 <span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>),
-    <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasm32/mod.rs&quot;</span>
+    <span class="ident">all</span>(<span class="ident">target_family</span> <span class="op">=</span> <span class="string">&quot;wasm&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>),
+    <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasm/mod.rs&quot;</span>
 )]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;windows/mod.rs&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>), <span class="ident">windows</span>)),
+    <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">target_family</span> <span class="op">=</span> <span class="string">&quot;wasm&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>), <span class="ident">windows</span>)),
     <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;common/mod.rs&quot;</span>
 )]</span>
 <span class="kw">mod</span> <span class="ident">imp</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+    <span class="ident">all</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;raw_os_str&quot;</span>,
+        <span class="ident">target_family</span> <span class="op">=</span> <span class="string">&quot;wasm&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>,
+    ),
+    <span class="ident">windows</span>,
+))]</span>
 <span class="kw">mod</span> <span class="ident">util</span>;
 
 <span class="macro">if_raw_str!</span> {
@@ -661,8 +701,8 @@
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">EncodingError</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">fmt</span>(<span class="ident">formatter</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
@@ -709,7 +749,7 @@
 
     <span class="doccomment">/// Converts a platform-native string into an equivalent byte slice.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned bytes string will use an [unspecified encoding].</span>
+    <span class="doccomment">/// The returned byte string will use an [unspecified encoding].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>

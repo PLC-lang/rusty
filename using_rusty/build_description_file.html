@@ -142,7 +142,97 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="build-descrpition-file"><a class="header" href="#build-descrpition-file">Build descrpition File</a></h1>
+                        <h1 id="build-description-file"><a class="header" href="#build-description-file">Build description File</a></h1>
+<p>In addition to the comprehensive help, <code>rustyc</code> offers a build description file, that simplifies the build process. Instead of having numerous inline arguments, using the build description file makes passing the arguments easier and neater. The build description file needs to be safed as a <a href="https://en.wikipedia.org/wiki/JSON">json</a> format.</p>
+<p><code>rustyc build [Config]</code></p>
+<p>Note that if <code>rustyc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path. The default location for the build file is the current directory. The command for building with an additional path looks like this:</p>
+<p><code>rustyc build src/plc.json</code></p>
+<h1 id="plcjson"><a class="header" href="#plcjson">Plc.json</a></h1>
+<p>For the build description file to work, the build description file must be the <a href="https://en.wikipedia.org/wiki/JavaScript_Object_Notation">json</a> format. All the keys used in the build description file are described in the following sections. </p>
+<h2 id="files"><a class="header" href="#files">files</a></h2>
+<p>The key <code>files</code> is the equivalent to the <code>input</code> parameter, which adds all the <code>.st</code> files that needs to be compiled. The value of <code>files</code> is an array of strings, definied as followed:</p>
+<pre><code class="language-json">&quot;files&quot; : [
+    &quot;examples/hello_world.st&quot;,
+    &quot;examples/hw.st&quot;
+]
+</code></pre>
+<h2 id="optimization"><a class="header" href="#optimization">optimization</a></h2>
+<p><code>rustyc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>agressive</code>).
+To use an optimization, the key <code>optimization</code> is required:</p>
+<ul>
+<li><code>&quot;optimization&quot; : &quot;none&quot;</code></li>
+<li><code>&quot;optimization&quot; : &quot;less&quot;</code></li>
+<li><code>&quot;optimization&quot; : &quot;default&quot;</code></li>
+<li><code>&quot;optimization&quot; : &quot;aggressive&quot;</code></li>
+</ul>
+<p>By default <code>rustyc</code> will use <code>default</code> which corresponds to clang's <code>-o2</code>.</p>
+<h2 id="error_format"><a class="header" href="#error_format">error_format</a></h2>
+<p><code>rustyc</code> offers 2 levels of formatting errors. To specify which error format is wanted, the key <code>error_format</code> is required:</p>
+<ul>
+<li><code>&quot;error_format&quot; : &quot;Clang&quot;</code>   This is used to get fewer error messaged</li>
+<li><code>&quot;error_format&quot; : &quot;Rich&quot;</code>    This is used to get a verbose error description. </li>
+</ul>
+<h2 id="libraries"><a class="header" href="#libraries">libraries</a></h2>
+<p>To link several executables <code>rustyc</code> has the option to add libraries and automatically build and like them together. if no compile type has been selected <code>rustyc</code> will link the files on default.</p>
+<pre><code class="language-json">&quot;libraries&quot; : [
+    {
+        &quot;name&quot; : &quot;iec61131std&quot;,
+        &quot;path&quot; : &quot;path/to/lib/&quot;,
+        &quot;include_path&quot; : [
+            &quot;examples/hw.st&quot;,
+            &quot;examples/hello_world.st&quot;
+        ]
+    }
+]
+</code></pre>
+<h2 id="output"><a class="header" href="#output">output</a></h2>
+<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option, in the build file we use <code>&quot;output&quot; : &quot;output.so&quot;</code> to define the output file. The default location is likewise to the location for the build file, namely the current directory. </p>
+<h2 id="optional-keys"><a class="header" href="#optional-keys">Optional Keys</a></h2>
+<h3 id="sysroot"><a class="header" href="#sysroot">sysroot</a></h3>
+<p><code>rustyc</code> is using the <code>sysroot</code> key for linking purposes. It is considered to be the root directory for the purpose of locating headers and libraries.</p>
+<h3 id="target"><a class="header" href="#target">target</a></h3>
+<p>To build and compile <a href="https://en.wikipedia.org/wiki/Structured_text">structured text</a> for the rigth platform we need to specify the <code>target</code>. As <code>rustyc</code> is using <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> a target-tripple supported by LLVM needs to be selected. The default <code>target</code> is the host machine's target. So if a dev container on an <code>x86_64-docker</code> is used the target is <code>x86_64-linux-gnu</code>.</p>
+<h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
+<p>There are six options for choosing the <code>compile_type</code>. The valid options are:</p>
+<!-- TODO we should probably describe what each of those options do -->
+<ul>
+<li><code>Static</code> bindings have to be done at compile time</li>
+<li><code>PIC</code> Position Independent Code</li>
+<li><code>Shared</code> (dynamic) binginds will be done dynamically</li>
+<li><code>Relocatable</code> generates Relocatable </li>
+<li><code>Bitcode</code> adds bitcode alongside machine code in executable file</li>
+<li><code>IR</code> Intermediate Representation</li>
+</ul>
+<p>To specify which of the above mentioned compile formats is wanted, it needs to be added to the build description file as followed: <code>&quot;compile_type&quot; : &quot;Shared&quot;</code>.</p>
+<h1 id="example"><a class="header" href="#example">Example</a></h1>
+<pre><code class="language-json">{
+    &quot;files&quot; : [
+        &quot;examples/hw.st&quot;,
+        &quot;examples/hello_world.st&quot;,
+        &quot;examples/ExternalFunctions.st&quot;
+    ],
+    &quot;compile_type&quot; : &quot;Shared&quot;,
+    &quot;optimization&quot; : &quot;Default&quot;,
+    &quot;output&quot; : &quot;proj.so&quot;,
+    &quot;error_format&quot;: &quot;Rich&quot;,
+    &quot;libraries&quot; : [
+        {
+            &quot;name&quot; : &quot;iec61131std&quot;,
+            &quot;path&quot; : &quot;path/to/lib&quot;,
+            &quot;include_path&quot; : [
+                &quot;examples/hw.st&quot;
+            ]
+        },
+        {
+            &quot;name&quot; : &quot;other_lib&quot;,
+            &quot;path&quot; : &quot;path/to/lib&quot;,
+            &quot;include_path&quot; : [
+                &quot;examples/hello_world.st&quot;
+            ]
+        }
+    ]
+}
+</code></pre>
 
                     </main>
 

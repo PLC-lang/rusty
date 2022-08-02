@@ -78,11 +78,11 @@
         <span class="prelude-val">Ok</span>(<span class="ident">cp</span>) =&gt; {
             <span class="kw">if</span> <span class="ident">cp</span>.<span class="ident">commands</span>.<span class="ident">is_some</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">build_with_subcommand</span>(<span class="ident">cp</span>) {
-                    <span class="macro">println!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <span class="ident">msg</span>);
+                    <span class="macro">eprintln!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <span class="ident">msg</span>);
                     <span class="ident">std::process::exit</span>(<span class="number">1</span>);
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">build_with_params</span>(<span class="ident">cp</span>) {
-                <span class="macro">println!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <span class="ident">msg</span>);
+                <span class="macro">eprintln!</span>(<span class="string">&quot;Error: {:?}&quot;</span>, <span class="ident">msg</span>);
                 <span class="ident">std::process::exit</span>(<span class="number">1</span>);
             }
         }
