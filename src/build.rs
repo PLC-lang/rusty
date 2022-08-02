@@ -27,11 +27,12 @@ pub struct Proj {
     pub files: Vec<PathBuf>,
     pub compile_type: Option<FormatOption>,
     pub optimization: Option<OptimizationLevel>,
-    pub output: String,
-    pub error_format: ErrorFormat,
+    pub output: Option<String>,
+    pub error_format: Option<ErrorFormat>,
     #[serde(default)]
     pub libraries: Vec<Libraries>,
-    pub package_commands: Option<Vec<String>>,
+    #[serde(default)]
+    pub package_commands: Vec<String>,
 }
 
 pub fn get_project_from_file(build_config: &Path, root: &Path) -> Result<Proj, Diagnostic> {
@@ -80,8 +81,8 @@ mod tests {
             files: vec![PathBuf::from("simple_program.st")],
             compile_type: Some(FormatOption::Shared),
             optimization: Some(OptimizationLevel::Default),
-            output: String::from("proj.so"),
-            error_format: ErrorFormat::Rich,
+            output: Some(String::from("proj.so")),
+            error_format: Some(ErrorFormat::Rich),
             libraries: vec![
                 Libraries {
                     name: String::from("copy"),
@@ -96,7 +97,7 @@ mod tests {
                     include_path: vec![PathBuf::from("simple_program.st")],
                 },
             ],
-            package_commands: Some(vec![]),
+            package_commands: vec![],
         };
         let proj = get_project_from_file(
             &PathBuf::from("tests/integration/data/json/build_description_file.json"),

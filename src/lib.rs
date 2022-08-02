@@ -638,7 +638,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             copy_libs_to_build(&project.libraries)?;
 
             let compile_options = CompileOptions {
-                output: project.output,
+                output: project.output.unwrap_or_else(|| String::from("proj.so")),
                 target,
                 format: project.compile_type,
                 optimization: if project.optimization.is_some() {
@@ -685,6 +685,8 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
 
             let target = get_target_triple(compile_options.target.as_deref());
 
+            let error_format = project.error_format.unwrap_or_else(|| ErrorFormat::Clang);
+
             let files = create_file_paths(
                 &project
                     .files
@@ -698,7 +700,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 includes,
                 &compile_options,
                 parameters.encoding,
-                &project.error_format,
+                &error_format,
                 &target,
             )?;
 
@@ -710,8 +712,8 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 config_options,
             )?;
 
-            if let Some(commands) = project.package_commands {
-                execute_commands(commands)?;
+            if !project.package_commands.is_empty() {
+                execute_commands(project.package_commands)?;
             }
         }
     }
