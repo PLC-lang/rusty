@@ -256,7 +256,7 @@ impl CompileParameters {
             self.output_format_or_default(),
             self.skip_linking,
             input,
-            self.target.as_deref()
+            self.target.as_deref(),
         )
     }
 
