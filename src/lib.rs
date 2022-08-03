@@ -24,11 +24,12 @@ use std::process::Command;
 use std::str::FromStr;
 use std::{env, fs};
 
-use build::{get_project_from_file, Libraries, PackageFormat, Proj};
+use build::{get_project_from_file, Libraries, PackageFormat};
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
 use inkwell::passes::PassBuilderOptions;
+use regex::{Captures, Regex};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -643,16 +644,24 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 .parent()
                 .map(|it| Ok(it.to_path_buf()))
                 .unwrap_or_else(env::current_dir)?;
-            let project = get_project_from_file(&build_config, &root)?;
+            env::set_var("PROJECT_ROOT", &root);
             let location = Path::new(build_location.as_deref().unwrap_or("build"));
             if !location.is_dir() {
                 std::fs::create_dir_all(location)?;
             }
-            env::set_current_dir(location)?;
-            let project = change_filepath_to_absolute(root, project);
+            let location = make_absolute(location, &root);
+            env::set_var("BUILD_LOCATION", &location);
+            env::set_current_dir(&location)?;
+            let lib_location = lib_location
+                .as_deref()
+                .filter(|it| !it.is_empty())
+                .map(Path::new)
+                .unwrap_or(&location);
+            let lib_location = make_absolute(lib_location, &root);
+            env::set_var("LIB_LOCATION", &lib_location);
+            let project = get_project_from_file(&build_config, &root)?.to_resolved(&root);
 
-            let lib_location = lib_location.as_deref().map(Path::new).unwrap_or(location);
-            copy_libs_to_build(&project.libraries, lib_location)?;
+            copy_libs_to_build(&project.libraries, &lib_location)?;
 
             let input = project
                 .files
@@ -745,41 +754,31 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
     Ok(())
 }
 
-fn change_filepath_to_absolute(root: PathBuf, project: Proj) -> Proj {
-    Proj {
-        files: change_vec_path_to_absolute(&project.files, &root),
-        libraries: change_vec_path_for_libraries(project.libraries, &root),
-        ..project
+fn make_absolute(location: &Path, root: &Path) -> PathBuf {
+    if location.is_absolute() {
+        location.to_owned()
+    } else {
+        root.join(location)
     }
-}
-
-fn change_vec_path_for_libraries(libraries: Vec<Libraries>, root: &Path) -> Vec<Libraries> {
-    let mut result = vec![];
-    for library in libraries {
-        result.push(Libraries {
-            path: root.join(library.path),
-            include_path: change_vec_path_to_absolute(&library.include_path, root),
-            ..library
-        });
-    }
-    result
-}
-
-fn change_vec_path_to_absolute(items: &Vec<PathBuf>, root: &Path) -> Vec<PathBuf> {
-    let mut result = vec![];
-    for item in items {
-        let path = root.join(item);
-        result.push(path);
-    }
-    result
 }
 
 fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     let root = env::current_dir()?;
     for command in commands {
-        let args = shell_words::split(&command)?;
+        //resolve variables
+        let command = resolve_environment_variables(&command)?;
+        let args = shell_words::split(&command)?
+            .into_iter()
+            .map(|it| {
+                if let Some(stripped) = it.strip_prefix('$') {
+                    env::var(stripped).unwrap_or(it)
+                } else {
+                    it
+                }
+            })
+            .collect::<Vec<_>>();
 
-        if args[0].as_str() == "cd" {
+        if args[0] == "cd" {
             io::stdout().write_all(&[b">>> ", args[0..2].join(" ").as_bytes(), b"\n"].concat())?;
 
             env::set_current_dir(args[1].as_str())?;
@@ -799,9 +798,23 @@ fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     Ok(())
 }
 
+fn resolve_environment_variables(to_replace: &str) -> Result<String, Diagnostic> {
+    let pattern = Regex::new(r"\$(\w+)")?;
+    let result = pattern.replace_all(to_replace, |it: &Captures| {
+        let original = it.get(0).map(|it| it.as_str().to_string()).unwrap();
+        if let Some(var) = it.get(1).map(|it| it.as_str()) {
+            env::var(var).unwrap_or(original)
+        } else {
+            original
+        }
+    });
+    Ok(result.replace('\\', r"\\"))
+}
+
 fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<(), Diagnostic> {
     for library in libraries {
         if library.package == PackageFormat::Copy {
+            env::current_dir()?;
             std::fs::copy(
                 library.path.join(format!("lib{}.so", library.name)),
                 lib_location.join(format!("lib{}.so", library.name)),

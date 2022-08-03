@@ -1,5 +1,7 @@
 use crate::diagnostics::Diagnostic;
 use crate::diagnostics::ErrNo;
+use crate::make_absolute;
+use crate::resolve_environment_variables;
 use crate::ErrorFormat;
 use crate::FormatOption;
 use crate::OptimizationLevel;
@@ -23,7 +25,7 @@ pub struct Libraries {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Proj {
+pub struct Project {
     pub files: Vec<PathBuf>,
     pub compile_type: Option<FormatOption>,
     pub optimization: Option<OptimizationLevel>,
@@ -36,12 +38,46 @@ pub struct Proj {
     pub package_commands: Vec<String>,
 }
 
-pub fn get_project_from_file(build_config: &Path, root: &Path) -> Result<Proj, Diagnostic> {
+impl Project {
+    /// Converts all pathes to absolute
+    pub fn to_resolved(self, root: &Path) -> Self {
+        Project {
+            files: self
+                .files
+                .into_iter()
+                .map(|it| make_absolute(&it, root))
+                .collect(),
+            libraries: self
+                .libraries
+                .into_iter()
+                .map(|it| Libraries {
+                    path: make_absolute(&it.path, root),
+                    include_path: it
+                        .include_path
+                        .into_iter()
+                        .map(|it| make_absolute(&it, root))
+                        .collect(),
+                    ..it
+                })
+                .collect(),
+            ..self
+        }
+    }
+
+    /// Retuns a project from the given string (in json format)
+    /// All environment variables (marked with `$VAR_NAME`) that can be resovled at this time are resolved before the conversion
+    pub fn try_parse(content: &str) -> Result<Self, Diagnostic> {
+        let content = resolve_environment_variables(content)?;
+        serde_json::from_str(&content).map_err(Into::into)
+    }
+}
+
+pub fn get_project_from_file(build_config: &Path, root: &Path) -> Result<Project, Diagnostic> {
     //read from file
     let content = fs::read_to_string(build_config)?;
 
     //convert file to Object
-    let project: Proj = serde_json::from_str(&content)?;
+    let project = Project::try_parse(&content)?;
 
     check_libs_exist(&project.libraries, root)?;
     Ok(project)
@@ -67,17 +103,17 @@ fn check_libs_exist(libraries: &[Libraries], root: &Path) -> Result<(), Diagnost
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
-    use std::vec;
+    use std::{env, vec};
 
     use crate::ErrorFormat;
     use crate::{FormatOption, OptimizationLevel};
 
     use super::Libraries;
-    use super::{PackageFormat, Proj};
+    use super::{PackageFormat, Project};
 
     #[test]
     fn check_build_struct_from_file() {
-        let test_project = Proj {
+        let test_project = Project {
             files: vec![PathBuf::from("simple_program.st")],
             compile_type: Some(FormatOption::Shared),
             optimization: Some(OptimizationLevel::Default),
@@ -99,7 +135,7 @@ mod tests {
             ],
             package_commands: vec![],
         };
-        let proj: Proj = serde_json::from_str(
+        let proj = Project::try_parse(
             r#"
             {
                 "files" : [
@@ -146,5 +182,43 @@ mod tests {
         assert_eq!(testproj_lib[1].path, proj_lib[1].path);
         assert_eq!(testproj_lib[1].package, proj_lib[1].package);
         assert_eq!(testproj_lib[1].include_path, proj_lib[1].include_path);
+    }
+
+    #[test]
+    fn project_creation_resolves_environment_vars() {
+        //Add env
+        env::set_var("test_var", "test_value");
+        let proj = Project::try_parse(
+            r#"
+            {
+                "files" : [
+                    "simple_program.st"
+                ],
+                "output" : "$test_var.so"
+            }
+        "#,
+        )
+        .unwrap();
+
+        assert_eq!("test_value.so", &proj.output.unwrap());
+    }
+
+    #[test]
+    fn project_resolve_makes_pathes_absolute() {
+        let root = PathBuf::from("root");
+        //Add env
+        let proj = Project::try_parse(
+            r#"
+            {
+                "files" : [
+                    "simple_program.st"
+                ]
+            }
+        "#,
+        )
+        .unwrap()
+        .to_resolved(&root);
+
+        assert_eq!(root.join("simple_program.st"), proj.files[0]);
     }
 }
