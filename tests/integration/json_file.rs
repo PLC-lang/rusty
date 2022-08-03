@@ -54,6 +54,7 @@ fn build_with_separate_lib_folder() {
 }
 
 #[test]
+#[cfg_attr(target_os = "windows", ignore)]
 fn build_with_target_but_without_sysroot() {
     let dir = temp_dir();
     let parameters = CompileParameters::parse(vec_of_strings!(
