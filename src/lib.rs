@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-//! A Structured Text LLVM Frontent
+//! A St&ructured Text LLVM Frontent
 //!
 //! RuSTy is an [`ST`] Compiler using LLVM
 //!
@@ -17,17 +17,20 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
-use std::fs;
-use std::io::Write;
+use std::ffi::OsStr;
+use std::fmt::Display;
+use std::io::{self, Write};
+use std::process::Command;
 use std::str::FromStr;
+use std::{env, fs};
 
-use build::{get_project_from_file, string_to_filepath};
+use build::{get_project_from_file, Libraries, PackageFormat, Proj};
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
 use inkwell::passes::PassBuilderOptions;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use ast::{LinkageType, PouType, SourceRange};
 use cli::{CompileParameters, SubCommands};
@@ -70,6 +73,10 @@ mod validation;
 #[cfg(test)]
 extern crate pretty_assertions;
 
+extern crate shell_words;
+
+pub(crate) const DEFAULT_OUTPUT_NAME: &str = "out";
+
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
     Static,
@@ -78,6 +85,12 @@ pub enum FormatOption {
     Relocatable,
     Bitcode,
     IR,
+}
+
+impl Default for FormatOption {
+    fn default() -> Self {
+        FormatOption::Static
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
@@ -122,6 +135,12 @@ struct ConfigurationOptions {
 pub enum ErrorFormat {
     Rich,
     Clang,
+}
+
+impl Default for ErrorFormat {
+    fn default() -> Self {
+        ErrorFormat::Rich
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize)]
@@ -170,7 +189,7 @@ pub trait SourceContainer {
     fn get_location(&self) -> &str;
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct FilePath {
     pub path: String,
 }
@@ -178,6 +197,14 @@ pub struct FilePath {
 impl From<String> for FilePath {
     fn from(it: String) -> Self {
         FilePath { path: it }
+    }
+}
+
+impl From<PathBuf> for FilePath {
+    fn from(it: PathBuf) -> Self {
+        FilePath {
+            path: it.to_string_lossy().to_string(),
+        }
     }
 }
 
@@ -557,7 +584,9 @@ fn parse_and_index<T: SourceContainer>(
     Ok((index, units))
 }
 
-fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
+fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
+    inputs: &[T],
+) -> Result<Vec<FilePath>, Diagnostic> {
     let mut sources = Vec::new();
     for input in inputs {
         let paths = glob(input).map_err(|e| {
@@ -572,10 +601,14 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
             });
         }
     }
-    if sources.is_empty() {
+    if !inputs.is_empty() && sources.is_empty() {
         return Err(Diagnostic::param_error(&format!(
             "No such file(s): {}",
-            inputs.join(",")
+            inputs
+                .iter()
+                .map(|it| it.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
         )));
     }
     Ok(sources)
@@ -595,13 +628,46 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
     match parameters.commands.unwrap() {
         SubCommands::Build {
             build_config,
+            build_location,
+            lib_location,
             sysroot,
             target,
         } => {
-            let project = get_project_from_file(build_config)?;
-            let files = project.files;
+            let build_config = build_config
+                .as_deref()
+                .or(Some("plc.json"))
+                .map(PathBuf::from)
+                .map(|it| env::current_dir().map(|cd| cd.join(it)))
+                .unwrap()?;
+            let root = build_config
+                .parent()
+                .map(|it| Ok(it.to_path_buf()))
+                .unwrap_or_else(env::current_dir)?;
+            let project = get_project_from_file(&build_config, &root)?;
+            let location = Path::new(build_location.as_deref().unwrap_or("build"));
+            if !location.is_dir() {
+                std::fs::create_dir_all(location)?;
+            }
+            env::set_current_dir(location)?;
+            let project = change_filepath_to_absolute(root, project);
+
+            let lib_location = lib_location.as_deref().map(Path::new).unwrap_or(location);
+            copy_libs_to_build(&project.libraries, lib_location)?;
+
+            let input = project
+                .files
+                .first()
+                .and_then(|it| it.file_stem())
+                .and_then(OsStr::to_str)
+                .unwrap_or("out");
             let compile_options = CompileOptions {
-                output: project.output,
+                //Skip linking is always false for the build subcommand
+                output: get_output_name(
+                    project.output.as_deref(),
+                    project.compile_type.unwrap_or_default(),
+                    false,
+                    input,
+                ),
                 target,
                 format: project.compile_type,
                 optimization: if project.optimization.is_some() {
@@ -611,44 +677,32 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 },
             };
 
-            let includes = if project.libraries.is_some() {
-                string_to_filepath(
-                    project
+            let includes = if !project.libraries.is_empty() {
+                create_file_paths(
+                    &project
                         .libraries
-                        .as_ref()
-                        .unwrap()
                         .iter()
-                        .flat_map(|it| it.include_path.clone())
-                        .collect(),
-                )
+                        .flat_map(|it| &it.include_path)
+                        .flat_map(|it| it.as_os_str().to_str())
+                        .collect::<Vec<_>>(),
+                )?
             } else {
                 vec![]
             };
 
             let link_options = if let Some(format) = project.compile_type {
                 Some(LinkOptions {
-                    libraries: if project.libraries.is_some() {
-                        project
-                            .libraries
-                            .as_ref()
-                            .unwrap()
-                            .iter()
-                            .map(|it| it.name.clone())
-                            .collect()
-                    } else {
-                        vec![]
-                    },
-                    library_pathes: if project.libraries.is_some() {
-                        project
-                            .libraries
-                            .as_ref()
-                            .unwrap()
-                            .iter()
-                            .map(|it| it.path.clone())
-                            .collect()
-                    } else {
-                        vec![]
-                    },
+                    libraries: project
+                        .libraries
+                        .iter()
+                        .map(|it| it.name.clone())
+                        .collect::<Vec<_>>(),
+                    library_pathes: project
+                        .libraries
+                        .iter()
+                        .map(|it| it.path.to_string_lossy())
+                        .map(|it| it.to_string())
+                        .collect(),
                     sysroot,
                     format,
                 })
@@ -658,8 +712,16 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
 
             let target = get_target_triple(compile_options.target.as_deref());
 
+            let files = create_file_paths(
+                &project
+                    .files
+                    .iter()
+                    .map(|it| it.to_string_lossy())
+                    .map(|it| it.to_string())
+                    .collect::<Vec<_>>(),
+            )?;
             let compile_result = build(
-                string_to_filepath(files),
+                files,
                 includes,
                 &compile_options,
                 parameters.encoding,
@@ -673,6 +735,76 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 &compile_options,
                 &target,
                 config_options,
+            )?;
+
+            if !project.package_commands.is_empty() {
+                execute_commands(project.package_commands)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn change_filepath_to_absolute(root: PathBuf, project: Proj) -> Proj {
+    Proj {
+        files: change_vec_path_to_absolute(&project.files, &root),
+        libraries: change_vec_path_for_libraries(project.libraries, &root),
+        ..project
+    }
+}
+
+fn change_vec_path_for_libraries(libraries: Vec<Libraries>, root: &Path) -> Vec<Libraries> {
+    let mut result = vec![];
+    for library in libraries {
+        result.push(Libraries {
+            path: root.join(library.path),
+            include_path: change_vec_path_to_absolute(&library.include_path, root),
+            ..library
+        });
+    }
+    result
+}
+
+fn change_vec_path_to_absolute(items: &Vec<PathBuf>, root: &Path) -> Vec<PathBuf> {
+    let mut result = vec![];
+    for item in items {
+        let path = root.join(item);
+        result.push(path);
+    }
+    result
+}
+
+fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
+    let root = env::current_dir()?;
+    for command in commands {
+        let args = shell_words::split(&command)?;
+
+        if args[0].as_str() == "cd" {
+            io::stdout().write_all(&[b">>> ", args[0..2].join(" ").as_bytes(), b"\n"].concat())?;
+
+            env::set_current_dir(args[1].as_str())?;
+        } else {
+            let output = Command::new(args[0].as_str())
+                .args(args[1..args.len()].to_vec())
+                .output()?;
+
+            io::stdout().write_all(&[b">>> ", args.join(" ").as_bytes(), b"\n"].concat())?;
+
+            if !output.stdout.is_empty() {
+                io::stdout().write_all(&output.stdout)?;
+            }
+        }
+    }
+    env::set_current_dir(root)?;
+    Ok(())
+}
+
+fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<(), Diagnostic> {
+    for library in libraries {
+        if library.package == PackageFormat::Copy {
+            std::fs::copy(
+                library.path.join(format!("lib{}.so", library.name)),
+                lib_location.join(format!("lib{}.so", library.name)),
             )?;
         }
     }
@@ -723,11 +855,15 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     let includes = if parameters.includes.is_empty() {
         vec![]
     } else {
-        create_file_paths(&parameters.includes)?
+        create_file_paths(
+            &parameters
+                .includes
+                .iter()
+                .map(|it| it.as_str())
+                .collect::<Vec<_>>(),
+        )?
     };
-    let output = parameters
-        .output_name()
-        .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
+    let output = parameters.output_name();
     let out_format = parameters.output_format_or_default();
 
     let config_options = parameters
@@ -743,25 +879,31 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     let compile_options = CompileOptions {
         output,
         target: parameters.target,
-        format: out_format,
+        format: if parameters.check_only {
+            None
+        } else {
+            Some(out_format)
+        },
         optimization: parameters.optimization,
     };
 
     let error_format = parameters.error_format;
 
-    let files = create_file_paths(&parameters.input)?;
+    let files = create_file_paths(
+        &parameters
+            .includes
+            .iter()
+            .map(|it| it.as_str())
+            .collect::<Vec<_>>(),
+    )?;
 
-    let link_options = if let Some(format) = out_format {
-        if !parameters.skip_linking {
-            Some(LinkOptions {
-                libraries: parameters.libraries,
-                library_pathes: parameters.library_paths,
-                sysroot: parameters.sysroot,
-                format,
-            })
-        } else {
-            None
-        }
+    let link_options = if !parameters.skip_linking && !parameters.check_only {
+        Some(LinkOptions {
+            libraries: parameters.libraries,
+            library_pathes: parameters.library_paths,
+            sysroot: parameters.sysroot,
+            format: out_format,
+        })
     } else {
         None
     };
@@ -903,6 +1045,31 @@ pub fn link(
         }
     }
     Ok(())
+}
+
+/// Returns an output name with the correct extension
+/// If an output name is already given, this method returns it, otherwise it builds the name from the input and format
+pub fn get_output_name(
+    output_name: Option<&str>,
+    out_format: FormatOption,
+    skip_linking: bool,
+    input: &str,
+) -> String {
+    match output_name {
+        Some(n) => n.to_string(),
+        _ => {
+            let ending = match out_format {
+                FormatOption::Bitcode => ".bc",
+                FormatOption::Relocatable => ".o",
+                FormatOption::Static if skip_linking => ".o",
+                FormatOption::Static => "",
+                FormatOption::Shared | FormatOption::PIC => ".so",
+                FormatOption::IR => ".ir",
+            };
+
+            format!("{}{}", output_name.unwrap_or(input), ending)
+        }
+    }
 }
 
 #[cfg(test)]
