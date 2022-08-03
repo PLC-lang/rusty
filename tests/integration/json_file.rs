@@ -26,10 +26,9 @@ fn build_to_temp() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
+    dbg!(std::fs::read_dir(&dir).unwrap().collect::<Vec<_>>());
     assert!(dir.join("proj.so").is_file());
     assert!(dir.join("libcopy.so").is_file());
-    //     assert!(Path::new(&format!("{}/libcopy.so", dir.display())).is_file());
-    //     assert!(Path::new(&format!("{}/proj.so", dir.display())).is_file());
 }
 
 #[test]
@@ -51,9 +50,9 @@ fn build_with_separate_lib_folder() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
+    dbg!(std::fs::read_dir(&dir).unwrap().collect::<Vec<_>>());
     assert!(dir.join("proj.so").is_file());
     assert!(dir.join("libcopy2.so").is_file());
-    //assert!(Path::new(&format!("{}/libcopy2.so", lib_dir.display())).is_file());
 }
 
 #[test]
