@@ -19,15 +19,17 @@ fn build_to_temp() {
         "--target",
         "x86_64-unknown-linux-gnu",
         "--sysroot",
-        "sysroot/",
+        "sysroot",
         "--build-location",
         dir.display()
     ))
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(Path::new(&format!("{}/libcopy.so", dir.display())).is_file());
-    assert!(Path::new(&format!("{}/proj.so", dir.display())).is_file());
+    assert!(dir.join("proj.so").is_file());
+    assert!(dir.join("libcopy.so").is_file());
+    //     assert!(Path::new(&format!("{}/libcopy.so", dir.display())).is_file());
+    //     assert!(Path::new(&format!("{}/proj.so", dir.display())).is_file());
 }
 
 #[test]
@@ -40,7 +42,7 @@ fn build_with_separate_lib_folder() {
         "--target",
         "x86_64-unknown-linux-gnu",
         "--sysroot",
-        "sysroot/",
+        "sysroot",
         "--build-location",
         dir.display(),
         "--lib-location",
@@ -49,8 +51,26 @@ fn build_with_separate_lib_folder() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(Path::new(&format!("{}/proj.so", dir.display())).is_file());
-    assert!(Path::new(&format!("{}/libcopy2.so", lib_dir.display())).is_file());
+    assert!(dir.join("proj.so").is_file());
+    assert!(dir.join("libcopy2.so").is_file());
+    //assert!(Path::new(&format!("{}/libcopy2.so", lib_dir.display())).is_file());
+}
+
+#[test]
+fn build_with_target_but_without_sysroot() {
+    let dir = temp_dir();
+    let parameters = CompileParameters::parse(vec_of_strings!(
+        "build",
+        get_test_file("json/plc3.json"),
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--build-location",
+        dir.display()
+    ))
+    .unwrap();
+    build_with_subcommand(parameters).unwrap();
+
+    assert!(dir.join("proj.so").is_file());
 }
 
 #[test]
@@ -58,15 +78,15 @@ fn build_for_multiple_targets_and_sysroots() {
     let dir = temp_dir();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
-        get_test_file("json/plc3.json"),
+        get_test_file("json/plc4.json"),
         "--target",
         "x86_64-unknown-linux-gnu",
         "--target",
         "x86_64-pc-linux-gnu",
         "--sysroot",
-        "sysroot/",
+        "sysroot",
         "--sysroot",
-        "sysroot/",
+        "sysroot",
         "--build-location",
         dir.display()
     ))
@@ -86,13 +106,13 @@ fn target_sysroot_mismatch() {
     let dir = temp_dir();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
-        get_test_file("json/plc3.json"),
+        get_test_file("json/plc5.json"),
         "--target",
         "x86_64-unknown-linux-gnu",
         "--target",
         "x86_64-pc-linux-gnu",
         "--sysroot",
-        "sysroot/",
+        "sysroot",
         "--build-location",
         dir.display()
     ))

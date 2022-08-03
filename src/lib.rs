@@ -693,7 +693,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                     .collect::<Vec<_>>(),
             )?;
 
-            if target.is_empty() && sysroot.is_empty() {
+            if (target.is_empty() || target.len() == 1) && sysroot.is_empty() {
                 let link_options = if let Some(format) = project.compile_type {
                     Some(LinkOptions {
                         libraries: project
