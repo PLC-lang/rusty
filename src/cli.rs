@@ -154,9 +154,6 @@ pub struct CompileParameters {
 #[derive(Debug, Subcommand)]
 pub enum SubCommands {
     /// Uses build description file.
-<<<<<<< HEAD
-    /// Supported format: json                              build <plc.json> --sysroot <sysroot> --target <target-triple>
-=======
     ///
     /// build
     ///
@@ -166,35 +163,27 @@ pub enum SubCommands {
     /// Supported format: json
     ///
     /// build <plc.json> --sysroot <sysroot> --target <target-triple> --build-location <path>
->>>>>>> 26dbfac68e32b6d8a5c7b94ad4c1b17a4df7f53e
     Build {
         #[clap(
             parse(try_from_str = validate_config)
         )]
         build_config: Option<String>,
 
-<<<<<<< HEAD
-=======
         #[clap(name = "build-location", long)]
         build_location: Option<String>,
 
         #[clap(name = "lib-location", long)]
         lib_location: Option<String>,
 
->>>>>>> 26dbfac68e32b6d8a5c7b94ad4c1b17a4df7f53e
         #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
-        sysroot: Option<String>,
+        sysroot: Vec<String>,
 
         #[clap(
             long,
             name = "target-triple",
-<<<<<<< HEAD
-            help = "A target-tripple supported by LLVM"
-=======
             help = "A target-triple supported by LLVM"
->>>>>>> 26dbfac68e32b6d8a5c7b94ad4c1b17a4df7f53e
         )]
-        target: Option<String>,
+        target: Vec<String>,
     },
 }
 
@@ -267,6 +256,7 @@ impl CompileParameters {
             self.output_format_or_default(),
             self.skip_linking,
             input,
+            self.target.as_deref()
         )
     }
 
@@ -604,17 +594,18 @@ mod cli_tests {
         let parameters = CompileParameters::parse(vec_of_strings!(
             "build",
             "src/ProjectPlc.json",
-<<<<<<< HEAD
-=======
             "--build-location",
             "bin/build",
             "--lib-location",
             "bin/build/libs",
->>>>>>> 26dbfac68e32b6d8a5c7b94ad4c1b17a4df7f53e
             "--sysroot",
-            "systest",
+            "sysroot1",
+            "--sysroot",
+            "sysroot2",
             "--target",
-            "targettest"
+            "targettest",
+            "--target",
+            "othertarget"
         ))
         .unwrap();
         if let Some(commands) = parameters.commands {
@@ -627,8 +618,14 @@ mod cli_tests {
                     target,
                 } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
-                    assert_eq!(sysroot, Some("systest".to_string()));
-                    assert_eq!(target, Some("targettest".to_string()));
+                    assert_eq!(
+                        sysroot,
+                        vec!["sysroot1".to_string(), "sysroot2".to_string()]
+                    );
+                    assert_eq!(
+                        target,
+                        vec!["targettest".to_string(), "othertarget".to_string()]
+                    );
                     assert_eq!(build_location, Some("bin/build".to_string()));
                     assert_eq!(lib_location, Some("bin/build/libs".to_string()));
                 }

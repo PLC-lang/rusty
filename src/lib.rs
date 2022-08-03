@@ -35,7 +35,7 @@ use std::path::{Path, PathBuf};
 
 use ast::{LinkageType, PouType, SourceRange};
 use cli::{CompileParameters, SubCommands};
-use diagnostics::Diagnostic;
+use diagnostics::{Diagnostic, ErrNo};
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
@@ -120,6 +120,7 @@ pub struct CompileOptions {
     pub optimization: OptimizationLevel,
 }
 
+#[derive(Clone)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
@@ -127,6 +128,7 @@ pub struct LinkOptions {
     pub format: FormatOption,
 }
 
+#[derive(Clone)]
 struct ConfigurationOptions {
     format: ConfigFormat,
     output: String,
@@ -614,7 +616,6 @@ fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
     }
     Ok(sources)
 }
-
 pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagnostic> {
     let config_options = parameters
         .hardware_config
@@ -669,22 +670,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 .and_then(|it| it.file_stem())
                 .and_then(OsStr::to_str)
                 .unwrap_or("out");
-            let compile_options = CompileOptions {
-                //Skip linking is always false for the build subcommand
-                output: get_output_name(
-                    project.output.as_deref(),
-                    project.compile_type.unwrap_or_default(),
-                    false,
-                    input,
-                ),
-                target,
-                format: project.compile_type,
-                optimization: if project.optimization.is_some() {
-                    project.optimization.unwrap()
-                } else {
-                    parameters.optimization
-                },
-            };
 
             let includes = if !project.libraries.is_empty() {
                 create_file_paths(
@@ -699,28 +684,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 vec![]
             };
 
-            let link_options = if let Some(format) = project.compile_type {
-                Some(LinkOptions {
-                    libraries: project
-                        .libraries
-                        .iter()
-                        .map(|it| it.name.clone())
-                        .collect::<Vec<_>>(),
-                    library_pathes: project
-                        .libraries
-                        .iter()
-                        .map(|it| it.path.to_string_lossy())
-                        .map(|it| it.to_string())
-                        .collect(),
-                    sysroot,
-                    format,
-                })
-            } else {
-                None
-            };
-
-            let target = get_target_triple(compile_options.target.as_deref());
-
             let files = create_file_paths(
                 &project
                     .files
@@ -729,22 +692,129 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                     .map(|it| it.to_string())
                     .collect::<Vec<_>>(),
             )?;
-            let compile_result = build(
-                files,
-                includes,
-                &compile_options,
-                parameters.encoding,
-                &project.error_format,
-                &target,
-            )?;
 
-            link_and_create(
-                link_options,
-                &compile_result,
-                &compile_options,
-                &target,
-                config_options,
-            )?;
+            if target.is_empty() && sysroot.is_empty() {
+                let link_options = if let Some(format) = project.compile_type {
+                    Some(LinkOptions {
+                        libraries: project
+                            .libraries
+                            .iter()
+                            .map(|it| it.name.clone())
+                            .collect::<Vec<_>>(),
+                        library_pathes: project
+                            .libraries
+                            .iter()
+                            .map(|it| it.path.to_string_lossy())
+                            .map(|it| it.to_string())
+                            .collect(),
+                        sysroot: None,
+                        format,
+                    })
+                } else {
+                    None
+                };
+
+                let compile_options = CompileOptions {
+                    //Skip linking is always false for the build subcommand
+                    output: get_output_name(
+                        project.output.as_deref(),
+                        project.compile_type.unwrap_or_default(),
+                        false,
+                        input,
+                        None,
+                    ),
+                    target: None,
+                    format: project.compile_type,
+                    optimization: if project.optimization.is_some() {
+                        project.optimization.unwrap()
+                    } else {
+                        parameters.optimization
+                    },
+                };
+
+                let target = get_target_triple(compile_options.target.as_deref());
+
+                let compile_result = build(
+                    files,
+                    includes,
+                    &compile_options,
+                    parameters.encoding,
+                    &project.error_format,
+                    &target,
+                )?;
+
+                link_and_create(
+                    link_options,
+                    &compile_result,
+                    &compile_options,
+                    &target,
+                    config_options,
+                )?;
+            } else {
+                if target.len() != sysroot.len() {
+                    return Err(Diagnostic::GeneralError {
+                        message: "Target sysroot mismatch. There must exist exactly one sysroot for each target".to_string(), 
+                        err_no: ErrNo::general__io_err
+                    });
+                }
+                for (i, target_plattform) in target.iter().enumerate() {
+                    let link_options = if let Some(format) = project.compile_type {
+                        Some(LinkOptions {
+                            libraries: project
+                                .libraries
+                                .iter()
+                                .map(|it| it.name.clone())
+                                .collect::<Vec<_>>(),
+                            library_pathes: project
+                                .libraries
+                                .iter()
+                                .map(|it| it.path.to_string_lossy())
+                                .map(|it| it.to_string())
+                                .collect(),
+                            sysroot: Some(sysroot[i].clone()),
+                            format,
+                        })
+                    } else {
+                        None
+                    };
+                    let compile_options = CompileOptions {
+                        //Skip linking is always false for the build subcommand
+                        output: get_output_name(
+                            project.output.as_deref(),
+                            project.compile_type.unwrap_or_default(),
+                            false,
+                            input,
+                            Some(target_plattform),
+                        ),
+                        target: Some(target_plattform.to_string()),
+                        format: project.compile_type,
+                        optimization: if project.optimization.is_some() {
+                            project.optimization.unwrap()
+                        } else {
+                            parameters.optimization
+                        },
+                    };
+
+                    let target = get_target_triple(compile_options.target.as_deref());
+
+                    let compile_result = build(
+                        files.clone(),
+                        includes.clone(),
+                        &compile_options,
+                        parameters.encoding,
+                        &project.error_format,
+                        &target,
+                    )?;
+
+                    link_and_create(
+                        link_options.clone(),
+                        &compile_result,
+                        &compile_options,
+                        &target,
+                        config_options.clone(),
+                    )?;
+                }
+            }
 
             if !project.package_commands.is_empty() {
                 execute_commands(project.package_commands)?;
@@ -1067,9 +1137,15 @@ pub fn get_output_name(
     out_format: FormatOption,
     skip_linking: bool,
     input: &str,
+    target: Option<&str>,
 ) -> String {
     match output_name {
-        Some(n) => n.to_string(),
+        Some(n) => format!(
+            "{}{}{}",
+            target.unwrap_or(""),
+            if target.is_some() { "_" } else { "" },
+            n
+        ),
         _ => {
             let ending = match out_format {
                 FormatOption::Bitcode => ".bc",
@@ -1080,7 +1156,13 @@ pub fn get_output_name(
                 FormatOption::IR => ".ir",
             };
 
-            format!("{}{}", output_name.unwrap_or(input), ending)
+            format!(
+                "{}{}{}{}",
+                output_name.unwrap_or(input),
+                if target.is_some() { "_" } else { "" },
+                target.unwrap_or(""),
+                ending
+            )
         }
     }
 }

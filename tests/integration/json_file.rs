@@ -1,6 +1,8 @@
 use crate::cli::CompileParameters;
+use crate::diagnostics::Diagnostic;
 use crate::get_test_file;
 use rusty::build_with_subcommand;
+use rusty::diagnostics::ErrNo;
 use std::env::temp_dir;
 use std::path::Path;
 
@@ -15,7 +17,9 @@ fn build_to_temp() {
         "build",
         get_test_file("json/plc.json"),
         "--target",
-        "x86_64-unkown-linux-gnu",
+        "x86_64-unknown-linux-gnu",
+        "--sysroot",
+        "sysroot/",
         "--build-location",
         dir.display()
     ))
@@ -34,7 +38,9 @@ fn build_with_separate_lib_folder() {
         "build",
         get_test_file("json/plc2.json"),
         "--target",
-        "x86_64-unkown-linux-gnu",
+        "x86_64-unknown-linux-gnu",
+        "--sysroot",
+        "sysroot/",
         "--build-location",
         dir.display(),
         "--lib-location",
@@ -45,4 +51,60 @@ fn build_with_separate_lib_folder() {
 
     assert!(Path::new(&format!("{}/proj.so", dir.display())).is_file());
     assert!(Path::new(&format!("{}/libcopy2.so", lib_dir.display())).is_file());
+}
+
+#[test]
+fn build_for_multiple_targets_and_sysroots() {
+    let dir = temp_dir();
+    let parameters = CompileParameters::parse(vec_of_strings!(
+        "build",
+        get_test_file("json/plc3.json"),
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--target",
+        "x86_64-pc-linux-gnu",
+        "--sysroot",
+        "sysroot/",
+        "--sysroot",
+        "sysroot/",
+        "--build-location",
+        dir.display()
+    ))
+    .unwrap();
+    build_with_subcommand(parameters).unwrap();
+
+    assert!(Path::new(&format!(
+        "{}/x86_64-unknown-linux-gnu_proj.so",
+        dir.display()
+    ))
+    .is_file());
+    assert!(Path::new(&format!("{}/x86_64-pc-linux-gnu_proj.so", dir.display())).is_file());
+}
+
+#[test]
+fn target_sysroot_mismatch() {
+    let dir = temp_dir();
+    let parameters = CompileParameters::parse(vec_of_strings!(
+        "build",
+        get_test_file("json/plc3.json"),
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--target",
+        "x86_64-pc-linux-gnu",
+        "--sysroot",
+        "sysroot/",
+        "--build-location",
+        dir.display()
+    ))
+    .unwrap();
+
+    assert_eq!(
+        build_with_subcommand(parameters),
+        Err(Diagnostic::GeneralError {
+            message:
+                "Target sysroot mismatch. There must exist exactly one sysroot for each target"
+                    .to_string(),
+            err_no: ErrNo::general__io_err
+        })
+    );
 }
