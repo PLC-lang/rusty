@@ -26,8 +26,7 @@ fn build_to_temp() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    dbg!(std::fs::read_dir(&dir).unwrap().collect::<Vec<_>>());
-    assert!(dir.join("proj.so").is_file());
+    assert!(dir.join("x86_64-unknown-linux-gnu_proj.so").is_file());
     assert!(dir.join("libcopy.so").is_file());
 }
 
@@ -50,8 +49,7 @@ fn build_with_separate_lib_folder() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    dbg!(std::fs::read_dir(&dir).unwrap().collect::<Vec<_>>());
-    assert!(dir.join("proj.so").is_file());
+    assert!(dir.join("x86_64-unknown-linux-gnu_proj.so").is_file());
     assert!(dir.join("libcopy2.so").is_file());
 }
 
@@ -69,7 +67,7 @@ fn build_with_target_but_without_sysroot() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir.join("proj.so").is_file());
+    assert!(dir.join("x86_64-unknown-linux-gnu_proj.so").is_file());
 }
 
 #[test]

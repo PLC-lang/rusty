@@ -721,7 +721,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                         project.compile_type.unwrap_or_default(),
                         false,
                         input,
-                        None,
+                        if target.is_empty() { None } else { Some(&target[0]) },
                     ),
                     target: None,
                     format: project.compile_type,
