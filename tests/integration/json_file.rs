@@ -46,3 +46,22 @@ fn build_with_separate_lib_folder() {
     assert!(Path::new(&format!("{}/proj.so", dir.display())).is_file());
     assert!(Path::new(&format!("{}/libcopy2.so", lib_dir.display())).is_file());
 }
+
+#[test]
+fn build_with_cc_linker() {
+    let dir = temp_dir();
+    let parameters = CompileParameters::parse(vec_of_strings!(
+        "build",
+        get_test_file("json/plc8.json"),
+        "--target",
+        "x86_64-unkown-linux-gnu",
+        "--build-location",
+        dir.display(),
+        "--linker",
+        "cc"
+    ))
+    .unwrap();
+    build_with_subcommand(parameters).unwrap();
+
+    assert!(Path::new(&format!("{}/cc_proj.so", dir.display())).is_file());
+}

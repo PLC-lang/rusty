@@ -633,6 +633,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             lib_location,
             sysroot,
             target,
+            linker,
         } => {
             let build_config = build_config
                 .as_deref()
@@ -744,6 +745,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 &compile_options,
                 &target,
                 config_options,
+                linker,
             )?;
 
             if !project.package_commands.is_empty() {
@@ -830,6 +832,7 @@ fn link_and_create(
     compile_options: &CompileOptions,
     target: &TargetTriple,
     config_options: Option<ConfigurationOptions>,
+    linker: Option<String>,
 ) -> Result<(), Diagnostic> {
     if let Some(link_options) = link_options {
         link(
@@ -840,6 +843,7 @@ fn link_and_create(
             link_options.libraries,
             target,
             link_options.sysroot,
+            linker,
         )?;
     }
 
@@ -938,6 +942,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         &compile_options,
         &target,
         config_options,
+        None,
     )?;
 
     Ok(())
@@ -1021,6 +1026,7 @@ pub fn link(
     libraries: Vec<String>,
     target: &TargetTriple,
     sysroot: Option<String>,
+    linker: Option<String>,
 ) -> Result<(), Diagnostic> {
     let linkable_formats = vec![
         FormatOption::Static,
@@ -1033,7 +1039,7 @@ pub fn link(
             .as_str()
             .to_str()
             .map_err(|e| Diagnostic::param_error(&e.to_string()))
-            .and_then(|triple| linker::Linker::new(triple).map_err(|e| e.into()))?;
+            .and_then(|triple| linker::Linker::new(triple, linker).map_err(|e| e.into()))?;
         linker.add_lib_path(".");
 
         for path in objects {

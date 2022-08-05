@@ -1,8 +1,11 @@
 // This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
-use crate::diagnostics::Diagnostic;
-use std::path::{Path, PathBuf};
+use crate::diagnostics::{Diagnostic};
+use std::{
+    path::{Path, PathBuf},
+    process::Command, error::Error, io::{self, Write},
+};
 
 pub struct Linker {
     errors: Vec<LinkerError>,
@@ -22,13 +25,25 @@ trait LinkerInterface {
 }
 
 impl Linker {
-    pub fn new(target: &str) -> Result<Linker, LinkerError> {
+    pub fn new(target: &str, linker: Option<String>) -> Result<Linker, LinkerError> {
         let target_os = target.split('-').collect::<Vec<&str>>()[2];
-        let linker = match target_os {
-            "linux" => Ok(Box::new(LdLinker::new())),
-            //"win32" | "windows" => Ok(Box::new(MsvcLinker::new())),
-            _ => Err(LinkerError::Target(target_os.into())),
-        }?;
+        let linker: Box<dyn LinkerInterface> = if let Some(linker_option) = linker {
+            if linker_option == *"cc" {
+                Box::new(CcLinker::new())
+            } else {
+                match target_os {
+                    "linux" => Ok(Box::new(LdLinker::new())),
+                    //"win32" | "windows" => Ok(Box::new(MsvcLinker::new())),
+                    _ => Err(LinkerError::Target(target_os.into())),
+                }?
+            }
+        } else {
+            match target_os {
+                "linux" => Ok(Box::new(LdLinker::new())),
+                //"win32" | "windows" => Ok(Box::new(MsvcLinker::new())),
+                _ => Err(LinkerError::Target(target_os.into())),
+            }?
+        };
         Ok(Linker {
             errors: Vec::default(),
             linker,
@@ -93,6 +108,70 @@ impl Linker {
             self.errors.push(LinkerError::Path(path.into()));
         }
         filepath
+    }
+}
+
+struct CcLinker {
+    args: Vec<String>,
+}
+
+impl CcLinker {
+    fn new() -> CcLinker {
+        CcLinker {
+            args: Vec::default(),
+        }
+    }
+}
+
+impl LinkerInterface for CcLinker {
+    fn get_platform(&self) -> String {
+        "Linux".into()
+    }
+
+    fn add_obj(&mut self, path: &str) {
+        self.args.push(path.into());
+    }
+
+    fn add_lib_path(&mut self, path: &str) {
+        self.args.push(format!("-L{}", path));
+    }
+
+    fn add_lib(&mut self, path: &str) {
+        self.args.push(format!("-l{}", path));
+    }
+
+    fn add_sysroot(&mut self, path: &str) {
+        self.args.push(format!("--sysroot={}", path));
+    }
+
+    fn build_shared_object(&mut self, path: &str) {
+        self.args.push("--shared".into());
+        self.args.push("-o".into());
+        self.args.push(path.into());
+    }
+
+    fn build_exectuable(&mut self, path: &str) {
+        self.args.push("-o".into());
+        self.args.push(path.into());
+    }
+
+    fn build_relocatable(&mut self, path: &str) {
+        self.args.push("-relocatable".into());
+        self.args.push("-o".into());
+        self.args.push(path.into());
+    }
+
+    fn finalize(&mut self) -> Result<(), LinkerError> {
+        if cfg!(windows){
+            let clang_location = Command::new("where").arg("clang").output()?;
+            println!("output: {:?}", clang_location.stdout);
+            if !clang_location.stderr.is_empty() {
+                io::stdout().write_all(&clang_location.stderr)?;
+            }
+        } else {
+            Command::new("cc").args(dbg!(&self.args)).output()?;
+        }
+        Ok(())
     }
 }
 
@@ -213,12 +292,19 @@ impl From<LinkerError> for Diagnostic {
     }
 }
 
+impl<T: Error> From<T> for LinkerError {
+    fn from(e: T) -> Self {
+         LinkerError::Link(e.to_string())
+    }
+}
+
+
 #[test]
 fn creation_test() {
-    let linker = Linker::new("x86_64-pc-linux-gnu").unwrap();
+    let linker = Linker::new("x86_64-pc-linux-gnu", None).unwrap();
     assert_eq!(linker.linker.get_platform(), "Linux");
 
-    if let Err(tgt) = Linker::new("x86_64-pc-redox-abc") {
+    if let Err(tgt) = Linker::new("x86_64-pc-redox-abc", None) {
         assert_eq!(tgt, LinkerError::Target("redox".into()));
     } else {
         panic!("Linker target should have returned an error!");

@@ -65,6 +65,7 @@ fn link_as_shared_object() {
         vec![],
         &triple,
         None,
+        None,
     )
     .unwrap();
 
@@ -130,6 +131,7 @@ fn link_as_pic_object() {
         vec![],
         vec![],
         &triple,
+        None,
         None,
     )
     .unwrap();
@@ -197,6 +199,7 @@ fn link_as_static_object() {
         vec![],
         &triple,
         None,
+        None,
     )
     .unwrap();
 
@@ -263,6 +266,7 @@ fn link_as_relocatable_object() {
         vec![],
         &triple,
         None,
+        None,
     )
     .unwrap();
 
@@ -303,6 +307,7 @@ fn link_missing_file() {
         vec![],
         vec![],
         &triple,
+        None,
         None,
     );
 
