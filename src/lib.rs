@@ -17,6 +17,7 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use std::env::temp_dir;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
@@ -670,22 +671,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 .and_then(|it| it.file_stem())
                 .and_then(OsStr::to_str)
                 .unwrap_or("out");
-            let compile_options = CompileOptions {
-                //Skip linking is always false for the build subcommand
-                output: get_output_name(
-                    project.output.as_deref(),
-                    project.compile_type.unwrap_or_default(),
-                    false,
-                    input,
-                ),
-                target,
-                format: project.compile_type,
-                optimization: if project.optimization.is_some() {
-                    project.optimization.unwrap()
-                } else {
-                    parameters.optimization
-                },
-            };
 
             let includes = if !project.libraries.is_empty() {
                 create_file_paths(
@@ -720,8 +705,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 None
             };
 
-            let target = get_target_triple(compile_options.target.as_deref());
-
             let files = create_file_paths(
                 &project
                     .files
@@ -730,6 +713,23 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                     .map(|it| it.to_string())
                     .collect::<Vec<_>>(),
             )?;
+
+            let mut temp_file: PathBuf = temp_dir();
+            temp_file.push("temp.o");
+
+            let mut compile_options = CompileOptions {
+                //Skip linking is always false for the build subcommand
+                output: temp_file.display().to_string(),
+                target,
+                format: project.compile_type,
+                optimization: if project.optimization.is_some() {
+                    project.optimization.unwrap()
+                } else {
+                    parameters.optimization
+                },
+            };
+            let target = get_target_triple(compile_options.target.as_deref());
+
             let compile_result = build(
                 files,
                 includes,
@@ -739,6 +739,13 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 &target,
             )?;
 
+            compile_options.output = get_output_name(
+                project.output.as_deref(),
+                project.compile_type.unwrap_or_default(),
+                false,
+                input,
+            );
+
             link_and_create(
                 link_options,
                 &compile_result,
@@ -746,6 +753,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 &target,
                 config_options,
                 linker,
+                temp_file,
             )?;
 
             if !project.package_commands.is_empty() {
@@ -833,6 +841,7 @@ fn link_and_create(
     target: &TargetTriple,
     config_options: Option<ConfigurationOptions>,
     linker: Option<String>,
+    temp_file: PathBuf,
 ) -> Result<(), Diagnostic> {
     if let Some(link_options) = link_options {
         link(
@@ -844,6 +853,13 @@ fn link_and_create(
             target,
             link_options.sysroot,
             linker,
+        )?;
+    } else {
+        std::fs::copy(
+            dbg!(temp_file),
+            env::current_dir()
+                .unwrap()
+                .join(compile_options.output.clone()),
         )?;
     }
 
@@ -880,8 +896,9 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
                 .collect::<Vec<_>>(),
         )?
     };
-    let output = parameters.output_name();
+
     let out_format = parameters.output_format_or_default();
+    let output = parameters.output_name();
 
     let config_options = parameters
         .hardware_config
@@ -893,8 +910,11 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
             output: config.to_owned(),
         });
 
-    let compile_options = CompileOptions {
-        output,
+    let mut dir = temp_dir();
+    dir.push("temp.o");
+
+    let mut compile_options = CompileOptions {
+        output: dir.display().to_string(),
         target: parameters.target,
         format: if parameters.check_only {
             None
@@ -936,6 +956,8 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         &target,
     )?;
 
+    compile_options.output = output;
+
     link_and_create(
         link_options,
         &compile_result,
@@ -943,6 +965,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         &target,
         config_options,
         None,
+        dir,
     )?;
 
     Ok(())

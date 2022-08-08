@@ -79,7 +79,7 @@ pub fn get_project_from_file(build_config: &Path, root: &Path) -> Result<Project
     //convert file to Object
     let project = Project::try_parse(&content)?;
 
-    check_libs_exist(&project.libraries, root)?;
+    //check_libs_exist(&project.libraries, root)?;
     Ok(project)
 }
 

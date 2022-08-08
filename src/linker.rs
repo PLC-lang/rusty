@@ -1,10 +1,13 @@
 // This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
-use crate::diagnostics::{Diagnostic};
+use which::which;
+
+use crate::diagnostics::Diagnostic;
 use std::{
+    error::Error,
     path::{Path, PathBuf},
-    process::Command, error::Error, io::{self, Write},
+    process::Command,
 };
 
 pub struct Linker {
@@ -27,20 +30,12 @@ trait LinkerInterface {
 impl Linker {
     pub fn new(target: &str, linker: Option<String>) -> Result<Linker, LinkerError> {
         let target_os = target.split('-').collect::<Vec<&str>>()[2];
-        let linker: Box<dyn LinkerInterface> = if let Some(linker_option) = linker {
-            if linker_option == *"cc" {
-                Box::new(CcLinker::new())
-            } else {
-                match target_os {
-                    "linux" => Ok(Box::new(LdLinker::new())),
-                    //"win32" | "windows" => Ok(Box::new(MsvcLinker::new())),
-                    _ => Err(LinkerError::Target(target_os.into())),
-                }?
-            }
+        let linker: Box<dyn LinkerInterface> = if let Some(linker) = linker {
+            Box::new(CcLinker::new(linker))
         } else {
             match target_os {
                 "linux" => Ok(Box::new(LdLinker::new())),
-                //"win32" | "windows" => Ok(Box::new(MsvcLinker::new())),
+                // "win32" | "windows" => Ok(Box::new(CcLinker::new("clang".to_string()))),
                 _ => Err(LinkerError::Target(target_os.into())),
             }?
         };
@@ -113,12 +108,14 @@ impl Linker {
 
 struct CcLinker {
     args: Vec<String>,
+    linker: String,
 }
 
 impl CcLinker {
-    fn new() -> CcLinker {
+    fn new(linker: String) -> CcLinker {
         CcLinker {
             args: Vec::default(),
+            linker,
         }
     }
 }
@@ -162,15 +159,19 @@ impl LinkerInterface for CcLinker {
     }
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
-        if cfg!(windows){
-            let clang_location = Command::new("where").arg("clang").output()?;
-            println!("output: {:?}", clang_location.stdout);
-            if !clang_location.stderr.is_empty() {
-                io::stdout().write_all(&clang_location.stderr)?;
+        let linker_location = which(&self.linker);
+        match linker_location {
+            Ok(_) => (),
+            Err(e) => {
+                return Err(LinkerError::Link(format!(
+                    "{} for linker: {}",
+                    e,
+                    &self.linker
+                )))
             }
-        } else {
-            Command::new("cc").args(dbg!(&self.args)).output()?;
         }
+
+        Command::new(&self.linker).args(&self.args).output()?;
         Ok(())
     }
 }
@@ -294,10 +295,9 @@ impl From<LinkerError> for Diagnostic {
 
 impl<T: Error> From<T> for LinkerError {
     fn from(e: T) -> Self {
-         LinkerError::Link(e.to_string())
+        LinkerError::Link(e.to_string())
     }
 }
-
 
 #[test]
 fn creation_test() {
