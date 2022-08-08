@@ -69,12 +69,17 @@ pub struct CompileParameters {
     )]
     pub output_bit_code: bool,
 
-    #[clap(short = 'c', help = "Do not link after compiling object code")]
+    #[clap(
+        short = 'c',
+        global = true,
+        help = "Do not link after compiling object code"
+    )]
     pub skip_linking: bool,
 
     #[clap(
         long,
         name = "target-triple",
+        global = true,
         help = "A target-triple supported by LLVM"
     )]
     pub target: Vec<String>,
@@ -83,6 +88,7 @@ pub struct CompileParameters {
         long,
         name = "encoding",
         help = "The file encoding used to read the input-files, as defined by the Encoding Standard",
+        global = true,
         parse(try_from_str = parse_encoding),
     )]
     pub encoding: Option<&'static Encoding>,
@@ -107,7 +113,12 @@ pub struct CompileParameters {
     #[clap(name = "library", long, short = 'l', help = "Library name to link")]
     pub libraries: Vec<String>,
 
-    #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
+    #[clap(
+        long,
+        name = "sysroot",
+        global = true,
+        help = "Path to system root, used for linking"
+    )]
     pub sysroot: Vec<String>,
 
     #[clap(
@@ -121,6 +132,7 @@ pub struct CompileParameters {
     #[clap(
         name = "hardware-conf",
         long,
+        global = true,
         help = "Generate Hardware configuration files to the given location. 
     Format is detected by extenstion.
     Supported formats : json, toml",
@@ -134,7 +146,8 @@ pub struct CompileParameters {
         short = 'O',
         help = "Optimization level",
         arg_enum,
-        default_value = "default"
+        default_value = "default",
+        global = true
     )]
     pub optimization: crate::OptimizationLevel,
 
@@ -143,7 +156,8 @@ pub struct CompileParameters {
         long,
         help = "Set format for error reporting",
         arg_enum,
-        default_value = "rich"
+        default_value = "rich",
+        global = true
     )]
     pub error_format: ErrorFormat,
 
@@ -174,16 +188,6 @@ pub enum SubCommands {
 
         #[clap(name = "lib-location", long)]
         lib_location: Option<String>,
-
-        #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
-        sysroot: Vec<String>,
-
-        #[clap(
-            long,
-            name = "target-triple",
-            help = "A target-triple supported by LLVM"
-        )]
-        target: Vec<String>,
     },
 }
 
@@ -214,16 +218,7 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
 impl CompileParameters {
     pub fn parse(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
         CompileParameters::try_parse_from(args).and_then(|result| {
-            let (target, sysroot) = if let Some(SubCommands::Build {
-                target, sysroot, ..
-            }) = &result.commands
-            {
-                (target, sysroot)
-            } else {
-                (&result.target, &result.sysroot)
-            };
-
-            if sysroot.len() > target.len() {
+            if result.sysroot.len() > result.target.len() {
                 let mut cmd = CompileParameters::command();
                 Err(cmd.error(
                     ErrorKind::ArgumentConflict,
@@ -638,22 +633,20 @@ mod cli_tests {
                     build_config,
                     build_location,
                     lib_location,
-                    sysroot,
-                    target,
                 } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
-                    assert_eq!(
-                        sysroot,
-                        vec!["sysroot1".to_string(), "sysroot2".to_string()]
-                    );
-                    assert_eq!(
-                        target,
-                        vec!["targettest".to_string(), "othertarget".to_string()]
-                    );
                     assert_eq!(build_location, Some("bin/build".to_string()));
                     assert_eq!(lib_location, Some("bin/build/libs".to_string()));
                 }
             };
+            assert_eq!(
+                parameters.sysroot,
+                vec!["sysroot1".to_string(), "sysroot2".to_string()]
+            );
+            assert_eq!(
+                parameters.target,
+                vec!["targettest".to_string(), "othertarget".to_string()]
+            );
         }
     }
 

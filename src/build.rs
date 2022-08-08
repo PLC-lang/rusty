@@ -2,9 +2,7 @@ use crate::diagnostics::Diagnostic;
 use crate::diagnostics::ErrNo;
 use crate::make_absolute;
 use crate::resolve_environment_variables;
-use crate::ErrorFormat;
 use crate::FormatOption;
-use crate::OptimizationLevel;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
@@ -28,10 +26,7 @@ pub struct Libraries {
 pub struct Project {
     pub files: Vec<PathBuf>,
     pub compile_type: Option<FormatOption>,
-    pub optimization: Option<OptimizationLevel>,
     pub output: Option<String>,
-    #[serde(default)]
-    pub error_format: ErrorFormat,
     #[serde(default)]
     pub libraries: Vec<Libraries>,
     #[serde(default)]
@@ -105,8 +100,7 @@ mod tests {
     use std::path::PathBuf;
     use std::{env, vec};
 
-    use crate::ErrorFormat;
-    use crate::{FormatOption, OptimizationLevel};
+    use crate::FormatOption;
 
     use super::Libraries;
     use super::{PackageFormat, Project};
@@ -116,9 +110,7 @@ mod tests {
         let test_project = Project {
             files: vec![PathBuf::from("simple_program.st")],
             compile_type: Some(FormatOption::Shared),
-            optimization: Some(OptimizationLevel::Default),
             output: Some(String::from("proj.so")),
-            error_format: ErrorFormat::Rich,
             libraries: vec![
                 Libraries {
                     name: String::from("copy"),
@@ -170,7 +162,6 @@ mod tests {
 
         assert_eq!(test_project.files, proj.files);
         assert_eq!(test_project.compile_type, proj.compile_type);
-        assert_eq!(test_project.optimization, proj.optimization);
         assert_eq!(test_project.output, proj.output);
         let proj_lib = proj.libraries;
         let testproj_lib = test_project.libraries;

@@ -14,7 +14,7 @@ fn build_to_temp() {
         "build",
         get_test_file("json/plc.json"),
         "--target",
-        "x86_64-unknown-linux-gnu",
+        "x86_64-linux-gnu",
         "--sysroot",
         "sysroot",
         "--build-location",
@@ -23,10 +23,7 @@ fn build_to_temp() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir
-        .join("x86_64-unknown-linux-gnu")
-        .join("proj.so")
-        .is_file());
+    assert!(dir.join("x86_64-linux-gnu").join("proj.so").is_file());
     assert!(dir.join("libcopy.so").is_file());
 }
 
@@ -38,9 +35,7 @@ fn build_with_separate_lib_folder() {
         "build",
         get_test_file("json/plc2.json"),
         "--target",
-        "x86_64-unknown-linux-gnu",
-        "--sysroot",
-        "sysroot",
+        "x86_64-linux-gnu",
         "--build-location",
         dir.display(),
         "--lib-location",
@@ -49,10 +44,7 @@ fn build_with_separate_lib_folder() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir
-        .join("x86_64-unknown-linux-gnu")
-        .join("proj.so")
-        .is_file());
+    assert!(dir.join("x86_64-linux-gnu").join("proj.so").is_file());
     assert!(dir.join("libcopy2.so").is_file());
 }
 
@@ -84,7 +76,7 @@ fn build_for_multiple_targets_and_sysroots() {
         "build",
         get_test_file("json/plc4.json"),
         "--target",
-        "x86_64-unknown-linux-gnu",
+        "aarch64-linux-gnu",
         "--target",
         "x86_64-linux-gnu",
         "--sysroot",
@@ -97,9 +89,6 @@ fn build_for_multiple_targets_and_sysroots() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir
-        .join("x86_64-unknown-linux-gnu")
-        .join("proj.so")
-        .is_file());
+    assert!(dir.join("aarch64-linux-gnu").join("proj.so").is_file());
     assert!(dir.join("x86_64-linux-gnu").join("proj.so").is_file());
 }

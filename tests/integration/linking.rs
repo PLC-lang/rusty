@@ -8,7 +8,7 @@ use rusty::{
     link, persist, CompileOptions, ErrorFormat, FilePath, FormatOption, LinkOptions, Target,
 };
 
-static TARGET: Option<&str> = Some("x86_64-unkown-linux-gnu");
+static TARGET: Option<&str> = Some("x86_64-linux-gnu");
 
 #[test]
 fn link_as_shared_object() {

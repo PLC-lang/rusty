@@ -77,6 +77,50 @@ extern crate pretty_assertions;
 extern crate shell_words;
 
 pub(crate) const DEFAULT_OUTPUT_NAME: &str = "out";
+pub enum Target {
+    System,
+    Param {
+        triple: String,
+        sysroot: Option<String>,
+    },
+}
+
+impl Target {
+    pub fn new(triple: String, sysroot: Option<String>) -> Target {
+        Target::Param { triple, sysroot }
+    }
+
+    pub fn get_target_triple(&self) -> TargetTriple {
+        let res = match self {
+            Target::System => TargetMachine::get_default_triple(),
+            Target::Param { triple, .. } => TargetTriple::create(triple),
+        };
+        targets::TargetMachine::normalize_triple(&res)
+    }
+
+    pub fn try_get_name(&self) -> Option<&str> {
+        match self {
+            Target::System => None,
+            Target::Param { triple, .. } => Some(triple.as_str()),
+        }
+    }
+
+    pub fn get_sysroot(&self) -> Option<&str> {
+        match self {
+            Target::Param { sysroot, .. } => sysroot.as_deref(),
+            _ => None,
+        }
+    }
+}
+
+impl<T> From<T> for Target
+where
+    T: core::ops::Deref<Target = str>,
+{
+    fn from(it: T) -> Self {
+        Target::new(it.to_string(), None)
+    }
+}
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
@@ -172,6 +216,12 @@ impl OptimizationLevel {
             OptimizationLevel::Default => "default<O2>",
             OptimizationLevel::Aggressive => "default<O3>",
         }
+    }
+}
+
+impl Default for OptimizationLevel {
+    fn default() -> Self {
+        OptimizationLevel::Default
     }
 }
 
@@ -620,129 +670,123 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             output: config.to_owned(),
         });
 
-    match parameters.commands.unwrap() {
-        SubCommands::Build {
-            build_config,
-            build_location,
-            lib_location,
-            sysroot,
-            target,
-        } => {
-            let build_config = build_config
-                .as_deref()
-                .or(Some("plc.json"))
-                .map(PathBuf::from)
-                .map(|it| env::current_dir().map(|cd| cd.join(it)))
-                .unwrap()?;
-            let root = build_config
-                .parent()
-                .map(|it| Ok(it.to_path_buf()))
-                .unwrap_or_else(env::current_dir)?;
-            env::set_var("PROJECT_ROOT", &root);
-            let location = Path::new(build_location.as_deref().unwrap_or("build"));
-            if !location.is_dir() {
-                std::fs::create_dir_all(location)?;
-            }
-            let location = make_absolute(location, &root);
-            env::set_var("BUILD_LOCATION", &location);
-            env::set_current_dir(&location)?;
-            let lib_location = lib_location
-                .as_deref()
-                .filter(|it| !it.is_empty())
-                .map(Path::new)
-                .unwrap_or(&location);
-            let lib_location = make_absolute(lib_location, &root);
-            env::set_var("LIB_LOCATION", &lib_location);
-            let project = get_project_from_file(&build_config, &root)?.to_resolved(&root);
+    if let Some(SubCommands::Build {
+        build_config,
+        build_location,
+        lib_location,
+        ..
+    }) = &parameters.commands
+    {
+        let build_config = build_config
+            .as_deref()
+            .or(Some("plc.json"))
+            .map(PathBuf::from)
+            .map(|it| env::current_dir().map(|cd| cd.join(it)))
+            .unwrap()?;
+        let root = build_config
+            .parent()
+            .map(|it| Ok(it.to_path_buf()))
+            .unwrap_or_else(env::current_dir)?;
+        env::set_var("PROJECT_ROOT", &root);
+        let location = Path::new(build_location.as_deref().unwrap_or("build"));
+        if !location.is_dir() {
+            std::fs::create_dir_all(location)?;
+        }
+        let location = make_absolute(location, &root);
+        env::set_var("BUILD_LOCATION", &location);
+        env::set_current_dir(&location)?;
+        let lib_location = lib_location
+            .as_deref()
+            .filter(|it| !it.is_empty())
+            .map(Path::new)
+            .unwrap_or(&location);
+        let lib_location = make_absolute(lib_location, &root);
+        env::set_var("LIB_LOCATION", &lib_location);
+        let project = get_project_from_file(&build_config, &root)?.to_resolved(&root);
 
-            let input = project
-                .files
-                .first()
-                .and_then(|it| it.file_stem())
-                .and_then(OsStr::to_str)
-                .unwrap_or("out");
+        let input = project
+            .files
+            .first()
+            .and_then(|it| it.file_stem())
+            .and_then(OsStr::to_str)
+            .unwrap_or("out");
 
-            let includes = if !project.libraries.is_empty() {
-                create_file_paths(
-                    &project
-                        .libraries
-                        .iter()
-                        .flat_map(|it| &it.include_path)
-                        .flat_map(|it| it.as_os_str().to_str())
-                        .collect::<Vec<_>>(),
-                )?
-            } else {
-                vec![]
-            };
-
-            let targets = target
-                .into_iter()
-                .enumerate()
-                .map(|(index, target)| {
-                    let sysroot = sysroot.get(index);
-                    Target::new(target, sysroot.cloned())
-                })
-                .collect::<Vec<_>>();
-
-            let files = create_file_paths(
+        let includes = if !project.libraries.is_empty() {
+            create_file_paths(
                 &project
-                    .files
+                    .libraries
                     .iter()
-                    .map(|it| it.to_string_lossy())
-                    .map(|it| it.to_string())
+                    .flat_map(|it| &it.include_path)
+                    .flat_map(|it| it.as_os_str().to_str())
                     .collect::<Vec<_>>(),
-            )?;
-            let link_options = if let Some(format) = project.compile_type {
-                Some(LinkOptions {
-                    libraries: project
-                        .libraries
-                        .iter()
-                        .map(|it| it.name.clone())
-                        .collect::<Vec<_>>(),
-                    library_pathes: project
-                        .libraries
-                        .iter()
-                        .map(|it| it.path.to_string_lossy())
-                        .map(|it| it.to_string())
-                        .collect(),
-                    format,
-                })
-            } else {
-                None
-            };
+            )?
+        } else {
+            vec![]
+        };
 
-            let compile_options = CompileOptions {
-                //Skip linking is always false for the build subcommand
-                output: get_output_name(
-                    project.output.as_deref(),
-                    project.compile_type.unwrap_or_default(),
-                    false,
-                    input,
-                ),
-                format: project.compile_type,
-                optimization: if project.optimization.is_some() {
-                    project.optimization.unwrap()
-                } else {
-                    parameters.optimization
-                },
-                error_format: project.error_format,
-            };
+        let compile_options = CompileOptions {
+            output: get_output_name(
+                project.output.as_deref(),
+                project.compile_type.unwrap_or_default(),
+                parameters.skip_linking,
+                input,
+            ),
+            format: project.compile_type,
+            optimization: parameters.optimization,
+            error_format: parameters.error_format,
+        };
 
-            build_and_link(
-                files,
-                includes,
-                parameters.encoding,
-                &compile_options,
-                targets,
-                config_options,
-                link_options,
-            )?;
+        let targets = parameters
+            .target
+            .into_iter()
+            .enumerate()
+            .map(|(index, target)| {
+                let sysroot = parameters.sysroot.get(index);
+                Target::new(target, sysroot.cloned())
+            })
+            .collect::<Vec<_>>();
 
-            copy_libs_to_build(&project.libraries, &lib_location)?;
+        let files = create_file_paths(
+            &project
+                .files
+                .iter()
+                .map(|it| it.to_string_lossy())
+                .map(|it| it.to_string())
+                .collect::<Vec<_>>(),
+        )?;
+        let link_options = if let Some(format) = project.compile_type {
+            Some(LinkOptions {
+                libraries: project
+                    .libraries
+                    .iter()
+                    .map(|it| it.name.clone())
+                    .collect::<Vec<_>>(),
+                library_pathes: project
+                    .libraries
+                    .iter()
+                    .map(|it| it.path.to_string_lossy())
+                    .map(|it| it.to_string())
+                    .collect(),
+                format,
+            })
+        } else {
+            None
+        };
 
-            if !project.package_commands.is_empty() {
-                execute_commands(project.package_commands)?;
-            }
+        build_and_link(
+            files,
+            includes,
+            parameters.encoding,
+            &compile_options,
+            targets,
+            config_options,
+            link_options,
+        )?;
+
+        copy_libs_to_build(&project.libraries, &lib_location)?;
+
+        if !project.package_commands.is_empty() {
+            execute_commands(project.package_commands)?;
         }
     }
     Ok(())
@@ -931,55 +975,8 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         targets,
         config_options,
         link_options,
-    )?;
-
-    Ok(())
+    )
 }
-pub enum Target {
-    System,
-    Param {
-        triple: String,
-        sysroot: Option<String>,
-    },
-}
-
-impl Target {
-    pub fn new(triple: String, sysroot: Option<String>) -> Target {
-        Target::Param { triple, sysroot }
-    }
-
-    pub fn get_target_triple(&self) -> TargetTriple {
-        let res = match self {
-            Target::System => TargetMachine::get_default_triple(),
-            Target::Param { triple, .. } => TargetTriple::create(triple),
-        };
-        targets::TargetMachine::normalize_triple(&res)
-    }
-
-    pub fn try_get_name(&self) -> Option<&str> {
-        match self {
-            Target::System => None,
-            Target::Param { triple, .. } => Some(triple.as_str()),
-        }
-    }
-
-    pub fn get_sysroot(&self) -> Option<&str> {
-        match self {
-            Target::Param { sysroot, .. } => sysroot.as_deref(),
-            _ => None,
-        }
-    }
-}
-
-impl<T> From<T> for Target
-where
-    T: core::ops::Deref<Target = str>,
-{
-    fn from(it: T) -> Self {
-        Target::new(it.to_string(), None)
-    }
-}
-
 /// The builder function for the compilation
 /// Sorts files that need compilation
 /// Parses, validates and generates code for the given source files
