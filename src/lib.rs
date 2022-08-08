@@ -35,13 +35,13 @@ use std::path::{Path, PathBuf};
 
 use ast::{LinkageType, PouType, SourceRange};
 use cli::{CompileParameters, SubCommands};
-use diagnostics::{Diagnostic, ErrNo};
+use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
 use inkwell::context::Context;
 use inkwell::targets::{
-    CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
+    self, CodeModel, FileType, InitializationConfig, RelocMode, TargetMachine, TargetTriple,
 };
 use lexer::IdProvider;
 use resolver::{AstAnnotations, StringLiterals};
@@ -116,20 +116,19 @@ impl FromStr for ConfigFormat {
 pub struct CompileOptions {
     pub format: Option<FormatOption>,
     pub output: String,
-    pub target: Option<String>,
     pub optimization: OptimizationLevel,
+    pub error_format: ErrorFormat,
 }
 
 #[derive(Clone)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
-    pub sysroot: Option<String>,
     pub format: FormatOption,
 }
 
 #[derive(Clone)]
-struct ConfigurationOptions {
+pub struct ConfigurationOptions {
     format: ConfigFormat,
     output: String,
 }
@@ -299,26 +298,20 @@ fn create_source_code<T: Read>(
     Ok(buffer)
 }
 
-pub fn get_target_triple(triple: Option<&str>) -> TargetTriple {
-    triple
-        .map(TargetTriple::create)
-        .unwrap_or_else(TargetMachine::get_default_triple)
-}
-
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
 fn persist_to_obj(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     reloc: RelocMode,
     triple: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
-    Target::initialize_all(initialization_config);
+    inkwell::targets::Target::initialize_all(initialization_config);
 
-    let target = Target::from_triple(triple).map_err(|it| {
+    let target = inkwell::targets::Target::from_triple(triple).map_err(|it| {
         Diagnostic::codegen_error(
             &format!("Invalid target-tripple '{:}' - {:?}", triple, it),
             SourceRange::undefined(),
@@ -360,7 +353,7 @@ fn persist_to_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn persist_as_static_obj(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -377,7 +370,7 @@ pub fn persist_as_static_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn persist_to_shared_pic_object(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -393,7 +386,7 @@ pub fn persist_to_shared_pic_object(
 /// * `output` - the location on disk to save the output
 /// * `target` - llvm target triple
 pub fn persist_to_shared_object(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -414,7 +407,7 @@ pub fn persist_to_shared_object(
 ///
 /// * `codegen` - the genated LLVM module to persist
 /// * `output` - the location on disk to save the output
-pub fn persist_to_bitcode(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
+pub fn persist_to_bitcode(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
     let path = Path::new(output);
     if codegen.module.write_bitcode_to_path(path) {
         Ok(())
@@ -433,7 +426,7 @@ pub fn persist_to_bitcode(codegen: CodeGen, output: &str) -> Result<(), Diagnost
 ///
 /// * `codegen` - The generated LLVM module to be persisted
 /// * `output`  - The location to save the generated ir file
-pub fn persist_to_ir(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
+pub fn persist_to_ir(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
     let ir = codegen.module.print_to_string().to_string();
     fs::write(output, ir)
         .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
@@ -662,8 +655,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             env::set_var("LIB_LOCATION", &lib_location);
             let project = get_project_from_file(&build_config, &root)?.to_resolved(&root);
 
-            copy_libs_to_build(&project.libraries, &lib_location)?;
-
             let input = project
                 .files
                 .first()
@@ -684,6 +675,15 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 vec![]
             };
 
+            let targets = target
+                .into_iter()
+                .enumerate()
+                .map(|(index, target)| {
+                    let sysroot = sysroot.get(index);
+                    Target::new(target, sysroot.cloned())
+                })
+                .collect::<Vec<_>>();
+
             let files = create_file_paths(
                 &project
                     .files
@@ -692,133 +692,53 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                     .map(|it| it.to_string())
                     .collect::<Vec<_>>(),
             )?;
-
-            if (target.is_empty() || target.len() == 1) && sysroot.is_empty() {
-                let link_options = if let Some(format) = project.compile_type {
-                    Some(LinkOptions {
-                        libraries: project
-                            .libraries
-                            .iter()
-                            .map(|it| it.name.clone())
-                            .collect::<Vec<_>>(),
-                        library_pathes: project
-                            .libraries
-                            .iter()
-                            .map(|it| it.path.to_string_lossy())
-                            .map(|it| it.to_string())
-                            .collect(),
-                        sysroot: None,
-                        format,
-                    })
-                } else {
-                    None
-                };
-
-                let compile_options = CompileOptions {
-                    //Skip linking is always false for the build subcommand
-                    output: get_output_name(
-                        project.output.as_deref(),
-                        project.compile_type.unwrap_or_default(),
-                        false,
-                        input,
-                        if target.is_empty() {
-                            None
-                        } else {
-                            Some(&target[0])
-                        },
-                    ),
-                    target: None,
-                    format: project.compile_type,
-                    optimization: if project.optimization.is_some() {
-                        project.optimization.unwrap()
-                    } else {
-                        parameters.optimization
-                    },
-                };
-
-                let target = get_target_triple(compile_options.target.as_deref());
-
-                let compile_result = build(
-                    files,
-                    includes,
-                    &compile_options,
-                    parameters.encoding,
-                    &project.error_format,
-                    &target,
-                )?;
-
-                link_and_create(
-                    link_options,
-                    &compile_result,
-                    &compile_options,
-                    &target,
-                    config_options,
-                )?;
+            let link_options = if let Some(format) = project.compile_type {
+                Some(LinkOptions {
+                    libraries: project
+                        .libraries
+                        .iter()
+                        .map(|it| it.name.clone())
+                        .collect::<Vec<_>>(),
+                    library_pathes: project
+                        .libraries
+                        .iter()
+                        .map(|it| it.path.to_string_lossy())
+                        .map(|it| it.to_string())
+                        .collect(),
+                    format,
+                })
             } else {
-                if target.len() != sysroot.len() {
-                    return Err(Diagnostic::GeneralError {
-                        message: "Target sysroot mismatch. There must exist exactly one sysroot for each target".to_string(), 
-                        err_no: ErrNo::general__io_err
-                    });
-                }
-                for (i, target_plattform) in target.iter().enumerate() {
-                    let link_options = if let Some(format) = project.compile_type {
-                        Some(LinkOptions {
-                            libraries: project
-                                .libraries
-                                .iter()
-                                .map(|it| it.name.clone())
-                                .collect::<Vec<_>>(),
-                            library_pathes: project
-                                .libraries
-                                .iter()
-                                .map(|it| it.path.to_string_lossy())
-                                .map(|it| it.to_string())
-                                .collect(),
-                            sysroot: Some(sysroot[i].clone()),
-                            format,
-                        })
-                    } else {
-                        None
-                    };
-                    let compile_options = CompileOptions {
-                        //Skip linking is always false for the build subcommand
-                        output: get_output_name(
-                            project.output.as_deref(),
-                            project.compile_type.unwrap_or_default(),
-                            false,
-                            input,
-                            Some(target_plattform),
-                        ),
-                        target: Some(target_plattform.to_string()),
-                        format: project.compile_type,
-                        optimization: if project.optimization.is_some() {
-                            project.optimization.unwrap()
-                        } else {
-                            parameters.optimization
-                        },
-                    };
+                None
+            };
 
-                    let target = get_target_triple(compile_options.target.as_deref());
+            let compile_options = CompileOptions {
+                //Skip linking is always false for the build subcommand
+                output: get_output_name(
+                    project.output.as_deref(),
+                    project.compile_type.unwrap_or_default(),
+                    false,
+                    input,
+                ),
+                format: project.compile_type,
+                optimization: if project.optimization.is_some() {
+                    project.optimization.unwrap()
+                } else {
+                    parameters.optimization
+                },
+                error_format: project.error_format,
+            };
 
-                    let compile_result = build(
-                        files.clone(),
-                        includes.clone(),
-                        &compile_options,
-                        parameters.encoding,
-                        &project.error_format,
-                        &target,
-                    )?;
+            build_and_link(
+                files,
+                includes,
+                parameters.encoding,
+                &compile_options,
+                targets,
+                config_options,
+                link_options,
+            )?;
 
-                    link_and_create(
-                        link_options.clone(),
-                        &compile_result,
-                        &compile_options,
-                        &target,
-                        config_options.clone(),
-                    )?;
-                }
-            }
+            copy_libs_to_build(&project.libraries, &lib_location)?;
 
             if !project.package_commands.is_empty() {
                 execute_commands(project.package_commands)?;
@@ -899,30 +819,31 @@ fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<()
 }
 
 fn link_and_create(
-    link_options: Option<LinkOptions>,
-    compile_result: &CompileResult,
-    compile_options: &CompileOptions,
-    target: &TargetTriple,
-    config_options: Option<ConfigurationOptions>,
+    link_options: Option<&LinkOptions>,
+    index: &Index,
+    objects: &[FilePath],
+    output: &str,
+    target: &Target,
+    config_options: Option<&ConfigurationOptions>,
 ) -> Result<(), Diagnostic> {
     if let Some(link_options) = link_options {
         link(
-            &compile_options.output,
+            output,
             link_options.format,
-            &compile_result.objects,
-            link_options.library_pathes,
-            link_options.libraries,
-            target,
-            link_options.sysroot,
+            objects,
+            &link_options.library_pathes,
+            &link_options.libraries,
+            &target.get_target_triple(),
+            target.get_sysroot(),
         )?;
     }
 
     if let Some(config) = config_options {
-        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
+        let hw_config = hardware_binding::collect_hardware_configuration(index)?;
         let generated_conf =
             hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
 
-        File::create(config.output)
+        File::create(&config.output)
             .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
             .map_err(|it| Diagnostic::GeneralError {
                 err_no: diagnostics::ErrNo::general__io_err,
@@ -965,16 +886,14 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
 
     let compile_options = CompileOptions {
         output,
-        target: parameters.target,
         format: if parameters.check_only {
             None
         } else {
             Some(out_format)
         },
         optimization: parameters.optimization,
+        error_format: parameters.error_format,
     };
-
-    let error_format = parameters.error_format;
 
     let files = create_file_paths(
         &parameters
@@ -988,33 +907,77 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         Some(LinkOptions {
             libraries: parameters.libraries,
             library_pathes: parameters.library_paths,
-            sysroot: parameters.sysroot,
             format: out_format,
         })
     } else {
         None
     };
 
-    let target = get_target_triple(compile_options.target.as_deref());
+    let targets = parameters
+        .target
+        .into_iter()
+        .enumerate()
+        .map(|(index, target)| {
+            let sysroot = parameters.sysroot.get(index);
+            Target::new(target, sysroot.cloned())
+        })
+        .collect::<Vec<_>>();
 
-    let compile_result = build(
+    build_and_link(
         files,
         includes,
-        &compile_options,
         parameters.encoding,
-        &error_format,
-        &target,
-    )?;
-
-    link_and_create(
-        link_options,
-        &compile_result,
         &compile_options,
-        &target,
+        targets,
         config_options,
+        link_options,
     )?;
 
     Ok(())
+}
+pub enum Target {
+    System,
+    Param {
+        triple: String,
+        sysroot: Option<String>,
+    },
+}
+
+impl Target {
+    pub fn new(triple: String, sysroot: Option<String>) -> Target {
+        Target::Param { triple, sysroot }
+    }
+
+    pub fn get_target_triple(&self) -> TargetTriple {
+        let res = match self {
+            Target::System => TargetMachine::get_default_triple(),
+            Target::Param { triple, .. } => TargetTriple::create(triple),
+        };
+        targets::TargetMachine::normalize_triple(&res)
+    }
+
+    pub fn try_get_name(&self) -> Option<&str> {
+        match self {
+            Target::System => None,
+            Target::Param { triple, .. } => Some(triple.as_str()),
+        }
+    }
+
+    pub fn get_sysroot(&self) -> Option<&str> {
+        match self {
+            Target::Param { sysroot, .. } => sysroot.as_deref(),
+            _ => None,
+        }
+    }
+}
+
+impl<T> From<T> for Target
+where
+    T: core::ops::Deref<Target = str>,
+{
+    fn from(it: T) -> Self {
+        Target::new(it.to_string(), None)
+    }
 }
 
 /// The builder function for the compilation
@@ -1022,14 +985,16 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
 /// Parses, validates and generates code for the given source files
 /// Persists the generated code to output location
 /// Returns a compilation result with the index, and a list of object files
-pub fn build(
+pub fn build_and_link(
     files: Vec<FilePath>,
     includes: Vec<FilePath>,
-    compile_options: &CompileOptions,
     encoding: Option<&'static Encoding>,
-    error_format: &ErrorFormat,
-    target: &TargetTriple,
-) -> Result<CompileResult, Diagnostic> {
+    compile_options: &CompileOptions,
+    targets: Vec<Target>,
+    config_options: Option<ConfigurationOptions>,
+    link_options: Option<LinkOptions>,
+) -> Result<(), Diagnostic> {
+    //Split files in objects and sources
     let mut objects = vec![];
     let mut sources = vec![];
     files.into_iter().for_each(|it| {
@@ -1041,34 +1006,57 @@ pub fn build(
     });
 
     let context = Context::create();
-    let diagnostician = match error_format {
+    let diagnostician = match compile_options.error_format {
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
+    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
 
-    let index = match compile_options.format {
-        None => index_module(sources, includes, encoding, diagnostician)?.0,
-        Some(out_format) => {
-            let (index, codegen) =
-                compile_module(&context, sources, includes, encoding, diagnostician)?;
+    let targets = if targets.is_empty() {
+        vec![Target::System]
+    } else {
+        targets
+    };
+
+    if let Some(out_format) = compile_options.format {
+        for target in targets {
+            let triple = target.get_target_triple();
+            let output = if let Some(target_name) = target.try_get_name() {
+                let target_path = PathBuf::from(&target_name);
+                //Create target dir if not available
+                if !target_path.is_dir() {
+                    std::fs::create_dir_all(&target_path)?;
+                }
+                target_path.join(&compile_options.output)
+            } else {
+                PathBuf::from(&compile_options.output)
+            };
+            let mut objects = objects.clone();
 
             objects.push(persist(
-                codegen,
-                &compile_options.output,
+                &codegen,
+                output.to_str().unwrap_or(&compile_options.output),
                 out_format,
-                target,
+                &triple,
                 compile_options.optimization,
             )?);
 
-            index
+            link_and_create(
+                link_options.as_ref(),
+                &index,
+                &objects,
+                output.to_str().unwrap_or(&compile_options.output),
+                &target,
+                config_options.as_ref(),
+            )?;
         }
-    };
+    }
 
-    Ok(CompileResult { index, objects })
+    Ok(())
 }
 
 pub fn persist(
-    input: codegen::CodeGen,
+    input: &codegen::CodeGen,
     output: &str,
     out_format: FormatOption,
     target: &TargetTriple,
@@ -1091,10 +1079,10 @@ pub fn link(
     output: &str,
     out_format: FormatOption,
     objects: &[FilePath],
-    library_pathes: Vec<String>,
-    libraries: Vec<String>,
+    library_pathes: &[String],
+    libraries: &[String],
     target: &TargetTriple,
-    sysroot: Option<String>,
+    sysroot: Option<&str>,
 ) -> Result<(), Diagnostic> {
     let linkable_formats = vec![
         FormatOption::Static,
@@ -1114,14 +1102,14 @@ pub fn link(
             linker.add_obj(&path.path);
         }
 
-        for path in &library_pathes {
+        for path in library_pathes {
             linker.add_lib_path(path);
         }
-        for library in &libraries {
+        for library in libraries {
             linker.add_lib(library);
         }
 
-        if let Some(sysroot) = &sysroot {
+        if let Some(sysroot) = sysroot {
             linker.add_sysroot(sysroot);
         }
 
@@ -1141,16 +1129,15 @@ pub fn get_output_name(
     out_format: FormatOption,
     skip_linking: bool,
     input: &str,
-    target: Option<&str>,
 ) -> String {
     match output_name {
-        Some(n) => format!(
-            "{}{}{}",
-            target.unwrap_or(""),
-            if target.is_some() { "_" } else { "" },
-            n
-        ),
-        _ => {
+        Some(n) => n.to_string(),
+        // format!(
+        //     "{}{}{}",
+        //     target.unwrap_or(""),
+        //     if target.is_some() { "_" } else { "" },
+        //     n),
+        None => {
             let ending = match out_format {
                 FormatOption::Bitcode => ".bc",
                 FormatOption::Relocatable => ".o",
@@ -1159,14 +1146,15 @@ pub fn get_output_name(
                 FormatOption::Shared | FormatOption::PIC => ".so",
                 FormatOption::IR => ".ir",
             };
+            format!("{input}{ending}")
 
-            format!(
-                "{}{}{}{}",
-                output_name.unwrap_or(input),
-                if target.is_some() { "_" } else { "" },
-                target.unwrap_or(""),
-                ending
-            )
+            // format!(
+            //     "{}{}{}{}",
+            //     output_name.unwrap_or(input),
+            //     if target.is_some() { "_" } else { "" },
+            //     target.unwrap_or(""),
+            //     ending
+            // )
         }
     }
 }
@@ -1176,25 +1164,7 @@ mod tests {
     mod adr;
     mod external_files;
     mod multi_files;
-
-    use inkwell::targets::TargetMachine;
-
-    use crate::{create_source_code, get_target_triple};
-
-    #[test]
-    fn test_get_target_triple() {
-        let triple = get_target_triple(None);
-        assert_eq!(
-            triple.as_str().to_str().unwrap(),
-            TargetMachine::get_default_triple()
-                .as_str()
-                .to_str()
-                .unwrap()
-        );
-
-        let triple = get_target_triple(Some("x86_64-pc-linux-gnu"));
-        assert_eq!(triple.as_str().to_str().unwrap(), "x86_64-pc-linux-gnu");
-    }
+    use crate::create_source_code;
 
     #[test]
     fn windows_encoded_file_content_read() {

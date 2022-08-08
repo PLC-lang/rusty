@@ -1,9 +1,11 @@
 use std::{env, fs};
 
 use crate::get_test_file;
+use inkwell::context::Context;
 use rusty::{
-    build, diagnostics::Diagnostic, get_target_triple, link, CompileOptions, ErrorFormat, FilePath,
-    FormatOption,
+    build_and_link, compile_module,
+    diagnostics::{Diagnostic, Diagnostician},
+    link, persist, CompileOptions, ErrorFormat, FilePath, FormatOption, LinkOptions, Target,
 };
 
 static TARGET: Option<&str> = Some("x86_64-unkown-linux-gnu");
@@ -23,48 +25,42 @@ fn link_as_shared_object() {
     let mut out = env::temp_dir();
     out.push("shared2.o");
     let out2 = out.into_os_string().into_string().unwrap();
-    let triple = get_target_triple(TARGET);
 
     //Compile file 2 into obj
-    build(
+    build_and_link(
         vec![file2],
         vec![],
+        None,
         &CompileOptions {
             output: out2.clone(),
             format: Some(FormatOption::Shared),
-            target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
         },
+        vec![TARGET.unwrap().into()],
         None,
-        &ErrorFormat::Rich,
-        &triple,
+        None,
     )
     .unwrap();
 
     //Compile file1 as shared object with file2 as param
-    let res = build(
+    build_and_link(
         vec![file1, out2.as_str().into()],
         vec![],
+        None,
         &CompileOptions {
             output: out1.clone(),
             format: Some(FormatOption::Shared),
-            target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
         },
+        vec![TARGET.unwrap().into()],
         None,
-        &ErrorFormat::Rich,
-        &triple,
-    )
-    .unwrap();
-
-    link(
-        &out1,
-        FormatOption::Shared,
-        &res.objects,
-        vec![],
-        vec![],
-        &triple,
-        None,
+        Some(LinkOptions {
+            libraries: vec![],
+            library_pathes: vec![],
+            format: FormatOption::Shared,
+        }),
     )
     .unwrap();
 
@@ -90,50 +86,42 @@ fn link_as_pic_object() {
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
-    let triple = get_target_triple(TARGET);
-
-    build(
+    build_and_link(
         vec![file2],
         vec![],
+        None,
         &CompileOptions {
             output: out2.clone(),
             format: Some(FormatOption::PIC),
-            target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
         },
+        vec![TARGET.unwrap().into()],
         None,
-        &ErrorFormat::Rich,
-        &triple,
+        None,
     )
     .unwrap();
 
     //Compile file1 as shared object with file2 as param
-    let res = build(
+    build_and_link(
         vec![file1, out2.as_str().into()],
         vec![],
+        None,
         &CompileOptions {
             output: out1.clone(),
             format: Some(FormatOption::PIC),
-            target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
         },
+        vec![TARGET.unwrap().into()],
         None,
-        &ErrorFormat::Rich,
-        &triple,
+        Some(LinkOptions {
+            libraries: vec![],
+            library_pathes: vec![],
+            format: FormatOption::PIC,
+        }),
     )
     .unwrap();
-
-    link(
-        &out1,
-        FormatOption::PIC,
-        &res.objects,
-        vec![],
-        vec![],
-        &triple,
-        None,
-    )
-    .unwrap();
-
     //Delete it
     fs::remove_file(&out1).unwrap();
     fs::remove_file(&out2).unwrap();
@@ -156,47 +144,40 @@ fn link_as_static_object() {
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
-    let triple = get_target_triple(TARGET);
-
-    build(
+    build_and_link(
         vec![file2],
         vec![],
+        None,
         &CompileOptions {
             output: out2.clone(),
             format: Some(FormatOption::Static),
-            target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
         },
+        vec![TARGET.unwrap().into()],
         None,
-        &ErrorFormat::Rich,
-        &triple,
+        None,
     )
     .unwrap();
 
     //Compile file1 as shared object with file2 as param
-    let res = build(
+    build_and_link(
         vec![file1, out2.as_str().into()],
         vec![],
+        None,
         &CompileOptions {
             output: out1.clone(),
             format: Some(FormatOption::Static),
-            target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
         },
+        vec![TARGET.unwrap().into()],
         None,
-        &ErrorFormat::Rich,
-        &triple,
-    )
-    .unwrap();
-
-    link(
-        &out1,
-        FormatOption::Static,
-        &res.objects,
-        vec![],
-        vec![],
-        &triple,
-        None,
+        Some(LinkOptions {
+            libraries: vec![],
+            library_pathes: vec![],
+            format: FormatOption::Static,
+        }),
     )
     .unwrap();
 
@@ -222,47 +203,40 @@ fn link_as_relocatable_object() {
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
-    let triple = get_target_triple(TARGET);
-
-    build(
+    build_and_link(
         vec![file2],
         vec![],
+        None,
         &CompileOptions {
             output: out2.clone(),
             format: Some(FormatOption::Static),
-            target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
         },
+        vec![TARGET.unwrap().into()],
         None,
-        &ErrorFormat::Rich,
-        &triple,
+        None,
     )
     .unwrap();
 
     //Compile file1 as shared object with file2 as param
-    let res = build(
+    build_and_link(
         vec![file1, out2.as_str().into()],
         vec![],
+        None,
         &CompileOptions {
             output: out1.clone(),
             format: Some(FormatOption::Relocatable),
-            target: TARGET.map(String::from),
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
         },
+        vec![TARGET.unwrap().into()],
         None,
-        &ErrorFormat::Rich,
-        &triple,
-    )
-    .unwrap();
-
-    link(
-        &out1,
-        FormatOption::Relocatable,
-        &res.objects,
-        vec![],
-        vec![],
-        &triple,
-        None,
+        Some(LinkOptions {
+            libraries: vec![],
+            library_pathes: vec![],
+            format: FormatOption::Relocatable,
+        }),
     )
     .unwrap();
 
@@ -279,30 +253,26 @@ fn link_missing_file() {
     let mut out = env::temp_dir();
     out.push("missing.o");
     let out = out.into_os_string().into_string().unwrap();
-    let triple = get_target_triple(TARGET);
+    let target: Target = TARGET.unwrap().into();
     //Compile file1 as shared object with file2 as param
-    let res = build(
-        vec![file1],
-        vec![],
-        &CompileOptions {
-            output: out.clone(),
-            format: Some(FormatOption::Static),
-            target: TARGET.map(String::from),
-            optimization: rusty::OptimizationLevel::Default,
-        },
-        None,
-        &ErrorFormat::Rich,
-        &triple,
+    let context = Context::create();
+    let diagnostician = Diagnostician::default();
+    let (_, codegen) = compile_module(&context, vec![file1], vec![], None, diagnostician).unwrap();
+    let object = persist(
+        &codegen,
+        &out,
+        FormatOption::Static,
+        &target.get_target_triple(),
+        rusty::OptimizationLevel::Default,
     )
     .unwrap();
-
     let res = link(
         &out,
         FormatOption::Static,
-        &res.objects,
-        vec![],
-        vec![],
-        &triple,
+        &[object],
+        &[],
+        &[],
+        &target.get_target_triple(),
         None,
     );
 
