@@ -70,6 +70,7 @@ fn build_with_cc_linker() {
 }
 
 #[test]
+#[cfg_attr(target_os = "linux", ignore)]
 fn build_with_clang_linker_windows() {
     let dir = temp_dir();
 
