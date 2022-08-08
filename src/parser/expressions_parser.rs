@@ -747,7 +747,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
         let number = {
             let start = char.expect("char").0;
             //just eat all the digits
-            char = chars.find(|(_, ch)| !ch.is_digit(10) && !ch.eq(&'.'));
+            char = chars.find(|(_, ch)| !ch.is_ascii_digit() && !ch.eq(&'.'));
             char.ok_or_else(|| {
                 Diagnostic::syntax_error(
                     "Invalid TIME Literal: Cannot parse segment.",
