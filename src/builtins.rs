@@ -17,7 +17,7 @@ use crate::{
     parser,
     resolver::{
         generics::{generic_name_resolver, no_generic_name_resolver},
-        get_type_for_annotation, AnnotationMap, TypeAnnotator, VisitorContext,
+        AnnotationMap, TypeAnnotator, VisitorContext,
     },
     typesystem::{
         get_bigger_type, DataTypeInformation, DINT_SIZE, DINT_TYPE, REAL_TYPE, UDINT_TYPE,
@@ -194,8 +194,8 @@ lazy_static! {
                     let params = parameters.ok_or_else(|| Diagnostic::codegen_error("EXPT requires parameters", operator.get_location()))?;
                     if let [element, exponant] = flatten_expression_list(params)[..] {
                         //Resolve the parameter types
-                        let element_type = annotator.annotation_map.get(element).and_then(|it| get_type_for_annotation(annotator.index, it));
-                        let exponant_type = annotator.annotation_map.get(exponant).and_then(|it| get_type_for_annotation(annotator.index, it));
+                        let element_type = annotator.annotation_map.get_type(element, annotator.index);
+                        let exponant_type = annotator.annotation_map.get_type(exponant, annotator.index);
                         let dint_type = annotator.index.get_type_or_panic(DINT_TYPE);
                         let udint_type = annotator.index.get_type_or_panic(UDINT_TYPE);
                         let real_type = annotator.index.get_type_or_panic(REAL_TYPE);
@@ -241,6 +241,8 @@ lazy_static! {
                             generics_candidates.insert("U".to_string(), vec![element_type.to_string()]);
                             generics_candidates.insert("V".to_string(), vec![exponant_type.to_string()]);
                             annotator.update_generic_call_statement(generics_candidates, "EXPT", operator, parameters, ctx)
+                        } else {
+                            unreachable!("Exponent types should be available at this point")
                         }
 
                     }
