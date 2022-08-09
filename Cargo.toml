@@ -33,12 +33,12 @@ toml = "0.5"
 lazy_static = "1.4.0"
 shell-words = "1.1.0"
 which = "4.2.5"
+tempfile = "3"
 
 [dev-dependencies]
 num = "0.4"
 insta = "1.8.0"
 pretty_assertions = "0.6.1"
-tempfile = "3"
 
 [lib]
 name = "rusty"

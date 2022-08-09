@@ -254,8 +254,8 @@ impl From<String> for FilePath {
     }
 }
 
-impl From<PathBuf> for FilePath {
-    fn from(it: PathBuf) -> Self {
+impl From<&Path> for FilePath {
+    fn from(it: &Path) -> Self {
         FilePath {
             path: it.to_string_lossy().to_string(),
         }
@@ -872,21 +872,31 @@ fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<()
 fn link_and_create(
     link_options: Option<&LinkOptions>,
     index: &Index,
-    objects: &[FilePath],
+    to_link: &[FilePath],
     output: &str,
     target: &Target,
     config_options: Option<&ConfigurationOptions>,
+    compile_result: &FilePath,
 ) -> Result<(), Diagnostic> {
+    //Make sure all parents exist
+    let output_path = Path::new(output);
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
     if let Some(link_options) = link_options {
         link(
             output,
             link_options.format,
-            objects,
+            to_link,
             &link_options.library_pathes,
             &link_options.libraries,
             target,
             link_options.linker.as_deref(),
         )?;
+    } else {
+        // If not linking, copy the generated file to the correct location
+        std::fs::copy(compile_result.get_location(), output)?;
     }
 
     if let Some(config) = config_options {
@@ -1041,9 +1051,17 @@ pub fn build_and_link(
             };
             let mut objects = objects.clone();
 
+            let output_name = output.to_str().unwrap_or(&compile_options.output);
+            let compile_name = Path::new(output_name)
+                .file_name()
+                .and_then(|it| it.to_str())
+                .unwrap_or("tmp.o");
+            let compile_dir = tempfile::tempdir()?;
+            let compile_result = compile_dir.path().join(compile_name);
+
             objects.push(persist(
                 &codegen,
-                output.to_str().unwrap_or(&compile_options.output),
+                &compile_result.to_string_lossy(),
                 out_format,
                 &triple,
                 compile_options.optimization,
@@ -1053,9 +1071,10 @@ pub fn build_and_link(
                 link_options.as_ref(),
                 &index,
                 &objects,
-                output.to_str().unwrap_or(&compile_options.output),
+                output_name,
                 &target,
                 config_options.as_ref(),
+                &compile_result.as_path().into(),
             )?;
         }
     }
