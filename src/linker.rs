@@ -159,18 +159,10 @@ impl LinkerInterface for CcLinker {
     }
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
-        let linker_location = which(&self.linker);
-        match linker_location {
-            Ok(_) => (),
-            Err(e) => {
-                return Err(LinkerError::Link(format!(
-                    "{} for linker: {}",
-                    e, &self.linker
-                )))
-            }
-        }
+        let linker_location = which(&self.linker)
+            .map_err(|e| LinkerError::Link(format!("{} for linker: {}", e, &self.linker)))?;
 
-        Command::new(&self.linker).args(&self.args).output()?;
+        Command::new(linker_location).args(&self.args).output()?;
         Ok(())
     }
 }
