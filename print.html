@@ -335,22 +335,6 @@ the current directory.</li>
     &quot;examples/hw.st&quot;
 ]
 </code></pre>
-<h2 id="optimization-1"><a class="header" href="#optimization-1">optimization</a></h2>
-<p><code>rustyc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>agressive</code>).
-To use an optimization, the key <code>optimization</code> is required:</p>
-<ul>
-<li><code>&quot;optimization&quot; : &quot;none&quot;</code></li>
-<li><code>&quot;optimization&quot; : &quot;less&quot;</code></li>
-<li><code>&quot;optimization&quot; : &quot;default&quot;</code></li>
-<li><code>&quot;optimization&quot; : &quot;aggressive&quot;</code></li>
-</ul>
-<p>By default <code>rustyc</code> will use <code>default</code> which corresponds to clang's <code>-o2</code>.</p>
-<h2 id="error_format"><a class="header" href="#error_format">error_format</a></h2>
-<p><code>rustyc</code> offers 2 levels of formatting errors. To specify which error format is wanted, the key <code>error_format</code> is required:</p>
-<ul>
-<li><code>&quot;error_format&quot; : &quot;Clang&quot;</code>   This is used to get fewer error messaged</li>
-<li><code>&quot;error_format&quot; : &quot;Rich&quot;</code>    This is used to get a verbose error description. </li>
-</ul>
 <h2 id="libraries"><a class="header" href="#libraries">libraries</a></h2>
 <p>To link several executables <code>rustyc</code> has the option to add libraries and automatically build and like them together. if no compile type has been selected <code>rustyc</code> will link the files on default.</p>
 <pre><code class="language-json">&quot;libraries&quot; : [
@@ -391,9 +375,7 @@ To use an optimization, the key <code>optimization</code> is required:</p>
         &quot;examples/ExternalFunctions.st&quot;
     ],
     &quot;compile_type&quot; : &quot;Shared&quot;,
-    &quot;optimization&quot; : &quot;Default&quot;,
     &quot;output&quot; : &quot;proj.so&quot;,
-    &quot;error_format&quot;: &quot;Rich&quot;,
     &quot;libraries&quot; : [
         {
             &quot;name&quot; : &quot;iec61131std&quot;,
