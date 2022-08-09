@@ -176,22 +176,22 @@ mod tests {
         assert_eq!("test_value.so", &proj.output.unwrap());
     }
 
-    // #[test]
-    // fn project_resolve_makes_pathes_absolute() {
-    //     let root = PathBuf::from("root");
-    //     //Add env
-    //     let proj = Project::try_parse(
-    //         r#"
-    //         {
-    //             "files" : [
-    //                 "simple_program.st"
-    //             ]
-    //         }
-    //     "#,
-    //     )
-    //     .unwrap()
-    //     .to_resolved(&root);
+    #[test]
+    fn project_resolve_makes_pathes_absolute() {
+        let root = PathBuf::from("root");
+        //Add env
+        let proj = Project::try_parse(
+            r#"
+            {
+                "files" : [
+                    "simple_program.st"
+                ]
+            }
+        "#,
+        )
+        .unwrap()
+        .to_resolved(&root);
 
-    //     assert_eq!(root.join("simple_program.st"), proj.files[0]);
-    // }
+        assert_eq!(root.join("simple_program.st"), proj.files[0]);
+    }
 }
