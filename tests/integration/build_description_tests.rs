@@ -12,7 +12,7 @@ fn build_to_temp() {
     let dir = temp_dir();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
-        get_test_file("json/plc.json"),
+        get_test_file("json/build_to_temp.json"),
         "--target",
         "x86_64-linux-gnu",
         "--sysroot",
@@ -33,7 +33,7 @@ fn build_with_separate_lib_folder() {
     let lib_dir = temp_dir();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
-        get_test_file("json/plc2.json"),
+        get_test_file("json/separate_build_and_lib.json"),
         "--target",
         "x86_64-linux-gnu",
         "--build-location",
@@ -54,7 +54,7 @@ fn build_with_target_but_without_sysroot() {
     let dir = temp_dir();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
-        get_test_file("json/plc3.json"),
+        get_test_file("json/build_without_sysroot.json"),
         "--target",
         "x86_64-unknown-linux-gnu",
         "--build-location",
@@ -74,7 +74,7 @@ fn build_for_multiple_targets_and_sysroots() {
     let dir = temp_dir();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
-        get_test_file("json/plc4.json"),
+        get_test_file("json/multi_target_and_sysroot.json"),
         "--target",
         "aarch64-linux-gnu",
         "--target",

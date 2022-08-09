@@ -134,9 +134,7 @@ mod tests {
                     "simple_program.st"
                 ],
                 "compile_type" : "Shared",
-                "optimization" : "Default",
                 "output" : "proj.so",
-                "error_format": "Rich",
                 "libraries" : [
                     {
                         "name" : "copy",

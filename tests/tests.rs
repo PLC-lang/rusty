@@ -36,8 +36,8 @@ mod correctness {
 }
 
 mod integration {
+    mod build_description_tests;
     mod external_files;
-    mod json_file;
     mod linking;
     mod multi_files;
 }
