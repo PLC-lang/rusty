@@ -1,6 +1,4 @@
 use crate::diagnostics::Diagnostic;
-use crate::diagnostics::ErrNo;
-use crate::make_absolute;
 use crate::resolve_environment_variables;
 use crate::FormatOption;
 use serde::{Deserialize, Serialize};
@@ -40,17 +38,21 @@ impl Project {
             files: self
                 .files
                 .into_iter()
-                .map(|it| make_absolute(&it, root))
+                .map(|it| if it.is_absolute() { it } else { root.join(it) })
                 .collect(),
             libraries: self
                 .libraries
                 .into_iter()
                 .map(|it| Libraries {
-                    path: make_absolute(&it.path, root),
+                    path: if it.path.is_absolute() {
+                        it.path
+                    } else {
+                        root.join(it.path)
+                    },
                     include_path: it
                         .include_path
                         .into_iter()
-                        .map(|it| make_absolute(&it, root))
+                        .map(|it| if it.is_absolute() { it } else { root.join(it) })
                         .collect(),
                     ..it
                 })
@@ -67,32 +69,14 @@ impl Project {
     }
 }
 
-pub fn get_project_from_file(build_config: &Path, root: &Path) -> Result<Project, Diagnostic> {
+pub fn get_project_from_file(build_config: &Path) -> Result<Project, Diagnostic> {
     //read from file
     let content = fs::read_to_string(build_config)?;
 
     //convert file to Object
     let project = Project::try_parse(&content)?;
 
-    //check_libs_exist(&project.libraries, root)?;
     Ok(project)
-}
-
-fn check_libs_exist(libraries: &[Libraries], root: &Path) -> Result<(), Diagnostic> {
-    for library in libraries {
-        let path = root.join(&library.path);
-        let path = path.join(&format!("lib{}.so", library.name));
-        if !path.is_file() {
-            return Err(Diagnostic::GeneralError {
-                message: format!(
-                    "The library could not be found at : {}",
-                    path.to_string_lossy()
-                ),
-                err_no: ErrNo::general__io_err,
-            });
-        }
-    }
-    Ok(())
 }
 
 #[cfg(test)]
@@ -192,22 +176,22 @@ mod tests {
         assert_eq!("test_value.so", &proj.output.unwrap());
     }
 
-    #[test]
-    fn project_resolve_makes_pathes_absolute() {
-        let root = PathBuf::from("root");
-        //Add env
-        let proj = Project::try_parse(
-            r#"
-            {
-                "files" : [
-                    "simple_program.st"
-                ]
-            }
-        "#,
-        )
-        .unwrap()
-        .to_resolved(&root);
+    // #[test]
+    // fn project_resolve_makes_pathes_absolute() {
+    //     let root = PathBuf::from("root");
+    //     //Add env
+    //     let proj = Project::try_parse(
+    //         r#"
+    //         {
+    //             "files" : [
+    //                 "simple_program.st"
+    //             ]
+    //         }
+    //     "#,
+    //     )
+    //     .unwrap()
+    //     .to_resolved(&root);
 
-        assert_eq!(root.join("simple_program.st"), proj.files[0]);
-    }
+    //     assert_eq!(root.join("simple_program.st"), proj.files[0]);
+    // }
 }

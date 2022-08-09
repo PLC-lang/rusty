@@ -17,7 +17,6 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
-use std::env::temp_dir;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
@@ -160,6 +159,7 @@ impl FromStr for ConfigFormat {
 #[derive(Serialize, Deserialize)]
 pub struct CompileOptions {
     pub format: Option<FormatOption>,
+    pub build_location: Option<PathBuf>,
     pub output: String,
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
@@ -170,6 +170,7 @@ pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
     pub format: FormatOption,
+    pub linker: Option<String>,
 }
 
 #[derive(Clone)]
@@ -382,6 +383,11 @@ fn persist_to_obj(
             Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
         });
 
+    //Make sure all parents exist
+    let output_path = Path::new(output);
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
     ////Run the passes
     machine.and_then(|it| {
         codegen
@@ -389,7 +395,7 @@ fn persist_to_obj(
             .run_passes(optimization.opt_params(), &it, PassBuilderOptions::create())
             .map_err(|it| Diagnostic::llvm_error(output, &it))
             .and_then(|_| {
-                it.write_to_file(&codegen.module, FileType::Object, Path::new(output))
+                it.write_to_file(&codegen.module, FileType::Object, output_path)
                     .map_err(|it| Diagnostic::llvm_error(output, &it))
             })
     })
@@ -682,28 +688,26 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             .as_deref()
             .or(Some("plc.json"))
             .map(PathBuf::from)
-            .map(|it| env::current_dir().map(|cd| cd.join(it)))
-            .unwrap()?;
+            .ok_or_else(|| unreachable!("The or plc.json means this exists"))
+            .and_then(|it| env::current_dir().map(|cd| cd.join(it)))?;
         let root = build_config
             .parent()
             .map(|it| Ok(it.to_path_buf()))
             .unwrap_or_else(env::current_dir)?;
         env::set_var("PROJECT_ROOT", &root);
-        let location = Path::new(build_location.as_deref().unwrap_or("build"));
-        if !location.is_dir() {
-            std::fs::create_dir_all(location)?;
+        let build_location = Path::new(build_location.as_deref().unwrap_or("build"));
+        if !build_location.is_dir() {
+            std::fs::create_dir_all(build_location)?;
         }
-        let location = make_absolute(location, &root);
-        env::set_var("BUILD_LOCATION", &location);
-        env::set_current_dir(&location)?;
+        env::set_var("BUILD_LOCATION", &build_location);
         let lib_location = lib_location
             .as_deref()
             .filter(|it| !it.is_empty())
             .map(Path::new)
-            .unwrap_or(&location);
-        let lib_location = make_absolute(lib_location, &root);
+            .unwrap_or(build_location);
+        // let lib_location = make_absolute(lib_location, &root);
         env::set_var("LIB_LOCATION", &lib_location);
-        let project = get_project_from_file(&build_config, &root)?.to_resolved(&root);
+        let project = get_project_from_file(&build_config).map(|it| it.to_resolved(&root))?;
 
         let input = project
             .files
@@ -726,6 +730,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         };
 
         let compile_options = CompileOptions {
+            build_location: Some(build_location.to_owned()),
             output: get_output_name(
                 project.output.as_deref(),
                 project.compile_type.unwrap_or_default(),
@@ -769,6 +774,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                     .map(|it| it.to_string())
                     .collect(),
                 format,
+                linker: parameters.linker,
             })
         } else {
             None
@@ -784,7 +790,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             link_options,
         )?;
 
-        copy_libs_to_build(&project.libraries, &lib_location)?;
+        copy_libs_to_build(&project.libraries, lib_location)?;
 
         if !project.package_commands.is_empty() {
             execute_commands(project.package_commands)?;
@@ -793,13 +799,13 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
     Ok(())
 }
 
-fn make_absolute(location: &Path, root: &Path) -> PathBuf {
-    if location.is_absolute() {
-        location.to_owned()
-    } else {
-        root.join(location)
-    }
-}
+// fn make_absolute(location: &Path, root: &Path) -> PathBuf {
+//     if location.is_absolute() {
+//         location.to_owned()
+//     } else {
+//         root.join(location)
+//     }
+// }
 
 fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     let root = env::current_dir()?;
@@ -878,8 +884,8 @@ fn link_and_create(
             objects,
             &link_options.library_pathes,
             &link_options.libraries,
-            &target.get_target_triple(),
-            target.get_sysroot(),
+            target,
+            link_options.linker.as_deref(),
         )?;
     }
 
@@ -931,6 +937,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         });
 
     let compile_options = CompileOptions {
+        build_location: None,
         output,
         format: if parameters.check_only {
             None
@@ -954,6 +961,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
             libraries: parameters.libraries,
             library_pathes: parameters.library_paths,
             format: out_format,
+            linker: parameters.linker,
         })
     } else {
         None
@@ -1022,13 +1030,14 @@ pub fn build_and_link(
             let triple = target.get_target_triple();
             let output = if let Some(target_name) = target.try_get_name() {
                 let target_path = PathBuf::from(&target_name);
-                //Create target dir if not available
-                if !target_path.is_dir() {
-                    std::fs::create_dir_all(&target_path)?;
-                }
                 target_path.join(&compile_options.output)
             } else {
                 PathBuf::from(&compile_options.output)
+            };
+            let output = if let Some(location) = &compile_options.build_location {
+                location.join(output)
+            } else {
+                output
             };
             let mut objects = objects.clone();
 
@@ -1080,9 +1089,8 @@ pub fn link(
     objects: &[FilePath],
     library_pathes: &[String],
     libraries: &[String],
-    target: &TargetTriple,
-    sysroot: Option<&str>,
-    linker: Option<String>,
+    target: &Target,
+    linker: Option<&str>,
 ) -> Result<(), Diagnostic> {
     let linkable_formats = vec![
         FormatOption::Static,
@@ -1092,6 +1100,7 @@ pub fn link(
     ];
     if linkable_formats.contains(&out_format) {
         let mut linker = target
+            .get_target_triple()
             .as_str()
             .to_str()
             .map_err(|e| Diagnostic::param_error(&e.to_string()))
@@ -1109,7 +1118,7 @@ pub fn link(
             linker.add_lib(library);
         }
 
-        if let Some(sysroot) = sysroot {
+        if let Some(sysroot) = target.get_sysroot() {
             linker.add_sysroot(sysroot);
         }
 

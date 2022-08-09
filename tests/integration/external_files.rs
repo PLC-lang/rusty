@@ -18,6 +18,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            build_location: None,
             format: Some(rusty::FormatOption::IR),
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
@@ -34,6 +35,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            build_location: None,
             format: Some(rusty::FormatOption::Bitcode),
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
@@ -50,6 +52,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            build_location: None,
             format: Some(rusty::FormatOption::Shared),
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
@@ -66,6 +69,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            build_location: None,
             format: Some(rusty::FormatOption::PIC),
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
@@ -82,6 +86,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            build_location: None,
             format: Some(rusty::FormatOption::Static),
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,

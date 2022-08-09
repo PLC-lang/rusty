@@ -1,7 +1,6 @@
 use crate::cli::CompileParameters;
 use crate::get_test_file;
-use rusty::build_with_subcommand;
-use std::env::temp_dir;
+use rusty::{build_with_params, build_with_subcommand};
 
 macro_rules! vec_of_strings {
         ($($x:expr),*) => (vec!["rustyc".to_string(), $($x.to_string()),*]);
@@ -9,7 +8,7 @@ macro_rules! vec_of_strings {
 
 #[test]
 fn build_to_temp() {
-    let dir = temp_dir();
+    let dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
         get_test_file("json/build_to_temp.json"),
@@ -18,52 +17,61 @@ fn build_to_temp() {
         "--sysroot",
         "sysroot",
         "--build-location",
-        dir.display()
+        dir.path().display()
     ))
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir.join("x86_64-linux-gnu").join("proj.so").is_file());
-    assert!(dir.join("libcopy.so").is_file());
+    assert!(dir
+        .path()
+        .join("x86_64-linux-gnu")
+        .join("proj.so")
+        .is_file());
+    assert!(dir.path().join("libcopy.so").is_file());
 }
 
 #[test]
 fn build_with_separate_lib_folder() {
-    let dir = temp_dir();
-    let lib_dir = temp_dir();
+    let dir = tempfile::tempdir().unwrap();
+    let lib_dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
         get_test_file("json/separate_build_and_lib.json"),
         "--target",
         "x86_64-linux-gnu",
         "--build-location",
-        dir.display(),
+        dir.path().display(),
         "--lib-location",
-        lib_dir.display()
+        lib_dir.path().display()
     ))
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir.join("x86_64-linux-gnu").join("proj.so").is_file());
-    assert!(dir.join("libcopy2.so").is_file());
+    assert!(dir
+        .path()
+        .join("x86_64-linux-gnu")
+        .join("proj.so")
+        .is_file());
+    assert!(lib_dir.path().join("libcopy2.so").is_file());
 }
 
 #[test]
 #[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
 fn build_with_target_but_without_sysroot() {
-    let dir = temp_dir();
+    let dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
         get_test_file("json/build_without_sysroot.json"),
         "--target",
         "x86_64-unknown-linux-gnu",
         "--build-location",
-        dir.display()
+        dir.path().display()
     ))
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
     assert!(dir
+        .path()
         .join("x86_64-unknown-linux-gnu")
         .join("proj.so")
         .is_file());
@@ -71,7 +79,7 @@ fn build_with_target_but_without_sysroot() {
 
 #[test]
 fn build_for_multiple_targets_and_sysroots() {
-    let dir = temp_dir();
+    let dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
         get_test_file("json/multi_target_and_sysroot.json"),
@@ -84,60 +92,73 @@ fn build_for_multiple_targets_and_sysroots() {
         "--sysroot",
         "sysroot",
         "--build-location",
-        dir.display()
+        dir.path().display()
     ))
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir.join("aarch64-linux-gnu").join("proj.so").is_file());
-    assert!(dir.join("x86_64-linux-gnu").join("proj.so").is_file());
+    assert!(dir
+        .path()
+        .join("aarch64-linux-gnu")
+        .join("proj.so")
+        .is_file());
+    assert!(dir
+        .path()
+        .join("x86_64-linux-gnu")
+        .join("proj.so")
+        .is_file());
 }
 
+#[test]
 #[cfg_attr(target_os = "windows", ignore = "linker not available for Windows")]
 fn build_with_cc_linker() {
-    let dir = temp_dir();
+    let dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
-        get_test_file("json/plc8.json"),
+        get_test_file("json/build_cc_linker.json"),
         "--target",
-        "x86_64-unkown-linux-gnu",
+        "x86_64-unknown-linux-gnu",
         "--build-location",
-        dir.display(),
+        dir.path().display(),
         "--linker",
         "cc"
     ))
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(Path::new(&format!("{}/cc_proj.so", dir.display())).is_file());
+    assert!(dir
+        .path()
+        .join("x86_64-unknown-linux-gnu")
+        .join("cc_proj.so")
+        .is_file());
 }
 
 #[test]
 #[cfg_attr(target_os = "linux", ignore)]
 fn build_with_clang_linker_windows() {
-    let dir = temp_dir();
+    let dir = tempfile::tempdir().unwrap();
 
     let first_parameters = CompileParameters::parse(vec_of_strings!(
         "-c",
         get_test_file("json/simple_program.st"),
         "-o",
-        dir.join("test.lib").display()
+        dir.path().join("test.lib").display()
     ))
     .unwrap();
     build_with_params(first_parameters).unwrap();
 
-    assert!(dir.join("test.lib").is_file());
+    assert!(dir.path().join("test.lib").is_file());
 
     let parameters = CompileParameters::parse(vec_of_strings!(
         "build",
-        get_test_file("json/plc10.json"),
+        get_test_file("json/build_clang_windows.json"),
         "--build-location",
-        dir.display(),
+        dir.path().display(),
         "--linker",
         "clang"
     ))
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir.join("clang_proj.so").is_file());
+    assert!(dir.path().join("clang_proj.so").is_file());
 }

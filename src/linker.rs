@@ -28,7 +28,7 @@ trait LinkerInterface {
 }
 
 impl Linker {
-    pub fn new(target: &str, linker: Option<String>) -> Result<Linker, LinkerError> {
+    pub fn new(target: &str, linker: Option<&str>) -> Result<Linker, LinkerError> {
         let target_os = target.split('-').collect::<Vec<&str>>()[2];
         let linker: Box<dyn LinkerInterface> = if let Some(linker) = linker {
             Box::new(CcLinker::new(linker))
@@ -112,10 +112,10 @@ struct CcLinker {
 }
 
 impl CcLinker {
-    fn new(linker: String) -> CcLinker {
+    fn new(linker: &str) -> CcLinker {
         CcLinker {
             args: Vec::default(),
-            linker,
+            linker: linker.to_string(),
         }
     }
 }
@@ -165,8 +165,7 @@ impl LinkerInterface for CcLinker {
             Err(e) => {
                 return Err(LinkerError::Link(format!(
                     "{} for linker: {}",
-                    e,
-                    &self.linker
+                    e, &self.linker
                 )))
             }
         }

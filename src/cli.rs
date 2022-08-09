@@ -161,6 +161,14 @@ pub struct CompileParameters {
     )]
     pub error_format: ErrorFormat,
 
+    #[clap(
+        name = "linker",
+        long,
+        help = "Define a custom (cc compatible) linker command",
+        global = true
+    )]
+    pub linker: Option<String>,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -635,13 +643,11 @@ mod cli_tests {
                     build_config,
                     build_location,
                     lib_location,
-                    linker,
                     ..
                 } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
                     assert_eq!(build_location, Some("bin/build".to_string()));
                     assert_eq!(lib_location, Some("bin/build/libs".to_string()));
-                    assert_eq!(linker, Some("cc".to_string()));
                 }
             };
             assert_eq!(
@@ -652,6 +658,7 @@ mod cli_tests {
                 parameters.target,
                 vec!["targettest".to_string(), "othertarget".to_string()]
             );
+            assert_eq!(parameters.linker, Some("cc".to_string()));
         }
     }
 
