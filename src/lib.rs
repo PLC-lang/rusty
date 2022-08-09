@@ -42,7 +42,7 @@ use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
 use inkwell::context::Context;
 use inkwell::targets::{
-    CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
+    self, CodeModel, FileType, InitializationConfig, RelocMode, TargetMachine, TargetTriple,
 };
 use lexer::IdProvider;
 use resolver::{AstAnnotations, StringLiterals};
@@ -78,6 +78,50 @@ extern crate pretty_assertions;
 extern crate shell_words;
 
 pub(crate) const DEFAULT_OUTPUT_NAME: &str = "out";
+pub enum Target {
+    System,
+    Param {
+        triple: String,
+        sysroot: Option<String>,
+    },
+}
+
+impl Target {
+    pub fn new(triple: String, sysroot: Option<String>) -> Target {
+        Target::Param { triple, sysroot }
+    }
+
+    pub fn get_target_triple(&self) -> TargetTriple {
+        let res = match self {
+            Target::System => TargetMachine::get_default_triple(),
+            Target::Param { triple, .. } => TargetTriple::create(triple),
+        };
+        targets::TargetMachine::normalize_triple(&res)
+    }
+
+    pub fn try_get_name(&self) -> Option<&str> {
+        match self {
+            Target::System => None,
+            Target::Param { triple, .. } => Some(triple.as_str()),
+        }
+    }
+
+    pub fn get_sysroot(&self) -> Option<&str> {
+        match self {
+            Target::Param { sysroot, .. } => sysroot.as_deref(),
+            _ => None,
+        }
+    }
+}
+
+impl<T> From<T> for Target
+where
+    T: core::ops::Deref<Target = str>,
+{
+    fn from(it: T) -> Self {
+        Target::new(it.to_string(), None)
+    }
+}
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
@@ -117,18 +161,19 @@ impl FromStr for ConfigFormat {
 pub struct CompileOptions {
     pub format: Option<FormatOption>,
     pub output: String,
-    pub target: Option<String>,
     pub optimization: OptimizationLevel,
+    pub error_format: ErrorFormat,
 }
 
+#[derive(Clone)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
-    pub sysroot: Option<String>,
     pub format: FormatOption,
 }
 
-struct ConfigurationOptions {
+#[derive(Clone)]
+pub struct ConfigurationOptions {
     format: ConfigFormat,
     output: String,
 }
@@ -172,6 +217,12 @@ impl OptimizationLevel {
             OptimizationLevel::Default => "default<O2>",
             OptimizationLevel::Aggressive => "default<O3>",
         }
+    }
+}
+
+impl Default for OptimizationLevel {
+    fn default() -> Self {
+        OptimizationLevel::Default
     }
 }
 
@@ -298,26 +349,20 @@ fn create_source_code<T: Read>(
     Ok(buffer)
 }
 
-pub fn get_target_triple(triple: Option<&str>) -> TargetTriple {
-    triple
-        .map(TargetTriple::create)
-        .unwrap_or_else(TargetMachine::get_default_triple)
-}
-
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
 fn persist_to_obj(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     reloc: RelocMode,
     triple: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
-    Target::initialize_all(initialization_config);
+    inkwell::targets::Target::initialize_all(initialization_config);
 
-    let target = Target::from_triple(triple).map_err(|it| {
+    let target = inkwell::targets::Target::from_triple(triple).map_err(|it| {
         Diagnostic::codegen_error(
             &format!("Invalid target-tripple '{:}' - {:?}", triple, it),
             SourceRange::undefined(),
@@ -359,7 +404,7 @@ fn persist_to_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn persist_as_static_obj(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -376,7 +421,7 @@ pub fn persist_as_static_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn persist_to_shared_pic_object(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -392,7 +437,7 @@ pub fn persist_to_shared_pic_object(
 /// * `output` - the location on disk to save the output
 /// * `target` - llvm target triple
 pub fn persist_to_shared_object(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -413,7 +458,7 @@ pub fn persist_to_shared_object(
 ///
 /// * `codegen` - the genated LLVM module to persist
 /// * `output` - the location on disk to save the output
-pub fn persist_to_bitcode(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
+pub fn persist_to_bitcode(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
     let path = Path::new(output);
     if codegen.module.write_bitcode_to_path(path) {
         Ok(())
@@ -432,7 +477,7 @@ pub fn persist_to_bitcode(codegen: CodeGen, output: &str) -> Result<(), Diagnost
 ///
 /// * `codegen` - The generated LLVM module to be persisted
 /// * `output`  - The location to save the generated ir file
-pub fn persist_to_ir(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
+pub fn persist_to_ir(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
     let ir = codegen.module.print_to_string().to_string();
     fs::write(output, ir)
         .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
@@ -615,7 +660,6 @@ fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
     }
     Ok(sources)
 }
-
 pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagnostic> {
     let config_options = parameters
         .hardware_config
@@ -627,138 +671,123 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             output: config.to_owned(),
         });
 
-    match parameters.commands.unwrap() {
-        SubCommands::Build {
-            build_config,
-            build_location,
-            lib_location,
-            sysroot,
-            target,
-            linker,
-        } => {
-            let build_config = build_config
-                .as_deref()
-                .or(Some("plc.json"))
-                .map(PathBuf::from)
-                .map(|it| env::current_dir().map(|cd| cd.join(it)))
-                .unwrap()?;
-            let root = build_config
-                .parent()
-                .map(|it| Ok(it.to_path_buf()))
-                .unwrap_or_else(env::current_dir)?;
-            env::set_var("PROJECT_ROOT", &root);
-            let location = Path::new(build_location.as_deref().unwrap_or("build"));
-            if !location.is_dir() {
-                std::fs::create_dir_all(location)?;
-            }
-            let location = make_absolute(location, &root);
-            env::set_var("BUILD_LOCATION", &location);
-            env::set_current_dir(&location)?;
-            let lib_location = lib_location
-                .as_deref()
-                .filter(|it| !it.is_empty())
-                .map(Path::new)
-                .unwrap_or(&location);
-            let lib_location = make_absolute(lib_location, &root);
-            env::set_var("LIB_LOCATION", &lib_location);
-            let project = get_project_from_file(&build_config, &root)?.to_resolved(&root);
+    if let Some(SubCommands::Build {
+        build_config,
+        build_location,
+        lib_location,
+        ..
+    }) = &parameters.commands
+    {
+        let build_config = build_config
+            .as_deref()
+            .or(Some("plc.json"))
+            .map(PathBuf::from)
+            .map(|it| env::current_dir().map(|cd| cd.join(it)))
+            .unwrap()?;
+        let root = build_config
+            .parent()
+            .map(|it| Ok(it.to_path_buf()))
+            .unwrap_or_else(env::current_dir)?;
+        env::set_var("PROJECT_ROOT", &root);
+        let location = Path::new(build_location.as_deref().unwrap_or("build"));
+        if !location.is_dir() {
+            std::fs::create_dir_all(location)?;
+        }
+        let location = make_absolute(location, &root);
+        env::set_var("BUILD_LOCATION", &location);
+        env::set_current_dir(&location)?;
+        let lib_location = lib_location
+            .as_deref()
+            .filter(|it| !it.is_empty())
+            .map(Path::new)
+            .unwrap_or(&location);
+        let lib_location = make_absolute(lib_location, &root);
+        env::set_var("LIB_LOCATION", &lib_location);
+        let project = get_project_from_file(&build_config, &root)?.to_resolved(&root);
 
-            copy_libs_to_build(&project.libraries, &lib_location)?;
+        let input = project
+            .files
+            .first()
+            .and_then(|it| it.file_stem())
+            .and_then(OsStr::to_str)
+            .unwrap_or("out");
 
-            let input = project
-                .files
-                .first()
-                .and_then(|it| it.file_stem())
-                .and_then(OsStr::to_str)
-                .unwrap_or("out");
-
-            let includes = if !project.libraries.is_empty() {
-                create_file_paths(
-                    &project
-                        .libraries
-                        .iter()
-                        .flat_map(|it| &it.include_path)
-                        .flat_map(|it| it.as_os_str().to_str())
-                        .collect::<Vec<_>>(),
-                )?
-            } else {
-                vec![]
-            };
-
-            let link_options = if let Some(format) = project.compile_type {
-                Some(LinkOptions {
-                    libraries: project
-                        .libraries
-                        .iter()
-                        .map(|it| it.name.clone())
-                        .collect::<Vec<_>>(),
-                    library_pathes: project
-                        .libraries
-                        .iter()
-                        .map(|it| it.path.to_string_lossy())
-                        .map(|it| it.to_string())
-                        .collect(),
-                    sysroot,
-                    format,
-                })
-            } else {
-                None
-            };
-
-            let files = create_file_paths(
+        let includes = if !project.libraries.is_empty() {
+            create_file_paths(
                 &project
-                    .files
+                    .libraries
                     .iter()
-                    .map(|it| it.to_string_lossy())
-                    .map(|it| it.to_string())
+                    .flat_map(|it| &it.include_path)
+                    .flat_map(|it| it.as_os_str().to_str())
                     .collect::<Vec<_>>(),
-            )?;
+            )?
+        } else {
+            vec![]
+        };
 
-            let mut temp_file: PathBuf = temp_dir();
-            temp_file.push("temp.o");
-
-            let mut compile_options = CompileOptions {
-                //Skip linking is always false for the build subcommand
-                output: temp_file.display().to_string(),
-                target,
-                format: project.compile_type,
-                optimization: if project.optimization.is_some() {
-                    project.optimization.unwrap()
-                } else {
-                    parameters.optimization
-                },
-            };
-            let target = get_target_triple(compile_options.target.as_deref());
-
-            let compile_result = build(
-                files,
-                includes,
-                &compile_options,
-                parameters.encoding,
-                &project.error_format,
-                &target,
-            )?;
-
-            compile_options.output = get_output_name(
+        let compile_options = CompileOptions {
+            output: get_output_name(
                 project.output.as_deref(),
                 project.compile_type.unwrap_or_default(),
-                false,
+                parameters.skip_linking,
                 input,
-            );
+            ),
+            format: project.compile_type,
+            optimization: parameters.optimization,
+            error_format: parameters.error_format,
+        };
 
-            link_and_create(
-                link_options,
-                &compile_result,
-                &compile_options,
-                &target,
-                config_options,
-                linker,
-                temp_file,
-            )?;
+        let targets = parameters
+            .target
+            .into_iter()
+            .enumerate()
+            .map(|(index, target)| {
+                let sysroot = parameters.sysroot.get(index);
+                Target::new(target, sysroot.cloned())
+            })
+            .collect::<Vec<_>>();
 
-            if !project.package_commands.is_empty() {
-                execute_commands(project.package_commands)?;
-            }
+        let files = create_file_paths(
+            &project
+                .files
+                .iter()
+                .map(|it| it.to_string_lossy())
+                .map(|it| it.to_string())
+                .collect::<Vec<_>>(),
+        )?;
+        let link_options = if let Some(format) = project.compile_type {
+            Some(LinkOptions {
+                libraries: project
+                    .libraries
+                    .iter()
+                    .map(|it| it.name.clone())
+                    .collect::<Vec<_>>(),
+                library_pathes: project
+                    .libraries
+                    .iter()
+                    .map(|it| it.path.to_string_lossy())
+                    .map(|it| it.to_string())
+                    .collect(),
+                format,
+            })
+        } else {
+            None
+        };
+
+        build_and_link(
+            files,
+            includes,
+            parameters.encoding,
+            &compile_options,
+            targets,
+            config_options,
+            link_options,
+        )?;
+
+        copy_libs_to_build(&project.libraries, &lib_location)?;
+
+        if !project.package_commands.is_empty() {
+            execute_commands(project.package_commands)?;
         }
     }
     Ok(())
@@ -835,40 +864,31 @@ fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<()
 }
 
 fn link_and_create(
-    link_options: Option<LinkOptions>,
-    compile_result: &CompileResult,
-    compile_options: &CompileOptions,
-    target: &TargetTriple,
-    config_options: Option<ConfigurationOptions>,
-    linker: Option<String>,
-    temp_file: PathBuf,
+    link_options: Option<&LinkOptions>,
+    index: &Index,
+    objects: &[FilePath],
+    output: &str,
+    target: &Target,
+    config_options: Option<&ConfigurationOptions>,
 ) -> Result<(), Diagnostic> {
     if let Some(link_options) = link_options {
         link(
-            &compile_options.output,
+            output,
             link_options.format,
-            &compile_result.objects,
-            link_options.library_pathes,
-            link_options.libraries,
-            target,
-            link_options.sysroot,
-            linker,
-        )?;
-    } else {
-        std::fs::copy(
-            dbg!(temp_file),
-            env::current_dir()
-                .unwrap()
-                .join(compile_options.output.clone()),
+            objects,
+            &link_options.library_pathes,
+            &link_options.libraries,
+            &target.get_target_triple(),
+            target.get_sysroot(),
         )?;
     }
 
     if let Some(config) = config_options {
-        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
+        let hw_config = hardware_binding::collect_hardware_configuration(index)?;
         let generated_conf =
             hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
 
-        File::create(config.output)
+        File::create(&config.output)
             .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
             .map_err(|it| Diagnostic::GeneralError {
                 err_no: diagnostics::ErrNo::general__io_err,
@@ -910,21 +930,16 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
             output: config.to_owned(),
         });
 
-    let mut dir = temp_dir();
-    dir.push("temp.o");
-
-    let mut compile_options = CompileOptions {
-        output: dir.display().to_string(),
-        target: parameters.target,
+    let compile_options = CompileOptions {
+        output,
         format: if parameters.check_only {
             None
         } else {
             Some(out_format)
         },
         optimization: parameters.optimization,
+        error_format: parameters.error_format,
     };
-
-    let error_format = parameters.error_format;
 
     let files = create_file_paths(
         &parameters
@@ -938,52 +953,47 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         Some(LinkOptions {
             libraries: parameters.libraries,
             library_pathes: parameters.library_paths,
-            sysroot: parameters.sysroot,
             format: out_format,
         })
     } else {
         None
     };
 
-    let target = get_target_triple(compile_options.target.as_deref());
+    let targets = parameters
+        .target
+        .into_iter()
+        .enumerate()
+        .map(|(index, target)| {
+            let sysroot = parameters.sysroot.get(index);
+            Target::new(target, sysroot.cloned())
+        })
+        .collect::<Vec<_>>();
 
-    let compile_result = build(
+    build_and_link(
         files,
         includes,
-        &compile_options,
         parameters.encoding,
-        &error_format,
-        &target,
-    )?;
-
-    compile_options.output = output;
-
-    link_and_create(
-        link_options,
-        &compile_result,
         &compile_options,
-        &target,
+        targets,
         config_options,
-        None,
-        dir,
-    )?;
-
-    Ok(())
+        link_options,
+    )
 }
-
 /// The builder function for the compilation
 /// Sorts files that need compilation
 /// Parses, validates and generates code for the given source files
 /// Persists the generated code to output location
 /// Returns a compilation result with the index, and a list of object files
-pub fn build(
+pub fn build_and_link(
     files: Vec<FilePath>,
     includes: Vec<FilePath>,
-    compile_options: &CompileOptions,
     encoding: Option<&'static Encoding>,
-    error_format: &ErrorFormat,
-    target: &TargetTriple,
-) -> Result<CompileResult, Diagnostic> {
+    compile_options: &CompileOptions,
+    targets: Vec<Target>,
+    config_options: Option<ConfigurationOptions>,
+    link_options: Option<LinkOptions>,
+) -> Result<(), Diagnostic> {
+    //Split files in objects and sources
     let mut objects = vec![];
     let mut sources = vec![];
     files.into_iter().for_each(|it| {
@@ -995,34 +1005,57 @@ pub fn build(
     });
 
     let context = Context::create();
-    let diagnostician = match error_format {
+    let diagnostician = match compile_options.error_format {
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
+    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
 
-    let index = match compile_options.format {
-        None => index_module(sources, includes, encoding, diagnostician)?.0,
-        Some(out_format) => {
-            let (index, codegen) =
-                compile_module(&context, sources, includes, encoding, diagnostician)?;
+    let targets = if targets.is_empty() {
+        vec![Target::System]
+    } else {
+        targets
+    };
+
+    if let Some(out_format) = compile_options.format {
+        for target in targets {
+            let triple = target.get_target_triple();
+            let output = if let Some(target_name) = target.try_get_name() {
+                let target_path = PathBuf::from(&target_name);
+                //Create target dir if not available
+                if !target_path.is_dir() {
+                    std::fs::create_dir_all(&target_path)?;
+                }
+                target_path.join(&compile_options.output)
+            } else {
+                PathBuf::from(&compile_options.output)
+            };
+            let mut objects = objects.clone();
 
             objects.push(persist(
-                codegen,
-                &compile_options.output,
+                &codegen,
+                output.to_str().unwrap_or(&compile_options.output),
                 out_format,
-                target,
+                &triple,
                 compile_options.optimization,
             )?);
 
-            index
+            link_and_create(
+                link_options.as_ref(),
+                &index,
+                &objects,
+                output.to_str().unwrap_or(&compile_options.output),
+                &target,
+                config_options.as_ref(),
+            )?;
         }
-    };
+    }
 
-    Ok(CompileResult { index, objects })
+    Ok(())
 }
 
 pub fn persist(
-    input: codegen::CodeGen,
+    input: &codegen::CodeGen,
     output: &str,
     out_format: FormatOption,
     target: &TargetTriple,
@@ -1045,10 +1078,10 @@ pub fn link(
     output: &str,
     out_format: FormatOption,
     objects: &[FilePath],
-    library_pathes: Vec<String>,
-    libraries: Vec<String>,
+    library_pathes: &[String],
+    libraries: &[String],
     target: &TargetTriple,
-    sysroot: Option<String>,
+    sysroot: Option<&str>,
     linker: Option<String>,
 ) -> Result<(), Diagnostic> {
     let linkable_formats = vec![
@@ -1069,14 +1102,14 @@ pub fn link(
             linker.add_obj(&path.path);
         }
 
-        for path in &library_pathes {
+        for path in library_pathes {
             linker.add_lib_path(path);
         }
-        for library in &libraries {
+        for library in libraries {
             linker.add_lib(library);
         }
 
-        if let Some(sysroot) = &sysroot {
+        if let Some(sysroot) = sysroot {
             linker.add_sysroot(sysroot);
         }
 
@@ -1099,7 +1132,12 @@ pub fn get_output_name(
 ) -> String {
     match output_name {
         Some(n) => n.to_string(),
-        _ => {
+        // format!(
+        //     "{}{}{}",
+        //     target.unwrap_or(""),
+        //     if target.is_some() { "_" } else { "" },
+        //     n),
+        None => {
             let ending = match out_format {
                 FormatOption::Bitcode => ".bc",
                 FormatOption::Relocatable => ".o",
@@ -1108,8 +1146,15 @@ pub fn get_output_name(
                 FormatOption::Shared | FormatOption::PIC => ".so",
                 FormatOption::IR => ".ir",
             };
+            format!("{input}{ending}")
 
-            format!("{}{}", output_name.unwrap_or(input), ending)
+            // format!(
+            //     "{}{}{}{}",
+            //     output_name.unwrap_or(input),
+            //     if target.is_some() { "_" } else { "" },
+            //     target.unwrap_or(""),
+            //     ending
+            // )
         }
     }
 }
@@ -1119,25 +1164,7 @@ mod tests {
     mod adr;
     mod external_files;
     mod multi_files;
-
-    use inkwell::targets::TargetMachine;
-
-    use crate::{create_source_code, get_target_triple};
-
-    #[test]
-    fn test_get_target_triple() {
-        let triple = get_target_triple(None);
-        assert_eq!(
-            triple.as_str().to_str().unwrap(),
-            TargetMachine::get_default_triple()
-                .as_str()
-                .to_str()
-                .unwrap()
-        );
-
-        let triple = get_target_triple(Some("x86_64-pc-linux-gnu"));
-        assert_eq!(triple.as_str().to_str().unwrap(), "x86_64-pc-linux-gnu");
-    }
+    use crate::create_source_code;
 
     #[test]
     fn windows_encoded_file_content_read() {

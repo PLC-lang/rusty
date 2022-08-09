@@ -3,7 +3,7 @@
 use std::{env, fs};
 
 use encoding_rs::Encoding;
-use rusty::{build, get_target_triple, CompileOptions, ErrorFormat, FilePath};
+use rusty::{build_and_link, CompileOptions, ErrorFormat, FilePath};
 
 use crate::get_test_file;
 
@@ -13,79 +13,83 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     let out_name = format!("{}.out", &name);
     out.push(out_name);
     let out = out.into_os_string().into_string().unwrap();
-    let target = get_target_triple(None);
-    build(
+    build_and_link(
         vec![FilePath { path: path.clone() }],
         vec![],
+        encoding,
         &CompileOptions {
             format: Some(rusty::FormatOption::IR),
             output: out.clone(),
-            target: None,
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::default(),
         },
-        encoding,
-        &ErrorFormat::Rich,
-        &target,
+        vec![],
+        None,
+        None,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-    build(
+    build_and_link(
         vec![FilePath { path: path.clone() }],
         vec![],
+        encoding,
         &CompileOptions {
             format: Some(rusty::FormatOption::Bitcode),
             output: out.clone(),
-            target: None,
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::default(),
         },
-        encoding,
-        &ErrorFormat::Rich,
-        &target,
+        vec![],
+        None,
+        None,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-    build(
+    build_and_link(
         vec![FilePath { path: path.clone() }],
         vec![],
+        encoding,
         &CompileOptions {
             format: Some(rusty::FormatOption::Shared),
             output: out.clone(),
-            target: None,
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::default(),
         },
-        encoding,
-        &ErrorFormat::Rich,
-        &target,
+        vec![],
+        None,
+        None,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-    build(
+    build_and_link(
         vec![FilePath { path: path.clone() }],
         vec![],
+        encoding,
         &CompileOptions {
             format: Some(rusty::FormatOption::PIC),
             output: out.clone(),
-            target: None,
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::default(),
         },
-        encoding,
-        &ErrorFormat::Rich,
-        &target,
+        vec![],
+        None,
+        None,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-    build(
+    build_and_link(
         vec![FilePath { path }],
         vec![],
+        encoding,
         &CompileOptions {
             format: Some(rusty::FormatOption::Static),
             output: out.clone(),
-            target: None,
             optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::default(),
         },
-        encoding,
-        &ErrorFormat::Rich,
-        &target,
+        vec![],
+        None,
+        None,
     )
     .unwrap();
     fs::remove_file(&out).unwrap();

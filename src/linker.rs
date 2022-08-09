@@ -34,7 +34,7 @@ impl Linker {
             Box::new(CcLinker::new(linker))
         } else {
             match target_os {
-                "linux" => Ok(Box::new(LdLinker::new())),
+                "linux" | "gnu" => Ok(Box::new(LdLinker::new())),
                 // "win32" | "windows" => Ok(Box::new(CcLinker::new("clang".to_string()))),
                 _ => Err(LinkerError::Target(target_os.into())),
             }?
