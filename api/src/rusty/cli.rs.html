@@ -758,6 +758,18 @@
 <span id="753">753</span>
 <span id="754">754</span>
 <span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">ArgGroup</span>, <span class="ident">CommandFactory</span>, <span class="ident">ErrorKind</span>, <span class="ident">Parser</span>, <span class="ident">Subcommand</span>};
 <span class="kw">use</span> <span class="ident">encoding_rs::Encoding</span>;
@@ -920,6 +932,14 @@
         <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>
     )]</span>
     <span class="kw">pub</span> <span class="ident">error_format</span>: <span class="ident">ErrorFormat</span>,
+
+    <span class="attribute">#[<span class="ident">clap</span>(
+        <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;linker&quot;</span>,
+        <span class="ident">long</span>,
+        <span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Define a custom (cc compatible) linker command&quot;</span>,
+        <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>
+    )]</span>
+    <span class="kw">pub</span> <span class="ident">linker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
     <span class="kw">pub</span> <span class="ident">commands</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SubCommands</span><span class="op">&gt;</span>,
@@ -1384,7 +1404,9 @@
             <span class="string">&quot;--target&quot;</span>,
             <span class="string">&quot;targettest&quot;</span>,
             <span class="string">&quot;--target&quot;</span>,
-            <span class="string">&quot;othertarget&quot;</span>
+            <span class="string">&quot;othertarget&quot;</span>,
+            <span class="string">&quot;--linker&quot;</span>,
+            <span class="string">&quot;cc&quot;</span>
         ))
         .<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">commands</span>) <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">commands</span> {
@@ -1393,6 +1415,7 @@
                     <span class="ident">build_config</span>,
                     <span class="ident">build_location</span>,
                     <span class="ident">lib_location</span>,
+                    ..
                 } =&gt; {
                     <span class="macro">assert_eq!</span>(<span class="ident">build_config</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;src/ProjectPlc.json&quot;</span>.<span class="ident">to_string</span>()));
                     <span class="macro">assert_eq!</span>(<span class="ident">build_location</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;bin/build&quot;</span>.<span class="ident">to_string</span>()));
@@ -1407,6 +1430,7 @@
                 <span class="ident">parameters</span>.<span class="ident">target</span>,
                 <span class="macro">vec!</span>[<span class="string">&quot;targettest&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;othertarget&quot;</span>.<span class="ident">to_string</span>()]
             );
+            <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">linker</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;cc&quot;</span>.<span class="ident">to_string</span>()));
         }
     }
 
