@@ -25,7 +25,7 @@ impl Linker {
     pub fn new(target: &str) -> Result<Linker, LinkerError> {
         let target_os = target.split('-').collect::<Vec<&str>>()[2];
         let linker = match target_os {
-            "linux" => Ok(Box::new(LdLinker::new())),
+            "linux" | "gnu" => Ok(Box::new(LdLinker::new())),
             //"win32" | "windows" => Ok(Box::new(MsvcLinker::new())),
             _ => Err(LinkerError::Target(target_os.into())),
         }?;
@@ -215,7 +215,7 @@ impl From<LinkerError> for Diagnostic {
 
 #[test]
 fn creation_test() {
-    let linker = Linker::new("x86_64-pc-linux-gnu").unwrap();
+    let linker = Linker::new("x86_64-linux-gnu").unwrap();
     assert_eq!(linker.linker.get_platform(), "Linux");
 
     if let Err(tgt) = Linker::new("x86_64-pc-redox-abc") {

@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, Parser, Subcommand};
+use clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
@@ -69,20 +69,26 @@ pub struct CompileParameters {
     )]
     pub output_bit_code: bool,
 
-    #[clap(short = 'c', help = "Do not link after compiling object code")]
+    #[clap(
+        short = 'c',
+        global = true,
+        help = "Do not link after compiling object code"
+    )]
     pub skip_linking: bool,
 
     #[clap(
         long,
         name = "target-triple",
+        global = true,
         help = "A target-triple supported by LLVM"
     )]
-    pub target: Option<String>,
+    pub target: Vec<String>,
 
     #[clap(
         long,
         name = "encoding",
         help = "The file encoding used to read the input-files, as defined by the Encoding Standard",
+        global = true,
         parse(try_from_str = parse_encoding),
     )]
     pub encoding: Option<&'static Encoding>,
@@ -107,8 +113,13 @@ pub struct CompileParameters {
     #[clap(name = "library", long, short = 'l', help = "Library name to link")]
     pub libraries: Vec<String>,
 
-    #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
-    pub sysroot: Option<String>,
+    #[clap(
+        long,
+        name = "sysroot",
+        global = true,
+        help = "Path to system root, used for linking"
+    )]
+    pub sysroot: Vec<String>,
 
     #[clap(
         name = "include",
@@ -121,6 +132,7 @@ pub struct CompileParameters {
     #[clap(
         name = "hardware-conf",
         long,
+        global = true,
         help = "Generate Hardware configuration files to the given location. 
     Format is detected by extenstion.
     Supported formats : json, toml",
@@ -134,7 +146,8 @@ pub struct CompileParameters {
         short = 'O',
         help = "Optimization level",
         arg_enum,
-        default_value = "default"
+        default_value = "default",
+        global = true
     )]
     pub optimization: crate::OptimizationLevel,
 
@@ -143,7 +156,8 @@ pub struct CompileParameters {
         long,
         help = "Set format for error reporting",
         arg_enum,
-        default_value = "rich"
+        default_value = "rich",
+        global = true
     )]
     pub error_format: ErrorFormat,
 
@@ -174,16 +188,6 @@ pub enum SubCommands {
 
         #[clap(name = "lib-location", long)]
         lib_location: Option<String>,
-
-        #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
-        sysroot: Option<String>,
-
-        #[clap(
-            long,
-            name = "target-triple",
-            help = "A target-triple supported by LLVM"
-        )]
-        target: Option<String>,
     },
 }
 
@@ -213,7 +217,17 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
 
 impl CompileParameters {
     pub fn parse(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
-        CompileParameters::try_parse_from(args)
+        CompileParameters::try_parse_from(args).and_then(|result| {
+            if result.sysroot.len() > result.target.len() {
+                let mut cmd = CompileParameters::command();
+                Err(cmd.error(
+                    ErrorKind::ArgumentConflict,
+                    "There must be at most as many sysroots as there are targets",
+                ))
+            } else {
+                Ok(result)
+            }
+        })
     }
 
     // convert the scattered bools from structopt into an enum
@@ -268,8 +282,14 @@ impl CompileParameters {
 mod cli_tests {
     use super::{CompileParameters, SubCommands};
     use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
-    use clap::ErrorKind;
+    use clap::{CommandFactory, ErrorKind};
     use pretty_assertions::assert_eq;
+
+    #[test]
+    fn verify_cli() {
+        use clap::CommandFactory;
+        CompileParameters::command().debug_assert()
+    }
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
         let params = CompileParameters::parse(args.clone());
@@ -386,7 +406,7 @@ mod cli_tests {
             CompileParameters::parse(vec_of_strings!("alpha.st", "--target", "x86_64-linux-gnu"))
                 .unwrap();
 
-        assert_eq!(parameters.target, Some("x86_64-linux-gnu".to_string()));
+        assert_eq!(parameters.target, vec!["x86_64-linux-gnu".to_string()]);
     }
 
     #[test]
@@ -598,9 +618,13 @@ mod cli_tests {
             "--lib-location",
             "bin/build/libs",
             "--sysroot",
-            "systest",
+            "sysroot1",
+            "--sysroot",
+            "sysroot2",
             "--target",
-            "targettest"
+            "targettest",
+            "--target",
+            "othertarget"
         ))
         .unwrap();
         if let Some(commands) = parameters.commands {
@@ -609,25 +633,34 @@ mod cli_tests {
                     build_config,
                     build_location,
                     lib_location,
-                    sysroot,
-                    target,
                 } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
-                    assert_eq!(sysroot, Some("systest".to_string()));
-                    assert_eq!(target, Some("targettest".to_string()));
                     assert_eq!(build_location, Some("bin/build".to_string()));
                     assert_eq!(lib_location, Some("bin/build/libs".to_string()));
                 }
             };
+            assert_eq!(
+                parameters.sysroot,
+                vec!["sysroot1".to_string(), "sysroot2".to_string()]
+            );
+            assert_eq!(
+                parameters.target,
+                vec!["targettest".to_string(), "othertarget".to_string()]
+            );
         }
     }
 
     #[test]
     fn sysroot_added() {
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("input.st", "--sysroot", "path/to/sysroot"))
-                .unwrap();
-        assert_eq!(parameters.sysroot, Some("path/to/sysroot".to_string()));
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--target",
+            "targ",
+            "--sysroot",
+            "path/to/sysroot"
+        ))
+        .unwrap();
+        assert_eq!(parameters.sysroot, vec!["path/to/sysroot".to_string()]);
     }
 
     #[test]
@@ -691,5 +724,32 @@ mod cli_tests {
             vec_of_strings!("input.st", "--error-format=none"),
             ErrorKind::InvalidValue,
         );
+    }
+
+    #[test]
+    fn target_sysroot_mismatch() {
+        let error = CompileParameters::parse(vec_of_strings!(
+            "build",
+            "file.json",
+            "--target",
+            "x86_64-linux-gnu",
+            "--sysroot",
+            "sysroot",
+            "--sysroot",
+            "sysroot2",
+            "--build-location",
+            "loc"
+        ))
+        .unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            CompileParameters::command()
+                .error(
+                    ErrorKind::ArgumentConflict,
+                    "There must be at most as many sysroots as there are targets"
+                )
+                .to_string()
+        )
     }
 }
