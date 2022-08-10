@@ -780,6 +780,8 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             None
         };
 
+        copy_libs_to_build(&project.libraries, lib_location)?;
+
         build_and_link(
             files,
             includes,
@@ -790,7 +792,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             link_options,
         )?;
 
-        copy_libs_to_build(&project.libraries, lib_location)?;
 
         if !project.package_commands.is_empty() {
             execute_commands(project.package_commands)?;
@@ -859,11 +860,14 @@ fn resolve_environment_variables(to_replace: &str) -> Result<String, Diagnostic>
 fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<(), Diagnostic> {
     for library in libraries {
         if library.package == PackageFormat::Copy {
-            env::current_dir()?;
-            std::fs::copy(
-                library.path.join(format!("lib{}.so", library.name)),
-                lib_location.join(format!("lib{}.so", library.name)),
-            )?;
+            //copy all files from lib path
+            let content = std::fs::read_dir(&library.path)?;
+            for entry in content.filter(Result::is_ok).flatten() {
+                std::fs::copy(
+                    entry.path(),
+                    lib_location.join(entry.file_name())
+                )?;
+            }
         }
     }
     Ok(())
@@ -1125,6 +1129,9 @@ pub fn link(
             .map_err(|e| Diagnostic::param_error(&e.to_string()))
             .and_then(|triple| linker::Linker::new(triple, linker).map_err(|e| e.into()))?;
         linker.add_lib_path(".");
+        if let Some(parent) = Path::new(output).parent() {
+            linker.add_lib_path(&parent.to_string_lossy());
+        }
 
         for path in objects {
             linker.add_obj(&path.path);
