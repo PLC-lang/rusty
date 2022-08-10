@@ -792,7 +792,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             link_options,
         )?;
 
-
         if !project.package_commands.is_empty() {
             execute_commands(project.package_commands)?;
         }
@@ -863,10 +862,7 @@ fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<()
             //copy all files from lib path
             let content = std::fs::read_dir(&library.path)?;
             for entry in content.filter(Result::is_ok).flatten() {
-                std::fs::copy(
-                    entry.path(),
-                    lib_location.join(entry.file_name())
-                )?;
+                std::fs::copy(entry.path(), lib_location.join(entry.file_name()))?;
             }
         }
     }
