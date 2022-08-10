@@ -9,7 +9,7 @@
     "libraries" : [
         {
             "name" : "test",
-            "path" : "",
+            "path" : "$DIRPATH",
             "package" : "System",
             "include_path" : [
                 "simple_program.st"

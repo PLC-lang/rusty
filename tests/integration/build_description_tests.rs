@@ -1,5 +1,8 @@
+use std::{env, process::Command};
+
 use crate::cli::CompileParameters;
 use crate::get_test_file;
+use lazy_static::__Deref;
 use rusty::{build_with_params, build_with_subcommand};
 
 macro_rules! vec_of_strings {
@@ -146,6 +149,8 @@ fn build_with_clang_linker_windows() {
     ))
     .unwrap();
     build_with_params(first_parameters).unwrap();
+
+    env::set_var::<&str, String>("DIRPATH", dir.path().display().to_string());
 
     assert!(dir.path().join("test.lib").is_file());
 
