@@ -32,6 +32,7 @@ fn link_as_shared_object() {
         vec![],
         None,
         &CompileOptions {
+            build_location: None,
             output: out2.clone(),
             format: Some(FormatOption::Shared),
             optimization: rusty::OptimizationLevel::Default,
@@ -49,6 +50,7 @@ fn link_as_shared_object() {
         vec![],
         None,
         &CompileOptions {
+            build_location: None,
             output: out1.clone(),
             format: Some(FormatOption::Shared),
             optimization: rusty::OptimizationLevel::Default,
@@ -60,6 +62,7 @@ fn link_as_shared_object() {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Shared,
+            linker: None,
         }),
     )
     .unwrap();
@@ -91,6 +94,7 @@ fn link_as_pic_object() {
         vec![],
         None,
         &CompileOptions {
+            build_location: None,
             output: out2.clone(),
             format: Some(FormatOption::PIC),
             optimization: rusty::OptimizationLevel::Default,
@@ -108,6 +112,7 @@ fn link_as_pic_object() {
         vec![],
         None,
         &CompileOptions {
+            build_location: None,
             output: out1.clone(),
             format: Some(FormatOption::PIC),
             optimization: rusty::OptimizationLevel::Default,
@@ -119,6 +124,7 @@ fn link_as_pic_object() {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::PIC,
+            linker: None,
         }),
     )
     .unwrap();
@@ -149,6 +155,7 @@ fn link_as_static_object() {
         vec![],
         None,
         &CompileOptions {
+            build_location: None,
             output: out2.clone(),
             format: Some(FormatOption::Static),
             optimization: rusty::OptimizationLevel::Default,
@@ -166,6 +173,7 @@ fn link_as_static_object() {
         vec![],
         None,
         &CompileOptions {
+            build_location: None,
             output: out1.clone(),
             format: Some(FormatOption::Static),
             optimization: rusty::OptimizationLevel::Default,
@@ -177,6 +185,7 @@ fn link_as_static_object() {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Static,
+            linker: None,
         }),
     )
     .unwrap();
@@ -208,6 +217,7 @@ fn link_as_relocatable_object() {
         vec![],
         None,
         &CompileOptions {
+            build_location: None,
             output: out2.clone(),
             format: Some(FormatOption::Static),
             optimization: rusty::OptimizationLevel::Default,
@@ -225,6 +235,7 @@ fn link_as_relocatable_object() {
         vec![],
         None,
         &CompileOptions {
+            build_location: None,
             output: out1.clone(),
             format: Some(FormatOption::Relocatable),
             optimization: rusty::OptimizationLevel::Default,
@@ -236,6 +247,7 @@ fn link_as_relocatable_object() {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Relocatable,
+            linker: None,
         }),
     )
     .unwrap();
@@ -272,7 +284,7 @@ fn link_missing_file() {
         &[object],
         &[],
         &[],
-        &target.get_target_triple(),
+        &target,
         None,
     );
 

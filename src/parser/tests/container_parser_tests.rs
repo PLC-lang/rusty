@@ -40,7 +40,7 @@ fn mixed_action_types_parsed() {
 }
 
 #[test]
-fn actions_with_no_container_have_unkown_container() {
+fn actions_with_no_container_have_unknown_container() {
     let src = "ACTIONS ACTION bar END_ACTION END_ACTIONS";
     let (result, diagnostic) = parse(src);
     let prg = &result.implementations[0];
