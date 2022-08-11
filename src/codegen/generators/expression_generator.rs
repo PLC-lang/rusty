@@ -36,7 +36,7 @@ use super::{llvm::Llvm, statement_generator::FunctionContext};
 pub struct ExpressionCodeGenerator<'a, 'b> {
     pub llvm: &'b Llvm<'a>,
     pub index: &'b Index,
-    annotations: &'b AstAnnotations,
+    pub(crate) annotations: &'b AstAnnotations,
     pub llvm_index: &'b LlvmTypedIndex<'a>,
     /// the current function to create blocks in
     pub function_context: Option<&'b FunctionContext<'a>>,
@@ -469,7 +469,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ///
     /// - `operator` - the expression that points to the callable instance (e.g. a PROGRAM, FUNCTION or FUNCTION_BLOCK instance)
     /// - `parameters` - an optional StatementList of parameters
-    fn generate_call_statement(
+    pub fn generate_call_statement(
         &self,
         operator: &AstStatement,
         parameters: &Option<AstStatement>,
@@ -477,8 +477,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let function_context = self.get_function_context(operator)?;
 
         //find the pou we're calling
-        let pou = self.annotations.get_call_name(operator)
-            .and_then(|it| self.index.find_pou(it))
+        let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
+            .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)
+            //For some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
+            .or_else(|| self.index.find_pou(qualified_name)))
             .or_else(||
                 // some rare situations have a callstatement that's not properly annotated (e.g. checkRange-call of ranged datatypes)
                 if let AstStatement::Reference { name, .. } = operator {

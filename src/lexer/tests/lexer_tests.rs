@@ -232,12 +232,14 @@ fn comma() {
 
 #[test]
 fn operator_test() {
-    let mut lexer = lex("+ - * / MOD = <> < > <= >=");
+    let mut lexer = lex("+ - * ** / MOD = <> < > <= >=");
     assert_eq!(lexer.token, OperatorPlus);
     lexer.advance();
     assert_eq!(lexer.token, OperatorMinus);
     lexer.advance();
     assert_eq!(lexer.token, OperatorMultiplication);
+    lexer.advance();
+    assert_eq!(lexer.token, OperatorExponent);
     lexer.advance();
     assert_eq!(lexer.token, OperatorDivision);
     lexer.advance();

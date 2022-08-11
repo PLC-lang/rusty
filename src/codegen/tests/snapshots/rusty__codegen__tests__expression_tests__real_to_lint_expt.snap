@@ -1,0 +1,20 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define float @main() {
+entry:
+  %main = alloca float, align 4
+  store float 0.000000e+00, float* %main, align 4
+  %call = call double @EXPT__LREAL__LREAL(double 3.000000e+00, double 2.000000e+00)
+  %0 = fptrunc double %call to float
+  store float %0, float* %main, align 4
+  %main_ret = load float, float* %main, align 4
+  ret float %main_ret
+}
+
+declare double @EXPT__LREAL__LREAL(double, double)
+
