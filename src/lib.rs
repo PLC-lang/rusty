@@ -219,6 +219,10 @@ impl OptimizationLevel {
             OptimizationLevel::Aggressive => "default<O3>",
         }
     }
+
+    fn is_optimized(&self) -> bool {
+        !matches!(self, OptimizationLevel::None)
+    }
 }
 
 impl Default for OptimizationLevel {

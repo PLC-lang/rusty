@@ -8,11 +8,11 @@ use self::{
         pou_generator::{self, PouGenerator},
         variable_generator,
     },
-    llvm_index::LlvmTypedIndex,
+    llvm_index::LlvmTypedIndex, debug::DebugLevel,
 };
 use crate::{
     diagnostics::Diagnostic,
-    resolver::{AstAnnotations, StringLiterals},
+    resolver::{AstAnnotations, StringLiterals}, OptimizationLevel,
 };
 
 use super::ast::*;
@@ -23,6 +23,7 @@ use inkwell::{context::Context, types::BasicType};
 pub(crate) mod generators;
 mod llvm_index;
 mod llvm_typesystem;
+mod debug;
 #[cfg(test)]
 mod tests;
 
@@ -33,13 +34,16 @@ pub struct CodeGen<'ink> {
     pub context: &'ink Context,
     /// the module represents a llvm compilation unit
     pub module: Module<'ink>,
+    /// the debugging module creates debug information at appropriate locations
+    pub debug : debug::Debug<'ink>,
 }
 
 impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
     pub fn new(context: &'ink Context, module_name: &str) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        CodeGen { context, module }
+        let debug = debug::Debug::new(&module, OptimizationLevel::None, DebugLevel::None);
+        CodeGen { context, module , debug}
     }
 
     pub fn generate_llvm_index(
