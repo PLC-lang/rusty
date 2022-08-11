@@ -1390,6 +1390,8 @@
 <span id="1385">1385</span>
 <span id="1386">1386</span>
 <span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">lexer::IdProvider</span>,
@@ -2568,11 +2570,12 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Operator</span> {
     <span class="ident">Plus</span>,
     <span class="ident">Minus</span>,
     <span class="ident">Multiplication</span>,
+    <span class="ident">Exponentiation</span>,
     <span class="ident">Division</span>,
     <span class="ident">Equal</span>,
     <span class="ident">NotEqual</span>,
@@ -2597,6 +2600,7 @@
             <span class="ident">Operator::Division</span> =&gt; <span class="string">&quot;/&quot;</span>,
             <span class="ident">Operator::Equal</span> =&gt; <span class="string">&quot;=&quot;</span>,
             <span class="ident">Operator::Modulo</span> =&gt; <span class="string">&quot;MOD&quot;</span>,
+            <span class="ident">Operator::Exponentiation</span> =&gt; <span class="string">&quot;**&quot;</span>,
             <span class="kw">_</span> =&gt; <span class="macro">unimplemented!</span>(),
         };
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">symbol</span>)

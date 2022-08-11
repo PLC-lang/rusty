@@ -930,6 +930,34 @@
 <span id="925">925</span>
 <span id="926">926</span>
 <span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1061,9 +1089,36 @@
 <span class="kw">fn</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
     <span class="macro">parse_left_associative_expression!</span>(
         <span class="ident">lexer</span>,
-        <span class="ident">parse_unary_expression</span>,
+        <span class="ident">parse_exponent_expression</span>,
         <span class="ident">OperatorMultiplication</span> <span class="op">|</span> <span class="ident">OperatorDivision</span> <span class="op">|</span> <span class="ident">OperatorModulo</span>,
     )
+}
+
+<span class="comment">// Expoent **</span>
+<span class="kw">fn</span> <span class="ident">parse_exponent_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
+    <span class="comment">//This is always parsed as a function call to the EXPT function</span>
+    <span class="comment">//Parse left</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_unary_expression</span>(<span class="ident">lexer</span>);
+    <span class="kw">while</span> <span class="macro">matches!</span>(<span class="ident">lexer</span>.<span class="ident">token</span>, <span class="ident">OperatorExponent</span>) {
+        <span class="kw">let</span> <span class="ident">start_location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">last_location</span>();
+        <span class="kw">let</span> <span class="ident">op_location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
+        <span class="ident">lexer</span>.<span class="ident">advance</span>();
+        <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_unary_expression</span>(<span class="ident">lexer</span>);
+        <span class="ident">left</span> <span class="op">=</span> <span class="ident">AstStatement::CallStatement</span> {
+            <span class="ident">operator</span>: <span class="ident">Box::new</span>(<span class="ident">AstStatement::Reference</span> {
+                <span class="ident">name</span>: <span class="string">&quot;EXPT&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">location</span>: <span class="ident">op_location</span>,
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+            }),
+            <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">Some</span>(<span class="ident">AstStatement::ExpressionList</span> {
+                <span class="ident">expressions</span>: <span class="macro">vec!</span>[<span class="ident">left</span>, <span class="ident">right</span>],
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+            })),
+            <span class="ident">location</span>: (<span class="ident">start_location</span>.<span class="ident">get_start</span>()..<span class="ident">lexer</span>.<span class="ident">last_location</span>().<span class="ident">get_end</span>()).<span class="ident">into</span>(),
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+        }
+    }
+    <span class="ident">left</span>
 }
 
 <span class="comment">// UNARY -x, NOT x</span>
@@ -1123,6 +1178,7 @@
         <span class="ident">OperatorPlus</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Plus</span>),
         <span class="ident">OperatorMinus</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Minus</span>),
         <span class="ident">OperatorMultiplication</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Multiplication</span>),
+        <span class="ident">OperatorExponent</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Exponentiation</span>),
         <span class="ident">OperatorDivision</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Division</span>),
         <span class="ident">OperatorEqual</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::Equal</span>),
         <span class="ident">OperatorNotEqual</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Operator::NotEqual</span>),

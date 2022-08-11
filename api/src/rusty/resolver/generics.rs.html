@@ -369,10 +369,34 @@
 <span id="364">364</span>
 <span id="365">365</span>
 <span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">AstStatement</span>, <span class="ident">GenericBinding</span>, <span class="ident">LinkageType</span>, <span class="ident">TypeNature</span>},
+    <span class="ident">builtins</span>,
     <span class="ident">index</span>::{<span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>},
     <span class="ident">resolver::AnnotationMap</span>,
     <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="ident">DataTypeInformation</span>},
@@ -423,7 +447,7 @@
     <span class="doccomment">/// It collects all candidates for a generic function</span>
     <span class="doccomment">/// Then chooses the best fitting function signature</span>
     <span class="doccomment">/// And reannotates the function with the found information</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">update_generic_call_statement</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">update_generic_call_statement</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">generics_candidates</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">implementation_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
@@ -431,9 +455,8 @@
         <span class="ident">parameters</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
         <span class="ident">ctx</span>: <span class="ident">VisitorContext</span>,
     ) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">PouIndexEntry::Function</span> {
-            <span class="ident">generics</span>, <span class="ident">linkage</span>, ..
-        }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">implementation_name</span>)
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">PouIndexEntry::Function</span> { <span class="ident">generics</span>, .. }) <span class="op">=</span>
+            <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">implementation_name</span>)
         {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">generics</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">let</span> <span class="ident">generic_map</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">derive_generic_types</span>(<span class="ident">generics</span>, <span class="ident">generics_candidates</span>);
@@ -441,16 +464,22 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> {
                     <span class="ident">qualified_name</span>,
                     <span class="ident">return_type</span>,
+                    ..
                 }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">operator</span>)
                 {
                     <span class="kw">let</span> <span class="ident">cloned_return_type</span> <span class="op">=</span> <span class="ident">return_type</span>.<span class="ident">clone</span>(); <span class="comment">//borrow checker will not allow to use return_type below :-(</span>
-                                                                  <span class="comment">//Figure out the new name for the call</span>
+
+                    <span class="comment">//Find the generic resolver</span>
+                    <span class="kw">let</span> <span class="ident">generic_name_resolver</span> <span class="op">=</span> <span class="ident">builtins::get_builtin</span>(<span class="ident">qualified_name</span>)
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_generic_name_resolver</span>())
+                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">generic_name_resolver</span>);
+                    <span class="comment">//Figure out the new name for the call</span>
                     <span class="kw">let</span> (<span class="ident">new_name</span>, <span class="ident">annotation</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_generic_function_annotation</span>(
-                        <span class="kw-2">*</span><span class="ident">linkage</span>,
                         <span class="ident">generics</span>,
                         <span class="ident">qualified_name</span>,
                         <span class="ident">return_type</span>,
                         <span class="ident">generic_map</span>,
+                        <span class="ident">generic_name_resolver</span>,
                     );
 
                     <span class="comment">//Create a new pou and implementation for the function</span>
@@ -657,27 +686,13 @@
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_generic_function_annotation</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
         <span class="ident">generics</span>: <span class="kw-2">&amp;</span>[<span class="ident">GenericBinding</span>],
         <span class="ident">qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">return_type</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">generic_map</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">generic_name_resolver</span>: <span class="ident">GenericNameResolver</span>,
     ) -&gt; (<span class="ident">String</span>, <span class="ident">StatementAnnotation</span>) {
-        <span class="kw">let</span> <span class="ident">generic_name</span> <span class="op">=</span> <span class="ident">generics</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
-                <span class="ident">generic_map</span>
-                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">it</span>.<span class="ident">name</span>)
-                    .<span class="ident">map</span>(<span class="ident">String::as_str</span>)
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">name</span>.<span class="ident">as_str</span>())
-            })
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-            .<span class="ident">join</span>(<span class="string">&quot;__&quot;</span>);
-        <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">linkage</span> <span class="op">==</span> <span class="ident">LinkageType::BuiltIn</span> {
-            <span class="ident">qualified_name</span>.<span class="ident">to_string</span>()
-        } <span class="kw">else</span> {
-            <span class="macro">format!</span>(<span class="string">&quot;{}__{}&quot;</span>, <span class="ident">qualified_name</span>, <span class="ident">generic_name</span>)
-        };
+        <span class="kw">let</span> <span class="ident">call_name</span> <span class="op">=</span> <span class="ident">generic_name_resolver</span>(<span class="ident">qualified_name</span>, <span class="ident">generics</span>, <span class="ident">generic_map</span>);
         <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Generic</span> { <span class="ident">generic_symbol</span>, .. } <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_information_or_void</span>(<span class="ident">return_type</span>)
         {
@@ -690,10 +705,11 @@
         }
         .<span class="ident">to_string</span>();
         (
-            <span class="ident">function_name</span>.<span class="ident">clone</span>(),
+            <span class="ident">call_name</span>.<span class="ident">clone</span>(),
             <span class="ident">StatementAnnotation::Function</span> {
-                <span class="ident">qualified_name</span>: <span class="ident">function_name</span>,
+                <span class="ident">qualified_name</span>: <span class="ident">qualified_name</span>.<span class="ident">to_string</span>(),
                 <span class="ident">return_type</span>,
+                <span class="ident">call_name</span>: <span class="prelude-val">Some</span>(<span class="ident">call_name</span>),
             },
         )
     }
@@ -734,6 +750,36 @@
         }
         <span class="ident">generic_map</span>
     }
+}
+
+<span class="kw">type</span> <span class="ident">GenericNameResolver</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span>[<span class="ident">GenericBinding</span>], <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span>;
+
+<span class="doccomment">/// Builds the correct generic name from the given information</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generic_name_resolver</span>(
+    <span class="ident">qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">generics</span>: <span class="kw-2">&amp;</span>[<span class="ident">GenericBinding</span>],
+    <span class="ident">generic_map</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>,
+) -&gt; <span class="ident">String</span> {
+    <span class="ident">generics</span>
+        .<span class="ident">iter</span>()
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
+            <span class="ident">generic_map</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">it</span>.<span class="ident">name</span>)
+                .<span class="ident">map</span>(<span class="ident">String::as_str</span>)
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">name</span>.<span class="ident">as_str</span>())
+        })
+        .<span class="ident">fold</span>(<span class="ident">qualified_name</span>.<span class="ident">to_string</span>(), <span class="op">|</span><span class="ident">accum</span>, <span class="ident">s</span><span class="op">|</span> {
+            <span class="macro">format!</span>(<span class="string">&quot;{accum}__{s}&quot;</span>)
+        })
+}
+
+<span class="doccomment">/// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_generic_name_resolver</span>(
+    <span class="ident">qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">GenericBinding</span>],
+    <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>,
+) -&gt; <span class="ident">String</span> {
+    <span class="ident">generic_name_resolver</span>(<span class="ident">qualified_name</span>, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span><span class="ident">HashMap::new</span>())
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rusty" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>

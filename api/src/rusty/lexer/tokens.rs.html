@@ -387,6 +387,9 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">HardwareAccessType</span>};
@@ -666,6 +669,9 @@
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;*&quot;</span>)]</span>
     <span class="ident">OperatorMultiplication</span>,
+
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;**&quot;</span>)]</span>
+    <span class="ident">OperatorExponent</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;/&quot;</span>)]</span>
     <span class="ident">OperatorDivision</span>,

@@ -1503,6 +1503,31 @@
 <span id="1498">1498</span>
 <span id="1499">1499</span>
 <span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1515,7 +1540,7 @@
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">const_evaluator</span>;
-<span class="kw">mod</span> <span class="ident">generics</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">generics</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
@@ -1647,8 +1672,12 @@
     },
     <span class="doccomment">/// a reference to a function</span>
     <span class="ident">Function</span> {
+        <span class="doccomment">/// The defined return type of the function</span>
         <span class="ident">return_type</span>: <span class="ident">String</span>,
+        <span class="doccomment">/// The defined qualified name of the function</span>
         <span class="ident">qualified_name</span>: <span class="ident">String</span>,
+        <span class="doccomment">/// The call name of the function iff it defers from the qualified name (generics)</span>
+        <span class="ident">call_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     },
     <span class="doccomment">/// a reference to a type (e.g. `INT`)</span>
     <span class="ident">Type</span> { <span class="ident">type_name</span>: <span class="ident">String</span> },
@@ -1685,6 +1714,7 @@
             } =&gt; <span class="ident">StatementAnnotation::Function</span> {
                 <span class="ident">return_type</span>: <span class="ident">return_type</span>.<span class="ident">to_string</span>(),
                 <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+                <span class="ident">call_name</span>: <span class="prelude-val">None</span>,
             },
             <span class="ident">PouIndexEntry::Class</span> { <span class="ident">name</span>, .. } =&gt; <span class="ident">StatementAnnotation::Program</span> {
                 <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
@@ -1694,6 +1724,7 @@
             } =&gt; <span class="ident">StatementAnnotation::Function</span> {
                 <span class="ident">return_type</span>: <span class="ident">return_type</span>.<span class="ident">to_string</span>(),
                 <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+                <span class="ident">call_name</span>: <span class="prelude-val">None</span>,
             },
             <span class="ident">PouIndexEntry::Action</span> { <span class="ident">name</span>, .. } =&gt; <span class="ident">StatementAnnotation::Program</span> {
                 <span class="ident">qualified_name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
@@ -1761,9 +1792,14 @@
     <span class="doccomment">/// or none if this thing may not be callable</span>
     <span class="kw">fn</span> <span class="ident">get_call_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">s</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> { <span class="ident">qualified_name</span>, .. }) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>())
-            }
+            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> {
+                <span class="ident">qualified_name</span>,
+                <span class="ident">call_name</span>,
+                ..
+            }) =&gt; <span class="ident">call_name</span>
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">map</span>(<span class="ident">String::as_str</span>)
+                .<span class="ident">or</span>(<span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>())),
             <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Program</span> { <span class="ident">qualified_name</span> }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>()),
             <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. }) =&gt; {
                 <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
@@ -1771,6 +1807,15 @@
             <span class="comment">// this is used for call statements on array access</span>
             <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>()),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_qualified_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">s</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> { <span class="ident">qualified_name</span>, .. }) =&gt; {
+                <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>())
+            }
+            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">get_call_name</span>(<span class="ident">s</span>),
         }
     }
 }
@@ -2720,7 +2765,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">anntation</span>) <span class="op">=</span>
             <span class="ident">builtins::get_builtin</span>(<span class="kw-2">&amp;</span><span class="ident">operator_qualifier</span>).<span class="ident">and_then</span>(<span class="ident">BuiltIn::get_annotation</span>)
         {
-            <span class="ident">anntation</span>(<span class="self">self</span>, <span class="ident">operator</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>).<span class="ident">unwrap</span>();
+            <span class="ident">anntation</span>(<span class="self">self</span>, <span class="ident">operator</span>, <span class="ident">parameters_stmt</span>, <span class="ident">ctx</span>).<span class="ident">unwrap</span>();
         } <span class="kw">else</span> {
             <span class="comment">//If builtin, skip this</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generics_candidates</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
@@ -2805,9 +2850,14 @@
             .<span class="ident">annotation_map</span>
             .<span class="ident">get</span>(<span class="ident">operator</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">it</span> {
-                <span class="ident">StatementAnnotation::Function</span> { <span class="ident">qualified_name</span>, .. } =&gt; {
-                    <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">clone</span>())
-                }
+                <span class="ident">StatementAnnotation::Function</span> {
+                    <span class="ident">qualified_name</span>,
+                    <span class="ident">call_name</span>,
+                    ..
+                } =&gt; <span class="ident">call_name</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">cloned</span>()
+                    .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">clone</span>())),
                 <span class="ident">StatementAnnotation::Program</span> { <span class="ident">qualified_name</span> } =&gt; <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">clone</span>()),
                 <span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. } =&gt; {
                     <span class="comment">//lets see if this is a FB</span>
