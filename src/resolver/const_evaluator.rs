@@ -28,7 +28,15 @@ macro_rules! arithmetic_expression {
             (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralInteger{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id,
+                    value: lvalue $op rvalue,
+                    location: SourceRange::new(
+                        loc_left.get_start() .. loc_right.get_start(),
+                        loc_left.get_start_line(),
+                        loc_left.get_start_column(),
+                        loc_right.get_end_line(),
+                        loc_right.get_end_column()
+                    )
                 })
             },
             (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
@@ -36,7 +44,15 @@ macro_rules! arithmetic_expression {
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: $resulting_id, value: (*lvalue as f64 $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id,
+                    value: (*lvalue as f64 $op rvalue).to_string(),
+                    location: SourceRange::new(
+                        loc_left.get_start() .. loc_right.get_start(),
+                        loc_left.get_start_line(),
+                        loc_left.get_start_column(),
+                        loc_right.get_end_line(),
+                        loc_right.get_end_column()
+                    )
                 })
             },
             (   AstStatement::LiteralReal{value: lvalue, location: loc_left, ..},
@@ -44,7 +60,14 @@ macro_rules! arithmetic_expression {
                     let lvalue = lvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: $resulting_id, value: (lvalue $op *rvalue as f64).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: (lvalue $op *rvalue as f64).to_string(),
+                    location: SourceRange::new(
+                        loc_left.get_start() .. loc_right.get_start(),
+                        loc_left.get_start_line(),
+                        loc_left.get_start_column(),
+                        loc_right.get_end_line(),
+                        loc_right.get_end_column()
+                    )
                 })
             },
             (   AstStatement::LiteralReal{value: lvalue, location: loc_left, ..},
@@ -54,7 +77,14 @@ macro_rules! arithmetic_expression {
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: $resulting_id, value: (lvalue $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: (lvalue $op rvalue).to_string(),
+                    location: SourceRange::new(
+                        loc_left.get_start() .. loc_right.get_start(),
+                        loc_left.get_start_line(),
+                        loc_left.get_start_column(),
+                        loc_right.get_end_line(),
+                        loc_right.get_end_column()
+                    )
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -68,13 +98,27 @@ macro_rules! bitwise_expression {
             (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralInteger{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue,
+                    location: SourceRange::new(
+                        loc_left.get_start() .. loc_right.get_start(),
+                        loc_left.get_start_line(),
+                        loc_left.get_start_column(),
+                        loc_right.get_end_line(),
+                        loc_right.get_end_column()
+                    )
                 })
             },
             (   AstStatement::LiteralBool{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralBool{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue,
+                    location: SourceRange::new(
+                        loc_left.get_start() .. loc_right.get_start(),
+                        loc_left.get_start_line(),
+                        loc_left.get_start_column(),
+                        loc_right.get_end_line(),
+                        loc_right.get_end_column()
+                    )
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -88,7 +132,14 @@ macro_rules! compare_expression {
             (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue,
+                    location: SourceRange::new(
+                        loc_left.get_start() .. loc_right.get_start(),
+                        loc_left.get_start_line(),
+                        loc_left.get_start_column(),
+                        loc_right.get_end_line(),
+                        loc_right.get_end_column()
+                    )
                 })
             },
             (   AstStatement::LiteralReal{..},
@@ -98,7 +149,14 @@ macro_rules! compare_expression {
             (   AstStatement::LiteralBool{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralBool{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue,
+                    location: SourceRange::new(
+                        loc_left.get_start() .. loc_right.get_start(),
+                        loc_left.get_start_line(),
+                        loc_left.get_start_column(),
+                        loc_right.get_end_line(),
+                        loc_right.get_end_column()
+                    )
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),

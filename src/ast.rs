@@ -364,15 +364,73 @@ impl DiagnosticInfo for AstStatement {
 #[derive(Clone, Debug, PartialEq)]
 pub struct SourceRange {
     range: core::ops::Range<usize>,
+    start_line: Option<usize>,
+    start_column: Option<usize>,
+    end_line: Option<usize>,
+    end_column: Option<usize>,
 }
 
 impl SourceRange {
-    pub fn new(range: core::ops::Range<usize>) -> SourceRange {
-        SourceRange { range }
+    pub fn new_with_line_map(range: core::ops::Range<usize>, line_map: &[usize]) -> SourceRange {
+        let start_line: usize = *line_map
+            .iter()
+            .find(|line| line <= &&range.start)
+            .unwrap_or(&0);
+        let start_column = if start_line == 0 {
+            range.start
+        } else {
+            line_map
+                .get(start_line - 1)
+                .map(|offset| range.start - offset)
+                .unwrap_or(range.start)
+        };
+
+        let end_line: usize = *line_map
+            .iter()
+            .find(|line| line <= &&range.end)
+            .unwrap_or(&0);
+        let end_column = if end_line == 0 {
+            range.end
+        } else {
+            line_map
+                .get(end_line - 1)
+                .map(|offset| range.end - offset)
+                .unwrap_or(range.end)
+        };
+
+        SourceRange {
+            range,
+            start_line: Some(start_line + 1),
+            start_column: Some(start_column),
+            end_line: Some(end_line + 1),
+            end_column: Some(end_column),
+        }
+    }
+
+    pub fn new(
+        range: core::ops::Range<usize>,
+        start_line: Option<usize>,
+        start_column: Option<usize>,
+        end_line: Option<usize>,
+        end_column: Option<usize>,
+    ) -> SourceRange {
+        SourceRange {
+            range,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+        }
     }
 
     pub fn undefined() -> SourceRange {
-        SourceRange { range: 0..0 }
+        SourceRange {
+            range: 0..0,
+            start_line: None,
+            start_column: None,
+            end_line: None,
+            end_column: None,
+        }
     }
 
     pub fn get_start(&self) -> usize {
@@ -383,8 +441,27 @@ impl SourceRange {
         self.range.end
     }
 
-    pub fn sub_range(&self, start: usize, len: usize) -> SourceRange {
-        SourceRange::new((self.get_start() + start)..(self.get_start() + len))
+    pub fn get_start_line(&self) -> Option<usize> {
+        self.start_line
+    }
+
+    pub fn get_start_column(&self) -> Option<usize> {
+        self.start_column
+    }
+
+    pub fn get_end_line(&self) -> Option<usize> {
+        self.end_line
+    }
+
+    pub fn get_end_column(&self) -> Option<usize> {
+        self.end_column
+    }
+
+    pub fn sub_range(&self, start: usize, len: usize, line_map: &[usize]) -> SourceRange {
+        SourceRange::new_with_line_map(
+            (self.get_start() + start)..(self.get_start() + len),
+            line_map,
+        )
     }
 
     pub fn to_range(&self) -> Range<usize> {
@@ -392,11 +469,11 @@ impl SourceRange {
     }
 }
 
-impl From<std::ops::Range<usize>> for SourceRange {
-    fn from(range: std::ops::Range<usize>) -> SourceRange {
-        SourceRange::new(range)
-    }
-}
+// impl From<std::ops::Range<usize>> for SourceRange {
+//     fn from(range: std::ops::Range<usize>) -> SourceRange {
+//         SourceRange::new(range)
+//     }
+// }
 
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
@@ -1070,12 +1147,24 @@ impl AstStatement {
                 let last = elements
                     .last()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
-                SourceRange::new(first.get_start()..last.get_end())
+                SourceRange::new(
+                    first.get_start()..last.get_end(),
+                    first.start_line,
+                    first.start_column,
+                    last.end_line,
+                    last.end_column,
+                )
             }
             AstStatement::BinaryExpression { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end)
+                SourceRange::new(
+                    left_loc.get_start()..right_loc.get_end(),
+                    left_loc.start_line,
+                    left_loc.start_column,
+                    right_loc.end_line,
+                    right_loc.end_column,
+                )
             }
             AstStatement::UnaryExpression { location, .. } => location.clone(),
             AstStatement::ExpressionList { expressions, .. } => {
@@ -1085,22 +1174,46 @@ impl AstStatement {
                 let last = expressions
                     .last()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
-                SourceRange::new(first.get_start()..last.get_end())
+                SourceRange::new(
+                    first.get_start()..last.get_end(),
+                    first.start_line,
+                    first.start_column,
+                    last.end_line,
+                    last.end_column,
+                )
             }
             AstStatement::RangeStatement { start, end, .. } => {
                 let start_loc = start.get_location();
                 let end_loc = end.get_location();
-                SourceRange::new(start_loc.range.start..end_loc.range.end)
+                SourceRange::new(
+                    start_loc.range.start..end_loc.range.end,
+                    start_loc.start_line,
+                    start_loc.start_column,
+                    end_loc.end_line,
+                    end_loc.end_column,
+                )
             }
             AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end)
+                SourceRange::new(
+                    left_loc.get_start()..right_loc.get_end(),
+                    left_loc.start_line,
+                    left_loc.start_column,
+                    right_loc.end_line,
+                    right_loc.end_column,
+                )
             }
             AstStatement::OutputAssignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end)
+                SourceRange::new(
+                    left_loc.get_start()..right_loc.get_end(),
+                    left_loc.start_line,
+                    left_loc.start_column,
+                    right_loc.end_line,
+                    right_loc.end_column,
+                )
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
             AstStatement::IfStatement { location, .. } => location.clone(),
@@ -1113,7 +1226,13 @@ impl AstStatement {
             } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
-                SourceRange::new(reference_loc.range.start..access_loc.range.end)
+                SourceRange::new(
+                    reference_loc.range.start..access_loc.range.end,
+                    reference_loc.start_line,
+                    reference_loc.start_column,
+                    access_loc.end_line,
+                    access_loc.end_column,
+                )
             }
             AstStatement::PointerAccess { reference, .. } => reference.get_location(),
             AstStatement::DirectAccess { location, .. } => location.clone(),

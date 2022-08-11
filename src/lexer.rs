@@ -30,6 +30,7 @@ pub struct ParseSession<'a> {
     pub parse_progress: usize,
     id_provider: IdProvider,
     pub scope: Option<String>,
+    pub line_map: Vec<usize>,
 }
 
 #[macro_export]
@@ -46,8 +47,18 @@ macro_rules! expect_token {
     };
 }
 
+
 impl<'a> ParseSession<'a> {
     pub fn new(l: Lexer<'a, Token>, id_provider: IdProvider) -> ParseSession<'a> {
+        let mut line_map = vec![];
+        let mut offset = 0_usize;
+        let source: &str = l.source();
+        for line in source.split('\n') {
+            line_map.push(line.len() + offset);
+            offset = offset + line.len();
+        }
+
+
         let mut lexer = ParseSession {
             lexer: l,
             token: Token::KeywordBy,
@@ -58,6 +69,7 @@ impl<'a> ParseSession<'a> {
             parse_progress: 0,
             id_provider,
             scope: None,
+            line_map: line_map.to_vec(),
         };
         lexer.advance();
         lexer
@@ -160,11 +172,15 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn location(&self) -> SourceRange {
-        SourceRange::new(self.range())
+        SourceRange::new_with_line_map(self.range(), self.get_line_map())
     }
 
     pub fn last_location(&self) -> SourceRange {
-        SourceRange::new(self.last_range.clone())
+        SourceRange::new_with_line_map(self.last_range.clone(), self.get_line_map())
+    }
+
+    pub fn get_line_map(&self) -> &[usize] {
+        &self.line_map
     }
 
     pub fn range(&self) -> Range<usize> {
@@ -232,7 +248,7 @@ impl<'a> ParseSession<'a> {
                 )
                 .as_str(),
                 format!("'{}'", self.slice_region(range.clone())).as_str(),
-                SourceRange::new(range),
+                SourceRange::new_with_line_map(range, self.get_line_map()),
             ));
         }
 

@@ -125,7 +125,13 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         .unwrap_or(VOID_TYPE);
     if pou.return_type.is_some() {
         member_names.push(pou.get_return_name().into());
-        let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
+        let source_location = SourceRange::new(
+            pou.location.get_end()..pou.location.get_end(),
+            pou.location.get_start_line(),
+            pou.location.get_start_column(),
+            pou.location.get_end_line(),
+            pou.location.get_end_column()
+        );
         index.register_member_variable(
             MemberInfo {
                 container_name: &pou.name,

@@ -148,7 +148,10 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
         let expression = parse_parenthesized_expression(lexer);
         let expression_location = expression.get_location();
-        let location = SourceRange::new(start..expression_location.get_end());
+        let location = SourceRange::new_with_line_map(
+            start..expression_location.get_end(),
+            lexer.get_line_map(),
+        );
 
         if let (AstStatement::LiteralInteger { value, .. }, Operator::Minus) =
             (&expression, &operator)
@@ -266,7 +269,10 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
 
             Ok(AstStatement::CastStatement {
                 id: lexer.next_id(),
-                location: (location.get_start()..statement.get_location().get_end()).into(),
+                location: SourceRange::new_with_line_map(
+                    location.get_start()..statement.get_location().get_end(),
+                    lexer.get_line_map(),
+                ),
                 target: Box::new(statement),
                 type_name: cast,
             })
@@ -316,7 +322,7 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnos
     lexer.advance();
     Ok(AstStatement::LiteralArray {
         elements,
-        location: SourceRange::new(start..end),
+        location: SourceRange::new_with_line_map(start..end, lexer.get_line_map()),
         id: lexer.next_id(),
     })
 }
@@ -384,7 +390,10 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
-                location: SourceRange::new(start..lexer.range().end),
+                location: SourceRange::new_with_line_map(
+                    start..lexer.range().end,
+                    lexer.get_line_map(),
+                ),
                 id: lexer.next_id(),
             }
         } else {
@@ -392,7 +401,10 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                 AstStatement::CallStatement {
                     operator: Box::new(reference),
                     parameters: Box::new(Some(parse_expression_list(lexer))),
-                    location: SourceRange::new(start..lexer.range().end),
+                    location: SourceRange::new_with_line_map(
+                        start..lexer.range().end,
+                        lexer.get_line_map(),
+                    ),
                     id: lexer.next_id(),
                 }
             })
@@ -421,7 +433,10 @@ fn parse_direct_access(
         )),
     }?;
 
-    let location = (location.get_start()..lexer.last_location().get_end()).into();
+    let location = SourceRange::new_with_line_map(
+        location.get_start()..lexer.last_location().get_end(),
+        lexer.get_line_map(),
+    );
     Ok(AstStatement::DirectAccess {
         access,
         index: Box::new(index),
@@ -494,7 +509,10 @@ fn parse_literal_number(
 ) -> Result<AstStatement, Diagnostic> {
     //correct the location if we just parsed a minus before
     let location = if is_negative {
-        (lexer.last_range.start..lexer.location().get_end()).into()
+        SourceRange::new_with_line_map(
+            lexer.last_range.start..lexer.location().get_end(),
+            lexer.get_line_map(),
+        )
     } else {
         lexer.location()
     };
@@ -520,7 +538,10 @@ fn parse_literal_number(
         return Ok(AstStatement::MultipliedStatement {
             multiplier,
             element: Box::new(element),
-            location: SourceRange::new(location.get_start()..end),
+            location: SourceRange::new_with_line_map(
+                location.get_start()..end,
+                lexer.get_line_map(),
+            ),
             id: lexer.next_id(),
         });
     }
@@ -880,7 +901,7 @@ fn parse_literal_real(
             integer,
             fractional
         );
-        let new_location = SourceRange::new(start..end);
+        let new_location = SourceRange::new_with_line_map(start..end, lexer.get_line_map());
         Ok(AstStatement::LiteralReal {
             value: result,
             location: new_location,

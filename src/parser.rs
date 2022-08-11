@@ -220,7 +220,10 @@ fn parse_pou(
                 pou_type,
                 variable_blocks,
                 return_type,
-                location: SourceRange::new(start..lexer.range().end),
+                location: SourceRange::new_with_line_map(
+                    start..lexer.range().end,
+                    lexer.get_line_map(),
+                ),
                 name_location,
                 poly_mode,
                 generics,
@@ -237,7 +240,7 @@ fn parse_pou(
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
             format!("{:?}", expected_end_token).as_str(),
             lexer.slice_region(lexer.last_range.clone()),
-            SourceRange::new(lexer.last_range.clone()),
+            SourceRange::new_with_line_map(lexer.last_range.clone(), lexer.get_line_map()),
         ));
     }
     pou
@@ -330,7 +333,10 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
             if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
                     pou_type,
-                    SourceRange::new(start_return_type..lexer.last_range.end),
+                    SourceRange::new_with_line_map(
+                        start_return_type..lexer.last_range.end,
+                        lexer.get_line_map(),
+                    ),
                 ));
             }
 
@@ -350,7 +356,7 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
                 "Datatype",
                 lexer.slice(),
-                SourceRange::new(lexer.range()),
+                SourceRange::new_with_line_map(lexer.range(), lexer.get_line_map()),
             ));
             None
         }
@@ -420,7 +426,10 @@ fn parse_method(
                 pou_type,
                 variable_blocks,
                 return_type,
-                location: SourceRange::new(method_start..method_end),
+                location: SourceRange::new_with_line_map(
+                    method_start..method_end,
+                    lexer.get_line_map(),
+                ),
                 name_location,
                 poly_mode,
                 generics,
@@ -478,7 +487,7 @@ fn parse_implementation(
         linkage,
         pou_type,
         statements,
-        location: SourceRange::new(start..lexer.range().end),
+        location: SourceRange::new_with_line_map(start..lexer.range().end, lexer.get_line_map()),
         overriding: false,
         generic,
         access: None,
@@ -555,7 +564,7 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
                 declarations.push(UserTypeDeclaration {
                     data_type,
                     initializer,
-                    location: (start..end).into(),
+                    location: SourceRange::new_with_line_map(start..end, lexer.get_line_map()),
                     scope: lexer.scope.clone(),
                 });
             }
@@ -584,7 +593,10 @@ fn parse_full_data_type_definition(
                         referenced_type: None,
                         sized,
                     },
-                    location: lexer.last_range.clone().into(),
+                    location: SourceRange::new_with_line_map(
+                        lexer.last_range.clone(),
+                        lexer.get_line_map(),
+                    ),
                     scope: lexer.scope.clone(),
                 },
                 None,
@@ -598,7 +610,10 @@ fn parse_full_data_type_definition(
                                 referenced_type: Some(Box::new(type_def)),
                                 sized,
                             },
-                            location: lexer.last_range.clone().into(),
+                            location: SourceRange::new_with_line_map(
+                                lexer.last_range.clone(),
+                                lexer.get_line_map(),
+                            ),
                             scope: lexer.scope.clone(),
                         },
                         None,
@@ -623,7 +638,10 @@ fn parse_data_type_definition(
         Some((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType { name, variables },
-                location: (start..lexer.range().end).into(),
+                location: SourceRange::new_with_line_map(
+                    start..lexer.range().end,
+                    lexer.get_line_map(),
+                ),
                 scope: lexer.scope.clone(),
             },
             None,
@@ -675,7 +693,10 @@ fn parse_pointer_definition(
                     name,
                     referenced_type: Box::new(decl),
                 },
-                location: (start_pos..lexer.last_range.end).into(),
+                location: SourceRange::new_with_line_map(
+                    start_pos..lexer.last_range.end,
+                    lexer.get_line_map(),
+                ),
                 scope: lexer.scope.clone(),
             },
             initializer,
@@ -718,7 +739,7 @@ fn parse_type_reference_type_definition(
                         numeric_type: referenced_type,
                         elements: AstStatement::ExpressionList { expressions, id },
                     },
-                    location: (start..end).into(),
+                    location: SourceRange::new_with_line_map(start..end, lexer.get_line_map()),
                     scope: lexer.scope.clone(),
                 }
             }
@@ -730,7 +751,7 @@ fn parse_type_reference_type_definition(
                         numeric_type: referenced_type,
                         elements: bounds.unwrap(),
                     },
-                    location: (start..end).into(),
+                    location: SourceRange::new_with_line_map(start..end, lexer.get_line_map()),
                     scope: lexer.scope.clone(),
                 }
             }
@@ -741,7 +762,7 @@ fn parse_type_reference_type_definition(
                     referenced_type,
                     bounds,
                 },
-                location: (start..end).into(),
+                location: SourceRange::new_with_line_map(start..end, lexer.get_line_map()),
                 scope: lexer.scope.clone(),
             },
         };
@@ -750,7 +771,7 @@ fn parse_type_reference_type_definition(
         Some((
             DataTypeDeclaration::DataTypeReference {
                 referenced_type,
-                location: (start..end).into(),
+                location: SourceRange::new_with_line_map(start..end, lexer.get_line_map()),
             },
             initial_value,
         ))
@@ -764,7 +785,10 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstStatement
         let closing_tokens = vec![KeywordSquareParensClose, KeywordParensClose];
         parse_any_in_region(lexer, closing_tokens, |lexer| {
             let size_expr = parse_expression(lexer);
-            let error_range = SourceRange::new(opening_location..lexer.location().get_end());
+            let error_range = SourceRange::new_with_line_map(
+                opening_location..lexer.location().get_end(),
+                lexer.get_line_map(),
+            );
 
             if (opening_token == KeywordParensOpen && lexer.token == KeywordSquareParensClose)
                 || (opening_token == KeywordSquareParensOpen && lexer.token == KeywordParensClose)
@@ -806,7 +830,7 @@ fn parse_string_type_definition(
                 is_wide,
                 size,
             },
-            location: (start..end).into(),
+            location: SourceRange::new_with_line_map(start..end, lexer.get_line_map()),
             scope: lexer.scope.clone(),
         },
         lexer
@@ -833,7 +857,10 @@ fn parse_enum_type_definition(
                 elements,
                 numeric_type: DINT_TYPE.to_string(),
             },
-            location: (start..lexer.last_range.end).into(),
+            location: SourceRange::new_with_line_map(
+                start..lexer.last_range.end,
+                lexer.get_line_map(),
+            ),
             scope: lexer.scope.clone(),
         },
         None,
@@ -861,7 +888,10 @@ fn parse_array_type_definition(
 
     let inner_type_defintion = parse_data_type_definition(lexer, None);
     inner_type_defintion.map(|(reference, initializer)| {
-        let location = SourceRange::new(start..reference.get_location().get_end());
+        let location = SourceRange::new_with_line_map(
+            start..reference.get_location().get_end(),
+            lexer.get_line_map(),
+        );
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::ArrayType {
@@ -1027,7 +1057,10 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             let next_token_start = lexer.location().get_start();
             lexer.accept_diagnostic(Diagnostic::missing_token(
                 format!("{:?} or {:?}", KeywordColon, KeywordComma).as_str(),
-                SourceRange::new(identifier_end..next_token_start),
+                SourceRange::new_with_line_map(
+                    identifier_end..next_token_start,
+                    lexer.get_line_map(),
+                ),
             ));
         }
     }
@@ -1060,7 +1093,10 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
                     access: access_type,
                     direction,
                     address,
-                    location: (start_location..lexer.last_range.end).into(),
+                    location: SourceRange::new_with_line_map(
+                        start_location..lexer.last_range.end,
+                        lexer.get_line_map(),
+                    ),
                     id: lexer.next_id(),
                 })
             } else {

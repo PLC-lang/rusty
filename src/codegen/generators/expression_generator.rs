@@ -2131,7 +2131,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .as_basic_value_enum()),
             _ => Err(Diagnostic::codegen_error(
                 format!("illegal boolean expresspion for operator {:}", operator).as_str(),
-                (left.get_location().get_start()..right.get_location().get_end()).into(),
+                SourceRange::new(
+                    left.get_location().get_start()..right.get_location().get_end(),
+                    left.get_location().get_start_line(),
+                    left.get_location().get_start_column(),
+                    right.get_location().get_end_line(),
+                    right.get_location().get_end_column(),
+                ),
             )),
         }
     }
