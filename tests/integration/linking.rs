@@ -40,7 +40,7 @@ fn link_as_shared_object() {
         },
         vec![TARGET.unwrap().into()],
         None,
-        LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
 
@@ -58,12 +58,12 @@ fn link_as_shared_object() {
         },
         vec![TARGET.unwrap().into()],
         None,
-        LinkOptions {
+        Some(LinkOptions {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Shared,
             linker: None,
-        },
+        }),
     )
     .unwrap();
 
@@ -102,7 +102,7 @@ fn link_as_pic_object() {
         },
         vec![TARGET.unwrap().into()],
         None,
-        LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
 
@@ -120,12 +120,12 @@ fn link_as_pic_object() {
         },
         vec![TARGET.unwrap().into()],
         None,
-        LinkOptions {
+        Some(LinkOptions {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::PIC,
             linker: None,
-        },
+        }),
     )
     .unwrap();
     //Delete it
@@ -163,7 +163,7 @@ fn link_as_static_object() {
         },
         vec![TARGET.unwrap().into()],
         None,
-        LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
 
@@ -181,12 +181,12 @@ fn link_as_static_object() {
         },
         vec![TARGET.unwrap().into()],
         None,
-        LinkOptions {
+        Some(LinkOptions {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Static,
             linker: None,
-        },
+        }),
     )
     .unwrap();
 
@@ -225,7 +225,7 @@ fn link_as_relocatable_object() {
         },
         vec![TARGET.unwrap().into()],
         None,
-        LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
 
@@ -243,12 +243,12 @@ fn link_as_relocatable_object() {
         },
         vec![TARGET.unwrap().into()],
         None,
-        LinkOptions {
+        Some(LinkOptions {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Relocatable,
             linker: None,
-        },
+        }),
     )
     .unwrap();
 
@@ -264,7 +264,6 @@ fn link_missing_file() {
     };
     let mut out = env::temp_dir();
     out.push("missing.o");
-    let out = out.into_os_string().into_string().unwrap();
     let target: Target = TARGET.unwrap().into();
     //Compile file1 as shared object with file2 as param
     let context = Context::create();
@@ -290,6 +289,7 @@ fn link_missing_file() {
 
     match res {
         Err(err) => {
+            let out = out.to_string_lossy();
             assert_eq!(Diagnostic::link_error(&format!("lld: error: undefined symbol: func2\n>>> referenced by main\n>>>               {}:(func1)\n>>> did you mean: func1\n>>> defined in: {}\n",out, out)), err);
         }
         _ => panic!("Expected link failure"),

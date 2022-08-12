@@ -74,7 +74,7 @@ pub struct CompileParameters {
         global = true,
         help = "Do not link after compiling object code"
     )]
-    pub skip_linking: bool,
+    pub compile_only: bool,
 
     #[clap(
         long,
@@ -248,7 +248,7 @@ impl CompileParameters {
         } else if self.output_shared_obj {
             Some(FormatOption::Shared)
         } else if self.output_obj_code {
-            if self.skip_linking {
+            if self.compile_only {
                 Some(FormatOption::Object)
             } else {
                 Some(FormatOption::Static)

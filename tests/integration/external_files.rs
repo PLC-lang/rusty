@@ -26,7 +26,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         },
         vec![],
         None,
-        rusty::LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
@@ -43,7 +43,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         },
         vec![],
         None,
-        rusty::LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
@@ -60,7 +60,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         },
         vec![],
         None,
-        rusty::LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
@@ -77,7 +77,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         },
         vec![],
         None,
-        rusty::LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
@@ -94,7 +94,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         },
         vec![],
         None,
-        rusty::LinkOptions::default(),
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
