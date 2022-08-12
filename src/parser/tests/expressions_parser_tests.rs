@@ -37,12 +37,12 @@ fn qualified_reference_statement_parsed() {
                 &[
                     AstStatement::Reference {
                         name: "a".to_string(),
-                        location: (12..13).into(),
+                        location: SourceRange::new(12..13,Some(1),Some(12),Some(1),Some(13)),
                         id: 0
                     },
                     AstStatement::Reference {
                         name: "x".to_string(),
-                        location: (14..15).into(),
+                        location: SourceRange::new(14..15,Some(1),Some(14),Some(1),Some(15)),
                         id: 0
                     },
                 ]
@@ -1247,7 +1247,7 @@ fn literal_int_cast(data_type: &str, value: i128) -> AstStatement {
         location: SourceRange::undefined(),
         target: Box::new(AstStatement::LiteralInteger {
             id: 0,
-            location: (0..0).into(),
+            location: SourceRange::new(0..0,None,None,None,None),
             value,
         }),
         type_name: data_type.to_string(),
@@ -1276,19 +1276,19 @@ fn literal_enum_parse_test() {
             vec![
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "MyEnum".into(),
                     target: Box::new(ref_to("Val1"))
                 },
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "MyEnum".into(),
                     target: Box::new(ref_to("Val2"))
                 },
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "MyEnum".into(),
                     target: Box::new(ref_to("Val3"))
                 }
@@ -1335,74 +1335,74 @@ fn literal_cast_parse_test() {
                 literal_int_cast("DINT", -100),
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "REAL".into(),
                     target: Box::new(AstStatement::LiteralReal {
                         id: 0,
-                        location: (0..0).into(),
+                        location: SourceRange::new(0..0,None,None,None,None),
                         value: "-3.1415".to_string()
                     })
                 },
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "BOOL".into(),
                     target: Box::new(AstStatement::LiteralInteger {
                         id: 0,
-                        location: (0..0).into(),
+                        location: SourceRange::new(0..0,None,None,None,None),
                         value: 1,
                     })
                 },
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "BOOL".into(),
                     target: Box::new(AstStatement::LiteralBool {
                         id: 0,
-                        location: (0..0).into(),
+                        location: SourceRange::new(0..0,None,None,None,None),
                         value: false
                     })
                 },
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "STRING".into(),
                     target: Box::new(AstStatement::LiteralString {
                         id: 0,
-                        location: (0..0).into(),
+                        location: SourceRange::new(0..0,None,None,None,None),
                         value: "abc".to_string(),
                         is_wide: true,
                     })
                 },
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "WSTRING".into(),
                     target: Box::new(AstStatement::LiteralString {
                         id: 0,
-                        location: (0..0).into(),
+                        location: SourceRange::new(0..0,None,None,None,None),
                         value: "xyz".to_string(),
                         is_wide: false,
                     })
                 },
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "CHAR".into(),
                     target: Box::new(AstStatement::LiteralString {
                         id: 0,
-                        location: (0..0).into(),
+                        location: SourceRange::new(0..0,None,None,None,None),
                         value: "A".to_string(),
                         is_wide: true,
                     })
                 },
                 AstStatement::CastStatement {
                     id: 0,
-                    location: (0..0).into(),
+                    location: SourceRange::new(0..0,None,None,None,None),
                     type_name: "WCHAR".into(),
                     target: Box::new(AstStatement::LiteralString {
                         id: 0,
-                        location: (0..0).into(),
+                        location: SourceRange::new(0..0,None,None,None,None),
                         value: "B".to_string(),
                         is_wide: false,
                     })
@@ -2648,7 +2648,7 @@ fn literals_location_test() {
 
     // 1
     let location = &unit.statements[0].get_location();
-    assert_eq!(location, &(12..13).into());
+    assert_eq!(location, &SourceRange::new(12..13,Some(1),Some(12),Some(1),Some(13)));
     assert_eq!(
         source[location.get_start()..location.get_end()].to_string(),
         "7"
@@ -2656,7 +2656,7 @@ fn literals_location_test() {
 
     // 'hello'
     let location = &unit.statements[1].get_location();
-    assert_eq!(location, &(15..22).into());
+    assert_eq!(location, &SourceRange::new(15..22,Some(1),Some(15),Some(1),Some(22)));
     assert_eq!(
         source[location.get_start()..location.get_end()].to_string(),
         "'hello'"
@@ -2664,7 +2664,7 @@ fn literals_location_test() {
 
     // true
     let location = &unit.statements[2].get_location();
-    assert_eq!(location, &(24..28).into());
+    assert_eq!(location, &SourceRange::new(24..28,Some(1),Some(24),Some(1),Some(28)));
     assert_eq!(
         source[location.get_start()..location.get_end()].to_string(),
         "TRUE"
@@ -2672,7 +2672,7 @@ fn literals_location_test() {
 
     //3.1415
     let location = &unit.statements[3].get_location();
-    assert_eq!(location, &(30..36).into());
+    assert_eq!(location, &SourceRange::new(30..36,Some(1),Some(30),Some(1),Some(36)));
     assert_eq!(
         source[location.get_start()..location.get_end()].to_string(),
         "3.1415"

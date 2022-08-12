@@ -1,4 +1,4 @@
-use crate::{test_utils::tests::parse_and_validate, Diagnostic};
+use crate::{test_utils::tests::parse_and_validate, Diagnostic, ast::SourceRange};
 
 #[test]
 fn any_allows_all_natures() {
@@ -44,8 +44,8 @@ fn any_number_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_type_nature("STRING", "Num", (138..139).into()),
-            Diagnostic::invalid_type_nature("WSTRING", "Num", (215..216).into()),
+            Diagnostic::invalid_type_nature("STRING", "Num", SourceRange::new(138..139,Some(2),Some(59),Some(2),Some(60))),
+            Diagnostic::invalid_type_nature("WSTRING", "Num", SourceRange::new(215..216,Some(3),Some(61),Some(3),Some(62))),
         ]
     );
 }
@@ -74,8 +74,8 @@ fn any_int_does_not_allow_real() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_type_nature("REAL", "Int", (136..137).into()),
-            Diagnostic::invalid_type_nature("LREAL", "Int", (211..212).into()),
+            Diagnostic::invalid_type_nature("REAL", "Int", SourceRange::new(136..137,Some(2),Some(57),Some(2),Some(58))),
+            Diagnostic::invalid_type_nature("LREAL", "Int", SourceRange::new(211..212,Some(3),Some(59),Some(3),Some(60))),
         ]
     );
 }
@@ -92,8 +92,8 @@ fn any_int_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_type_nature("STRING", "Int", (138..139).into()),
-            Diagnostic::invalid_type_nature("WSTRING", "Int", (215..216).into()),
+            Diagnostic::invalid_type_nature("STRING", "Int", SourceRange::new(138..139,Some(2),Some(59),Some(2),Some(60))),
+            Diagnostic::invalid_type_nature("WSTRING", "Int", SourceRange::new(215..216,Some(3),Some(61),Some(3),Some(62))),
         ]
     );
 }
@@ -123,9 +123,9 @@ fn any_real_does_not_allow_ints() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_type_nature("INT", "Real", (136..137).into()),
-            Diagnostic::invalid_type_nature("UINT", "Real", (210..211).into()),
-            Diagnostic::invalid_type_nature("BYTE", "Real", (284..285).into()),
+            Diagnostic::invalid_type_nature("INT", "Real", SourceRange::new(136..137,Some(2),Some(56),Some(2),Some(57))),
+            Diagnostic::invalid_type_nature("UINT", "Real", SourceRange::new(210..211,Some(3),Some(58),Some(3),Some(59))),
+            Diagnostic::invalid_type_nature("BYTE", "Real", SourceRange::new(284..285,Some(4),Some(58),Some(4),Some(59))),
         ]
     );
 }
@@ -142,8 +142,8 @@ fn any_real_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_type_nature("STRING", "Real", (139..140).into()),
-            Diagnostic::invalid_type_nature("WSTRING", "Real", (216..217).into()),
+            Diagnostic::invalid_type_nature("STRING", "Real", SourceRange::new(139..140,Some(2),Some(59),Some(2),Some(60))),
+            Diagnostic::invalid_type_nature("WSTRING", "Real", SourceRange::new(216..217,Some(3),Some(61),Some(3),Some(62))),
         ]
     );
 }
@@ -173,9 +173,9 @@ fn any_string_does_not_allow_ints() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_type_nature("INT", "String", (138..139).into()),
-            Diagnostic::invalid_type_nature("UINT", "String", (212..213).into()),
-            Diagnostic::invalid_type_nature("BYTE", "String", (286..287).into()),
+            Diagnostic::invalid_type_nature("INT", "String", SourceRange::new(138..139,Some(2),Some(56),Some(2),Some(57))),
+            Diagnostic::invalid_type_nature("UINT", "String", SourceRange::new(212..213,Some(3),Some(58),Some(3),Some(59))),
+            Diagnostic::invalid_type_nature("BYTE", "String", SourceRange::new(286..287,Some(4),Some(58),Some(4),Some(59))),
         ]
     );
 }
@@ -192,8 +192,8 @@ fn any_string_does_not_allow_real() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_type_nature("REAL", "String", (139..140).into()),
-            Diagnostic::invalid_type_nature("LREAL", "String", (214..215).into()),
+            Diagnostic::invalid_type_nature("REAL", "String", SourceRange::new(139..140,Some(2),Some(57),Some(2),Some(58))),
+            Diagnostic::invalid_type_nature("LREAL", "String", SourceRange::new(214..215,Some(3),Some(59),Some(3),Some(60))),
         ]
     );
 }
@@ -211,7 +211,7 @@ fn non_resolved_generics_reported() {
         vec![Diagnostic::unresolved_generic_type(
             "T",
             "String",
-            (94..101).into()
+            SourceRange::new(94..101,Some(2),Some(31),Some(2),Some(38))
         ),]
     );
 }

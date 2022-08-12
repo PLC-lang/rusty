@@ -156,6 +156,7 @@ fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
 
 #[cfg(test)]
 mod variable_validator_tests {
+    use crate::ast::SourceRange;
     use crate::test_utils::tests::parse_and_validate;
     use crate::Diagnostic;
 
@@ -177,8 +178,8 @@ mod variable_validator_tests {
         assert_eq!(
             diagnostics,
             vec![
-                Diagnostic::empty_variable_block((14..44).into()),
-                Diagnostic::empty_variable_block((131..164).into())
+                Diagnostic::empty_variable_block( SourceRange::new(14..44, Some(1), Some(14),Some(1), Some(44))),
+                Diagnostic::empty_variable_block( SourceRange::new(131..164,Some(5), Some(29),Some(6),Some(27)))
             ]
         );
     }
@@ -200,8 +201,8 @@ mod variable_validator_tests {
         assert_eq!(
             diagnostics,
             vec![
-                Diagnostic::empty_variable_block((14..27).into()),
-                Diagnostic::empty_variable_block((112..114).into())
+                Diagnostic::empty_variable_block( SourceRange::new(14..27, Some(1),Some(14),Some(1),Some(27))),
+                Diagnostic::empty_variable_block( SourceRange::new(112..114, Some(5),Some(27),Some(5),Some(29)))
             ]
         );
     }

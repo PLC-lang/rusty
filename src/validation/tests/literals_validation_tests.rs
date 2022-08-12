@@ -1,7 +1,7 @@
 use crate::{
     test_utils::tests::parse_and_validate,
     typesystem::{DATE_AND_TIME_TYPE, DATE_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE},
-    Diagnostic,
+    Diagnostic, ast::SourceRange,
 };
 
 #[test]
@@ -27,9 +27,9 @@ fn int_literal_casts_max_values_are_validated() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::literal_out_of_range("256", "BYTE", (67..75).into()),
-            Diagnostic::literal_out_of_range("65536", "UINT", (123..134).into()),
-            Diagnostic::literal_out_of_range("4294967296", "UDINT", (190..209).into()),
+            Diagnostic::literal_out_of_range("256", "BYTE", SourceRange::new(67..75,Some(3),Some(17),Some(3),Some(25))),
+            Diagnostic::literal_out_of_range("65536", "UINT", SourceRange::new(123..134,Some(6),Some(17),Some(6),Some(28))),
+            Diagnostic::literal_out_of_range("4294967296", "UDINT", SourceRange::new(190..209,Some(9),Some(17),Some(9),Some(46))),
         ]
     );
 }
@@ -53,9 +53,9 @@ fn bool_literal_casts_are_validated() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::literal_out_of_range("2", "BOOL", (120..126).into()),
-            Diagnostic::incompatible_literal_cast("BOOL", "2.3", (140..148).into()),
-            Diagnostic::incompatible_literal_cast("BOOL", "'abc'", (162..172).into()),
+            Diagnostic::literal_out_of_range("2", "BOOL", SourceRange::new(120..126,Some(6),Some(13),Some(6),Some(19))),
+            Diagnostic::incompatible_literal_cast("BOOL", "2.3", SourceRange::new(140..148,Some(7),Some(13),Some(7),Some(21))),
+            Diagnostic::incompatible_literal_cast("BOOL", "'abc'", SourceRange::new(162..172,Some(8),Some(13),Some(8),Some(2))),
         ]
     );
 }
@@ -86,12 +86,12 @@ fn string_literal_casts_are_validated() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_literal_cast("STRING", "true", (102..113).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "false", (127..140).into()),
-            Diagnostic::incompatible_literal_cast("STRING", "22", (155..164).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "33", (178..188).into()),
-            Diagnostic::incompatible_literal_cast("STRING", "3.14", (203..214).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "1.0", (228..239).into()),
+            Diagnostic::incompatible_literal_cast("STRING", "true", SourceRange::new(102..113,Some(6),Some(13),Some(6),Some(24))),
+            Diagnostic::incompatible_literal_cast("WSTRING", "false", SourceRange::new(127..140,Some(7),Some(13),Some(7),Some(26))),
+            Diagnostic::incompatible_literal_cast("STRING", "22", SourceRange::new(155..164,Some(9),Some(13),Some(9),Some(22))),
+            Diagnostic::incompatible_literal_cast("WSTRING", "33", SourceRange::new(178..188,Some(10),Some(13),Some(10),Some(23))),
+            Diagnostic::incompatible_literal_cast("STRING", "3.14", SourceRange::new(203..214,Some(12),Some(13),Some(12),Some(24))),
+            Diagnostic::incompatible_literal_cast("WSTRING", "1.0", SourceRange::new(228..239,Some(13),Some(13),Some(13),Some(224))),
         ]
     );
 }
@@ -121,8 +121,8 @@ fn real_literal_casts_are_validated() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_literal_cast("REAL", "'3.14'", (180..191).into()),
-            Diagnostic::incompatible_literal_cast("LREAL", r#""3.14""#, (252..264).into())
+            Diagnostic::incompatible_literal_cast("REAL", "'3.14'", SourceRange::new(180..191,Some(10),Some(13),Some(10),Some(24))),
+            Diagnostic::incompatible_literal_cast("LREAL", r#""3.14""#, SourceRange::new(252..264,Some(14),Some(13),Some(14),Some(25)))
         ]
     );
 }
@@ -135,7 +135,7 @@ fn literal_cast_with_non_literal() {
         END_PROGRAM",
     );
     assert_eq!(
-        vec![Diagnostic::literal_expected((25..32).into())],
+        vec![Diagnostic::literal_expected(SourceRange::new(25..32,Some(2),Some(13),Some(2),Some(20)))],
         diagnostics
     );
 }
@@ -183,18 +183,18 @@ fn date_literal_casts_are_validated() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_literal_cast("LINT", DATE_AND_TIME_TYPE, (33..63).into()),
-            Diagnostic::incompatible_literal_cast("LINT", TIME_OF_DAY_TYPE, (77..106).into()),
-            Diagnostic::incompatible_literal_cast("LINT", TIME_TYPE, (120..136).into()),
-            Diagnostic::incompatible_literal_cast("LINT", DATE_TYPE, (150..170).into()),
-            Diagnostic::incompatible_literal_cast("ULINT", DATE_AND_TIME_TYPE, (185..216).into()),
-            Diagnostic::incompatible_literal_cast("ULINT", TIME_OF_DAY_TYPE, (230..260).into()),
-            Diagnostic::incompatible_literal_cast("ULINT", TIME_TYPE, (274..291).into()),
-            Diagnostic::incompatible_literal_cast("ULINT", DATE_TYPE, (305..326).into()),
-            Diagnostic::incompatible_literal_cast("INT", DATE_AND_TIME_TYPE, (341..370).into()),
-            Diagnostic::incompatible_literal_cast("INT", TIME_OF_DAY_TYPE, (384..412).into()),
-            Diagnostic::incompatible_literal_cast("INT", TIME_TYPE, (426..441).into()),
-            Diagnostic::incompatible_literal_cast("INT", DATE_TYPE, (455..474).into()),
+            Diagnostic::incompatible_literal_cast("LINT", DATE_AND_TIME_TYPE, SourceRange::new(33..63,Some(2),Some(13),Some(2),Some(43))),
+            Diagnostic::incompatible_literal_cast("LINT", TIME_OF_DAY_TYPE, SourceRange::new(77..106,Some(3),Some(13),Some(3),Some(42))),
+            Diagnostic::incompatible_literal_cast("LINT", TIME_TYPE, SourceRange::new(120..136,Some(4),Some(13),Some(4),Some(29))),
+            Diagnostic::incompatible_literal_cast("LINT", DATE_TYPE, SourceRange::new(150..170,Some(5),Some(13),Some(5),Some(33))),
+            Diagnostic::incompatible_literal_cast("ULINT", DATE_AND_TIME_TYPE, SourceRange::new(185..216,Some(7),Some(13),Some(7),Some(43))),
+            Diagnostic::incompatible_literal_cast("ULINT", TIME_OF_DAY_TYPE, SourceRange::new(230..260,Some(8),Some(13),Some(8),Some(42))),
+            Diagnostic::incompatible_literal_cast("ULINT", TIME_TYPE, SourceRange::new(274..291,Some(9),Some(13),Some(9),Some(29))),
+            Diagnostic::incompatible_literal_cast("ULINT", DATE_TYPE, SourceRange::new(305..326,Some(10),Some(13),Some(10),Some(33))),
+            Diagnostic::incompatible_literal_cast("INT", DATE_AND_TIME_TYPE, SourceRange::new(341..370,Some(12),Some(13),Some(12),Some(43))),
+            Diagnostic::incompatible_literal_cast("INT", TIME_OF_DAY_TYPE, SourceRange::new(384..412,Some(13),Some(13),Some(13),Some(42))),
+            Diagnostic::incompatible_literal_cast("INT", TIME_TYPE, SourceRange::new(426..441,Some(14),Some(13),Some(14),Some(29))),
+            Diagnostic::incompatible_literal_cast("INT", DATE_TYPE, SourceRange::new(455..474,Some(15),Some(13),Some(15),Some(33))),
         ]
     );
 }
@@ -218,8 +218,8 @@ fn char_cast_validate() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::literal_out_of_range(r#""XY""#, "CHAR", (83..92).into()),
-            Diagnostic::literal_out_of_range("'YZ'", "WCHAR", (97..107).into())
+            Diagnostic::literal_out_of_range(r#""XY""#, "CHAR", SourceRange::new(83..92,Some(6), Some(13), Some(6), Some(22))),
+            Diagnostic::literal_out_of_range("'YZ'", "WCHAR", SourceRange::new(97..107,Some(7), Some(13), Some(7), Some(23)))
         ]
     );
 }

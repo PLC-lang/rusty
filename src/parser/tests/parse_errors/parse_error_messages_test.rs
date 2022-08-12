@@ -1,3 +1,4 @@
+use crate::ast::SourceRange;
 use crate::test_utils::tests::parse;
 use crate::Diagnostic;
 use pretty_assertions::*;
@@ -18,7 +19,7 @@ fn test_unexpected_token_error_message() {
             vec![Diagnostic::unexpected_token_found(
                 "KeywordEndVar",
                 "';'",
-                (32..33).into()
+                SourceRange::new(32..33,Some(2),Some(21),Some(2),Some(22))
             ),]
         )
     );
@@ -33,7 +34,7 @@ fn test_unexpected_token_error_message2() {
     ";
     let parse_result = parse(src);
     assert_eq!(
-        &Diagnostic::unexpected_token_found("StartKeyword", "SOME", (0..4).into()),
+        &Diagnostic::unexpected_token_found("StartKeyword", "SOME", SourceRange::new(0..4, Some(1), Some(0),Some(1),Some(4))),
         parse_result.1.first().unwrap()
     );
 }
@@ -50,7 +51,7 @@ fn for_with_unexpected_token_1() {
         ";
     let parse_result = parse(src);
     assert_eq!(
-        &Diagnostic::unexpected_token_found("KeywordAssignment", "ALPHA", (36..41).into()),
+        &Diagnostic::unexpected_token_found("KeywordAssignment", "ALPHA", SourceRange::new(36..41,Some(3),Some(15),Some(3),Some(20))),
         parse_result.1.first().unwrap()
     );
 }
@@ -67,7 +68,7 @@ fn for_with_unexpected_token_2() {
         ";
     let parse_result = parse(src);
     assert_eq!(
-        &Diagnostic::unexpected_token_found("KeywordTo", "BRAVO", (41..46).into()),
+        &Diagnostic::unexpected_token_found("KeywordTo", "BRAVO", SourceRange::new(41..46,Some(3),Some(20),Some(3),Some(25))),
         parse_result.1.first().unwrap()
     );
 }
@@ -86,7 +87,7 @@ fn if_then_with_unexpected_token() {
     let parse_result = parse(src);
 
     assert_eq!(
-        &Diagnostic::unexpected_token_found("KeywordThen", "CHARLIE", (38..45).into()),
+        &Diagnostic::unexpected_token_found("KeywordThen", "CHARLIE", SourceRange::new(38..45,Some(3),Some(17),Some(3),Some(24))),
         parse_result.1.first().unwrap()
     );
 }
@@ -102,7 +103,7 @@ fn case_with_unexpected_token() {
         ";
     let parse_result = parse(src);
     assert_eq!(
-        &Diagnostic::unexpected_token_found("KeywordOf", "DELTA", (48..53).into()),
+        &Diagnostic::unexpected_token_found("KeywordOf", "DELTA", SourceRange::new(48..53,Some(3),Some(27),Some(3),Some(32))),
         parse_result.1.first().unwrap()
     );
 }
@@ -121,7 +122,7 @@ fn test_unclosed_body_error_message() {
         vec![Diagnostic::unexpected_token_found(
             "KeywordEndProgram",
             "''",
-            (46..46).into()
+            SourceRange::new(46..46,Some(5),Some(5),Some(5),Some(5))
         )]
     );
 }

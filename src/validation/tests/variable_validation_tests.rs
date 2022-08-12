@@ -1,3 +1,4 @@
+use crate::ast::SourceRange;
 use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
@@ -32,8 +33,8 @@ fn uninitialized_constants_are_reported() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_constant("cx", None, (340..342).into()),
-            Diagnostic::unresolved_constant("cgX", None, (128..131).into()),
+            Diagnostic::unresolved_constant("cx", None, SourceRange::new(340..342,Some(18),Some(17),Some(18),Some(19))),
+            Diagnostic::unresolved_constant("cgX", None, SourceRange::new(128..131,Some(7),Some(13),Some(7),Some(16))),
         ]
     );
 }
@@ -70,10 +71,10 @@ fn unresolvable_variables_are_reported() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_constant("cx", None, (392..394).into()),
-            Diagnostic::unresolved_constant("cai", None, (473..474).into()),
-            Diagnostic::unresolved_constant("gX", None, (45..52).into()),
-            Diagnostic::unresolved_constant("cgX", None, (154..157).into()),
+            Diagnostic::unresolved_constant("cx", None, SourceRange::new(392..394,Some(18),Some(29),Some(18),Some(31))),
+            Diagnostic::unresolved_constant("cai", None, SourceRange::new(473..474,Some(20),Some(17),Some(20),Some(20))),
+            Diagnostic::unresolved_constant("gX", None, SourceRange::new(45..52, Some(2),Some(25),Some(2),Some(32))),
+            Diagnostic::unresolved_constant("cgX", None, SourceRange::new(154..157, Some(7), Some(13), Some(7), Some(16))),
         ]
     );
 }
@@ -127,12 +128,12 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_constant_block((83..92).into()), // VAR_INPUT
-            Diagnostic::invalid_constant_block((145..155).into()), // VAR_OUTPUT
-            Diagnostic::invalid_constant_block((208..218).into()), // VAR_IN_OUT
-            Diagnostic::invalid_constant_block((447..456).into()), // VAR_INPUT
-            Diagnostic::invalid_constant_block((517..527).into()), // VAR_OUTPUT
-            Diagnostic::invalid_constant_block((588..598).into()), // VAR_IN_OUT
+            Diagnostic::invalid_constant_block(SourceRange::new(83..92,Some(5),Some(13),Some(5),Some(22))), // VAR_INPUT
+            Diagnostic::invalid_constant_block(SourceRange::new(145..155,Some(8),Some(13),Some(8),Some(23))), // VAR_OUTPUT
+            Diagnostic::invalid_constant_block(SourceRange::new(208..218,Some(11),Some(13),Some(11),Some(23))), // VAR_IN_OUT
+            Diagnostic::invalid_constant_block(SourceRange::new(447..456, Some(24),Some(17),Some(24),Some(26))), // VAR_INPUT
+            Diagnostic::invalid_constant_block(SourceRange::new(517..527, Some(27),Some(17),Some(27),Some(27))), // VAR_OUTPUT
+            Diagnostic::invalid_constant_block(SourceRange::new(588..598, Some(30),Some(17),Some(30),Some(27))), // VAR_IN_OUT
         ]
     );
 }
@@ -166,10 +167,10 @@ fn constant_fb_instances_are_illegal() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_constant("y", None, (320..321).into()),
-            Diagnostic::invalid_constant("y", (320..321).into()),
-            Diagnostic::unresolved_constant("z", None, (342..343).into()),
-            Diagnostic::invalid_constant("z", (342..343).into()),
+            Diagnostic::unresolved_constant("y", None, SourceRange::new(320..321,Some(14),Some(13),Some(14),Some(14))),
+            Diagnostic::invalid_constant("y", SourceRange::new(320..321,Some(14),Some(13),Some(14),Some(14))),
+            Diagnostic::unresolved_constant("z", None, SourceRange::new(342..343,Some(15),Some(13),Some(15),Some(14))),
+            Diagnostic::invalid_constant("z", SourceRange::new(342..343,Some(15),Some(13),Some(15),Some(14))),
         ]
     );
 }
@@ -193,7 +194,7 @@ fn sized_varargs_require_type() {
         diagnostics,
         vec![Diagnostic::missing_datatype(
             Some(": Sized Variadics require a known datatype."),
-            (103..106).into()
+            SourceRange::new(103..106, Some(4), Some(27), Some(4), Some(29))
         ),]
     )
 }

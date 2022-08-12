@@ -1,3 +1,4 @@
+use crate::ast::SourceRange;
 use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
@@ -27,9 +28,9 @@ fn bitaccess_only_on_bit_types() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_directaccess("Bit", 1, (223..224).into()),
-            Diagnostic::incompatible_directaccess("Bit", 1, (247..248).into()),
-            Diagnostic::incompatible_directaccess("Bit", 1, (270..271).into()),
+            Diagnostic::incompatible_directaccess("Bit", 1, SourceRange::new(223..224,Some(10),Some(21),Some(10),Some(22))),
+            Diagnostic::incompatible_directaccess("Bit", 1, SourceRange::new(247..248,Some(11),Some(22),Some(11),Some(23))),
+            Diagnostic::incompatible_directaccess("Bit", 1, SourceRange::new(270..271,Some(12),Some(21),Some(12),Some(22))),
         ]
     );
 }
@@ -57,9 +58,9 @@ fn byteaccess_only_on_bigger_sizes() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_directaccess("Byte", 8, (195..198).into()),
-            Diagnostic::incompatible_directaccess("Byte", 8, (221..224).into()),
-            Diagnostic::incompatible_directaccess("Byte", 8, (247..250).into()),
+            Diagnostic::incompatible_directaccess("Byte", 8, SourceRange::new(195..198,Some(9),Some(21),Some(9),Some(24))),
+            Diagnostic::incompatible_directaccess("Byte", 8, SourceRange::new(221..224,Some(10),Some(22),Some(10),Some(25))),
+            Diagnostic::incompatible_directaccess("Byte", 8, SourceRange::new(247..250,Some(11),Some(22),Some(11),Some(25))),
         ]
     );
 }
@@ -87,9 +88,9 @@ fn wordaccess_only_on_bigger_sizes() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_directaccess("Word", 16, (194..197).into()),
-            Diagnostic::incompatible_directaccess("Word", 16, (220..223).into()),
-            Diagnostic::incompatible_directaccess("Word", 16, (246..249).into()),
+            Diagnostic::incompatible_directaccess("Word", 16, SourceRange::new(194..197,Some(9),Some(21),Some(9),Some(24))),
+            Diagnostic::incompatible_directaccess("Word", 16, SourceRange::new(220..223,Some(10),Some(22),Some(10),Some(25))),
+            Diagnostic::incompatible_directaccess("Word", 16, SourceRange::new(246..249,Some(11),Some(22),Some(11),Some(25))),
         ]
     );
 }
@@ -117,9 +118,9 @@ fn dwordaccess_only_on_bigger_sizes() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_directaccess("DWord", 32, (197..200).into()),
-            Diagnostic::incompatible_directaccess("DWord", 32, (223..226).into()),
-            Diagnostic::incompatible_directaccess("DWord", 32, (249..252).into()),
+            Diagnostic::incompatible_directaccess("DWord", 32, SourceRange::new(197..200,Some(9),Some(21),Some(9),Some(24))),
+            Diagnostic::incompatible_directaccess("DWord", 32, SourceRange::new(223..226,Some(10),Some(22),Some(10),Some(25))),
+            Diagnostic::incompatible_directaccess("DWord", 32, SourceRange::new(249..252,Some(11),Some(22),Some(11),Some(25))),
         ]
     );
 }
@@ -143,10 +144,10 @@ fn bitaccess_range_test() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_directaccess_range("Bit", "BYTE", 0..7, (138..139).into()),
-            Diagnostic::incompatible_directaccess_range("Bit", "WORD", 0..15, (159..161).into()),
-            Diagnostic::incompatible_directaccess_range("Bit", "DWORD", 0..31, (181..183).into()),
-            Diagnostic::incompatible_directaccess_range("Bit", "LWORD", 0..63, (203..205).into()),
+            Diagnostic::incompatible_directaccess_range("Bit", "BYTE", 0..7, SourceRange::new(138..139,Some(5),Some(19),Some(5),Some(20))),
+            Diagnostic::incompatible_directaccess_range("Bit", "WORD", 0..15, SourceRange::new(159..161,Some(6),Some(19),Some(6),Some(22))),
+            Diagnostic::incompatible_directaccess_range("Bit", "DWORD", 0..31, SourceRange::new(181..183,Some(7),Some(19),Some(7),Some(22))),
+            Diagnostic::incompatible_directaccess_range("Bit", "LWORD", 0..63, SourceRange::new(203..205,Some(8),Some(19),Some(8),Some(22))),
         ]
     );
 }
@@ -169,9 +170,9 @@ fn byteaccess_range_test() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_directaccess_range("Byte", "WORD", 0..1, (128..131).into()),
-            Diagnostic::incompatible_directaccess_range("Byte", "DWORD", 0..3, (151..154).into()),
-            Diagnostic::incompatible_directaccess_range("Byte", "LWORD", 0..7, (174..177).into()),
+            Diagnostic::incompatible_directaccess_range("Byte", "WORD", 0..1, SourceRange::new(128..131,Some(5),Some(19),Some(5),Some(22))),
+            Diagnostic::incompatible_directaccess_range("Byte", "DWORD", 0..3, SourceRange::new(151..154,Some(6),Some(19),Some(6),Some(22))),
+            Diagnostic::incompatible_directaccess_range("Byte", "LWORD", 0..7, SourceRange::new(174..177,Some(7),Some(19),Some(7),Some(22))),
         ]
     );
 }
@@ -193,8 +194,8 @@ fn wordaccess_range_test() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_directaccess_range("Word", "DWORD", 0..1, (118..121).into()),
-            Diagnostic::incompatible_directaccess_range("Word", "LWORD", 0..3, (141..144).into()),
+            Diagnostic::incompatible_directaccess_range("Word", "DWORD", 0..1, SourceRange::new(118..121,Some(5),Some(19),Some(5),Some(21))),
+            Diagnostic::incompatible_directaccess_range("Word", "LWORD", 0..3, SourceRange::new(141..144,Some(6),Some(19),Some(6),Some(21))),
         ]
     );
 }
@@ -218,7 +219,7 @@ fn dwordaccess_range_test() {
             "DWord",
             "LWORD",
             0..1,
-            (107..110).into()
+            SourceRange::new(107..110,Some(5),Some(19),Some(5),Some(21))
         ),]
     );
 }
@@ -241,8 +242,8 @@ fn reference_direct_access_only_with_ints() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_directaccess_variable("LREAL", (160..163).into()),
-            Diagnostic::incompatible_directaccess_variable("REAL", (183..186).into()),
+            Diagnostic::incompatible_directaccess_variable("LREAL", SourceRange::new(160..163,Some(6),Some(19),Some(6),Some(22))),
+            Diagnostic::incompatible_directaccess_variable("REAL", SourceRange::new(183..186,Some(7),Some(19),Some(7),Some(22))),
         ]
     );
 }

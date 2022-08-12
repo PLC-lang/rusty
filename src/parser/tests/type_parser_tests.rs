@@ -227,7 +227,7 @@ fn string_type_can_be_parsed_test() {
                     name: Some("MyString".to_string()),
                     size: Some(LiteralInteger {
                         value: 253,
-                        location: (10..11).into(),
+                        location: SourceRange::new(10..11,Some(1),Some(10),Some(1),Some(11)),
                         id: 0,
                     }),
                     is_wide: false,
@@ -241,7 +241,7 @@ fn string_type_can_be_parsed_test() {
                     name: Some("MyString".to_string()),
                     size: Some(LiteralInteger {
                         value: 253,
-                        location: (10..11).into(),
+                        location: SourceRange::new(10..11,Some(1),Some(10),Some(1),Some(11)),
                         id: 0,
                     }),
                     is_wide: false,
@@ -278,7 +278,7 @@ fn wide_string_type_can_be_parsed_test() {
                 name: Some("MyString".to_string()),
                 size: Some(LiteralInteger {
                     value: 253,
-                    location: (10..11).into(),
+                    location: SourceRange::new(10..11,Some(1),Some(10),Some(1),Some(11)),
                     id: 0,
                 }),
                 is_wide: true,
@@ -327,7 +327,7 @@ fn subrangetype_can_be_parsed() {
         },
         initializer: None,
         address: None,
-        location: (0..0).into(),
+        location: SourceRange::undefined() //(0..0).into(),
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
 }
@@ -408,7 +408,7 @@ fn pointer_type_test() {
     assert_eq!(diagnostics.len(), 1);
     let diagnostic = Diagnostic::ImprovementSuggestion {
         message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-        range: SourceRange::new(42..49),
+        range: SourceRange::new(42..49,Some(2),Some(13),Some(2),Some(20)),
     };
     assert_eq!(diagnostics[0], diagnostic);
 }
@@ -468,7 +468,7 @@ fn global_pointer_declaration() {
         },
         initializer: None,
         address: None,
-        location: (0..0).into(),
+        location: SourceRange::undefined() //(0..0).into(),
     };
     assert_eq!(
         format!("{:#?}", expected),
@@ -490,7 +490,7 @@ fn global_pointer_declaration() {
         },
         initializer: None,
         address: None,
-        location: (0..0).into(),
+        location: SourceRange::undefined() //(0..0),
     };
     assert_eq!(
         format!("{:#?}", expected),
@@ -499,7 +499,7 @@ fn global_pointer_declaration() {
     assert_eq!(diagnostics.len(), 1);
     let diagnostic = Diagnostic::ImprovementSuggestion {
         message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-        range: SourceRange::new(91..98),
+        range: SourceRange::new(91..98,Some(3),Some(29),Some(3),Some(36)),
     };
     assert_eq!(diagnostics[0], diagnostic);
 }

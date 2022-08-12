@@ -88,7 +88,7 @@ fn exponent_literals_parsed_as_variables() {
         access: None,
         overriding: false,
         generic: false,
-        location: (105..142).into(),
+        location: SourceRange::new(105..142,Some(6),Some(13),Some(7),Some(25)),
     };
     assert_eq!(
         format!("{:#?}", expected),
@@ -525,7 +525,7 @@ fn id_implementation_for_all_statements() {
             operator: Box::new(empty_stmt()),
             parameters: Box::new(None),
             id: 7,
-            location: (1..5).into()
+            location: SourceRange::new(1..5,None,None,None,None)
         }
         .get_id(),
         7
@@ -543,7 +543,7 @@ fn id_implementation_for_all_statements() {
             selector: Box::new(empty_stmt()),
             case_blocks: vec![],
             else_block: vec![],
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -551,7 +551,7 @@ fn id_implementation_for_all_statements() {
     );
     assert_eq!(
         AstStatement::EmptyStatement {
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -572,7 +572,7 @@ fn id_implementation_for_all_statements() {
             counter: Box::new(empty_stmt()),
             end: Box::new(empty_stmt()),
             start: Box::new(empty_stmt()),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -582,7 +582,7 @@ fn id_implementation_for_all_statements() {
         AstStatement::IfStatement {
             blocks: vec![],
             else_block: vec![],
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -591,7 +591,7 @@ fn id_implementation_for_all_statements() {
     assert_eq!(
         AstStatement::LiteralArray {
             elements: None,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7,
         }
         .get_id(),
@@ -600,7 +600,7 @@ fn id_implementation_for_all_statements() {
     assert_eq!(
         AstStatement::LiteralBool {
             value: true,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -609,7 +609,7 @@ fn id_implementation_for_all_statements() {
     assert_eq!(
         AstStatement::LiteralInteger {
             value: 7,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -620,7 +620,7 @@ fn id_implementation_for_all_statements() {
             day: 0,
             month: 0,
             year: 0,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -635,7 +635,7 @@ fn id_implementation_for_all_statements() {
             milli: 0,
             min: 0,
             sec: 0,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -644,7 +644,7 @@ fn id_implementation_for_all_statements() {
     assert_eq!(
         AstStatement::LiteralReal {
             value: "2.3".to_string(),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -654,7 +654,7 @@ fn id_implementation_for_all_statements() {
         AstStatement::LiteralString {
             is_wide: false,
             value: "2.3".to_string(),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -670,7 +670,7 @@ fn id_implementation_for_all_statements() {
             micro: 0.0,
             nano: 0,
             negative: false,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -682,7 +682,7 @@ fn id_implementation_for_all_statements() {
             min: 0,
             sec: 0,
             milli: 0,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -692,7 +692,7 @@ fn id_implementation_for_all_statements() {
         AstStatement::MultipliedStatement {
             element: Box::new(empty_stmt()),
             multiplier: 9,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -727,7 +727,7 @@ fn id_implementation_for_all_statements() {
     assert_eq!(
         AstStatement::Reference {
             name: "ab".to_string(),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -737,7 +737,7 @@ fn id_implementation_for_all_statements() {
         AstStatement::RepeatLoopStatement {
             body: vec![],
             condition: Box::new(empty_stmt()),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -747,7 +747,7 @@ fn id_implementation_for_all_statements() {
         AstStatement::UnaryExpression {
             operator: Operator::Minus,
             value: Box::new(empty_stmt()),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -757,7 +757,7 @@ fn id_implementation_for_all_statements() {
         AstStatement::WhileLoopStatement {
             body: vec![],
             condition: Box::new(empty_stmt()),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_id(),
@@ -768,7 +768,7 @@ fn id_implementation_for_all_statements() {
 fn at(location: Range<usize>) -> AstStatement {
     AstStatement::EmptyStatement {
         id: 7,
-        location: location.into(),
+        location: SoureRange::new(location,None,None,None,None)
     }
 }
 
@@ -781,7 +781,7 @@ fn location_implementation_for_all_statements() {
             id: 7
         }
         .get_location(),
-        (0..4).into()
+        SourceRange::new(0..4,None,None,None,None)
     );
     assert_eq!(
         AstStatement::Assignment {
@@ -790,7 +790,7 @@ fn location_implementation_for_all_statements() {
             id: 7
         }
         .get_location(),
-        (0..8).into()
+        SourceRange::new(0..8,None,None,None,None)
     );
     assert_eq!(
         AstStatement::BinaryExpression {
@@ -800,17 +800,17 @@ fn location_implementation_for_all_statements() {
             id: 7
         }
         .get_location(),
-        (0..8).into()
+        SourceRange::new(0..8,None,None,None,None)
     );
     assert_eq!(
         AstStatement::CallStatement {
             operator: Box::new(empty_stmt()),
             parameters: Box::new(None),
             id: 7,
-            location: (1..5).into()
+            location: SourceRange::new(1..5,None,None,None,None)
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::CaseCondition {
@@ -818,26 +818,26 @@ fn location_implementation_for_all_statements() {
             id: 7
         }
         .get_location(),
-        (2..4).into()
+        SourceRange::new(2..4,None,None,None,None)
     );
     assert_eq!(
         AstStatement::CaseStatement {
             selector: Box::new(empty_stmt()),
             case_blocks: vec![],
             else_block: vec![],
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::EmptyStatement {
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::ExpressionList {
@@ -845,7 +845,7 @@ fn location_implementation_for_all_statements() {
             id: 7
         }
         .get_location(),
-        (0..8).into()
+        SourceRange::new(0..8,None,None,None,None)
     );
     assert_eq!(
         AstStatement::ForLoopStatement {
@@ -854,59 +854,59 @@ fn location_implementation_for_all_statements() {
             counter: Box::new(empty_stmt()),
             end: Box::new(empty_stmt()),
             start: Box::new(empty_stmt()),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::IfStatement {
             blocks: vec![],
             else_block: vec![],
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralArray {
             elements: None,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7,
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralBool {
             value: true,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralInteger {
             value: 7,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralDate {
             day: 0,
             month: 0,
             year: 0,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralDateAndTime {
@@ -917,30 +917,30 @@ fn location_implementation_for_all_statements() {
             milli: 0,
             min: 0,
             sec: 0,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralReal {
             value: "2.3".to_string(),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralString {
             is_wide: false,
             value: "2.3".to_string(),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralTime {
@@ -952,11 +952,11 @@ fn location_implementation_for_all_statements() {
             micro: 0.0,
             nano: 0,
             negative: false,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::LiteralTimeOfDay {
@@ -964,21 +964,21 @@ fn location_implementation_for_all_statements() {
             min: 0,
             sec: 0,
             milli: 0,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::MultipliedStatement {
             element: Box::new(empty_stmt()),
             multiplier: 9,
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::OutputAssignment {
@@ -987,7 +987,7 @@ fn location_implementation_for_all_statements() {
             id: 7
         }
         .get_location(),
-        (0..9).into()
+        SourceRange::new(0..9,None,None,None,None)
     );
     assert_eq!(
         AstStatement::QualifiedReference {
@@ -995,7 +995,7 @@ fn location_implementation_for_all_statements() {
             id: 7
         }
         .get_location(),
-        (0..5).into()
+        SourceRange::new(0..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::RangeStatement {
@@ -1004,45 +1004,45 @@ fn location_implementation_for_all_statements() {
             id: 7
         }
         .get_location(),
-        (0..9).into()
+        SourceRange::new(0..9,None,None,None,None)
     );
     assert_eq!(
         AstStatement::Reference {
             name: "ab".to_string(),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::RepeatLoopStatement {
             body: vec![],
             condition: Box::new(empty_stmt()),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::UnaryExpression {
             operator: Operator::Minus,
             value: Box::new(empty_stmt()),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
     assert_eq!(
         AstStatement::WhileLoopStatement {
             body: vec![],
             condition: Box::new(empty_stmt()),
-            location: (1..5).into(),
+            location: SourceRange::new(1..5,None,None,None,None),
             id: 7
         }
         .get_location(),
-        (1..5).into()
+        SourceRange::new(1..5,None,None,None,None)
     );
 }

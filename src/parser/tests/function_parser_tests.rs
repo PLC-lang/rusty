@@ -15,7 +15,7 @@ fn simple_foo_function_can_be_parsed() {
         prg.return_type.as_ref().unwrap(),
         &DataTypeDeclaration::DataTypeReference {
             referenced_type: "INT".to_string(),
-            location: (15..18).into(),
+            location: SourceRange::new(15..18,Some(1),Some(15),Some(1),Some(18)),
         }
     );
 }
@@ -465,7 +465,7 @@ fn function_inline_enum_return_unsupported() {
                         id: 0,
                     }
                 },
-                location: (15..35).into(),
+                location: SourceRange::new(15..35,Some(1),Some(15),Some(1),Some(35)),
                 scope: Some("foo".into()),
             }
         )]
@@ -508,7 +508,7 @@ fn function_inline_struct_return_unsupported() {
                         }
                     ],
                 },
-                location: (15..50).into(),
+                location: SourceRange::new(15..50,Some(1),Some(15),Some(1),Some(50)),
                 scope: Some("foo".into()),
             }
         ))

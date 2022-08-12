@@ -1,4 +1,4 @@
-use crate::{test_utils::tests::parse, Diagnostic};
+use crate::{test_utils::tests::parse, Diagnostic, ast::SourceRange};
 use pretty_assertions::*;
 
 #[test]
@@ -50,7 +50,7 @@ fn actions_with_no_container_have_unknown_container() {
     //Expect a diagnostic
     assert_eq!(
         diagnostic,
-        [Diagnostic::missing_action_container((8..14).into())]
+        [Diagnostic::missing_action_container(SourceRange::new(8..14,Some(1),Some(8),Some(1),Some(14)))]
     );
 }
 
@@ -74,7 +74,7 @@ fn actions_with_no_container_inherits_previous_pou() {
     //Expect a diagnostic
     assert_eq!(
         diagnostic,
-        [Diagnostic::missing_action_container((56..62).into())]
+        [Diagnostic::missing_action_container(SourceRange::new(56..62,Some(1),Some(56),Some(1),Some(62)))]
     );
 }
 
@@ -84,7 +84,7 @@ fn actions_with_invalid_token() {
     let errors = parse(src).1;
     assert_eq!(
         errors.first().unwrap(),
-        &Diagnostic::unexpected_token_found("KeywordAction", "BRAVO", (13..18).into())
+        &Diagnostic::unexpected_token_found("KeywordAction", "BRAVO", SourceRange::new(13..18,Some(1),Some(13),Some(1),Some(18)))
     );
 }
 

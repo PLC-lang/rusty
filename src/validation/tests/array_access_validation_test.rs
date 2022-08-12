@@ -1,3 +1,4 @@
+use crate::ast::SourceRange;
 use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
@@ -47,14 +48,14 @@ fn array_access_validation() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_array_access_range(2..3, (557..558).into()),
-            Diagnostic::incompatible_array_access_range(2..3, (590..591).into()),
-            Diagnostic::incompatible_array_access_range(0..1, (617..618).into()),
-            Diagnostic::incompatible_array_access_range(-2..2, (655..657).into()),
-            Diagnostic::incompatible_array_access_range(-3..-1, (688..690).into()),
-            Diagnostic::incompatible_array_access_range(1..2, (718..719).into()),
-            Diagnostic::incompatible_array_access_type("STRING", (745..755).into()),
-            Diagnostic::incompatible_array_access_variable("INT", (802..803).into()),
+            Diagnostic::incompatible_array_access_range(2..3, SourceRange::new(557..558,Some(28),Some(21),Some(28),Some(24))),
+            Diagnostic::incompatible_array_access_range(2..3, SourceRange::new(590..591,Some(29),Some(23),Some(29),Some(24))),
+            Diagnostic::incompatible_array_access_range(0..1, SourceRange::new(617..618,Some(30),Some(17),Some(30),Some(18))),
+            Diagnostic::incompatible_array_access_range(-2..2, SourceRange::new(655..657,Some(31),Some(28),Some(31),Some(30))),
+            Diagnostic::incompatible_array_access_range(-3..-1, SourceRange::new(688..690,Some(32),Some(22),Some(32),Some(24))),
+            Diagnostic::incompatible_array_access_range(1..2, SourceRange::new(718..719,Some(33),Some(19),Some(33),Some(20))),
+            Diagnostic::incompatible_array_access_type("STRING", SourceRange::new(745..755,Some(34),Some(17),Some(34),Some(27))),
+            Diagnostic::incompatible_array_access_variable("INT", SourceRange::new(802..803,Some(35),Some(21),Some(35),Some(22))),
         ]
     );
 }

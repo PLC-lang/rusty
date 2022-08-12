@@ -1,3 +1,4 @@
+use crate::ast::SourceRange;
 use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
@@ -26,7 +27,7 @@ fn assign_pointer_to_too_small_type_result_in_an_error() {
             "DWORD",
             32,
             "hold a",
-            (204..218).into()
+            SourceRange::new(204..218,Some(8),Some(13),Some(8),Some(27))
         ),]
     );
 }
@@ -56,7 +57,7 @@ fn assign_too_small_type_to_pointer_result_in_an_error() {
             "DWORD",
             32,
             "to be stored in a",
-            (204..218).into()
+            SourceRange::new(204..218,Some(8),Some(13),Some(8),Some(27))
         ),]
     );
 }
@@ -118,8 +119,8 @@ fn assignment_to_constants_result_in_an_error() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::cannot_assign_to_constant("prg.cl", (327..329).into()),
-            Diagnostic::cannot_assign_to_constant("ci", (371..373).into()),
+            Diagnostic::cannot_assign_to_constant("prg.cl", SourceRange::new(327..329,Some(19),Some(13),Some(19),Some(15))),
+            Diagnostic::cannot_assign_to_constant("ci", SourceRange::new(371..373,Some(21),Some(13),Some(21),Some(15))),
         ]
     );
 }
@@ -152,9 +153,9 @@ fn assignment_to_enum_literals_results_in_error() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::cannot_assign_to_constant("__prg_state.OPEN", (230..234).into()),
-            Diagnostic::cannot_assign_to_constant("__global_g_enum.B", (253..254).into()),
-            Diagnostic::cannot_assign_to_constant("Color.red", (273..276).into()),
+            Diagnostic::cannot_assign_to_constant("__prg_state.OPEN", SourceRange::new(230..234,Some(12),Some(13),Some(12),Some(17))),
+            Diagnostic::cannot_assign_to_constant("__global_g_enum.B", SourceRange::new(253..254,Some(13),Some(13),Some(13),Some(14))),
+            Diagnostic::cannot_assign_to_constant("Color.red", SourceRange::new(273..276,Some(14),Some(13),Some(14),Some(16))),
         ]
     );
 }
@@ -207,20 +208,20 @@ fn invalid_char_assignments() {
         vec![
             Diagnostic::syntax_error(
                 "Value: 'AJK%&/231' exceeds length for type: CHAR",
-                (129..140).into()
+                SourceRange::new(129..140, Some(10),Some(18),Some(10),Some(29))
             ),
             Diagnostic::syntax_error(
                 "Value: '898JKAN' exceeds length for type: WCHAR",
-                (162..171).into()
+                SourceRange::new(162..171,Some(10),Some(19),Some(10),Some(28))
             ),
-            Diagnostic::invalid_assignment("WCHAR", "CHAR", (188..195).into()),
-            Diagnostic::invalid_assignment("CHAR", "WCHAR", (211..218).into()),
-            Diagnostic::invalid_assignment("INT", "CHAR", (247..253).into()),
-            Diagnostic::invalid_assignment("DINT", "CHAR", (269..276).into()),
-            Diagnostic::invalid_assignment("STRING", "CHAR", (308..314).into()),
-            Diagnostic::invalid_assignment("STRING", "WCHAR", (330..337).into()),
-            Diagnostic::invalid_assignment("CHAR", "INT", (354..360).into()),
-            Diagnostic::invalid_assignment("CHAR", "STRING", (376..382).into()),
+            Diagnostic::invalid_assignment("WCHAR", "CHAR", SourceRange::new(188..195,Some(13),Some(13),Some(13),Some(20))),
+            Diagnostic::invalid_assignment("CHAR", "WCHAR", SourceRange::new(211..218,Some(14),Some(13),Some(14),Some(20))),
+            Diagnostic::invalid_assignment("INT", "CHAR", SourceRange::new(247..253,Some(17),Some(13),Some(17),Some(20))),
+            Diagnostic::invalid_assignment("DINT", "CHAR", SourceRange::new(269..276,Some(18),Some(13),Some(18),Some(20))),
+            Diagnostic::invalid_assignment("STRING", "CHAR", SourceRange::new(308..314,Some(21),Some(13),Some(21),Some(20))),
+            Diagnostic::invalid_assignment("STRING", "WCHAR", SourceRange::new(330..337,Some(22),Some(13),Some(22),Some(20))),
+            Diagnostic::invalid_assignment("CHAR", "INT", SourceRange::new(354..360,Some(24),Some(13),Some(24),Some(20))),
+            Diagnostic::invalid_assignment("CHAR", "STRING", SourceRange::new(376..382,Some(25),Some(13),Some(25),Some(20))),
         ]
     );
 }
@@ -246,14 +247,14 @@ fn missing_string_compare_function_causes_error() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (33..43).into()),
-            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (89..99).into()),
-            Diagnostic::missing_compare_function("STRING_LESS", "STRING", (145..155).into()),
-            Diagnostic::missing_compare_function("STRING_GREATER", "STRING", (201..211).into()),
-            Diagnostic::missing_compare_function("STRING_LESS", "STRING", (257..267).into()),
-            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (257..267).into()),
-            Diagnostic::missing_compare_function("STRING_GREATER", "STRING", (313..323).into()),
-            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (313..323).into()),
+            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", SourceRange::new(33..43,Some(2),Some(13),Some(2),Some(23))),
+            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", SourceRange::new(89..99,Some(3),Some(13),Some(3),Some(23))),
+            Diagnostic::missing_compare_function("STRING_LESS", "STRING", SourceRange::new(145..155,Some(4),Some(13),Some(4),Some(23))),
+            Diagnostic::missing_compare_function("STRING_GREATER", "STRING", SourceRange::new(201..211,Some(5),Some(13),Some(5),Some(23))),
+            Diagnostic::missing_compare_function("STRING_LESS", "STRING", SourceRange::new(257..267,Some(6),Some(13),Some(6),Some(23))),
+            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", SourceRange::new(257..267,Some(6),Some(13),Some(6),Some(23))),
+            Diagnostic::missing_compare_function("STRING_GREATER", "STRING", SourceRange::new(313..323,Some(7),Some(13),Some(7),Some(23))),
+            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", SourceRange::new(313..323,Some(7),Some(13),Some(7),Some(23))),
         ]
     );
 }
@@ -303,7 +304,7 @@ fn string_compare_function_with_wrong_signature_causes_error() {
         vec![Diagnostic::missing_compare_function(
             "STRING_EQUAL",
             "STRING",
-            (113..123).into()
+            SourceRange::new(113..123,Some(4),Some(13),Some(4),Some(23))
         ),]
     );
 }
@@ -329,14 +330,14 @@ fn missing_wstring_compare_function_causes_error() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (33..43).into()),
-            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (89..99).into()),
-            Diagnostic::missing_compare_function("WSTRING_LESS", "WSTRING", (145..155).into()),
-            Diagnostic::missing_compare_function("WSTRING_GREATER", "WSTRING", (201..211).into()),
-            Diagnostic::missing_compare_function("WSTRING_LESS", "WSTRING", (257..267).into()),
-            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (257..267).into()),
-            Diagnostic::missing_compare_function("WSTRING_GREATER", "WSTRING", (313..323).into()),
-            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (313..323).into()),
+            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", SourceRange::new(33..43,Some(2),Some(13),Some(2),Some(23))),
+            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", SourceRange::new(89..99,Some(3),Some(13),Some(3),Some(23))),
+            Diagnostic::missing_compare_function("WSTRING_LESS", "WSTRING", SourceRange::new(145..155,Some(4),Some(13),Some(4),Some(23))),
+            Diagnostic::missing_compare_function("WSTRING_GREATER", "WSTRING", SourceRange::new(201..211,Some(5),Some(13),Some(5),Some(23))),
+            Diagnostic::missing_compare_function("WSTRING_LESS", "WSTRING", SourceRange::new(257..267,Some(6),Some(13),Some(6),Some(23))),
+            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", SourceRange::new(257..267,Some(7),Some(13),Some(7),Some(23))),
+            Diagnostic::missing_compare_function("WSTRING_GREATER", "WSTRING", SourceRange::new(313..323,Some(8),Some(13),Some(8),Some(23))),
+            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", SourceRange::new(313..323,Some(8),Some(13),Some(8),Some(23))),
         ]
     );
 }

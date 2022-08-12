@@ -1881,7 +1881,7 @@ fn a_program_pou_is_indexed() {
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
                 binding: None,
-                source_location: SourceRange::new(9..46),
+                source_location: SourceRange::new(9..46,Some(2),Some(9),Some(3),Some(20)),
                 varargs: None,
             }
         }),

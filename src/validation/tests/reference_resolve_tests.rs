@@ -1,3 +1,4 @@
+use crate::ast::SourceRange;
 use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
@@ -26,8 +27,8 @@ fn resolve_simple_variable_references() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_reference("b", (168..169).into()),
-            Diagnostic::unresolved_reference("gb", (207..209).into()),
+            Diagnostic::unresolved_reference("b", SourceRange::new(168..169,Some(9),Some(17),Some(9),Some(18))),
+            Diagnostic::unresolved_reference("gb", SourceRange::new(207..209,Some(11),Some(17),Some(11),Some(19))),
         ]
     );
 }
@@ -56,10 +57,10 @@ fn resolve_function_calls_and_parameters() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_reference("boo", (101..104).into()),
-            Diagnostic::unresolved_reference("c", (105..106).into()),
-            Diagnostic::unresolved_reference("c", (163..164).into()),
-            Diagnostic::unresolved_reference("y", (187..188).into()),
+            Diagnostic::unresolved_reference("boo", SourceRange::new(101..104,Some(4),Some(17),Some(4),Some(20))),
+            Diagnostic::unresolved_reference("c", SourceRange::new(105..106,Some(4),Some(21),Some(4),Some(22))),
+            Diagnostic::unresolved_reference("c", SourceRange::new(163..164,Some(6),Some(26),Some(6),Some(27))),
+            Diagnostic::unresolved_reference("y", SourceRange::new(187..188,Some(7),Some(21),Some(7),Some(22))),
         ]
     );
 }
@@ -116,12 +117,12 @@ fn resole_struct_member_access() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_reference("field10", (694..701).into()),
-            Diagnostic::unresolved_reference("field20", (721..728).into()),
-            Diagnostic::unresolved_reference("field30", (748..755).into()),
-            Diagnostic::unresolved_reference("subfield10", (955..965).into()),
-            Diagnostic::unresolved_reference("subfield20", (989..999).into()),
-            Diagnostic::unresolved_reference("subfield30", (1023..1033).into()),
+            Diagnostic::unresolved_reference("field10", SourceRange::new(694..701,Some(27),Some(19),Some(27),Some(24))),
+            Diagnostic::unresolved_reference("field20", SourceRange::new(721..728,Some(28),Some(19),Some(28),Some(24))),
+            Diagnostic::unresolved_reference("field30", SourceRange::new(748..755,Some(29),Some(19),Some(29),Some(24))),
+            Diagnostic::unresolved_reference("subfield10", SourceRange::new(955..965,Some(37),Some(19),Some(37),Some(24))),
+            Diagnostic::unresolved_reference("subfield20", SourceRange::new(989..999,Some(38),Some(19),Some(38),Some(24))),
+            Diagnostic::unresolved_reference("subfield30", SourceRange::new(1023..1033,Some(39),Some(19),Some(39),Some(24))),
         ]
     );
 }
@@ -194,12 +195,12 @@ fn resolve_function_block_calls_in_structs_and_field_access() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_reference("fb3", (650..653).into()),
-            Diagnostic::unresolved_reference("a", (654..655).into()),
-            Diagnostic::unresolved_reference("fb3", (664..667).into()),
-            Diagnostic::unresolved_reference("b", (668..669).into()),
-            Diagnostic::unresolved_reference("fb3", (678..681).into()),
-            Diagnostic::unresolved_reference("c", (682..683).into()),
+            Diagnostic::unresolved_reference("fb3", SourceRange::new(650..653,Some(24),Some(30),Some(24),Some(33))),
+            Diagnostic::unresolved_reference("a", SourceRange::new(654..655,Some(24),Some(34),Some(24),Some(35))),
+            Diagnostic::unresolved_reference("fb3", SourceRange::new(664..667,Some(24),Some(44),Some(24),Some(47))),
+            Diagnostic::unresolved_reference("b", SourceRange::new(668..669,Some(24),Some(48),Some(24),Some(49))),
+            Diagnostic::unresolved_reference("fb3", SourceRange::new(678..681,Some(24),Some(58),Some(24),Some(61))),
+            Diagnostic::unresolved_reference("c", SourceRange::new(682..683,Some(24),Some(62),Some(24),Some(63))),
         ]
     );
 }
@@ -230,9 +231,9 @@ fn resolve_function_members_via_qualifier() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_reference("a", (181..182).into()),
-            Diagnostic::unresolved_reference("b", (217..218).into()),
-            Diagnostic::unresolved_reference("c", (253..254).into()),
+            Diagnostic::unresolved_reference("a", SourceRange::new(181..182,Some(6),Some(21),Some(6),Some(22))),
+            Diagnostic::unresolved_reference("b", SourceRange::new(217..218,Some(7),Some(21),Some(7),Some(22))),
+            Diagnostic::unresolved_reference("c", SourceRange::new(253..254,Some(8),Some(21),Some(8),Some(22))),
         ]
     );
 }
@@ -256,7 +257,7 @@ fn reference_to_private_variable_is_illegal() {
 
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::illegal_access("prg.s", (175..176).into()),]
+        vec![Diagnostic::illegal_access("prg.s", SourceRange::new(175..176,Some(8),Some(21),Some(8),Some(22))),]
     );
 }
 
@@ -295,7 +296,7 @@ fn reference_to_private_variable_in_intermediate_fb() {
     // the access of fb2 which is legit
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::illegal_access("fb1.f", (413..414).into()),]
+        vec![Diagnostic::illegal_access("fb1.f", SourceRange::new(413..414,Some(18),Some(19),Some(18),Some(20))),]
     );
 }
 
