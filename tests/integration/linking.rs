@@ -34,13 +34,13 @@ fn link_as_shared_object() {
         &CompileOptions {
             build_location: None,
             output: out2.clone(),
-            format: Some(FormatOption::Shared),
+            format: FormatOption::Shared,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        None,
+        LinkOptions::default(),
     )
     .unwrap();
 
@@ -52,18 +52,18 @@ fn link_as_shared_object() {
         &CompileOptions {
             build_location: None,
             output: out1.clone(),
-            format: Some(FormatOption::Shared),
+            format: FormatOption::Shared,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        Some(LinkOptions {
+        LinkOptions {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Shared,
             linker: None,
-        }),
+        },
     )
     .unwrap();
 
@@ -96,13 +96,13 @@ fn link_as_pic_object() {
         &CompileOptions {
             build_location: None,
             output: out2.clone(),
-            format: Some(FormatOption::PIC),
+            format: FormatOption::PIC,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        None,
+        LinkOptions::default(),
     )
     .unwrap();
 
@@ -114,18 +114,18 @@ fn link_as_pic_object() {
         &CompileOptions {
             build_location: None,
             output: out1.clone(),
-            format: Some(FormatOption::PIC),
+            format: FormatOption::PIC,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        Some(LinkOptions {
+        LinkOptions {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::PIC,
             linker: None,
-        }),
+        },
     )
     .unwrap();
     //Delete it
@@ -157,13 +157,13 @@ fn link_as_static_object() {
         &CompileOptions {
             build_location: None,
             output: out2.clone(),
-            format: Some(FormatOption::Static),
+            format: FormatOption::Object,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        None,
+        LinkOptions::default(),
     )
     .unwrap();
 
@@ -175,18 +175,18 @@ fn link_as_static_object() {
         &CompileOptions {
             build_location: None,
             output: out1.clone(),
-            format: Some(FormatOption::Static),
+            format: FormatOption::Static,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        Some(LinkOptions {
+        LinkOptions {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Static,
             linker: None,
-        }),
+        },
     )
     .unwrap();
 
@@ -219,13 +219,13 @@ fn link_as_relocatable_object() {
         &CompileOptions {
             build_location: None,
             output: out2.clone(),
-            format: Some(FormatOption::Static),
+            format: FormatOption::Object,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        None,
+        LinkOptions::default(),
     )
     .unwrap();
 
@@ -237,18 +237,18 @@ fn link_as_relocatable_object() {
         &CompileOptions {
             build_location: None,
             output: out1.clone(),
-            format: Some(FormatOption::Relocatable),
+            format: FormatOption::Relocatable,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        Some(LinkOptions {
+        LinkOptions {
             libraries: vec![],
             library_pathes: vec![],
             format: FormatOption::Relocatable,
             linker: None,
-        }),
+        },
     )
     .unwrap();
 

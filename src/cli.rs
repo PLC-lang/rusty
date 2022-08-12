@@ -180,11 +180,10 @@ pub enum SubCommands {
     /// build
     ///
     /// Options:
-    /// --sysroot <sysroot> --target <target-triple>
+    /// --build-location <path> --lib-location <path>
     ///
     /// Supported format: json
     ///
-    /// build <plc.json> --sysroot <sysroot> --target <target-triple> --build-location <path>
     Build {
         #[clap(
             parse(try_from_str = validate_config)
@@ -224,7 +223,7 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
 }
 
 impl CompileParameters {
-    pub fn parse(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
+    pub fn parse<T: AsRef<OsStr>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
         CompileParameters::try_parse_from(args).and_then(|result| {
             if result.sysroot.len() > result.target.len() {
                 let mut cmd = CompileParameters::command();
@@ -249,7 +248,11 @@ impl CompileParameters {
         } else if self.output_shared_obj {
             Some(FormatOption::Shared)
         } else if self.output_obj_code {
-            Some(FormatOption::Static)
+            if self.skip_linking {
+                Some(FormatOption::Object)
+            } else {
+                Some(FormatOption::Static)
+            }
         } else if self.output_reloc_code {
             Some(FormatOption::Relocatable)
         } else {
@@ -276,7 +279,6 @@ impl CompileParameters {
         crate::get_output_name(
             self.output.as_deref(),
             self.output_format_or_default(),
-            self.skip_linking,
             input,
         )
     }
@@ -292,6 +294,8 @@ mod cli_tests {
     use crate::{ConfigFormat, ErrorFormat, FormatOption, OptimizationLevel};
     use clap::{CommandFactory, ErrorKind};
     use pretty_assertions::assert_eq;
+    use std::ffi::OsStr;
+    use std::fmt::Debug;
 
     #[test]
     fn verify_cli() {
@@ -299,8 +303,11 @@ mod cli_tests {
         CompileParameters::command().debug_assert()
     }
 
-    fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
-        let params = CompileParameters::parse(args.clone());
+    fn expect_argument_error<T>(args: &[T], expected_error_kind: ErrorKind)
+    where
+        T: Debug + AsRef<OsStr>,
+    {
+        let params = CompileParameters::parse(&args);
         match params {
             Err(e) => {
                 assert_eq!(e.kind(), expected_error_kind);
@@ -312,13 +319,13 @@ mod cli_tests {
         }
     }
     macro_rules! vec_of_strings {
-        ($($x:expr),*) => (vec!["rustyc".to_string(), $($x.to_string()),*]);
+        ($($x:expr),*) => (&["rustyc", $($x),*]);
     }
 
     #[test]
     fn missing_parameters_results_in_error() {
         // no arguments
-        expect_argument_error(vec![], ErrorKind::MissingRequiredArgument);
+        expect_argument_error(vec_of_strings![], ErrorKind::MissingRequiredArgument);
         // no input file
         expect_argument_error(vec_of_strings!["--ir"], ErrorKind::MissingRequiredArgument);
     }
@@ -458,7 +465,7 @@ mod cli_tests {
     #[test]
     fn test_default_format() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--check")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
+        assert_eq!(parameters.output_format_or_default(), FormatOption::None);
 
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::IR);

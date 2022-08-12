@@ -17,12 +17,12 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use std::env;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
 use std::process::Command;
 use std::str::FromStr;
-use std::{env, fs};
 
 use build::{get_project_from_file, Libraries, PackageFormat};
 use clap::ArgEnum;
@@ -124,17 +124,27 @@ where
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
+    /// Indicates that the result will be an object file (e.g. No Linking)
+    Object,
+    /// Indicates that the output format will be linked statically (i.e. Executable)
     Static,
+    /// Indicates that the linked object will be Position Independant
     PIC,
+    /// Indicates that the linked object will be shared
     Shared,
+    /// Indicates that the compiled object will be relocatable (e.g. Combinable into multiple objects)
     Relocatable,
+    /// Indicates that the compile result will be LLVM Bitcode
     Bitcode,
+    /// Indicates that the compile result will be LLVM IR
     IR,
+    /// Indicates that no output will be generated (Check only)
+    None,
 }
 
 impl Default for FormatOption {
     fn default() -> Self {
-        FormatOption::Static
+        FormatOption::None
     }
 }
 
@@ -158,14 +168,14 @@ impl FromStr for ConfigFormat {
 
 #[derive(Serialize, Deserialize)]
 pub struct CompileOptions {
-    pub format: Option<FormatOption>,
+    pub format: FormatOption,
     pub build_location: Option<PathBuf>,
     pub output: String,
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
@@ -484,8 +494,9 @@ pub fn persist_to_bitcode(codegen: &CodeGen, output: &str) -> Result<(), Diagnos
 /// * `codegen` - The generated LLVM module to be persisted
 /// * `output`  - The location to save the generated ir file
 pub fn persist_to_ir(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
-    let ir = codegen.module.print_to_string().to_string();
-    fs::write(output, ir)
+    codegen
+        .module
+        .print_to_file(output)
         .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
 }
 
@@ -731,12 +742,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
 
         let compile_options = CompileOptions {
             build_location: Some(build_location.to_owned()),
-            output: get_output_name(
-                project.output.as_deref(),
-                project.compile_type.unwrap_or_default(),
-                parameters.skip_linking,
-                input,
-            ),
+            output: get_output_name(project.output.as_deref(), project.compile_type, input),
             format: project.compile_type,
             optimization: parameters.optimization,
             error_format: parameters.error_format,
@@ -760,24 +766,20 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 .map(|it| it.to_string())
                 .collect::<Vec<_>>(),
         )?;
-        let link_options = if let Some(format) = project.compile_type {
-            Some(LinkOptions {
-                libraries: project
-                    .libraries
-                    .iter()
-                    .map(|it| it.name.clone())
-                    .collect::<Vec<_>>(),
-                library_pathes: project
-                    .libraries
-                    .iter()
-                    .map(|it| it.path.to_string_lossy())
-                    .map(|it| it.to_string())
-                    .collect(),
-                format,
-                linker: parameters.linker,
-            })
-        } else {
-            None
+        let link_options = LinkOptions {
+            libraries: project
+                .libraries
+                .iter()
+                .map(|it| it.name.clone())
+                .collect::<Vec<_>>(),
+            library_pathes: project
+                .libraries
+                .iter()
+                .map(|it| it.path.to_string_lossy())
+                .map(|it| it.to_string())
+                .collect(),
+            format: project.compile_type,
+            linker: parameters.linker,
         };
 
         copy_libs_to_build(&project.libraries, lib_location)?;
@@ -870,7 +872,7 @@ fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<()
 }
 
 fn link_and_create(
-    link_options: Option<&LinkOptions>,
+    link_options: &LinkOptions,
     index: &Index,
     to_link: &[FilePath],
     output: &str,
@@ -884,19 +886,22 @@ fn link_and_create(
         std::fs::create_dir_all(parent)?;
     }
 
-    if let Some(link_options) = link_options {
-        link(
-            output,
-            link_options.format,
-            to_link,
-            &link_options.library_pathes,
-            &link_options.libraries,
-            target,
-            link_options.linker.as_deref(),
-        )?;
-    } else {
-        // If not linking, copy the generated file to the correct location
-        std::fs::copy(compile_result.get_location(), output)?;
+    match link_options.format {
+        FormatOption::None | FormatOption::Bitcode | FormatOption::IR | FormatOption::Object => {
+            // If not linking, copy the generated file to the correct location
+            std::fs::copy(compile_result.get_location(), output)?;
+        }
+        _ => {
+            link(
+                output,
+                link_options.format,
+                to_link,
+                &link_options.library_pathes,
+                &link_options.libraries,
+                target,
+                link_options.linker.as_deref(),
+            )?;
+        }
     }
 
     if let Some(config) = config_options {
@@ -921,18 +926,6 @@ fn link_and_create(
 /// Links any provided libraries
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    let includes = if parameters.includes.is_empty() {
-        vec![]
-    } else {
-        create_file_paths(
-            &parameters
-                .includes
-                .iter()
-                .map(|it| it.as_str())
-                .collect::<Vec<_>>(),
-        )?
-    };
-
     let out_format = parameters.output_format_or_default();
     let output = parameters.output_name();
 
@@ -950,9 +943,9 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         build_location: None,
         output,
         format: if parameters.check_only {
-            None
+            FormatOption::None
         } else {
-            Some(out_format)
+            out_format
         },
         optimization: parameters.optimization,
         error_format: parameters.error_format,
@@ -960,21 +953,25 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
 
     let files = create_file_paths(
         &parameters
+            .input
+            .iter()
+            .map(|it| it.as_str())
+            .collect::<Vec<_>>(),
+    )?;
+
+    let includes = create_file_paths(
+        &parameters
             .includes
             .iter()
             .map(|it| it.as_str())
             .collect::<Vec<_>>(),
     )?;
 
-    let link_options = if !parameters.skip_linking && !parameters.check_only {
-        Some(LinkOptions {
-            libraries: parameters.libraries,
-            library_pathes: parameters.library_paths,
-            format: out_format,
-            linker: parameters.linker,
-        })
-    } else {
-        None
+    let link_options = LinkOptions {
+        libraries: parameters.libraries,
+        library_pathes: parameters.library_paths,
+        format: out_format,
+        linker: parameters.linker,
     };
 
     let targets = parameters
@@ -1009,7 +1006,7 @@ pub fn build_and_link(
     compile_options: &CompileOptions,
     targets: Vec<Target>,
     config_options: Option<ConfigurationOptions>,
-    link_options: Option<LinkOptions>,
+    link_options: LinkOptions,
 ) -> Result<(), Diagnostic> {
     //Split files in objects and sources
     let mut objects = vec![];
@@ -1029,13 +1026,12 @@ pub fn build_and_link(
     };
     let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
 
-    let targets = if targets.is_empty() {
-        vec![Target::System]
-    } else {
-        targets
-    };
-
-    if let Some(out_format) = compile_options.format {
+    if compile_options.format != FormatOption::None {
+        let targets = if targets.is_empty() {
+            vec![Target::System]
+        } else {
+            targets
+        };
         for target in targets {
             let triple = target.get_target_triple();
             let output = if let Some(target_name) = target.try_get_name() {
@@ -1062,13 +1058,13 @@ pub fn build_and_link(
             objects.push(persist(
                 &codegen,
                 &compile_result.to_string_lossy(),
-                out_format,
+                compile_options.format,
                 &triple,
                 compile_options.optimization,
             )?);
 
             link_and_create(
-                link_options.as_ref(),
+                &link_options,
                 &index,
                 &objects,
                 output_name,
@@ -1090,13 +1086,14 @@ pub fn persist(
     optimization: OptimizationLevel,
 ) -> Result<FilePath, Diagnostic> {
     match out_format {
-        FormatOption::Static | FormatOption::Relocatable => {
+        FormatOption::Object | FormatOption::Static | FormatOption::Relocatable => {
             persist_as_static_obj(input, output, target, optimization)
         }
         FormatOption::Shared => persist_to_shared_object(input, output, target, optimization),
         FormatOption::PIC => persist_to_shared_pic_object(input, output, target, optimization),
         FormatOption::Bitcode => persist_to_bitcode(input, output),
         FormatOption::IR => persist_to_ir(input, output),
+        FormatOption::None => Ok(()),
     }?;
 
     Ok(output.into())
@@ -1155,37 +1152,19 @@ pub fn link(
 
 /// Returns an output name with the correct extension
 /// If an output name is already given, this method returns it, otherwise it builds the name from the input and format
-pub fn get_output_name(
-    output_name: Option<&str>,
-    out_format: FormatOption,
-    skip_linking: bool,
-    input: &str,
-) -> String {
+pub fn get_output_name(output_name: Option<&str>, out_format: FormatOption, input: &str) -> String {
     match output_name {
         Some(n) => n.to_string(),
-        // format!(
-        //     "{}{}{}",
-        //     target.unwrap_or(""),
-        //     if target.is_some() { "_" } else { "" },
-        //     n),
         None => {
             let ending = match out_format {
                 FormatOption::Bitcode => ".bc",
                 FormatOption::Relocatable => ".o",
-                FormatOption::Static if skip_linking => ".o",
-                FormatOption::Static => "",
+                FormatOption::Object => ".o",
                 FormatOption::Shared | FormatOption::PIC => ".so",
                 FormatOption::IR => ".ir",
+                FormatOption::Static | FormatOption::None => "",
             };
             format!("{input}{ending}")
-
-            // format!(
-            //     "{}{}{}{}",
-            //     output_name.unwrap_or(input),
-            //     if target.is_some() { "_" } else { "" },
-            //     target.unwrap_or(""),
-            //     ending
-            // )
         }
     }
 }
