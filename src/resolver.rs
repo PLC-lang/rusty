@@ -10,7 +10,7 @@ use std::collections::{HashMap, HashSet};
 use indexmap::IndexMap;
 
 pub mod const_evaluator;
-mod generics;
+pub mod generics;
 
 use crate::{
     ast::{
@@ -142,8 +142,12 @@ pub enum StatementAnnotation {
     },
     /// a reference to a function
     Function {
+        /// The defined return type of the function
         return_type: String,
+        /// The defined qualified name of the function
         qualified_name: String,
+        /// The call name of the function iff it defers from the qualified name (generics)
+        call_name: Option<String>,
     },
     /// a reference to a type (e.g. `INT`)
     Type { type_name: String },
@@ -180,6 +184,7 @@ impl From<&PouIndexEntry> for StatementAnnotation {
             } => StatementAnnotation::Function {
                 return_type: return_type.to_string(),
                 qualified_name: name.to_string(),
+                call_name: None,
             },
             PouIndexEntry::Class { name, .. } => StatementAnnotation::Program {
                 qualified_name: name.to_string(),
@@ -189,6 +194,7 @@ impl From<&PouIndexEntry> for StatementAnnotation {
             } => StatementAnnotation::Function {
                 return_type: return_type.to_string(),
                 qualified_name: name.to_string(),
+                call_name: None,
             },
             PouIndexEntry::Action { name, .. } => StatementAnnotation::Program {
                 qualified_name: name.to_string(),
@@ -256,9 +262,14 @@ pub trait AnnotationMap {
     /// or none if this thing may not be callable
     fn get_call_name(&self, s: &AstStatement) -> Option<&str> {
         match self.get(s) {
-            Some(StatementAnnotation::Function { qualified_name, .. }) => {
-                Some(qualified_name.as_str())
-            }
+            Some(StatementAnnotation::Function {
+                qualified_name,
+                call_name,
+                ..
+            }) => call_name
+                .as_ref()
+                .map(String::as_str)
+                .or(Some(qualified_name.as_str())),
             Some(StatementAnnotation::Program { qualified_name }) => Some(qualified_name.as_str()),
             Some(StatementAnnotation::Variable { resulting_type, .. }) => {
                 Some(resulting_type.as_str())
@@ -266,6 +277,15 @@ pub trait AnnotationMap {
             // this is used for call statements on array access
             Some(StatementAnnotation::Value { resulting_type }) => Some(resulting_type.as_str()),
             _ => None,
+        }
+    }
+
+    fn get_qualified_name(&self, s: &AstStatement) -> Option<&str> {
+        match self.get(s) {
+            Some(StatementAnnotation::Function { qualified_name, .. }) => {
+                Some(qualified_name.as_str())
+            }
+            _ => self.get_call_name(s),
         }
     }
 }
@@ -1215,7 +1235,7 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(anntation) =
             builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
-            anntation(self, operator, &parameters).unwrap();
+            anntation(self, operator, parameters_stmt, ctx).unwrap();
         } else {
             //If builtin, skip this
             let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
@@ -1300,9 +1320,14 @@ impl<'i> TypeAnnotator<'i> {
             .annotation_map
             .get(operator)
             .and_then(|it| match it {
-                StatementAnnotation::Function { qualified_name, .. } => {
-                    Some(qualified_name.clone())
-                }
+                StatementAnnotation::Function {
+                    qualified_name,
+                    call_name,
+                    ..
+                } => call_name
+                    .as_ref()
+                    .cloned()
+                    .or_else(|| Some(qualified_name.clone())),
                 StatementAnnotation::Program { qualified_name } => Some(qualified_name.clone()),
                 StatementAnnotation::Variable { resulting_type, .. } => {
                     //lets see if this is a FB

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     ast::{self, AstStatement, GenericBinding, LinkageType, TypeNature},
+    builtins,
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::AnnotationMap,
     typesystem::{self, DataTypeInformation},
@@ -52,7 +53,7 @@ impl<'i> TypeAnnotator<'i> {
     /// It collects all candidates for a generic function
     /// Then chooses the best fitting function signature
     /// And reannotates the function with the found information
-    pub(super) fn update_generic_call_statement(
+    pub(crate) fn update_generic_call_statement(
         &mut self,
         generics_candidates: HashMap<String, Vec<String>>,
         implementation_name: &str,
@@ -60,9 +61,8 @@ impl<'i> TypeAnnotator<'i> {
         parameters: Option<&AstStatement>,
         ctx: VisitorContext,
     ) {
-        if let Some(PouIndexEntry::Function {
-            generics, linkage, ..
-        }) = self.index.find_pou(implementation_name)
+        if let Some(PouIndexEntry::Function { generics, .. }) =
+            self.index.find_pou(implementation_name)
         {
             if !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
@@ -70,16 +70,22 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(StatementAnnotation::Function {
                     qualified_name,
                     return_type,
+                    ..
                 }) = self.annotation_map.get(operator)
                 {
                     let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
-                                                                  //Figure out the new name for the call
+
+                    //Find the generic resolver
+                    let generic_name_resolver = builtins::get_builtin(qualified_name)
+                        .map(|it| it.get_generic_name_resolver())
+                        .unwrap_or_else(|| generic_name_resolver);
+                    //Figure out the new name for the call
                     let (new_name, annotation) = self.get_generic_function_annotation(
-                        *linkage,
                         generics,
                         qualified_name,
                         return_type,
                         generic_map,
+                        generic_name_resolver,
                     );
 
                     //Create a new pou and implementation for the function
@@ -286,27 +292,13 @@ impl<'i> TypeAnnotator<'i> {
     }
     pub fn get_generic_function_annotation(
         &self,
-        linkage: LinkageType,
         generics: &[GenericBinding],
         qualified_name: &str,
         return_type: &str,
         generic_map: &HashMap<String, String>,
+        generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
-        let generic_name = generics
-            .iter()
-            .map(|it| {
-                generic_map
-                    .get(&it.name)
-                    .map(String::as_str)
-                    .unwrap_or_else(|| it.name.as_str())
-            })
-            .collect::<Vec<&str>>()
-            .join("__");
-        let function_name = if linkage == LinkageType::BuiltIn {
-            qualified_name.to_string()
-        } else {
-            format!("{}__{}", qualified_name, generic_name)
-        };
+        let call_name = generic_name_resolver(qualified_name, generics, generic_map);
         let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
             self.index.get_type_information_or_void(return_type)
         {
@@ -319,10 +311,11 @@ impl<'i> TypeAnnotator<'i> {
         }
         .to_string();
         (
-            function_name.clone(),
+            call_name.clone(),
             StatementAnnotation::Function {
-                qualified_name: function_name,
+                qualified_name: qualified_name.to_string(),
                 return_type,
+                call_name: Some(call_name),
             },
         )
     }
@@ -363,4 +356,34 @@ impl<'i> TypeAnnotator<'i> {
         }
         generic_map
     }
+}
+
+type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, String>) -> String;
+
+/// Builds the correct generic name from the given information
+pub fn generic_name_resolver(
+    qualified_name: &str,
+    generics: &[GenericBinding],
+    generic_map: &HashMap<String, String>,
+) -> String {
+    generics
+        .iter()
+        .map(|it| {
+            generic_map
+                .get(&it.name)
+                .map(String::as_str)
+                .unwrap_or_else(|| it.name.as_str())
+        })
+        .fold(qualified_name.to_string(), |accum, s| {
+            format!("{accum}__{s}")
+        })
+}
+
+/// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins
+pub fn no_generic_name_resolver(
+    qualified_name: &str,
+    _: &[GenericBinding],
+    _: &HashMap<String, String>,
+) -> String {
+    generic_name_resolver(qualified_name, &[], &HashMap::new())
 }

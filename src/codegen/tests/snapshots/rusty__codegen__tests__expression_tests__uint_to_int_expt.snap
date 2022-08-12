@@ -1,0 +1,19 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i32 @main() {
+entry:
+  %main = alloca i32, align 4
+  store i32 0, i32* %main, align 4
+  %call = call i32 @EXPT__DINT__UDINT(i32 2, i32 3)
+  store i32 %call, i32* %main, align 4
+  %main_ret = load i32, i32* %main, align 4
+  ret i32 %main_ret
+}
+
+declare i32 @EXPT__DINT__UDINT(i32, i32)
+

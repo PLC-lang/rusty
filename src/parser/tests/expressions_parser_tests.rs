@@ -396,6 +396,16 @@ fn multiplication_expressions_parse() {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
+#[test]
+fn exponent_expressions_parse() {
+    let src = "PROGRAM exp 1**2; END_PROGRAM";
+    let result = parse(src).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    insta::assert_debug_snapshot!(statement);
+}
 
 #[test]
 fn addition_ast_test() {
@@ -2832,6 +2842,21 @@ fn array_type_as_function_return() {
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(diagnostics.is_empty(), true);
+}
+
+#[test]
+fn exp_mul_priority_test() {
+    let (ast, diagnostics) = parse(
+        r"
+    FUNCTION foo : INT
+        a * b ** c;
+    END_FUNCTION
+    ",
+    );
+
+    insta::assert_debug_snapshot!(ast);
+
     assert_eq!(diagnostics.is_empty(), true);
 }
 

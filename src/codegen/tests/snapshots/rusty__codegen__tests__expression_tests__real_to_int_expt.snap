@@ -1,0 +1,19 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define float @main() {
+entry:
+  %main = alloca float, align 4
+  store float 0.000000e+00, float* %main, align 4
+  %call = call float @EXPT__REAL__DINT(float 3.000000e+00, i32 2)
+  store float %call, float* %main, align 4
+  %main_ret = load float, float* %main, align 4
+  ret float %main_ret
+}
+
+declare float @EXPT__REAL__DINT(float, i32)
+
