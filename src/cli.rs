@@ -247,12 +247,10 @@ impl CompileParameters {
             Some(FormatOption::PIC)
         } else if self.output_shared_obj {
             Some(FormatOption::Shared)
+        } else if self.compile_only {
+            Some(FormatOption::Object)
         } else if self.output_obj_code {
-            if self.compile_only {
-                Some(FormatOption::Object)
-            } else {
-                Some(FormatOption::Static)
-            }
+            Some(FormatOption::Static)
         } else if self.output_reloc_code {
             Some(FormatOption::Relocatable)
         } else {
