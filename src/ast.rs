@@ -1176,11 +1176,12 @@ impl AstStatement {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Operator {
     Plus,
     Minus,
     Multiplication,
+    Exponentiation,
     Division,
     Equal,
     NotEqual,
@@ -1205,6 +1206,7 @@ impl Display for Operator {
             Operator::Division => "/",
             Operator::Equal => "=",
             Operator::Modulo => "MOD",
+            Operator::Exponentiation => "**",
             _ => unimplemented!(),
         };
         f.write_str(symbol)

@@ -25,25 +25,6 @@ The key `files` is the equivalent to the `input` parameter, which adds all the `
 ```
 
 
-## optimization
-
-`rustyc` offers 4 levels of optimization which correspond to the levels established by llvm respectively [clang](https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options) (`none` to `agressive`).
-To use an optimization, the key `optimization` is required:
-- `"optimization" : "none"`
-- `"optimization" : "less"`
-- `"optimization" : "default"`
-- `"optimization" : "aggressive"`
-
-By default `rustyc` will use `default` which corresponds to clang's `-o2`.
-
-
-## error_format
-
-`rustyc` offers 2 levels of formatting errors. To specify which error format is wanted, the key `error_format` is required:
-- `"error_format" : "Clang"`   This is used to get fewer error messaged
-- `"error_format" : "Rich"`    This is used to get a verbose error description. 
-
-
 ## libraries
 
 To link several executables `rustyc` has the option to add libraries and automatically build and like them together. if no compile type has been selected `rustyc` will link the files on default.
@@ -75,7 +56,7 @@ Similarly to specifying an output file via the `-o` or `--output` option, in the
 
 ### target
 
-To build and compile [structured text](https://en.wikipedia.org/wiki/Structured_text) for the rigth platform we need to specify the `target`. As `rustyc` is using [LLVM](https://en.wikipedia.org/wiki/LLVM) a target-tripple supported by LLVM needs to be selected. The default `target` is `x86_64-linux-gnu`.
+To build and compile [structured text](https://en.wikipedia.org/wiki/Structured_text) for the rigth platform we need to specify the `target`. As `rustyc` is using [LLVM](https://en.wikipedia.org/wiki/LLVM) a target-tripple supported by LLVM needs to be selected. The default `target` is the host machine's target. So if a dev container on an `x86_64-docker` is used the target is `x86_64-linux-gnu`.
 
 
 ### compile_type
@@ -99,9 +80,7 @@ To specify which of the above mentioned compile formats is wanted, it needs to b
         "examples/ExternalFunctions.st"
     ],
     "compile_type" : "Shared",
-    "optimization" : "Default",
     "output" : "proj.so",
-    "error_format": "Rich",
     "libraries" : [
         {
             "name" : "iec61131std",

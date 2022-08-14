@@ -39,7 +39,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["--ir", "/home/ghaith/git/oscat/oscat_single_file.st","/home/ghaith/git/oscat/std_stubs.st", "-o", "/tmp/comp.ll"],
+            "args": ["build", "..\\..\\build_commands_tests\\test_proj\\plc.json"],
             "cwd": "${workspaceFolder}"
         },
         {

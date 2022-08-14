@@ -17,18 +17,21 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use std::ffi::OsStr;
+use std::fmt::Display;
 use std::io::{self, Write};
 use std::process::Command;
 use std::str::FromStr;
 use std::{env, fs};
 
-use build::{get_project_from_file, string_to_filepath};
+use build::{get_project_from_file, Libraries, PackageFormat};
 use clap::ArgEnum;
 use codegen::CodeGen;
 use glob::glob;
 use inkwell::passes::PassBuilderOptions;
+use regex::{Captures, Regex};
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use ast::{LinkageType, PouType, SourceRange};
 use cli::{CompileParameters, SubCommands};
@@ -38,7 +41,7 @@ use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
 use inkwell::context::Context;
 use inkwell::targets::{
-    CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
+    self, CodeModel, FileType, InitializationConfig, RelocMode, TargetMachine, TargetTriple,
 };
 use lexer::IdProvider;
 use resolver::{AstAnnotations, StringLiterals};
@@ -73,6 +76,52 @@ extern crate pretty_assertions;
 
 extern crate shell_words;
 
+pub(crate) const DEFAULT_OUTPUT_NAME: &str = "out";
+pub enum Target {
+    System,
+    Param {
+        triple: String,
+        sysroot: Option<String>,
+    },
+}
+
+impl Target {
+    pub fn new(triple: String, sysroot: Option<String>) -> Target {
+        Target::Param { triple, sysroot }
+    }
+
+    pub fn get_target_triple(&self) -> TargetTriple {
+        let res = match self {
+            Target::System => TargetMachine::get_default_triple(),
+            Target::Param { triple, .. } => TargetTriple::create(triple),
+        };
+        targets::TargetMachine::normalize_triple(&res)
+    }
+
+    pub fn try_get_name(&self) -> Option<&str> {
+        match self {
+            Target::System => None,
+            Target::Param { triple, .. } => Some(triple.as_str()),
+        }
+    }
+
+    pub fn get_sysroot(&self) -> Option<&str> {
+        match self {
+            Target::Param { sysroot, .. } => sysroot.as_deref(),
+            _ => None,
+        }
+    }
+}
+
+impl<T> From<T> for Target
+where
+    T: core::ops::Deref<Target = str>,
+{
+    fn from(it: T) -> Self {
+        Target::new(it.to_string(), None)
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
     Static,
@@ -81,6 +130,12 @@ pub enum FormatOption {
     Relocatable,
     Bitcode,
     IR,
+}
+
+impl Default for FormatOption {
+    fn default() -> Self {
+        FormatOption::Static
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
@@ -104,19 +159,22 @@ impl FromStr for ConfigFormat {
 #[derive(Serialize, Deserialize)]
 pub struct CompileOptions {
     pub format: Option<FormatOption>,
+    pub build_location: Option<PathBuf>,
     pub output: String,
-    pub target: Option<String>,
     pub optimization: OptimizationLevel,
+    pub error_format: ErrorFormat,
 }
 
+#[derive(Clone)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
-    pub sysroot: Option<String>,
     pub format: FormatOption,
+    pub linker: Option<String>,
 }
 
-struct ConfigurationOptions {
+#[derive(Clone)]
+pub struct ConfigurationOptions {
     format: ConfigFormat,
     output: String,
 }
@@ -125,6 +183,12 @@ struct ConfigurationOptions {
 pub enum ErrorFormat {
     Rich,
     Clang,
+}
+
+impl Default for ErrorFormat {
+    fn default() -> Self {
+        ErrorFormat::Rich
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize)]
@@ -157,6 +221,12 @@ impl OptimizationLevel {
     }
 }
 
+impl Default for OptimizationLevel {
+    fn default() -> Self {
+        OptimizationLevel::Default
+    }
+}
+
 /// A struct representing the result of a compilation
 #[derive(Default)]
 pub struct CompileResult {
@@ -173,7 +243,7 @@ pub trait SourceContainer {
     fn get_location(&self) -> &str;
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct FilePath {
     pub path: String,
 }
@@ -181,6 +251,14 @@ pub struct FilePath {
 impl From<String> for FilePath {
     fn from(it: String) -> Self {
         FilePath { path: it }
+    }
+}
+
+impl From<&Path> for FilePath {
+    fn from(it: &Path) -> Self {
+        FilePath {
+            path: it.to_string_lossy().to_string(),
+        }
     }
 }
 
@@ -272,26 +350,20 @@ fn create_source_code<T: Read>(
     Ok(buffer)
 }
 
-pub fn get_target_triple(triple: Option<&str>) -> TargetTriple {
-    triple
-        .map(TargetTriple::create)
-        .unwrap_or_else(TargetMachine::get_default_triple)
-}
-
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
 fn persist_to_obj(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     reloc: RelocMode,
     triple: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
-    Target::initialize_all(initialization_config);
+    inkwell::targets::Target::initialize_all(initialization_config);
 
-    let target = Target::from_triple(triple).map_err(|it| {
+    let target = inkwell::targets::Target::from_triple(triple).map_err(|it| {
         Diagnostic::codegen_error(
             &format!("Invalid target-tripple '{:}' - {:?}", triple, it),
             SourceRange::undefined(),
@@ -311,6 +383,11 @@ fn persist_to_obj(
             Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
         });
 
+    //Make sure all parents exist
+    let output_path = Path::new(output);
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
     ////Run the passes
     machine.and_then(|it| {
         codegen
@@ -318,7 +395,7 @@ fn persist_to_obj(
             .run_passes(optimization.opt_params(), &it, PassBuilderOptions::create())
             .map_err(|it| Diagnostic::llvm_error(output, &it))
             .and_then(|_| {
-                it.write_to_file(&codegen.module, FileType::Object, Path::new(output))
+                it.write_to_file(&codegen.module, FileType::Object, output_path)
                     .map_err(|it| Diagnostic::llvm_error(output, &it))
             })
     })
@@ -333,7 +410,7 @@ fn persist_to_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn persist_as_static_obj(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -350,7 +427,7 @@ pub fn persist_as_static_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn persist_to_shared_pic_object(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -366,7 +443,7 @@ pub fn persist_to_shared_pic_object(
 /// * `output` - the location on disk to save the output
 /// * `target` - llvm target triple
 pub fn persist_to_shared_object(
-    codegen: CodeGen,
+    codegen: &CodeGen,
     output: &str,
     target: &TargetTriple,
     optimization: OptimizationLevel,
@@ -387,7 +464,7 @@ pub fn persist_to_shared_object(
 ///
 /// * `codegen` - the genated LLVM module to persist
 /// * `output` - the location on disk to save the output
-pub fn persist_to_bitcode(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
+pub fn persist_to_bitcode(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
     let path = Path::new(output);
     if codegen.module.write_bitcode_to_path(path) {
         Ok(())
@@ -406,7 +483,7 @@ pub fn persist_to_bitcode(codegen: CodeGen, output: &str) -> Result<(), Diagnost
 ///
 /// * `codegen` - The generated LLVM module to be persisted
 /// * `output`  - The location to save the generated ir file
-pub fn persist_to_ir(codegen: CodeGen, output: &str) -> Result<(), Diagnostic> {
+pub fn persist_to_ir(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
     let ir = codegen.module.print_to_string().to_string();
     fs::write(output, ir)
         .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
@@ -560,7 +637,9 @@ fn parse_and_index<T: SourceContainer>(
     Ok((index, units))
 }
 
-fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
+fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
+    inputs: &[T],
+) -> Result<Vec<FilePath>, Diagnostic> {
     let mut sources = Vec::new();
     for input in inputs {
         let paths = glob(input).map_err(|e| {
@@ -575,15 +654,18 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
             });
         }
     }
-    if sources.is_empty() {
+    if !inputs.is_empty() && sources.is_empty() {
         return Err(Diagnostic::param_error(&format!(
             "No such file(s): {}",
-            inputs.join(",")
+            inputs
+                .iter()
+                .map(|it| it.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
         )));
     }
     Ok(sources)
 }
-
 pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagnostic> {
     let config_options = parameters
         .hardware_config
@@ -595,103 +677,153 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             output: config.to_owned(),
         });
 
-    match parameters.commands.unwrap() {
-        SubCommands::Build {
-            build_config,
-            sysroot,
-            target,
-        } => {
-            let project = get_project_from_file(build_config)?;
-            let files = project.files;
-            let compile_options = CompileOptions {
-                output: project.output,
-                target,
-                format: project.compile_type,
-                optimization: if project.optimization.is_some() {
-                    project.optimization.unwrap()
-                } else {
-                    parameters.optimization
-                },
-            };
+    if let Some(SubCommands::Build {
+        build_config,
+        build_location,
+        lib_location,
+        ..
+    }) = &parameters.commands
+    {
+        let build_config = build_config
+            .as_deref()
+            .or(Some("plc.json"))
+            .map(PathBuf::from)
+            .ok_or_else(|| unreachable!("The or plc.json means this exists"))
+            .and_then(|it| env::current_dir().map(|cd| cd.join(it)))?;
+        let root = build_config
+            .parent()
+            .map(|it| Ok(it.to_path_buf()))
+            .unwrap_or_else(env::current_dir)?;
+        env::set_var("PROJECT_ROOT", &root);
+        let build_location = Path::new(build_location.as_deref().unwrap_or("build"));
+        if !build_location.is_dir() {
+            std::fs::create_dir_all(build_location)?;
+        }
+        env::set_var("BUILD_LOCATION", &build_location);
+        let lib_location = lib_location
+            .as_deref()
+            .filter(|it| !it.is_empty())
+            .map(Path::new)
+            .unwrap_or(build_location);
+        // let lib_location = make_absolute(lib_location, &root);
+        env::set_var("LIB_LOCATION", &lib_location);
+        let project = get_project_from_file(&build_config).map(|it| it.to_resolved(&root))?;
 
-            let includes = if project.libraries.is_some() {
-                string_to_filepath(
-                    project
-                        .libraries
-                        .as_ref()
-                        .unwrap()
-                        .iter()
-                        .flat_map(|it| it.include_path.clone())
-                        .collect(),
-                )
-            } else {
-                vec![]
-            };
+        let input = project
+            .files
+            .first()
+            .and_then(|it| it.file_stem())
+            .and_then(OsStr::to_str)
+            .unwrap_or("out");
 
-            let link_options = if let Some(format) = project.compile_type {
-                Some(LinkOptions {
-                    libraries: if project.libraries.is_some() {
-                        project
-                            .libraries
-                            .as_ref()
-                            .unwrap()
-                            .iter()
-                            .map(|it| it.name.clone())
-                            .collect()
-                    } else {
-                        vec![]
-                    },
-                    library_pathes: if project.libraries.is_some() {
-                        project
-                            .libraries
-                            .as_ref()
-                            .unwrap()
-                            .iter()
-                            .map(|it| it.path.clone())
-                            .collect()
-                    } else {
-                        vec![]
-                    },
-                    sysroot,
-                    format,
-                })
-            } else {
-                None
-            };
+        let includes = if !project.libraries.is_empty() {
+            create_file_paths(
+                &project
+                    .libraries
+                    .iter()
+                    .flat_map(|it| &it.include_path)
+                    .flat_map(|it| it.as_os_str().to_str())
+                    .collect::<Vec<_>>(),
+            )?
+        } else {
+            vec![]
+        };
 
-            let target = get_target_triple(compile_options.target.as_deref());
+        let compile_options = CompileOptions {
+            build_location: Some(build_location.to_owned()),
+            output: get_output_name(
+                project.output.as_deref(),
+                project.compile_type.unwrap_or_default(),
+                parameters.skip_linking,
+                input,
+            ),
+            format: project.compile_type,
+            optimization: parameters.optimization,
+            error_format: parameters.error_format,
+        };
 
-            let compile_result = build(
-                string_to_filepath(files),
-                includes,
-                &compile_options,
-                parameters.encoding,
-                &project.error_format,
-                &target,
-            )?;
+        let targets = parameters
+            .target
+            .into_iter()
+            .enumerate()
+            .map(|(index, target)| {
+                let sysroot = parameters.sysroot.get(index);
+                Target::new(target, sysroot.cloned())
+            })
+            .collect::<Vec<_>>();
 
-            link_and_create(
-                link_options,
-                &compile_result,
-                &compile_options,
-                &target,
-                config_options,
-            )?;
+        let files = create_file_paths(
+            &project
+                .files
+                .iter()
+                .map(|it| it.to_string_lossy())
+                .map(|it| it.to_string())
+                .collect::<Vec<_>>(),
+        )?;
+        let link_options = if let Some(format) = project.compile_type {
+            Some(LinkOptions {
+                libraries: project
+                    .libraries
+                    .iter()
+                    .map(|it| it.name.clone())
+                    .collect::<Vec<_>>(),
+                library_pathes: project
+                    .libraries
+                    .iter()
+                    .map(|it| it.path.to_string_lossy())
+                    .map(|it| it.to_string())
+                    .collect(),
+                format,
+                linker: parameters.linker,
+            })
+        } else {
+            None
+        };
 
-            if let Some(commands) = project.package_commands {
-                execute_commands(commands)?;
-            }
+        copy_libs_to_build(&project.libraries, lib_location)?;
+
+        build_and_link(
+            files,
+            includes,
+            parameters.encoding,
+            &compile_options,
+            targets,
+            config_options,
+            link_options,
+        )?;
+
+        if !project.package_commands.is_empty() {
+            execute_commands(project.package_commands)?;
         }
     }
     Ok(())
 }
 
+// fn make_absolute(location: &Path, root: &Path) -> PathBuf {
+//     if location.is_absolute() {
+//         location.to_owned()
+//     } else {
+//         root.join(location)
+//     }
+// }
+
 fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     let root = env::current_dir()?;
     for command in commands {
-        let args = shell_words::split(&command)?;
+        //resolve variables
+        let command = resolve_environment_variables(&command)?;
+        let args = shell_words::split(&command)?
+            .into_iter()
+            .map(|it| {
+                if let Some(stripped) = it.strip_prefix('$') {
+                    env::var(stripped).unwrap_or(it)
+                } else {
+                    it
+                }
+            })
+            .collect::<Vec<_>>();
 
-        if args[0].as_str() == "cd" {
+        if args[0] == "cd" {
             io::stdout().write_all(&[b">>> ", args[0..2].join(" ").as_bytes(), b"\n"].concat())?;
 
             env::set_current_dir(args[1].as_str())?;
@@ -711,31 +843,68 @@ fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
     Ok(())
 }
 
+fn resolve_environment_variables(to_replace: &str) -> Result<String, Diagnostic> {
+    let pattern = Regex::new(r"\$(\w+)")?;
+    let result = pattern.replace_all(to_replace, |it: &Captures| {
+        let original = it.get(0).map(|it| it.as_str().to_string()).unwrap();
+        if let Some(var) = it.get(1).map(|it| it.as_str()) {
+            env::var(var).unwrap_or(original)
+        } else {
+            original
+        }
+    });
+    Ok(result.replace('\\', r"\\"))
+}
+
+fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<(), Diagnostic> {
+    for library in libraries {
+        if library.package == PackageFormat::Copy {
+            //copy all files from lib path
+            let content = std::fs::read_dir(&library.path)?;
+            for entry in content.filter(Result::is_ok).flatten() {
+                std::fs::copy(entry.path(), lib_location.join(entry.file_name()))?;
+            }
+        }
+    }
+    Ok(())
+}
+
 fn link_and_create(
-    link_options: Option<LinkOptions>,
-    compile_result: &CompileResult,
-    compile_options: &CompileOptions,
-    target: &TargetTriple,
-    config_options: Option<ConfigurationOptions>,
+    link_options: Option<&LinkOptions>,
+    index: &Index,
+    to_link: &[FilePath],
+    output: &str,
+    target: &Target,
+    config_options: Option<&ConfigurationOptions>,
+    compile_result: &FilePath,
 ) -> Result<(), Diagnostic> {
+    //Make sure all parents exist
+    let output_path = Path::new(output);
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
     if let Some(link_options) = link_options {
         link(
-            &compile_options.output,
+            output,
             link_options.format,
-            &compile_result.objects,
-            link_options.library_pathes,
-            link_options.libraries,
+            to_link,
+            &link_options.library_pathes,
+            &link_options.libraries,
             target,
-            link_options.sysroot,
+            link_options.linker.as_deref(),
         )?;
+    } else {
+        // If not linking, copy the generated file to the correct location
+        std::fs::copy(compile_result.get_location(), output)?;
     }
 
     if let Some(config) = config_options {
-        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
+        let hw_config = hardware_binding::collect_hardware_configuration(index)?;
         let generated_conf =
             hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
 
-        File::create(config.output)
+        File::create(&config.output)
             .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
             .map_err(|it| Diagnostic::GeneralError {
                 err_no: diagnostics::ErrNo::general__io_err,
@@ -755,12 +924,17 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     let includes = if parameters.includes.is_empty() {
         vec![]
     } else {
-        create_file_paths(&parameters.includes)?
+        create_file_paths(
+            &parameters
+                .includes
+                .iter()
+                .map(|it| it.as_str())
+                .collect::<Vec<_>>(),
+        )?
     };
-    let output = parameters
-        .output_name()
-        .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
+
     let out_format = parameters.output_format_or_default();
+    let output = parameters.output_name();
 
     let config_options = parameters
         .hardware_config
@@ -773,66 +947,71 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         });
 
     let compile_options = CompileOptions {
+        build_location: None,
         output,
-        target: parameters.target,
-        format: out_format,
+        format: if parameters.check_only {
+            None
+        } else {
+            Some(out_format)
+        },
         optimization: parameters.optimization,
+        error_format: parameters.error_format,
     };
 
-    let error_format = parameters.error_format;
+    let files = create_file_paths(
+        &parameters
+            .includes
+            .iter()
+            .map(|it| it.as_str())
+            .collect::<Vec<_>>(),
+    )?;
 
-    let files = create_file_paths(&parameters.input)?;
-
-    let link_options = if let Some(format) = out_format {
-        if !parameters.skip_linking {
-            Some(LinkOptions {
-                libraries: parameters.libraries,
-                library_pathes: parameters.library_paths,
-                sysroot: parameters.sysroot,
-                format,
-            })
-        } else {
-            None
-        }
+    let link_options = if !parameters.skip_linking && !parameters.check_only {
+        Some(LinkOptions {
+            libraries: parameters.libraries,
+            library_pathes: parameters.library_paths,
+            format: out_format,
+            linker: parameters.linker,
+        })
     } else {
         None
     };
 
-    let target = get_target_triple(compile_options.target.as_deref());
+    let targets = parameters
+        .target
+        .into_iter()
+        .enumerate()
+        .map(|(index, target)| {
+            let sysroot = parameters.sysroot.get(index);
+            Target::new(target, sysroot.cloned())
+        })
+        .collect::<Vec<_>>();
 
-    let compile_result = build(
+    build_and_link(
         files,
         includes,
-        &compile_options,
         parameters.encoding,
-        &error_format,
-        &target,
-    )?;
-
-    link_and_create(
-        link_options,
-        &compile_result,
         &compile_options,
-        &target,
+        targets,
         config_options,
-    )?;
-
-    Ok(())
+        link_options,
+    )
 }
-
 /// The builder function for the compilation
 /// Sorts files that need compilation
 /// Parses, validates and generates code for the given source files
 /// Persists the generated code to output location
 /// Returns a compilation result with the index, and a list of object files
-pub fn build(
+pub fn build_and_link(
     files: Vec<FilePath>,
     includes: Vec<FilePath>,
-    compile_options: &CompileOptions,
     encoding: Option<&'static Encoding>,
-    error_format: &ErrorFormat,
-    target: &TargetTriple,
-) -> Result<CompileResult, Diagnostic> {
+    compile_options: &CompileOptions,
+    targets: Vec<Target>,
+    config_options: Option<ConfigurationOptions>,
+    link_options: Option<LinkOptions>,
+) -> Result<(), Diagnostic> {
+    //Split files in objects and sources
     let mut objects = vec![];
     let mut sources = vec![];
     files.into_iter().for_each(|it| {
@@ -844,34 +1023,67 @@ pub fn build(
     });
 
     let context = Context::create();
-    let diagnostician = match error_format {
+    let diagnostician = match compile_options.error_format {
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
+    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
 
-    let index = match compile_options.format {
-        None => index_module(sources, includes, encoding, diagnostician)?.0,
-        Some(out_format) => {
-            let (index, codegen) =
-                compile_module(&context, sources, includes, encoding, diagnostician)?;
+    let targets = if targets.is_empty() {
+        vec![Target::System]
+    } else {
+        targets
+    };
+
+    if let Some(out_format) = compile_options.format {
+        for target in targets {
+            let triple = target.get_target_triple();
+            let output = if let Some(target_name) = target.try_get_name() {
+                let target_path = PathBuf::from(&target_name);
+                target_path.join(&compile_options.output)
+            } else {
+                PathBuf::from(&compile_options.output)
+            };
+            let output = if let Some(location) = &compile_options.build_location {
+                location.join(output)
+            } else {
+                output
+            };
+            let mut objects = objects.clone();
+
+            let output_name = output.to_str().unwrap_or(&compile_options.output);
+            let compile_name = Path::new(output_name)
+                .file_name()
+                .and_then(|it| it.to_str())
+                .unwrap_or("tmp.o");
+            let compile_dir = tempfile::tempdir()?;
+            let compile_result = compile_dir.path().join(compile_name);
 
             objects.push(persist(
-                codegen,
-                &compile_options.output,
+                &codegen,
+                &compile_result.to_string_lossy(),
                 out_format,
-                target,
+                &triple,
                 compile_options.optimization,
             )?);
 
-            index
+            link_and_create(
+                link_options.as_ref(),
+                &index,
+                &objects,
+                output_name,
+                &target,
+                config_options.as_ref(),
+                &compile_result.as_path().into(),
+            )?;
         }
-    };
+    }
 
-    Ok(CompileResult { index, objects })
+    Ok(())
 }
 
 pub fn persist(
-    input: codegen::CodeGen,
+    input: &codegen::CodeGen,
     output: &str,
     out_format: FormatOption,
     target: &TargetTriple,
@@ -894,10 +1106,10 @@ pub fn link(
     output: &str,
     out_format: FormatOption,
     objects: &[FilePath],
-    library_pathes: Vec<String>,
-    libraries: Vec<String>,
-    target: &TargetTriple,
-    sysroot: Option<String>,
+    library_pathes: &[String],
+    libraries: &[String],
+    target: &Target,
+    linker: Option<&str>,
 ) -> Result<(), Diagnostic> {
     let linkable_formats = vec![
         FormatOption::Static,
@@ -907,24 +1119,28 @@ pub fn link(
     ];
     if linkable_formats.contains(&out_format) {
         let mut linker = target
+            .get_target_triple()
             .as_str()
             .to_str()
             .map_err(|e| Diagnostic::param_error(&e.to_string()))
-            .and_then(|triple| linker::Linker::new(triple).map_err(|e| e.into()))?;
+            .and_then(|triple| linker::Linker::new(triple, linker).map_err(|e| e.into()))?;
         linker.add_lib_path(".");
+        if let Some(parent) = Path::new(output).parent() {
+            linker.add_lib_path(&parent.to_string_lossy());
+        }
 
         for path in objects {
             linker.add_obj(&path.path);
         }
 
-        for path in &library_pathes {
+        for path in library_pathes {
             linker.add_lib_path(path);
         }
-        for library in &libraries {
+        for library in libraries {
             linker.add_lib(library);
         }
 
-        if let Some(sysroot) = &sysroot {
+        if let Some(sysroot) = target.get_sysroot() {
             linker.add_sysroot(sysroot);
         }
 
@@ -937,30 +1153,49 @@ pub fn link(
     Ok(())
 }
 
+/// Returns an output name with the correct extension
+/// If an output name is already given, this method returns it, otherwise it builds the name from the input and format
+pub fn get_output_name(
+    output_name: Option<&str>,
+    out_format: FormatOption,
+    skip_linking: bool,
+    input: &str,
+) -> String {
+    match output_name {
+        Some(n) => n.to_string(),
+        // format!(
+        //     "{}{}{}",
+        //     target.unwrap_or(""),
+        //     if target.is_some() { "_" } else { "" },
+        //     n),
+        None => {
+            let ending = match out_format {
+                FormatOption::Bitcode => ".bc",
+                FormatOption::Relocatable => ".o",
+                FormatOption::Static if skip_linking => ".o",
+                FormatOption::Static => "",
+                FormatOption::Shared | FormatOption::PIC => ".so",
+                FormatOption::IR => ".ir",
+            };
+            format!("{input}{ending}")
+
+            // format!(
+            //     "{}{}{}{}",
+            //     output_name.unwrap_or(input),
+            //     if target.is_some() { "_" } else { "" },
+            //     target.unwrap_or(""),
+            //     ending
+            // )
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     mod adr;
     mod external_files;
     mod multi_files;
-
-    use inkwell::targets::TargetMachine;
-
-    use crate::{create_source_code, get_target_triple};
-
-    #[test]
-    fn test_get_target_triple() {
-        let triple = get_target_triple(None);
-        assert_eq!(
-            triple.as_str().to_str().unwrap(),
-            TargetMachine::get_default_triple()
-                .as_str()
-                .to_str()
-                .unwrap()
-        );
-
-        let triple = get_target_triple(Some("x86_64-pc-linux-gnu"));
-        assert_eq!(triple.as_str().to_str().unwrap(), "x86_64-pc-linux-gnu");
-    }
+    use crate::create_source_code;
 
     #[test]
     fn windows_encoded_file_content_read() {

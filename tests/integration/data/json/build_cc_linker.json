@@ -1,0 +1,9 @@
+{
+    "files" : [
+        "simple_program.st"
+    ],
+    "compile_type" : "Shared",
+    "optimization" : "Default",
+    "output" : "cc_proj.so",
+    "error_format": "Rich"
+}

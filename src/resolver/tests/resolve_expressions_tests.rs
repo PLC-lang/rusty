@@ -6,8 +6,8 @@ use crate::{
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, REAL_TYPE,
-        SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LREAL_TYPE,
+        REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -60,7 +60,6 @@ fn binary_expressions_resolves_types_for_mixed_signed_ints() {
     );
     let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[0].statements;
-
     if let AstStatement::BinaryExpression { left, right, .. } = &statements[0] {
         assert_type_and_hint!(&annotations, &index, left, INT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, right, UINT_TYPE, Some(DINT_TYPE));
@@ -68,6 +67,89 @@ fn binary_expressions_resolves_types_for_mixed_signed_ints() {
     } else {
         unreachable!()
     }
+}
+
+#[test]
+#[ignore = "Types on builtin types are not correctly annotated"]
+fn expt_binary_expression() {
+    fn get_params(stmt: &AstStatement) -> (&AstStatement, &AstStatement) {
+        if let AstStatement::CallStatement { parameters, .. } = stmt {
+            if let &[left, right] =
+                ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap()).as_slice()
+            {
+                return (left, right);
+            }
+        }
+        panic!("could not deconstruct call")
+    }
+
+    let (unit, mut index) = index(
+        "
+        PROGRAM PRG
+            VAR 
+                a,b : DINT; 
+                c,d : REAL;
+                e,f : LREAL;
+            END_VAR
+            //DINTS
+            a ** b; //DINT * DINT -> hint : DINT * DINT result DINT
+            a ** d; //DINT * REAL -> hint : REAL * REAL result REAL
+            a ** f; //DINT * LREAL -> hint : LREAL * LREAL result LREAL
+
+            // REALS
+            c ** b; //REAL * DINT -> hint : REAL * DINT result REAL
+            c ** d; //REAL * REAL -> hint : REAL * REAL result REAL
+            c ** f; //REAL * LREAL -> hint : LREAL * LREAL result LREAL
+
+            // LREALS
+            e ** b; //LREAL * DINT -> hint : REAL * DINT result REAL
+            e ** d; //LREAL * REAL -> hint : LREAL * LREAL result LREAL
+            e ** f; //LREAL * LREAL -> hint : LREAL * LREAL result LREAL
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+    //DINT
+    let (left, right) = get_params(&statements[0]);
+    assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[0], DINT_TYPE, None);
+    let (left, right) = get_params(&statements[1]);
+    assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(REAL_TYPE));
+    assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], REAL_TYPE, None);
+    let (left, right) = get_params(&statements[2]);
+    assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, Some(LREAL_TYPE));
+    assert_type_and_hint!(&annotations, &index, right, LREAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[2], LREAL_TYPE, None);
+
+    //REAL
+    let (left, right) = get_params(&statements[3]);
+    assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[3], REAL_TYPE, None);
+    let (left, right) = get_params(&statements[4]);
+    assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[4], REAL_TYPE, None);
+    let (left, right) = get_params(&statements[5]);
+    assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, Some(LREAL_TYPE));
+    assert_type_and_hint!(&annotations, &index, right, LREAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[5], LREAL_TYPE, None);
+
+    //LREAL
+    let (left, right) = get_params(&statements[6]);
+    assert_type_and_hint!(&annotations, &index, left, LREAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[6], LREAL_TYPE, None);
+    let (left, right) = get_params(&statements[7]);
+    assert_type_and_hint!(&annotations, &index, left, LREAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, Some(LREAL_TYPE));
+    assert_type_and_hint!(&annotations, &index, &statements[7], LREAL_TYPE, None);
+    let (left, right) = get_params(&statements[8]);
+    assert_type_and_hint!(&annotations, &index, left, LREAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, right, LREAL_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[8], LREAL_TYPE, None);
 }
 
 #[test]
@@ -824,7 +906,8 @@ fn pou_expressions_resolve_types() {
     assert_eq!(
         Some(&StatementAnnotation::Function {
             qualified_name: "OtherFunc".into(),
-            return_type: "INT".into()
+            return_type: "INT".into(),
+            call_name: None,
         }),
         annotations.get(&statements[1])
     );
@@ -1003,7 +1086,8 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     assert_eq!(
         Some(&StatementAnnotation::Function {
             qualified_name: "foo".into(),
-            return_type: "INT".into()
+            return_type: "INT".into(),
+            call_name: None,
         }),
         foo_annotation
     );
@@ -1261,7 +1345,8 @@ fn function_parameter_assignments_resolve_types() {
             annotations.get(operator),
             Some(&StatementAnnotation::Function {
                 qualified_name: "foo".into(),
-                return_type: "MyType".into()
+                return_type: "MyType".into(),
+                call_name: None,
             })
         );
 
@@ -1469,6 +1554,7 @@ fn method_references_are_resolved() {
             Some(&StatementAnnotation::Function {
                 return_type: "INT".into(),
                 qualified_name: "cls.foo".into(),
+                call_name: None,
             }),
             annotations.get(operator)
         );

@@ -278,6 +278,9 @@ pub enum Token {
     #[token("*")]
     OperatorMultiplication,
 
+    #[token("**")]
+    OperatorExponent,
+
     #[token("/")]
     OperatorDivision,
 
