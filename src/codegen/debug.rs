@@ -9,24 +9,24 @@ use inkwell::{
 
 use crate::{ast::SourceRange, diagnostics::Diagnostic, DebugLevel, OptimizationLevel};
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 enum DebugEncoding {
-    DW_ATE_boolean,
+    // DW_ATE_boolean,
     DW_ATE_signed,
     DW_ATE_unsigned,
     DW_ATE_float,
-    DW_ATE_UTF,
+    // DW_ATE_UTF,
 }
 
 impl From<DebugEncoding> for u32 {
     fn from( enc : DebugEncoding) -> Self {
         match enc {
-            DebugEncoding::DW_ATE_boolean => 0x02,
+            // DebugEncoding::DW_ATE_boolean => 0x02,
             DebugEncoding::DW_ATE_signed => 0x05,
             DebugEncoding::DW_ATE_unsigned => 0x07,
             DebugEncoding::DW_ATE_float => 0x04,
-            DebugEncoding::DW_ATE_UTF => 0x10,
+            // DebugEncoding::DW_ATE_UTF => 0x10,
         }
     }
     

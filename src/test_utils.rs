@@ -14,7 +14,7 @@ pub mod tests {
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator,
         },
-        SourceContainer, Validator, compile_module, DebugLevel,
+        SourceContainer, Validator, DebugLevel,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -89,11 +89,10 @@ pub mod tests {
         let code_generator = crate::codegen::CodeGen::new(&context, "main", crate::OptimizationLevel::None, debug_level);
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator.generate_llvm_index(&annotations, literals, &index)?;
-        let res = code_generator.generate(&unit, &annotations, &index, &llvm_index);
-        code_generator.finalize();
-        res
+        code_generator
+            .generate(&unit, &annotations, &index, &llvm_index)
+            .map(|_| code_generator.module.print_to_string().to_string())
     }
-
 
     pub fn codegen_with_debug(src : &str) -> String {
         codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()

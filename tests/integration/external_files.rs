@@ -19,14 +19,14 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         encoding,
         &CompileOptions {
             build_location: None,
-            format: Some(rusty::FormatOption::IR),
+            format: rusty::FormatOption::IR,
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::default(),
         },
         vec![],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
@@ -36,14 +36,14 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         encoding,
         &CompileOptions {
             build_location: None,
-            format: Some(rusty::FormatOption::Bitcode),
+            format: rusty::FormatOption::Bitcode,
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::default(),
         },
         vec![],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
@@ -53,14 +53,14 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         encoding,
         &CompileOptions {
             build_location: None,
-            format: Some(rusty::FormatOption::Shared),
+            format: rusty::FormatOption::Shared,
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::default(),
         },
         vec![],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
@@ -70,14 +70,14 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         encoding,
         &CompileOptions {
             build_location: None,
-            format: Some(rusty::FormatOption::PIC),
+            format: rusty::FormatOption::PIC,
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::default(),
         },
         vec![],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
@@ -87,14 +87,14 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         encoding,
         &CompileOptions {
             build_location: None,
-            format: Some(rusty::FormatOption::Static),
+            format: rusty::FormatOption::Static,
             output: out.clone(),
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::default(),
         },
         vec![],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
     fs::remove_file(&out).unwrap();

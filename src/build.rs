@@ -23,7 +23,8 @@ pub struct Libraries {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Project {
     pub files: Vec<PathBuf>,
-    pub compile_type: Option<FormatOption>,
+    #[serde(default)]
+    pub compile_type: FormatOption,
     pub output: Option<String>,
     #[serde(default)]
     pub libraries: Vec<Libraries>,
@@ -93,7 +94,7 @@ mod tests {
     fn check_build_struct_from_file() {
         let test_project = Project {
             files: vec![PathBuf::from("simple_program.st")],
-            compile_type: Some(FormatOption::Shared),
+            compile_type: FormatOption::Shared,
             output: Some(String::from("proj.so")),
             libraries: vec![
                 Libraries {

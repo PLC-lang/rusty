@@ -17,12 +17,12 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use std::env;
 use std::ffi::OsStr;
 use std::fmt::Display;
 use std::io::{self, Write};
 use std::process::Command;
 use std::str::FromStr;
-use std::{env, fs};
 
 use build::{get_project_from_file, Libraries, PackageFormat};
 use clap::ArgEnum;
@@ -124,17 +124,39 @@ where
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
+    /// Indicates that the result will be an object file (e.g. No Linking)
+    Object,
+    /// Indicates that the output format will be linked statically (i.e. Executable)
     Static,
+    /// Indicates that the linked object will be Position Independant
     PIC,
+    /// Indicates that the linked object will be shared
     Shared,
+    /// Indicates that the compiled object will be relocatable (e.g. Combinable into multiple objects)
     Relocatable,
+    /// Indicates that the compile result will be LLVM Bitcode
     Bitcode,
+    /// Indicates that the compile result will be LLVM IR
     IR,
+    /// Indicates that no output will be generated (Check only)
+    None,
 }
 
 impl Default for FormatOption {
     fn default() -> Self {
-        FormatOption::Static
+        FormatOption::None
+    }
+}
+
+impl FormatOption {
+    pub fn should_link(self) -> bool {
+        matches!(
+            self,
+            FormatOption::Static
+                | FormatOption::Shared
+                | FormatOption::Relocatable
+                | FormatOption::PIC
+        )
     }
 }
 
@@ -158,14 +180,14 @@ impl FromStr for ConfigFormat {
 
 #[derive(Serialize, Deserialize)]
 pub struct CompileOptions {
-    pub format: Option<FormatOption>,
+    pub format: FormatOption,
     pub build_location: Option<PathBuf>,
     pub output: String,
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
@@ -366,7 +388,7 @@ fn create_source_code<T: Read>(
 ///
 fn persist_to_obj(
     codegen: &CodeGen,
-    output: &str,
+    output: &Path,
     reloc: RelocMode,
     triple: &TargetTriple,
     optimization: OptimizationLevel,
@@ -395,8 +417,7 @@ fn persist_to_obj(
         });
 
     //Make sure all parents exist
-    let output_path = Path::new(output);
-    if let Some(parent) = output_path.parent() {
+    if let Some(parent) = output.parent() {
         std::fs::create_dir_all(parent)?;
     }
     ////Run the passes
@@ -404,10 +425,10 @@ fn persist_to_obj(
         codegen
             .module
             .run_passes(optimization.opt_params(), &it, PassBuilderOptions::create())
-            .map_err(|it| Diagnostic::llvm_error(output, &it))
+            .map_err(|it| Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it))
             .and_then(|_| {
-                it.write_to_file(&codegen.module, FileType::Object, output_path)
-                    .map_err(|it| Diagnostic::llvm_error(output, &it))
+                it.write_to_file(&codegen.module, FileType::Object, output)
+                    .map_err(|it| Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it))
             })
     })
 }
@@ -422,7 +443,7 @@ fn persist_to_obj(
 ///     If not provided, the machine's triple will be used.
 pub fn persist_as_static_obj(
     codegen: &CodeGen,
-    output: &str,
+    output: &Path,
     target: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
@@ -439,7 +460,7 @@ pub fn persist_as_static_obj(
 ///     If not provided, the machine's triple will be used.
 pub fn persist_to_shared_pic_object(
     codegen: &CodeGen,
-    output: &str,
+    output: &Path,
     target: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
@@ -455,7 +476,7 @@ pub fn persist_to_shared_pic_object(
 /// * `target` - llvm target triple
 pub fn persist_to_shared_object(
     codegen: &CodeGen,
-    output: &str,
+    output: &Path,
     target: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
@@ -475,9 +496,8 @@ pub fn persist_to_shared_object(
 ///
 /// * `codegen` - the genated LLVM module to persist
 /// * `output` - the location on disk to save the output
-pub fn persist_to_bitcode(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
-    let path = Path::new(output);
-    if codegen.module.write_bitcode_to_path(path) {
+pub fn persist_to_bitcode(codegen: &CodeGen, output: &Path) -> Result<(), Diagnostic> {
+    if codegen.module.write_bitcode_to_path(output) {
         Ok(())
     } else {
         Err(Diagnostic::codegen_error(
@@ -494,10 +514,13 @@ pub fn persist_to_bitcode(codegen: &CodeGen, output: &str) -> Result<(), Diagnos
 ///
 /// * `codegen` - The generated LLVM module to be persisted
 /// * `output`  - The location to save the generated ir file
-pub fn persist_to_ir(codegen: &CodeGen, output: &str) -> Result<(), Diagnostic> {
-    let ir = codegen.module.print_to_string().to_string();
-    fs::write(output, ir)
-        .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
+pub fn persist_to_ir(codegen: &CodeGen, output: &Path) -> Result<(), Diagnostic> {
+    codegen.module.print_to_file(output).map_err(|err| {
+        Diagnostic::io_write_error(
+            output.to_str().unwrap_or_default(),
+            err.to_string().as_str(),
+        )
+    })
 }
 
 struct IndexComponents {
@@ -746,13 +769,12 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
 
         let compile_options = CompileOptions {
             build_location: Some(build_location.to_owned()),
-            output: get_output_name(
-                project.output.as_deref(),
-                project.compile_type.unwrap_or_default(),
-                parameters.skip_linking,
-                input,
-            ),
-            format: project.compile_type,
+            output: get_output_name(project.output.as_deref(), project.compile_type, input),
+            format: if parameters.check_only {
+                FormatOption::None
+            } else {
+                project.compile_type
+            },
             optimization: parameters.optimization,
             error_format: parameters.error_format,
         };
@@ -775,7 +797,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 .map(|it| it.to_string())
                 .collect::<Vec<_>>(),
         )?;
-        let link_options = if let Some(format) = project.compile_type {
+        let link_options = if parameters.compile_only {
             Some(LinkOptions {
                 libraries: project
                     .libraries
@@ -788,7 +810,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                     .map(|it| it.path.to_string_lossy())
                     .map(|it| it.to_string())
                     .collect(),
-                format,
+                format: project.compile_type,
                 linker: parameters.linker,
             })
         } else {
@@ -884,51 +906,6 @@ fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<()
     Ok(())
 }
 
-fn link_and_create(
-    link_options: Option<&LinkOptions>,
-    index: &Index,
-    to_link: &[FilePath],
-    output: &str,
-    target: &Target,
-    config_options: Option<&ConfigurationOptions>,
-    compile_result: &FilePath,
-) -> Result<(), Diagnostic> {
-    //Make sure all parents exist
-    let output_path = Path::new(output);
-    if let Some(parent) = output_path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-
-    if let Some(link_options) = link_options {
-        link(
-            output,
-            link_options.format,
-            to_link,
-            &link_options.library_pathes,
-            &link_options.libraries,
-            target,
-            link_options.linker.as_deref(),
-        )?;
-    } else {
-        // If not linking, copy the generated file to the correct location
-        std::fs::copy(compile_result.get_location(), output)?;
-    }
-
-    if let Some(config) = config_options {
-        let hw_config = hardware_binding::collect_hardware_configuration(index)?;
-        let generated_conf =
-            hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
-
-        File::create(&config.output)
-            .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
-            .map_err(|it| Diagnostic::GeneralError {
-                err_no: diagnostics::ErrNo::general__io_err,
-                message: it.to_string(),
-            })?;
-    }
-    Ok(())
-}
-
 /// The driver function for the compilation
 /// Sorts files that need compilation
 /// Parses, validates and generates code for the given source files
@@ -936,19 +913,7 @@ fn link_and_create(
 /// Links any provided libraries
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    let includes = if parameters.includes.is_empty() {
-        vec![]
-    } else {
-        create_file_paths(
-            &parameters
-                .includes
-                .iter()
-                .map(|it| it.as_str())
-                .collect::<Vec<_>>(),
-        )?
-    };
-
-    let out_format = parameters.output_format_or_default();
+    let format = parameters.output_format_or_default();
     let output = parameters.output_name();
 
     let config_options = parameters
@@ -965,9 +930,9 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         build_location: None,
         output,
         format: if parameters.check_only {
-            None
+            FormatOption::None
         } else {
-            Some(out_format)
+            format
         },
         optimization: parameters.optimization,
         error_format: parameters.error_format,
@@ -981,15 +946,23 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
             .collect::<Vec<_>>(),
     )?;
 
-    let link_options = if !parameters.skip_linking && !parameters.check_only {
+    let includes = create_file_paths(
+        &parameters
+            .includes
+            .iter()
+            .map(|it| it.as_str())
+            .collect::<Vec<_>>(),
+    )?;
+
+    let link_options = if parameters.compile_only {
+        None
+    } else {
         Some(LinkOptions {
             libraries: parameters.libraries,
             library_pathes: parameters.library_paths,
-            format: out_format,
+            format,
             linker: parameters.linker,
         })
-    } else {
-        None
     };
 
     let targets = parameters
@@ -1044,13 +1017,12 @@ pub fn build_and_link(
     };
     let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician, compile_options.optimization, DebugLevel::None)?;
 
-    let targets = if targets.is_empty() {
-        vec![Target::System]
-    } else {
-        targets
-    };
-
-    if let Some(out_format) = compile_options.format {
+    if compile_options.format != FormatOption::None {
+        let targets = if targets.is_empty() {
+            vec![Target::System]
+        } else {
+            targets
+        };
         for target in targets {
             let triple = target.get_target_triple();
             let output = if let Some(target_name) = target.try_get_name() {
@@ -1071,26 +1043,51 @@ pub fn build_and_link(
                 .file_name()
                 .and_then(|it| it.to_str())
                 .unwrap_or("tmp.o");
-            let compile_dir = tempfile::tempdir()?;
-            let compile_result = compile_dir.path().join(compile_name);
+            let compile_location = if link_options
+                .as_ref()
+                .map(|it| it.format.should_link())
+                .unwrap_or_default()
+            {
+                let compile_dir = tempfile::tempdir()?;
+                compile_dir.path().join(compile_name)
+            } else {
+                PathBuf::from(output_name)
+            };
 
             objects.push(persist(
                 &codegen,
-                &compile_result.to_string_lossy(),
-                out_format,
+                &compile_location,
+                compile_options.format,
                 &triple,
                 compile_options.optimization,
             )?);
 
-            link_and_create(
-                link_options.as_ref(),
-                &index,
-                &objects,
-                output_name,
-                &target,
-                config_options.as_ref(),
-                &compile_result.as_path().into(),
-            )?;
+            if let Some(link_options) = link_options.as_ref() {
+                if link_options.format.should_link() {
+                    link(
+                        Path::new(output_name),
+                        link_options.format,
+                        &objects,
+                        &link_options.library_pathes,
+                        &link_options.libraries,
+                        &target,
+                        link_options.linker.as_deref(),
+                    )?;
+                }
+            }
+
+            if let Some(ref config) = config_options {
+                let hw_config = hardware_binding::collect_hardware_configuration(&index)?;
+                let generated_conf =
+                    hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
+
+                File::create(&config.output)
+                    .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
+                    .map_err(|it| Diagnostic::GeneralError {
+                        err_no: diagnostics::ErrNo::general__io_err,
+                        message: it.to_string(),
+                    })?;
+            }
         }
     }
 
@@ -1099,26 +1096,27 @@ pub fn build_and_link(
 
 pub fn persist(
     input: &codegen::CodeGen,
-    output: &str,
+    output: &Path,
     out_format: FormatOption,
     target: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<FilePath, Diagnostic> {
     match out_format {
-        FormatOption::Static | FormatOption::Relocatable => {
+        FormatOption::Object | FormatOption::Static | FormatOption::Relocatable => {
             persist_as_static_obj(input, output, target, optimization)
         }
         FormatOption::Shared => persist_to_shared_object(input, output, target, optimization),
         FormatOption::PIC => persist_to_shared_pic_object(input, output, target, optimization),
         FormatOption::Bitcode => persist_to_bitcode(input, output),
         FormatOption::IR => persist_to_ir(input, output),
+        FormatOption::None => Ok(()),
     }?;
 
     Ok(output.into())
 }
 
 pub fn link(
-    output: &str,
+    output: &Path,
     out_format: FormatOption,
     objects: &[FilePath],
     library_pathes: &[String],
@@ -1126,6 +1124,10 @@ pub fn link(
     target: &Target,
     linker: Option<&str>,
 ) -> Result<(), Diagnostic> {
+    //Make sure all parents exist
+    if let Some(parent) = output.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
     let linkable_formats = vec![
         FormatOption::Static,
         FormatOption::Relocatable,
@@ -1140,7 +1142,7 @@ pub fn link(
             .map_err(|e| Diagnostic::param_error(&e.to_string()))
             .and_then(|triple| linker::Linker::new(triple, linker).map_err(|e| e.into()))?;
         linker.add_lib_path(".");
-        if let Some(parent) = Path::new(output).parent() {
+        if let Some(parent) = output.parent() {
             linker.add_lib_path(&parent.to_string_lossy());
         }
 
@@ -1160,9 +1162,9 @@ pub fn link(
         }
 
         match out_format {
-            FormatOption::Static => linker.build_exectuable(Path::new(&output))?,
-            FormatOption::Relocatable => linker.build_relocatable(Path::new(&output))?,
-            _ => linker.build_shared_obj(Path::new(&output))?,
+            FormatOption::Static => linker.build_exectuable(output)?,
+            FormatOption::Relocatable => linker.build_relocatable(output)?,
+            _ => linker.build_shared_obj(output)?,
         }
     }
     Ok(())
@@ -1170,37 +1172,19 @@ pub fn link(
 
 /// Returns an output name with the correct extension
 /// If an output name is already given, this method returns it, otherwise it builds the name from the input and format
-pub fn get_output_name(
-    output_name: Option<&str>,
-    out_format: FormatOption,
-    skip_linking: bool,
-    input: &str,
-) -> String {
+pub fn get_output_name(output_name: Option<&str>, out_format: FormatOption, input: &str) -> String {
     match output_name {
         Some(n) => n.to_string(),
-        // format!(
-        //     "{}{}{}",
-        //     target.unwrap_or(""),
-        //     if target.is_some() { "_" } else { "" },
-        //     n),
         None => {
             let ending = match out_format {
                 FormatOption::Bitcode => ".bc",
                 FormatOption::Relocatable => ".o",
-                FormatOption::Static if skip_linking => ".o",
-                FormatOption::Static => "",
+                FormatOption::Object => ".o",
                 FormatOption::Shared | FormatOption::PIC => ".so",
                 FormatOption::IR => ".ir",
+                FormatOption::Static | FormatOption::None => "",
             };
             format!("{input}{ending}")
-
-            // format!(
-            //     "{}{}{}{}",
-            //     output_name.unwrap_or(input),
-            //     if target.is_some() { "_" } else { "" },
-            //     target.unwrap_or(""),
-            //     ending
-            // )
         }
     }
 }
