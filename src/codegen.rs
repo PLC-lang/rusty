@@ -134,7 +134,7 @@ impl<'ink> CodeGen<'ink> {
         annotations: &AstAnnotations,
         global_index: &Index,
         llvm_index: &LlvmTypedIndex,
-    ) -> Result<String, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
@@ -149,7 +149,7 @@ impl<'ink> CodeGen<'ink> {
             }
         }
 
-        Ok(self.module.print_to_string().to_string())
+        Ok(())
     }
 }
 

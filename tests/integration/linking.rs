@@ -34,13 +34,13 @@ fn link_as_shared_object() {
         &CompileOptions {
             build_location: None,
             output: out2.clone(),
-            format: Some(FormatOption::Shared),
+            format: FormatOption::Shared,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
 
@@ -52,7 +52,7 @@ fn link_as_shared_object() {
         &CompileOptions {
             build_location: None,
             output: out1.clone(),
-            format: Some(FormatOption::Shared),
+            format: FormatOption::Shared,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
@@ -96,13 +96,13 @@ fn link_as_pic_object() {
         &CompileOptions {
             build_location: None,
             output: out2.clone(),
-            format: Some(FormatOption::PIC),
+            format: FormatOption::PIC,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
 
@@ -114,7 +114,7 @@ fn link_as_pic_object() {
         &CompileOptions {
             build_location: None,
             output: out1.clone(),
-            format: Some(FormatOption::PIC),
+            format: FormatOption::PIC,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
@@ -157,13 +157,13 @@ fn link_as_static_object() {
         &CompileOptions {
             build_location: None,
             output: out2.clone(),
-            format: Some(FormatOption::Static),
+            format: FormatOption::Object,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
 
@@ -175,7 +175,7 @@ fn link_as_static_object() {
         &CompileOptions {
             build_location: None,
             output: out1.clone(),
-            format: Some(FormatOption::Static),
+            format: FormatOption::Static,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
@@ -219,13 +219,13 @@ fn link_as_relocatable_object() {
         &CompileOptions {
             build_location: None,
             output: out2.clone(),
-            format: Some(FormatOption::Static),
+            format: FormatOption::Object,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
         vec![TARGET.unwrap().into()],
         None,
-        None,
+        Default::default(),
     )
     .unwrap();
 
@@ -237,7 +237,7 @@ fn link_as_relocatable_object() {
         &CompileOptions {
             build_location: None,
             output: out1.clone(),
-            format: Some(FormatOption::Relocatable),
+            format: FormatOption::Relocatable,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
         },
@@ -264,7 +264,6 @@ fn link_missing_file() {
     };
     let mut out = env::temp_dir();
     out.push("missing.o");
-    let out = out.into_os_string().into_string().unwrap();
     let target: Target = TARGET.unwrap().into();
     //Compile file1 as shared object with file2 as param
     let context = Context::create();
@@ -290,6 +289,7 @@ fn link_missing_file() {
 
     match res {
         Err(err) => {
+            let out = out.to_string_lossy();
             assert_eq!(Diagnostic::link_error(&format!("lld: error: undefined symbol: func2\n>>> referenced by main\n>>>               {}:(func1)\n>>> did you mean: func1\n>>> defined in: {}\n",out, out)), err);
         }
         _ => panic!("Expected link failure"),

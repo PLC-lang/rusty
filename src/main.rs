@@ -25,7 +25,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let compile_parameters: Result<CompileParameters, ParameterError> =
-        CompileParameters::parse(args);
+        CompileParameters::parse(&args);
     match compile_parameters {
         Ok(cp) => {
             if cp.commands.is_some() {

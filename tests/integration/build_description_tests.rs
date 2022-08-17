@@ -2,23 +2,20 @@ use crate::cli::CompileParameters;
 use crate::get_test_file;
 use rusty::{build_with_params, build_with_subcommand};
 
-macro_rules! vec_of_strings {
-        ($($x:expr),*) => (vec!["rustyc".to_string(), $($x.to_string()),*]);
-    }
-
 #[test]
 fn build_to_temp() {
     let dir = tempfile::tempdir().unwrap();
-    let parameters = CompileParameters::parse(vec_of_strings!(
+    let parameters = CompileParameters::parse(&[
+        "rustyc",
         "build",
-        get_test_file("json/build_to_temp.json"),
+        &get_test_file("json/build_to_temp.json"),
         "--target",
         "x86_64-linux-gnu",
         "--sysroot",
         "sysroot",
         "--build-location",
-        dir.path().display()
-    ))
+        dir.path().to_str().unwrap(),
+    ])
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
@@ -34,16 +31,17 @@ fn build_to_temp() {
 fn build_with_separate_lib_folder() {
     let dir = tempfile::tempdir().unwrap();
     let lib_dir = tempfile::tempdir().unwrap();
-    let parameters = CompileParameters::parse(vec_of_strings!(
+    let parameters = CompileParameters::parse(&[
+        "rustyc",
         "build",
-        get_test_file("json/separate_build_and_lib.json"),
+        &get_test_file("json/separate_build_and_lib.json"),
         "--target",
         "x86_64-linux-gnu",
         "--build-location",
-        dir.path().display(),
+        dir.path().to_str().unwrap(),
         "--lib-location",
-        lib_dir.path().display()
-    ))
+        lib_dir.path().to_str().unwrap(),
+    ])
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
@@ -59,14 +57,15 @@ fn build_with_separate_lib_folder() {
 #[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
 fn build_with_target_but_without_sysroot() {
     let dir = tempfile::tempdir().unwrap();
-    let parameters = CompileParameters::parse(vec_of_strings!(
+    let parameters = CompileParameters::parse(&[
+        "rustyc",
         "build",
-        get_test_file("json/build_without_sysroot.json"),
+        &get_test_file("json/build_without_sysroot.json"),
         "--target",
         "x86_64-unknown-linux-gnu",
         "--build-location",
-        dir.path().display()
-    ))
+        dir.path().to_str().unwrap(),
+    ])
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
@@ -80,9 +79,10 @@ fn build_with_target_but_without_sysroot() {
 #[test]
 fn build_for_multiple_targets_and_sysroots() {
     let dir = tempfile::tempdir().unwrap();
-    let parameters = CompileParameters::parse(vec_of_strings!(
+    let parameters = CompileParameters::parse(&[
+        "rustyc",
         "build",
-        get_test_file("json/multi_target_and_sysroot.json"),
+        &get_test_file("json/multi_target_and_sysroot.json"),
         "--target",
         "aarch64-linux-gnu",
         "--target",
@@ -92,8 +92,8 @@ fn build_for_multiple_targets_and_sysroots() {
         "--sysroot",
         "sysroot",
         "--build-location",
-        dir.path().display()
-    ))
+        dir.path().to_str().unwrap(),
+    ])
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
@@ -113,16 +113,17 @@ fn build_for_multiple_targets_and_sysroots() {
 #[cfg_attr(target_os = "windows", ignore = "linker not available for Windows")]
 fn build_with_cc_linker() {
     let dir = tempfile::tempdir().unwrap();
-    let parameters = CompileParameters::parse(vec_of_strings!(
+    let parameters = CompileParameters::parse(&[
+        "rustyc",
         "build",
-        get_test_file("json/build_cc_linker.json"),
+        &get_test_file("json/build_cc_linker.json"),
         "--target",
         "x86_64-unknown-linux-gnu",
         "--build-location",
-        dir.path().display(),
+        dir.path().to_str().unwrap(),
         "--linker",
-        "cc"
-    ))
+        "cc",
+    ])
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
@@ -138,25 +139,27 @@ fn build_with_cc_linker() {
 fn build_with_clang_linker_windows() {
     let dir = tempfile::tempdir().unwrap();
 
-    let first_parameters = CompileParameters::parse(vec_of_strings!(
+    let first_parameters = CompileParameters::parse(&[
+        "rustyc",
         "-c",
-        get_test_file("json/simple_program.st"),
+        &get_test_file("json/simple_program.st"),
         "-o",
-        dir.path().join("test.lib").display()
-    ))
+        dir.path().join("test.lib").to_str().unwrap(),
+    ])
     .unwrap();
     build_with_params(first_parameters).unwrap();
 
     assert!(dir.path().join("test.lib").is_file());
 
-    let parameters = CompileParameters::parse(vec_of_strings!(
+    let parameters = CompileParameters::parse(&[
+        "rustyc",
         "build",
-        get_test_file("json/build_clang_windows.json"),
+        &get_test_file("json/build_clang_windows.json"),
         "--build-location",
-        dir.path().display(),
+        dir.path().to_str().unwrap(),
         "--linker",
-        "clang"
-    ))
+        "clang",
+    ])
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 

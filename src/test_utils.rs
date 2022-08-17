@@ -85,7 +85,9 @@ pub mod tests {
         let code_generator = crate::codegen::CodeGen::new(&context, "main");
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator.generate_llvm_index(&annotations, literals, &index)?;
-        code_generator.generate(&unit, &annotations, &index, &llvm_index)
+        code_generator
+            .generate(&unit, &annotations, &index, &llvm_index)
+            .map(|_| code_generator.module.print_to_string().to_string())
     }
 
     pub fn codegen(src: &str) -> String {
