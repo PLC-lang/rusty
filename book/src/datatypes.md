@@ -76,16 +76,16 @@ Examples
 | Type name       | Size   | Internally stored as               |
 |-----------------|--------|------------------------------------|
 | TIME            | 64 bit | Timespan in nanoseconds            |
-| TIME\_OF\_DAY   | 64 bit | Milliseconds since Jan 1, 1970 UTC |
-| DATE            | 64 bit | Milliseconds since Jan 1, 1970 UTC |
-| DATE\_AND\_TIME | 64 bit | Milliseconds since Jan 1, 1970 UTC |
+| TIME\_OF\_DAY   | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
+| DATE            | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
+| DATE\_AND\_TIME | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
 
 Note that the internal representation and sizes of these types are specific
 to RuSTy and not defined by the IEC61131 standard.
 
 ### DATE
 The `DATE` datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
-stored as an i64 with a precision in milliseconds and denotes the number of milliseconds 
+stored as an i64 with a precision in nanoseconds and denotes the number of nanoseconds 
 that have elapsed since January 1, 1970 UTC not counting leap seconds. DATE literals start 
 with `DATE#` or `D#` followed by a date in the format of `yyyy-mm-dd`.
 
@@ -96,8 +96,8 @@ Examples
 
 ### DATE_AND_TIME
 The `DATE_AND_TIME` datatype is used to represent a certain point in time in the Gregorian Calendar.
-Such a value is stored as an `i64` with a precision in milliseconds and denotes the
-number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Such a value is stored as an `i64` with a precision in nanoseconds and denotes the
+number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
 DATE_AND_TIME literals start with `DATE_AND_TIME#` or `DT#` followed by a date and time in the
 format of `yyyy-mm-dd-hh:mm:ss`.
 
@@ -110,8 +110,8 @@ Examples
 
 ### TIME_OF_DAY
 The `TIME_OF_DAY` datatype is used to represent a specific moment in time in a day.
-Such a value is stored as an `i64` value with a precision in milliseconds and denotes the
-number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Such a value is stored as an `i64` value with a precision in nanoseconds and denotes the
+number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
 Hence this value is stored as a `DATE_AND_TIME` with the day fixed to 1970-01-01.
 `TIME_OF_DAY` literals start with `TIME_OF_DAY#` or `TOD#` followed by a time in the
 format of `hh:mm:ss`.
