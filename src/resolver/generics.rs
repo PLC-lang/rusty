@@ -5,7 +5,7 @@ use crate::{
     builtins,
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::AnnotationMap,
-    typesystem::{self, DataTypeInformation, DataType},
+    typesystem::{self, DataType, DataTypeInformation},
 };
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
@@ -153,7 +153,8 @@ impl<'i> TypeAnnotator<'i> {
                 self.index.get_members(generic_function.get_name())
             {
                 for (_, member) in generic_function_members {
-                    let new_type_name = self.find_or_create_datatype(member.get_type_name(), generics);
+                    let new_type_name =
+                        self.find_or_create_datatype(member.get_type_name(), generics);
 
                     //register the member under the new container (old: foo__T, new: foo__INT)
                     //with its new type-name (old: T, new: INT)
@@ -166,39 +167,47 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn find_or_create_datatype(&mut self, member_name: &str, generics: &HashMap<String, String>) -> String {
+    fn find_or_create_datatype(
+        &mut self,
+        member_name: &str,
+        generics: &HashMap<String, String>,
+    ) -> String {
         match self.index.find_effective_type_info(member_name) {
-                Some(DataTypeInformation::Generic { generic_symbol, .. }) => {
-                    // this is a generic member, so lets see what it's generic symbol is and translate it
-                    generics
-                        .get(generic_symbol)
-                        .map(String::as_str)
-                        .unwrap_or_else(|| member_name)
-                        .to_string()
-                },
-                Some(DataTypeInformation::Pointer {name, inner_type_name, auto_deref: true}) => {
-                    let inner_type_name = self.find_or_create_datatype(inner_type_name, generics);
-                    let name = format!("{name}__{inner_type_name}");
-                    let new_type_info = DataTypeInformation::Pointer { 
-                        name : name.clone(), 
-                        inner_type_name, 
-                        auto_deref: true 
-                    };
-
-                    self.annotation_map.new_index.register_type(DataType {
-                        information: new_type_info,
-                        initial_value: None,
-                        name: name.clone(),
-                        nature: TypeNature::Any,
-                    });
-
-                    name
-                },
-                _ => {
-                            // not a generic member, just use the original type
-                            member_name.to_string()
-                }
+            Some(DataTypeInformation::Generic { generic_symbol, .. }) => {
+                // this is a generic member, so lets see what it's generic symbol is and translate it
+                generics
+                    .get(generic_symbol)
+                    .map(String::as_str)
+                    .unwrap_or_else(|| member_name)
+                    .to_string()
             }
+            Some(DataTypeInformation::Pointer {
+                name,
+                inner_type_name,
+                auto_deref: true,
+            }) => {
+                let inner_type_name = self.find_or_create_datatype(inner_type_name, generics);
+                let name = format!("{name}__{inner_type_name}");
+                let new_type_info = DataTypeInformation::Pointer {
+                    name: name.clone(),
+                    inner_type_name,
+                    auto_deref: true,
+                };
+
+                self.annotation_map.new_index.register_type(DataType {
+                    information: new_type_info,
+                    initial_value: None,
+                    name: name.clone(),
+                    nature: TypeNature::Any,
+                });
+
+                name
+            }
+            _ => {
+                // not a generic member, just use the original type
+                member_name.to_string()
+            }
+        }
     }
 
     fn update_generic_function_parameters(
