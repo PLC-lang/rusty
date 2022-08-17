@@ -8,11 +8,11 @@ use self::{
         pou_generator::{self, PouGenerator},
         variable_generator,
     },
-    llvm_index::LlvmTypedIndex, debug::DebugLevel,
+    llvm_index::LlvmTypedIndex, debug::Debug 
 };
 use crate::{
     diagnostics::Diagnostic,
-    resolver::{AstAnnotations, StringLiterals}, OptimizationLevel,
+    resolver::{AstAnnotations, StringLiterals}, OptimizationLevel, DebugLevel,
 };
 
 use super::ast::*;
@@ -35,14 +35,16 @@ pub struct CodeGen<'ink> {
     /// the module represents a llvm compilation unit
     pub module: Module<'ink>,
     /// the debugging module creates debug information at appropriate locations
-    pub debug : debug::Debug<'ink>,
+    pub debug : Option<debug::DebugObj<'ink>>,
 }
 
 impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
-    pub fn new(context: &'ink Context, module_name: &str) -> CodeGen<'ink> {
+    pub fn new(context: &'ink Context, module_name: &str, optimization_level : OptimizationLevel, debug_level : DebugLevel) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        let debug = debug::Debug::new(&module, OptimizationLevel::None, DebugLevel::None);
+        let debug = if debug_level == DebugLevel::None { None } else {
+            Some(debug::new(&module, optimization_level, debug_level))
+        };
         CodeGen { context, module , debug}
     }
 
@@ -56,13 +58,14 @@ impl<'ink> CodeGen<'ink> {
         let mut index = LlvmTypedIndex::default();
         //Generate types index, and any global variables associated with them.
         let llvm_type_index =
-            data_type_generator::generate_data_types(&llvm, global_index, annotations)?;
+            data_type_generator::generate_data_types(&llvm, &self.debug, global_index, annotations)?;
         index.merge(llvm_type_index);
 
         //Generate global variables
         let llvm_gv_index = variable_generator::generate_global_variables(
             &self.module,
             &llvm,
+            &self.debug,
             global_index,
             annotations,
             &index,
@@ -152,8 +155,11 @@ impl<'ink> CodeGen<'ink> {
                 }
             }
         }
-
         Ok(self.module.print_to_string().to_string())
+    }
+
+    pub fn finalize(&self) {
+        self.debug.finalize()
     }
 }
 

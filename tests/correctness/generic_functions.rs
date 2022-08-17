@@ -48,6 +48,8 @@ fn test_external_function_called() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen

@@ -420,6 +420,8 @@ fn string_as_function_parameters() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
@@ -477,6 +479,8 @@ fn wstring_as_function_parameters() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
@@ -532,6 +536,8 @@ fn string_as_function_parameters_cast() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
@@ -589,6 +595,8 @@ fn wstring_as_function_parameters_cast() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen

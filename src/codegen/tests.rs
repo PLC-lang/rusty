@@ -9,3 +9,4 @@ mod initialization_test;
 mod statement_codegen_test;
 mod string_tests;
 mod typesystem_test;
+mod debug_tests;

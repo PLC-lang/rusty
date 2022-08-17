@@ -5,7 +5,7 @@ use crate::{
     ast::SourceRange,
     diagnostics::{Diagnostic, ErrNo},
     index::{Index, PouIndexEntry},
-    resolver::AstAnnotations,
+    resolver::AstAnnotations, codegen::debug::Debug,
 };
 use inkwell::{module::Module, values::GlobalValue};
 
@@ -16,10 +16,12 @@ use super::{
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
 };
+use crate::codegen::debug::DebugObj;
 
 pub fn generate_global_variables<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
+    debug: &'b Option<DebugObj<'ctx>>,
     global_index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: &'b LlvmTypedIndex<'ctx>,
@@ -66,7 +68,13 @@ pub fn generate_global_variables<'ctx, 'b>(
             }
             _ => err,
         })?;
-        index.associate_global(name, global_variable)?
+        index.associate_global(name, global_variable)?;
+        //generate debug info
+        //get debug type
+        if let Some(debug_type) = types_index.find_associated_debug_type(dbg!(&variable.data_type_name.to_lowercase())) {
+            // create global variable
+            debug.create_global_variable(name, debug_type, global_variable)?;
+        }
     }
     Ok(index)
 }

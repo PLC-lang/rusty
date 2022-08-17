@@ -199,6 +199,13 @@ pub enum OptimizationLevel {
     Aggressive,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum DebugLevel {
+    None,
+    VariablesOnly,
+    Full,
+}
+
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {
     fn from(val: OptimizationLevel) -> Self {
         match val {
@@ -584,12 +591,14 @@ pub fn compile_module<'c, T: SourceContainer>(
     includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     diagnostician: Diagnostician,
+    optimization: OptimizationLevel,
+    debug_level : DebugLevel,
 ) -> Result<(Index, CodeGen<'c>), Diagnostic> {
     let (full_index, mut index) = index_module(sources, includes, encoding, diagnostician)?;
 
     // ### PHASE 3 ###
     // - codegen
-    let code_generator = codegen::CodeGen::new(context, "main");
+    let code_generator = codegen::CodeGen::new(context, "main", optimization, debug_level);
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
@@ -598,6 +607,8 @@ pub fn compile_module<'c, T: SourceContainer>(
     for unit in index.annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
+
+    code_generator.finalize();
 
     Ok((full_index, code_generator))
 }
@@ -964,7 +975,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
 
     let files = create_file_paths(
         &parameters
-            .includes
+            .input
             .iter()
             .map(|it| it.as_str())
             .collect::<Vec<_>>(),
@@ -1031,7 +1042,7 @@ pub fn build_and_link(
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
-    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
+    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician, compile_options.optimization, DebugLevel::None)?;
 
     let targets = if targets.is_empty() {
         vec![Target::System]
