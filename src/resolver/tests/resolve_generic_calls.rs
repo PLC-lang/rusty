@@ -2,8 +2,8 @@ use crate::{
     assert_type_and_hint,
     ast::{self, flatten_expression_list, AstStatement},
     resolver::{AnnotationMap, TypeAnnotator},
-    test_utils::tests::index,
-    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE},
+    test_utils::tests::{index, annotate},
+    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, DataTypeInformation}, index::VariableIndexEntry,
 };
 
 #[test]
@@ -716,3 +716,99 @@ fn mux_return_type_follows_params() {
     );
     //Also test that the right side of the operator is dint
 }
+
+#[test]
+fn auto_pointer_of_generic_resolved() {
+    let (unit, mut index) = index(
+        " FUNCTION LEFT<T : ANY> : T
+        VAR_IN_OUT
+            IN : T;
+        END_VAR
+        END_FUNCTION
+    
+        FUNCTION LEFT_EXT<T : ANY> : DINT
+        VAR_IN_OUT
+            IN : T;
+        END_VAR
+        END_FUNCTION
+    
+        FUNCTION LEFT__DINT : DINT
+        VAR_INPUT
+            IN : DINT;
+        END_VAR
+            LEFT_EXT(IN);
+        END_FUNCTION
+        "
+    );
+
+    annotate(&unit, &mut index);
+   
+    let member = index.find_member("LEFT_EXT__DINT", "IN").unwrap();
+    let dt = index.find_effective_type_info(&member.data_type_name).unwrap();
+    if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, ..} = dt {
+        assert_eq!(inner_type_name, "DINT")
+    } else {
+        panic!("Expecting a pointer to dint, found {:?}",dt)
+    }
+}
+
+#[test]
+fn string_ref_as_generic_resolved() {
+    let (unit, mut index) = index(
+        " FUNCTION LEFT<T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        END_FUNCTION
+    
+        FUNCTION LEFT_EXT<T: ANY_STRING> : DINT
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        END_FUNCTION
+    
+        FUNCTION LEFT__STRING : STRING 
+        VAR_INPUT
+            IN : STRING;
+        END_VAR
+            LEFT_EXT(IN);
+        END_FUNCTION
+        "
+    );
+
+    let annotations = annotate(&unit, &mut index);
+   
+    let call_statement = &unit.implementations[2].statements[0];
+
+    if let AstStatement::CallStatement { parameters, ..} = call_statement {
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+
+        
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            "__LEFT__STRING_IN",
+            None
+        );
+    } else {
+        unreachable!("Should be a call statement")
+    }
+    
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        call_statement,
+        DINT_TYPE,
+        None
+    );
+
+    let member = index.find_member("LEFT_EXT__STRING", "IN").unwrap();
+    let dt = index.find_effective_type_info(&member.data_type_name).unwrap();
+    if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, ..} = dt {
+        assert_eq!(inner_type_name, "__LEFT__STRING_IN")
+    } else {
+        panic!("Expecting auto deref pointer to string, found {:?}",dt)
+    }
+
+} 

@@ -105,3 +105,39 @@ fn test_generic_function_implemented_in_st_called() {
     assert_eq!(main_type.a, 200);
     assert_eq!(main_type.b, 5.0f32);
 }
+
+
+#[allow(dead_code)]
+#[repr(C)]
+struct MainType2 {
+    s: [u8; 6],
+}
+
+#[test]
+fn test_generic_function_with_param_by_ref_called() {
+    //Given some external function.
+    let prog = "
+    FUNCTION LEFT <T: ANY_STRING> : T
+    VAR_INPUT {ref}
+        IN : T;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION LEFT_EXT<T: ANY_STRING> : DINT
+    VAR_INPUT {ref}
+        IN : T;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION LEFT__STRING : STRING 
+    VAR_INPUT
+        IN : STRING;
+    END_VAR
+        LEFT_EXT(IN);
+    END_FUNCTION
+    ";
+
+    let mut main_type = MainType2 { s: *b"hello\0" };
+    let _: i32 = compile_and_run(prog.to_string(), &mut main_type);
+    assert_eq!(main_type.s, *b"hello\0");
+}
