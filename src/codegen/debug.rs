@@ -7,29 +7,28 @@ use inkwell::{
     values::GlobalValue,
 };
 
-use crate::{ast::SourceRange, diagnostics::Diagnostic, DebugLevel, OptimizationLevel};
+use crate::{
+    ast::SourceRange, diagnostics::Diagnostic, typesystem::BOOL_SIZE, DebugLevel, OptimizationLevel,
+};
 
 #[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 enum DebugEncoding {
-    // DW_ATE_boolean,
+    DW_ATE_boolean,
     DW_ATE_signed,
     DW_ATE_unsigned,
     DW_ATE_float,
-    // DW_ATE_UTF,
 }
 
 impl From<DebugEncoding> for u32 {
-    fn from( enc : DebugEncoding) -> Self {
+    fn from(enc: DebugEncoding) -> Self {
         match enc {
-            // DebugEncoding::DW_ATE_boolean => 0x02,
+            DebugEncoding::DW_ATE_boolean => 0x02,
             DebugEncoding::DW_ATE_signed => 0x05,
             DebugEncoding::DW_ATE_unsigned => 0x07,
             DebugEncoding::DW_ATE_float => 0x04,
-            // DebugEncoding::DW_ATE_UTF => 0x10,
         }
     }
-    
 }
 
 impl From<DWARFEmissionKind> for DebugLevel {
@@ -57,6 +56,7 @@ pub trait Debug<'ink> {
         size: u32,
         is_signed: bool,
     ) -> Result<Option<DIType<'ink>>, Diagnostic>;
+    fn create_bool_type(&self, name: &str) -> Result<Option<DIType<'ink>>, Diagnostic>;
     fn create_float_type(&self, name: &str, size: u32) -> Result<Option<DIType<'ink>>, Diagnostic>;
     fn create_global_variable(
         &self,
@@ -118,6 +118,18 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
             .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))
     }
 
+    fn create_bool_type(&self, name: &str) -> Result<Option<DIType<'ink>>, Diagnostic> {
+        self.debug_info
+            .create_basic_type(
+                name,
+                BOOL_SIZE as u64,
+                DebugEncoding::DW_ATE_boolean.into(),
+                DIFlagsConstants::PUBLIC,
+            )
+            .map(|it| Some(it.as_type()))
+            .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))
+    }
+
     fn create_float_type(&self, name: &str, size: u32) -> Result<Option<DIType<'ink>>, Diagnostic> {
         let encoding = DebugEncoding::DW_ATE_float;
         self.debug_info
@@ -166,6 +178,13 @@ impl<'ink, T: Debug<'ink>> Debug<'ink> for Option<T> {
         }
     }
 
+    fn create_bool_type(&self, name: &str) -> Result<Option<DIType<'ink>>, Diagnostic> {
+        match self {
+            Self::None => Ok(None),
+            Self::Some(obj) => obj.create_bool_type(name),
+        }
+    }
+
     fn create_float_type(&self, name: &str, size: u32) -> Result<Option<DIType<'ink>>, Diagnostic> {
         match self {
             Self::None => Ok(None),
@@ -187,7 +206,7 @@ impl<'ink, T: Debug<'ink>> Debug<'ink> for Option<T> {
 
     fn finalize(&self) {
         match self {
-            Self::None => {},
+            Self::None => {}
             Self::Some(obj) => obj.finalize(),
         }
     }

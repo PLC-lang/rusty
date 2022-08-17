@@ -114,8 +114,12 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .or_else(|| self.parent_index.and_then(|it| it.find_global_value(name)))
     }
 
-    pub fn find_associated_type_and_debug(&self, type_name: &str) -> Option<(BasicTypeEnum<'ink>, Option<DIType<'ink>>)> {
-        dbg!(self.type_associations
+    pub fn find_associated_type_and_debug(
+        &self,
+        type_name: &str,
+    ) -> Option<(BasicTypeEnum<'ink>, Option<DIType<'ink>>)> {
+        dbg!(self
+            .type_associations
             .get(&type_name.to_lowercase())
             .copied()
             .or_else(|| {
@@ -126,14 +130,19 @@ impl<'ink> LlvmTypedIndex<'ink> {
     }
 
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
-        self.find_associated_type_and_debug(type_name).map(|(it, _) | it)
+        self.find_associated_type_and_debug(type_name)
+            .map(|(it, _)| it)
     }
 
     pub fn find_associated_debug_type(&self, type_name: &str) -> Option<DIType<'ink>> {
-        self.find_associated_type_and_debug(type_name).and_then(|(_, it) | it)
+        self.find_associated_type_and_debug(type_name)
+            .and_then(|(_, it)| it)
     }
 
-    pub fn find_associated_pou_type_and_debug(&self, type_name: &str) -> Option<(BasicTypeEnum<'ink>, Option<DIType<'ink>>)> {
+    pub fn find_associated_pou_type_and_debug(
+        &self,
+        type_name: &str,
+    ) -> Option<(BasicTypeEnum<'ink>, Option<DIType<'ink>>)> {
         self.pou_type_associations
             .get(&type_name.to_lowercase())
             .copied()
@@ -144,11 +153,13 @@ impl<'ink> LlvmTypedIndex<'ink> {
     }
 
     pub fn find_associated_pou_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
-        self.find_associated_pou_type_and_debug(type_name).map(|(it, _) | it)
+        self.find_associated_pou_type_and_debug(type_name)
+            .map(|(it, _)| it)
     }
 
     pub fn find_associated_pou_debug_type(&self, type_name: &str) -> Option<DIType<'ink>> {
-        self.find_associated_pou_type_and_debug(type_name).map(|(_, it) | it).flatten()
+        self.find_associated_pou_type_and_debug(type_name)
+            .and_then(|(_, it)| it)
     }
 
     pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {

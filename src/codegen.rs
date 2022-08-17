@@ -2,17 +2,19 @@
 
 /// module to generate llvm intermediate representation for a CompilationUnit
 use self::{
+    debug::Debug,
     generators::{
         data_type_generator,
         llvm::{GlobalValueExt, Llvm},
         pou_generator::{self, PouGenerator},
         variable_generator,
     },
-    llvm_index::LlvmTypedIndex, debug::Debug 
+    llvm_index::LlvmTypedIndex,
 };
 use crate::{
     diagnostics::Diagnostic,
-    resolver::{AstAnnotations, StringLiterals}, OptimizationLevel, DebugLevel,
+    resolver::{AstAnnotations, StringLiterals},
+    DebugLevel, OptimizationLevel,
 };
 
 use super::ast::*;
@@ -20,10 +22,10 @@ use super::index::*;
 use inkwell::module::Module;
 use inkwell::{context::Context, types::BasicType};
 
+mod debug;
 pub(crate) mod generators;
 mod llvm_index;
 mod llvm_typesystem;
-mod debug;
 #[cfg(test)]
 mod tests;
 
@@ -35,17 +37,28 @@ pub struct CodeGen<'ink> {
     /// the module represents a llvm compilation unit
     pub module: Module<'ink>,
     /// the debugging module creates debug information at appropriate locations
-    pub debug : Option<debug::DebugObj<'ink>>,
+    pub debug: Option<debug::DebugObj<'ink>>,
 }
 
 impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
-    pub fn new(context: &'ink Context, module_name: &str, optimization_level : OptimizationLevel, debug_level : DebugLevel) -> CodeGen<'ink> {
+    pub fn new(
+        context: &'ink Context,
+        module_name: &str,
+        optimization_level: OptimizationLevel,
+        debug_level: DebugLevel,
+    ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        let debug = if debug_level == DebugLevel::None { None } else {
+        let debug = if debug_level == DebugLevel::None {
+            None
+        } else {
             Some(debug::new(&module, optimization_level, debug_level))
         };
-        CodeGen { context, module , debug}
+        CodeGen {
+            context,
+            module,
+            debug,
+        }
     }
 
     pub fn generate_llvm_index(
@@ -57,8 +70,12 @@ impl<'ink> CodeGen<'ink> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let mut index = LlvmTypedIndex::default();
         //Generate types index, and any global variables associated with them.
-        let llvm_type_index =
-            data_type_generator::generate_data_types(&llvm, &self.debug, global_index, annotations)?;
+        let llvm_type_index = data_type_generator::generate_data_types(
+            &llvm,
+            &self.debug,
+            global_index,
+            annotations,
+        )?;
         index.merge(llvm_type_index);
 
         //Generate global variables

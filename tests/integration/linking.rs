@@ -268,7 +268,16 @@ fn link_missing_file() {
     //Compile file1 as shared object with file2 as param
     let context = Context::create();
     let diagnostician = Diagnostician::default();
-    let (_, codegen) = compile_module(&context, vec![file1], vec![], None, diagnostician, rusty::OptimizationLevel::None, rusty::DebugLevel::None).unwrap();
+    let (_, codegen) = compile_module(
+        &context,
+        vec![file1],
+        vec![],
+        None,
+        diagnostician,
+        rusty::OptimizationLevel::None,
+        rusty::DebugLevel::None,
+    )
+    .unwrap();
     let object = persist(
         &codegen,
         &out,

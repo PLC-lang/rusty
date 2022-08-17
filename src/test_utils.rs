@@ -14,7 +14,7 @@ pub mod tests {
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator,
         },
-        SourceContainer, Validator, DebugLevel,
+        DebugLevel, SourceContainer, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -77,7 +77,10 @@ pub mod tests {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
-    pub fn codegen_debug_without_unwrap(src: &str, debug_level : DebugLevel) -> Result<String, Diagnostic> {
+    pub fn codegen_debug_without_unwrap(
+        src: &str,
+        debug_level: DebugLevel,
+    ) -> Result<String, Diagnostic> {
         let mut id_provider = IdProvider::default();
         let (unit, index) = do_index(src, id_provider.clone());
 
@@ -86,15 +89,23 @@ pub mod tests {
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();
-        let code_generator = crate::codegen::CodeGen::new(&context, "main", crate::OptimizationLevel::None, debug_level);
+        let code_generator = crate::codegen::CodeGen::new(
+            &context,
+            "main",
+            crate::OptimizationLevel::None,
+            debug_level,
+        );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator.generate_llvm_index(&annotations, literals, &index)?;
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)
-            .map(|_| code_generator.module.print_to_string().to_string())
+            .map(|_| {
+                code_generator.finalize();
+                code_generator.module.print_to_string().to_string()
+            })
     }
 
-    pub fn codegen_with_debug(src : &str) -> String {
+    pub fn codegen_with_debug(src: &str) -> String {
         codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
     }
 
@@ -114,10 +125,15 @@ pub mod tests {
         diagnostician: Diagnostician,
     ) -> Result<String, Diagnostic> {
         let context = Context::create();
-        let (_, cg) = crate::compile_module(&context, sources, includes, encoding, diagnostician,
-        crate::OptimizationLevel::None,
-        crate::DebugLevel::None,
-            )?;
+        let (_, cg) = crate::compile_module(
+            &context,
+            sources,
+            includes,
+            encoding,
+            diagnostician,
+            crate::OptimizationLevel::None,
+            crate::DebugLevel::None,
+        )?;
         Ok(cg.module.print_to_string().to_string())
     }
 }

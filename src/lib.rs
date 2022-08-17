@@ -615,7 +615,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     diagnostician: Diagnostician,
     optimization: OptimizationLevel,
-    debug_level : DebugLevel,
+    debug_level: DebugLevel,
 ) -> Result<(Index, CodeGen<'c>), Diagnostic> {
     let (full_index, mut index) = index_module(sources, includes, encoding, diagnostician)?;
 
@@ -1015,7 +1015,15 @@ pub fn build_and_link(
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
-    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician, compile_options.optimization, DebugLevel::None)?;
+    let (index, codegen) = compile_module(
+        &context,
+        sources,
+        includes,
+        encoding,
+        diagnostician,
+        compile_options.optimization,
+        DebugLevel::None,
+    )?;
 
     if compile_options.format != FormatOption::None {
         let targets = if targets.is_empty() {

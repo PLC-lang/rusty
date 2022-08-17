@@ -16,9 +16,9 @@ use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
+        debug::DebugObj,
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{get_llvm_float_type, get_llvm_int_type},
-        debug::DebugObj,
     },
     typesystem::DataType,
 };
@@ -175,11 +175,13 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Struct { source, .. } => match source {
                 StructSource::Pou(..) => self
                     .types_index
-                    .get_associated_pou_type(data_type.get_name()).map(|it| (it, None)),
-                StructSource::OriginalDeclaration => {
-                    self.types_index.get_associated_type(data_type.get_name()).map(|it| (it, None))
-                }
-            }
+                    .get_associated_pou_type(data_type.get_name())
+                    .map(|it| (it, None)),
+                StructSource::OriginalDeclaration => self
+                    .types_index
+                    .get_associated_type(data_type.get_name())
+                    .map(|it| (it, None)),
+            },
             DataTypeInformation::Array {
                 inner_type_name,
                 dimensions,
@@ -188,12 +190,18 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .index
                 .get_effective_type(inner_type_name)
                 .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
-                .and_then(|(inner_type, _) | self.create_nested_array_type(inner_type, dimensions))
-                .map(|it| it.as_basic_type_enum()).map(|it| (it, None)),
+                .and_then(|(inner_type, _)| self.create_nested_array_type(inner_type, dimensions))
+                .map(|it| it.as_basic_type_enum())
+                .map(|it| (it, None)),
             DataTypeInformation::Integer { size, signed, .. } => {
-                let int_type = get_llvm_int_type(self.llvm.context, *size, &name).map(|it| it.into())?;
+                let int_type =
+                    get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())?;
                 let name = name.to_lowercase();
-                let debug_type = self.debug.create_int_type(&name, *size, *signed)?;
+                let debug_type = if information.is_bool() {
+                    self.debug.create_bool_type(&name)
+                } else {
+                    self.debug.create_int_type(&name, *size, *signed)
+                }?;
                 Ok((int_type, debug_type))
             }
             DataTypeInformation::Enum {
@@ -206,11 +214,14 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     .get_effective_type_by_name(referenced_type)
                     .get_type_information();
                 if let DataTypeInformation::Integer {
-                    size: enum_size, signed, ..
+                    size: enum_size,
+                    signed,
+                    ..
                 } = effective_type
                 {
-                    let int_type = get_llvm_int_type(self.llvm.context, *enum_size, name).map(|it| it.into())?;
-                    let debug_type = self.debug.create_int_type(&name, *enum_size,*signed)?;
+                    let int_type = get_llvm_int_type(self.llvm.context, *enum_size, name)
+                        .map(|it| it.into())?;
+                    let debug_type = self.debug.create_int_type(name, *enum_size, *signed)?;
                     Ok((int_type, debug_type))
                 } else {
                     Err(Diagnostic::invalid_type_nature(
@@ -221,8 +232,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 }
             }
             DataTypeInformation::Float { size, .. } => {
-                let float_type = get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())?;
-                let debug_type = self.debug.create_float_type(&name, *size)?;
+                let float_type =
+                    get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())?;
+                let debug_type = self.debug.create_float_type(name, *size)?;
                 Ok((float_type, debug_type))
             }
             DataTypeInformation::String { size, encoding } => {
@@ -246,9 +258,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .index
                 .get_effective_type(referenced_type)
                 .and_then(|data_type| self.create_type(name, data_type)),
-            DataTypeInformation::Void => {
-                get_llvm_int_type(self.llvm.context, 32, "Void").map(Into::into).map(|it| (it, None))
-            }
+            DataTypeInformation::Void => get_llvm_int_type(self.llvm.context, 32, "Void")
+                .map(Into::into)
+                .map(|it| (it, None)),
             DataTypeInformation::Pointer {
                 inner_type_name, ..
             } => {
