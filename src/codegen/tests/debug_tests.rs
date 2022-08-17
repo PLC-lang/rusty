@@ -55,4 +55,15 @@ fn test_global_var_enum_added_to_debug_info() {
 }
 
 #[test]
-fn test_global_var_float_added_to_debug_info() {}
+fn test_global_var_float_added_to_debug_info() {
+    let codegen = codegen(
+        r#"
+    VAR_GLOBAL
+        a : REAL; 
+        b : LREAL; 
+    END_VAR
+    "#,
+    );
+
+    assert_snapshot!(codegen)
+}
