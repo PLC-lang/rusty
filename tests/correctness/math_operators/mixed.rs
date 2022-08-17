@@ -1,4 +1,5 @@
 use crate::compile_and_run;
+use chrono::TimeZone;
 use num::{Float, NumCast};
 
 #[derive(Default)]
@@ -166,8 +167,8 @@ fn mixed_math_date_basic() {
     FUNCTION main : DATE
     VAR
         date_var : DATE := D#2021-01-01;
-        date_10_days : DATE := 777600000;
-        date_1_day : DATE := 86400;
+        date_10_days : DATE := 777600000000000;
+        date_1_day : DATE := 86400000000000;
         result : DATE;
     END_VAR
         result := date_var + date_10_days * 2 - date_1_day / 2;
@@ -178,7 +179,19 @@ fn mixed_math_date_basic() {
     let mut main = MainType::default();
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 1611014356800);
+    let date_var = chrono::Utc
+        .ymd(2021, 1, 1)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    let date_10_days = chrono::Utc
+        .ymd(1970, 1, 10)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    let date_1_day = chrono::Utc
+        .ymd(1970, 1, 2)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    assert_eq!(res, date_var + date_10_days * 2 - date_1_day / 2);
 }
 
 #[test]
@@ -187,8 +200,8 @@ fn mixed_math_dt_basic() {
     FUNCTION main : DT
     VAR
         date_var : DT := D#2021-01-01;
-        date_10_days : DT := 777600000;
-        date_1_day : DT := 86400;
+        date_10_days : DT := 777600000000000;
+        date_1_day : DT := 86400000000000;
         result : DT;
     END_VAR
         result := date_var + date_10_days * 2 - date_1_day / 2;
@@ -199,7 +212,19 @@ fn mixed_math_dt_basic() {
     let mut main = MainType::default();
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 1611014356800);
+    let date_var = chrono::Utc
+        .ymd(2021, 1, 1)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    let date_10_days = chrono::Utc
+        .ymd(1970, 1, 10)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    let date_1_day = chrono::Utc
+        .ymd(1970, 1, 2)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    assert_eq!(res, date_var + date_10_days * 2 - date_1_day / 2);
 }
 
 #[test]

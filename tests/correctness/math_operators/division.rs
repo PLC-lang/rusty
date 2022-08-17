@@ -1,4 +1,5 @@
 use crate::{compile_and_run, MainType};
+use chrono::TimeZone;
 use num::{Float, NumCast};
 
 //--------------------------------------------------------------
@@ -196,7 +197,7 @@ fn division_date_basic() {
     FUNCTION main : DATE
     VAR
         date_var : DATE := D#2021-01-01;
-        date_10_days : DATE := 777600000;
+        date_10_days : DATE := 777600000000000;
         result,div_result : DATE;
     END_VAR
         div_result := date_10_days / 2;
@@ -208,7 +209,15 @@ fn division_date_basic() {
     let mut main = MainType::default();
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 1609848000000);
+    let date_var = chrono::Utc
+        .ymd(2021, 1, 1)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    let date_10_days = chrono::Utc
+        .ymd(1970, 1, 10)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    assert_eq!(res, date_var + date_10_days / 2);
 }
 
 #[test]
