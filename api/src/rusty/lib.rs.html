@@ -1224,22 +1224,6 @@
 <span id="1219">1219</span>
 <span id="1220">1220</span>
 <span id="1221">1221</span>
-<span id="1222">1222</span>
-<span id="1223">1223</span>
-<span id="1224">1224</span>
-<span id="1225">1225</span>
-<span id="1226">1226</span>
-<span id="1227">1227</span>
-<span id="1228">1228</span>
-<span id="1229">1229</span>
-<span id="1230">1230</span>
-<span id="1231">1231</span>
-<span id="1232">1232</span>
-<span id="1233">1233</span>
-<span id="1234">1234</span>
-<span id="1235">1235</span>
-<span id="1236">1236</span>
-<span id="1237">1237</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A St&amp;ructured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -1259,12 +1243,12 @@
 <span class="doccomment">//! [`ST`]: https://en.wikipedia.org/wiki/Structured_text</span>
 <span class="doccomment">//! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3</span>
 <span class="doccomment">//! [`IR`]: https://llvm.org/docs/LangRef.html</span>
+<span class="kw">use</span> <span class="ident">std::env</span>;
 <span class="kw">use</span> <span class="ident">std::ffi::OsStr</span>;
 <span class="kw">use</span> <span class="ident">std::fmt::Display</span>;
 <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Write</span>};
 <span class="kw">use</span> <span class="ident">std::process::Command</span>;
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">env</span>, <span class="ident">fs</span>};
 
 <span class="kw">use</span> <span class="ident">build</span>::{<span class="ident">get_project_from_file</span>, <span class="ident">Libraries</span>, <span class="ident">PackageFormat</span>};
 <span class="kw">use</span> <span class="ident">clap::ArgEnum</span>;
@@ -1366,17 +1350,39 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FormatOption</span> {
+    <span class="doccomment">/// Indicates that the result will be an object file (e.g. No Linking)</span>
+    <span class="ident">Object</span>,
+    <span class="doccomment">/// Indicates that the output format will be linked statically (i.e. Executable)</span>
     <span class="ident">Static</span>,
+    <span class="doccomment">/// Indicates that the linked object will be Position Independant</span>
     <span class="ident">PIC</span>,
+    <span class="doccomment">/// Indicates that the linked object will be shared</span>
     <span class="ident">Shared</span>,
+    <span class="doccomment">/// Indicates that the compiled object will be relocatable (e.g. Combinable into multiple objects)</span>
     <span class="ident">Relocatable</span>,
+    <span class="doccomment">/// Indicates that the compile result will be LLVM Bitcode</span>
     <span class="ident">Bitcode</span>,
+    <span class="doccomment">/// Indicates that the compile result will be LLVM IR</span>
     <span class="ident">IR</span>,
+    <span class="doccomment">/// Indicates that no output will be generated (Check only)</span>
+    <span class="prelude-val">None</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">FormatOption</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">FormatOption::Static</span>
+        <span class="ident">FormatOption::None</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatOption</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_link</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            <span class="ident">FormatOption::Static</span>
+                <span class="op">|</span> <span class="ident">FormatOption::Shared</span>
+                <span class="op">|</span> <span class="ident">FormatOption::Relocatable</span>
+                <span class="op">|</span> <span class="ident">FormatOption::PIC</span>
+        )
     }
 }
 
@@ -1400,14 +1406,14 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompileOptions</span> {
-    <span class="kw">pub</span> <span class="ident">format</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FormatOption</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">format</span>: <span class="ident">FormatOption</span>,
     <span class="kw">pub</span> <span class="ident">build_location</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">output</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">optimization</span>: <span class="ident">OptimizationLevel</span>,
     <span class="kw">pub</span> <span class="ident">error_format</span>: <span class="ident">ErrorFormat</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LinkOptions</span> {
     <span class="kw">pub</span> <span class="ident">libraries</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">library_pathes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
@@ -1597,7 +1603,7 @@
 <span class="doccomment">///</span>
 <span class="kw">fn</span> <span class="ident">persist_to_obj</span>(
     <span class="ident">codegen</span>: <span class="kw-2">&amp;</span><span class="ident">CodeGen</span>,
-    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">reloc</span>: <span class="ident">RelocMode</span>,
     <span class="ident">triple</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
     <span class="ident">optimization</span>: <span class="ident">OptimizationLevel</span>,
@@ -1626,8 +1632,7 @@
         });
 
     <span class="comment">//Make sure all parents exist</span>
-    <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">output</span>);
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">output_path</span>.<span class="ident">parent</span>() {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">output</span>.<span class="ident">parent</span>() {
         <span class="ident">std::fs::create_dir_all</span>(<span class="ident">parent</span>)<span class="question-mark">?</span>;
     }
     <span class="comment">////Run the passes</span>
@@ -1635,10 +1640,10 @@
         <span class="ident">codegen</span>
             .<span class="ident">module</span>
             .<span class="ident">run_passes</span>(<span class="ident">optimization</span>.<span class="ident">opt_params</span>(), <span class="kw-2">&amp;</span><span class="ident">it</span>, <span class="ident">PassBuilderOptions::create</span>())
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::llvm_error</span>(<span class="ident">output</span>, <span class="kw-2">&amp;</span><span class="ident">it</span>))
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::llvm_error</span>(<span class="ident">output</span>.<span class="ident">to_str</span>().<span class="ident">unwrap_or_default</span>(), <span class="kw-2">&amp;</span><span class="ident">it</span>))
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                <span class="ident">it</span>.<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="ident">codegen</span>.<span class="ident">module</span>, <span class="ident">FileType::Object</span>, <span class="ident">output_path</span>)
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::llvm_error</span>(<span class="ident">output</span>, <span class="kw-2">&amp;</span><span class="ident">it</span>))
+                <span class="ident">it</span>.<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="ident">codegen</span>.<span class="ident">module</span>, <span class="ident">FileType::Object</span>, <span class="ident">output</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::llvm_error</span>(<span class="ident">output</span>.<span class="ident">to_str</span>().<span class="ident">unwrap_or_default</span>(), <span class="kw-2">&amp;</span><span class="ident">it</span>))
             })
     })
 }
@@ -1653,7 +1658,7 @@
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_as_static_obj</span>(
     <span class="ident">codegen</span>: <span class="kw-2">&amp;</span><span class="ident">CodeGen</span>,
-    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
     <span class="ident">optimization</span>: <span class="ident">OptimizationLevel</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
@@ -1670,7 +1675,7 @@
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_shared_pic_object</span>(
     <span class="ident">codegen</span>: <span class="kw-2">&amp;</span><span class="ident">CodeGen</span>,
-    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
     <span class="ident">optimization</span>: <span class="ident">OptimizationLevel</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
@@ -1686,7 +1691,7 @@
 <span class="doccomment">/// * `target` - llvm target triple</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_shared_object</span>(
     <span class="ident">codegen</span>: <span class="kw-2">&amp;</span><span class="ident">CodeGen</span>,
-    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
     <span class="ident">optimization</span>: <span class="ident">OptimizationLevel</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
@@ -1706,9 +1711,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `codegen` - the genated LLVM module to persist</span>
 <span class="doccomment">/// * `output` - the location on disk to save the output</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_bitcode</span>(<span class="ident">codegen</span>: <span class="kw-2">&amp;</span><span class="ident">CodeGen</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">output</span>);
-    <span class="kw">if</span> <span class="ident">codegen</span>.<span class="ident">module</span>.<span class="ident">write_bitcode_to_path</span>(<span class="ident">path</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_bitcode</span>(<span class="ident">codegen</span>: <span class="kw-2">&amp;</span><span class="ident">CodeGen</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">codegen</span>.<span class="ident">module</span>.<span class="ident">write_bitcode_to_path</span>(<span class="ident">output</span>) {
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else</span> {
         <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
@@ -1725,10 +1729,13 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `codegen` - The generated LLVM module to be persisted</span>
 <span class="doccomment">/// * `output`  - The location to save the generated ir file</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_ir</span>(<span class="ident">codegen</span>: <span class="kw-2">&amp;</span><span class="ident">CodeGen</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ir</span> <span class="op">=</span> <span class="ident">codegen</span>.<span class="ident">module</span>.<span class="ident">print_to_string</span>().<span class="ident">to_string</span>();
-    <span class="ident">fs::write</span>(<span class="ident">output</span>, <span class="ident">ir</span>)
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Diagnostic::io_write_error</span>(<span class="ident">output</span>, <span class="ident">err</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>()))
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist_to_ir</span>(<span class="ident">codegen</span>: <span class="kw-2">&amp;</span><span class="ident">CodeGen</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="ident">codegen</span>.<span class="ident">module</span>.<span class="ident">print_to_file</span>(<span class="ident">output</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        <span class="ident">Diagnostic::io_write_error</span>(
+            <span class="ident">output</span>.<span class="ident">to_str</span>().<span class="ident">unwrap_or_default</span>(),
+            <span class="ident">err</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>(),
+        )
+    })
 }
 
 <span class="kw">struct</span> <span class="ident">IndexComponents</span> {
@@ -1973,13 +1980,12 @@
 
         <span class="kw">let</span> <span class="ident">compile_options</span> <span class="op">=</span> <span class="ident">CompileOptions</span> {
             <span class="ident">build_location</span>: <span class="prelude-val">Some</span>(<span class="ident">build_location</span>.<span class="ident">to_owned</span>()),
-            <span class="ident">output</span>: <span class="ident">get_output_name</span>(
-                <span class="ident">project</span>.<span class="ident">output</span>.<span class="ident">as_deref</span>(),
-                <span class="ident">project</span>.<span class="ident">compile_type</span>.<span class="ident">unwrap_or_default</span>(),
-                <span class="ident">parameters</span>.<span class="ident">skip_linking</span>,
-                <span class="ident">input</span>,
-            ),
-            <span class="ident">format</span>: <span class="ident">project</span>.<span class="ident">compile_type</span>,
+            <span class="ident">output</span>: <span class="ident">get_output_name</span>(<span class="ident">project</span>.<span class="ident">output</span>.<span class="ident">as_deref</span>(), <span class="ident">project</span>.<span class="ident">compile_type</span>, <span class="ident">input</span>),
+            <span class="ident">format</span>: <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">check_only</span> {
+                <span class="ident">FormatOption::None</span>
+            } <span class="kw">else</span> {
+                <span class="ident">project</span>.<span class="ident">compile_type</span>
+            },
             <span class="ident">optimization</span>: <span class="ident">parameters</span>.<span class="ident">optimization</span>,
             <span class="ident">error_format</span>: <span class="ident">parameters</span>.<span class="ident">error_format</span>,
         };
@@ -2002,7 +2008,7 @@
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">to_string</span>())
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
         )<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">link_options</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">format</span>) <span class="op">=</span> <span class="ident">project</span>.<span class="ident">compile_type</span> {
+        <span class="kw">let</span> <span class="ident">link_options</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">compile_only</span> {
             <span class="prelude-val">Some</span>(<span class="ident">LinkOptions</span> {
                 <span class="ident">libraries</span>: <span class="ident">project</span>
                     .<span class="ident">libraries</span>
@@ -2015,7 +2021,7 @@
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">path</span>.<span class="ident">to_string_lossy</span>())
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">to_string</span>())
                     .<span class="ident">collect</span>(),
-                <span class="ident">format</span>,
+                <span class="ident">format</span>: <span class="ident">project</span>.<span class="ident">compile_type</span>,
                 <span class="ident">linker</span>: <span class="ident">parameters</span>.<span class="ident">linker</span>,
             })
         } <span class="kw">else</span> {
@@ -2111,51 +2117,6 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">link_and_create</span>(
-    <span class="ident">link_options</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">LinkOptions</span><span class="op">&gt;</span>,
-    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
-    <span class="ident">to_link</span>: <span class="kw-2">&amp;</span>[<span class="ident">FilePath</span>],
-    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">Target</span>,
-    <span class="ident">config_options</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ConfigurationOptions</span><span class="op">&gt;</span>,
-    <span class="ident">compile_result</span>: <span class="kw-2">&amp;</span><span class="ident">FilePath</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="comment">//Make sure all parents exist</span>
-    <span class="kw">let</span> <span class="ident">output_path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">output</span>);
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">output_path</span>.<span class="ident">parent</span>() {
-        <span class="ident">std::fs::create_dir_all</span>(<span class="ident">parent</span>)<span class="question-mark">?</span>;
-    }
-
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">link_options</span>) <span class="op">=</span> <span class="ident">link_options</span> {
-        <span class="ident">link</span>(
-            <span class="ident">output</span>,
-            <span class="ident">link_options</span>.<span class="ident">format</span>,
-            <span class="ident">to_link</span>,
-            <span class="kw-2">&amp;</span><span class="ident">link_options</span>.<span class="ident">library_pathes</span>,
-            <span class="kw-2">&amp;</span><span class="ident">link_options</span>.<span class="ident">libraries</span>,
-            <span class="ident">target</span>,
-            <span class="ident">link_options</span>.<span class="ident">linker</span>.<span class="ident">as_deref</span>(),
-        )<span class="question-mark">?</span>;
-    } <span class="kw">else</span> {
-        <span class="comment">// If not linking, copy the generated file to the correct location</span>
-        <span class="ident">std::fs::copy</span>(<span class="ident">compile_result</span>.<span class="ident">get_location</span>(), <span class="ident">output</span>)<span class="question-mark">?</span>;
-    }
-
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">config</span>) <span class="op">=</span> <span class="ident">config_options</span> {
-        <span class="kw">let</span> <span class="ident">hw_config</span> <span class="op">=</span> <span class="ident">hardware_binding::collect_hardware_configuration</span>(<span class="ident">index</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">generated_conf</span> <span class="op">=</span>
-            <span class="ident">hardware_binding::generate_hardware_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">hw_config</span>, <span class="ident">config</span>.<span class="ident">format</span>)<span class="question-mark">?</span>;
-
-        <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">output</span>)
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">write_all</span>(<span class="ident">generated_conf</span>.<span class="ident">as_bytes</span>()))
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::GeneralError</span> {
-                <span class="ident">err_no</span>: <span class="ident">diagnostics::ErrNo::general__io_err</span>,
-                <span class="ident">message</span>: <span class="ident">it</span>.<span class="ident">to_string</span>(),
-            })<span class="question-mark">?</span>;
-    }
-    <span class="prelude-val">Ok</span>(())
-}
-
 <span class="doccomment">/// The driver function for the compilation</span>
 <span class="doccomment">/// Sorts files that need compilation</span>
 <span class="doccomment">/// Parses, validates and generates code for the given source files</span>
@@ -2163,19 +2124,7 @@
 <span class="doccomment">/// Links any provided libraries</span>
 <span class="doccomment">/// Returns the location of the output file</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_with_params</span>(<span class="ident">parameters</span>: <span class="ident">CompileParameters</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">includes</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">includes</span>.<span class="ident">is_empty</span>() {
-        <span class="macro">vec!</span>[]
-    } <span class="kw">else</span> {
-        <span class="ident">create_file_paths</span>(
-            <span class="kw-2">&amp;</span><span class="ident">parameters</span>
-                .<span class="ident">includes</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_str</span>())
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-        )<span class="question-mark">?</span>
-    };
-
-    <span class="kw">let</span> <span class="ident">out_format</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>();
+    <span class="kw">let</span> <span class="ident">format</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>();
     <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">output_name</span>();
 
     <span class="kw">let</span> <span class="ident">config_options</span> <span class="op">=</span> <span class="ident">parameters</span>
@@ -2192,9 +2141,9 @@
         <span class="ident">build_location</span>: <span class="prelude-val">None</span>,
         <span class="ident">output</span>,
         <span class="ident">format</span>: <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">check_only</span> {
-            <span class="prelude-val">None</span>
+            <span class="ident">FormatOption::None</span>
         } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">out_format</span>)
+            <span class="ident">format</span>
         },
         <span class="ident">optimization</span>: <span class="ident">parameters</span>.<span class="ident">optimization</span>,
         <span class="ident">error_format</span>: <span class="ident">parameters</span>.<span class="ident">error_format</span>,
@@ -2202,21 +2151,29 @@
 
     <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="ident">create_file_paths</span>(
         <span class="kw-2">&amp;</span><span class="ident">parameters</span>
+            .<span class="ident">input</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_str</span>())
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+    )<span class="question-mark">?</span>;
+
+    <span class="kw">let</span> <span class="ident">includes</span> <span class="op">=</span> <span class="ident">create_file_paths</span>(
+        <span class="kw-2">&amp;</span><span class="ident">parameters</span>
             .<span class="ident">includes</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_str</span>())
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
     )<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">link_options</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">skip_linking</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">check_only</span> {
+    <span class="kw">let</span> <span class="ident">link_options</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">compile_only</span> {
+        <span class="prelude-val">None</span>
+    } <span class="kw">else</span> {
         <span class="prelude-val">Some</span>(<span class="ident">LinkOptions</span> {
             <span class="ident">libraries</span>: <span class="ident">parameters</span>.<span class="ident">libraries</span>,
             <span class="ident">library_pathes</span>: <span class="ident">parameters</span>.<span class="ident">library_paths</span>,
-            <span class="ident">format</span>: <span class="ident">out_format</span>,
+            <span class="ident">format</span>,
             <span class="ident">linker</span>: <span class="ident">parameters</span>.<span class="ident">linker</span>,
         })
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
     };
 
     <span class="kw">let</span> <span class="ident">targets</span> <span class="op">=</span> <span class="ident">parameters</span>
@@ -2271,13 +2228,12 @@
     };
     <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">codegen</span>) <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">targets</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">targets</span>.<span class="ident">is_empty</span>() {
-        <span class="macro">vec!</span>[<span class="ident">Target::System</span>]
-    } <span class="kw">else</span> {
-        <span class="ident">targets</span>
-    };
-
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">out_format</span>) <span class="op">=</span> <span class="ident">compile_options</span>.<span class="ident">format</span> {
+    <span class="kw">if</span> <span class="ident">compile_options</span>.<span class="ident">format</span> <span class="op">!</span><span class="op">=</span> <span class="ident">FormatOption::None</span> {
+        <span class="kw">let</span> <span class="ident">targets</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">targets</span>.<span class="ident">is_empty</span>() {
+            <span class="macro">vec!</span>[<span class="ident">Target::System</span>]
+        } <span class="kw">else</span> {
+            <span class="ident">targets</span>
+        };
         <span class="kw">for</span> <span class="ident">target</span> <span class="kw">in</span> <span class="ident">targets</span> {
             <span class="kw">let</span> <span class="ident">triple</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">get_target_triple</span>();
             <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target_name</span>) <span class="op">=</span> <span class="ident">target</span>.<span class="ident">try_get_name</span>() {
@@ -2298,26 +2254,51 @@
                 .<span class="ident">file_name</span>()
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">to_str</span>())
                 .<span class="ident">unwrap_or</span>(<span class="string">&quot;tmp.o&quot;</span>);
-            <span class="kw">let</span> <span class="ident">compile_dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">compile_result</span> <span class="op">=</span> <span class="ident">compile_dir</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="ident">compile_name</span>);
+            <span class="kw">let</span> <span class="ident">compile_location</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">link_options</span>
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">format</span>.<span class="ident">should_link</span>())
+                .<span class="ident">unwrap_or_default</span>()
+            {
+                <span class="kw">let</span> <span class="ident">compile_dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>()<span class="question-mark">?</span>;
+                <span class="ident">compile_dir</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="ident">compile_name</span>)
+            } <span class="kw">else</span> {
+                <span class="ident">PathBuf::from</span>(<span class="ident">output_name</span>)
+            };
 
             <span class="ident">objects</span>.<span class="ident">push</span>(<span class="ident">persist</span>(
                 <span class="kw-2">&amp;</span><span class="ident">codegen</span>,
-                <span class="kw-2">&amp;</span><span class="ident">compile_result</span>.<span class="ident">to_string_lossy</span>(),
-                <span class="ident">out_format</span>,
+                <span class="kw-2">&amp;</span><span class="ident">compile_location</span>,
+                <span class="ident">compile_options</span>.<span class="ident">format</span>,
                 <span class="kw-2">&amp;</span><span class="ident">triple</span>,
                 <span class="ident">compile_options</span>.<span class="ident">optimization</span>,
             )<span class="question-mark">?</span>);
 
-            <span class="ident">link_and_create</span>(
-                <span class="ident">link_options</span>.<span class="ident">as_ref</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">index</span>,
-                <span class="kw-2">&amp;</span><span class="ident">objects</span>,
-                <span class="ident">output_name</span>,
-                <span class="kw-2">&amp;</span><span class="ident">target</span>,
-                <span class="ident">config_options</span>.<span class="ident">as_ref</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">compile_result</span>.<span class="ident">as_path</span>().<span class="ident">into</span>(),
-            )<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">link_options</span>) <span class="op">=</span> <span class="ident">link_options</span>.<span class="ident">as_ref</span>() {
+                <span class="kw">if</span> <span class="ident">link_options</span>.<span class="ident">format</span>.<span class="ident">should_link</span>() {
+                    <span class="ident">link</span>(
+                        <span class="ident">Path::new</span>(<span class="ident">output_name</span>),
+                        <span class="ident">link_options</span>.<span class="ident">format</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">objects</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">link_options</span>.<span class="ident">library_pathes</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">link_options</span>.<span class="ident">libraries</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">target</span>,
+                        <span class="ident">link_options</span>.<span class="ident">linker</span>.<span class="ident">as_deref</span>(),
+                    )<span class="question-mark">?</span>;
+                }
+            }
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">config</span>) <span class="op">=</span> <span class="ident">config_options</span> {
+                <span class="kw">let</span> <span class="ident">hw_config</span> <span class="op">=</span> <span class="ident">hardware_binding::collect_hardware_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">generated_conf</span> <span class="op">=</span>
+                    <span class="ident">hardware_binding::generate_hardware_configuration</span>(<span class="kw-2">&amp;</span><span class="ident">hw_config</span>, <span class="ident">config</span>.<span class="ident">format</span>)<span class="question-mark">?</span>;
+
+                <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">output</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">write_all</span>(<span class="ident">generated_conf</span>.<span class="ident">as_bytes</span>()))
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::GeneralError</span> {
+                        <span class="ident">err_no</span>: <span class="ident">diagnostics::ErrNo::general__io_err</span>,
+                        <span class="ident">message</span>: <span class="ident">it</span>.<span class="ident">to_string</span>(),
+                    })<span class="question-mark">?</span>;
+            }
         }
     }
 
@@ -2326,26 +2307,27 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist</span>(
     <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">codegen::CodeGen</span>,
-    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">out_format</span>: <span class="ident">FormatOption</span>,
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">TargetTriple</span>,
     <span class="ident">optimization</span>: <span class="ident">OptimizationLevel</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FilePath</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">out_format</span> {
-        <span class="ident">FormatOption::Static</span> <span class="op">|</span> <span class="ident">FormatOption::Relocatable</span> =&gt; {
+        <span class="ident">FormatOption::Object</span> <span class="op">|</span> <span class="ident">FormatOption::Static</span> <span class="op">|</span> <span class="ident">FormatOption::Relocatable</span> =&gt; {
             <span class="ident">persist_as_static_obj</span>(<span class="ident">input</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">optimization</span>)
         }
         <span class="ident">FormatOption::Shared</span> =&gt; <span class="ident">persist_to_shared_object</span>(<span class="ident">input</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">optimization</span>),
         <span class="ident">FormatOption::PIC</span> =&gt; <span class="ident">persist_to_shared_pic_object</span>(<span class="ident">input</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">optimization</span>),
         <span class="ident">FormatOption::Bitcode</span> =&gt; <span class="ident">persist_to_bitcode</span>(<span class="ident">input</span>, <span class="ident">output</span>),
         <span class="ident">FormatOption::IR</span> =&gt; <span class="ident">persist_to_ir</span>(<span class="ident">input</span>, <span class="ident">output</span>),
+        <span class="ident">FormatOption::None</span> =&gt; <span class="prelude-val">Ok</span>(()),
     }<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="ident">output</span>.<span class="ident">into</span>())
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">link</span>(
-    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">out_format</span>: <span class="ident">FormatOption</span>,
     <span class="ident">objects</span>: <span class="kw-2">&amp;</span>[<span class="ident">FilePath</span>],
     <span class="ident">library_pathes</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>],
@@ -2353,6 +2335,10 @@
     <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">Target</span>,
     <span class="ident">linker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="comment">//Make sure all parents exist</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">output</span>.<span class="ident">parent</span>() {
+        <span class="ident">std::fs::create_dir_all</span>(<span class="ident">parent</span>)<span class="question-mark">?</span>;
+    }
     <span class="kw">let</span> <span class="ident">linkable_formats</span> <span class="op">=</span> <span class="macro">vec!</span>[
         <span class="ident">FormatOption::Static</span>,
         <span class="ident">FormatOption::Relocatable</span>,
@@ -2367,7 +2353,7 @@
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Diagnostic::param_error</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">to_string</span>()))
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">triple</span><span class="op">|</span> <span class="ident">linker::Linker::new</span>(<span class="ident">triple</span>, <span class="ident">linker</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>()))<span class="question-mark">?</span>;
         <span class="ident">linker</span>.<span class="ident">add_lib_path</span>(<span class="string">&quot;.&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">output</span>).<span class="ident">parent</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">output</span>.<span class="ident">parent</span>() {
             <span class="ident">linker</span>.<span class="ident">add_lib_path</span>(<span class="kw-2">&amp;</span><span class="ident">parent</span>.<span class="ident">to_string_lossy</span>());
         }
 
@@ -2387,9 +2373,9 @@
         }
 
         <span class="kw">match</span> <span class="ident">out_format</span> {
-            <span class="ident">FormatOption::Static</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_exectuable</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
-            <span class="ident">FormatOption::Relocatable</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_relocatable</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
-            <span class="kw">_</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_shared_obj</span>(<span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))<span class="question-mark">?</span>,
+            <span class="ident">FormatOption::Static</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_exectuable</span>(<span class="ident">output</span>)<span class="question-mark">?</span>,
+            <span class="ident">FormatOption::Relocatable</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_relocatable</span>(<span class="ident">output</span>)<span class="question-mark">?</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">linker</span>.<span class="ident">build_shared_obj</span>(<span class="ident">output</span>)<span class="question-mark">?</span>,
         }
     }
     <span class="prelude-val">Ok</span>(())
@@ -2397,37 +2383,19 @@
 
 <span class="doccomment">/// Returns an output name with the correct extension</span>
 <span class="doccomment">/// If an output name is already given, this method returns it, otherwise it builds the name from the input and format</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_output_name</span>(
-    <span class="ident">output_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">out_format</span>: <span class="ident">FormatOption</span>,
-    <span class="ident">skip_linking</span>: <span class="ident">bool</span>,
-    <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) -&gt; <span class="ident">String</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_output_name</span>(<span class="ident">output_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">out_format</span>: <span class="ident">FormatOption</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">output_name</span> {
         <span class="prelude-val">Some</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">to_string</span>(),
-        <span class="comment">// format!(</span>
-        <span class="comment">//     &quot;{}{}{}&quot;,</span>
-        <span class="comment">//     target.unwrap_or(&quot;&quot;),</span>
-        <span class="comment">//     if target.is_some() { &quot;_&quot; } else { &quot;&quot; },</span>
-        <span class="comment">//     n),</span>
         <span class="prelude-val">None</span> =&gt; {
             <span class="kw">let</span> <span class="ident">ending</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">out_format</span> {
                 <span class="ident">FormatOption::Bitcode</span> =&gt; <span class="string">&quot;.bc&quot;</span>,
                 <span class="ident">FormatOption::Relocatable</span> =&gt; <span class="string">&quot;.o&quot;</span>,
-                <span class="ident">FormatOption::Static</span> <span class="kw">if</span> <span class="ident">skip_linking</span> =&gt; <span class="string">&quot;.o&quot;</span>,
-                <span class="ident">FormatOption::Static</span> =&gt; <span class="string">&quot;&quot;</span>,
+                <span class="ident">FormatOption::Object</span> =&gt; <span class="string">&quot;.o&quot;</span>,
                 <span class="ident">FormatOption::Shared</span> <span class="op">|</span> <span class="ident">FormatOption::PIC</span> =&gt; <span class="string">&quot;.so&quot;</span>,
                 <span class="ident">FormatOption::IR</span> =&gt; <span class="string">&quot;.ir&quot;</span>,
+                <span class="ident">FormatOption::Static</span> <span class="op">|</span> <span class="ident">FormatOption::None</span> =&gt; <span class="string">&quot;&quot;</span>,
             };
             <span class="macro">format!</span>(<span class="string">&quot;{input}{ending}&quot;</span>)
-
-            <span class="comment">// format!(</span>
-            <span class="comment">//     &quot;{}{}{}{}&quot;,</span>
-            <span class="comment">//     output_name.unwrap_or(input),</span>
-            <span class="comment">//     if target.is_some() { &quot;_&quot; } else { &quot;&quot; },</span>
-            <span class="comment">//     target.unwrap_or(&quot;&quot;),</span>
-            <span class="comment">//     ending</span>
-            <span class="comment">// )</span>
         }
     }
 }

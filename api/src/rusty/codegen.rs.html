@@ -307,7 +307,7 @@
         <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AstAnnotations</span>,
         <span class="ident">global_index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
         <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="comment">//generate all pous</span>
         <span class="kw">let</span> <span class="ident">llvm</span> <span class="op">=</span> <span class="ident">Llvm::new</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_builder</span>());
         <span class="kw">let</span> <span class="ident">pou_generator</span> <span class="op">=</span> <span class="ident">PouGenerator::new</span>(<span class="ident">llvm</span>, <span class="ident">global_index</span>, <span class="ident">annotations</span>, <span class="ident">llvm_index</span>);
@@ -322,7 +322,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">print_to_string</span>().<span class="ident">to_string</span>())
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
