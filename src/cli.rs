@@ -305,7 +305,7 @@ mod cli_tests {
     where
         T: Debug + AsRef<OsStr>,
     {
-        let params = CompileParameters::parse(&args);
+        let params = CompileParameters::parse(args);
         match params {
             Err(e) => {
                 assert_eq!(e.kind(), expected_error_kind);
