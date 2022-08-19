@@ -783,7 +783,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 .collect::<Vec<_>>(),
         )?;
         let link_options = if parameters.compile_only {
-            None 
+            None
         } else {
             Some(LinkOptions {
                 libraries: project
