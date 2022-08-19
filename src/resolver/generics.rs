@@ -186,6 +186,9 @@ impl<'i> TypeAnnotator<'i> {
                 inner_type_name,
                 auto_deref: true,
             }) => {
+                // This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
+                // generic. We first resolve the generic type, then create a new pointer type of
+                // the combination
                 let inner_type_name = self.find_or_create_datatype(inner_type_name, generics);
                 let name = format!("{name}__{inner_type_name}");
                 let new_type_info = DataTypeInformation::Pointer {
@@ -194,6 +197,7 @@ impl<'i> TypeAnnotator<'i> {
                     auto_deref: true,
                 };
 
+                // Registers a new pointer type to the index
                 self.annotation_map.new_index.register_type(DataType {
                     information: new_type_info,
                     initial_value: None,
