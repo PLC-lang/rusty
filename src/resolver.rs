@@ -329,7 +329,7 @@ impl AstAnnotations {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct AnnotationMapImpl {
     /// maps a statement to the type it resolves to
     type_map: IndexMap<AstId, StatementAnnotation>,
