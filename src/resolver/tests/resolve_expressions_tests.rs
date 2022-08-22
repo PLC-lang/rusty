@@ -18,7 +18,7 @@ macro_rules! assert_type_and_hint {
     ($annotations:expr, $index:expr, $stmt:expr, $expected_type:expr, $expected_type_hint:expr) => {
         assert_eq!(
             (
-                crate::resolver::AnnotationMap::get_type($annotations, $stmt, $index),
+                $crate::resolver::AnnotationMap::get_type($annotations, $stmt, $index),
                 crate::resolver::AnnotationMap::get_type_hint($annotations, $stmt, $index),
             ),
             (
