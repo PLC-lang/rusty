@@ -1,7 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 454
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -14,13 +14,13 @@ define void @prg(%prg_interface* %0) {
 entry:
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   store i64 0, i64* %y, align 4
-  store i64 3600000, i64* %y, align 4
-  store i64 3600001, i64* %y, align 4
-  store i64 3661000, i64* %y, align 4
-  store i64 72900000, i64* %y, align 4
-  store i64 72900000, i64* %y, align 4
-  store i64 40260000, i64* %y, align 4
-  store i64 40260000, i64* %y, align 4
+  store i64 3600000000000, i64* %y, align 4
+  store i64 3600001000000, i64* %y, align 4
+  store i64 3661000000000, i64* %y, align 4
+  store i64 72900000000000, i64* %y, align 4
+  store i64 72900000000000, i64* %y, align 4
+  store i64 40260000000000, i64* %y, align 4
+  store i64 40260000000000, i64* %y, align 4
   ret void
 }
 

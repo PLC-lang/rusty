@@ -1,4 +1,5 @@
 use crate::{compile_and_run, MainType};
+use chrono::TimeZone;
 use num::{Float, NumCast};
 
 //--------------------------------------------------------------
@@ -207,7 +208,15 @@ fn substract_date_basic() {
     let mut main = MainType::default();
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 777600000);
+    let date_var = chrono::Utc
+        .ymd(2021, 1, 1)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    let date_temp = chrono::Utc
+        .ymd(2021, 1, 10)
+        .and_hms(0, 0, 0)
+        .timestamp_nanos() as u64;
+    assert_eq!(res, date_temp - date_var);
 }
 
 #[test]
