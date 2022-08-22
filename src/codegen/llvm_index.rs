@@ -1,7 +1,6 @@
 use crate::diagnostics::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::SourceRange;
-use inkwell::debug_info::DIType;
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use std::collections::HashMap;
@@ -11,8 +10,8 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Default)]
 pub struct LlvmTypedIndex<'ink> {
     parent_index: Option<&'ink LlvmTypedIndex<'ink>>,
-    type_associations: HashMap<String, (BasicTypeEnum<'ink>, Option<DIType<'ink>>)>,
-    pou_type_associations: HashMap<String, (BasicTypeEnum<'ink>, Option<DIType<'ink>>)>,
+    type_associations: HashMap<String, BasicTypeEnum<'ink>>,
+    pou_type_associations: HashMap<String, BasicTypeEnum<'ink>>,
     global_values: HashMap<String, GlobalValue<'ink>>,
     initial_value_associations: HashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: HashMap<String, PointerValue<'ink>>,
@@ -68,7 +67,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     pub fn associate_type(
         &mut self,
         type_name: &str,
-        target_type: (BasicTypeEnum<'ink>, Option<DIType<'ink>>),
+        target_type: BasicTypeEnum<'ink>,
     ) -> Result<(), Diagnostic> {
         self.type_associations
             .insert(type_name.to_lowercase(), target_type);
@@ -78,7 +77,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     pub fn associate_pou_type(
         &mut self,
         type_name: &str,
-        target_type: (BasicTypeEnum<'ink>, Option<DIType<'ink>>),
+        target_type: BasicTypeEnum<'ink>,
     ) -> Result<(), Diagnostic> {
         self.pou_type_associations
             .insert(type_name.to_lowercase(), target_type);
@@ -114,52 +113,33 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .or_else(|| self.parent_index.and_then(|it| it.find_global_value(name)))
     }
 
-    pub fn find_associated_type_and_debug(
+    pub fn find_associated_type(
         &self,
         type_name: &str,
-    ) -> Option<(BasicTypeEnum<'ink>, Option<DIType<'ink>>)> {
-        dbg!(self
+    ) -> Option<BasicTypeEnum<'ink>> {
+        self
             .type_associations
             .get(&type_name.to_lowercase())
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .and_then(|it| it.find_associated_type_and_debug(type_name))
+                    .and_then(|it| it.find_associated_type(type_name))
             })
-            .or_else(|| self.find_associated_pou_type_and_debug(type_name)))
+            .or_else(|| self.find_associated_pou_type(type_name))
     }
 
-    pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
-        self.find_associated_type_and_debug(type_name)
-            .map(|(it, _)| it)
-    }
 
-    pub fn find_associated_debug_type(&self, type_name: &str) -> Option<DIType<'ink>> {
-        self.find_associated_type_and_debug(type_name)
-            .and_then(|(_, it)| it)
-    }
-
-    pub fn find_associated_pou_type_and_debug(
+    pub fn find_associated_pou_type(
         &self,
         type_name: &str,
-    ) -> Option<(BasicTypeEnum<'ink>, Option<DIType<'ink>>)> {
+    ) -> Option<BasicTypeEnum<'ink>> {
         self.pou_type_associations
             .get(&type_name.to_lowercase())
             .copied()
             .or_else(|| {
                 self.parent_index
-                    .and_then(|it| it.find_associated_pou_type_and_debug(type_name))
+                    .and_then(|it| it.find_associated_pou_type(type_name))
             })
-    }
-
-    pub fn find_associated_pou_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
-        self.find_associated_pou_type_and_debug(type_name)
-            .map(|(it, _)| it)
-    }
-
-    pub fn find_associated_pou_debug_type(&self, type_name: &str) -> Option<DIType<'ink>> {
-        self.find_associated_pou_type_and_debug(type_name)
-            .and_then(|(_, it)| it)
     }
 
     pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {

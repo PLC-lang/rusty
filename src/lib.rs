@@ -798,6 +798,8 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 .collect::<Vec<_>>(),
         )?;
         let link_options = if parameters.compile_only {
+            None
+        } else {
             Some(LinkOptions {
                 libraries: project
                     .libraries
@@ -813,8 +815,6 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
                 format: project.compile_type,
                 linker: parameters.linker,
             })
-        } else {
-            None
         };
 
         copy_libs_to_build(&project.libraries, lib_location)?;

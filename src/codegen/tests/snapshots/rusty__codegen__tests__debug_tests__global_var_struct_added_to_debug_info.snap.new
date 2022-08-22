@@ -1,0 +1,20 @@
+---
+source: src/codegen/tests/debug_tests.rs
+assertion_line: 128
+expression: codegen
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%myStruct = type { i32, double, [11 x i32], [81 x i8] }
+
+@a = global %myStruct zeroinitializer
+@b = global [11 x %myStruct] zeroinitializer
+@myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+
+!llvm.dbg.cu = !{!0}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, splitDebugInlining: false)
+!1 = !DIFile(filename: "main", directory: "")
+!2 = !{}
+

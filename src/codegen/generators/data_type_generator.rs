@@ -22,7 +22,6 @@ use crate::{
     },
     typesystem::DataType,
 };
-use inkwell::debug_info::DIType;
 use inkwell::{
     types::{ArrayType, BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
@@ -86,7 +85,7 @@ pub fn generate_data_types<'ink>(
         {
             generator
                 .types_index
-                .associate_type(name, (llvm.create_struct_stub(struct_name).into(), None))?;
+                .associate_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
     // pou_types will always be struct
@@ -97,7 +96,7 @@ pub fn generate_data_types<'ink>(
         {
             generator
                 .types_index
-                .associate_pou_type(name, (llvm.create_struct_stub(struct_name).into(), None))?;
+                .associate_pou_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
     // now create all other types (enum's, arrays, etc.)
@@ -169,18 +168,16 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         &self,
         name: &str,
         data_type: &DataType,
-    ) -> Result<(BasicTypeEnum<'ink>, Option<DIType<'ink>>), Diagnostic> {
+    ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, .. } => match source {
                 StructSource::Pou(..) => self
                     .types_index
-                    .get_associated_pou_type(data_type.get_name())
-                    .map(|it| (it, None)),
+                    .get_associated_pou_type(data_type.get_name()),
                 StructSource::OriginalDeclaration => self
                     .types_index
-                    .get_associated_type(data_type.get_name())
-                    .map(|it| (it, None)),
+                    .get_associated_type(data_type.get_name()),
             },
             DataTypeInformation::Array {
                 inner_type_name,
@@ -190,19 +187,13 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .index
                 .get_effective_type(inner_type_name)
                 .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
-                .and_then(|(inner_type, _)| self.create_nested_array_type(inner_type, dimensions))
-                .map(|it| it.as_basic_type_enum())
-                .map(|it| (it, None)),
-            DataTypeInformation::Integer { size, signed, .. } => {
+                .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
+                .map(|it| it.as_basic_type_enum()),
+            DataTypeInformation::Integer { size, .. } => {
                 let int_type =
                     get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())?;
-                let name = name.to_lowercase();
-                let debug_type = if information.is_bool() {
-                    self.debug.create_bool_type(&name)
-                } else {
-                    self.debug.create_int_type(&name, *size, *signed)
-                }?;
-                Ok((int_type, debug_type))
+                self.debug.register_debug_type(&name, information)?;
+                Ok(int_type)
             }
             DataTypeInformation::Enum {
                 name,
@@ -211,18 +202,10 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             } => {
                 let effective_type = self
                     .index
-                    .get_effective_type_by_name(referenced_type)
-                    .get_type_information();
-                if let DataTypeInformation::Integer {
-                    size: enum_size,
-                    signed,
-                    ..
-                } = effective_type
+                    .get_effective_type_by_name(referenced_type);
+                if let DataTypeInformation::Integer { .. } = effective_type.get_type_information()
                 {
-                    let int_type = get_llvm_int_type(self.llvm.context, *enum_size, name)
-                        .map(|it| it.into())?;
-                    let debug_type = self.debug.create_int_type(name, *enum_size, *signed)?;
-                    Ok((int_type, debug_type))
+                    self.create_type(name, effective_type)
                 } else {
                     Err(Diagnostic::invalid_type_nature(
                         effective_type.get_name(),
@@ -234,8 +217,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Float { size, .. } => {
                 let float_type =
                     get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())?;
-                let debug_type = self.debug.create_float_type(name, *size)?;
-                Ok((float_type, debug_type))
+                self.debug.register_debug_type(name, information)?;
+                Ok(float_type)
             }
             DataTypeInformation::String { size, encoding } => {
                 let base_type = if *encoding == StringEncoding::Utf8 {
@@ -247,7 +230,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 let string_size = size.as_int_value(self.index).map_err(|it| {
                     Diagnostic::codegen_error(it.as_str(), SourceRange::undefined())
                 })? as u32;
-                Ok((base_type.array_type(string_size).into(), None))
+                Ok(base_type.array_type(string_size).into())
             }
             DataTypeInformation::SubRange {
                 referenced_type, ..
@@ -259,14 +242,13 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .get_effective_type(referenced_type)
                 .and_then(|data_type| self.create_type(name, data_type)),
             DataTypeInformation::Void => get_llvm_int_type(self.llvm.context, 32, "Void")
-                .map(Into::into)
-                .map(|it| (it, None)),
+                .map(Into::into),
             DataTypeInformation::Pointer {
                 inner_type_name, ..
             } => {
-                let (inner_type, _) =
+                let inner_type =
                     self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?;
-                Ok(inner_type.ptr_type(AddressSpace::Generic).into()).map(|it| (it, None))
+                Ok(inner_type.ptr_type(AddressSpace::Generic).into())
             }
             DataTypeInformation::Generic { .. } => {
                 unreachable!("Generic types should not be generated")

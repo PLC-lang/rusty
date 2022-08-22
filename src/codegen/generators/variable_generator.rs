@@ -71,13 +71,7 @@ pub fn generate_global_variables<'ctx, 'b>(
         })?;
         index.associate_global(name, global_variable)?;
         //generate debug info
-        //get debug type
-        if let Some(debug_type) =
-            types_index.find_associated_debug_type(dbg!(&variable.data_type_name.to_lowercase()))
-        {
-            // create global variable
-            debug.create_global_variable(name, debug_type, global_variable)?;
-        }
+        debug.create_global_variable(name, &variable.data_type_name, global_variable)?;
     }
     Ok(index)
 }
