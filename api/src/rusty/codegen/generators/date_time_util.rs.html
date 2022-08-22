@@ -73,7 +73,7 @@
     }
 }
 
-<span class="doccomment">/// calculates the milliseconds since 1970-01-01-00:00:00 for the given</span>
+<span class="doccomment">/// calculates the nanoseconds since 1970-01-01-00:00:00 for the given</span>
 <span class="doccomment">/// point in time</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calculate_date_time</span>(
     <span class="ident">year</span>: <span class="ident">i32</span>,
@@ -88,7 +88,7 @@
         .<span class="ident">ymd_opt</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>)
         .<span class="ident">and_hms_milli_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">milli</span>)
     {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">date_time</span>.<span class="ident">timestamp_millis</span>());
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">date_time</span>.<span class="ident">timestamp_nanos</span>());
     }
     <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
         <span class="string">&quot;Invalid Date {}-{}-{}-{}:{}:{}.{}&quot;</span>,

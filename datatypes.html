@@ -209,15 +209,15 @@ declaring a <code>WSTRING</code>, the length-attribute is optional. The default 
 <h3 id="overview-2"><a class="header" href="#overview-2">Overview</a></h3>
 <table><thead><tr><th>Type name</th><th>Size</th><th>Internally stored as</th></tr></thead><tbody>
 <tr><td>TIME</td><td>64 bit</td><td>Timespan in nanoseconds</td></tr>
-<tr><td>TIME_OF_DAY</td><td>64 bit</td><td>Milliseconds since Jan 1, 1970 UTC</td></tr>
-<tr><td>DATE</td><td>64 bit</td><td>Milliseconds since Jan 1, 1970 UTC</td></tr>
-<tr><td>DATE_AND_TIME</td><td>64 bit</td><td>Milliseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>TIME_OF_DAY</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>DATE</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>DATE_AND_TIME</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 </tbody></table>
 <p>Note that the internal representation and sizes of these types are specific
 to RuSTy and not defined by the IEC61131 standard.</p>
 <h3 id="date"><a class="header" href="#date">DATE</a></h3>
 <p>The <code>DATE</code> datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
-stored as an i64 with a precision in milliseconds and denotes the number of milliseconds 
+stored as an i64 with a precision in nanoseconds and denotes the number of nanoseconds 
 that have elapsed since January 1, 1970 UTC not counting leap seconds. DATE literals start 
 with <code>DATE#</code> or <code>D#</code> followed by a date in the format of <code>yyyy-mm-dd</code>.</p>
 <p>Examples</p>
@@ -228,8 +228,8 @@ with <code>DATE#</code> or <code>D#</code> followed by a date in the format of <
 </ul>
 <h3 id="date_and_time"><a class="header" href="#date_and_time">DATE_AND_TIME</a></h3>
 <p>The <code>DATE_AND_TIME</code> datatype is used to represent a certain point in time in the Gregorian Calendar.
-Such a value is stored as an <code>i64</code> with a precision in milliseconds and denotes the
-number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Such a value is stored as an <code>i64</code> with a precision in nanoseconds and denotes the
+number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
 DATE_AND_TIME literals start with <code>DATE_AND_TIME#</code> or <code>DT#</code> followed by a date and time in the
 format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
 <p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
@@ -241,8 +241,8 @@ format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
 </ul>
 <h3 id="time_of_day"><a class="header" href="#time_of_day">TIME_OF_DAY</a></h3>
 <p>The <code>TIME_OF_DAY</code> datatype is used to represent a specific moment in time in a day.
-Such a value is stored as an <code>i64</code> value with a precision in milliseconds and denotes the
-number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Such a value is stored as an <code>i64</code> value with a precision in nanoseconds and denotes the
+number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
 Hence this value is stored as a <code>DATE_AND_TIME</code> with the day fixed to 1970-01-01.
 <code>TIME_OF_DAY</code> literals start with <code>TIME_OF_DAY#</code> or <code>TOD#</code> followed by a time in the
 format of <code>hh:mm:ss</code>.</p>
