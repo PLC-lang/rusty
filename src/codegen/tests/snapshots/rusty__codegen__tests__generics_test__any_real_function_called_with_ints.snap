@@ -1,0 +1,55 @@
+---
+source: src/codegen/tests/generics_test.rs
+assertion_line: 127
+expression: codegen(src)
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { float, float, float, float, float, float, float, float }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define float @foo__REAL(float %0) {
+entry:
+  %in1 = alloca float, align 4
+  store float %0, float* %in1, align 4
+  %foo__REAL = alloca float, align 4
+  store float 0.000000e+00, float* %foo__REAL, align 4
+  %foo__REAL_ret = load float, float* %foo__REAL, align 4
+  ret float %foo__REAL_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %v_sint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %v_int = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %v_dint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %v_lint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  %v_usint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 4
+  %v_uint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 5
+  %v_udint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 6
+  %v_ulint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 7
+  %call = call float @foo__REAL(float 1.000000e+00)
+  store float %call, float* %v_sint, align 4
+  %call1 = call float @foo__REAL(float 1.000000e+00)
+  store float %call1, float* %v_int, align 4
+  %call2 = call float @foo__REAL(float 1.000000e+00)
+  store float %call2, float* %v_dint, align 4
+  %call3 = call double @foo__LREAL(double 1.000000e+00)
+  %1 = fptrunc double %call3 to float
+  store float %1, float* %v_lint, align 4
+  %call4 = call float @foo__REAL(float 1.000000e+00)
+  store float %call4, float* %v_usint, align 4
+  %call5 = call float @foo__REAL(float 1.000000e+00)
+  store float %call5, float* %v_uint, align 4
+  %call6 = call float @foo__REAL(float 1.000000e+00)
+  store float %call6, float* %v_udint, align 4
+  %call7 = call double @foo__LREAL(double 1.000000e+00)
+  %2 = fptrunc double %call7 to float
+  store float %2, float* %v_ulint, align 4
+  ret void
+}
+
+declare double @foo__LREAL(double)
+

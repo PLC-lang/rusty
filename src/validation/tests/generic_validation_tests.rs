@@ -111,7 +111,8 @@ fn any_real_allow_real_lreal() {
 }
 
 #[test]
-fn any_real_does_not_allow_ints() {
+// with https://github.com/PLC-lang/rusty/issues/547 it should be possible to use ANY_REAL functions with INTs
+fn any_real_does_allow_ints() {
     let src = r"
         FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
@@ -120,14 +121,7 @@ fn any_real_does_not_allow_ints() {
     ";
 
     let diagnostics = parse_and_validate(src);
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::invalid_type_nature("INT", "Real", (136..137).into()),
-            Diagnostic::invalid_type_nature("UINT", "Real", (210..211).into()),
-            Diagnostic::invalid_type_nature("BYTE", "Real", (284..285).into()),
-        ]
-    );
+    assert_eq!(diagnostics, vec![]);
 }
 
 #[test]

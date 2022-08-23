@@ -363,14 +363,15 @@ impl<'i> TypeAnnotator<'i> {
         generics_candidates: HashMap<String, Vec<String>>,
     ) -> HashMap<String, String> {
         let mut generic_map: HashMap<String, String> = HashMap::new();
-        for GenericBinding { name, .. } in generics {
+        for GenericBinding { name, nature } in generics {
+            let smallest_possible_type = nature.get_smallest_possible_type();
             //Get the current binding
             if let Some(candidates) = generics_candidates.get(name) {
                 //Find the best suiting type
                 let winner = candidates
                     .iter()
                     .fold(
-                        None,
+                        smallest_possible_type.as_ref(),
                         |previous_type: Option<&DataTypeInformation>, current| {
                             let current_type = self
                                 .index
@@ -378,7 +379,7 @@ impl<'i> TypeAnnotator<'i> {
                                 .map(|it| self.index.find_intrinsic_type(it));
                             //Find bigger
                             if let Some((previous, current)) = previous_type.zip(current_type) {
-                                Some(typesystem::get_bigger_type(previous, current, self.index))
+                                Some(typesystem::get_bigger_type(current, previous, self.index))
                             } else {
                                 current_type
                             }
