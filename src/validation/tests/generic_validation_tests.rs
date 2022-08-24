@@ -115,9 +115,16 @@ fn any_real_allow_real_lreal() {
 fn any_real_does_allow_ints() {
     let src = r"
         FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
-        FUNCTION func  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
-        FUNCTION func1  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
-        FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+
+        FUNCTION func1 : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
+		FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
+		FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
+
+		FUNCTION func5  : INT VAR x : USINT; END_VAR test(x); END_FUNCTION
+        FUNCTION func6  : INT VAR x : UINT; END_VAR test(x); END_FUNCTION
+		FUNCTION func7  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
+		FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
@@ -125,19 +132,103 @@ fn any_real_does_allow_ints() {
 }
 
 #[test]
-fn any_real_does_not_allow_string() {
+fn any_real_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
-        FUNCTION func  : INT VAR x : STRING; END_VAR test(x); END_FUNCTION
-        FUNCTION func1  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
+        FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
+		FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_type_nature("STRING", "Real", (139..140).into()),
-            Diagnostic::invalid_type_nature("WSTRING", "Real", (216..217).into()),
+            Diagnostic::invalid_type_nature("TIME", "Real", (138..139).into()),
+            Diagnostic::invalid_type_nature("TIME", "Real", (207..208).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_real_does_not_allow_bits() {
+    let src = r"
+        FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
+        FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
+		FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
+		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
+		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
+		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("BOOL", "Real", (138..139).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Real", (206..207).into()),
+            Diagnostic::invalid_type_nature("WORD", "Real", (274..275).into()),
+            Diagnostic::invalid_type_nature("DWORD", "Real", (343..344).into()),
+            Diagnostic::invalid_type_nature("LWORD", "Real", (412..413).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_real_does_not_allow_chars() {
+    let src = r"
+        FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
+        FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
+		FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("CHAR", "Real", (138..139).into()),
+            Diagnostic::invalid_type_nature("WCHAR", "Real", (207..208).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_real_does_not_allow_string() {
+    let src = r"
+        FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
+        FUNCTION func1   : INT VAR x : STRING; END_VAR test(x); END_FUNCTION
+        FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("STRING", "Real", (141..142).into()),
+            Diagnostic::invalid_type_nature("WSTRING", "Real", (218..219).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_real_does_not_allow_date() {
+    let src = r"
+        FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
+        FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
+		FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
+		FUNCTION func3  : INT VAR x : DATE; END_VAR test(x); END_FUNCTION
+		FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
+		FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("DATE_AND_TIME", "Real", (136..137).into()),
+            Diagnostic::invalid_type_nature("DATE_AND_TIME", "Real", (203..204).into()),
+            Diagnostic::invalid_type_nature("DATE", "Real", (271..272).into()),
+            Diagnostic::invalid_type_nature("TIME_OF_DAY", "Real", (338..339).into()),
+            Diagnostic::invalid_type_nature("TIME_OF_DAY", "Real", (406..407).into()),
         ]
     );
 }

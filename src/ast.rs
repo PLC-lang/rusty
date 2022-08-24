@@ -80,7 +80,7 @@ pub enum TypeNature {
 }
 
 impl TypeNature {
-    pub fn get_smallest_possible_type(self) -> Option<DataTypeInformation> {
+    pub fn get_smallest_possible_type(&self) -> Option<DataTypeInformation> {
         match self {
             TypeNature::Real => Some(DataTypeInformation::Float {
                 name: REAL_TYPE.into(),
