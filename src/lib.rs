@@ -898,7 +898,6 @@ fn copy_libs_to_build(libraries: &[Libraries], lib_location: &Path) -> Result<()
 /// Links any provided libraries
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    dbg!(&parameters);
     let format = parameters.output_format_or_default();
     let output = parameters.output_name();
 
@@ -985,9 +984,6 @@ pub fn build_and_link(
     config_options: Option<ConfigurationOptions>,
     link_options: Option<LinkOptions>,
 ) -> Result<(), Diagnostic> {
-    dbg!(&files);
-    dbg!(&compile_options);
-    dbg!(&link_options);
     //Split files in objects and sources
     let mut objects = vec![];
     let mut sources = vec![];
