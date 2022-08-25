@@ -364,14 +364,16 @@ impl<'i> TypeAnnotator<'i> {
     ) -> HashMap<String, String> {
         let mut generic_map: HashMap<String, String> = HashMap::new();
         for GenericBinding { name, nature } in generics {
-            let smallest_possible_type = nature.get_smallest_possible_type();
+            let smallest_possible_type = self
+                .index
+                .find_effective_type_info(nature.get_smallest_possible_type());
             //Get the current binding
             if let Some(candidates) = generics_candidates.get(name) {
                 //Find the best suiting type
                 let winner = candidates
                     .iter()
                     .fold(
-                        smallest_possible_type.as_ref(),
+                        smallest_possible_type,
                         |previous_type: Option<&DataTypeInformation>, current| {
                             let current_type = self
                                 .index

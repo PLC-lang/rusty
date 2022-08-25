@@ -220,13 +220,6 @@ fn test_any_real_called_with_ints() {
 		times_two__LREAL := val * LREAL#2.0;
     END_FUNCTION
 
-	FUNCTION times_two__DINT : DINT
-    VAR_INPUT
-        val : DINT;
-    END_VAR
-		times_two__DINT := val * 2;
-    END_FUNCTION
-
     PROGRAM main 
     VAR
         a : REAL;

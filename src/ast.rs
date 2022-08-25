@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     lexer::IdProvider,
-    typesystem::{DataTypeInformation, REAL_SIZE, REAL_TYPE, VOID_TYPE},
+    typesystem::{DataTypeInformation, REAL_TYPE, VOID_TYPE},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -80,13 +80,10 @@ pub enum TypeNature {
 }
 
 impl TypeNature {
-    pub fn get_smallest_possible_type(&self) -> Option<DataTypeInformation> {
+    pub fn get_smallest_possible_type(&self) -> &str {
         match self {
-            TypeNature::Real => Some(DataTypeInformation::Float {
-                name: REAL_TYPE.into(),
-                size: REAL_SIZE,
-            }),
-            _ => None,
+            TypeNature::Real => REAL_TYPE,
+            _ => "",
         }
     }
 
