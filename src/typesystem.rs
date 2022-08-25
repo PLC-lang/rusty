@@ -844,11 +844,10 @@ pub fn get_bigger_type<
     let ldt = index.get_type(lt.get_name());
     let rdt = index.get_type(rt.get_name());
 
+    // if left and right have the same type, check which ranks higher
     if is_same_type_class(lt, rt, index) {
         if get_rank(lt, index) < get_rank(rt, index) {
-            right_type
-        } else {
-            left_type
+            return right_type;
         }
     } else if let (Ok(ldt), Ok(rdt)) = (ldt, rdt) {
         // check is_numerical() on TypeNature
@@ -857,17 +856,14 @@ pub fn get_bigger_type<
             let real_type = index.get_type_or_panic(REAL_TYPE);
             let real_size = real_type.get_type_information().get_size();
             if lt.get_size() > real_size || rt.get_size() > real_size {
-                index.get_type_or_panic(LREAL_TYPE).into()
+                return index.get_type_or_panic(LREAL_TYPE).into();
             } else {
-                real_type.into()
+                return real_type.into();
             }
-        } else {
-            left_type
         }
-    } else {
-        //Return the first
-        left_type
     }
+
+    left_type
 }
 
 /// returns the signed version of the given data_type if its a signed int-type

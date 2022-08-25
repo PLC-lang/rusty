@@ -229,11 +229,14 @@ fn test_any_real_called_with_ints() {
 		e : REAL;
 		f : REAL;
     END_VAR
+	VAR_TEMP
+		v_dint : DINT := -6;
+	END_VAR
         a := times_two(REAL#2);
         b := times_two(LREAL#3);
 		c := times_two(SINT#-4);
 		d := times_two(UINT#5);
-		e := times_two(DINT#-6);
+		e := times_two(v_dint);
 		f := times_two(ULINT#7);
     END_PROGRAM
     ";

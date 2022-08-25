@@ -105,23 +105,27 @@ fn any_real_function_called_with_ints() {
 
 		PROGRAM prg
 		VAR 
-			v_sint : REAL;
-			v_int : REAL;
-			v_dint : REAL;
-			v_lint : REAL;
-			v_usint : REAL;
-			v_uint : REAL;
-			v_udint : REAL;
-			v_ulint : REAL;
+			res_sint : REAL;
+			res_int : REAL;
+			res_dint : REAL;
+			res_lint : LREAL;
+			res_usint : REAL;
+			res_uint : REAL;
+			res_udint : REAL;
+			res_ulint : LREAL;
 		END_VAR
-			v_sint := foo(SINT#1);
-			v_int := foo(INT#1);
-			v_dint := foo(DINT#1);
-			v_lint := foo(LINT#1);
-			v_usint := foo(USINT#1);
-			v_uint := foo(UINT#1);
-			v_udint := foo(UDINT#1);
-			v_ulint := foo(ULINT#1);
+		VAR_TEMP
+			v_dint : DINT := 1;
+			v_udint : DINT := 1;
+		END_VAR
+			res_sint := foo(SINT#1);
+			res_int := foo(INT#1);
+			res_dint := foo(v_dint);
+			res_lint := foo(LINT#1);
+			res_usint := foo(USINT#1);
+			res_uint := foo(UINT#1);
+			res_udint := foo(v_udint);
+			res_ulint := foo(ULINT#1);
 		END_PROGRAM";
     //Expecting to REAL/LREAL conversion for every call
     insta::assert_snapshot!(codegen(src));
