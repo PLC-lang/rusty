@@ -253,8 +253,11 @@ impl CompileParameters {
             Some(FormatOption::Static)
         } else if self.output_reloc_code {
             Some(FormatOption::Relocatable)
-        } else {
+        } else if self.check_only {
             None
+        } else {
+            //Keep the paramete default as static
+            Some(FormatOption::Static)
         }
     }
 

@@ -49,15 +49,6 @@ Similarly to specifying an output file via the `-o` or `--output` option, in the
 
 
 ## Optional Keys
-### sysroot
-
-`rustyc` is using the `sysroot` key for linking purposes. It is considered to be the root directory for the purpose of locating headers and libraries.
-
-
-### target
-
-To build and compile [structured text](https://en.wikipedia.org/wiki/Structured_text) for the rigth platform we need to specify the `target`. As `rustyc` is using [LLVM](https://en.wikipedia.org/wiki/LLVM) a target-tripple supported by LLVM needs to be selected. The default `target` is the host machine's target. So if a dev container on an `x86_64-docker` is used the target is `x86_64-linux-gnu`.
-
 
 ### compile_type
 There are six options for choosing the `compile_type`. The valid options are:
