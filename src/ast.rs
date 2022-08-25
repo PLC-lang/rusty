@@ -132,15 +132,9 @@ impl TypeNature {
                 ),
                 TypeNature::Duration => matches!(
                     other,
-                    TypeNature::Num
-                        | TypeNature::Magnitude
-                        | TypeNature::Elementary
-                        | TypeNature::Any
-                ),
-                TypeNature::Bit => matches!(
-                    other,
                     TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
                 ),
+                TypeNature::Bit => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::Chars => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::String => matches!(
                     other,

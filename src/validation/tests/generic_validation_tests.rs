@@ -96,8 +96,16 @@ fn any_magnitude_does_not_allow_bits() {
     ";
 
     let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
-    assert!(false); // should not work
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("BOOL", "Magnitude", (143..144).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Magnitude", (217..218).into()),
+            Diagnostic::invalid_type_nature("WORD", "Magnitude", (285..286).into()),
+            Diagnostic::invalid_type_nature("DWORD", "Magnitude", (360..361).into()),
+            Diagnostic::invalid_type_nature("LWORD", "Magnitude", (429..430).into()),
+        ]
+    );
 }
 
 #[test]
@@ -163,9 +171,9 @@ fn any_magnitude_does_not_allow_date() {
 // ##########    ANY_NUMBER    ##########
 
 #[test]
-fn any_number_allows_reals() {
+fn any_num_allows_reals() {
     let src = r"
-        FUNCTION test<T : ANY_NUMBER> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
+        FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : REAL; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : LREAL; END_VAR test(x); END_FUNCTION
     ";
@@ -175,9 +183,9 @@ fn any_number_allows_reals() {
 }
 
 #[test]
-fn any_number_allows_ints() {
+fn any_num_allows_ints() {
     let src = r"
-        FUNCTION test<T : ANY_NUMBER> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
+        FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : SINT; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : INT; END_VAR test(x); END_FUNCTION
         FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
@@ -194,22 +202,27 @@ fn any_number_allows_ints() {
 }
 
 #[test]
-fn any_number_does_not_allow_time() {
+fn any_num_does_not_allow_time() {
     let src = r"
-        FUNCTION test<T : ANY_NUMBER> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
+        FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
-    assert!(false); // not allowed
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("TIME", "Num", (137..138).into()),
+            Diagnostic::invalid_type_nature("TIME", "Num", (212..213).into()),
+        ]
+    );
 }
 
 #[test]
-fn any_number_does_not_allow_bits() {
+fn any_num_does_not_allow_bits() {
     let src = r"
-        FUNCTION test<T : ANY_NUMBER> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
+        FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
         FUNCTION func2  : INT VAR x : BYTE; END_VAR test(x); END_FUNCTION
 		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
@@ -218,12 +231,20 @@ fn any_number_does_not_allow_bits() {
     ";
 
     let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
-    assert!(false); // not allowed
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("BOOL", "Num", (137..138).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Num", (211..212).into()),
+            Diagnostic::invalid_type_nature("WORD", "Num", (279..280).into()),
+            Diagnostic::invalid_type_nature("DWORD", "Num", (354..355).into()),
+            Diagnostic::invalid_type_nature("LWORD", "Num", (423..424).into()),
+        ]
+    );
 }
 
 #[test]
-fn any_number_does_not_allow_strings() {
+fn any_num_does_not_allow_strings() {
     let src = r"
         FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : STRING; END_VAR test(x); END_FUNCTION
@@ -241,7 +262,7 @@ fn any_number_does_not_allow_strings() {
 }
 
 #[test]
-fn any_number_does_not_allow_chars() {
+fn any_num_does_not_allow_chars() {
     let src = r"
         FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : CHAR; END_VAR test(x); END_FUNCTION
@@ -259,7 +280,7 @@ fn any_number_does_not_allow_chars() {
 }
 
 #[test]
-fn any_number_does_not_allow_date() {
+fn any_num_does_not_allow_date() {
     let src = r"
         FUNCTION test<T : ANY_NUM> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
