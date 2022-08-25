@@ -489,10 +489,7 @@ mod cli_tests {
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
-        assert_eq!(
-            parameters.output_format_or_default(),
-            FormatOption::default()
-        );
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
     }
 
     #[test]
