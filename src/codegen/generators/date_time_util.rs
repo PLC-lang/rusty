@@ -22,7 +22,7 @@ pub fn calculate_time_nano(negative: bool, sec: f64, milli: f64, micro: f64, nan
     }
 }
 
-/// calculates the milliseconds since 1970-01-01-00:00:00 for the given
+/// calculates the nanoseconds since 1970-01-01-00:00:00 for the given
 /// point in time
 pub fn calculate_date_time(
     year: i32,
@@ -37,7 +37,7 @@ pub fn calculate_date_time(
         .ymd_opt(year, month, day)
         .and_hms_milli_opt(hour, min, sec, milli)
     {
-        return Ok(date_time.timestamp_millis());
+        return Ok(date_time.timestamp_nanos());
     }
     Err(format!(
         "Invalid Date {}-{}-{}-{}:{}:{}.{}",
