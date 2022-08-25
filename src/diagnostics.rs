@@ -88,6 +88,8 @@ pub enum ErrNo {
     codegen__missing_function,
     codegen__missing_compare_function,
 
+    //Debug code
+    debug_general,
     //linker
     linker__generic_error,
 }
@@ -429,6 +431,14 @@ impl Diagnostic {
             message: message.into(),
             range: location,
             err_no: ErrNo::codegen__general,
+        }
+    }
+
+    pub fn debug_error(message: &str) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: message.into(),
+            range: SourceRange::undefined(),
+            err_no: ErrNo::debug_general,
         }
     }
 

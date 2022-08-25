@@ -688,7 +688,7 @@ impl TypeIndex {
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.find_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| dbg!(Diagnostic::unknown_type(type_name, SourceRange::undefined())))
     }
 
     /// Retrieves the "Effective" type behind this datatype
@@ -1057,7 +1057,7 @@ impl Index {
     pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| dbg!(Diagnostic::unknown_type(type_name, SourceRange::undefined())))
     }
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists

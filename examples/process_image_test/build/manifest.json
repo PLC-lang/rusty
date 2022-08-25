@@ -1,0 +1,75 @@
+{
+	"name":            "pi_test",
+	"manifestVersion": "0.2.0",
+    "version":         "0.1.0",
+   	"arch":            ["amd64"],
+    "summary":         "pi Template",
+    "description":     "This is the application template.",
+    "singleton":       false,
+    "type":            "app",
+    
+    "routes": [
+    	{
+            "type": "serve",
+            "url-fragment": "static",
+            "index": "index.html"
+        },
+	    {
+	    	"type": "http-pass",
+      		"url-fragment": "webapi",
+      		"id": "api"
+	    }
+    ],
+    
+    "entryPoints": [
+	    {
+	    	"name": "mainprog",						
+				"command": "/usr/bin/m100-runtime --app=/var/m100/app/pi_test/${arch}/prog.so --config=/var/m100/app/pi_test/taskconfig.json --instance=pi_test_instance_1 ",
+	    	"description": "mainprog entry point for pi_test",
+	        "using": [
+	        	{
+	            	"interface": "vpool",
+	                "permissions": ["perm_vpool_pv_rw", "perm_vpool_add"]
+	            },
+	            {
+	            	"interface": "config",
+	              	"permissions": ["perm_config_r"]
+	            },
+	            {
+	            	"interface": "realtime"
+	            },
+	            {
+	            	"interface": "access",
+	            	"permissions": ["perm_access_session_rw", "perm_access_user_rw", "perm_access_role_r"]
+            	}
+			],
+	        "properties": {
+	        	"Service": {
+	        		"Type": "notify"
+	        	}
+	        },
+	        "apparmor": {
+	        	"flags": ["attach_disconnected", "complain"]
+	        }
+		}
+    ],
+    
+    "dependencies": [
+    	{
+    		"type": "debian",
+    		"package": "systemd"
+    	},
+    	{
+    		"type": "debian",
+    		"package": "libm100-common"
+    	},
+    	{
+    		"type": "debian",
+    		"package": "libm100-vpool"
+    	},
+    	{
+    		"type": "debian",
+    		"package": "libm100-config"
+    	}
+	]
+}

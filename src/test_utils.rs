@@ -100,7 +100,7 @@ pub mod tests {
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)
             .map(|_| {
-                code_generator.finalize();
+                code_generator.finalize().unwrap();
                 code_generator.module.print_to_string().to_string()
             })
     }

@@ -1,0 +1,19 @@
+{
+		  "tasks": [
+		    {
+		      "name": "main_task",
+		      "executions": [
+		        {
+		          "name": "main_prog",
+		          "instance": "main_prog_instance"
+		        }
+		      ],
+		      "configuration": {
+		        "priority": 99,
+		        "callMode": "cyclic",
+		        "interval": "1s"
+		      }
+		    }
+		  ]
+}
+		

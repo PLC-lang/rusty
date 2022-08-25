@@ -169,15 +169,16 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         name: &str,
         data_type: &DataType,
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        let information = data_type.get_type_information();
+        self.debug.register_debug_type(name, data_type, self.index)?;
+        let information = dbg!(data_type.get_type_information());
         match information {
             DataTypeInformation::Struct { source, .. } => match source {
                 StructSource::Pou(..) => self
                     .types_index
                     .get_associated_pou_type(data_type.get_name()),
-                StructSource::OriginalDeclaration => self
-                    .types_index
-                    .get_associated_type(data_type.get_name()),
+                StructSource::OriginalDeclaration => {
+                    self.types_index.get_associated_type(data_type.get_name())
+                }
             },
             DataTypeInformation::Array {
                 inner_type_name,
@@ -190,21 +191,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
                 .map(|it| it.as_basic_type_enum()),
             DataTypeInformation::Integer { size, .. } => {
-                let int_type =
-                    get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())?;
-                self.debug.register_debug_type(&name, information)?;
-                Ok(int_type)
+                get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())
             }
             DataTypeInformation::Enum {
                 name,
                 referenced_type,
                 ..
             } => {
-                let effective_type = self
-                    .index
-                    .get_effective_type_by_name(referenced_type);
-                if let DataTypeInformation::Integer { .. } = effective_type.get_type_information()
-                {
+                let effective_type = self.index.get_effective_type_by_name(referenced_type);
+                if let DataTypeInformation::Integer { .. } = effective_type.get_type_information() {
                     self.create_type(name, effective_type)
                 } else {
                     Err(Diagnostic::invalid_type_nature(
@@ -215,10 +210,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 }
             }
             DataTypeInformation::Float { size, .. } => {
-                let float_type =
-                    get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())?;
-                self.debug.register_debug_type(name, information)?;
-                Ok(float_type)
+                get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())
             }
             DataTypeInformation::String { size, encoding } => {
                 let base_type = if *encoding == StringEncoding::Utf8 {
@@ -241,8 +233,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .index
                 .get_effective_type(referenced_type)
                 .and_then(|data_type| self.create_type(name, data_type)),
-            DataTypeInformation::Void => get_llvm_int_type(self.llvm.context, 32, "Void")
-                .map(Into::into),
+            DataTypeInformation::Void => {
+                get_llvm_int_type(self.llvm.context, 32, "Void").map(Into::into)
+            }
             DataTypeInformation::Pointer {
                 inner_type_name, ..
             } => {

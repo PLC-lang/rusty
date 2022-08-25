@@ -114,14 +114,14 @@ fn test_global_var_struct_added_to_debug_info() {
     TYPE myStruct : STRUCT
         a : DINT;
         b : LREAL;
-        c : ARRAY[0..10] OF DINT;
-        d : STRING;
+        // c : ARRAY[0..10] OF DINT;
+        // d : STRING;
     END_STRUCT
     END_TYPE
 
     VAR_GLOBAL
         a : myStruct;
-        b : ARRAY[0..10] OF myStruct;
+        // b : ARRAY[0..10] OF myStruct;
     END_VAR
     "#
     );

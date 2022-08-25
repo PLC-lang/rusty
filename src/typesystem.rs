@@ -351,7 +351,7 @@ impl DataTypeInformation {
         }
     }
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
-    pub fn get_semantic_size(&self) -> u32 {
+    pub fn get_semantic_size(&self, index: &Index) -> u32 {
         if let DataTypeInformation::Integer {
             semantic_size: Some(s),
             ..
@@ -359,22 +359,42 @@ impl DataTypeInformation {
         {
             return *s;
         }
-        self.get_size()
+        self.get_size(index)
     }
 
     /// returns the number of bits used to store this type
-    pub fn get_size(&self) -> u32 {
+    pub fn get_size(&self, index: &Index) -> u32 {
         match self {
             DataTypeInformation::Integer { size, .. } => *size,
             DataTypeInformation::Float { size, .. } => *size,
-            DataTypeInformation::String { .. } => unimplemented!("string"),
-            DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
+            DataTypeInformation::String { size, encoding } => size
+                .as_int_value(index)
+                .map(|size| encoding.get_bytes_per_char() * size as u32)
+                .unwrap(),
+            DataTypeInformation::Struct { member_names, .. } => member_names
+                .iter()
+                .map(|it| index.find_member(dbg!(self.get_name()), it))
+                .flatten()
+                .map(|it| dbg!(it.get_type_name()))
+                .map(|it| {
+                    dbg!(it);
+                    dbg!(index
+                        .get_effective_type_by_name(it)
+                        .get_type_information()
+                        .get_size(index))
+                })
+                .sum(),
             DataTypeInformation::Array { .. } => unimplemented!("array"), //Propably length * inner type size
             DataTypeInformation::Pointer { .. } => unimplemented!("pointer"),
             DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
             DataTypeInformation::Alias { .. } => unimplemented!("alias"),
             DataTypeInformation::Void => 0,
-            DataTypeInformation::Enum { .. } => DINT_SIZE,
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => index
+                .find_effective_type_info(&referenced_type)
+                .map(|it| it.get_size(index))
+                .unwrap_or(DINT_SIZE),
             DataTypeInformation::Generic { .. } => unimplemented!("generics"),
         }
     }
@@ -837,8 +857,8 @@ pub fn get_bigger_type<
         }
     } else if lt.is_numerical() && rt.is_numerical() {
         let real_type = index.get_type_or_panic(REAL_TYPE);
-        let real_size = real_type.get_type_information().get_size();
-        if lt.get_size() > real_size || rt.get_size() > real_size {
+        let real_size = real_type.get_type_information().get_size(index);
+        if lt.get_size(index) > real_size || rt.get_size(index) > real_size {
             index.get_type_or_panic(LREAL_TYPE).into()
         } else {
             real_type.into()

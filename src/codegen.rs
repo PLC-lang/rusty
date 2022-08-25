@@ -175,7 +175,7 @@ impl<'ink> CodeGen<'ink> {
         Ok(())
     }
 
-    pub fn finalize(&self) {
+    pub fn finalize(&self) -> Result<(), Diagnostic> {
         self.debug.finalize()
     }
 }

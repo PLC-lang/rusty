@@ -631,7 +631,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
 
-    code_generator.finalize();
+    code_generator.finalize()?;
 
     Ok((full_index, code_generator))
 }
@@ -1022,7 +1022,7 @@ pub fn build_and_link(
         encoding,
         diagnostician,
         compile_options.optimization,
-        DebugLevel::None,
+        DebugLevel::Full,
     )?;
 
     if compile_options.format != FormatOption::None {
