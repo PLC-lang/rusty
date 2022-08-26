@@ -178,7 +178,7 @@ impl FromStr for ConfigFormat {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CompileOptions {
     pub format: FormatOption,
     pub build_location: Option<PathBuf>,
@@ -187,7 +187,7 @@ pub struct CompileOptions {
     pub error_format: ErrorFormat,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
@@ -1128,7 +1128,10 @@ pub fn link(
             .and_then(|triple| linker::Linker::new(triple, linker).map_err(|e| e.into()))?;
         linker.add_lib_path(".");
         if let Some(parent) = output.parent() {
-            linker.add_lib_path(&parent.to_string_lossy());
+            let parent = parent.to_string_lossy();
+            if !parent.is_empty() {
+                linker.add_lib_path(&parent);
+            }
         }
 
         for path in objects {
