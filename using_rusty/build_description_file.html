@@ -172,10 +172,6 @@
 <h2 id="output"><a class="header" href="#output">output</a></h2>
 <p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option, in the build file we use <code>&quot;output&quot; : &quot;output.so&quot;</code> to define the output file. The default location is likewise to the location for the build file, namely the current directory. </p>
 <h2 id="optional-keys"><a class="header" href="#optional-keys">Optional Keys</a></h2>
-<h3 id="sysroot"><a class="header" href="#sysroot">sysroot</a></h3>
-<p><code>rustyc</code> is using the <code>sysroot</code> key for linking purposes. It is considered to be the root directory for the purpose of locating headers and libraries.</p>
-<h3 id="target"><a class="header" href="#target">target</a></h3>
-<p>To build and compile <a href="https://en.wikipedia.org/wiki/Structured_text">structured text</a> for the rigth platform we need to specify the <code>target</code>. As <code>rustyc</code> is using <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> a target-tripple supported by LLVM needs to be selected. The default <code>target</code> is the host machine's target. So if a dev container on an <code>x86_64-docker</code> is used the target is <code>x86_64-linux-gnu</code>.</p>
 <h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
 <p>There are six options for choosing the <code>compile_type</code>. The valid options are:</p>
 <!-- TODO we should probably describe what each of those options do -->

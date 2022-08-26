@@ -306,6 +306,22 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
 </pre><pre class="rust"><code><span class="comment">// This file is based on code from the Mun Programming Language</span>
 <span class="comment">// https://github.com/mun-lang/mun</span>
 
@@ -470,8 +486,21 @@
         <span class="kw">let</span> <span class="ident">linker_location</span> <span class="op">=</span> <span class="ident">which</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">linker</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LinkerError::Link</span>(<span class="macro">format!</span>(<span class="string">&quot;{} for linker: {}&quot;</span>, <span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">linker</span>)))<span class="question-mark">?</span>;
 
-        <span class="ident">Command::new</span>(<span class="ident">linker_location</span>).<span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">args</span>).<span class="ident">output</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>)]</span>
+        <span class="macro">println!</span>(
+            <span class="string">&quot;Linker command : {} {}&quot;</span>,
+            <span class="ident">linker_location</span>.<span class="ident">to_string_lossy</span>(),
+            <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">join</span>(<span class="string">&quot; &quot;</span>)
+        );
+
+        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="ident">linker_location</span>).<span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">args</span>).<span class="ident">status</span>()<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">success</span>() {
+            <span class="prelude-val">Ok</span>(())
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">LinkerError::Link</span>(
+                <span class="string">&quot;An error occured during linking&quot;</span>.<span class="ident">to_string</span>(),
+            ))
+        }
     }
 }
 
@@ -526,6 +555,9 @@
     }
 
     <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LinkerError</span><span class="op">&gt;</span> {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>)]</span>
+        <span class="macro">println!</span>(<span class="string">&quot;Linker arguments : {}&quot;</span>, <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">join</span>(<span class="string">&quot; &quot;</span>));
+
         <span class="ident">lld_rs::link</span>(<span class="ident">lld_rs::LldFlavor::Elf</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">args</span>)
             .<span class="ident">ok</span>()
             .<span class="ident">map_err</span>(<span class="ident">LinkerError::Link</span>)

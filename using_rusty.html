@@ -163,37 +163,27 @@ that will be written to a file named input.o.</p>
 <h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
 <h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
 <p>We want to print something to the terminal, so we're going to declare external functions
-for that and link with libc when we're done. This program can also be found at
-<code>examples/hello_world.st</code> in the source tree of Rusty. </p>
+for that.
+This example is available under <code>examples/hello_world.st</code> in the main ruSTy repository</p>
 <ul>
-<li>
-<p><code>_start</code> is our entry point to the program, because most linker scripts define it this way. </p>
-</li>
-<li>
-<p>Since we don't have a <code>crt0</code> right now, we have to call the <code>exit()</code> function by ourselves after we're
-done. Otherwise, the program will most likely crash (because it tries to return to a function that never
-existed).</p>
-</li>
+<li><code>main</code> is our entry point to the program.</li>
+<li>To link the program, we are going to use the system's linker using the <code>--linker=cc</code> argument. </li>
+<li>On windows, replace this with --linker=clang as cc is usually not available.</li>
 </ul>
-<pre><code class="language-iecst">@EXTERNAL FUNCTION puts : DINT
-VAR_INPUT
+<pre><code class="language-iecst">{external} 
+FUNCTION puts : DINT
+VAR_INPUT {ref}
     text : STRING;
 END_VAR
 END_FUNCTION
 
-@EXTERNAL FUNCTION exit : DINT
-VAR_INPUT
-    status : DINT;
-END_VAR
-END_FUNCTION
-
-FUNCTION _start : DINT
-    puts('hello, world!');
-    exit(0);
+FUNCTION main : DINT
+    puts('hello, world!$N');
 END_FUNCTION
 </code></pre>
 <h3 id="compiling-with-rusty"><a class="header" href="#compiling-with-rusty">Compiling with rusty</a></h3>
-<p>Compiling with rusty is very easy. If you just want to build an object file, then do this:</p>
+<p>The rusty command line interface is similar to that of other compilers.
+If you just want to build an object file, then do this:</p>
 <pre><code class="language-bash">rustyc -c hello_world.st -o hello_world.o
 </code></pre>
 <h3 id="optimization"><a class="header" href="#optimization">Optimization</a></h3>
@@ -208,16 +198,32 @@ END_FUNCTION
 <p>By default <code>rustyc</code> will use <code>default</code> which corresponds to clang's <code>-O2</code>.</p>
 <h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
 <p>Instead, you can also compile this into an executable and run it:</p>
-<pre><code class="language-bash">rustyc hello_world.st -o hello_world -L/path/to/libs -lc
+<pre><code class="language-bash">rustyc hello_world.st -o hello_world --linker=cc
 ./hello_world
 </code></pre>
 <p>Please note that RuSTy will attempt to link the generated object file by default to generate
 an executable if you didn't specify something else (option <code>-c</code>).</p>
 <ul>
-<li>The <code>-lc</code> flag tells the linker it should link against <code>libc</code>. Depending on the available libraries on your system,
-the linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
+<li>The <code>--linker=cc</code> flag tells the rusty that it should link with the system's compiler driver 
+instead of the built in linker. This provides support to create executables.</li>
+<li>Additional libraries can be linked using the <code>-l</code> flag, additial library pathes can be added with <code>-L</code></li>
 <li>You add library search pathes by providing additional <code>-L /path/...</code> options. By default, this will be
 the current directory.</li>
+<li>The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
+</ul>
+<h3 id="building-for-separate-targets"><a class="header" href="#building-for-separate-targets">Building for separate targets</a></h3>
+<p>RuSTy supports building for multiple targets by specifing the <code>--target</code> and optionally the <code>--sysroot</code> command.</p>
+<ul>
+<li>Multiple targets and sysroot can be specified for the compilation simply by adding additional
+<code>--target</code> and <code>--sysroot</code> entries.</li>
+</ul>
+<h3 id="--target"><a class="header" href="#--target">--target</a></h3>
+<p>To build and compile <a href="https://en.wikipedia.org/wiki/Structured_text">structured text</a> for the rigth platform we need to specify the <code>target</code>. As <code>rustyc</code> is using <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> a target-tripple supported by LLVM needs to be selected. The default <code>target</code> is the host machine's target. So if a dev container on an <code>x86_64-docker</code> is used the target is <code>x86_64-linux-gnu</code>.</p>
+<h3 id="--sysroot"><a class="header" href="#--sysroot">--sysroot</a></h3>
+<p><code>rustyc</code> use the <code>sysroot</code> option for linking purposes. It is considered to be the root directory for the purpose of locating headers and libraries.</p>
+<ul>
+<li>If a target and sysroot are provided, the output will always be stored in a folder with the target name (e.g. an <code>x86_64-linux-gnu</code> target will have the output strored in a folder called <code>x86_64-linux-gnu</code>)</li>
+<li><code>--sysroot</code> parameters have to always match target parameters, there can be no <code>sysroot</code> without a target.</li>
 </ul>
 
                     </main>
