@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/25b9fc5/src/values/call_site_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_site_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/40d7ba0/src/values/call_site_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_site_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -550,19 +550,6 @@
 <span id="545">545</span>
 <span id="546">546</span>
 <span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
 
 <span class="kw">use</span> <span class="ident">either::Either</span>;
@@ -573,12 +560,8 @@
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMValueRef</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::LLVMTypeKind</span>;
 
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attributes::Attribute</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attributes::AttributeLoc</span>;
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::FunctionValue</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">InstructionValue</span>, <span class="ident">Value</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attributes</span>::{<span class="ident">Attribute</span>, <span class="ident">AttributeLoc</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">FunctionValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">Value</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::AnyValue</span>;
 
@@ -700,7 +683,6 @@
     <span class="doccomment">/// call_site_value.add_attribute(AttributeLoc::Return, string_attribute);</span>
     <span class="doccomment">/// call_site_value.add_attribute(AttributeLoc::Return, enum_attribute);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">attribute</span>: <span class="ident">Attribute</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMAddCallSiteAttribute</span>;
 
@@ -730,7 +712,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(call_site_value.get_called_fn_value(), fn_value);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_called_fn_value</span>(<span class="self">self</span>) -&gt; <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCalledValue</span>;
 
@@ -764,7 +745,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(call_site_value.count_attributes(AttributeLoc::Return), 2);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_attributes</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCallSiteAttributeCount</span>;
 
@@ -798,7 +778,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(call_site_value.attributes(AttributeLoc::Return), vec![ string_attribute, enum_attribute ]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCallSiteAttributes</span>;
         <span class="kw">use</span> <span class="ident">std::mem</span>::{<span class="ident">ManuallyDrop</span>, <span class="ident">MaybeUninit</span>};
@@ -858,7 +837,6 @@
     <span class="doccomment">/// assert_eq!(call_site_value.get_enum_attribute(AttributeLoc::Return, 1).unwrap(), enum_attribute);</span>
     <span class="doccomment">/// ```</span>
     <span class="comment">// SubTypes: -&gt; Attribute&lt;Enum&gt;</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_enum_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">kind_id</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCallSiteEnumAttribute</span>;
 
@@ -899,7 +877,6 @@
     <span class="doccomment">/// assert_eq!(call_site_value.get_string_attribute(AttributeLoc::Return, &quot;my_key&quot;).unwrap(), string_attribute);</span>
     <span class="doccomment">/// ```</span>
     <span class="comment">// SubTypes: -&gt; Attribute&lt;String&gt;</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_string_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCallSiteStringAttribute</span>;
 
@@ -947,7 +924,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(call_site_value.get_enum_attribute(AttributeLoc::Return, 1), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_enum_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">kind_id</span>: <span class="ident">u32</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMRemoveCallSiteEnumAttribute</span>;
 
@@ -982,7 +958,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(call_site_value.get_string_attribute(AttributeLoc::Return, &quot;my_key&quot;), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_string_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMRemoveCallSiteStringAttribute</span>;
 
@@ -1020,7 +995,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(call_site_value.count_arguments(), 0);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_arguments</span>(<span class="self">self</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetNumArgOperands</span>;
 

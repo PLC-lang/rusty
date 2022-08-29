@@ -1392,10 +1392,11 @@
 <span id="1387">1387</span>
 <span id="1388">1388</span>
 <span id="1389">1389</span>
+<span id="1390">1390</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">lexer::IdProvider</span>,
-    <span class="ident">typesystem</span>::{<span class="ident">DataTypeInformation</span>, <span class="ident">VOID_TYPE</span>},
+    <span class="ident">typesystem</span>::{<span class="ident">DataTypeInformation</span>, <span class="ident">REAL_TYPE</span>, <span class="ident">VOID_TYPE</span>},
 };
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1474,6 +1475,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TypeNature</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_smallest_possible_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">TypeNature::Real</span> =&gt; <span class="ident">REAL_TYPE</span>,
+            <span class="kw">_</span> =&gt; <span class="string">&quot;&quot;</span>,
+        }
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derives</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">TypeNature</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">other</span> <span class="op">==</span> <span class="self">self</span> {
             <span class="bool-val">true</span>
@@ -1519,15 +1527,9 @@
                 ),
                 <span class="ident">TypeNature::Duration</span> =&gt; <span class="macro">matches!</span>(
                     <span class="ident">other</span>,
-                    <span class="ident">TypeNature::Num</span>
-                        <span class="op">|</span> <span class="ident">TypeNature::Magnitude</span>
-                        <span class="op">|</span> <span class="ident">TypeNature::Elementary</span>
-                        <span class="op">|</span> <span class="ident">TypeNature::Any</span>
-                ),
-                <span class="ident">TypeNature::Bit</span> =&gt; <span class="macro">matches!</span>(
-                    <span class="ident">other</span>,
                     <span class="ident">TypeNature::Magnitude</span> <span class="op">|</span> <span class="ident">TypeNature::Elementary</span> <span class="op">|</span> <span class="ident">TypeNature::Any</span>
                 ),
+                <span class="ident">TypeNature::Bit</span> =&gt; <span class="macro">matches!</span>(<span class="ident">other</span>, <span class="ident">TypeNature::Elementary</span> <span class="op">|</span> <span class="ident">TypeNature::Any</span>),
                 <span class="ident">TypeNature::Chars</span> =&gt; <span class="macro">matches!</span>(<span class="ident">other</span>, <span class="ident">TypeNature::Elementary</span> <span class="op">|</span> <span class="ident">TypeNature::Any</span>),
                 <span class="ident">TypeNature::String</span> =&gt; <span class="macro">matches!</span>(
                     <span class="ident">other</span>,

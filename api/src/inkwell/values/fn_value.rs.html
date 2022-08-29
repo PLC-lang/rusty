@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/25b9fc5/src/values/fn_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fn_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/40d7ba0/src/values/fn_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fn_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -602,18 +602,7 @@
 <span id="597">597</span>
 <span id="598">598</span>
 <span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">llvm_sys::analysis</span>::{<span class="ident">LLVMVerifierFailureAction</span>, <span class="ident">LLVMVerifyFunction</span>, <span class="ident">LLVMViewFunctionCFG</span>, <span class="ident">LLVMViewFunctionCFGOnly</span>};
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
     <span class="ident">LLVMAddAttributeAtIndex</span>, <span class="ident">LLVMGetAttributeCountAtIndex</span>, <span class="ident">LLVMGetEnumAttributeAtIndex</span>, <span class="ident">LLVMGetStringAttributeAtIndex</span>,
     <span class="ident">LLVMRemoveEnumAttributeAtIndex</span>, <span class="ident">LLVMRemoveStringAttributeAtIndex</span>,
@@ -622,10 +611,9 @@
     <span class="ident">LLVMCountBasicBlocks</span>, <span class="ident">LLVMCountParams</span>, <span class="ident">LLVMDeleteFunction</span>, <span class="ident">LLVMGetBasicBlocks</span>, <span class="ident">LLVMGetFirstBasicBlock</span>,
     <span class="ident">LLVMGetFirstParam</span>, <span class="ident">LLVMGetFunctionCallConv</span>, <span class="ident">LLVMGetGC</span>, <span class="ident">LLVMGetIntrinsicID</span>, <span class="ident">LLVMGetLastBasicBlock</span>, <span class="ident">LLVMGetLastParam</span>,
     <span class="ident">LLVMGetLinkage</span>, <span class="ident">LLVMGetNextFunction</span>, <span class="ident">LLVMGetNextParam</span>, <span class="ident">LLVMGetParam</span>, <span class="ident">LLVMGetParams</span>, <span class="ident">LLVMGetPreviousFunction</span>,
-    <span class="ident">LLVMIsAFunction</span>, <span class="ident">LLVMIsConstant</span>, <span class="ident">LLVMSetFunctionCallConv</span>, <span class="ident">LLVMSetGC</span>, <span class="ident">LLVMSetLinkage</span>, <span class="ident">LLVMSetParamAlignment</span>,
-    <span class="ident">LLVMSetSection</span>,
+    <span class="ident">LLVMGetSection</span>, <span class="ident">LLVMIsAFunction</span>, <span class="ident">LLVMIsConstant</span>, <span class="ident">LLVMSetFunctionCallConv</span>, <span class="ident">LLVMSetGC</span>, <span class="ident">LLVMSetLinkage</span>,
+    <span class="ident">LLVMSetParamAlignment</span>, <span class="ident">LLVMSetSection</span>,
 };
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.7</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetPersonalityFn</span>, <span class="ident">LLVMSetPersonalityFn</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::debuginfo</span>::{<span class="ident">LLVMGetSubprogram</span>, <span class="ident">LLVMSetSubprogram</span>};
@@ -635,8 +623,8 @@
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std::mem::forget</span>;
+<span class="kw">use</span> <span class="ident">std::ptr</span>;
 
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attributes</span>::{<span class="ident">Attribute</span>, <span class="ident">AttributeLoc</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::basic_block::BasicBlock</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
@@ -823,40 +811,21 @@
     }
 
     <span class="comment">// TODOC: How this works as an exception handler</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_personality_function</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMHasPersonalityFn</span>;
 
         <span class="kw">unsafe</span> { <span class="ident">LLVMHasPersonalityFn</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) <span class="op">==</span> <span class="number">1</span> }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_personality_function</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="comment">// This prevents a segfault in 3.9+ when not having a pfn</span>
-        <span class="comment">// however that segfault will unforuntately still happen in 3.8</span>
-        <span class="comment">// because LLVMHasPersonalityFn doesn&#39;t exist yet :(</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>)))]</span>
-        {
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_personality_function</span>() {
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
-            }
+        <span class="comment">// This prevents a segfault when not having a pfn</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">has_personality_function</span>() {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
         <span class="kw">unsafe</span> { <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetPersonalityFn</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())) }
     }
 
-    <span class="comment">// TODOC: This function will segfault in 3.8 due to a LLVM bug when</span>
-    <span class="comment">// there is no personality fn. This segfault is worked around and</span>
-    <span class="comment">// avoided in later LLVM versions. Therefore this fn is unsafe in 3.8</span>
-    <span class="comment">// but not in all other versions</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-8&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_personality_function</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMGetPersonalityFn</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>());
-
-        <span class="ident">FunctionValue::new</span>(<span class="ident">value</span>)
-    }
-
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.7</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_personality_function</span>(<span class="self">self</span>, <span class="ident">personality_fn</span>: <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) {
         <span class="kw">unsafe</span> { <span class="ident">LLVMSetPersonalityFn</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">personality_fn</span>.<span class="ident">as_value_ref</span>()) }
     }
@@ -906,7 +875,6 @@
     <span class="doccomment">/// fn_value.add_attribute(AttributeLoc::Return, string_attribute);</span>
     <span class="doccomment">/// fn_value.add_attribute(AttributeLoc::Return, enum_attribute);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">attribute</span>: <span class="ident">Attribute</span>) {
         <span class="kw">unsafe</span> { <span class="ident">LLVMAddAttributeAtIndex</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">attribute</span>.<span class="ident">attribute</span>) }
     }
@@ -932,7 +900,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(fn_value.count_attributes(AttributeLoc::Return), 2);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_attributes</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMGetAttributeCountAtIndex</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>()) }
     }
@@ -956,9 +923,8 @@
     <span class="doccomment">/// fn_value.add_attribute(AttributeLoc::Return, string_attribute);</span>
     <span class="doccomment">/// fn_value.add_attribute(AttributeLoc::Return, enum_attribute);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(fn_value.attributes(AttributeLoc::Return), vec![ string_attribute, enum_attribute ]);</span>
+    <span class="doccomment">/// assert_eq!(fn_value.attributes(AttributeLoc::Return), vec![string_attribute, enum_attribute]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetAttributesAtIndex</span>;
         <span class="kw">use</span> <span class="ident">std::mem</span>::{<span class="ident">ManuallyDrop</span>, <span class="ident">MaybeUninit</span>};
@@ -1008,7 +974,6 @@
     <span class="doccomment">/// fn_value.add_attribute(AttributeLoc::Return, string_attribute);</span>
     <span class="doccomment">/// fn_value.remove_string_attribute(AttributeLoc::Return, &quot;my_key&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_string_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
         <span class="kw">unsafe</span> {
             <span class="ident">LLVMRemoveStringAttributeAtIndex</span>(
@@ -1038,7 +1003,6 @@
     <span class="doccomment">/// fn_value.add_attribute(AttributeLoc::Return, enum_attribute);</span>
     <span class="doccomment">/// fn_value.remove_enum_attribute(AttributeLoc::Return, 1);</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_enum_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">kind_id</span>: <span class="ident">u32</span>) {
         <span class="kw">unsafe</span> { <span class="ident">LLVMRemoveEnumAttributeAtIndex</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">kind_id</span>) }
     }
@@ -1063,7 +1027,6 @@
     <span class="doccomment">/// assert_eq!(fn_value.get_enum_attribute(AttributeLoc::Return, 1), Some(enum_attribute));</span>
     <span class="doccomment">/// ```</span>
     <span class="comment">// SubTypes: -&gt; Option&lt;Attribute&lt;Enum&gt;&gt;</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_enum_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">kind_id</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetEnumAttributeAtIndex</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">loc</span>.<span class="ident">get_index</span>(), <span class="ident">kind_id</span>) };
 
@@ -1094,7 +1057,6 @@
     <span class="doccomment">/// assert_eq!(fn_value.get_string_attribute(AttributeLoc::Return, &quot;my_key&quot;), Some(string_attribute));</span>
     <span class="doccomment">/// ```</span>
     <span class="comment">// SubTypes: -&gt; Option&lt;Attribute&lt;String&gt;&gt;</span>
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_string_attribute</span>(<span class="self">self</span>, <span class="ident">loc</span>: <span class="ident">AttributeLoc</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMGetStringAttributeAtIndex</span>(
@@ -1146,11 +1108,29 @@
         }
     }
 
-    <span class="doccomment">/// Set the section to which this function should belong</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_section</span>(<span class="self">self</span>, <span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-        <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">section</span>);
+    <span class="comment">// TODO: Share code with GlobalValue::set/get_section</span>
+    <span class="doccomment">/// Get the section to which this function belongs</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_section</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CStr</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetSection</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()) };
 
-        <span class="kw">unsafe</span> { <span class="ident">LLVMSetSection</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) }
+        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+
+        <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">ptr</span>) })
+    }
+
+    <span class="doccomment">/// Set the section to which this function should belong</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_section</span>(<span class="self">self</span>, <span class="ident">section</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">section</span>.<span class="ident">map</span>(<span class="ident">to_c_str</span>);
+
+        <span class="kw">unsafe</span> {
+            <span class="ident">LLVMSetSection</span>(
+                <span class="self">self</span>.<span class="ident">as_value_ref</span>(),
+                <span class="comment">// The as_ref call is important here so that we don&#39;t drop the cstr mid use</span>
+                <span class="ident">c_string</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_ptr</span>()).<span class="ident">unwrap_or</span>(<span class="ident">ptr::null</span>()),
+            )
+        }
     }
 }
 

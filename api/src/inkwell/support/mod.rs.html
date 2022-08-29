@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/25b9fc5/src/support/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/40d7ba0/src/support/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -169,22 +169,12 @@
 <span id="164">164</span>
 <span id="165">165</span>
 <span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error_handling</span>;
 
 <span class="kw">use</span> <span class="ident">libc::c_char</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMCreateMessage</span>, <span class="ident">LLVMDisposeMessage</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::error_handling::LLVMEnablePrettyStackTrace</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::support::LLVMLoadLibraryPermanently</span>;
 
 <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
@@ -319,11 +309,6 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_llvm_pretty_stack_trace</span>() {
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.6</span>..<span class="op">=</span><span class="number">3.7</span>)]</span>
-    <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMEnablePrettyStackTrace</span>;
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.8</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-    <span class="kw">use</span> <span class="ident">llvm_sys::error_handling::LLVMEnablePrettyStackTrace</span>;
-
     <span class="kw">unsafe</span> { <span class="ident">LLVMEnablePrettyStackTrace</span>() }
 }
 
@@ -347,15 +332,8 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_to_c_str</span>() {
-    <span class="comment">// TODO: If we raise our MSRV to &gt;= 1.42 we can use matches!() here or</span>
-    <span class="comment">// is_owned()/is_borrowed() if it ever gets stabilized.</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Cow::Borrowed</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="string">&quot;my string&quot;</span>) {
-        <span class="macro">panic!</span>();
-    }
-
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Cow::Owned</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="string">&quot;my string\0&quot;</span>) {
-        <span class="macro">panic!</span>();
-    }
+    <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">to_c_str</span>(<span class="string">&quot;my string&quot;</span>), <span class="ident">Cow::Owned</span>(<span class="kw">_</span>)));
+    <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">to_c_str</span>(<span class="string">&quot;my string\0&quot;</span>), <span class="ident">Cow::Borrowed</span>(<span class="kw">_</span>)));
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>

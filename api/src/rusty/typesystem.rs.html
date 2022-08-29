@@ -894,6 +894,26 @@
 <span id="889">889</span>
 <span id="890">890</span>
 <span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">mem::size_of</span>,
@@ -1001,6 +1021,21 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_nature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">nature</span>: <span class="ident">TypeNature</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="ident">type_nature</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_intrinsic_type_by_name</span>(<span class="self">self</span>.<span class="ident">get_name</span>()).<span class="ident">nature</span>;
         <span class="ident">type_nature</span>.<span class="ident">derives</span>(<span class="ident">nature</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_numerical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">nature</span>,
+            <span class="ident">TypeNature::Num</span> { .. }
+                <span class="op">|</span> <span class="ident">TypeNature::Real</span> { .. }
+                <span class="op">|</span> <span class="ident">TypeNature::Int</span> { .. }
+                <span class="op">|</span> <span class="ident">TypeNature::Unsigned</span> { .. }
+                <span class="op">|</span> <span class="ident">TypeNature::Signed</span> { .. }
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_real</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">nature</span>, <span class="ident">TypeNature::Real</span> { .. })
     }
 }
 
@@ -1725,24 +1760,29 @@
 ) -&gt; <span class="ident">T</span> {
     <span class="kw">let</span> <span class="ident">lt</span> <span class="op">=</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>();
     <span class="kw">let</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>();
+
+    <span class="kw">let</span> <span class="ident">ldt</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">lt</span>.<span class="ident">get_name</span>());
+    <span class="kw">let</span> <span class="ident">rdt</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">rt</span>.<span class="ident">get_name</span>());
+
+    <span class="comment">// if left and right have the same type, check which ranks higher</span>
     <span class="kw">if</span> <span class="ident">is_same_type_class</span>(<span class="ident">lt</span>, <span class="ident">rt</span>, <span class="ident">index</span>) {
         <span class="kw">if</span> <span class="ident">get_rank</span>(<span class="ident">lt</span>, <span class="ident">index</span>) <span class="op">&lt;</span> <span class="ident">get_rank</span>(<span class="ident">rt</span>, <span class="ident">index</span>) {
-            <span class="ident">right_type</span>
-        } <span class="kw">else</span> {
-            <span class="ident">left_type</span>
+            <span class="kw">return</span> <span class="ident">right_type</span>;
         }
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lt</span>.<span class="ident">is_numerical</span>() <span class="op">&amp;&amp;</span> <span class="ident">rt</span>.<span class="ident">is_numerical</span>() {
-        <span class="kw">let</span> <span class="ident">real_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">REAL_TYPE</span>);
-        <span class="kw">let</span> <span class="ident">real_size</span> <span class="op">=</span> <span class="ident">real_type</span>.<span class="ident">get_type_information</span>().<span class="ident">get_size</span>();
-        <span class="kw">if</span> <span class="ident">lt</span>.<span class="ident">get_size</span>() <span class="op">&gt;</span> <span class="ident">real_size</span> <span class="op">|</span><span class="op">|</span> <span class="ident">rt</span>.<span class="ident">get_size</span>() <span class="op">&gt;</span> <span class="ident">real_size</span> {
-            <span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">LREAL_TYPE</span>).<span class="ident">into</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">real_type</span>.<span class="ident">into</span>()
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Ok</span>(<span class="ident">ldt</span>), <span class="prelude-val">Ok</span>(<span class="ident">rdt</span>)) <span class="op">=</span> (<span class="ident">ldt</span>, <span class="ident">rdt</span>) {
+        <span class="comment">// check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical</span>
+        <span class="kw">if</span> (<span class="ident">ldt</span>.<span class="ident">is_numerical</span>() <span class="op">&amp;&amp;</span> <span class="ident">rdt</span>.<span class="ident">is_numerical</span>()) <span class="op">&amp;&amp;</span> (<span class="ident">ldt</span>.<span class="ident">is_real</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">rdt</span>.<span class="ident">is_real</span>()) {
+            <span class="kw">let</span> <span class="ident">real_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">REAL_TYPE</span>);
+            <span class="kw">let</span> <span class="ident">real_size</span> <span class="op">=</span> <span class="ident">real_type</span>.<span class="ident">get_type_information</span>().<span class="ident">get_size</span>();
+            <span class="kw">if</span> <span class="ident">lt</span>.<span class="ident">get_size</span>() <span class="op">&gt;</span> <span class="ident">real_size</span> <span class="op">|</span><span class="op">|</span> <span class="ident">rt</span>.<span class="ident">get_size</span>() <span class="op">&gt;</span> <span class="ident">real_size</span> {
+                <span class="kw">return</span> <span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">LREAL_TYPE</span>).<span class="ident">into</span>();
+            } <span class="kw">else</span> {
+                <span class="kw">return</span> <span class="ident">real_type</span>.<span class="ident">into</span>();
+            }
         }
-    } <span class="kw">else</span> {
-        <span class="comment">//Return the first</span>
-        <span class="ident">left_type</span>
     }
+
+    <span class="ident">left_type</span>
 }
 
 <span class="doccomment">/// returns the signed version of the given data_type if its a signed int-type</span>
