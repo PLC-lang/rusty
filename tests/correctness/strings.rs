@@ -605,3 +605,129 @@ fn wstring_as_function_parameters_cast() {
     let res = String::from_utf16_lossy(&main_type.res[..5]);
     assert_eq!(res, "hello");
 }
+
+
+
+#[test]
+fn string_as_function_return_type_does_not_truncate() {
+    let src = "
+        FUNCTION foo : STRING[100]
+        VAR_INPUT 
+            str_param : STRING[100];
+        END_VAR
+            foo := str_param;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR 
+            x : STRING[100]
+        END_VAR
+            x := foo('GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e')
+        END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 101],
+    }
+    let mut main_type = MainType {
+        x: [0; 101],
+    };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    // long string passed to short function and returned
+    assert_eq!(
+        format!("{:?}", "GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e\0".as_bytes()),
+        format!("{:?}", &main_type.x)
+    );
+}
+
+#[test]
+fn string_ref_returned_from_wrapper_function_does_not_truncate() {
+    let src = "
+        FUNCTION foo : STRING[100]
+        VAR_INPUT 
+            str_param : STRING[100];
+        END_VAR
+            bar(str_param, foo);
+        END_FUNCTION
+
+        FUNCTION bar : DINT
+        VAR_INPUT {ref}
+            in : STRING;
+        END_VAR
+        VAR_IN_OUT
+            out: STRING;
+        END_VAR
+            out := in;
+        END_FUNCTION
+        PROGRAM main
+        VAR 
+            x : STRING[100]
+        END_VAR
+            x := foo('GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e')
+        END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 101],
+    }
+    let mut main_type = MainType {
+        x: [0; 101],
+    };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    // long string passed to short function and returned
+    assert_eq!(
+        format!("{:?}", "GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e\0".as_bytes()),
+        format!("{:?}", &main_type.x)
+    );
+}
+
+#[test]
+fn string_returned_from_wrapper_function_does_not_truncate() {
+    let src = "
+        FUNCTION foo : STRING[100]
+        VAR_INPUT 
+            str_param : STRING[100];
+        END_VAR
+            bar(str_param, foo);
+        END_FUNCTION
+
+        FUNCTION bar : DINT
+        VAR_INPUT 
+            in : STRING;
+        END_VAR
+        VAR_IN_OUT
+            out: STRING;
+        END_VAR
+            out := in;
+        END_FUNCTION
+        PROGRAM main
+        VAR 
+            x : STRING[100]
+        END_VAR
+            x := foo('GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e')
+        END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 101],
+    }
+    let mut main_type = MainType {
+        x: [0; 101],
+    };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    // long string passed to short function and returned
+    assert_eq!(
+        format!("{:?}", "GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e\0".as_bytes()),
+        format!("{:?}", &main_type.x)
+    );
+}
+
