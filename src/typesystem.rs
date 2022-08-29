@@ -106,6 +106,21 @@ impl DataType {
         let type_nature = index.get_intrinsic_type_by_name(self.get_name()).nature;
         type_nature.derives(nature)
     }
+
+    pub fn is_numerical(&self) -> bool {
+        matches!(
+            self.nature,
+            TypeNature::Num { .. }
+                | TypeNature::Real { .. }
+                | TypeNature::Int { .. }
+                | TypeNature::Unsigned { .. }
+                | TypeNature::Signed { .. }
+        )
+    }
+
+    pub fn is_real(&self) -> bool {
+        matches!(self.nature, TypeNature::Real { .. })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -829,24 +844,29 @@ pub fn get_bigger_type<
 ) -> T {
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
+
+    let ldt = index.get_type(lt.get_name());
+    let rdt = index.get_type(rt.get_name());
+
+    // if left and right have the same type, check which ranks higher
     if is_same_type_class(lt, rt, index) {
         if get_rank(lt, index) < get_rank(rt, index) {
-            right_type
-        } else {
-            left_type
+            return right_type;
         }
-    } else if lt.is_numerical() && rt.is_numerical() {
-        let real_type = index.get_type_or_panic(REAL_TYPE);
-        let real_size = real_type.get_type_information().get_size();
-        if lt.get_size() > real_size || rt.get_size() > real_size {
-            index.get_type_or_panic(LREAL_TYPE).into()
-        } else {
-            real_type.into()
+    } else if let (Ok(ldt), Ok(rdt)) = (ldt, rdt) {
+        // check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical
+        if (ldt.is_numerical() && rdt.is_numerical()) && (ldt.is_real() || rdt.is_real()) {
+            let real_type = index.get_type_or_panic(REAL_TYPE);
+            let real_size = real_type.get_type_information().get_size();
+            if lt.get_size() > real_size || rt.get_size() > real_size {
+                return index.get_type_or_panic(LREAL_TYPE).into();
+            } else {
+                return real_type.into();
+            }
         }
-    } else {
-        //Return the first
-        left_type
     }
+
+    left_type
 }
 
 /// returns the signed version of the given data_type if its a signed int-type

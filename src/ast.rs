@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     lexer::IdProvider,
-    typesystem::{DataTypeInformation, VOID_TYPE},
+    typesystem::{DataTypeInformation, REAL_TYPE, VOID_TYPE},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -80,6 +80,13 @@ pub enum TypeNature {
 }
 
 impl TypeNature {
+    pub fn get_smallest_possible_type(&self) -> &str {
+        match self {
+            TypeNature::Real => REAL_TYPE,
+            _ => "",
+        }
+    }
+
     pub fn derives(self, other: TypeNature) -> bool {
         if other == self {
             true
@@ -125,15 +132,9 @@ impl TypeNature {
                 ),
                 TypeNature::Duration => matches!(
                     other,
-                    TypeNature::Num
-                        | TypeNature::Magnitude
-                        | TypeNature::Elementary
-                        | TypeNature::Any
-                ),
-                TypeNature::Bit => matches!(
-                    other,
                     TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
                 ),
+                TypeNature::Bit => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::Chars => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::String => matches!(
                     other,
