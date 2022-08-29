@@ -117,6 +117,10 @@ impl DataType {
                 | TypeNature::Signed { .. }
         )
     }
+
+    pub fn is_real(&self) -> bool {
+        matches!(self.nature, TypeNature::Real { .. })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -850,9 +854,8 @@ pub fn get_bigger_type<
             return right_type;
         }
     } else if let (Ok(ldt), Ok(rdt)) = (ldt, rdt) {
-        // check is_numerical() on TypeNature
-        // DataTypeInformation::Integer is numerical but also used for e.g CHARS which are not considered as numerical
-        if ldt.is_numerical() && rdt.is_numerical() {
+        // check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical
+        if (ldt.is_numerical() && rdt.is_numerical()) && (ldt.is_real() || rdt.is_real()) {
             let real_type = index.get_type_or_panic(REAL_TYPE);
             let real_size = real_type.get_type_information().get_size();
             if lt.get_size() > real_size || rt.get_size() > real_size {
