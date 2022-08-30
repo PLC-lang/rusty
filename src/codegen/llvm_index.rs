@@ -113,12 +113,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .or_else(|| self.parent_index.and_then(|it| it.find_global_value(name)))
     }
 
-    pub fn find_associated_type(
-        &self,
-        type_name: &str,
-    ) -> Option<BasicTypeEnum<'ink>> {
-        self
-            .type_associations
+    pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
+        self.type_associations
             .get(&type_name.to_lowercase())
             .copied()
             .or_else(|| {
@@ -128,11 +124,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .or_else(|| self.find_associated_pou_type(type_name))
     }
 
-
-    pub fn find_associated_pou_type(
-        &self,
-        type_name: &str,
-    ) -> Option<BasicTypeEnum<'ink>> {
+    pub fn find_associated_pou_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
         self.pou_type_associations
             .get(&type_name.to_lowercase())
             .copied()
@@ -143,16 +135,24 @@ impl<'ink> LlvmTypedIndex<'ink> {
     }
 
     pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        self.find_associated_type(type_name)
-            .ok_or_else(|| dbg!(Diagnostic::unknown_type(type_name, SourceRange::undefined())))
+        self.find_associated_type(type_name).ok_or_else(|| {
+            dbg!(Diagnostic::unknown_type(
+                type_name,
+                SourceRange::undefined()
+            ))
+        })
     }
 
     pub fn get_associated_pou_type(
         &self,
         type_name: &str,
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        self.find_associated_pou_type(type_name)
-            .ok_or_else(|| dbg!(Diagnostic::unknown_type(type_name, SourceRange::undefined())))
+        self.find_associated_pou_type(type_name).ok_or_else(|| {
+            dbg!(Diagnostic::unknown_type(
+                type_name,
+                SourceRange::undefined()
+            ))
+        })
     }
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {

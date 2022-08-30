@@ -169,7 +169,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         name: &str,
         data_type: &DataType,
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        self.debug.register_debug_type(name, data_type, self.index)?;
+        self.debug
+            .register_debug_type(name, data_type, self.index)?;
         let information = dbg!(data_type.get_type_information());
         match information {
             DataTypeInformation::Struct { source, .. } => match source {

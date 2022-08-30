@@ -297,12 +297,16 @@ impl StatementValidator {
     ) {
         match *access_index {
             AstStatement::LiteralInteger { value, .. } => {
-                if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type,context.index) {
+                if !access_type.is_in_range(
+                    value.try_into().unwrap_or_default(),
+                    target_type,
+                    context.index,
+                ) {
                     self.diagnostics
                         .push(Diagnostic::incompatible_directaccess_range(
                             &format!("{:?}", access_type),
                             target_type.get_name(),
-                            access_type.get_range(target_type,context.index),
+                            access_type.get_range(target_type, context.index),
                             location.clone(),
                         ))
                 }
@@ -445,7 +449,9 @@ impl StatementValidator {
             //see if target and cast_type are compatible
         } else if cast_type.is_int() && literal_type.is_int() {
             //INTs with INTs
-            if cast_type.get_semantic_size(context.index) < literal_type.get_semantic_size(context.index) {
+            if cast_type.get_semantic_size(context.index)
+                < literal_type.get_semantic_size(context.index)
+            {
                 self.diagnostics.push(Diagnostic::literal_out_of_range(
                     StatementValidator::get_literal_value(literal).as_str(),
                     cast_type.get_name(),

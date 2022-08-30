@@ -1,7 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
+    index::Index,
     lexer::IdProvider,
-    typesystem::{DataTypeInformation, VOID_TYPE}, index::Index,
+    typesystem::{DataTypeInformation, REAL_TYPE, VOID_TYPE},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -80,6 +81,13 @@ pub enum TypeNature {
 }
 
 impl TypeNature {
+    pub fn get_smallest_possible_type(&self) -> &str {
+        match self {
+            TypeNature::Real => REAL_TYPE,
+            _ => "",
+        }
+    }
+
     pub fn derives(self, other: TypeNature) -> bool {
         if other == self {
             true
@@ -125,15 +133,9 @@ impl TypeNature {
                 ),
                 TypeNature::Duration => matches!(
                     other,
-                    TypeNature::Num
-                        | TypeNature::Magnitude
-                        | TypeNature::Elementary
-                        | TypeNature::Any
-                ),
-                TypeNature::Bit => matches!(
-                    other,
                     TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
                 ),
+                TypeNature::Bit => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::Chars => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::String => matches!(
                     other,
@@ -151,17 +153,22 @@ impl TypeNature {
 
 impl DirectAccessType {
     /// Returns true if the current index is in the range for the given type
-    pub fn is_in_range(&self, access_index: u64, data_type: &DataTypeInformation, index : &Index) -> bool {
+    pub fn is_in_range(
+        &self,
+        access_index: u64,
+        data_type: &DataTypeInformation,
+        index: &Index,
+    ) -> bool {
         (self.get_bit_width() * access_index) < data_type.get_size(index) as u64
     }
 
     /// Returns the range from 0 for the given data type
-    pub fn get_range(&self, data_type: &DataTypeInformation, index : &Index) -> Range<u64> {
+    pub fn get_range(&self, data_type: &DataTypeInformation, index: &Index) -> Range<u64> {
         0..((data_type.get_size(index) as u64 / self.get_bit_width()) - 1)
     }
 
     /// Returns true if the direct access can be used for the given type
-    pub fn is_compatible(&self, data_type: &DataTypeInformation, index : &Index) -> bool {
+    pub fn is_compatible(&self, data_type: &DataTypeInformation, index: &Index) -> bool {
         data_type.get_semantic_size(index) as u64 > self.get_bit_width()
     }
 

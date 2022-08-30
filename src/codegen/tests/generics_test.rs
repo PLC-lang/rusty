@@ -91,3 +91,42 @@ fn generic_call_gets_cast_to_biggest_type() {
     //Expecting all values to be LREAL
     insta::assert_snapshot!(codegen(src));
 }
+
+#[test]
+fn any_real_function_called_with_ints() {
+    let src = r"
+		FUNCTION foo <T: ANY_REAL> : T
+			VAR_INPUT   in1 : T; END_VAR
+		END_FUNCTION
+
+		FUNCTION foo__REAL : REAL
+			VAR_INPUT   in1 : REAL; END_VAR
+		END_FUNCTION
+
+		PROGRAM prg
+		VAR 
+			res_sint : REAL;
+			res_int : REAL;
+			res_dint : REAL;
+			res_lint : LREAL;
+			res_usint : REAL;
+			res_uint : REAL;
+			res_udint : REAL;
+			res_ulint : LREAL;
+		END_VAR
+		VAR_TEMP
+			v_dint : DINT := 1;
+			v_udint : DINT := 1;
+		END_VAR
+			res_sint := foo(SINT#1);
+			res_int := foo(INT#1);
+			res_dint := foo(v_dint);
+			res_lint := foo(LINT#1);
+			res_usint := foo(USINT#1);
+			res_uint := foo(UINT#1);
+			res_udint := foo(v_udint);
+			res_ulint := foo(ULINT#1);
+		END_PROGRAM";
+    //Expecting to REAL/LREAL conversion for every call
+    insta::assert_snapshot!(codegen(src));
+}

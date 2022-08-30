@@ -3,8 +3,8 @@ use std::{cell::RefCell, collections::HashMap};
 use inkwell::{
     context::ContextRef,
     debug_info::{
-        AsDIScope, DIBasicType, DICompileUnit, DIDerivedType, DIFlagsConstants, DIType,
-        DWARFEmissionKind, DebugInfoBuilder, DIFlags, DICompositeType,
+        AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
+        DIFlagsConstants, DIType, DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
     values::GlobalValue,
@@ -206,53 +206,69 @@ impl<'ink> DebugObj<'ink> {
             .map(|it| index.find_member(name, it))
             .flatten()
             .map(|it| (it.get_name(), it.get_type_name()))
-            .map(|(name,type_name)| index.get_type(dbg!(type_name.as_ref())).map(|dt| (name, dt)))
+            .map(|(name, type_name)| {
+                index
+                    .get_type(dbg!(type_name.as_ref()))
+                    .map(|dt| (name, dt))
+            })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
-        let types = index_types.into_iter().map(|(member_name, dt)| {
-            //Try to find a type in the types
-            let di_type = self.types.borrow_mut().entry(dt.name.to_lowercase()).or_insert_with(|| {
-                unsafe{
-                    //Create a placeholder and add it to the types
-                    //The placeholder is guarateed to be removed before finalize, making this safe
-                    //at this location
-                    DebugType::Placeholder(self.debug_info.create_placeholder_derived_type(&self.context))
-                }
-            }).to_owned();
-            self.debug_info.create_member_type(
-                self.compile_unit.get_file().as_debug_info_scope(), 
-                member_name,
-                self.compile_unit.get_file(),
-                0,
-                dt.get_type_information().get_size(index) as u64, 
-                0, 
-                0, 
-                DIFlags::PUBLIC, 
-                di_type.into(),
-            ).as_type()
-        }).collect::<Vec<_>>();
+        let types = index_types
+            .into_iter()
+            .map(|(member_name, dt)| {
+                //Try to find a type in the types
+                let di_type = self
+                    .types
+                    .borrow_mut()
+                    .entry(dt.name.to_lowercase())
+                    .or_insert_with(|| {
+                        unsafe {
+                            //Create a placeholder and add it to the types
+                            //The placeholder is guarateed to be removed before finalize, making this safe
+                            //at this location
+                            DebugType::Placeholder(
+                                self.debug_info
+                                    .create_placeholder_derived_type(&self.context),
+                            )
+                        }
+                    })
+                    .to_owned();
+                self.debug_info
+                    .create_member_type(
+                        self.compile_unit.get_file().as_debug_info_scope(),
+                        member_name,
+                        self.compile_unit.get_file(),
+                        0,
+                        dt.get_type_information().get_size(index) as u64,
+                        0,
+                        0,
+                        DIFlags::PUBLIC,
+                        di_type.into(),
+                    )
+                    .as_type()
+            })
+            .collect::<Vec<_>>();
 
         let struct_dt = dbg!(index.get_type_information_or_void(dbg!(name)));
 
         //Create a struct type
         let struct_type = self.debug_info.create_struct_type(
-            self.compile_unit.get_file().as_debug_info_scope(), 
+            self.compile_unit.get_file().as_debug_info_scope(),
             name,
             self.compile_unit.get_file(),
             0,
             struct_dt.get_size(index) as u64,
             0,
-            DIFlags::PUBLIC, 
+            DIFlags::PUBLIC,
             None,
             types.as_slice(),
             0,
             None,
-            name
+            name,
         );
 
         self.register_concrete_type(name, DebugType::StructType(struct_type));
         Ok(())
-        
     }
 
     fn create_array_type(

@@ -307,3 +307,42 @@ fn link_missing_file() {
     //Delete it
     fs::remove_file(&out).unwrap();
 }
+
+#[test]
+#[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
+//This is a regression, see #548
+fn link_to_a_relative_location_with_no_parent() {
+    let file1 = FilePath {
+        path: get_test_file("linking/relative.st"),
+    };
+
+    //Compile file1 as shared object with file2 as param
+    build_and_link(
+        vec![file1],
+        vec![],
+        None,
+        &CompileOptions {
+            build_location: None,
+            output: "output.o".into(),
+            format: FormatOption::Static,
+            optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
+        },
+        vec![],
+        None,
+        Some(LinkOptions {
+            libraries: vec![],
+            library_pathes: vec![],
+            format: FormatOption::Static,
+            linker: None,
+        }),
+    )
+    .unwrap();
+
+    //Make sure the file exists in the test location
+    let res = std::path::Path::new("output.o");
+    assert!(res.exists());
+
+    //Delete it
+    fs::remove_file(&res).unwrap();
+}

@@ -253,8 +253,11 @@ impl CompileParameters {
             Some(FormatOption::Static)
         } else if self.output_reloc_code {
             Some(FormatOption::Relocatable)
-        } else {
+        } else if self.check_only {
             None
+        } else {
+            //Keep the paramete default as static
+            Some(FormatOption::Static)
         }
     }
 
@@ -486,10 +489,7 @@ mod cli_tests {
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
-        assert_eq!(
-            parameters.output_format_or_default(),
-            FormatOption::default()
-        );
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
     }
 
     #[test]
