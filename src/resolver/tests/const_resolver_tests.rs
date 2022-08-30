@@ -1453,7 +1453,10 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
             for inner_array in AstStatement::get_as_list(outer_expresion_list) {
                 // [2(2)]
                 let element_hint = annotations.get_type_hint(inner_array, &index).unwrap();
-                assert_eq!(Some(element_hint), index.find_effective_type_by_name(array_of_byte));
+                assert_eq!(
+                    Some(element_hint),
+                    index.find_effective_type_by_name(array_of_byte)
+                );
 
                 //check if the inner array statement's also got the type-annotations
                 if let AstStatement::LiteralArray {

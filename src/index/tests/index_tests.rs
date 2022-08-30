@@ -292,7 +292,9 @@ fn pous_are_indexed() {
 
     index.find_effective_type_by_name("myFunction").unwrap();
     index.find_effective_type_by_name("myProgram").unwrap();
-    index.find_effective_type_by_name("myFunctionBlock").unwrap();
+    index
+        .find_effective_type_by_name("myFunctionBlock")
+        .unwrap();
     index.find_effective_type_by_name("myClass").unwrap();
     index.find_effective_type_by_name("myProgram.act").unwrap();
 }

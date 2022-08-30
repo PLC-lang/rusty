@@ -980,7 +980,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .find_member(function_name, name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
-            let param_type = self.index.find_effective_type_by_name(parameter.get_type_name());
+            let param_type = self
+                .index
+                .find_effective_type_by_name(parameter.get_type_name());
             self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment_statement: right,
                 function_name,

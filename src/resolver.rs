@@ -573,7 +573,9 @@ impl<'i> TypeAnnotator<'i> {
                     inner_type_name, ..
                 } = expected_type.get_type_information()
                 {
-                    if let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name) {
+                    if let Some(inner_type) =
+                        self.index.find_effective_type_by_name(inner_type_name)
+                    {
                         self.update_expected_types(inner_type, elements);
                     }
                 }
@@ -592,7 +594,8 @@ impl<'i> TypeAnnotator<'i> {
                 ) = (expected_type.get_type_information(), left.as_ref())
                 {
                     if let Some(v) = self.index.find_member(qualifier, variable_name) {
-                        if let Some(target_type) = self.index.find_effective_type_by_name(v.get_type_name())
+                        if let Some(target_type) =
+                            self.index.find_effective_type_by_name(v.get_type_name())
                         {
                             self.annotation_map.annotate(
                                 left.as_ref(),
@@ -733,7 +736,8 @@ impl<'i> TypeAnnotator<'i> {
                 bounds: Some(bounds),
                 ..
             } => {
-                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type) {
+                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type)
+                {
                     self.visit_statement(ctx, bounds);
                     self.update_expected_types(expected_type, bounds);
                 }
@@ -1440,7 +1444,10 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
         format!("__STRING_{}", len)
     };
 
-    if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
+    if index
+        .find_effective_type_by_name(new_type_name.as_str())
+        .is_none()
+    {
         index.register_type(crate::typesystem::DataType {
             name: new_type_name.clone(),
             initial_value: None,

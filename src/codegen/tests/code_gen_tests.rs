@@ -1334,7 +1334,7 @@ END_FUNCTION
     );
 
     // WHEN we compile, we want to see propagated constant in the switch statement
-    // -> so no references to variables, but int-values (7, 14, 8 and 15)
+    // -> so no references to variables, but int-values (7, 14, 8 and 28)
     insta::assert_snapshot!(result);
 }
 
@@ -3029,6 +3029,6 @@ fn date_and_time_addition_in_var_output() {
         ",
     );
 
-    //Then the time variable is added to the date time variable 
+    //Then the time variable is added to the date time variable
     insta::assert_snapshot!(result);
 }

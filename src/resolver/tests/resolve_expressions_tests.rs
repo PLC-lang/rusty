@@ -1459,7 +1459,10 @@ fn type_initial_values_are_resolved() {
         let _type_of_z = index.find_member("MyStruct", "z").unwrap().get_type_name();
         assert_eq!(
             Some(&StatementAnnotation::value(
-                index.find_effective_type_by_name("__STRING_3").unwrap().get_name()
+                index
+                    .find_effective_type_by_name("__STRING_3")
+                    .unwrap()
+                    .get_name()
             )),
             annotations.get(variables[2].initializer.as_ref().unwrap())
         );

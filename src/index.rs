@@ -1060,7 +1060,10 @@ impl Index {
     }
 
     /// returns the effective DataType of the given type if it exists
-    pub fn find_effective_type<'ret>(&'ret self, data_type: &'ret DataType) -> Option<&'ret DataType> {
+    pub fn find_effective_type<'ret>(
+        &'ret self,
+        data_type: &'ret DataType,
+    ) -> Option<&'ret DataType> {
         self.type_index.find_effective_type(data_type)
     }
 
@@ -1070,7 +1073,6 @@ impl Index {
             .find_effective_type_by_name(type_name)
             .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
-
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
     pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
