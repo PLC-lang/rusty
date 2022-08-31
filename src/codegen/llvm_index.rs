@@ -135,24 +135,16 @@ impl<'ink> LlvmTypedIndex<'ink> {
     }
 
     pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        self.find_associated_type(type_name).ok_or_else(|| {
-            dbg!(Diagnostic::unknown_type(
-                type_name,
-                SourceRange::undefined()
-            ))
-        })
+        self.find_associated_type(type_name)
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     pub fn get_associated_pou_type(
         &self,
         type_name: &str,
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        self.find_associated_pou_type(type_name).ok_or_else(|| {
-            dbg!(Diagnostic::unknown_type(
-                type_name,
-                SourceRange::undefined()
-            ))
-        })
+        self.find_associated_pou_type(type_name)
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {

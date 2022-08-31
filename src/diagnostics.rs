@@ -434,7 +434,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn debug_error(message: &str) -> Diagnostic {
+    pub fn debug_error<T: Into<String>>(message: T) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.into(),
             range: SourceRange::undefined(),

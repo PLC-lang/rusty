@@ -2346,8 +2346,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let target_size = self.get_string_size(left_type, right_statement.get_location())?; //we report error on parameter :-/
             let value_size = self.get_string_size(right_type, right_statement.get_location())?;
             let size = std::cmp::min(target_size - 1, value_size) as i64;
-            let align_left = left_type.get_alignment();
-            let align_right = right_type.get_alignment();
+            let align_left = left_type.get_alignment(self.index).bytes();
+            let align_right = right_type.get_alignment(self.index).bytes();
             //Multiply by the string alignment to copy enough for widestrings
             //This is done at compile time to avoid generating an extra mul
             let size = self

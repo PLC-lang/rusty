@@ -65,6 +65,7 @@ mod linker;
 mod parser;
 mod resolver;
 mod test_utils;
+mod datalayout;
 
 pub mod runner;
 mod typesystem;

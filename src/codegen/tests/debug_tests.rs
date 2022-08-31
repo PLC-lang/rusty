@@ -124,8 +124,32 @@ fn test_global_var_struct_added_to_debug_info() {
     END_TYPE
 
     VAR_GLOBAL
-        a : myStruct;
+        gStruct : myStruct;
         // b : ARRAY[0..10] OF myStruct;
+    END_VAR
+    "#,
+    );
+    assert_snapshot!(codegen)
+}
+
+#[test]
+fn test_global_var_nested_struct_added_to_debug_info() {
+    let codegen = codegen(
+        r#"
+    TYPE myStruct : STRUCT
+        a : DINT;
+        b : myStruct2;
+    END_STRUCT
+    END_TYPE
+
+    TYPE myStruct2 : STRUCT
+        a : DINT;
+        b : LREAL;
+    END_STRUCT
+    END_TYPE
+
+    VAR_GLOBAL
+        gStruct : myStruct;
     END_VAR
     "#,
     );

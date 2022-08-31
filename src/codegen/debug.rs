@@ -1,9 +1,8 @@
 use std::{cell::RefCell, collections::HashMap};
 
 use inkwell::{
-    context::ContextRef,
     debug_info::{
-        AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
+        AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIFlags,
         DIFlagsConstants, DIType, DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
@@ -12,6 +11,7 @@ use inkwell::{
 
 use crate::{
     ast::SourceRange,
+    datalayout::Size,
     diagnostics::Diagnostic,
     index::Index,
     typesystem::{DataType, DataTypeInformation, BOOL_SIZE},
@@ -21,23 +21,23 @@ use crate::{
 #[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 enum DebugEncoding {
-    DW_ATE_address,
+    // DW_ATE_address,
     DW_ATE_boolean,
     DW_ATE_float,
     DW_ATE_signed,
     DW_ATE_unsigned,
-    DW_ATE_UTF,
+    // DW_ATE_UTF,
 }
 
 impl From<DebugEncoding> for u32 {
     fn from(enc: DebugEncoding) -> Self {
         match enc {
-            DebugEncoding::DW_ATE_address => 0x01,
+            // DebugEncoding::DW_ATE_address => 0x01,
             DebugEncoding::DW_ATE_boolean => 0x02,
             DebugEncoding::DW_ATE_float => 0x04,
             DebugEncoding::DW_ATE_signed => 0x05,
             DebugEncoding::DW_ATE_unsigned => 0x07,
-            DebugEncoding::DW_ATE_UTF => 0x10,
+            // DebugEncoding::DW_ATE_UTF => 0x10,
         }
     }
 }
@@ -82,8 +82,12 @@ pub trait Debug<'ink> {
 enum DebugType<'ink> {
     BasicType(DIBasicType<'ink>),
     StructType(DICompositeType<'ink>),
-    DerivedType(DIDerivedType<'ink>),
-    Placeholder(DIDerivedType<'ink>),
+    // DerivedType(DIDerivedType<'ink>),
+    // Placeholder {
+    //     name: &'ink str,
+    //     offset: &'ink str,
+    //     derived_type: DIDerivedType<'ink>,
+    // },
 }
 
 impl<'ink> Into<DIType<'ink>> for DebugType<'ink> {
@@ -91,13 +95,16 @@ impl<'ink> Into<DIType<'ink>> for DebugType<'ink> {
         match self {
             DebugType::BasicType(t) => t.as_type(),
             DebugType::StructType(t) => t.as_type(),
-            DebugType::DerivedType(t) | DebugType::Placeholder(t) => t.as_type(),
+            // DebugType::DerivedType(t) => t.as_type(),
+            // | DebugType::Placeholder {
+            //     derived_type: t, ..
+            // } => t.as_type(),
         }
     }
 }
 
 pub struct DebugObj<'ink> {
-    context: ContextRef<'ink>,
+    // context: ContextRef<'ink>,
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
     types: RefCell<HashMap<String, DebugType<'ink>>>,
@@ -126,7 +133,7 @@ pub fn new<'ink>(
         "",
     );
     DebugObj {
-        context: module.get_context(),
+        // context: module.get_context(),
         debug_info,
         compile_unit,
         types: Default::default(),
@@ -135,18 +142,21 @@ pub fn new<'ink>(
 
 impl<'ink> DebugObj<'ink> {
     fn register_concrete_type(&self, name: &str, di_type: DebugType<'ink>) {
-        if let Some(DebugType::Placeholder(placeholder)) =
-            self.types.borrow_mut().insert(name.to_lowercase(), di_type)
-        {
-            unsafe {
-                match di_type {
-                    DebugType::DerivedType(di_type) | DebugType::Placeholder(di_type) => self
-                        .debug_info
-                        .replace_placeholder_derived_type(placeholder, di_type),
-                    _ => {}
-                }
-            }
-        }
+        // if let Some(DebugType::Placeholder {
+        //     derived_type: placeholder,
+        //     ..
+        // }) = 
+        self.types.borrow_mut().insert(name.to_lowercase(), di_type);
+        // {
+        //     unsafe {
+        //         match di_type {
+        //             DebugType::Placeholder { derived_type, .. } => self
+        //                 .debug_info
+        //                 .replace_placeholder_derived_type(placeholder, derived_type),
+        //             _ => {}
+        //         }
+        //     }
+        // }
     }
 
     fn create_int_type<'idx>(
@@ -206,50 +216,51 @@ impl<'ink> DebugObj<'ink> {
             .map(|it| index.find_member(name, it))
             .flatten()
             .map(|it| (it.get_name(), it.get_type_name()))
-            .map(|(name, type_name)| {
-                index
-                    .get_type(dbg!(type_name.as_ref()))
-                    .map(|dt| (name, dt))
-            })
+            .map(|(name, type_name)| index.get_type(type_name.as_ref()).map(|dt| (name, dt)))
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
-        let types = index_types
-            .into_iter()
-            .map(|(member_name, dt)| {
-                //Try to find a type in the types
-                let di_type = self
-                    .types
-                    .borrow_mut()
-                    .entry(dt.name.to_lowercase())
-                    .or_insert_with(|| {
-                        unsafe {
-                            //Create a placeholder and add it to the types
-                            //The placeholder is guarateed to be removed before finalize, making this safe
-                            //at this location
-                            DebugType::Placeholder(
-                                self.debug_info
-                                    .create_placeholder_derived_type(&self.context),
-                            )
-                        }
-                    })
-                    .to_owned();
+        let mut types = vec![];
+        let mut running_offset = Size::from_bytes(0);
+        for (member_name, dt) in index_types.into_iter() {
+            //Try to find a type in the types
+            let dt_name = dt.get_name().to_lowercase();
+            //Attempt to re-register the type, this will do nothing if the type exists.
+            //TODO: This will crash on recursive datatypes
+            self.register_debug_type(&dt_name, dt, index)?;
+            let di_type = self
+                .types
+                .borrow()
+                .get(&dt_name)
+                .ok_or_else(|| {
+                    Diagnostic::debug_error(format!(
+                        "Cannot find debug information for type {dt_name}"
+                    ))
+                })?
+                .to_owned();
+            //Adjust the offset based on the field alignment
+            let type_info = dt.get_type_information();
+            let alignment = type_info.get_alignment(index);
+            let size = type_info.get_size(index);
+            running_offset = running_offset.align_to(alignment);
+            types.push(
                 self.debug_info
                     .create_member_type(
                         self.compile_unit.get_file().as_debug_info_scope(),
                         member_name,
                         self.compile_unit.get_file(),
                         0,
-                        dt.get_type_information().get_size(index) as u64,
-                        0,
-                        0,
+                        size.bits().into(),
+                        alignment.bits(),
+                        running_offset.bits().into(),
                         DIFlags::PUBLIC,
                         di_type.into(),
                     )
-                    .as_type()
-            })
-            .collect::<Vec<_>>();
+                    .as_type(),
+            );
+            running_offset = Size::from_bytes(running_offset.bytes() + size.bytes());
+        }
 
-        let struct_dt = dbg!(index.get_type_information_or_void(dbg!(name)));
+        let struct_dt = index.get_type_information_or_void(name);
 
         //Create a struct type
         let struct_type = self.debug_info.create_struct_type(
@@ -257,8 +268,8 @@ impl<'ink> DebugObj<'ink> {
             name,
             self.compile_unit.get_file(),
             0,
-            struct_dt.get_size(index) as u64,
-            0,
+            running_offset.bits().into(),
+            struct_dt.get_alignment(index).bits(),
             DIFlags::PUBLIC,
             None,
             types.as_slice(),
@@ -271,20 +282,20 @@ impl<'ink> DebugObj<'ink> {
         Ok(())
     }
 
-    fn create_array_type(
-        &self,
-        name: &str,
-        inner_type: &str,
-        elements: u32,
-    ) -> Result<(), Diagnostic> {
-        //No array support in inkwell yet
-        Ok(())
-    }
+    //fn create_array_type(
+    //    &self,
+    //    name: &str,
+    //    inner_type: &str,
+    //    elements: u32,
+    //) -> Result<(), Diagnostic> {
+    //    //No array support in inkwell yet
+    //    Ok(())
+    //}
 
-    fn create_pointer_type(&self, name: &str, inner_type: &str) -> Result<(), Diagnostic> {
-        //No pointer support in inkwell yet
-        Ok(())
-    }
+    //fn create_pointer_type(&self, name: &str, inner_type: &str) -> Result<(), Diagnostic> {
+    //    //No pointer support in inkwell yet
+    //    Ok(())
+    //}
 }
 
 impl<'ink> Debug<'ink> for DebugObj<'ink> {
@@ -295,10 +306,7 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
         index: &'idx Index,
     ) -> Result<(), Diagnostic> {
         //check if the type is currently registered
-        if matches!(
-            self.types.borrow().get(&name.to_lowercase()),
-            Some(DebugType::Placeholder(_)) | None
-        ) {
+        if !self.types.borrow().contains_key(&name.to_lowercase()) {
             match datatype.get_type_information() {
                 DataTypeInformation::Struct { member_names, .. } => {
                     self.create_struct_type(name, member_names.as_slice(), index)
@@ -347,19 +355,19 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
     }
 
     fn finalize(&self) -> Result<(), Diagnostic> {
-        if self
-            .types
-            .borrow()
-            .values()
-            .any(|it| matches!(it, DebugType::Placeholder(_)))
-        {
-            Err(Diagnostic::debug_error(
-                "Not all types were resolved by the type for finalize",
-            ))
-        } else {
+        // if self
+        //     .types
+        //     .borrow()
+        //     .values()
+        //     .any(|it| matches!(it, DebugType::Placeholder(_)))
+        // {
+        //     Err(Diagnostic::debug_error(
+        //         "Not all types were resolved by the type for finalize",
+        //     ))
+        // } else {
             self.debug_info.finalize();
             Ok(())
-        }
+        // }
     }
 }
 

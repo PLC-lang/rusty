@@ -1,0 +1,28 @@
+---
+source: tests/integration/command_line_compile.rs
+assertion_line: 27
+expression: content
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i32 @myFunc(i32 %0, i32 %1, i32 %2) {
+entry:
+  %a = alloca i32, align 4
+  store i32 %0, i32* %a, align 4
+  %b = alloca i32, align 4
+  store i32 %1, i32* %b, align 4
+  %c = alloca i32, align 4
+  store i32 %2, i32* %c, align 4
+  %myFunc = alloca i32, align 4
+  store i32 0, i32* %myFunc, align 4
+  %myFunc_ret = load i32, i32* %myFunc, align 4
+  ret i32 %myFunc_ret
+}
+
+!llvm.dbg.cu = !{!0}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, splitDebugInlining: false)
+!1 = !DIFile(filename: "main", directory: "")
+!2 = !{}
+

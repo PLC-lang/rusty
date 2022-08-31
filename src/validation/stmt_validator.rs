@@ -141,11 +141,11 @@ impl StatementValidator {
                     //check if Datatype can hold a Pointer (u64)
                     if r_effective_type.is_pointer()
                         && !l_effective_type.is_pointer()
-                        && l_effective_type.get_size(context.index) < POINTER_SIZE
+                        && l_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
                     {
                         self.diagnostics.push(Diagnostic::incompatible_type_size(
                             l_effective_type.get_name(),
-                            l_effective_type.get_size(context.index),
+                            l_effective_type.get_size_in_bits(context.index),
                             "hold a",
                             statement.get_location(),
                         ));
@@ -153,11 +153,11 @@ impl StatementValidator {
                     //check if size allocated to Pointer is standart pointer size (u64)
                     else if l_effective_type.is_pointer()
                         && !r_effective_type.is_pointer()
-                        && r_effective_type.get_size(context.index) < POINTER_SIZE
+                        && r_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
                     {
                         self.diagnostics.push(Diagnostic::incompatible_type_size(
                             r_effective_type.get_name(),
-                            r_effective_type.get_size(context.index),
+                            r_effective_type.get_size_in_bits(context.index),
                             "to be stored in a",
                             statement.get_location(),
                         ));

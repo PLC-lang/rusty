@@ -159,12 +159,12 @@ impl DirectAccessType {
         data_type: &DataTypeInformation,
         index: &Index,
     ) -> bool {
-        (self.get_bit_width() * access_index) < data_type.get_size(index) as u64
+        (self.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
     }
 
     /// Returns the range from 0 for the given data type
     pub fn get_range(&self, data_type: &DataTypeInformation, index: &Index) -> Range<u64> {
-        0..((data_type.get_size(index) as u64 / self.get_bit_width()) - 1)
+        0..((data_type.get_size_in_bits(index) as u64 / self.get_bit_width()) - 1)
     }
 
     /// Returns true if the direct access can be used for the given type

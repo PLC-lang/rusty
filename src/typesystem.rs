@@ -6,6 +6,7 @@ use std::{
 
 use crate::{
     ast::{AstStatement, Operator, PouType, TypeNature},
+    datalayout::{Align, Size},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -374,51 +375,116 @@ impl DataTypeInformation {
         {
             return *s;
         }
-        self.get_size(index)
+        self.get_size_in_bits(index)
     }
 
     /// returns the number of bits used to store this type
-    pub fn get_size(&self, index: &Index) -> u32 {
+    pub fn get_size_in_bits(&self, index: &Index) -> u32 {
+        self.get_size(index).bits()
+    }
+
+    pub fn get_size(&self, index: &Index) -> Size {
         match self {
-            DataTypeInformation::Integer { size, .. } => *size,
-            DataTypeInformation::Float { size, .. } => *size,
+            DataTypeInformation::Integer { size, .. } => Size::from_bits(*size),
+            DataTypeInformation::Float { size, .. } => Size::from_bits(*size),
             DataTypeInformation::String { size, encoding } => size
                 .as_int_value(index)
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
+                .map(|size| Size::from_bits(size))
                 .unwrap(),
-            DataTypeInformation::Struct { member_names, .. } => member_names
-                .iter()
-                .map(|it| index.find_member(dbg!(self.get_name()), it))
-                .flatten()
-                .map(|it| dbg!(it.get_type_name()))
-                .map(|it| {
-                    dbg!(it);
-                    dbg!(index
+            DataTypeInformation::Struct { member_names, .. } => {
+                member_names
+                    .iter()
+                    .map(|it| index.find_member(self.get_name(), it))
+                    .flatten()
+                    .map(|it| {
+                        dbg!(it.get_type_name())
+                    })
+                    .fold(Size::from_bits(0), |prev, it| {
+                        let type_info = index
                         .get_effective_type_by_name(it)
-                        .get_type_information()
-                        .get_size(index))
-                })
-                .sum(),
+                        .get_type_information();
+                        let size = type_info.get_size(index).bytes();
+                        let after_align = prev.align_to(type_info.get_alignment(index)).bytes();
+                        let res = after_align + size;
+                        println!("Type : {it}, Size : {size}, Previous : {}, After Align: {after_align}, Next : {res}", prev.bytes());
+                        Size::from_bytes(res)
+                    })
+            },
             DataTypeInformation::Array { .. } => unimplemented!("array"), //Propably length * inner type size
             DataTypeInformation::Pointer { .. } => unimplemented!("pointer"),
             DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
             DataTypeInformation::Alias { .. } => unimplemented!("alias"),
-            DataTypeInformation::Void => 0,
+            DataTypeInformation::Void => Size::from_bits(0),
             DataTypeInformation::Enum {
                 referenced_type, ..
             } => index
                 .find_effective_type_info(&referenced_type)
                 .map(|it| it.get_size(index))
-                .unwrap_or(DINT_SIZE),
+                .unwrap_or(Size::from_bits(DINT_SIZE)),
             DataTypeInformation::Generic { .. } => unimplemented!("generics"),
         }
     }
 
-    pub fn get_alignment(&self) -> u32 {
+    pub fn get_alignment(&self, index: &Index) -> Align {
+        let type_layout = index.get_type_layout();
         match self {
-            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf8 => 1,
-            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => 2,
-            _ => unimplemented!("Alignment for {}", self.get_name()),
+            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf8 => {
+                type_layout.i8
+            }
+            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => {
+                type_layout.i16
+            }
+            DataTypeInformation::Struct { .. } => type_layout.aggregate,
+            DataTypeInformation::Array {
+                inner_type_name, ..
+            } => {
+                let inner_type = index.get_type_information_or_void(&inner_type_name);
+                if inner_type.get_alignment(index) > type_layout.i64 {
+                    type_layout.v128
+                } else {
+                    type_layout.v64
+                }
+            }
+            DataTypeInformation::Pointer { .. } => type_layout.p64,
+            DataTypeInformation::Integer {
+                size,
+                semantic_size,
+                ..
+            } => {
+                if let Some(1) = semantic_size {
+                    type_layout.i1
+                } else {
+                    match size {
+                        8 => type_layout.i8,
+                        16 => type_layout.i16,
+                        32 => type_layout.i32,
+                        64 => type_layout.i64,
+                        _ => type_layout.p64,
+                    }
+                }
+            }
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => index
+                .get_type_information_or_void(&referenced_type)
+                .get_alignment(index),
+            DataTypeInformation::Float { size, .. } => match size {
+                32 => type_layout.f32,
+                64 => type_layout.f64,
+                _ => type_layout.p64,
+            },
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => index
+                .get_type_information_or_void(&referenced_type)
+                .get_alignment(index),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            } => index
+                .get_type_information_or_void(&referenced_type)
+                .get_alignment(index),
+            _ => unimplemented!("Type alignment for {:?} not implemented", self),
         }
     }
 }
@@ -877,8 +943,8 @@ pub fn get_bigger_type<
         // check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical
         if (ldt.is_numerical() && rdt.is_numerical()) && (ldt.is_real() || rdt.is_real()) {
             let real_type = index.get_type_or_panic(REAL_TYPE);
-            let real_size = real_type.get_type_information().get_size(index);
-            if lt.get_size(index) > real_size || rt.get_size(index) > real_size {
+            let real_size = real_type.get_type_information().get_size_in_bits(index);
+            if lt.get_size_in_bits(index) > real_size || rt.get_size_in_bits(index) > real_size {
                 return index.get_type_or_panic(LREAL_TYPE).into();
             } else {
                 return real_type.into();
