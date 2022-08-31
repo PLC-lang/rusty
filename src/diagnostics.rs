@@ -609,6 +609,13 @@ impl Diagnostic {
             range,
         }
     }
+
+    pub fn non_constant_case_condition(case: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!("Non constant case condition: {}. Cannot evaluate for duplicates. Duplicate values may result in undefined runtime behaviour", case),
+            range,
+        }
+    }
 }
 
 /// a diagnostics severity
