@@ -520,6 +520,7 @@ For non const variable references we need our own validation tests -> statement_
 */
 
 #[test]
+#[ignore = "activate again with module.verify()"]
 fn switch_case_duplicate_integer_literal_integer() {
     let result = codegen_without_unwrap(
         r#"
@@ -550,6 +551,7 @@ fn switch_case_duplicate_integer_literal_integer() {
 }
 
 #[test]
+#[ignore = "activate again with module.verify()"]
 fn switch_case_duplicate_integer_literal_integer_and_const() {
     let result = codegen_without_unwrap(
         r#"
@@ -584,6 +586,7 @@ fn switch_case_duplicate_integer_literal_integer_and_const() {
 }
 
 #[test]
+#[ignore = "activate again with module.verify()"]
 fn switch_case_duplicate_integer_literal_integer_and_binary_expression() {
     let result = codegen_without_unwrap(
         r#"
@@ -614,6 +617,7 @@ fn switch_case_duplicate_integer_literal_integer_and_binary_expression() {
 }
 
 #[test]
+#[ignore = "activate again with module.verify()"]
 fn switch_case_duplicate_integer_const() {
     let result = codegen_without_unwrap(
         r#"
@@ -650,6 +654,7 @@ fn switch_case_duplicate_integer_const() {
 }
 
 #[test]
+#[ignore = "activate again with module.verify()"]
 fn switch_case_duplicate_integer_const_and_binary_expression() {
     let result = codegen_without_unwrap(
         r#"
@@ -684,6 +689,7 @@ fn switch_case_duplicate_integer_const_and_binary_expression() {
 }
 
 #[test]
+#[ignore = "activate again with module.verify()"]
 fn switch_case_duplicate_integer_binary_expression() {
     let result = codegen_without_unwrap(
         r#"

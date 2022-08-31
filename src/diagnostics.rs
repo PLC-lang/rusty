@@ -69,6 +69,7 @@ pub enum ErrNo {
     //type related
     type__cast_error,
     type__unknown_type,
+    type__invalid_type,
     type__literal_out_of_range,
     type__incompatible_literal_cast,
     type__incompatible_directaccess,
@@ -611,9 +612,10 @@ impl Diagnostic {
     }
 
     pub fn non_constant_case_condition(case: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::ImprovementSuggestion {
+        Diagnostic::SyntaxError {
             message: format!("Non constant case condition: {}. Cannot evaluate for duplicates. Duplicate values may result in undefined runtime behaviour", case),
             range,
+			err_no: ErrNo::type__invalid_type,
         }
     }
 }

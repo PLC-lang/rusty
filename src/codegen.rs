@@ -149,10 +149,16 @@ impl<'ink> CodeGen<'ink> {
             }
         }
 
-        self.module.verify().map_err(|it| Diagnostic::GeneralError {
-            message: it.to_string(),
-            err_no: crate::diagnostics::ErrNo::codegen__general,
-        })
+        #[cfg(feature = "verify")]
+        {
+            self.module.verify().map_err(|it| Diagnostic::GeneralError {
+                message: it.to_string(),
+                err_no: crate::diagnostics::ErrNo::codegen__general,
+            })
+        }
+
+        #[cfg(not(feature = "verify"))]
+        Ok(())
     }
 
     pub fn generate_to_string(
