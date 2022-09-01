@@ -1,10 +1,12 @@
+use std::collections::HashSet;
+
 use crate::{
     ast::{
         AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, SourceRange,
         UserTypeDeclaration, Variable, VariableBlock,
     },
     index::Index,
-    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    resolver::{const_evaluator, AnnotationMapImpl},
     Diagnostic,
 };
 
@@ -270,24 +272,48 @@ impl Validator {
                 ..
             } => {
                 self.visit_statement(selector, context);
+
+                let mut cases = HashSet::new();
                 case_blocks.iter().for_each(|b| {
                     let condition = b.condition.as_ref();
-                    if let AstStatement::Reference { name, .. } = condition {
-                        if let Some(StatementAnnotation::Variable {
-                            constant: false, ..
-                        }) = context.ast_annotation.get(condition)
-                        {
+
+                    // validate for duplicate conditions
+                    // first try to evaluate the conditions value
+                    let case = match const_evaluator::evaluate(
+                        condition,
+                        context.qualifier,
+                        context.index,
+                    ) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            // value evaluation and validation not possible with non constants
                             self.stmt_validator.diagnostics.push(
                                 Diagnostic::non_constant_case_condition(
-                                    name,
+                                    &e,
+                                    condition.get_location(),
+                                ),
+                            );
+                            None
+                        }
+                    };
+                    // check for duplicates if we got a value
+                    if let Some(AstStatement::LiteralInteger { value, .. }) = case {
+                        if cases.contains(&value) {
+                            self.stmt_validator.diagnostics.push(
+                                Diagnostic::duplicate_case_condition(
+                                    &value,
                                     condition.get_location(),
                                 ),
                             );
                         }
-                    }
+                        // insert for next cases
+                        cases.insert(value);
+                    };
+
                     self.visit_statement(condition, context);
                     b.body.iter().for_each(|s| self.visit_statement(s, context));
                 });
+
                 else_block
                     .iter()
                     .for_each(|s| self.visit_statement(s, context));
