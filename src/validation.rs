@@ -279,36 +279,33 @@ impl Validator {
 
                     // validate for duplicate conditions
                     // first try to evaluate the conditions value
-                    let case = match const_evaluator::evaluate(
-                        condition,
-                        context.qualifier,
-                        context.index,
-                    ) {
-                        Ok(v) => v,
-                        Err(e) => {
+                    const_evaluator::evaluate(condition, context.qualifier, context.index)
+                        .map_err(|err| {
                             // value evaluation and validation not possible with non constants
                             self.stmt_validator.diagnostics.push(
                                 Diagnostic::non_constant_case_condition(
-                                    &e,
+                                    &err,
                                     condition.get_location(),
                                 ),
-                            );
-                            None
-                        }
-                    };
-                    // check for duplicates if we got a value
-                    if let Some(AstStatement::LiteralInteger { value, .. }) = case {
-                        if cases.contains(&value) {
-                            self.stmt_validator.diagnostics.push(
-                                Diagnostic::duplicate_case_condition(
-                                    &value,
-                                    condition.get_location(),
-                                ),
-                            );
-                        }
-                        // insert for next cases
-                        cases.insert(value);
-                    };
+                            )
+                        })
+                        .and_then(|v| {
+                            // check for duplicates if we got a value
+                            if let Some(AstStatement::LiteralInteger { value, .. }) = v {
+                                if cases.contains(&value) {
+                                    self.stmt_validator.diagnostics.push(
+                                        Diagnostic::duplicate_case_condition(
+                                            &value,
+                                            condition.get_location(),
+                                        ),
+                                    );
+                                }
+                                // insert for next cases
+                                cases.insert(value);
+                            };
+                            Ok(())
+                        })
+                        .ok(); // no need to worry about the result, we return Ok(())
 
                     self.visit_statement(condition, context);
                     b.body.iter().for_each(|s| self.visit_statement(s, context));
