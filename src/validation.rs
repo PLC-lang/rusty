@@ -289,7 +289,7 @@ impl Validator {
                                 ),
                             )
                         })
-                        .and_then(|v| {
+                        .map(|v| {
                             // check for duplicates if we got a value
                             if let Some(AstStatement::LiteralInteger { value, .. }) = v {
                                 if cases.contains(&value) {
@@ -303,9 +303,8 @@ impl Validator {
                                 // insert for next cases
                                 cases.insert(value);
                             };
-                            Ok(())
                         })
-                        .ok(); // no need to worry about the result, we return Ok(())
+                        .ok(); // no need to worry about the result
 
                     self.visit_statement(condition, context);
                     b.body.iter().for_each(|s| self.visit_statement(s, context));
