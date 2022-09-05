@@ -292,7 +292,7 @@ impl Validator {
                         .map(|v| {
                             // check for duplicates if we got a value
                             if let Some(AstStatement::LiteralInteger { value, .. }) = v {
-                                if cases.contains(&value) {
+                                if !cases.insert(value) {
                                     self.stmt_validator.diagnostics.push(
                                         Diagnostic::duplicate_case_condition(
                                             &value,
@@ -300,8 +300,6 @@ impl Validator {
                                         ),
                                     );
                                 }
-                                // insert for next cases
-                                cases.insert(value);
                             };
                         })
                         .ok(); // no need to worry about the result

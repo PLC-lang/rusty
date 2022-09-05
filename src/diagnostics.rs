@@ -616,9 +616,12 @@ impl Diagnostic {
 
     pub fn non_constant_case_condition(case: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("{}. Cannot evaluate for duplicates. Duplicate values may result in undefined runtime behaviour", case),
+            message: format!(
+                "{}. Non constant variables are not supported in case conditions",
+                case
+            ),
             range,
-			err_no: ErrNo::type__invalid_type,
+            err_no: ErrNo::type__invalid_type,
         }
     }
 
