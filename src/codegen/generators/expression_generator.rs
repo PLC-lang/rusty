@@ -638,7 +638,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 //get paremeter at location
                 .get(location)
                 //find the parameter's type and name
-                .map(|it| Some((it.get_declaration_type(), it.get_type_name())))
+                .map(|it| {
+                    let name = it.get_type_name();
+                    let a = self.index.find_effective_type_info(name);
+                    let b = if let Some(DataTypeInformation::Pointer {
+                        inner_type_name, ..
+                    }) = a
+                    {
+                        inner_type_name
+                    } else {
+                        name
+                    };
+                    Some((it.get_declaration_type(), b))
+                })
                 //TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
                 .map(Ok)
                 .unwrap_or_else(|| {
@@ -927,7 +939,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
             if let DataTypeInformation::Pointer {
-                auto_deref: true, ..
+                auto_deref: true,
+                inner_type_name,
+                ..
             } = parameter
             {
                 //this is VAR_OUT or VAR_IN_OUT assignemt, so don't load the value, assign the pointer
@@ -936,14 +950,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let generated_exp = if matches!(expression, AstStatement::EmptyStatement { .. }) {
                     let temp_type = self
                         .llvm_index
-                        .find_associated_type(parameter.get_name())
+                        .find_associated_type(inner_type_name)
                         .ok_or_else(|| {
                             Diagnostic::unknown_type(
                                 parameter.get_name(),
                                 expression.get_location(),
                             )
                         })?;
-
                     builder
                         .build_alloca(temp_type, "empty_varinout")
                         .as_basic_value_enum()
@@ -951,7 +964,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_element_pointer(expression)?
                         .as_basic_value_enum()
                 };
-
                 builder.build_store(pointer_to_param, generated_exp);
             } else {
                 self.generate_store(parameter, expression, pointer_to_param)?;
