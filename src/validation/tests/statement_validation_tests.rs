@@ -365,3 +365,36 @@ fn wstring_compare_function_cause_no_error_if_functions_exist() {
     // THEN everything but VAR and VAR_GLOBALS are reported
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn switch_case_duplicate_integer_non_const_var_reference() {
+    // GIVEN switch case with non constant variables
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM
+		VAR
+			input, res, x, y : DINT;
+		END_VAR
+			x := 2;
+			y := x;
+
+			CASE input OF
+				x:
+					res := 1;
+				y:
+					res := 2;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN the non constant variables are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::non_constant_case_condition("x", (105..106).into()),
+            Diagnostic::non_constant_case_condition("y", (127..128).into())
+        ]
+    );
+}

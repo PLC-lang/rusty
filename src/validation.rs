@@ -4,7 +4,7 @@ use crate::{
         UserTypeDeclaration, Variable, VariableBlock,
     },
     index::Index,
-    resolver::AnnotationMapImpl,
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     Diagnostic,
 };
 
@@ -271,7 +271,21 @@ impl Validator {
             } => {
                 self.visit_statement(selector, context);
                 case_blocks.iter().for_each(|b| {
-                    self.visit_statement(b.condition.as_ref(), context);
+                    let condition = b.condition.as_ref();
+                    if let AstStatement::Reference { name, .. } = condition {
+                        if let Some(StatementAnnotation::Variable {
+                            constant: false, ..
+                        }) = context.ast_annotation.get(condition)
+                        {
+                            self.stmt_validator.diagnostics.push(
+                                Diagnostic::non_constant_case_condition(
+                                    name,
+                                    condition.get_location(),
+                                ),
+                            );
+                        }
+                    }
+                    self.visit_statement(condition, context);
                     b.body.iter().for_each(|s| self.visit_statement(s, context));
                 });
                 else_block

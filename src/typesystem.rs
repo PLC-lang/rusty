@@ -358,7 +358,7 @@ impl DataTypeInformation {
                 referenced_type: inner_type_name,
                 ..
             } => index
-                .find_effective_type(inner_type_name)
+                .find_effective_type_by_name(inner_type_name)
                 .map(|dt| dt.get_type_information().is_generic(index))
                 .unwrap_or(false),
             DataTypeInformation::Generic { .. } => true,

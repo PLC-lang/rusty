@@ -1,0 +1,26 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+define i32 @func(i64* %0, i64* %1) {
+entry:
+  %d_and_t = alloca i64*, align 8
+  store i64* %0, i64** %d_and_t, align 8
+  %time_var = alloca i64*, align 8
+  store i64* %1, i64** %time_var, align 8
+  %func = alloca i32, align 4
+  store i32 0, i32* %func, align 4
+  %deref = load i64*, i64** %d_and_t, align 8
+  %deref1 = load i64*, i64** %d_and_t, align 8
+  %load_d_and_t = load i64, i64* %deref1, align 4
+  %deref2 = load i64*, i64** %time_var, align 8
+  %load_time_var = load i64, i64* %deref2, align 4
+  %tmpVar = add i64 %load_d_and_t, %load_time_var
+  store i64 %tmpVar, i64* %deref, align 4
+  %func_ret = load i32, i32* %func, align 4
+  ret i32 %func_ret
+}
+
