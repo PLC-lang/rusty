@@ -1,0 +1,35 @@
+---
+source: src/codegen/tests/debug_tests.rs
+assertion_line: 82
+expression: codegen
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [11 x i32] zeroinitializer
+@b = global [110 x i32] zeroinitializer
+@c = global [11 x [10 x i32]] zeroinitializer
+
+!llvm.dbg.cu = !{!0}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, globals: !3, splitDebugInlining: false)
+!1 = !DIFile(filename: "main", directory: "")
+!2 = !{}
+!3 = !{!4, !10, !15}
+!4 = !DIGlobalVariableExpression(var: !5, expr: !DIExpression())
+!5 = distinct !DIGlobalVariable(name: "a", scope: !1, file: !1, type: !6, isLocal: true, isDefinition: true)
+!6 = !DICompositeType(tag: DW_TAG_array_type, baseType: !7, size: 352, align: 64, elements: !8)
+!7 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!8 = !{!9}
+!9 = !DISubrange(count: 10, lowerBound: 0)
+!10 = !DIGlobalVariableExpression(var: !11, expr: !DIExpression())
+!11 = distinct !DIGlobalVariable(name: "b", scope: !1, file: !1, type: !12, isLocal: true, isDefinition: true)
+!12 = !DICompositeType(tag: DW_TAG_array_type, baseType: !7, size: 3520, align: 64, elements: !13)
+!13 = !{!9, !14}
+!14 = !DISubrange(count: 9, lowerBound: 11)
+!15 = !DIGlobalVariableExpression(var: !16, expr: !DIExpression())
+!16 = distinct !DIGlobalVariable(name: "c", scope: !1, file: !1, type: !17, isLocal: true, isDefinition: true)
+!17 = !DICompositeType(tag: DW_TAG_array_type, baseType: !18, size: 3520, align: 64, elements: !8)
+!18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !7, size: 320, align: 64, elements: !19)
+!19 = !{!14}
+

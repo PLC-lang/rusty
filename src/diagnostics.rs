@@ -293,7 +293,7 @@ impl Diagnostic {
     }
 
     pub fn incompatible_array_access_range(
-        range: Range<i128>,
+        range: Range<i64>,
         location: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {

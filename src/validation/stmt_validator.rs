@@ -339,7 +339,7 @@ impl StatementValidator {
             if let Some(dimension) = dimension {
                 let range = dimension.get_range(context.index);
                 if let Ok(range) = range {
-                    if !(&range.start <= value && &range.end >= value) {
+                    if !(range.start as i128 <= *value && range.end as i128 >= *value) {
                         self.diagnostics
                             .push(Diagnostic::incompatible_array_access_range(
                                 range,

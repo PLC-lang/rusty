@@ -50,11 +50,11 @@ impl Align {
     }
 
     pub fn bytes(&self) -> u32 {
-        self.0
+        dbg!(self.0)
     }
 
     pub fn bits(&self) -> u32 {
-        self.0 * 8
+        dbg!(self.0 * 8)
     }
 }
 

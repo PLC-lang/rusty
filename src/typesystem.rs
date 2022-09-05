@@ -411,8 +411,15 @@ impl DataTypeInformation {
                         Size::from_bytes(res)
                     })
             },
-            DataTypeInformation::Array { .. } => unimplemented!("array"), //Propably length * inner type size
-            DataTypeInformation::Pointer { .. } => unimplemented!("pointer"),
+            DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
+                let inner_type = index.get_type_information_or_void(inner_type_name);
+                let inner_size = inner_type.get_size_in_bits(index);
+                let element_count : u32 = dimensions.iter().map(|dim| {
+                    dim.get_length(index).unwrap()
+                }).product();
+                Size::from_bits(inner_size*element_count)
+            },
+            DataTypeInformation::Pointer { .. } => Size::from_bits(POINTER_SIZE),
             DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
             DataTypeInformation::Alias { .. } => unimplemented!("alias"),
             DataTypeInformation::Void => Size::from_bits(0),
@@ -426,26 +433,33 @@ impl DataTypeInformation {
         }
     }
 
+    /// Returns the String encoding's alignment (charachter) 
+    pub fn get_string_inner_alignment(&self, index: &Index) -> Align {
+        let type_layout = index.get_type_layout();
+        match self {
+            DataTypeInformation::String { encoding : StringEncoding::Utf8, ..} => type_layout.i8,
+            DataTypeInformation::String { encoding : StringEncoding::Utf16, ..} => type_layout.i16,
+            _ => unreachable!("Expected string found {}", self.get_name())
+
+        }
+
+    }
+
     pub fn get_alignment(&self, index: &Index) -> Align {
         let type_layout = index.get_type_layout();
         match self {
-            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf8 => {
-                type_layout.i8
-            }
-            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => {
-                type_layout.i16
-            }
-            DataTypeInformation::Struct { .. } => type_layout.aggregate,
             DataTypeInformation::Array {
                 inner_type_name, ..
             } => {
                 let inner_type = index.get_type_information_or_void(&inner_type_name);
-                if inner_type.get_alignment(index) > type_layout.i64 {
+                dbg!(if inner_type.get_alignment(index) > type_layout.i64 {
                     type_layout.v128
                 } else {
                     type_layout.v64
-                }
+                })
             }
+            DataTypeInformation::Struct { .. } => type_layout.aggregate,
+            DataTypeInformation::String { .. } => type_layout.v64, //Strings are arrays
             DataTypeInformation::Pointer { .. } => type_layout.p64,
             DataTypeInformation::Integer {
                 size,
@@ -502,9 +516,9 @@ impl Dimension {
         Ok((end - start + 1) as u32)
     }
 
-    pub fn get_range(&self, index: &Index) -> Result<Range<i128>, String> {
-        let start = self.start_offset.as_int_value(index)? as i128;
-        let end = self.end_offset.as_int_value(index)? as i128;
+    pub fn get_range(&self, index: &Index) -> Result<Range<i64>, String> {
+        let start = self.start_offset.as_int_value(index)?;
+        let end = self.end_offset.as_int_value(index)?;
         Ok(start..end)
     }
 
@@ -896,7 +910,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
             .find_effective_type_info(referenced_type)
             .map(|it| get_rank(it, index))
             .unwrap_or(DINT_SIZE),
-        _ => todo!("{:?}", type_information),
+        _ => type_information.get_size_in_bits(index)
     }
 }
 

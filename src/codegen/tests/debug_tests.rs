@@ -69,7 +69,6 @@ fn test_global_var_float_added_to_debug_info() {
 }
 
 #[test]
-#[ignore = "Inkwell does not support the strings/arrays yet"]
 fn test_global_var_array_added_to_debug_info() {
     let codegen = codegen(
         r#"
@@ -84,7 +83,6 @@ fn test_global_var_array_added_to_debug_info() {
 }
 
 #[test]
-#[ignore = "Inkwell does not support the debug pointer types yet"]
 fn test_global_var_pointer_added_to_debug_info() {
     let codegen = codegen(
         r#"
@@ -98,7 +96,6 @@ fn test_global_var_pointer_added_to_debug_info() {
 }
 
 #[test]
-#[ignore = "Inkwell does not support the strings/arrays yet"]
 fn test_global_var_string_added_to_debug_info() {
     let codegen = codegen(
         r#"
@@ -118,14 +115,14 @@ fn test_global_var_struct_added_to_debug_info() {
     TYPE myStruct : STRUCT
         a : DINT;
         b : LREAL;
-        // c : ARRAY[0..10] OF DINT;
+        c : ARRAY[0..10] OF DINT;
         // d : STRING;
     END_STRUCT
     END_TYPE
 
     VAR_GLOBAL
         gStruct : myStruct;
-        // b : ARRAY[0..10] OF myStruct;
+        b : ARRAY[0..10] OF myStruct;
     END_VAR
     "#,
     );
