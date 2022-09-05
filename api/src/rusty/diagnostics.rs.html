@@ -1033,6 +1033,15 @@
 <span id="1028">1028</span>
 <span id="1029">1029</span>
 <span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">error::Error</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
@@ -1104,6 +1113,7 @@
     <span class="comment">//type related</span>
     <span class="ident">type__cast_error</span>,
     <span class="ident">type__unknown_type</span>,
+    <span class="ident">type__invalid_type</span>,
     <span class="ident">type__literal_out_of_range</span>,
     <span class="ident">type__incompatible_literal_cast</span>,
     <span class="ident">type__incompatible_directaccess</span>,
@@ -1642,6 +1652,14 @@
         <span class="ident">Diagnostic::ImprovementSuggestion</span> {
             <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Invalid pragma location: {}&quot;</span>, <span class="ident">message</span>),
             <span class="ident">range</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">non_constant_case_condition</span>(<span class="ident">case</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Non constant case condition: {}. Cannot evaluate for duplicates. Duplicate values may result in undefined runtime behaviour&quot;</span>, <span class="ident">case</span>),
+            <span class="ident">range</span>,
+			<span class="ident">err_no</span>: <span class="ident">ErrNo::type__invalid_type</span>,
         }
     }
 }

@@ -722,7 +722,7 @@
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_local</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_temp</span>())
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
                 <span class="kw">let</span> <span class="ident">var_type</span> <span class="op">=</span> <span class="ident">index</span>
-                    .<span class="ident">get_effective_type_by_name</span>(<span class="ident">it</span>.<span class="ident">get_type_name</span>())
+                    .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">it</span>.<span class="ident">get_type_name</span>())
                     .<span class="ident">get_type_information</span>();
                 <span class="ident">var_type</span>.<span class="ident">is_struct</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">var_type</span>.<span class="ident">is_array</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">var_type</span>.<span class="ident">is_string</span>()
             });

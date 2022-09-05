@@ -292,13 +292,27 @@
 <span id="287">287</span>
 <span id="288">288</span>
 <span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Pou</span>, <span class="ident">SourceRange</span>,
         <span class="ident">UserTypeDeclaration</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>,
     },
     <span class="ident">index::Index</span>,
-    <span class="ident">resolver::AnnotationMapImpl</span>,
+    <span class="ident">resolver</span>::{<span class="ident">AnnotationMap</span>, <span class="ident">AnnotationMapImpl</span>, <span class="ident">StatementAnnotation</span>},
     <span class="ident">Diagnostic</span>,
 };
 
@@ -565,7 +579,21 @@
             } =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">selector</span>, <span class="ident">context</span>);
                 <span class="ident">case_blocks</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">b</span>.<span class="ident">condition</span>.<span class="ident">as_ref</span>(), <span class="ident">context</span>);
+                    <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">condition</span>.<span class="ident">as_ref</span>();
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="ident">condition</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> {
+                            <span class="ident">constant</span>: <span class="bool-val">false</span>, ..
+                        }) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get</span>(<span class="ident">condition</span>)
+                        {
+                            <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(
+                                <span class="ident">Diagnostic::non_constant_case_condition</span>(
+                                    <span class="ident">name</span>,
+                                    <span class="ident">condition</span>.<span class="ident">get_location</span>(),
+                                ),
+                            );
+                        }
+                    }
+                    <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">condition</span>, <span class="ident">context</span>);
                     <span class="ident">b</span>.<span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
                 });
                 <span class="ident">else_block</span>

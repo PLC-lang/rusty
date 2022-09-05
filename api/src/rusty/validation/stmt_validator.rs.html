@@ -776,7 +776,7 @@
 
                     <span class="kw">let</span> <span class="ident">l_effective_type</span> <span class="op">=</span> <span class="ident">context</span>
                         .<span class="ident">index</span>
-                        .<span class="ident">get_effective_type_by_name</span>(<span class="ident">l_resulting_type</span>)
+                        .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">l_resulting_type</span>)
                         .<span class="ident">get_type_information</span>();
                     <span class="kw">let</span> <span class="ident">r_effective_type</span> <span class="op">=</span> <span class="ident">context</span>
                         .<span class="ident">ast_annotation</span>
@@ -1053,7 +1053,7 @@
     ) {
         <span class="kw">let</span> <span class="ident">cast_type</span> <span class="op">=</span> <span class="ident">context</span>
             .<span class="ident">index</span>
-            .<span class="ident">get_effective_type_by_name</span>(<span class="ident">type_name</span>)
+            .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">type_name</span>)
             .<span class="ident">get_type_information</span>();
 
         <span class="kw">let</span> <span class="ident">literal_type</span> <span class="op">=</span> <span class="ident">context</span>
@@ -1241,12 +1241,12 @@
         {
             <span class="kw">let</span> <span class="ident">type_name_1</span> <span class="op">=</span> <span class="ident">context</span>
                 .<span class="ident">index</span>
-                .<span class="ident">get_effective_type_by_name</span>(<span class="ident">type_name_1</span>)
+                .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">type_name_1</span>)
                 .<span class="ident">get_type_information</span>()
                 .<span class="ident">get_name</span>();
             <span class="kw">let</span> <span class="ident">type_name_2</span> <span class="op">=</span> <span class="ident">context</span>
                 .<span class="ident">index</span>
-                .<span class="ident">get_effective_type_by_name</span>(<span class="ident">type_name_2</span>)
+                .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">type_name_2</span>)
                 .<span class="ident">get_type_information</span>()
                 .<span class="ident">get_name</span>();
 

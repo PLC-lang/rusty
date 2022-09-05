@@ -1274,7 +1274,7 @@
                 <span class="ident">referenced_type</span>: <span class="ident">inner_type_name</span>,
                 ..
             } =&gt; <span class="ident">index</span>
-                .<span class="ident">find_effective_type</span>(<span class="ident">inner_type_name</span>)
+                .<span class="ident">find_effective_type_by_name</span>(<span class="ident">inner_type_name</span>)
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">get_type_information</span>().<span class="ident">is_generic</span>(<span class="ident">index</span>))
                 .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>),
             <span class="ident">DataTypeInformation::Generic</span> { .. } =&gt; <span class="bool-val">true</span>,

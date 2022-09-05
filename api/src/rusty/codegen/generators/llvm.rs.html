@@ -337,6 +337,7 @@
 <span id="332">332</span>
 <span id="333">333</span>
 <span id="334">334</span>
+<span id="335">335</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::SourceRange</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostic</span>;
@@ -375,7 +376,8 @@
     }
 
     <span class="kw">fn</span> <span class="ident">make_external</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">set_linkage</span>(<span class="ident">Linkage::AvailableExternally</span>);
+        <span class="comment">// self.set_linkage(Linkage::AvailableExternally);</span>
+        <span class="self">self</span>.<span class="ident">set_linkage</span>(<span class="ident">Linkage::External</span>);
         <span class="self">self</span>
     }
 

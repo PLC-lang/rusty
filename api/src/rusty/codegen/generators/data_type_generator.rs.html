@@ -657,7 +657,7 @@
                 ..
             } =&gt; <span class="self">self</span>
                 .<span class="ident">index</span>
-                .<span class="ident">get_effective_type</span>(<span class="ident">inner_type_name</span>)
+                .<span class="ident">get_effective_type_by_name</span>(<span class="ident">inner_type_name</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">inner_type</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">create_type</span>(<span class="ident">inner_type_name</span>, <span class="ident">inner_type</span>))
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">inner_type</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">create_nested_array_type</span>(<span class="ident">inner_type</span>, <span class="ident">dimensions</span>))
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_basic_type_enum</span>()),
@@ -671,7 +671,7 @@
             } =&gt; {
                 <span class="kw">let</span> <span class="ident">effective_type</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">index</span>
-                    .<span class="ident">get_effective_type_by_name</span>(<span class="ident">referenced_type</span>)
+                    .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">referenced_type</span>)
                     .<span class="ident">get_type_information</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Integer</span> {
                     <span class="ident">size</span>: <span class="ident">enum_size</span>, ..
@@ -708,7 +708,7 @@
                 <span class="ident">referenced_type</span>, ..
             } =&gt; <span class="self">self</span>
                 .<span class="ident">index</span>
-                .<span class="ident">get_effective_type</span>(<span class="ident">referenced_type</span>)
+                .<span class="ident">get_effective_type_by_name</span>(<span class="ident">referenced_type</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">data_type</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">create_type</span>(<span class="ident">name</span>, <span class="ident">data_type</span>)),
             <span class="ident">DataTypeInformation::Void</span> =&gt; {
                 <span class="ident">get_llvm_int_type</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="number">32</span>, <span class="string">&quot;Void&quot;</span>).<span class="ident">map</span>(<span class="ident">Into::into</span>)

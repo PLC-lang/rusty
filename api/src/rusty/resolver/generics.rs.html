@@ -675,7 +675,7 @@
                 {
                     <span class="kw">let</span> <span class="ident">real_type</span> <span class="op">=</span> <span class="ident">generic_map</span>
                         .<span class="ident">get</span>(<span class="ident">generic_symbol</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>))
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">it</span>))
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">datatype</span><span class="op">|</span> <span class="ident">TypeAndNature</span> {
                             <span class="ident">datatype</span>,
                             <span class="ident">nature</span>: <span class="kw-2">*</span><span class="ident">nature</span>,
@@ -739,7 +739,7 @@
                 {
                     <span class="kw">let</span> <span class="ident">real_type</span> <span class="op">=</span> <span class="ident">generic_map</span>
                         .<span class="ident">get</span>(<span class="ident">generic_symbol</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>))
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">it</span>))
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">datatype</span><span class="op">|</span> <span class="ident">TypeAndNature</span> {
                             <span class="ident">datatype</span>,
                             <span class="ident">nature</span>: <span class="kw-2">*</span><span class="ident">nature</span>,
