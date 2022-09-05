@@ -91,6 +91,9 @@ pub enum ErrNo {
 
     //linker
     linker__generic_error,
+
+    //switch case
+    case__duplicate_condition,
 }
 
 impl<T: Error> From<T> for Diagnostic {
@@ -613,9 +616,23 @@ impl Diagnostic {
 
     pub fn non_constant_case_condition(case: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Non constant case condition: {}. Cannot evaluate for duplicates. Duplicate values may result in undefined runtime behaviour", case),
+            message: format!(
+                "{}. Non constant variables are not supported in case conditions",
+                case
+            ),
             range,
-			err_no: ErrNo::type__invalid_type,
+            err_no: ErrNo::type__invalid_type,
+        }
+    }
+
+    pub fn duplicate_case_condition(value: &i128, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Duplicate condition value: {}. Occurred more than once!",
+                value
+            ),
+            range,
+            err_no: ErrNo::case__duplicate_condition,
         }
     }
 }
