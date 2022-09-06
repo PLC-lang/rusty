@@ -1308,7 +1308,7 @@ END_VAR
 TYPE Direction: (
     FORWARD := BASE,
     UP,
-    DOWN := BASE * 2);
+    DOWN := BASE * 4);
 END_TYPE
 
 FUNCTION drive : DINT
@@ -1334,7 +1334,7 @@ END_FUNCTION
     );
 
     // WHEN we compile, we want to see propagated constant in the switch statement
-    // -> so no references to variables, but int-values (7, 14, 8 and 15)
+    // -> so no references to variables, but int-values (7, 14, 8 and 28)
     insta::assert_snapshot!(result);
 }
 
@@ -2875,6 +2875,7 @@ fn order_var_and_var_temp_block() {
 }
 
 #[test]
+#[ignore = "resolved with PLC-lang/rusty/issues/562"]
 fn optional_output_assignment() {
     // GIVEN a program calling a function and only assigning one output
     let result = codegen(
@@ -2894,6 +2895,62 @@ fn optional_output_assignment() {
 				var2 : DINT;
 			END_VAR
 			foo(output1 =>, output2 => var2);
+		END_PROGRAM
+		",
+    );
+    // codegen should be successful
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+#[ignore = "resolved with PLC-lang/rusty/issues/562"]
+fn optional_output_assignment_at_end() {
+    // GIVEN a program calling a function and only assigning one output
+    let result = codegen(
+        "
+		PROGRAM foo 
+			VAR_OUTPUT
+				output1 : DINT;
+				output2 : DINT;
+			END_VAR
+			output1 := 1;
+			output2 := 2;
+		END_PROGRAM
+
+		PROGRAM main
+			VAR
+				var1 : DINT;
+				var2 : DINT;
+			END_VAR
+			foo(output1 => var2, output2 => );
+		END_PROGRAM
+		",
+    );
+    // codegen should be successful
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+#[ignore = "resolved with PLC-lang/rusty/issues/562"]
+fn optional_output_assignment_skipped() {
+    // GIVEN a program calling a function and only assigning one output
+    let result = codegen(
+        "
+		PROGRAM foo 
+			VAR_OUTPUT
+				output1 : DINT;
+				output2 : DINT;
+			END_VAR
+			output1 := 1;
+			output2 := 2;
+		END_PROGRAM
+
+		PROGRAM main
+			VAR
+				var1 : DINT;
+				var2 : DINT;
+			END_VAR
+			foo(output1 => var1);
 		END_PROGRAM
 		",
     );
@@ -2932,5 +2989,49 @@ fn constant_expressions_in_ranged_type_declaration_are_propagated() {
     // in a call to CheckRangedSigned where the upper bound is a literal i16 8 - NOT an
     // add-expression that really calculates the upper bound at runtime
 
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn constant_expression_in_function_blocks_are_propagated() {
+    //GIVEN a constant in a function block
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        FUNCTION_BLOCK fbWithConstant 
+        VAR
+            x : INT;
+        END_VAR
+        VAR CONSTANT
+            const : INT := 2;
+        END_VAR
+          x := const;
+        END_FUNCTION
+        ",
+    );
+
+    // THEN we expect that the assignment to the variable (x := const) will be replaced
+    // With x := 2
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn date_and_time_addition_in_var_output() {
+    //GIVEN a date and time and a time addition on output variables
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        FUNCTION func : DINT
+        VAR_OUTPUT
+            d_and_t : DT;
+            time_var : TIME;
+        END_VAR
+            d_and_t := d_and_t + time_var;
+        END_FUNCTION
+        ",
+    );
+
+    //Then the time variable is added to the date time variable
     insta::assert_snapshot!(result);
 }

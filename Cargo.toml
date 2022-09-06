@@ -12,6 +12,7 @@ categories = ["development-tools::build-utils"]
 [features]
 default = []
 debug = []
+verify = []
 
 [dependencies]
 logos = "0.12.0"

@@ -331,8 +331,8 @@ impl<'ink> DebugObj<'ink> {
         let string_size = string.get_size_in_bits(index);
         // Register a utf8 or 16 basic type
         let inner_type = match encoding {
-            StringEncoding::Utf8 => index.get_effective_type_by_name(CHAR_TYPE),
-            StringEncoding::Utf16 => index.get_effective_type_by_name(WCHAR_TYPE),
+            StringEncoding::Utf8 => index.get_effective_type_or_void_by_name(CHAR_TYPE),
+            StringEncoding::Utf16 => index.get_effective_type_or_void_by_name(WCHAR_TYPE),
         };
         let inner_type = self.get_or_create_debug_type(inner_type, index)?;
         //Register an array

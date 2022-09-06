@@ -365,3 +365,130 @@ fn wstring_compare_function_cause_no_error_if_functions_exist() {
     // THEN everything but VAR and VAR_GLOBALS are reported
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn switch_case() {
+    // GIVEN switch case statement
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		VAR_GLOBAL CONSTANT
+			BASE : DINT := 1;
+		END_VAR
+
+		TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
+
+        PROGRAM
+		VAR
+			input, res : DINT;
+		END_VAR
+
+			CASE input OF
+				BASE:
+					res := 1;
+				MYTYPE_A:
+					res := 2;
+				MYTYPE_A+1:
+					res := 3;
+				4:
+					res := 4;
+				2*2+1:
+					res := 5;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN no errors should occure
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn switch_case_duplicate_integer_non_const_var_reference() {
+    // GIVEN switch case with non constant variables
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		VAR_GLOBAL CONSTANT
+			CONST : DINT := 8;
+		END_VAR
+
+        PROGRAM
+		VAR
+			input, res, x, y : DINT;
+		END_VAR
+			x := 2;
+			y := x;
+
+			CASE input OF
+				x: // x is no constant => error
+					res := 1;
+				y: // y is no constant => error
+					res := 2;
+				2+x: // x is no constant => error
+					res := 3;
+				CONST:
+					res := 4;
+				CONST+x: // x is no constant => error
+					res := 5;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN the non constant variables are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::non_constant_case_condition("'x' is no const reference", (160..161).into()),
+            Diagnostic::non_constant_case_condition("'y' is no const reference", (211..212).into()),
+            Diagnostic::non_constant_case_condition("'x' is no const reference", (262..265).into()),
+            Diagnostic::non_constant_case_condition("'x' is no const reference", (341..348).into())
+        ]
+    );
+}
+
+#[test]
+fn switch_case_duplicate_integer() {
+    // GIVEN switch case with duplicate constant conditions
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		VAR_GLOBAL CONSTANT
+			BASE : DINT := 2;
+			GLOB : DINT := 2;
+		END_VAR
+
+		TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
+
+        PROGRAM
+		VAR
+			input, res : DINT;
+		END_VAR
+			CASE input OF
+				4:
+					res := 1;
+				BASE*2:
+					res := 2;
+				BASE+GLOB:
+					res := 3;
+				MYTYPE_A:
+					res := 4;
+				2+2:
+					res := 5;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN the non constant variables are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::duplicate_case_condition(&4, (222..228).into()),
+            Diagnostic::duplicate_case_condition(&4, (249..258).into()),
+            Diagnostic::duplicate_case_condition(&4, (279..287).into()),
+            Diagnostic::duplicate_case_condition(&4, (308..311).into()),
+        ]
+    );
+}

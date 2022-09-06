@@ -969,20 +969,26 @@ impl Index {
         if segments.is_empty() {
             return None;
         }
-        let first_var = segments[0];
-        let mut result = match context {
+        //For the first element, if the context does not contain that element, it is possible that the element is also a global variable
+        let init = match context {
             Some(context) => self
-                .find_member(context, first_var)
-                .or_else(|| self.find_global_variable(first_var)),
-            None => self.find_global_variable(first_var),
+                .find_member(context, segments[0])
+                .or_else(|| self.find_global_variable(segments[0])),
+            None => self.find_global_variable(segments[0]),
         };
-        for segment in segments.iter().skip(1) {
-            result = match result {
-                Some(context) => self.find_member(&context.data_type_name, segment),
-                None => None,
-            };
-        }
-        result
+        segments
+            .iter()
+            .skip(1)
+            .fold(Some((segments[0], init)), |accum, current| match accum {
+                Some((_, Some(context))) => Some((
+                    *current,
+                    self.find_member(&context.data_type_name, *current),
+                )),
+                // The variable could be in a block that has no global variable (Function block)
+                Some((name, None)) => Some((*current, self.find_member(name, *current))),
+                None => Some((*current, self.find_global_variable(*current))),
+            })
+            .and_then(|(_, it)| it)
     }
 
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
@@ -1053,12 +1059,20 @@ impl Index {
     }
 
     /// returns the effective DataType of the type with the given name if it exists
-    pub fn find_effective_type(&self, type_name: &str) -> Option<&DataType> {
+    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
     }
 
+    /// returns the effective DataType of the given type if it exists
+    pub fn find_effective_type<'ret>(
+        &'ret self,
+        data_type: &'ret DataType,
+    ) -> Option<&'ret DataType> {
+        self.type_index.find_effective_type(data_type)
+    }
+
     /// returns the effective DataType of the type with the given name or an Error
-    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
+    pub fn get_effective_type_by_name(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
             .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
@@ -1066,13 +1080,13 @@ impl Index {
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
     pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
-        self.find_effective_type(type_name)
+        self.find_effective_type_by_name(type_name)
             .map(DataType::get_type_information)
     }
 
     /// returns the effective type of the type with the with the given name or the
     /// void-type if the given name does not exist
-    pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
+    pub fn get_effective_type_or_void_by_name(&self, type_name: &str) -> &DataType {
         self.type_index.get_effective_type_by_name(type_name)
     }
 
@@ -1123,7 +1137,7 @@ impl Index {
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
-        self.find_effective_type(type_name)
+        self.find_effective_type_by_name(type_name)
             .map(|it| it.get_type_information())
             .unwrap_or_else(|| self.get_void_type().get_type_information())
     }

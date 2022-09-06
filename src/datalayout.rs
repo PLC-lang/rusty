@@ -167,7 +167,7 @@ mod tests {
         );
 
         let struct_type = index
-            .get_effective_type("MyStruct")
+            .get_effective_type_by_name("MyStruct")
             .unwrap()
             .get_type_information();
         // And the struct size takes the alignment into account

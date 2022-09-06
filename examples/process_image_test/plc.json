@@ -1,8 +1,0 @@
-{
-    "files" : [
-        "src/*.st",
-        "src/*.gvl"
-    ],
-    "compile_type" : "Shared",
-    "output" : "prog.so"
-}

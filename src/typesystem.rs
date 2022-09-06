@@ -359,7 +359,7 @@ impl DataTypeInformation {
                 referenced_type: inner_type_name,
                 ..
             } => index
-                .find_effective_type(inner_type_name)
+                .find_effective_type_by_name(inner_type_name)
                 .map(|dt| dt.get_type_information().is_generic(index))
                 .unwrap_or(false),
             DataTypeInformation::Generic { .. } => true,
@@ -401,8 +401,7 @@ impl DataTypeInformation {
                     })
                     .fold(Size::from_bits(0), |prev, it| {
                         let type_info = index
-                        .get_effective_type_by_name(it)
-                        .get_type_information();
+                        .get_type_information_or_void(it);
                         let size = type_info.get_size(index).bytes();
                         let after_align = prev.align_to(type_info.get_alignment(index)).bytes();
                         let res = after_align + size;

@@ -1,2 +1,0 @@
-PROGRAM main_prog
-END_PROGRAM
