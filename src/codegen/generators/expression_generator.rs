@@ -629,6 +629,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = Vec::new();
         let mut variadic_params = Vec::new();
+
         for (idx, param_statement) in arguments.into_iter().enumerate() {
             let (location, param_statement) =
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
@@ -640,16 +641,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 //find the parameter's type and name
                 .map(|it| {
                     let name = it.get_type_name();
-                    let a = self.index.find_effective_type_info(name);
-                    let b = if let Some(DataTypeInformation::Pointer {
+                    if let Some(DataTypeInformation::Pointer {
                         inner_type_name, ..
-                    }) = a
+                    }) = self.index.find_effective_type_info(name)
                     {
-                        inner_type_name
+                        Some((it.get_declaration_type(), inner_type_name.as_str()))
                     } else {
-                        name
-                    };
-                    Some((it.get_declaration_type(), b))
+                        Some((it.get_declaration_type(), name))
+                    }
                 })
                 //TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
                 .map(Ok)
@@ -677,6 +676,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 result.push((location, argument));
             }
         }
+
         //Push variadic collection and optionally the variadic size
         if pou.is_variadic() {
             let last_location = result.len();

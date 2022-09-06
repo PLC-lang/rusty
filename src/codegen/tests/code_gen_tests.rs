@@ -2875,7 +2875,6 @@ fn order_var_and_var_temp_block() {
 }
 
 #[test]
-#[ignore = "resolved with PLC-lang/rusty/issues/562"]
 fn optional_output_assignment() {
     // GIVEN a program calling a function and only assigning one output
     let result = codegen(
@@ -2903,7 +2902,6 @@ fn optional_output_assignment() {
 }
 
 #[test]
-#[ignore = "resolved with PLC-lang/rusty/issues/562"]
 fn optional_output_assignment_at_end() {
     // GIVEN a program calling a function and only assigning one output
     let result = codegen(
@@ -2931,7 +2929,7 @@ fn optional_output_assignment_at_end() {
 }
 
 #[test]
-#[ignore = "resolved with PLC-lang/rusty/issues/562"]
+#[ignore = "https://github.com/PLC-lang/rusty/issues/530"]
 fn optional_output_assignment_skipped() {
     // GIVEN a program calling a function and only assigning one output
     let result = codegen(
