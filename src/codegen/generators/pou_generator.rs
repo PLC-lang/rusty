@@ -84,7 +84,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
             .filter(|it| it.is_local() || it.is_temp())
             .filter(|it| {
                 let var_type = index
-                    .get_effective_type_by_name(it.get_type_name())
+                    .get_effective_type_or_void_by_name(it.get_type_name())
                     .get_type_information();
                 var_type.is_struct() || var_type.is_array() || var_type.is_string()
             });
