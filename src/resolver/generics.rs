@@ -335,25 +335,29 @@ impl<'i> TypeAnnotator<'i> {
         generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
         let call_name = generic_name_resolver(qualified_name, generics, generic_map);
-        let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
-            self.index.get_type_information_or_void(return_type)
-        {
-            generic_map
-                .get(generic_symbol)
-                .map(String::as_str)
-                .unwrap_or(return_type)
-        } else {
-            return_type
-        }
-        .to_string();
-        (
-            call_name.clone(),
-            StatementAnnotation::Function {
-                qualified_name: qualified_name.to_string(),
-                return_type,
-                call_name: Some(call_name),
-            },
-        )
+        let annotation = self.index.find_pou(&call_name).map(
+            |it| StatementAnnotation::from(it) ).unwrap_or_else(|| {    
+                let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
+                    self.index.get_type_information_or_void(return_type)
+                {
+                    generic_map
+                        .get(generic_symbol)
+                        .map(String::as_str)
+                        .unwrap_or(return_type)
+                } else {
+                    return_type
+                }
+                .to_string();
+                StatementAnnotation::Function {
+                    qualified_name: qualified_name.to_string(),
+                    return_type,
+                    call_name: Some(call_name.clone()),
+                }
+            });
+            (
+                call_name,
+                annotation   
+            )
     }
 
     /// Derives the correct type for the generic call from the list of parameters

@@ -789,13 +789,13 @@ fn when_main_returns_value_from_generic_function_call_then_string_does_not_trunc
             out := in;
         END_FUNCTION
 
-        PROGRAM main : STRING[100]
+        FUNCTION main : STRING[100]
         VAR 
             param : STRING[100];
         END_VAR
             param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
             main := foo(param);           
-        END_PROGRAM
+        END_FUNCTION
     ";
     let res : [u8; 101] = compile_and_run(src, &mut MainType::default());
 
@@ -829,13 +829,13 @@ fn when_main_return_param_is_a_function_call_string_does_not_truncate() {
             out := in;
         END_FUNCTION
 
-        PROGRAM main : STRING[100]
+        FUNCTION main : STRING[100]
         VAR 
             param : STRING[100];
         END_VAR
             param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
             main := foo(param);            
-        END_PROGRAM
+        END_FUNCTION
     ";
     let res : [u8; 101] = compile_and_run(src, &mut MainType::default());
 
