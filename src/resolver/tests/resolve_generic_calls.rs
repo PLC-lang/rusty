@@ -1,7 +1,7 @@
 use crate::{
     assert_type_and_hint,
     ast::{self, flatten_expression_list, AstStatement},
-    resolver::{AnnotationMap, TypeAnnotator, StatementAnnotation},
+    resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate, index},
     typesystem::{
         DataTypeInformation, BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE,
@@ -822,6 +822,65 @@ fn string_ref_as_generic_resolved() {
     }
 }
 
+#[test]
+fn resolved_generic_any_real_call_with_ints_added_to_index() {
+    // Make sure INTs implementations were not added to index
+    let (unit, index) = index(
+        "
+        FUNCTION myFunc<T: ANY_REAL> : T
+        VAR_INPUT   x : T;  END_VAR
+        END_FUNCTION
+
+        FUNCTION myFunc__REAL : REAL
+        VAR_INPUT   x : REAL; END_VAR
+        END_FUNCTION
+
+        PROGRAM PRG
+            VAR
+                a : INT;
+				b : UINT;
+            END_VAR
+            myFunc(REAL#1.0);
+            myFunc(SINT#1);
+            myFunc(a);
+            myFunc(DINT#1);
+			myFunc(LINT#1);
+
+			myFunc(USINT#1);
+            myFunc(b);
+            myFunc(UDINT#1);
+			myFunc(ULINT#1);
+        END_PROGRAM",
+    );
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    // The implementations are added to the index
+    let implementations = annotations.new_index.get_implementations();
+    assert!(implementations.contains_key("myfunc__lreal"));
+    assert_eq!(1, implementations.len()); //make sure REAL-implementation was not added by the annotator
+
+    //The pous are added to the index
+    let pous = annotations.new_index.get_pous();
+    assert!(pous.contains_key("myfunc__lreal"));
+    assert_eq!(1, pous.len()); //make sure REAL-implementation was not added by the annotator
+
+    //Each POU has members
+    assert_eq!(
+        "LREAL",
+        annotations
+            .new_index
+            .find_member("myfunc__lreal", "x")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
+        "LREAL",
+        annotations
+            .new_index
+            .find_member("myfunc__lreal", "myfunc__lreal")
+            .unwrap()
+            .get_type_name()
+    );
+}
 
 #[test]
 fn generic_string_functions_are_annotated_correctly() {
@@ -849,20 +908,24 @@ fn generic_string_functions_are_annotated_correctly() {
         ",
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);   
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     let mut functions = vec![];
     let mut values = vec![];
-    annotations.type_map.iter().map(|(_, v)| v).for_each(|v|
-        match v {
+    annotations
+        .type_map
+        .iter()
+        .map(|(_, v)| v)
+        .for_each(|v| match v {
             StatementAnnotation::Function { .. } => functions.push(v),
-            StatementAnnotation::Value { resulting_type: res_type } => values.push(res_type),
+            StatementAnnotation::Value {
+                resulting_type: res_type,
+            } => values.push(res_type),
             _ => (),
-        }
-    );    
+        });
 
     assert_eq!(
-        functions[0], 
+        functions[0],
         &StatementAnnotation::Function {
             return_type: "__foo__STRING_return".to_string(),
             qualified_name: "foo__STRING".to_string(),
@@ -870,10 +933,7 @@ fn generic_string_functions_are_annotated_correctly() {
         }
     );
 
-    assert_eq!(
-        values[0],
-        &String::from("__STRING_80"),
-    )
+    assert_eq!(values[0], &String::from("__STRING_80"),)
 }
 
 #[test]
@@ -910,20 +970,24 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
         ",
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);   
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     let mut functions = vec![];
     let mut values = vec![];
-    annotations.type_map.iter().map(|(_, v)| v).for_each(|v|
-        match v {
+    annotations
+        .type_map
+        .iter()
+        .map(|(_, v)| v)
+        .for_each(|v| match v {
             StatementAnnotation::Function { .. } => functions.push(v),
-            StatementAnnotation::Value { resulting_type: res_type } => values.push(res_type),
+            StatementAnnotation::Value {
+                resulting_type: res_type,
+            } => values.push(res_type),
             _ => (),
-        }
-    );
+        });
 
     assert_eq!(
-        functions[0], 
+        functions[0],
         &StatementAnnotation::Function {
             return_type: "__foo__STRING_return".to_string(),
             qualified_name: "foo__STRING".to_string(),
@@ -931,10 +995,7 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
         }
     );
 
-    assert_eq!(
-        values[0],
-        &String::from("__STRING_100"),
-    )
+    assert_eq!(values[0], &String::from("__STRING_100"),)
 }
 
 #[test]
@@ -952,20 +1013,24 @@ fn generic_return_type_name_resolved_correctly() {
     END_FUNCTION",
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);   
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     let mut functions = vec![];
     let mut values = vec![];
-    annotations.type_map.iter().map(|(_, v)| v).for_each(|v|
-        match v {
+    annotations
+        .type_map
+        .iter()
+        .map(|(_, v)| v)
+        .for_each(|v| match v {
             StatementAnnotation::Function { .. } => functions.push(v),
-            StatementAnnotation::Value { resulting_type: res_type } => values.push(res_type),
+            StatementAnnotation::Value {
+                resulting_type: res_type,
+            } => values.push(res_type),
             _ => (),
-        }
-    );
+        });
 
     assert_eq!(
-        functions[0], 
+        functions[0],
         &StatementAnnotation::Function {
             return_type: "DINT".to_string(),
             qualified_name: "foo".to_string(),
@@ -973,8 +1038,5 @@ fn generic_return_type_name_resolved_correctly() {
         }
     );
 
-    assert_eq!(
-        values[0],
-        &String::from("DINT"),
-    )
+    assert_eq!(values[0], &String::from("DINT"),)
 }

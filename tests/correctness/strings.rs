@@ -606,8 +606,6 @@ fn wstring_as_function_parameters_cast() {
     assert_eq!(res, "hello");
 }
 
-
-
 #[test]
 fn string_as_function_return_type_does_not_truncate() {
     let src = "
@@ -631,9 +629,7 @@ fn string_as_function_return_type_does_not_truncate() {
     struct MainType {
         x: [u8; 101],
     }
-    let mut main_type = MainType {
-        x: [0; 101],
-    };
+    let mut main_type = MainType { x: [0; 101] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     // long string passed to short function and returned
@@ -676,9 +672,7 @@ fn string_ref_returned_from_wrapper_function_does_not_truncate() {
     struct MainType {
         x: [u8; 101],
     }
-    let mut main_type = MainType {
-        x: [0; 101],
-    };
+    let mut main_type = MainType { x: [0; 101] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     // long string passed to short function and returned
@@ -729,16 +723,13 @@ fn string_returned_from_wrapper_function_does_not_truncate() {
     struct MainType {
         x: [u8; 101],
     }
-    let mut main_type = MainType {
-        x: [0; 101],
-    };
+    let mut main_type = MainType { x: [0; 101] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!(
         format!("{:?}", "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()),
         format!("{:?}", &main_type.x)
     );
-
 }
 
 #[test]
@@ -752,7 +743,7 @@ fn string_returned_from_main_does_not_truncate() {
             main := param;
         END_PROGRAM
     ";
-    let res : [u8; 101] = compile_and_run(src, &mut MainType::default());
+    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
 
     assert_eq!(
         format!("{:?}",res), 
@@ -797,7 +788,7 @@ fn when_main_returns_value_from_generic_function_call_then_string_does_not_trunc
             main := foo(param);           
         END_FUNCTION
     ";
-    let res : [u8; 101] = compile_and_run(src, &mut MainType::default());
+    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
 
     assert_eq!(
         format!("{:?}",res), 
@@ -807,7 +798,6 @@ fn when_main_returns_value_from_generic_function_call_then_string_does_not_trunc
         )
     )
 }
-
 
 #[test]
 fn when_main_return_param_is_a_function_call_string_does_not_truncate() {
@@ -837,7 +827,7 @@ fn when_main_return_param_is_a_function_call_string_does_not_truncate() {
             main := foo(param);            
         END_FUNCTION
     ";
-    let res : [u8; 101] = compile_and_run(src, &mut MainType::default());
+    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
 
     assert_eq!(
         format!("{:?}",res), 
@@ -847,4 +837,3 @@ fn when_main_return_param_is_a_function_call_string_does_not_truncate() {
         )
     )
 }
-

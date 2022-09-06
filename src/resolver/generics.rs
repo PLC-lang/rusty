@@ -90,7 +90,7 @@ impl<'i> TypeAnnotator<'i> {
                     if let Some(pou) = self.index.find_pou(qualified_name) {
                         //only register concrete typed function if it was not indexed yet
                         if self.index.find_pou(new_name.as_str()).is_none() {
-                            if let StatementAnnotation::Function { return_type, ..} = &annotation {
+                            if let StatementAnnotation::Function { return_type, .. } = &annotation {
                                 //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
                                 // e.g. call to generic_foo(aInt)
                                 self.register_generic_pou_entries(
@@ -100,7 +100,10 @@ impl<'i> TypeAnnotator<'i> {
                                     generic_map,
                                 );
                             } else {
-                                unreachable!("Annotation must be a function but was {:?}", &annotation)
+                                unreachable!(
+                                    "Annotation must be a function but was {:?}",
+                                    &annotation
+                                )
                             }
                         }
                     }
@@ -244,7 +247,7 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     let real_type = generic_map
                         .get(generic_symbol)
-                        .and_then(|it| self.index.find_effective_type(it))
+                        .and_then(|it| self.index.find_effective_type_by_name(it))
                         .map(|datatype| TypeAndNature {
                             datatype,
                             nature: *nature,
@@ -308,7 +311,7 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     let real_type = generic_map
                         .get(generic_symbol)
-                        .and_then(|it| self.index.find_effective_type(it))
+                        .and_then(|it| self.index.find_effective_type_by_name(it))
                         .map(|datatype| TypeAndNature {
                             datatype,
                             nature: *nature,
@@ -337,10 +340,12 @@ impl<'i> TypeAnnotator<'i> {
         generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
         let call_name = generic_name_resolver(qualified_name, generics, generic_map);
-        let annotation = self.index.find_pou(&call_name)
-            .filter(|it|!it.is_generic())
+        let annotation = self
+            .index
+            .find_pou(&call_name)
+            .filter(|it| !it.is_generic())
             .map(StatementAnnotation::from)
-            .unwrap_or_else(|| {    
+            .unwrap_or_else(|| {
                 let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
                     self.index.get_type_information_or_void(return_type)
                 {
@@ -358,10 +363,7 @@ impl<'i> TypeAnnotator<'i> {
                     call_name: Some(call_name.clone()),
                 }
             });
-            (
-                call_name,
-                annotation   
-            )
+        (call_name, annotation)
     }
 
     /// Derives the correct type for the generic call from the list of parameters
@@ -371,14 +373,17 @@ impl<'i> TypeAnnotator<'i> {
         generics_candidates: HashMap<String, Vec<String>>,
     ) -> HashMap<String, String> {
         let mut generic_map: HashMap<String, String> = HashMap::new();
-        for GenericBinding { name, .. } in generics {
+        for GenericBinding { name, nature } in generics {
+            let smallest_possible_type = self
+                .index
+                .find_effective_type_info(nature.get_smallest_possible_type());
             //Get the current binding
             if let Some(candidates) = generics_candidates.get(name) {
                 //Find the best suiting type
                 let winner = candidates
                     .iter()
                     .fold(
-                        None,
+                        smallest_possible_type,
                         |previous_type: Option<&DataTypeInformation>, current| {
                             let current_type = self
                                 .index
@@ -386,7 +391,7 @@ impl<'i> TypeAnnotator<'i> {
                                 .map(|it| self.index.find_intrinsic_type(it));
                             //Find bigger
                             if let Some((previous, current)) = previous_type.zip(current_type) {
-                                Some(typesystem::get_bigger_type(previous, current, self.index))
+                                Some(typesystem::get_bigger_type(current, previous, self.index))
                             } else {
                                 current_type
                             }

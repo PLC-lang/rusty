@@ -8,4 +8,6 @@ mod generics_test;
 mod initialization_test;
 mod statement_codegen_test;
 mod string_tests;
+#[cfg(feature = "verify")]
+mod switch_case_tests;
 mod typesystem_test;
