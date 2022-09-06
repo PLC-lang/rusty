@@ -21,7 +21,7 @@ impl Default for DataLayout {
             i16: Align::from_bits(16),
             i32: Align::from_bits(32),
             i64: Align::from_bits(64), //Using 64bit default alignment, if we need to support 32bit
-                                       //this has to be adjusted
+            //this has to be adjusted
             f32: Align::from_bits(32),
             f64: Align::from_bits(64),
             p64: Align::from_bits(64),
@@ -50,11 +50,11 @@ impl Align {
     }
 
     pub fn bytes(&self) -> u32 {
-        dbg!(self.0)
+        self.0
     }
 
     pub fn bits(&self) -> u32 {
-        dbg!(self.0 * 8)
+        self.0 * 8
     }
 }
 

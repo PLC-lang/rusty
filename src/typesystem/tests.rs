@@ -614,7 +614,7 @@ fn any_date_type_test() {
 #[test]
 fn array_size_single_dim_tests() {
     let index = get_index();
-    //Given an ARRAY[1..20] OF INT 
+    //Given an ARRAY[1..20] OF INT
     let array_20 = typesystem::DataType {
         name: "ARRAY_20".into(),
         initial_value: None,
@@ -629,13 +629,16 @@ fn array_size_single_dim_tests() {
         nature: TypeNature::Any,
     };
     //the size of the array is 20*size(int)
-    assert_eq!(320,array_20.get_type_information().get_size_in_bits(&index));
+    assert_eq!(
+        320,
+        array_20.get_type_information().get_size_in_bits(&index)
+    );
 }
 
 #[test]
 fn array_size_multi_dim_tests() {
     let index = get_index();
-    //Given an ARRAY[1..20] OF INT 
+    //Given an ARRAY[1..20] OF INT
     let array_20_20 = typesystem::DataType {
         name: "ARRAY_20_20".into(),
         initial_value: None,
@@ -656,25 +659,26 @@ fn array_size_multi_dim_tests() {
         nature: TypeNature::Any,
     };
     //the size of the array is 20*size(int)
-    assert_eq!(6400,array_20_20.get_type_information().get_size_in_bits(&index));
+    assert_eq!(
+        6400,
+        array_20_20.get_type_information().get_size_in_bits(&index)
+    );
 }
 
 #[test]
 fn array_size_nested_tests() {
     let mut index = get_index();
-    //Given an ARRAY[1..20] OF INT 
+    //Given an ARRAY[1..20] OF INT
     let array_20 = typesystem::DataType {
         name: "ARRAY_20".into(),
         initial_value: None,
         information: typesystem::DataTypeInformation::Array {
             name: "ARRAY_20".into(),
             inner_type_name: "INT".into(),
-            dimensions: vec![
-                Dimension {
-                    start_offset: TypeSize::LiteralInteger(1),
-                    end_offset: TypeSize::LiteralInteger(20),
-                },
-            ],
+            dimensions: vec![Dimension {
+                start_offset: TypeSize::LiteralInteger(1),
+                end_offset: TypeSize::LiteralInteger(20),
+            }],
         },
         nature: TypeNature::Any,
     };
@@ -685,16 +689,17 @@ fn array_size_nested_tests() {
         information: typesystem::DataTypeInformation::Array {
             name: "NESTED_ARRAY".into(),
             inner_type_name: "ARRAY_20".into(),
-            dimensions: vec![
-                Dimension {
-                    start_offset: TypeSize::LiteralInteger(1),
-                    end_offset: TypeSize::LiteralInteger(20),
-                },
-            ],
+            dimensions: vec![Dimension {
+                start_offset: TypeSize::LiteralInteger(1),
+                end_offset: TypeSize::LiteralInteger(20),
+            }],
         },
         nature: TypeNature::Any,
     };
 
     //the size of the array is 20*size(int)
-    assert_eq!(6400,nested_array.get_type_information().get_size_in_bits(&index));
+    assert_eq!(
+        6400,
+        nested_array.get_type_information().get_size_in_bits(&index)
+    );
 }

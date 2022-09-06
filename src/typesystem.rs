@@ -390,15 +390,14 @@ impl DataTypeInformation {
             DataTypeInformation::String { size, encoding } => size
                 .as_int_value(index)
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
-                .map(|size| Size::from_bits(size))
+                .map(Size::from_bits)
                 .unwrap(),
             DataTypeInformation::Struct { member_names, .. } => {
                 member_names
                     .iter()
-                    .map(|it| index.find_member(self.get_name(), it))
-                    .flatten()
+                    .filter_map(|it| index.find_member(self.get_name(), it))
                     .map(|it| {
-                        dbg!(it.get_type_name())
+                        it.get_type_name()
                     })
                     .fold(Size::from_bits(0), |prev, it| {
                         let type_info = index
@@ -426,23 +425,27 @@ impl DataTypeInformation {
             DataTypeInformation::Enum {
                 referenced_type, ..
             } => index
-                .find_effective_type_info(&referenced_type)
+                .find_effective_type_info(referenced_type)
                 .map(|it| it.get_size(index))
-                .unwrap_or(Size::from_bits(DINT_SIZE)),
+                .unwrap_or_else(||Size::from_bits(DINT_SIZE)),
             DataTypeInformation::Generic { .. } => unimplemented!("generics"),
         }
     }
 
-    /// Returns the String encoding's alignment (charachter) 
+    /// Returns the String encoding's alignment (charachter)
     pub fn get_string_inner_alignment(&self, index: &Index) -> Align {
         let type_layout = index.get_type_layout();
         match self {
-            DataTypeInformation::String { encoding : StringEncoding::Utf8, ..} => type_layout.i8,
-            DataTypeInformation::String { encoding : StringEncoding::Utf16, ..} => type_layout.i16,
-            _ => unreachable!("Expected string found {}", self.get_name())
-
+            DataTypeInformation::String {
+                encoding: StringEncoding::Utf8,
+                ..
+            } => type_layout.i8,
+            DataTypeInformation::String {
+                encoding: StringEncoding::Utf16,
+                ..
+            } => type_layout.i16,
+            _ => unreachable!("Expected string found {}", self.get_name()),
         }
-
     }
 
     pub fn get_alignment(&self, index: &Index) -> Align {
@@ -451,12 +454,12 @@ impl DataTypeInformation {
             DataTypeInformation::Array {
                 inner_type_name, ..
             } => {
-                let inner_type = index.get_type_information_or_void(&inner_type_name);
-                dbg!(if inner_type.get_alignment(index) > type_layout.i64 {
+                let inner_type = index.get_type_information_or_void(inner_type_name);
+                if inner_type.get_alignment(index) > type_layout.i64 {
                     type_layout.v128
                 } else {
                     type_layout.v64
-                })
+                }
             }
             DataTypeInformation::Struct { .. } => type_layout.aggregate,
             DataTypeInformation::String { .. } => type_layout.v64, //Strings are arrays
@@ -481,7 +484,7 @@ impl DataTypeInformation {
             DataTypeInformation::Enum {
                 referenced_type, ..
             } => index
-                .get_type_information_or_void(&referenced_type)
+                .get_type_information_or_void(referenced_type)
                 .get_alignment(index),
             DataTypeInformation::Float { size, .. } => match size {
                 32 => type_layout.f32,
@@ -491,12 +494,12 @@ impl DataTypeInformation {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => index
-                .get_type_information_or_void(&referenced_type)
+                .get_type_information_or_void(referenced_type)
                 .get_alignment(index),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => index
-                .get_type_information_or_void(&referenced_type)
+                .get_type_information_or_void(referenced_type)
                 .get_alignment(index),
             _ => unimplemented!("Type alignment for {:?} not implemented", self),
         }
@@ -910,7 +913,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
             .find_effective_type_info(referenced_type)
             .map(|it| get_rank(it, index))
             .unwrap_or(DINT_SIZE),
-        _ => type_information.get_size_in_bits(index)
+        _ => type_information.get_size_in_bits(index),
     }
 }
 

@@ -7,8 +7,9 @@ use crate::{
         LinkageType, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
+    datalayout::DataLayout,
     diagnostics::Diagnostic,
-    typesystem::{self, *}, datalayout::DataLayout,
+    typesystem::{self, *},
 };
 
 use self::{
@@ -740,7 +741,7 @@ pub struct Index {
     constant_expressions: ConstExpressions,
 
     /// Type layout for the target
-    data_layout : DataLayout,
+    data_layout: DataLayout,
 }
 
 impl Index {

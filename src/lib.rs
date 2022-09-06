@@ -56,6 +56,7 @@ pub mod build;
 mod builtins;
 pub mod cli;
 mod codegen;
+mod datalayout;
 pub mod diagnostics;
 pub mod expression_path;
 mod hardware_binding;
@@ -65,7 +66,6 @@ mod linker;
 mod parser;
 mod resolver;
 mod test_utils;
-mod datalayout;
 
 pub mod runner;
 mod typesystem;

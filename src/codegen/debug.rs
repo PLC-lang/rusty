@@ -2,8 +2,8 @@ use std::{cell::RefCell, collections::HashMap, ops::Range};
 
 use inkwell::{
     debug_info::{
-        AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIFlags, DIFlagsConstants, DIType,
-        DWARFEmissionKind, DebugInfoBuilder, DIDerivedType,
+        AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
+        DIFlagsConstants, DIType, DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
     values::GlobalValue,
@@ -14,7 +14,7 @@ use crate::{
     datalayout::Size,
     diagnostics::Diagnostic,
     index::Index,
-    typesystem::{DataType, DataTypeInformation, BOOL_SIZE, CHAR_TYPE, WCHAR_TYPE, StringEncoding},
+    typesystem::{DataType, DataTypeInformation, StringEncoding, BOOL_SIZE, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
 
@@ -67,19 +67,19 @@ pub trait Debug<'ink> {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum DebugType<'ink> {
-    BasicType(DIBasicType<'ink>),
-    StructType(DICompositeType<'ink>),
-    DerivedType(DIDerivedType<'ink>),
-    CompositeType(DICompositeType<'ink>),
+    Basic(DIBasicType<'ink>),
+    Struct(DICompositeType<'ink>),
+    Derived(DIDerivedType<'ink>),
+    Composite(DICompositeType<'ink>),
 }
 
-impl<'ink> Into<DIType<'ink>> for DebugType<'ink> {
-    fn into(self) -> DIType<'ink> {
-        match self {
-            DebugType::BasicType(t) => t.as_type(),
-            DebugType::StructType(t) => t.as_type(),
-            DebugType::DerivedType(t) => t.as_type(),
-            DebugType::CompositeType(t) => t.as_type(),
+impl<'ink> From<DebugType<'ink>> for DIType<'ink> {
+    fn from(t: DebugType<'ink>) -> Self {
+        match t {
+            DebugType::Basic(t) => t.as_type(),
+            DebugType::Struct(t) => t.as_type(),
+            DebugType::Derived(t) => t.as_type(),
+            DebugType::Composite(t) => t.as_type(),
         }
     }
 }
@@ -126,12 +126,7 @@ impl<'ink> DebugObj<'ink> {
         self.types.borrow_mut().insert(name.to_lowercase(), di_type);
     }
 
-    fn create_int_type<'idx>(
-        &self,
-        name: &'idx str,
-        size: u32,
-        is_signed: bool,
-    ) -> Result<(), Diagnostic> {
+    fn create_int_type(&self, name: &str, size: u32, is_signed: bool) -> Result<(), Diagnostic> {
         let encoding = match is_signed {
             true => DebugEncoding::DW_ATE_signed,
             false => DebugEncoding::DW_ATE_unsigned,
@@ -140,7 +135,7 @@ impl<'ink> DebugObj<'ink> {
             .debug_info
             .create_basic_type(name, size as u64, encoding as u32, DIFlagsConstants::PUBLIC)
             .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
-        self.register_concrete_type(name, DebugType::BasicType(res));
+        self.register_concrete_type(name, DebugType::Basic(res));
         Ok(())
     }
 
@@ -155,7 +150,7 @@ impl<'ink> DebugObj<'ink> {
             )
             .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
 
-        self.register_concrete_type(name, DebugType::BasicType(res));
+        self.register_concrete_type(name, DebugType::Basic(res));
         Ok(())
     }
 
@@ -166,7 +161,7 @@ impl<'ink> DebugObj<'ink> {
             .create_basic_type(name, size as u64, encoding as u32, DIFlagsConstants::PUBLIC)
             .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
 
-        self.register_concrete_type(name, DebugType::BasicType(res));
+        self.register_concrete_type(name, DebugType::Basic(res));
         Ok(())
     }
 
@@ -180,8 +175,7 @@ impl<'ink> DebugObj<'ink> {
         let index_types = members
             .iter()
             .map(|it| it.as_ref())
-            .map(|it| index.find_member(name, it))
-            .flatten()
+            .filter_map(|it| index.find_member(name, it))
             .map(|it| (it.get_name(), it.get_type_name()))
             .map(|(name, type_name)| index.get_type(type_name.as_ref()).map(|dt| (name, dt)))
             .collect::<Result<Vec<_>, Diagnostic>>()?;
@@ -231,7 +225,7 @@ impl<'ink> DebugObj<'ink> {
             name,
         );
 
-        self.register_concrete_type(name, DebugType::StructType(struct_type));
+        self.register_concrete_type(name, DebugType::Struct(struct_type));
         Ok(())
     }
 
@@ -267,7 +261,7 @@ impl<'ink> DebugObj<'ink> {
             array.get_alignment(index).bits(),
             subscript.as_slice(),
         );
-        self.register_concrete_type(name, DebugType::CompositeType(array_type));
+        self.register_concrete_type(name, DebugType::Composite(array_type));
         Ok(())
     }
 
@@ -291,7 +285,7 @@ impl<'ink> DebugObj<'ink> {
                 pointer.get_alignment(index).bits(),
                 inkwell::AddressSpace::Global,
             );
-            self.register_concrete_type(name, DebugType::DerivedType(pointer_type));
+            self.register_concrete_type(name, DebugType::Derived(pointer_type));
         } else {
             unreachable!("Type should be pointer")
         }
@@ -317,10 +311,19 @@ impl<'ink> DebugObj<'ink> {
             .map(|it| it.to_owned())
     }
 
-    fn create_string_type(&self, name: &str, string : &DataTypeInformation, index : &Index) -> Result<(), Diagnostic> {
+    fn create_string_type(
+        &self,
+        name: &str,
+        string: &DataTypeInformation,
+        index: &Index,
+    ) -> Result<(), Diagnostic> {
         //Get encoding
-        let (size, encoding) = if let DataTypeInformation::String{size, encoding, ..} = string {
-            (size.as_int_value(index).map_err(|err| Diagnostic::codegen_error(&err, SourceRange::undefined()))?, encoding)
+        let (size, encoding) = if let DataTypeInformation::String { size, encoding, .. } = string {
+            (
+                size.as_int_value(index)
+                    .map_err(|err| Diagnostic::codegen_error(&err, SourceRange::undefined()))?,
+                encoding,
+            )
         } else {
             unreachable!("Should be string")
         };
@@ -328,27 +331,32 @@ impl<'ink> DebugObj<'ink> {
         let string_size = string.get_size_in_bits(index);
         // Register a utf8 or 16 basic type
         let inner_type = match encoding {
-             StringEncoding::Utf8 => index.get_effective_type_by_name(CHAR_TYPE),
-             StringEncoding::Utf16 => index.get_effective_type_by_name(WCHAR_TYPE),
-         };
+            StringEncoding::Utf8 => index.get_effective_type_by_name(CHAR_TYPE),
+            StringEncoding::Utf16 => index.get_effective_type_by_name(WCHAR_TYPE),
+        };
         let inner_type = self.get_or_create_debug_type(inner_type, index)?;
-        //Register an array 
+        //Register an array
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
             string_size.into(),
             string.get_alignment(index).bits(),
-            &[(0..(size - 1))]
+            &[(0..(size - 1))],
         );
-        self.register_concrete_type(name, DebugType::CompositeType(array_type));
+        self.register_concrete_type(name, DebugType::Composite(array_type));
         Ok(())
     }
 
     fn create_char_type(&self, name: &str, size: u32) -> Result<(), Diagnostic> {
         let res = self
             .debug_info
-            .create_basic_type(name, size as u64, DebugEncoding::DW_ATE_UTF as u32, DIFlagsConstants::PUBLIC)
+            .create_basic_type(
+                name,
+                size as u64,
+                DebugEncoding::DW_ATE_UTF as u32,
+                DIFlagsConstants::PUBLIC,
+            )
             .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
-        self.register_concrete_type(name, DebugType::BasicType(res));
+        self.register_concrete_type(name, DebugType::Basic(res));
         Ok(())
     }
 }
@@ -367,12 +375,8 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
                 DataTypeInformation::Struct { member_names, .. } => {
                     self.create_struct_type(name, member_names.as_slice(), index)
                 }
-                DataTypeInformation::Array { .. } => {
-                    self.create_array_type(type_info, index)
-                }
-                DataTypeInformation::Pointer { .. } => {
-                    self.create_pointer_type(type_info, index)
-                }
+                DataTypeInformation::Array { .. } => self.create_array_type(type_info, index),
+                DataTypeInformation::Pointer { .. } => self.create_pointer_type(type_info, index),
                 DataTypeInformation::Integer { signed, size, .. } => {
                     if type_info.is_bool() {
                         self.create_bool_type(name)
@@ -383,7 +387,9 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
                     }
                 }
                 DataTypeInformation::Float { size, .. } => self.create_float_type(name, *size),
-                DataTypeInformation::String { .. } => self.create_string_type(name, type_info, index),
+                DataTypeInformation::String { .. } => {
+                    self.create_string_type(name, type_info, index)
+                }
                 // Other types are just derived basic types
                 _ => Ok(()),
             }
