@@ -73,8 +73,6 @@ impl<'i> TypeAnnotator<'i> {
                     ..
                 }) = self.annotation_map.get(operator)
                 {
-                    let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
-
                     //Find the generic resolver
                     let generic_name_resolver = builtins::get_builtin(qualified_name)
                         .map(|it| it.get_generic_name_resolver())
@@ -92,14 +90,18 @@ impl<'i> TypeAnnotator<'i> {
                     if let Some(pou) = self.index.find_pou(qualified_name) {
                         //only register concrete typed function if it was not indexed yet
                         if self.index.find_pou(new_name.as_str()).is_none() {
-                            //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
-                            // e.g. call to generic_foo(aInt)
-                            self.register_generic_pou_entries(
-                                pou,
-                                cloned_return_type.as_str(),
-                                new_name.as_str(),
-                                generic_map,
-                            );
+                            if let StatementAnnotation::Function { return_type, ..} = &annotation {
+                                //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
+                                // e.g. call to generic_foo(aInt)
+                                self.register_generic_pou_entries(
+                                    pou,
+                                    return_type.as_str(),
+                                    new_name.as_str(),
+                                    generic_map,
+                                );
+                            } else {
+                                unreachable!("Annotation must be a function but was {:?}", &annotation)
+                            }
                         }
                     }
 
@@ -335,8 +337,10 @@ impl<'i> TypeAnnotator<'i> {
         generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
         let call_name = generic_name_resolver(qualified_name, generics, generic_map);
-        let annotation = self.index.find_pou(&call_name).map(
-            |it| StatementAnnotation::from(it) ).unwrap_or_else(|| {    
+        let annotation = self.index.find_pou(&call_name)
+            .filter(|it|!it.is_generic())
+            .map(StatementAnnotation::from)
+            .unwrap_or_else(|| {    
                 let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
                     self.index.get_type_information_or_void(return_type)
                 {

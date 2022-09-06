@@ -1,7 +1,7 @@
 use crate::{
     assert_type_and_hint,
     ast::{self, flatten_expression_list, AstStatement},
-    resolver::{AnnotationMap, TypeAnnotator},
+    resolver::{AnnotationMap, TypeAnnotator, StatementAnnotation},
     test_utils::tests::{annotate, index},
     typesystem::{
         DataTypeInformation, BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE,
@@ -820,4 +820,161 @@ fn string_ref_as_generic_resolved() {
     } else {
         panic!("Expecting auto deref pointer to string, found {:?}", dt)
     }
+}
+
+
+#[test]
+fn generic_string_functions_are_annotated_correctly() {
+    let (unit, index) = index(
+        "
+        FUNCTION foo<T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR        
+        END_FUNCTION
+
+        FUNCTION foo__STRING : STRING
+        VAR_INPUT {ref}
+            param : STRING;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            s1 : STRING;
+        END_VAR
+            s1 := '     this is   a  very   long          sentence   with plenty  of    characters.';
+            foo(s1);
+        END_PROGRAM
+        ",
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);   
+
+    let mut functions = vec![];
+    let mut values = vec![];
+    annotations.type_map.iter().map(|(_, v)| v).for_each(|v|
+        match v {
+            StatementAnnotation::Function { .. } => functions.push(v),
+            StatementAnnotation::Value { resulting_type: res_type } => values.push(res_type),
+            _ => (),
+        }
+    );    
+
+    assert_eq!(
+        functions[0], 
+        &StatementAnnotation::Function {
+            return_type: "__foo__STRING_return".to_string(),
+            qualified_name: "foo__STRING".to_string(),
+            call_name: None,
+        }
+    );
+
+    assert_eq!(
+        values[0],
+        &String::from("__STRING_80"),
+    )
+}
+
+#[test]
+fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
+    let (unit, index) = index(
+        "
+        FUNCTION foo<T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR      
+        VAR_OUTPUT {ref}
+            out : T;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION foo__STRING : STRING[100]
+        VAR_INPUT {ref}
+            param : STRING[100];
+        END_VAR
+        VAR_OUTPUT
+            s : STRING[100];
+        END_VAR
+            s := param;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            s1 : STRING;
+            s2 : STRING[100];
+        END_VAR
+            s1 := '     this is   a  very   long          sentence   with plenty  of      characters and weird spacing.';
+            s2 := foo(s1);
+        END_PROGRAM
+        ",
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);   
+
+    let mut functions = vec![];
+    let mut values = vec![];
+    annotations.type_map.iter().map(|(_, v)| v).for_each(|v|
+        match v {
+            StatementAnnotation::Function { .. } => functions.push(v),
+            StatementAnnotation::Value { resulting_type: res_type } => values.push(res_type),
+            _ => (),
+        }
+    );
+
+    assert_eq!(
+        functions[0], 
+        &StatementAnnotation::Function {
+            return_type: "__foo__STRING_return".to_string(),
+            qualified_name: "foo__STRING".to_string(),
+            call_name: None,
+        }
+    );
+
+    assert_eq!(
+        values[0],
+        &String::from("__STRING_100"),
+    )
+}
+
+#[test]
+fn generic_return_type_name_resolved_correctly() {
+    let (unit, index) = index(
+        "
+    FUNCTION foo<T: ANY_INT> : T
+    VAR_INPUT
+        param: T;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION main
+        foo(3);
+    END_FUNCTION",
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);   
+
+    let mut functions = vec![];
+    let mut values = vec![];
+    annotations.type_map.iter().map(|(_, v)| v).for_each(|v|
+        match v {
+            StatementAnnotation::Function { .. } => functions.push(v),
+            StatementAnnotation::Value { resulting_type: res_type } => values.push(res_type),
+            _ => (),
+        }
+    );
+
+    assert_eq!(
+        functions[0], 
+        &StatementAnnotation::Function {
+            return_type: "DINT".to_string(),
+            qualified_name: "foo".to_string(),
+            call_name: Some("foo__DINT".to_string()),
+        }
+    );
+
+    assert_eq!(
+        values[0],
+        &String::from("DINT"),
+    )
 }
