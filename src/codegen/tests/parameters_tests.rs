@@ -1,4 +1,7 @@
-use crate::test_utils::tests::codegen;
+use crate::{
+    diagnostics::Diagnostic,
+    test_utils::tests::{codegen, codegen_without_unwrap},
+};
 
 #[test]
 fn function_all_parameters_assigned() {
@@ -34,7 +37,7 @@ fn function_all_parameters_assigned() {
 #[test]
 fn function_empty_input_assignment() {
     // GIVEN
-    let result = codegen(
+    let result = codegen_without_unwrap(
         "
 		FUNCTION foo : DINT
 		VAR_INPUT
@@ -57,7 +60,17 @@ fn function_empty_input_assignment() {
 		",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    if let Err(msg) = result {
+        assert_eq!(
+            Diagnostic::codegen_error(
+                "Cannot generate Literal for EmptyStatement",
+                (238..239).into(),
+            ),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
 }
 
 #[test]
@@ -119,6 +132,7 @@ fn function_empty_inout_assignment() {
 }
 
 #[test]
+#[ignore = "https://github.com/PLC-lang/rusty/issues/562, currently we only handle output/inout"]
 fn function_missing_input_assignment() {
     // GIVEN
     let result = codegen(
@@ -236,6 +250,7 @@ fn program_all_parameters_assigned_explicit() {
 }
 
 #[test]
+#[ignore = "https://github.com/PLC-lang/rusty/issues/562"]
 fn program_all_parameters_assigned_implicit() {
     // GIVEN
     let result = codegen(
@@ -267,7 +282,7 @@ fn program_all_parameters_assigned_implicit() {
 #[test]
 fn program_empty_input_assignment() {
     // GIVEN
-    let result = codegen(
+    let result = codegen_without_unwrap(
         "
 		PROGRAM prog
 		VAR_INPUT
@@ -290,7 +305,17 @@ fn program_empty_input_assignment() {
 		",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    if let Err(msg) = result {
+        assert_eq!(
+            Diagnostic::codegen_error(
+                "Cannot generate Literal for EmptyStatement",
+                (231..232).into(),
+            ),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
 }
 
 #[test]
@@ -352,6 +377,7 @@ fn program_empty_inout_assignment() {
 }
 
 #[test]
+#[ignore = "https://github.com/PLC-lang/rusty/issues/562, currently we only handle output/inout"]
 fn program_missing_input_assignment() {
     // GIVEN
     let result = codegen(

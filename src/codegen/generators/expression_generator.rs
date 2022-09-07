@@ -691,33 +691,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         param.get_variable_type(),
                         VariableType::Output | VariableType::InOut
                     ) {
-                        // get parameter type
-                        let type_name = if let Some(DataTypeInformation::Pointer {
-                            inner_type_name,
-                            auto_deref: true,
-                            ..
-                        }) =
-                            self.index.find_effective_type_info(param.get_type_name())
-                        {
-                            inner_type_name.as_str()
-                        } else {
-                            param.get_type_name()
-                        };
+                        let type_name = self.get_parameter_type(param);
 
                         // generate argument by ref
-                        let v_type =
-                            self.llvm_index
-                                .find_associated_type(type_name)
-                                .ok_or_else(|| Diagnostic::SyntaxError {
-                                    // TODO: diagnostic
-                                    message: "something went wrong generating empty var inout"
-                                        .into(),
-                                    range: (0..0).into(),
-                                    err_no: crate::diagnostics::ErrNo::codegen__general,
-                                })?;
+                        let v_type = self.generate_var_for_empty_inout(type_name.as_str())?;
+
                         let res: Result<BasicValueEnum<'ink>, Diagnostic> =
                             Ok(self.llvm.builder.build_alloca(v_type, "empty_varinout"))
                                 .map(Into::into);
+
                         result.push((i, res?));
                     }
                 }
@@ -938,31 +920,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         param.get_variable_type(),
                         VariableType::Output | VariableType::InOut
                     ) {
-                        // get parameter type
-                        let type_name = if let Some(DataTypeInformation::Pointer {
-                            inner_type_name,
-                            auto_deref: true,
-                            ..
-                        }) =
-                            self.index.find_effective_type_info(param.get_type_name())
-                        {
-                            inner_type_name.as_str()
-                        } else {
-                            param.get_type_name()
-                        };
+                        let type_name = self.get_parameter_type(param);
 
-                        let temp_type = self
-                            .llvm_index
-                            .find_associated_type(type_name)
-                            .ok_or_else(|| Diagnostic::SyntaxError {
-                                // TODO: diagnostic
-                                message: "something went wrong generating empty var inout".into(),
-                                range: (0..0).into(),
-                                err_no: crate::diagnostics::ErrNo::codegen__general,
-                            })?;
+                        let temp_type = self.generate_var_for_empty_inout(type_name.as_str())?;
 
-                        let builder = &self.llvm.builder;
-                        let pointer_to_param = builder
+                        let generated_exp = self
+                            .llvm
+                            .builder
+                            .build_alloca(temp_type, "empty_varinout")
+                            .as_basic_value_enum();
+
+                        let pointer_to_param = self
+                            .llvm
+                            .builder
                             .build_struct_gep(parameter_struct, i as u32, "")
                             .map_err(|_| Diagnostic::SyntaxError {
                                 // TODO: diagnostic
@@ -970,15 +940,44 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 range: (0..0).into(),
                                 err_no: crate::diagnostics::ErrNo::codegen__general,
                             })?;
-                        let generated_exp = builder
-                            .build_alloca(temp_type, "empty_varinout")
-                            .as_basic_value_enum();
-                        builder.build_store(pointer_to_param, generated_exp);
+
+                        self.llvm
+                            .builder
+                            .build_store(pointer_to_param, generated_exp);
                     }
                 }
             }
         }
         Ok(result)
+    }
+
+    fn get_parameter_type(&self, parameter: &VariableIndexEntry) -> String {
+        if let Some(DataTypeInformation::Pointer {
+            inner_type_name,
+            auto_deref: true,
+            ..
+        }) = self
+            .index
+            .find_effective_type_info(parameter.get_type_name())
+        {
+            inner_type_name.into()
+        } else {
+            parameter.get_type_name().into()
+        }
+    }
+
+    fn generate_var_for_empty_inout(
+        &self,
+        type_name: &str,
+    ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
+        self.llvm_index
+            .find_associated_type(type_name)
+            .ok_or_else(|| Diagnostic::SyntaxError {
+                // TODO: diagnostic
+                message: "something went wrong generating empty var inout".into(),
+                range: (0..0).into(),
+                err_no: crate::diagnostics::ErrNo::codegen__general,
+            })
     }
 
     /// generates an assignemnt of a single call's argument
