@@ -5,9 +5,10 @@ expression: codegen
 ; ModuleID = 'main'
 source_filename = "main"
 
-%myStruct = type { i32, double }
+%myStruct = type { i32, double, [11 x i32] }
 
 @gStruct = global %myStruct zeroinitializer
+@b = global [11 x %myStruct] zeroinitializer
 @myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
 !llvm.dbg.cu = !{!0}
@@ -15,15 +16,22 @@ source_filename = "main"
 !0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, globals: !3, splitDebugInlining: false)
 !1 = !DIFile(filename: "main", directory: "")
 !2 = !{}
-!3 = !{!4, !12}
+!3 = !{!4, !16, !19}
 !4 = !DIGlobalVariableExpression(var: !5, expr: !DIExpression())
 !5 = distinct !DIGlobalVariable(name: "gstruct", scope: !1, file: !1, type: !6, isLocal: true, isDefinition: true)
-!6 = !DICompositeType(tag: DW_TAG_structure_type, name: "mystruct", scope: !1, file: !1, size: 128, align: 64, flags: DIFlagPublic, elements: !7, identifier: "mystruct")
-!7 = !{!8, !10}
+!6 = !DICompositeType(tag: DW_TAG_structure_type, name: "mystruct", scope: !1, file: !1, size: 480, align: 64, flags: DIFlagPublic, elements: !7, identifier: "mystruct")
+!7 = !{!8, !10, !12}
 !8 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !1, file: !1, baseType: !9, size: 32, align: 32, flags: DIFlagPublic)
 !9 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !10 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !1, file: !1, baseType: !11, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
 !11 = !DIBasicType(name: "lreal", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
-!12 = !DIGlobalVariableExpression(var: !13, expr: !DIExpression())
-!13 = distinct !DIGlobalVariable(name: "mystruct__init", scope: !1, file: !1, type: !6, isLocal: true, isDefinition: true)
+!12 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !1, file: !1, baseType: !13, size: 352, align: 64, offset: 128, flags: DIFlagPublic)
+!13 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 352, align: 64, elements: !14)
+!14 = !{!15}
+!15 = !DISubrange(count: 10, lowerBound: 0)
+!16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
+!17 = distinct !DIGlobalVariable(name: "b", scope: !1, file: !1, type: !18, isLocal: true, isDefinition: true)
+!18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 5280, align: 64, elements: !14)
+!19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
+!20 = distinct !DIGlobalVariable(name: "mystruct__init", scope: !1, file: !1, type: !6, isLocal: true, isDefinition: true)
 

@@ -362,29 +362,22 @@ impl<'ink> DebugObj<'ink> {
 
     fn create_typedef_type(
         &self,
-        dt: &DataTypeInformation,
+        name: &str,
+        referenced_type: &str,
         index: &Index,
     ) -> Result<(), Diagnostic> {
-        if let DataTypeInformation::Alias {
-            name,
-            referenced_type,
-        } = dt
-        {
-            let inner_dt = index.get_effective_type_by_name(referenced_type)?;
-            let inner_type = self.get_or_create_debug_type(inner_dt, index)?;
+        let inner_dt = index.get_effective_type_by_name(referenced_type)?;
+        let inner_type = self.get_or_create_debug_type(inner_dt, index)?;
 
-            let typedef = self.debug_info.create_typedef(
-                inner_type.into(),
-                name,
-                self.compile_unit.get_file(),
-                0,
-                self.compile_unit.get_file().as_debug_info_scope(),
-                inner_dt.get_type_information().get_alignment(index).bits(),
-            );
-            self.register_concrete_type(name, DebugType::Derived(typedef));
-        } else {
-            unreachable!()
-        }
+        let typedef = self.debug_info.create_typedef(
+            inner_type.into(),
+            name,
+            self.compile_unit.get_file(),
+            0,
+            self.compile_unit.get_file().as_debug_info_scope(),
+            inner_dt.get_type_information().get_alignment(index).bits(),
+        );
+        self.register_concrete_type(name, DebugType::Derived(typedef));
 
         Ok(())
     }
@@ -419,6 +412,10 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
                 DataTypeInformation::String { .. } => {
                     self.create_string_type(name, type_info, index)
                 }
+                DataTypeInformation::Alias {
+                    name,
+                    referenced_type,
+                } => self.create_typedef_type(name, referenced_type, index),
                 // Other types are just derived basic types
                 _ => Ok(()),
             }

@@ -3,7 +3,7 @@ use clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
-use crate::{ConfigFormat, ErrorFormat, FormatOption, DebugLevel};
+use crate::{ConfigFormat, DebugLevel, ErrorFormat, FormatOption};
 
 pub type ParameterError = clap::Error;
 
@@ -177,7 +177,7 @@ pub struct CompileParameters {
         global = true,
         group = "dbg"
     )]
-    pub generate_debug : bool,
+    pub generate_debug: bool,
 
     #[clap(
         name = "debug-variables",
@@ -186,8 +186,7 @@ pub struct CompileParameters {
         global = true,
         group = "dbg"
     )]
-    pub generate_varinfo : bool,
-
+    pub generate_varinfo: bool,
 
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
@@ -262,7 +261,7 @@ impl CompileParameters {
             DebugLevel::Full
         } else if self.generate_varinfo {
             DebugLevel::VariablesOnly
-        }else {
+        } else {
             DebugLevel::None
         }
     }

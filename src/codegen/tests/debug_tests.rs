@@ -152,3 +152,18 @@ fn test_global_var_nested_struct_added_to_debug_info() {
     );
     assert_snapshot!(codegen)
 }
+
+#[test]
+fn test_global_alias_type() {
+    let codegen = codegen(
+        r#"
+    TYPE myInt : DINT; END_TYPE
+
+    VAR_GLOBAL
+        gInt : myInt;
+    END_VAR
+    "#,
+    );
+
+    assert_snapshot!(codegen)
+}

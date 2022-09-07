@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub, AddAssign};
+use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 #[derive(Copy, Clone, Debug)]
 pub struct DataLayout {
