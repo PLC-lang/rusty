@@ -333,7 +333,8 @@ fn calling_a_function() {
       %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
       %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
       %load_x = load i16, i16* %x, align 2
-      %call = call i32 @main_fun(i16 %load_x, i16* %z)
+      %empty_varinout = alloca i64, align 8
+      %call = call i32 @main_fun(i16 %load_x, i16* %z, i64* %empty_varinout)
       ret void
     }
 
