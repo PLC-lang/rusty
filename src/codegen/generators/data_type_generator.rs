@@ -179,7 +179,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 ..
             } => self
                 .index
-                .get_effective_type(inner_type_name)
+                .get_effective_type_by_name(inner_type_name)
                 .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
                 .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
                 .map(|it| it.as_basic_type_enum()),
@@ -193,7 +193,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             } => {
                 let effective_type = self
                     .index
-                    .get_effective_type_by_name(referenced_type)
+                    .get_effective_type_or_void_by_name(referenced_type)
                     .get_type_information();
                 if let DataTypeInformation::Integer {
                     size: enum_size, ..
@@ -230,7 +230,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 referenced_type, ..
             } => self
                 .index
-                .get_effective_type(referenced_type)
+                .get_effective_type_by_name(referenced_type)
                 .and_then(|data_type| self.create_type(name, data_type)),
             DataTypeInformation::Void => {
                 get_llvm_int_type(self.llvm.context, 32, "Void").map(Into::into)

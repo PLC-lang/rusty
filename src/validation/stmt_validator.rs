@@ -131,7 +131,7 @@ impl StatementValidator {
 
                     let l_effective_type = context
                         .index
-                        .get_effective_type_by_name(l_resulting_type)
+                        .get_effective_type_or_void_by_name(l_resulting_type)
                         .get_type_information();
                     let r_effective_type = context
                         .ast_annotation
@@ -408,7 +408,7 @@ impl StatementValidator {
     ) {
         let cast_type = context
             .index
-            .get_effective_type_by_name(type_name)
+            .get_effective_type_or_void_by_name(type_name)
             .get_type_information();
 
         let literal_type = context
@@ -596,12 +596,12 @@ fn compare_function_exists(
         {
             let type_name_1 = context
                 .index
-                .get_effective_type_by_name(type_name_1)
+                .get_effective_type_or_void_by_name(type_name_1)
                 .get_type_information()
                 .get_name();
             let type_name_2 = context
                 .index
-                .get_effective_type_by_name(type_name_2)
+                .get_effective_type_or_void_by_name(type_name_2)
                 .get_type_information()
                 .get_name();
 

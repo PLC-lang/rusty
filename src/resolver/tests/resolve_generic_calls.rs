@@ -2,8 +2,11 @@ use crate::{
     assert_type_and_hint,
     ast::{self, flatten_expression_list, AstStatement},
     resolver::{AnnotationMap, TypeAnnotator},
-    test_utils::tests::index,
-    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE},
+    test_utils::tests::{annotate, index},
+    typesystem::{
+        DataTypeInformation, BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE,
+        SINT_TYPE, STRING_TYPE,
+    },
 };
 
 #[test]
@@ -715,4 +718,166 @@ fn mux_return_type_follows_params() {
         None
     );
     //Also test that the right side of the operator is dint
+}
+
+#[test]
+fn auto_pointer_of_generic_resolved() {
+    let (unit, mut index) = index(
+        " FUNCTION LEFT<T : ANY> : T
+        VAR_IN_OUT
+            IN : T;
+        END_VAR
+        END_FUNCTION
+    
+        FUNCTION LEFT_EXT<T : ANY> : DINT
+        VAR_IN_OUT
+            IN : T;
+        END_VAR
+        END_FUNCTION
+    
+        FUNCTION LEFT__DINT : DINT
+        VAR_INPUT
+            IN : DINT;
+        END_VAR
+            LEFT_EXT(IN);
+        END_FUNCTION
+        ",
+    );
+
+    annotate(&unit, &mut index);
+
+    let member = index.find_member("LEFT_EXT__DINT", "IN").unwrap();
+    let dt = index
+        .find_effective_type_info(&member.data_type_name)
+        .unwrap();
+    if let DataTypeInformation::Pointer {
+        inner_type_name,
+        auto_deref: true,
+        ..
+    } = dt
+    {
+        assert_eq!(inner_type_name, "DINT")
+    } else {
+        panic!("Expecting a pointer to dint, found {:?}", dt)
+    }
+}
+
+#[test]
+fn string_ref_as_generic_resolved() {
+    let (unit, mut index) = index(
+        " FUNCTION LEFT<T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        END_FUNCTION
+    
+        FUNCTION LEFT_EXT<T: ANY_STRING> : DINT
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        END_FUNCTION
+    
+        FUNCTION LEFT__STRING : STRING 
+        VAR_INPUT
+            IN : STRING;
+        END_VAR
+            LEFT_EXT(IN);
+        END_FUNCTION
+        ",
+    );
+
+    let annotations = annotate(&unit, &mut index);
+
+    let call_statement = &unit.implementations[2].statements[0];
+
+    if let AstStatement::CallStatement { parameters, .. } = call_statement {
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            "__LEFT__STRING_IN",
+            None
+        );
+    } else {
+        unreachable!("Should be a call statement")
+    }
+
+    assert_type_and_hint!(&annotations, &index, call_statement, DINT_TYPE, None);
+
+    let member = index.find_member("LEFT_EXT__STRING", "IN").unwrap();
+    let dt = index
+        .find_effective_type_info(&member.data_type_name)
+        .unwrap();
+    if let DataTypeInformation::Pointer {
+        inner_type_name,
+        auto_deref: true,
+        ..
+    } = dt
+    {
+        assert_eq!(inner_type_name, STRING_TYPE)
+    } else {
+        panic!("Expecting auto deref pointer to string, found {:?}", dt)
+    }
+}
+
+#[test]
+fn resolved_generic_any_real_call_with_ints_added_to_index() {
+    // Make sure INTs implementations were not added to index
+    let (unit, index) = index(
+        "
+        FUNCTION myFunc<T: ANY_REAL> : T
+        VAR_INPUT   x : T;  END_VAR
+        END_FUNCTION
+
+        FUNCTION myFunc__REAL : REAL
+        VAR_INPUT   x : REAL; END_VAR
+        END_FUNCTION
+
+        PROGRAM PRG
+            VAR
+                a : INT;
+				b : UINT;
+            END_VAR
+            myFunc(REAL#1.0);
+            myFunc(SINT#1);
+            myFunc(a);
+            myFunc(DINT#1);
+			myFunc(LINT#1);
+
+			myFunc(USINT#1);
+            myFunc(b);
+            myFunc(UDINT#1);
+			myFunc(ULINT#1);
+        END_PROGRAM",
+    );
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    // The implementations are added to the index
+    let implementations = annotations.new_index.get_implementations();
+    assert!(implementations.contains_key("myfunc__lreal"));
+    assert_eq!(1, implementations.len()); //make sure REAL-implementation was not added by the annotator
+
+    //The pous are added to the index
+    let pous = annotations.new_index.get_pous();
+    assert!(pous.contains_key("myfunc__lreal"));
+    assert_eq!(1, pous.len()); //make sure REAL-implementation was not added by the annotator
+
+    //Each POU has members
+    assert_eq!(
+        "LREAL",
+        annotations
+            .new_index
+            .find_member("myfunc__lreal", "x")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
+        "LREAL",
+        annotations
+            .new_index
+            .find_member("myfunc__lreal", "myfunc__lreal")
+            .unwrap()
+            .get_type_name()
+    );
 }

@@ -38,6 +38,7 @@ mod correctness {
 
 mod integration {
     mod build_description_tests;
+    mod command_line_compile;
     mod external_files;
     mod linking;
     mod multi_files;

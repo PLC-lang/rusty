@@ -134,7 +134,7 @@ impl<'ink> CodeGen<'ink> {
         annotations: &AstAnnotations,
         global_index: &Index,
         llvm_index: &LlvmTypedIndex,
-    ) -> Result<String, Diagnostic> {
+    ) -> Result<(), Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
@@ -149,7 +149,27 @@ impl<'ink> CodeGen<'ink> {
             }
         }
 
-        Ok(self.module.print_to_string().to_string())
+        #[cfg(feature = "verify")]
+        {
+            self.module.verify().map_err(|it| Diagnostic::GeneralError {
+                message: it.to_string(),
+                err_no: crate::diagnostics::ErrNo::codegen__general,
+            })
+        }
+
+        #[cfg(not(feature = "verify"))]
+        Ok(())
+    }
+
+    pub fn generate_to_string(
+        &self,
+        unit: &CompilationUnit,
+        annotations: &AstAnnotations,
+        global_index: &Index,
+        llvm_index: &LlvmTypedIndex,
+    ) -> Result<String, Diagnostic> {
+        self.generate(unit, annotations, global_index, llvm_index)
+            .map(|_| self.module.print_to_string().to_string())
     }
 }
 

@@ -5,8 +5,8 @@ expression: res
 ; ModuleID = 'main'
 source_filename = "main"
 
-@x = available_externally global i16
-@y = available_externally global i16
+@x = external global i16
+@y = external global i16
 
 define i16 @main() {
 entry:
