@@ -186,6 +186,7 @@ pub struct CompileOptions {
     pub output: String,
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
+    pub debug_level: DebugLevel,
 }
 
 #[derive(Clone, Default, Debug)]
@@ -222,11 +223,17 @@ pub enum OptimizationLevel {
     Aggressive,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DebugLevel {
     None,
     VariablesOnly,
     Full,
+}
+
+impl Default for DebugLevel {
+    fn default() -> Self {
+        Self::None
+    }
 }
 
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {
@@ -778,6 +785,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             },
             optimization: parameters.optimization,
             error_format: parameters.error_format,
+            debug_level: parameters.debug_level(),
         };
 
         let targets = parameters
@@ -937,6 +945,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         },
         optimization: parameters.optimization,
         error_format: parameters.error_format,
+        debug_level: parameters.debug_level(),
     };
 
     let files = create_file_paths(
@@ -1023,7 +1032,7 @@ pub fn build_and_link(
         encoding,
         diagnostician,
         compile_options.optimization,
-        DebugLevel::Full,
+        compile_options.debug_level,
     )?;
 
     if compile_options.format != FormatOption::None {

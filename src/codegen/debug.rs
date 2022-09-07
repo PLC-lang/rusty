@@ -11,7 +11,7 @@ use inkwell::{
 
 use crate::{
     ast::SourceRange,
-    datalayout::Size,
+    datalayout::Byte,
     diagnostics::Diagnostic,
     index::Index,
     typesystem::{DataType, DataTypeInformation, StringEncoding, BOOL_SIZE, CHAR_TYPE, WCHAR_TYPE},
@@ -165,6 +165,20 @@ impl<'ink> DebugObj<'ink> {
         Ok(())
     }
 
+    fn create_char_type(&self, name: &str, size: u32) -> Result<(), Diagnostic> {
+        let res = self
+            .debug_info
+            .create_basic_type(
+                name,
+                size as u64,
+                DebugEncoding::DW_ATE_UTF as u32,
+                DIFlagsConstants::PUBLIC,
+            )
+            .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
+        self.register_concrete_type(name, DebugType::Basic(res));
+        Ok(())
+    }
+
     fn create_struct_type<T: AsRef<str>>(
         &self,
         name: &str,
@@ -181,7 +195,7 @@ impl<'ink> DebugObj<'ink> {
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
         let mut types = vec![];
-        let mut running_offset = Size::from_bytes(0);
+        let mut running_offset = Byte::new(0);
         for (member_name, dt) in index_types.into_iter() {
             let di_type = self.get_or_create_debug_type(dt, index)?;
             //Adjust the offset based on the field alignment
@@ -204,7 +218,7 @@ impl<'ink> DebugObj<'ink> {
                     )
                     .as_type(),
             );
-            running_offset = Size::from_bytes(running_offset.bytes() + size.bytes());
+            running_offset += size;
         }
 
         let struct_dt = index.get_type_information_or_void(name);
@@ -346,17 +360,32 @@ impl<'ink> DebugObj<'ink> {
         Ok(())
     }
 
-    fn create_char_type(&self, name: &str, size: u32) -> Result<(), Diagnostic> {
-        let res = self
-            .debug_info
-            .create_basic_type(
+    fn create_typedef_type(
+        &self,
+        dt: &DataTypeInformation,
+        index: &Index,
+    ) -> Result<(), Diagnostic> {
+        if let DataTypeInformation::Alias {
+            name,
+            referenced_type,
+        } = dt
+        {
+            let inner_dt = index.get_effective_type_by_name(referenced_type)?;
+            let inner_type = self.get_or_create_debug_type(inner_dt, index)?;
+
+            let typedef = self.debug_info.create_typedef(
+                inner_type.into(),
                 name,
-                size as u64,
-                DebugEncoding::DW_ATE_UTF as u32,
-                DIFlagsConstants::PUBLIC,
-            )
-            .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
-        self.register_concrete_type(name, DebugType::Basic(res));
+                self.compile_unit.get_file(),
+                0,
+                self.compile_unit.get_file().as_debug_info_scope(),
+                inner_dt.get_type_information().get_alignment(index).bits(),
+            );
+            self.register_concrete_type(name, DebugType::Derived(typedef));
+        } else {
+            unreachable!()
+        }
+
         Ok(())
     }
 }

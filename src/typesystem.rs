@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     ast::{AstStatement, Operator, PouType, TypeNature},
-    datalayout::{Align, Size},
+    datalayout::Byte,
     index::{const_expressions::ConstId, Index},
 };
 
@@ -383,56 +383,55 @@ impl DataTypeInformation {
         self.get_size(index).bits()
     }
 
-    pub fn get_size(&self, index: &Index) -> Size {
+    pub fn get_size(&self, index: &Index) -> Byte {
         match self {
-            DataTypeInformation::Integer { size, .. } => Size::from_bits(*size),
-            DataTypeInformation::Float { size, .. } => Size::from_bits(*size),
+            DataTypeInformation::Integer { size, .. } => Byte::from_bits(*size),
+            DataTypeInformation::Float { size, .. } => Byte::from_bits(*size),
             DataTypeInformation::String { size, encoding } => size
                 .as_int_value(index)
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
-                .map(Size::from_bits)
+                .map(Byte::from_bits)
                 .unwrap(),
-            DataTypeInformation::Struct { member_names, .. } => {
-                member_names
-                    .iter()
-                    .filter_map(|it| index.find_member(self.get_name(), it))
-                    .map(|it| {
-                        it.get_type_name()
-                    })
-                    .fold(Size::from_bits(0), |prev, it| {
-                        let type_info = index
-                        .get_type_information_or_void(it);
-                        let size = type_info.get_size(index).bytes();
-                        let after_align = prev.align_to(type_info.get_alignment(index)).bytes();
-                        let res = after_align + size;
-                        println!("Type : {it}, Size : {size}, Previous : {}, After Align: {after_align}, Next : {res}", prev.bytes());
-                        Size::from_bytes(res)
-                    })
-            },
-            DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
+            DataTypeInformation::Struct { member_names, .. } => member_names
+                .iter()
+                .filter_map(|it| index.find_member(self.get_name(), it))
+                .map(|it| it.get_type_name())
+                .fold(Byte::from_bits(0), |prev, it| {
+                    let type_info = index.get_type_information_or_void(it);
+                    let size = type_info.get_size(index).bytes();
+                    let after_align = prev.align_to(type_info.get_alignment(index)).bytes();
+                    let res = after_align + size;
+                    Byte::new(res)
+                }),
+            DataTypeInformation::Array {
+                inner_type_name,
+                dimensions,
+                ..
+            } => {
                 let inner_type = index.get_type_information_or_void(inner_type_name);
                 let inner_size = inner_type.get_size_in_bits(index);
-                let element_count : u32 = dimensions.iter().map(|dim| {
-                    dim.get_length(index).unwrap()
-                }).product();
-                Size::from_bits(inner_size*element_count)
-            },
-            DataTypeInformation::Pointer { .. } => Size::from_bits(POINTER_SIZE),
+                let element_count: u32 = dimensions
+                    .iter()
+                    .map(|dim| dim.get_length(index).unwrap())
+                    .product();
+                Byte::from_bits(inner_size * element_count)
+            }
+            DataTypeInformation::Pointer { .. } => Byte::from_bits(POINTER_SIZE),
             DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
             DataTypeInformation::Alias { .. } => unimplemented!("alias"),
-            DataTypeInformation::Void => Size::from_bits(0),
+            DataTypeInformation::Void => Byte::from_bits(0),
             DataTypeInformation::Enum {
                 referenced_type, ..
             } => index
                 .find_effective_type_info(referenced_type)
                 .map(|it| it.get_size(index))
-                .unwrap_or_else(||Size::from_bits(DINT_SIZE)),
+                .unwrap_or_else(|| Byte::from_bits(DINT_SIZE)),
             DataTypeInformation::Generic { .. } => unimplemented!("generics"),
         }
     }
 
     /// Returns the String encoding's alignment (charachter)
-    pub fn get_string_inner_alignment(&self, index: &Index) -> Align {
+    pub fn get_string_inner_alignment(&self, index: &Index) -> Byte {
         let type_layout = index.get_type_layout();
         match self {
             DataTypeInformation::String {
@@ -447,7 +446,7 @@ impl DataTypeInformation {
         }
     }
 
-    pub fn get_alignment(&self, index: &Index) -> Align {
+    pub fn get_alignment(&self, index: &Index) -> Byte {
         let type_layout = index.get_type_layout();
         match self {
             DataTypeInformation::Array {
