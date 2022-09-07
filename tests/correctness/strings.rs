@@ -620,7 +620,7 @@ fn string_as_function_return_type_does_not_truncate() {
         VAR 
             x : STRING[100]
         END_VAR
-            x := foo('GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e')
+            x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.')
         END_PROGRAM
     ";
 
@@ -634,7 +634,7 @@ fn string_as_function_return_type_does_not_truncate() {
     let _: i32 = compile_and_run(src, &mut main_type);
     // long string passed to short function and returned
     assert_eq!(
-        format!("{:?}", "GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e\0".as_bytes()),
+        format!("{:?}", "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()),
         format!("{:?}", &main_type.x)
     );
 }
@@ -663,7 +663,7 @@ fn string_ref_returned_from_wrapper_function_does_not_truncate() {
         VAR 
             x : STRING[100]
         END_VAR
-            x := foo('GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e')
+            x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.')
         END_PROGRAM
     ";
 
@@ -677,13 +677,13 @@ fn string_ref_returned_from_wrapper_function_does_not_truncate() {
     let _: i32 = compile_and_run(src, &mut main_type);
     // long string passed to short function and returned
     assert_eq!(
-        format!("{:?}", "GgViP2TkkjibOk7pqC2IzmQ901HXiNmDzLYYLpDT5yPqMvcGNzYxvujpRcYGcACl65gjrUwWmfhIpiS9ucekhuSX0F5ktHBaVT8e\0".as_bytes()),
+        format!("{:?}", "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()),
         format!("{:?}", &main_type.x)
     );
 }
 
 #[test]
-fn string_returned_from_wrapper_function_does_not_truncate() {
+fn string_returned_from_generic_wrapper_function_does_not_truncate() {
     let src = "
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
@@ -755,7 +755,7 @@ fn string_returned_from_main_does_not_truncate() {
 }
 
 #[test]
-fn when_main_returns_value_from_generic_function_call_then_string_does_not_truncate() {
+fn when_function_returns_value_from_generic_function_call_then_string_does_not_truncate() {
     let src = "
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
@@ -800,7 +800,7 @@ fn when_main_returns_value_from_generic_function_call_then_string_does_not_trunc
 }
 
 #[test]
-fn when_main_return_param_is_a_function_call_string_does_not_truncate() {
+fn when_function_returns_value_from_function_call_string_does_not_truncate() {
     let src = "
         FUNCTION foo : STRING[100]
         VAR_INPUT {ref}
