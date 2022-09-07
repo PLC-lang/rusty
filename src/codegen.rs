@@ -172,6 +172,16 @@ impl<'ink> CodeGen<'ink> {
                 }
             }
         }
+
+        #[cfg(feature = "verify")]
+        {
+            self.module.verify().map_err(|it| Diagnostic::GeneralError {
+                message: it.to_string(),
+                err_no: crate::diagnostics::ErrNo::codegen__general,
+            })
+        }
+
+        #[cfg(not(feature = "verify"))]
         Ok(())
     }
 

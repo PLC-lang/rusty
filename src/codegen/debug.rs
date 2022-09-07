@@ -1,12 +1,13 @@
 use std::{cell::RefCell, collections::HashMap, ops::Range};
 
 use inkwell::{
+    context::ContextRef,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
         DIFlagsConstants, DIType, DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
-    values::GlobalValue,
+    values::{BasicMetadataValueEnum, GlobalValue},
 };
 
 use crate::{
@@ -85,10 +86,11 @@ impl<'ink> From<DebugType<'ink>> for DIType<'ink> {
 }
 
 pub struct DebugObj<'ink> {
-    // context: ContextRef<'ink>,
+    context: ContextRef<'ink>,
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
     types: RefCell<HashMap<String, DebugType<'ink>>>,
+    global_metadata: RefCell<Vec<BasicMetadataValueEnum<'ink>>>,
 }
 
 pub fn new<'ink>(
@@ -114,10 +116,11 @@ pub fn new<'ink>(
         "",
     );
     DebugObj {
-        // context: module.get_context(),
+        context: module.get_context(),
         debug_info,
         compile_unit,
         types: Default::default(),
+        global_metadata: Default::default(),
     }
 }
 
@@ -431,37 +434,32 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), Diagnostic> {
         if let Some(debug_type) = self.types.borrow().get(&type_name.to_lowercase()) {
-            self.debug_info.create_global_variable_expression(
+            let debug_variable = self.debug_info.create_global_variable_expression(
                 self.compile_unit.get_file().as_debug_info_scope(),
                 name,
                 "",
                 self.compile_unit.get_file(),
                 0,
                 (*debug_type).into(),
-                true,
+                false,
                 None,
                 None,
                 global_variable.get_alignment(),
             );
+            let gv_metadata = debug_variable.as_metadata_value(&self.context);
+            self.global_metadata.borrow_mut().push(gv_metadata.into());
+
+            global_variable.set_metadata(gv_metadata, 0);
         }
 
         Ok(())
     }
 
     fn finalize(&self) -> Result<(), Diagnostic> {
-        // if self
-        //     .types
-        //     .borrow()
-        //     .values()
-        //     .any(|it| matches!(it, DebugType::Placeholder(_)))
-        // {
-        //     Err(Diagnostic::debug_error(
-        //         "Not all types were resolved by the type for finalize",
-        //     ))
-        // } else {
+        self.context
+            .metadata_node(self.global_metadata.borrow().as_slice());
         self.debug_info.finalize();
         Ok(())
-        // }
     }
 }
 
