@@ -1,0 +1,37 @@
+---
+source: src/codegen/tests/parameters_tests.rs
+assertion_line: 205
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32, i32, i32 }
+
+@main_instance = global %main_interface zeroinitializer
+
+define i32 @foo(i32 %0, i32* %1, i32* %2) {
+entry:
+  %input1 = alloca i32, align 4
+  store i32 %0, i32* %input1, align 4
+  %output1 = alloca i32*, align 8
+  store i32* %1, i32** %output1, align 8
+  %inout1 = alloca i32*, align 8
+  store i32* %2, i32** %inout1, align 8
+  %foo = alloca i32, align 4
+  store i32 0, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
+  ret i32 %foo_ret
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %var1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %var2 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %var3 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  %load_var1 = load i32, i32* %var1, align 4
+  %empty_varinout = alloca i32, align 4
+  %call = call i32 @foo(i32 %load_var1, i32* %var2, i32* %empty_varinout)
+  ret void
+}
+

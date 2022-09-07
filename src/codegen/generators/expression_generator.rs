@@ -3,7 +3,7 @@ use crate::{
     ast::{self, DirectAccessType, SourceRange},
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    index::{ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry},
+    index::{ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
         is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE,
@@ -630,6 +630,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut result = Vec::new();
         let mut variadic_params = Vec::new();
 
+        let mut passed_args = Vec::new();
         for (idx, param_statement) in arguments.into_iter().enumerate() {
             let (location, param_statement) =
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
@@ -642,7 +643,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .map(|it| {
                     let name = it.get_type_name();
                     if let Some(DataTypeInformation::Pointer {
-                        inner_type_name, ..
+                        inner_type_name,
+                        auto_deref: true,
+                        ..
                     }) = self.index.find_effective_type_info(name)
                     {
                         Some((it.get_declaration_type(), inner_type_name.as_str()))
@@ -674,6 +677,50 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_argument_by_val(type_name, param_statement)?
                 };
                 result.push((location, argument));
+            }
+
+            passed_args.push(location);
+        }
+
+        // handle missing declared parameters
+        if declared_parameters.len() != passed_args.len() {
+            for (i, param) in declared_parameters.into_iter().enumerate() {
+                if !passed_args.contains(&i) {
+                    // only for output/inout ? or inputs also ?
+                    if matches!(
+                        param.get_variable_type(),
+                        VariableType::Output | VariableType::InOut
+                    ) {
+                        // get parameter type
+                        let type_name = if let Some(DataTypeInformation::Pointer {
+                            inner_type_name,
+                            auto_deref: true,
+                            ..
+                        }) =
+                            self.index.find_effective_type_info(param.get_type_name())
+                        {
+                            inner_type_name.as_str()
+                        } else {
+                            param.get_type_name()
+                        };
+
+                        // generate argument by ref
+                        let v_type =
+                            self.llvm_index
+                                .find_associated_type(type_name)
+                                .ok_or_else(|| Diagnostic::SyntaxError {
+                                    // TODO: diagnostic
+                                    message: "something went wrong generating empty var inout"
+                                        .into(),
+                                    range: (0..0).into(),
+                                    err_no: crate::diagnostics::ErrNo::codegen__general,
+                                })?;
+                        let res: Result<BasicValueEnum<'ink>, Diagnostic> =
+                            Ok(self.llvm.builder.build_alloca(v_type, "empty_varinout"))
+                                .map(Into::into);
+                        result.push((i, res?));
+                    }
+                }
             }
         }
 
@@ -749,7 +796,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .llvm_index
                 .find_associated_type(type_name)
                 .ok_or_else(|| Diagnostic::unknown_type(type_name, argument.get_location()))?;
-            Ok(self.llvm.builder.build_alloca(v_type, ""))
+            Ok(self.llvm.builder.build_alloca(v_type, "empty_varinout"))
         } else {
             self.generate_element_pointer(argument)
                 .or_else::<Diagnostic, _>(|_| {
