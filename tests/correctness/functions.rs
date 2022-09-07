@@ -569,7 +569,6 @@ fn var_output_assignment() {
 }
 
 #[test]
-#[ignore = "https://github.com/PLC-lang/rusty/issues/530"]
 fn var_output_unassigned() {
     #[repr(C)]
     struct MainType {
@@ -588,9 +587,9 @@ fn var_output_unassigned() {
 
         PROGRAM main
             VAR
-                var : DINT;
+                var1 : DINT;
             END_VAR
-            foo(output2 => var);
+            foo(output2 => var1);
         END_PROGRAM
     "#;
 
