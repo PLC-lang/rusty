@@ -1054,6 +1054,12 @@ impl Index {
             })
     }
 
+    pub fn find_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.member_variables
+            .get(&pou_name.to_lowercase())
+            .and_then(|map| map.values().find(|item| item.location_in_parent == index))
+    }
+
     /// returns the effective DataType of the type with the given name if it exists
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)

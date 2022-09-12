@@ -3,7 +3,7 @@ use crate::{
     ast::{self, DirectAccessType, SourceRange},
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    index::{ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
         is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE,
@@ -56,8 +56,6 @@ struct CallParameterAssignment<'a, 'b> {
     assignment_statement: &'b AstStatement,
     /// the name of the function we're calling
     function_name: &'b str,
-    /// the argument's data type
-    parameter_type: Option<&'b DataType>,
     /// the position of the argument in the POU's argument's list
     index: u32,
     /// a pointer to the struct instance that carries the call's arguments
@@ -566,11 +564,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_context: &'b FunctionContext<'ink>,
         function_name: &str,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
-        // foo(a,b,c)
-        // foo(z:= a, x:=c, y := b);
-        let declared_parameters = self
-            .index
-            .get_declared_parameters(implementation.get_type_name());
         let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {
             //we're calling a function
 
@@ -578,6 +571,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .as_ref()
                 .map(ast::flatten_expression_list)
                 .unwrap_or_default();
+
+            // foo(a,b,c)
+            // foo(z:= a, x:=c, y := b);
+            let declared_parameters = self
+                .index
+                .get_declared_parameters(implementation.get_type_name());
 
             // the parameters to be passed to the function call
             self.generate_function_arguments(pou, call_params, declared_parameters)?
@@ -615,7 +614,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 class_ptr,
                 call_ptr,
                 parameters,
-                declared_parameters,
             )?
         };
         Ok(arguments_list)
@@ -686,22 +684,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if declared_parameters.len() != passed_args.len() {
             for (i, param) in declared_parameters.into_iter().enumerate() {
                 if !passed_args.contains(&i) {
-                    // only for output/inout ? or inputs also ?
-                    if matches!(
-                        param.get_variable_type(),
-                        VariableType::Output | VariableType::InOut
-                    ) {
-                        let type_name = self.get_parameter_type(param);
+                    let parameter_type = self
+                        .llvm_index
+                        .get_associated_type(self.get_parameter_type(param).as_str())?;
 
-                        // generate argument by ref
-                        let v_type = self.generate_var_for_empty_inout(type_name.as_str())?;
+                    let generated_exp = self.generate_empty_expression(parameter_type, param)?;
 
-                        let res: Result<BasicValueEnum<'ink>, Diagnostic> =
-                            Ok(self.llvm.builder.build_alloca(v_type, "empty_varinout"))
-                                .map(Into::into);
+                    let res: Result<BasicValueEnum<'ink>, Diagnostic> =
+                        Ok(generated_exp).map(Into::into);
 
-                        result.push((i, res?));
-                    }
+                    result.push((i, res?));
                 }
             }
         }
@@ -876,7 +868,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         class_struct: Option<PointerValue<'ink>>,
         parameter_struct: PointerValue<'ink>,
         parameters: &Option<AstStatement>,
-        declared_parameters: Vec<&VariableIndexEntry>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = class_struct
             .map(|class_struct| {
@@ -892,62 +883,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .map(ast::flatten_expression_list)
             .unwrap_or_else(std::vec::Vec::new);
 
-        let mut passed_args = Vec::new();
         for (index, exp) in expressions.iter().enumerate() {
-            let (passed_arg_idx, _) =
-                get_implicit_call_parameter(exp, &declared_parameters, index)?;
-
             let parameter =
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment_statement: exp,
                     function_name,
-                    parameter_type: None,
                     index: index as u32,
                     parameter_struct,
                 })?;
             if let Some(parameter) = parameter {
                 result.push(parameter.into());
             };
-            passed_args.push(passed_arg_idx);
         }
 
-        // handle missing declared parameters
-        if declared_parameters.len() != passed_args.len() {
-            for (i, param) in declared_parameters.into_iter().enumerate() {
-                if !passed_args.contains(&i) {
-                    // only for output/inout ? or inputs also ?
-                    if matches!(
-                        param.get_variable_type(),
-                        VariableType::Output | VariableType::InOut
-                    ) {
-                        let type_name = self.get_parameter_type(param);
-
-                        let temp_type = self.generate_var_for_empty_inout(type_name.as_str())?;
-
-                        let generated_exp = self
-                            .llvm
-                            .builder
-                            .build_alloca(temp_type, "empty_varinout")
-                            .as_basic_value_enum();
-
-                        let pointer_to_param = self
-                            .llvm
-                            .builder
-                            .build_struct_gep(parameter_struct, i as u32, "")
-                            .map_err(|_| Diagnostic::SyntaxError {
-                                // TODO: diagnostic
-                                message: "something went wrong generating empty var inout".into(),
-                                range: (0..0).into(),
-                                err_no: crate::diagnostics::ErrNo::codegen__general,
-                            })?;
-
-                        self.llvm
-                            .builder
-                            .build_store(pointer_to_param, generated_exp);
-                    }
-                }
-            }
-        }
         Ok(result)
     }
 
@@ -966,18 +914,34 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    fn generate_var_for_empty_inout(
+    fn generate_empty_expression(
         &self,
-        type_name: &str,
-    ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        self.llvm_index
-            .find_associated_type(type_name)
-            .ok_or_else(|| Diagnostic::SyntaxError {
-                // TODO: diagnostic
-                message: "something went wrong generating empty var inout".into(),
-                range: (0..0).into(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
-            })
+        ty: BasicTypeEnum<'ink>,
+        parameter: &VariableIndexEntry,
+    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        let name = "empty_varinout";
+        match parameter.get_declaration_type() {
+            ArgumentType::ByVal(..) => {
+                if let Some(initial_value) = self
+                    .index
+                    .get_const_expressions()
+                    .maybe_get_constant_statement(&parameter.initial_value)
+                {
+                    self.generate_expression(initial_value)
+                } else {
+                    let load_name = format!(
+                        "{}{}{}",
+                        self.temp_variable_prefix, name, self.temp_variable_suffix
+                    );
+                    let ptr_value = self.llvm.builder.build_alloca(ty, name);
+                    Ok(self.llvm.load_pointer(&ptr_value, load_name.as_str()))
+                }
+            }
+            _ => {
+                let ptr_value = self.llvm.builder.build_alloca(ty, name);
+                Ok(ptr_value.as_basic_value_enum())
+            }
+        }
     }
 
     /// generates an assignemnt of a single call's argument
@@ -1020,7 +984,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let function_name = param_context.function_name;
         let index = param_context.index;
         let parameter_struct = param_context.parameter_struct;
-        let parameter_type = param_context.parameter_type;
         if self.index.is_declared_parameter(function_name, index) {
             let pointer_to_param = builder
                 .build_struct_gep(parameter_struct, index as u32, "")
@@ -1031,12 +994,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     )
                 })?;
 
-            let parameter = parameter_type
-                .or_else(|| {
-                    self.index
-                        .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
-                })
+            let parameter = self
+                .index
+                .find_parameter(function_name, index as u32)
+                .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
@@ -1094,13 +1055,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .find_member(function_name, name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
-            let param_type = self
-                .index
-                .find_effective_type_by_name(parameter.get_type_name());
             self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment_statement: right,
                 function_name,
-                parameter_type: param_type,
                 index,
                 parameter_struct,
             })?;

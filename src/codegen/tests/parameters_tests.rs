@@ -1,6 +1,6 @@
 use crate::{
     diagnostics::Diagnostic,
-    test_utils::tests::{codegen, codegen_without_unwrap},
+    test_utils::tests::{codegen, codegen_without_unwrap, parse_and_validate},
 };
 
 #[test]
@@ -132,7 +132,6 @@ fn function_empty_inout_assignment() {
 }
 
 #[test]
-#[ignore = "https://github.com/PLC-lang/rusty/issues/562, currently we only handle output/inout"]
 fn function_missing_input_assignment() {
     // GIVEN
     let result = codegen(
@@ -140,6 +139,35 @@ fn function_missing_input_assignment() {
 		FUNCTION foo : DINT
 		VAR_INPUT
 			input1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			foo(output1 => var2, inout1 := var3);
+		END_PROGRAM
+		",
+    );
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn function_missing_input_default_value_assignment() {
+    // GIVEN
+    let result = codegen(
+        "
+		FUNCTION foo : DINT
+		VAR_INPUT
+			input1 : DINT := 10;
 		END_VAR
 		VAR_OUTPUT
 			output1 : DINT;
@@ -250,7 +278,6 @@ fn program_all_parameters_assigned_explicit() {
 }
 
 #[test]
-#[ignore = "https://github.com/PLC-lang/rusty/issues/562"]
 fn program_all_parameters_assigned_implicit() {
     // GIVEN
     let result = codegen(
@@ -377,7 +404,6 @@ fn program_empty_inout_assignment() {
 }
 
 #[test]
-#[ignore = "https://github.com/PLC-lang/rusty/issues/562, currently we only handle output/inout"]
 fn program_missing_input_assignment() {
     // GIVEN
     let result = codegen(
@@ -438,7 +464,7 @@ fn program_missing_output_assignment() {
 #[test]
 fn program_missing_inout_assignment() {
     // GIVEN
-    let result = codegen(
+    let result = parse_and_validate(
         "
 		PROGRAM prog
 		VAR_INPUT
@@ -457,9 +483,18 @@ fn program_missing_inout_assignment() {
 			var1, var2, var3 : DINT;
 		END_VAR
 			prog(input1 := var1, output1 => var2);
+			prog(var1, var2);
+			prog(var1);
+			prog();
 		END_PROGRAM
 		",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    assert_eq!(
+        vec![Diagnostic::codegen_error(
+            "Cannot generate Literal for EmptyStatement",
+            (238..239).into(),
+        )],
+        result
+    )
 }
