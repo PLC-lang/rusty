@@ -5,8 +5,9 @@ use crate::{
         AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, SourceRange,
         UserTypeDeclaration, Variable, VariableBlock,
     },
-    index::Index,
-    resolver::{const_evaluator, AnnotationMapImpl},
+    codegen::generators::expression_generator::get_implicit_call_parameter,
+    index::{Index, PouIndexEntry},
+    resolver::{const_evaluator, AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     Diagnostic,
 };
 
@@ -223,7 +224,73 @@ impl Validator {
                 operator,
                 ..
             } => {
+                // visit called pou
                 self.visit_statement(operator, context);
+
+                // try to find pou
+                let pou = match operator.as_ref() {
+                    AstStatement::Reference { name, .. } => Some(name),
+                    AstStatement::QualifiedReference { elements, .. } => {
+                        if let Some(stmt) = elements.last() {
+                            if let Some(StatementAnnotation::Variable { resulting_type, .. }) =
+                                context.ast_annotation.get(stmt)
+                            {
+                                Some(resulting_type)
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                }
+                .and_then(|pou_name| context.index.find_pou(pou_name));
+
+                // for PROGRAM/FB we need special inout validation
+                if let Some(PouIndexEntry::FunctionBlock { name, .. })
+                | Some(PouIndexEntry::Program { name, .. }) = pou
+                {
+                    let inouts = context.index.get_declared_inouts(name);
+                    // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
+                    if !inouts.is_empty() {
+                        let mut passed_params_idx = Vec::new();
+                        if let Some(s) = parameters.as_ref() {
+                            let declared_parameters = context.index.get_declared_parameters(name);
+                            match s {
+                                AstStatement::ExpressionList { expressions, .. } => {
+                                    for (i, e) in expressions.iter().enumerate() {
+                                        // safe index of passed parameter
+                                        if let Ok((idx, _)) =
+                                            get_implicit_call_parameter(e, &declared_parameters, i)
+                                        {
+                                            passed_params_idx.push(idx);
+                                        }
+                                    }
+                                }
+                                _ => {
+                                    // safe index of passed parameter
+                                    if let Ok((idx, _)) =
+                                        get_implicit_call_parameter(s, &declared_parameters, 0)
+                                    {
+                                        passed_params_idx.push(idx);
+                                    }
+                                }
+                            }
+                        }
+                        // check if all inouts were passed to the pou call
+                        inouts.into_iter().for_each(|p| {
+                            if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
+                                self.stmt_validator.diagnostics.push(
+                                    Diagnostic::missing_inout_parameter(
+                                        p.get_name(),
+                                        operator.get_location(),
+                                    ),
+                                );
+                            }
+                        });
+                    }
+                }
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(s, context);
                 }

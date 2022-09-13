@@ -491,10 +491,12 @@ fn program_missing_inout_assignment() {
     );
     // THEN
     assert_eq!(
-        vec![Diagnostic::codegen_error(
-            "Cannot generate Literal for EmptyStatement",
-            (238..239).into(),
-        )],
+        vec![
+            Diagnostic::missing_inout_parameter("inout1", (216..220).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (258..262).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (279..283).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (294..298).into(),)
+        ],
         result
     )
 }

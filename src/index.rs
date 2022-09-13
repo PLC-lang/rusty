@@ -1024,6 +1024,13 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
+    pub fn get_declared_inouts(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
+        self.get_declared_parameters(container_name)
+            .into_iter()
+            .filter(|p| VariableType::InOut == p.get_variable_type())
+            .collect()
+    }
+
     /// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
     /// In other words it returns whether the member variable at `index` of the given container is a possible parameter in
     /// call to it

@@ -2461,7 +2461,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 /// if the parameter is explicit ´param := value´,
 /// it returns the location of the parameter in the function declaration
 ///  as well as the parameter value (right side) ´param := value´ => ´value´
-fn get_implicit_call_parameter<'a>(
+pub fn get_implicit_call_parameter<'a>(
     param_statement: &'a AstStatement,
     declared_parameters: &[&VariableIndexEntry],
     idx: usize,
