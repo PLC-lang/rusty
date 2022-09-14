@@ -59,7 +59,7 @@ extern "C" fn add(size: i32, ptr: *const i32) -> i32 {
     for _ in 0..size {
         unsafe {
             result += *ptr;
-            ptr = ptr.add(1);        
+            ptr = ptr.add(1);
         };
     }
     result
@@ -71,7 +71,7 @@ extern "C" fn add_ref(size: i32, ptr: *const *const i32) -> i32 {
     for _ in 0..size {
         unsafe {
             result += **ptr;
-            ptr = ptr.add(1);        
+            ptr = ptr.add(1);
         };
     }
     result
@@ -90,7 +90,7 @@ fn sized_variadic_call() {
         FUNCTION main : DINT
             main := add(1, 2, 3);
         END_FUNCTION
-        ";    
+        ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
@@ -119,7 +119,6 @@ fn sized_variadic_call() {
     assert_eq!(res, 6)
 }
 
-
 #[test]
 fn sized_pointer_variadic_call() {
     let src = "
@@ -133,7 +132,7 @@ fn sized_pointer_variadic_call() {
         FUNCTION main : DINT
             main := add_ref(1, 2, 3);
         END_FUNCTION
-        ";    
+        ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
@@ -178,12 +177,12 @@ fn verify_string(size: i32, ptr: *const i8) -> bool {
     assert_eq!("sample text", result[1]);
 
     assert_eq!("test string", result[2]);
-    
+
     true
 }
 
 fn verify_string_ref(_: i32, ptr: *const *const i8) -> bool {
-    unsafe{
+    unsafe {
         let s = std::ffi::CStr::from_ptr(*ptr).to_str().unwrap();
         assert_eq!("abc", s);
 
@@ -209,7 +208,7 @@ fn string_sized_variadic_call() {
         FUNCTION main : BOOL
             main := verify_string('abc', 'sample text', 'test string');
         END_FUNCTION
-        ";    
+        ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
@@ -238,7 +237,6 @@ fn string_sized_variadic_call() {
     assert!(res)
 }
 
-
 #[test]
 fn string_sized_pointer_variadic_call() {
     let src = "
@@ -252,7 +250,7 @@ fn string_sized_pointer_variadic_call() {
         FUNCTION main : BOOL
             main := verify_string_ref('abc', 'sample text', 'test string');
         END_FUNCTION
-        ";    
+        ";
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();

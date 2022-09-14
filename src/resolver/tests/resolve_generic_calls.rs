@@ -793,13 +793,7 @@ fn string_ref_as_generic_resolved() {
     if let AstStatement::CallStatement { parameters, .. } = call_statement {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
 
-        assert_type_and_hint!(
-            &annotations,
-            &index,
-            parameters[0],
-            "STRING",
-            None
-        );
+        assert_type_and_hint!(&annotations, &index, parameters[0], "STRING", None);
     } else {
         unreachable!("Should be a call statement")
     }

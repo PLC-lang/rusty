@@ -3,9 +3,7 @@ use crate::{
     ast::{self, DirectAccessType, SourceRange},
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    index::{
-        ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry,
-    },
+    index::{ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
         is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE,
@@ -1838,7 +1836,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 auto_deref: true,
                 ..
             } => {
-                let inner_type = self.index.get_type_information_or_void(&inner_type_name);
+                let inner_type = self.index.get_type_information_or_void(inner_type_name);
                 self.generate_string_literal_for_type(inner_type, value, location)
             }
             DataTypeInformation::Integer { size: 8, .. } if expected_type.is_character() => {

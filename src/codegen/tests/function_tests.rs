@@ -202,7 +202,6 @@ fn function_with_sized_varargs_called_in_program() {
     insta::assert_snapshot!(result);
 }
 
-
 #[test]
 fn function_with_ref_sized_string_varargs_called_in_program() {
     let result = codegen(
@@ -227,6 +226,4 @@ fn function_with_ref_sized_string_varargs_called_in_program() {
     // The parameters are stored in a local vector (allocated in place)
     // Function call with 3 as first parameter (size) and the arguments array as pointer
     insta::assert_snapshot!(result);
-
-
 }

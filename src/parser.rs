@@ -799,25 +799,25 @@ fn parse_string_type_definition(
 
     let size = parse_string_size_expression(lexer);
     let end = lexer.last_range.end;
-    let location : SourceRange = (start..end).into();
-    size
-    .map(|size| {
-        DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::StringType {
-                name,
-                is_wide,
-                size : Some(size),
-            },
-            location: location.clone(),
-            scope: lexer.scope.clone(),
-        }
+    let location: SourceRange = (start..end).into();
+    size.map(|size| DataTypeDeclaration::DataTypeDefinition {
+        data_type: DataType::StringType {
+            name,
+            is_wide,
+            size: Some(size),
+        },
+        location: location.clone(),
+        scope: lexer.scope.clone(),
     })
-    .or(Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }))
-    .zip(
-        Some(lexer
+    .or(Some(DataTypeDeclaration::DataTypeReference {
+        referenced_type: text,
+        location,
+    }))
+    .zip(Some(
+        lexer
             .allow(&KeywordAssignment)
-            .then(|| parse_expression(lexer)))
-    )
+            .then(|| parse_expression(lexer)),
+    ))
 }
 
 fn parse_enum_type_definition(
