@@ -4,6 +4,7 @@ use crate::ast::{
 };
 use crate::parser::tests::{literal_int, ref_to};
 use crate::test_utils::tests::parse;
+use insta::assert_snapshot;
 use pretty_assertions::*;
 
 #[test]
@@ -2130,26 +2131,23 @@ fn string_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
-    let expected_ast = r#"VariableBlock {
-    variables: [
-        Variable {
-            name: "x",
-            data_type: DataTypeDefinition {
-                data_type: StringType {
-                    name: None,
-                    is_wide: false,
-                    size: None,
+    assert_snapshot!(ast_string, @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: DataTypeReference {
+                    referenced_type: "STRING",
                 },
             },
-        },
-    ],
-    variable_block_type: Local,
-}"#;
-    assert_eq!(ast_string, expected_ast);
+        ],
+        variable_block_type: Local,
+    }
+    "###);
 
     let statements = &prg.statements;
     let ast_string = format!("{:#?}", statements[0]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: Reference {
         name: "x",
     },
@@ -2157,11 +2155,10 @@ fn string_can_be_parsed() {
         value: "Hello, World!",
         is_wide: false,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
 
     let ast_string = format!("{:#?}", statements[1]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: Reference {
         name: "x",
     },
@@ -2169,8 +2166,7 @@ fn string_can_be_parsed() {
         value: "",
         is_wide: false,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
 }
 
 #[test]
@@ -2182,26 +2178,23 @@ fn wide_string_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
-    let expected_ast = r#"VariableBlock {
-    variables: [
-        Variable {
-            name: "x",
-            data_type: DataTypeDefinition {
-                data_type: StringType {
-                    name: None,
-                    is_wide: true,
-                    size: None,
+    assert_snapshot!(ast_string, @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: DataTypeReference {
+                    referenced_type: "WSTRING",
                 },
             },
-        },
-    ],
-    variable_block_type: Local,
-}"#;
-    assert_eq!(ast_string, expected_ast);
+        ],
+        variable_block_type: Local,
+    }
+    "###);
 
     let statements = &prg.statements;
     let ast_string = format!("{:#?}", statements[0]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: Reference {
         name: "x",
     },
@@ -2209,11 +2202,10 @@ fn wide_string_can_be_parsed() {
         value: "Hello, World!",
         is_wide: true,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
 
     let ast_string = format!("{:#?}", statements[1]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: Reference {
         name: "x",
     },
@@ -2221,8 +2213,7 @@ fn wide_string_can_be_parsed() {
         value: "",
         is_wide: true,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
 }
 
 #[test]
@@ -2234,39 +2225,37 @@ fn arrays_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
-    let expected_ast = r#"VariableBlock {
-    variables: [
-        Variable {
-            name: "x",
-            data_type: DataTypeDefinition {
-                data_type: ArrayType {
-                    name: None,
-                    bounds: RangeStatement {
-                        start: LiteralInteger {
-                            value: 0,
+
+    assert_snapshot!(ast_string, @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: DataTypeDefinition {
+                    data_type: ArrayType {
+                        name: None,
+                        bounds: RangeStatement {
+                            start: LiteralInteger {
+                                value: 0,
+                            },
+                            end: LiteralInteger {
+                                value: 9,
+                            },
                         },
-                        end: LiteralInteger {
-                            value: 9,
-                        },
-                    },
-                    referenced_type: DataTypeDefinition {
-                        data_type: StringType {
-                            name: None,
-                            is_wide: false,
-                            size: None,
+                        referenced_type: DataTypeReference {
+                            referenced_type: "STRING",
                         },
                     },
                 },
             },
-        },
-    ],
-    variable_block_type: Local,
-}"#;
-    assert_eq!(ast_string, expected_ast);
+        ],
+        variable_block_type: Local,
+    }
+    "###);
 
     let statements = &prg.statements;
     let ast_string = format!("{:#?}", statements[0]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: ArrayAccess {
         reference: Reference {
             name: "x",
@@ -2279,8 +2268,8 @@ fn arrays_can_be_parsed() {
         value: "Hello, World!",
         is_wide: false,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
+    //assert_eq!(ast_string, expected_ast);
 
     let ast_string = format!("{:#?}", statements[1]);
     let expected_ast = r#"Assignment {
@@ -2309,52 +2298,49 @@ fn nested_arrays_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
-    let expected_ast = r#"VariableBlock {
-    variables: [
-        Variable {
-            name: "x",
-            data_type: DataTypeDefinition {
-                data_type: ArrayType {
-                    name: None,
-                    bounds: RangeStatement {
-                        start: LiteralInteger {
-                            value: 0,
-                        },
-                        end: LiteralInteger {
-                            value: 9,
-                        },
-                    },
-                    referenced_type: DataTypeDefinition {
-                        data_type: ArrayType {
-                            name: None,
-                            bounds: RangeStatement {
-                                start: LiteralInteger {
-                                    value: 0,
-                                },
-                                end: LiteralInteger {
-                                    value: 9,
-                                },
+    assert_snapshot!(ast_string, @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: DataTypeDefinition {
+                    data_type: ArrayType {
+                        name: None,
+                        bounds: RangeStatement {
+                            start: LiteralInteger {
+                                value: 0,
                             },
-                            referenced_type: DataTypeDefinition {
-                                data_type: StringType {
-                                    name: None,
-                                    is_wide: false,
-                                    size: None,
+                            end: LiteralInteger {
+                                value: 9,
+                            },
+                        },
+                        referenced_type: DataTypeDefinition {
+                            data_type: ArrayType {
+                                name: None,
+                                bounds: RangeStatement {
+                                    start: LiteralInteger {
+                                        value: 0,
+                                    },
+                                    end: LiteralInteger {
+                                        value: 9,
+                                    },
+                                },
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "STRING",
                                 },
                             },
                         },
                     },
                 },
             },
-        },
-    ],
-    variable_block_type: Local,
-}"#;
-    assert_eq!(ast_string, expected_ast);
+        ],
+        variable_block_type: Local,
+    }
+    "###);
 
     let statements = &prg.statements;
     let ast_string = format!("{:#?}", statements[0]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: ArrayAccess {
         reference: ArrayAccess {
             reference: Reference {
@@ -2372,11 +2358,10 @@ fn nested_arrays_can_be_parsed() {
         value: "Hello, World!",
         is_wide: false,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
 
     let ast_string = format!("{:#?}", statements[1]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: ArrayAccess {
         reference: ArrayAccess {
             reference: Reference {
@@ -2394,8 +2379,7 @@ fn nested_arrays_can_be_parsed() {
         value: "",
         is_wide: false,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
 }
 
 #[test]
@@ -2407,51 +2391,48 @@ fn multidim_arrays_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
-    let expected_ast = r#"VariableBlock {
-    variables: [
-        Variable {
-            name: "x",
-            data_type: DataTypeDefinition {
-                data_type: ArrayType {
-                    name: None,
-                    bounds: ExpressionList {
-                        expressions: [
-                            RangeStatement {
-                                start: LiteralInteger {
-                                    value: 0,
+    assert_snapshot!(ast_string, @r###"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: DataTypeDefinition {
+                    data_type: ArrayType {
+                        name: None,
+                        bounds: ExpressionList {
+                            expressions: [
+                                RangeStatement {
+                                    start: LiteralInteger {
+                                        value: 0,
+                                    },
+                                    end: LiteralInteger {
+                                        value: 9,
+                                    },
                                 },
-                                end: LiteralInteger {
-                                    value: 9,
+                                RangeStatement {
+                                    start: LiteralInteger {
+                                        value: 1,
+                                    },
+                                    end: LiteralInteger {
+                                        value: 2,
+                                    },
                                 },
-                            },
-                            RangeStatement {
-                                start: LiteralInteger {
-                                    value: 1,
-                                },
-                                end: LiteralInteger {
-                                    value: 2,
-                                },
-                            },
-                        ],
-                    },
-                    referenced_type: DataTypeDefinition {
-                        data_type: StringType {
-                            name: None,
-                            is_wide: false,
-                            size: None,
+                            ],
+                        },
+                        referenced_type: DataTypeReference {
+                            referenced_type: "STRING",
                         },
                     },
                 },
             },
-        },
-    ],
-    variable_block_type: Local,
-}"#;
-    assert_eq!(ast_string, expected_ast);
+        ],
+        variable_block_type: Local,
+    }
+    "###);
 
     let statements = &prg.statements;
     let ast_string = format!("{:#?}", statements[0]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: ArrayAccess {
         reference: Reference {
             name: "x",
@@ -2471,11 +2452,10 @@ fn multidim_arrays_can_be_parsed() {
         value: "Hello, World!",
         is_wide: false,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
 
     let ast_string = format!("{:#?}", statements[1]);
-    let expected_ast = r#"Assignment {
+    assert_snapshot!(ast_string, @r#"Assignment {
     left: ArrayAccess {
         reference: Reference {
             name: "x",
@@ -2495,8 +2475,7 @@ fn multidim_arrays_can_be_parsed() {
         value: "",
         is_wide: false,
     },
-}"#;
-    assert_eq!(ast_string, expected_ast);
+}"#);
 }
 
 #[test]

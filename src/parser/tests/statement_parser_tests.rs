@@ -4,6 +4,7 @@ use crate::{
     test_utils::tests::parse,
     typesystem::DINT_TYPE,
 };
+use insta::assert_snapshot;
 use pretty_assertions::*;
 
 #[test]
@@ -203,20 +204,17 @@ fn string_variable_declaration_can_be_parsed() {
            ";
     let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
-    let expected = r#"Variable {
-    name: "x",
-    data_type: DataTypeDefinition {
-        data_type: StringType {
-            name: None,
-            is_wide: false,
-            size: None,
+    assert_snapshot!(format!("{:#?}", x).as_str(), @r###"
+    Variable {
+        name: "x",
+        data_type: DataTypeReference {
+            referenced_type: "STRING",
         },
-    },
-}"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+    }
+    "###);
 
     let x = &parse_result.global_vars[0].variables[1];
-    let expected = r#"Variable {
+    assert_snapshot!(format!("{:#?}", x).as_str(), @r#"Variable {
     name: "y",
     data_type: DataTypeDefinition {
         data_type: StringType {
@@ -229,24 +227,20 @@ fn string_variable_declaration_can_be_parsed() {
             ),
         },
     },
-}"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+}"#);
 
     let x = &parse_result.global_vars[0].variables[2];
-    let expected = r#"Variable {
-    name: "wx",
-    data_type: DataTypeDefinition {
-        data_type: StringType {
-            name: None,
-            is_wide: true,
-            size: None,
+    assert_snapshot!(format!("{:#?}", x).as_str(), @r###"
+    Variable {
+        name: "wx",
+        data_type: DataTypeReference {
+            referenced_type: "WSTRING",
         },
-    },
-}"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+    }
+    "###);
 
     let x = &parse_result.global_vars[0].variables[3];
-    let expected = r#"Variable {
+    assert_snapshot!(format!("{:#?}", x).as_str(), @r#"Variable {
     name: "wy",
     data_type: DataTypeDefinition {
         data_type: StringType {
@@ -259,6 +253,5 @@ fn string_variable_declaration_can_be_parsed() {
             ),
         },
     },
-}"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+}"#);
 }

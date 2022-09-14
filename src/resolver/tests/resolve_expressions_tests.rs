@@ -2692,7 +2692,7 @@ fn literals_passed_to_function_get_annotated() {
             &index,
             parameters[1],
             "__STRING_3",
-            Some("__foo_in")
+            Some("STRING")
         );
     } else {
         unreachable!();

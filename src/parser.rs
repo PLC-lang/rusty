@@ -792,27 +792,32 @@ fn parse_string_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<AstStatement>)> {
+    let text = lexer.slice().to_string();
     let start = lexer.location().get_start();
     let is_wide = lexer.token == KeywordWideString;
     lexer.advance();
 
     let size = parse_string_size_expression(lexer);
     let end = lexer.last_range.end;
-
-    Some((
+    let location : SourceRange = (start..end).into();
+    size
+    .map(|size| {
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::StringType {
                 name,
                 is_wide,
-                size,
+                size : Some(size),
             },
-            location: (start..end).into(),
+            location: location.clone(),
             scope: lexer.scope.clone(),
-        },
-        lexer
+        }
+    })
+    .or(Some(DataTypeDeclaration::DataTypeReference { referenced_type: text, location }))
+    .zip(
+        Some(lexer
             .allow(&KeywordAssignment)
-            .then(|| parse_expression(lexer)),
-    ))
+            .then(|| parse_expression(lexer)))
+    )
 }
 
 fn parse_enum_type_definition(

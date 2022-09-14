@@ -797,7 +797,7 @@ fn string_ref_as_generic_resolved() {
             &annotations,
             &index,
             parameters[0],
-            "__LEFT__STRING_IN",
+            "STRING",
             None
         );
     } else {
