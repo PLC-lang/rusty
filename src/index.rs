@@ -1024,13 +1024,6 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
-    pub fn get_declared_inouts(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
-        self.get_declared_parameters(container_name)
-            .into_iter()
-            .filter(|p| VariableType::InOut == p.get_variable_type())
-            .collect()
-    }
-
     /// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
     /// In other words it returns whether the member variable at `index` of the given container is a possible parameter in
     /// call to it
@@ -1126,6 +1119,17 @@ impl Index {
         self.type_index
             .get_type(type_name)
             .unwrap_or_else(|_| panic!("{} not found", type_name))
+    }
+
+    pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+        self.get_const_expressions()
+            .maybe_get_constant_statement(id)
+    }
+
+    pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstStatement> {
+        self.type_index
+            .find_type(type_name)
+            .and_then(|t| self.get_initial_value(&t.initial_value))
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {

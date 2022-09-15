@@ -103,6 +103,35 @@ fn function_empty_output_assignment() {
 }
 
 #[test]
+fn function_empty_output_default_value_assignment() {
+    // GIVEN
+    let result = codegen(
+        "
+		FUNCTION foo : DINT
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT := 3;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			foo(input1 := var1, output1 => , inout1 := var3);
+		END_PROGRAM
+		",
+    );
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn function_empty_inout_assignment() {
     // GIVEN
     let result = codegen(
@@ -219,6 +248,35 @@ fn function_missing_output_assignment() {
 }
 
 #[test]
+fn function_missing_output_default_value_assignment() {
+    // GIVEN
+    let result = codegen(
+        "
+		FUNCTION foo : DINT
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT := 3;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			foo(input1 := var1, inout1 := var3);
+		END_PROGRAM
+		",
+    );
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn function_missing_inout_assignment() {
     // GIVEN
     let result = codegen(
@@ -240,6 +298,38 @@ fn function_missing_inout_assignment() {
 			var1, var2, var3 : DINT;
 		END_VAR
 			foo(input1 := var1, output1 => var2);
+		END_PROGRAM
+		",
+    );
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn function_default_value_parameter_type() {
+    // GIVEN
+    let result = codegen(
+        "
+		TYPE myType : DINT := 20; END_TYPE
+
+		FUNCTION foo : DINT
+		VAR_INPUT
+			input1 : myType;
+		END_VAR
+		VAR_OUTPUT
+			output1 : myType;
+			output2 : myType;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			foo(output2 => , inout1 := var3);
 		END_PROGRAM
 		",
     );

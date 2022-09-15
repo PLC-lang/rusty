@@ -6,7 +6,7 @@ use crate::{
         UserTypeDeclaration, Variable, VariableBlock,
     },
     codegen::generators::expression_generator::get_implicit_call_parameter,
-    index::{Index, PouIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     Diagnostic,
 };
@@ -38,6 +38,30 @@ pub struct ValidationContext<'s> {
     ast_annotation: &'s AnnotationMapImpl,
     index: &'s Index,
     qualifier: Option<&'s str>,
+}
+
+impl<'s> ValidationContext<'s> {
+    /// try find a POU for the given statement
+    fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
+        match stmt {
+            AstStatement::Reference { name, .. } => Some(name),
+            AstStatement::QualifiedReference { elements, .. } => {
+                if let Some(stmt) = elements.last() {
+                    if let Some(StatementAnnotation::Variable { resulting_type, .. }) =
+                        self.ast_annotation.get(stmt)
+                    {
+                        Some(resulting_type)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+        .and_then(|pou_name| self.index.find_pou(pou_name))
+    }
 }
 
 pub struct Validator {
@@ -227,36 +251,19 @@ impl Validator {
                 // visit called pou
                 self.visit_statement(operator, context);
 
-                // try to find pou
-                let pou = match operator.as_ref() {
-                    AstStatement::Reference { name, .. } => Some(name),
-                    AstStatement::QualifiedReference { elements, .. } => {
-                        if let Some(stmt) = elements.last() {
-                            if let Some(StatementAnnotation::Variable { resulting_type, .. }) =
-                                context.ast_annotation.get(stmt)
-                            {
-                                Some(resulting_type)
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
-                    }
-                    _ => None,
-                }
-                .and_then(|pou_name| context.index.find_pou(pou_name));
-
                 // for PROGRAM/FB we need special inout validation
                 if let Some(PouIndexEntry::FunctionBlock { name, .. })
-                | Some(PouIndexEntry::Program { name, .. }) = pou
+                | Some(PouIndexEntry::Program { name, .. }) = context.find_pou(&operator)
                 {
-                    let inouts = context.index.get_declared_inouts(name);
+                    let declared_parameters = context.index.get_declared_parameters(name);
+                    let inouts: Vec<&&VariableIndexEntry> = declared_parameters
+                        .iter()
+                        .filter(|p| VariableType::InOut == p.get_variable_type())
+                        .collect();
                     // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
                     if !inouts.is_empty() {
                         let mut passed_params_idx = Vec::new();
                         if let Some(s) = parameters.as_ref() {
-                            let declared_parameters = context.index.get_declared_parameters(name);
                             match s {
                                 AstStatement::ExpressionList { expressions, .. } => {
                                     for (i, e) in expressions.iter().enumerate() {
