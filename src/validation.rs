@@ -253,7 +253,7 @@ impl Validator {
 
                 // for PROGRAM/FB we need special inout validation
                 if let Some(PouIndexEntry::FunctionBlock { name, .. })
-                | Some(PouIndexEntry::Program { name, .. }) = context.find_pou(&operator)
+                | Some(PouIndexEntry::Program { name, .. }) = context.find_pou(operator)
                 {
                     let declared_parameters = context.index.get_declared_parameters(name);
                     let inouts: Vec<&&VariableIndexEntry> = declared_parameters
