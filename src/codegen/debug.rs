@@ -93,34 +93,51 @@ pub struct DebugObj<'ink> {
     global_metadata: RefCell<Vec<BasicMetadataValueEnum<'ink>>>,
 }
 
+/// Wraps a debug object in an enum based on its level
+pub enum DebugWrapper<'ink> {
+    None,
+    VariablesOnly(DebugObj<'ink>),
+    Full(DebugObj<'ink>),
+}
+
 pub fn new<'ink>(
     module: &Module<'ink>,
     optimization: OptimizationLevel,
     debug_level: DebugLevel,
-) -> DebugObj<'ink> {
-    let (debug_info, compile_unit) = module.create_debug_info_builder(
-        true,
-        inkwell::debug_info::DWARFSourceLanguage::C,
-        module.get_source_file_name().to_str().unwrap_or(""),
-        "",
-        "RuSTy Structured text Compiler",
-        optimization.is_optimized(),
-        "",
-        0,
-        "",
-        debug_level.into(),
-        0,
-        false,
-        false,
-        "",
-        "",
-    );
-    DebugObj {
-        context: module.get_context(),
-        debug_info,
-        compile_unit,
-        types: Default::default(),
-        global_metadata: Default::default(),
+) -> DebugWrapper<'ink> {
+    match debug_level {
+        DebugLevel::None => DebugWrapper::None,
+        DebugLevel::VariablesOnly | DebugLevel::Full => {
+            let (debug_info, compile_unit) = module.create_debug_info_builder(
+                true,
+                inkwell::debug_info::DWARFSourceLanguage::C,
+                module.get_source_file_name().to_str().unwrap_or(""),
+                "",
+                "RuSTy Structured text Compiler",
+                optimization.is_optimized(),
+                "",
+                0,
+                "",
+                debug_level.into(),
+                0,
+                false,
+                false,
+                "",
+                "",
+            );
+            let dbg_obj = DebugObj {
+                context: module.get_context(),
+                debug_info,
+                compile_unit,
+                types: Default::default(),
+                global_metadata: Default::default(),
+            };
+            match debug_level {
+                DebugLevel::VariablesOnly => DebugWrapper::VariablesOnly(dbg_obj),
+                DebugLevel::Full => DebugWrapper::VariablesOnly(dbg_obj),
+                _ => unreachable!("Only variables or full debug can reach this"),
+            }
+        }
     }
 }
 
@@ -463,7 +480,7 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
     }
 }
 
-impl<'ink, T: Debug<'ink>> Debug<'ink> for Option<T> {
+impl<'ink> Debug<'ink> for DebugWrapper<'ink> {
     fn register_debug_type<'idx>(
         &self,
         name: &str,
@@ -472,7 +489,9 @@ impl<'ink, T: Debug<'ink>> Debug<'ink> for Option<T> {
     ) -> Result<(), Diagnostic> {
         match self {
             Self::None => Ok(()),
-            Self::Some(debug) => debug.register_debug_type(name, datatype, index),
+            Self::VariablesOnly(obj) | Self::Full(obj) => {
+                obj.register_debug_type(name, datatype, index)
+            }
         }
     }
 
@@ -484,14 +503,16 @@ impl<'ink, T: Debug<'ink>> Debug<'ink> for Option<T> {
     ) -> Result<(), Diagnostic> {
         match self {
             Self::None => Ok(()),
-            Self::Some(obj) => obj.create_global_variable(name, type_name, global_variable),
+            Self::VariablesOnly(obj) | Self::Full(obj) => {
+                obj.create_global_variable(name, type_name, global_variable)
+            }
         }
     }
 
     fn finalize(&self) -> Result<(), Diagnostic> {
         match self {
             Self::None => Ok(()),
-            Self::Some(obj) => obj.finalize(),
+            Self::VariablesOnly(obj) | Self::Full(obj) => obj.finalize(),
         }
     }
 }

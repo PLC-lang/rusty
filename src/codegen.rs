@@ -2,7 +2,7 @@
 
 /// module to generate llvm intermediate representation for a CompilationUnit
 use self::{
-    debug::Debug,
+    debug::{Debug, DebugWrapper},
     generators::{
         data_type_generator,
         llvm::{GlobalValueExt, Llvm},
@@ -37,7 +37,7 @@ pub struct CodeGen<'ink> {
     /// the module represents a llvm compilation unit
     pub module: Module<'ink>,
     /// the debugging module creates debug information at appropriate locations
-    pub debug: Option<debug::DebugObj<'ink>>,
+    pub debug: DebugWrapper<'ink>,
 }
 
 impl<'ink> CodeGen<'ink> {
@@ -49,11 +49,7 @@ impl<'ink> CodeGen<'ink> {
         debug_level: DebugLevel,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        let debug = if debug_level == DebugLevel::None {
-            None
-        } else {
-            Some(debug::new(&module, optimization_level, debug_level))
-        };
+        let debug = debug::new(&module, optimization_level, debug_level);
         CodeGen {
             context,
             module,

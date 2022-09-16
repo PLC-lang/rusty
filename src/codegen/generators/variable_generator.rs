@@ -17,12 +17,12 @@ use super::{
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
 };
-use crate::codegen::debug::DebugObj;
+use crate::codegen::debug::DebugWrapper;
 
 pub fn generate_global_variables<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
-    debug: &'b Option<DebugObj<'ctx>>,
+    debug: &'b DebugWrapper<'ctx>,
     global_index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: &'b LlvmTypedIndex<'ctx>,
