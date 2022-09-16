@@ -5,7 +5,7 @@ use crate::{
     builtins,
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::AnnotationMap,
-    typesystem::{self, DataType, DataTypeInformation},
+    typesystem::{self, DataType, DataTypeInformation, STRING_TYPE, WSTRING_TYPE},
 };
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
