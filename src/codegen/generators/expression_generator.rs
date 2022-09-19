@@ -673,7 +673,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             if let Some((declaration_type, type_name)) = param {
                 let argument: BasicValueEnum = if declaration_type.is_by_ref() {
                     let declared_parameter = declared_parameters.get(location);
-                    self.generate_argument_by_ref(param_statement, type_name, declared_parameter)?
+                    self.generate_argument_by_ref(
+                        param_statement,
+                        type_name,
+                        declared_parameter.copied(),
+                    )?
                 } else {
                     //pass by val
                     self.generate_argument_by_val(type_name, param_statement)?
@@ -690,10 +694,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 if !passed_args.contains(&i) {
                     let generated_exp = self.generate_empty_expression(param)?;
 
-                    let res: Result<BasicValueEnum<'ink>, Diagnostic> =
-                        Ok(generated_exp).map(Into::into);
-
-                    result.push((i, res?));
+                    result.push((i, generated_exp));
                 }
             }
         }
@@ -763,7 +764,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         argument: &AstStatement,
         type_name: &str,
-        declared_parameter: Option<&&VariableIndexEntry>,
+        declared_parameter: Option<&VariableIndexEntry>,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         if matches!(argument, AstStatement::EmptyStatement { .. }) {
             //uninitialized var_output/var_in_out
@@ -945,6 +946,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             _ => {
                 let ptr_value = self.llvm.builder.build_alloca(parameter_type, "");
 
+                // if default value is given for an output
+                // we need to initialize the pointer value before returning
                 if let Some(initial_value) =
                     self.get_initial_value(&parameter.initial_value, &parameter_type_name)
                 {
