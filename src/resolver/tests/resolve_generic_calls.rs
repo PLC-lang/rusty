@@ -931,6 +931,52 @@ fn generic_string_functions_are_annotated_correctly() {
 }
 
 #[test]
+fn generic_string_functions_without_specific_implementation_are_annotated_correctly() {
+    let (unit, index) = index(
+        r#"                
+        {external}
+        FUNCTION LEN <T: ANY_STRING> : DINT
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main
+        VAR_
+            LEN('abc');
+        END_FUNCTION
+        "#
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+
+    let mut functions = vec![];
+    let mut values = vec![];
+    annotations
+        .type_map
+        .iter()
+        .map(|(_, v)| v)
+        .for_each(|v| match v {
+            StatementAnnotation::Function { .. } => functions.push(v),
+            StatementAnnotation::Value {
+                resulting_type: res_type,
+            } => values.push(res_type),
+            _ => (),
+        });
+
+    assert_eq!(
+        functions[0],
+        &StatementAnnotation::Function {
+            return_type: "__LEN__STRING_return".to_string(),
+            qualified_name: "LEN__STRING".to_string(),
+            call_name: None,
+        }
+    );
+
+    assert_eq!(values[0], &String::from("DINT"),)
+}
+
+#[test]
 fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
     let (unit, index) = index(
         "
@@ -1016,7 +1062,7 @@ fn generic_string_functions_are_annotated_correctly_when_given_parameter_is_shor
         VAR_INPUT {ref}
             param : STRING[2048];
         END_VAR
-            bar(param, COPY__STRING);
+            COPY_EXT__STRING(param, COPY__STRING);
         END_FUNCTION
 
         {external}
@@ -1033,7 +1079,7 @@ fn generic_string_functions_are_annotated_correctly_when_given_parameter_is_shor
         VAR
             s : STRING[1024];
         END_VAR
-            foo('     this is   a  very   long          sentence   with plenty  of      characters and weird spacing.', s);
+            s := COPY('     this is   a  very   long          sentence   with plenty  of      characters and weird spacing.', s);
         END_PROGRAM
         ",
     );
@@ -1063,52 +1109,7 @@ fn generic_string_functions_are_annotated_correctly_when_given_parameter_is_shor
         }
     );
 
-    assert_eq!(values[0], &String::from("__STRING_2048"),)
-}
-#[test]
-fn placeholder() {
-    let (unit, index) = index(
-        r#"                
-        {external}
-        FUNCTION LEN <T: ANY_STRING> : DINT
-        VAR_INPUT {ref}
-            IN : T;
-        END_VAR
-        END_FUNCTION
-
-        FUNCTION main
-        VAR_
-            len('abc');
-        END_FUNCTION
-        "#
-    );
-
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
-
-    let mut functions = vec![];
-    let mut values = vec![];
-    annotations
-        .type_map
-        .iter()
-        .map(|(_, v)| v)
-        .for_each(|v| match v {
-            StatementAnnotation::Function { .. } => functions.push(v),
-            StatementAnnotation::Value {
-                resulting_type: res_type,
-            } => values.push(res_type),
-            _ => (),
-        });
-
-    assert_eq!(
-        functions[0],
-        &StatementAnnotation::Function {
-            return_type: "__LEN__STRING_return".to_string(),
-            qualified_name: "LEN__STRING".to_string(),
-            call_name: None,
-        }
-    );
-
-    assert_eq!(values[0], &String::from("DINT"),)
+    assert_eq!(values[0], &String::from("__STRING_100"),)
 }
 
 #[test]
