@@ -261,3 +261,61 @@ fn pointer_function_call_compare_instructions() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn compare_instructions_with_different_types() {
+    let result = codegen(
+        "
+		TYPE MySubRangeInt: INT(0..500); END_TYPE
+		TYPE MyDint: DINT; END_TYPE
+
+        FUNCTION foo : LINT
+        END_FUNCTION
+
+		PROGRAM main
+		VAR
+			ptr_int : REF_TO INT;
+
+			a : MySubRangeInt;
+			b : MyDint;
+
+			var_sint : SINT;
+            var_int  : INT;
+			var_dint : DINT;
+			var_lint : LINT;
+			
+			var_usint : USINT;
+            var_uint  : UINT;
+			var_udint : UDINT;
+			var_ulint : ULINT;
+		END_VAR
+			ptr_int := &(var_int);
+
+			var_sint = var_dint;
+			var_int < 30;
+			10 > var_lint;
+
+			var_usint <> var_udint;
+			var_uint <= UDINT#40;
+			UDINT#10 >= var_ulint;
+
+			var_sint = var_usint;
+			var_uint <= var_lint;
+			var_dint >= var_ulint;
+
+			var_lint < a;
+			a > var_sint;
+			b < var_lint;
+			SINT#5 <> b;
+
+			ptr_int <= var_usint;
+			a = ptr_int;
+
+			foo() <> 40;
+			var_udint <= foo();
+			foo() = var_lint;
+		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}
