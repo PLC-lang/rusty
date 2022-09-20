@@ -2,7 +2,7 @@
 
 /// module to generate llvm intermediate representation for a CompilationUnit
 use self::{
-    debug::{Debug, DebugWrapper},
+    debug::{Debug, DebugBuilderEnum},
     generators::{
         data_type_generator,
         llvm::{GlobalValueExt, Llvm},
@@ -37,7 +37,7 @@ pub struct CodeGen<'ink> {
     /// the module represents a llvm compilation unit
     pub module: Module<'ink>,
     /// the debugging module creates debug information at appropriate locations
-    pub debug: DebugWrapper<'ink>,
+    pub debug: DebugBuilderEnum<'ink>,
 }
 
 impl<'ink> CodeGen<'ink> {
@@ -49,7 +49,7 @@ impl<'ink> CodeGen<'ink> {
         debug_level: DebugLevel,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        let debug = debug::new(&module, optimization_level, debug_level);
+        let debug = debug::DebugBuilderEnum::new(&module, optimization_level, debug_level);
         CodeGen {
             context,
             module,
@@ -181,6 +181,10 @@ impl<'ink> CodeGen<'ink> {
         Ok(())
     }
 
+    /// Finalize needs to be called on the debug builder, to signify that the code generation is
+    /// done and that the debug builder can now mark the debug information as complete. This is
+    /// required to be called on the debug builder by the LLVM API, and has to happen on a module 
+    /// before it gets generated into object or IR
     pub fn finalize(&self) -> Result<(), Diagnostic> {
         self.debug.finalize()
     }

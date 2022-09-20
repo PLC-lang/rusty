@@ -16,7 +16,7 @@ use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
-        debug::DebugWrapper,
+        debug::DebugBuilderEnum,
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{get_llvm_float_type, get_llvm_int_type},
     },
@@ -32,7 +32,7 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 
 pub struct DataTypeGenerator<'ink, 'b> {
     llvm: &'b Llvm<'ink>,
-    debug: &'b DebugWrapper<'ink>,
+    debug: &'b DebugBuilderEnum<'ink>,
     index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: LlvmTypedIndex<'ink>,
@@ -47,7 +47,7 @@ pub struct DataTypeGenerator<'ink, 'b> {
 /// - array type for sized Strings
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
-    debug: &DebugWrapper<'ink>,
+    debug: &DebugBuilderEnum<'ink>,
     index: &Index,
     annotations: &AstAnnotations,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {

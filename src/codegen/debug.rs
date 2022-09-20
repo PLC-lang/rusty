@@ -12,15 +12,16 @@ use inkwell::{
 
 use crate::{
     ast::SourceRange,
-    datalayout::Byte,
+    datalayout::Offset,
     diagnostics::Diagnostic,
     index::Index,
-    typesystem::{DataType, DataTypeInformation, StringEncoding, BOOL_SIZE, CHAR_TYPE, WCHAR_TYPE},
+    typesystem::{DataType, DataTypeInformation, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
 
 #[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
+/// Represents the DWARF (attribute) encodings for basic types
 enum DebugEncoding {
     // DW_ATE_address = 0x01,
     DW_ATE_boolean = 0x02,
@@ -48,7 +49,11 @@ impl From<DebugLevel> for DWARFEmissionKind {
     }
 }
 
+/// A trait that represents a Debug builder
+/// An implementor of this trais will be called during various codegen phases to generate debug
+/// information
 pub trait Debug<'ink> {
+    /// Registers a new datatype for debugging
     fn register_debug_type<'idx>(
         &self,
         name: &str,
@@ -56,6 +61,7 @@ pub trait Debug<'ink> {
         index: &'idx Index,
     ) -> Result<(), Diagnostic>;
 
+    /// Creates a globally accessible variable with the given datatype.
     fn create_global_variable(
         &self,
         name: &str,
@@ -63,6 +69,8 @@ pub trait Debug<'ink> {
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), Diagnostic>;
 
+    /// When code generation is done, this method needs to be called to ensure the inner LLVM state
+    /// of the debug builder has been finalized.
     fn finalize(&self) -> Result<(), Diagnostic>;
 }
 
@@ -85,7 +93,8 @@ impl<'ink> From<DebugType<'ink>> for DIType<'ink> {
     }
 }
 
-pub struct DebugObj<'ink> {
+/// Represents the debug builder and information for a compilation unit.
+pub struct DebugBuilder<'ink> {
     context: ContextRef<'ink>,
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
@@ -93,107 +102,72 @@ pub struct DebugObj<'ink> {
     global_metadata: RefCell<Vec<BasicMetadataValueEnum<'ink>>>,
 }
 
-/// Wraps a debug object in an enum based on its level
-pub enum DebugWrapper<'ink> {
+/// A wrapper that redirects to correct debug builder implementation based on the debug context.
+/// It internally holds a DebugBuilder to do the actual actions, but abstacts it from the caller by
+/// implementing the Debug trait
+pub enum DebugBuilderEnum<'ink> {
     None,
-    VariablesOnly(DebugObj<'ink>),
-    Full(DebugObj<'ink>),
+    VariablesOnly(DebugBuilder<'ink>),
+    Full(DebugBuilder<'ink>),
 }
 
-pub fn new<'ink>(
-    module: &Module<'ink>,
-    optimization: OptimizationLevel,
-    debug_level: DebugLevel,
-) -> DebugWrapper<'ink> {
-    match debug_level {
-        DebugLevel::None => DebugWrapper::None,
-        DebugLevel::VariablesOnly | DebugLevel::Full => {
-            let (debug_info, compile_unit) = module.create_debug_info_builder(
-                true,
-                inkwell::debug_info::DWARFSourceLanguage::C,
-                module.get_source_file_name().to_str().unwrap_or(""),
-                "",
-                "RuSTy Structured text Compiler",
-                optimization.is_optimized(),
-                "",
-                0,
-                "",
-                debug_level.into(),
-                0,
-                false,
-                false,
-                "",
-                "",
-            );
-            let dbg_obj = DebugObj {
-                context: module.get_context(),
-                debug_info,
-                compile_unit,
-                types: Default::default(),
-                global_metadata: Default::default(),
-            };
-            match debug_level {
-                DebugLevel::VariablesOnly => DebugWrapper::VariablesOnly(dbg_obj),
-                DebugLevel::Full => DebugWrapper::VariablesOnly(dbg_obj),
-                _ => unreachable!("Only variables or full debug can reach this"),
+impl<'ink> DebugBuilderEnum<'ink> {
+    pub fn new(
+        module: &Module<'ink>,
+        optimization: OptimizationLevel,
+        debug_level: DebugLevel,
+    ) -> Self {
+        match debug_level {
+            DebugLevel::None => DebugBuilderEnum::None,
+            DebugLevel::VariablesOnly | DebugLevel::Full => {
+                let (debug_info, compile_unit) = module.create_debug_info_builder(
+                    true,
+                    inkwell::debug_info::DWARFSourceLanguage::C,
+                    module.get_source_file_name().to_str().unwrap_or(""),
+                    "",
+                    "RuSTy Structured text Compiler",
+                    optimization.is_optimized(),
+                    "",
+                    0,
+                    "",
+                    debug_level.into(),
+                    0,
+                    false,
+                    false,
+                    "",
+                    "",
+                );
+                let dbg_obj = DebugBuilder {
+                    context: module.get_context(),
+                    debug_info,
+                    compile_unit,
+                    types: Default::default(),
+                    global_metadata: Default::default(),
+                };
+                match debug_level {
+                    DebugLevel::VariablesOnly => DebugBuilderEnum::VariablesOnly(dbg_obj),
+                    DebugLevel::Full => DebugBuilderEnum::VariablesOnly(dbg_obj),
+                    _ => unreachable!("Only variables or full debug can reach this"),
+                }
             }
         }
     }
 }
 
-impl<'ink> DebugObj<'ink> {
+impl<'ink> DebugBuilder<'ink> {
     fn register_concrete_type(&self, name: &str, di_type: DebugType<'ink>) {
         self.types.borrow_mut().insert(name.to_lowercase(), di_type);
     }
 
-    fn create_int_type(&self, name: &str, size: u32, is_signed: bool) -> Result<(), Diagnostic> {
-        let encoding = match is_signed {
-            true => DebugEncoding::DW_ATE_signed,
-            false => DebugEncoding::DW_ATE_unsigned,
-        };
+    fn create_basic_type(
+        &self,
+        name: &str,
+        size: u64,
+        encoding: DebugEncoding,
+    ) -> Result<(), Diagnostic> {
         let res = self
             .debug_info
-            .create_basic_type(name, size as u64, encoding as u32, DIFlagsConstants::PUBLIC)
-            .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
-        self.register_concrete_type(name, DebugType::Basic(res));
-        Ok(())
-    }
-
-    fn create_bool_type(&self, name: &str) -> Result<(), Diagnostic> {
-        let res = self
-            .debug_info
-            .create_basic_type(
-                name,
-                BOOL_SIZE as u64,
-                DebugEncoding::DW_ATE_boolean as u32,
-                DIFlagsConstants::PUBLIC,
-            )
-            .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
-
-        self.register_concrete_type(name, DebugType::Basic(res));
-        Ok(())
-    }
-
-    fn create_float_type(&self, name: &str, size: u32) -> Result<(), Diagnostic> {
-        let encoding = DebugEncoding::DW_ATE_float;
-        let res = self
-            .debug_info
-            .create_basic_type(name, size as u64, encoding as u32, DIFlagsConstants::PUBLIC)
-            .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
-
-        self.register_concrete_type(name, DebugType::Basic(res));
-        Ok(())
-    }
-
-    fn create_char_type(&self, name: &str, size: u32) -> Result<(), Diagnostic> {
-        let res = self
-            .debug_info
-            .create_basic_type(
-                name,
-                size as u64,
-                DebugEncoding::DW_ATE_UTF as u32,
-                DIFlagsConstants::PUBLIC,
-            )
+            .create_basic_type(name, size, encoding as u32, DIFlagsConstants::PUBLIC)
             .map_err(|err| Diagnostic::codegen_error(err, SourceRange::undefined()))?;
         self.register_concrete_type(name, DebugType::Basic(res));
         Ok(())
@@ -215,7 +189,7 @@ impl<'ink> DebugObj<'ink> {
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
         let mut types = vec![];
-        let mut running_offset = Byte::new(0);
+        let mut running_offset = Offset::new(0);
         for (member_name, dt) in index_types.into_iter() {
             let di_type = self.get_or_create_debug_type(dt, index)?;
             //Adjust the offset based on the field alignment
@@ -403,7 +377,7 @@ impl<'ink> DebugObj<'ink> {
     }
 }
 
-impl<'ink> Debug<'ink> for DebugObj<'ink> {
+impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     fn register_debug_type<'idx>(
         &self,
         name: &str,
@@ -420,15 +394,22 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
                 DataTypeInformation::Array { .. } => self.create_array_type(type_info, index),
                 DataTypeInformation::Pointer { .. } => self.create_pointer_type(type_info, index),
                 DataTypeInformation::Integer { signed, size, .. } => {
-                    if type_info.is_bool() {
-                        self.create_bool_type(name)
+
+                    let encoding = if type_info.is_bool() {
+                        DebugEncoding::DW_ATE_boolean
                     } else if type_info.is_character() {
-                        self.create_char_type(name, *size)
+                        DebugEncoding::DW_ATE_UTF
                     } else {
-                        self.create_int_type(name, *size, *signed)
-                    }
+                         match *signed {
+                            true => DebugEncoding::DW_ATE_signed,
+                            false => DebugEncoding::DW_ATE_unsigned,
+                        }
+                    };
+                    self.create_basic_type(name, *size as u64, encoding)
                 }
-                DataTypeInformation::Float { size, .. } => self.create_float_type(name, *size),
+                DataTypeInformation::Float { size, .. } => {
+                    self.create_basic_type(name, *size as u64, DebugEncoding::DW_ATE_float)
+                }
                 DataTypeInformation::String { .. } => {
                     self.create_string_type(name, type_info, index)
                 }
@@ -480,7 +461,7 @@ impl<'ink> Debug<'ink> for DebugObj<'ink> {
     }
 }
 
-impl<'ink> Debug<'ink> for DebugWrapper<'ink> {
+impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
     fn register_debug_type<'idx>(
         &self,
         name: &str,

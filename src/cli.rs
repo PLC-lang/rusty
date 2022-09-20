@@ -173,7 +173,7 @@ pub struct CompileParameters {
         name = "debug",
         long,
         short = 'g',
-        help = "Generate full debug information",
+        help = "Generate source-level debug information",
         global = true,
         group = "dbg"
     )]

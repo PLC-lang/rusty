@@ -2,92 +2,92 @@ use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 #[derive(Copy, Clone, Debug)]
 pub struct DataLayout {
-    pub i1: Byte,
-    pub i8: Byte,
-    pub i16: Byte,
-    pub i32: Byte,
-    pub i64: Byte,
-    pub f32: Byte,
-    pub f64: Byte,
-    pub p64: Byte,
-    pub v64: Byte,
-    pub v128: Byte,
-    pub aggregate: Byte,
+    pub i1: Offset,
+    pub i8: Offset,
+    pub i16: Offset,
+    pub i32: Offset,
+    pub i64: Offset,
+    pub f32: Offset,
+    pub f64: Offset,
+    pub p64: Offset,
+    pub v64: Offset,
+    pub v128: Offset,
+    pub aggregate: Offset,
 }
 
 impl Default for DataLayout {
     fn default() -> Self {
         Self {
-            i1: Byte::from_bits(8),
-            i8: Byte::from_bits(8),
-            i16: Byte::from_bits(16),
-            i32: Byte::from_bits(32),
-            i64: Byte::from_bits(64), //Using 64bit default alignment, if we need to support 32bit
+            i1: Offset::from_bits(8),
+            i8: Offset::from_bits(8),
+            i16: Offset::from_bits(16),
+            i32: Offset::from_bits(32),
+            i64: Offset::from_bits(64), //Using 64bit default alignment, if we need to support 32bit
             //this has to be adjusted
-            f32: Byte::from_bits(32),
-            f64: Byte::from_bits(64),
-            p64: Byte::from_bits(64),
-            v64: Byte::from_bits(64),
-            v128: Byte::from_bits(128),
-            aggregate: Byte::from_bits(64),
+            f32: Offset::from_bits(32),
+            f64: Offset::from_bits(64),
+            p64: Offset::from_bits(64),
+            v64: Offset::from_bits(64),
+            v128: Offset::from_bits(128),
+            aggregate: Offset::from_bits(64),
         }
     }
 }
 
-/// A Byte unit, used to represent sizes, alignments, and offsets
+/// An offset, used to represent sizes, alignments, and offsets
 #[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd)]
-pub struct Byte(u32);
+pub struct Offset(u32);
 
-impl Add for Byte {
+impl Add for Offset {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Byte(self.0 + rhs.0)
+        Offset(self.0 + rhs.0)
     }
 }
 
-impl AddAssign for Byte {
+impl AddAssign for Offset {
     fn add_assign(&mut self, rhs: Self) {
         self.0 += rhs.0
     }
 }
 
-impl Sub for Byte {
+impl Sub for Offset {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Byte(self.0 - rhs.0)
+        Offset(self.0 - rhs.0)
     }
 }
 
-impl Mul for Byte {
+impl Mul for Offset {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        Byte(self.0 * rhs.0)
+        Offset(self.0 * rhs.0)
     }
 }
 
-impl Div for Byte {
+impl Div for Offset {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        Byte(self.0 / rhs.0)
+        Offset(self.0 / rhs.0)
     }
 }
 
-impl Byte {
+impl Offset {
     pub fn from_bits(value: u32) -> Self {
-        Byte(value / 8)
+        Offset(value / 8)
     }
 
     pub fn new(value: u32) -> Self {
-        Byte(value)
+        Offset(value)
     }
 
     pub fn align_to(self, align: Self) -> Self {
         let align = align.bytes() - 1;
-        Byte((self.0 + align) & !align)
+        Offset((self.0 + align) & !align)
     }
 
     pub fn bytes(&self) -> u32 {
@@ -107,58 +107,58 @@ mod tests {
 
     #[test]
     fn i8_align() {
-        let i8_size = Byte::new(1);
+        let i8_size = Offset::new(1);
 
         //Align to 1 byte
-        assert_eq!(i8_size.align_to(Byte::new(1)), i8_size);
+        assert_eq!(i8_size.align_to(Offset::new(1)), i8_size);
         //Align to 2 bytes
-        assert_eq!(i8_size.align_to(Byte::new(2)), Byte::new(2));
+        assert_eq!(i8_size.align_to(Offset::new(2)), Offset::new(2));
         //Align to 4 bytes
-        assert_eq!(i8_size.align_to(Byte::new(4)), Byte::new(4));
+        assert_eq!(i8_size.align_to(Offset::new(4)), Offset::new(4));
         //Align to 8 bytes
-        assert_eq!(i8_size.align_to(Byte::new(8)), Byte::new(8));
+        assert_eq!(i8_size.align_to(Offset::new(8)), Offset::new(8));
     }
 
     #[test]
     fn i16_align() {
-        let i16_size = Byte::new(2);
+        let i16_size = Offset::new(2);
 
         //Align to 1 byte
-        assert_eq!(i16_size.align_to(Byte::new(1)), i16_size);
+        assert_eq!(i16_size.align_to(Offset::new(1)), i16_size);
         //Align to 2 bytes
-        assert_eq!(i16_size.align_to(Byte::new(2)), i16_size);
+        assert_eq!(i16_size.align_to(Offset::new(2)), i16_size);
         //Align to 4 bytes
-        assert_eq!(i16_size.align_to(Byte::new(4)), Byte::new(4));
+        assert_eq!(i16_size.align_to(Offset::new(4)), Offset::new(4));
         //Align to 8 bytes
-        assert_eq!(i16_size.align_to(Byte::new(8)), Byte::new(8));
+        assert_eq!(i16_size.align_to(Offset::new(8)), Offset::new(8));
     }
 
     #[test]
     fn i32_align() {
-        let i32_size = Byte::new(4);
+        let i32_size = Offset::new(4);
 
         //Align to 1 byte
-        assert_eq!(i32_size.align_to(Byte::new(1)), i32_size);
+        assert_eq!(i32_size.align_to(Offset::new(1)), i32_size);
         //Align to 2 bytes
-        assert_eq!(i32_size.align_to(Byte::new(2)), i32_size);
+        assert_eq!(i32_size.align_to(Offset::new(2)), i32_size);
         //Align to 4 bytes
-        assert_eq!(i32_size.align_to(Byte::new(4)), i32_size);
+        assert_eq!(i32_size.align_to(Offset::new(4)), i32_size);
         //Align to 8 bytes
-        assert_eq!(i32_size.align_to(Byte::new(8)), Byte::new(8));
+        assert_eq!(i32_size.align_to(Offset::new(8)), Offset::new(8));
     }
 
     #[test]
     fn i64_align() {
-        let i64_size = Byte::new(8);
+        let i64_size = Offset::new(8);
 
         //Align to 1 byte
-        assert_eq!(i64_size.align_to(Byte::new(1)), i64_size);
+        assert_eq!(i64_size.align_to(Offset::new(1)), i64_size);
         //Align to 2 bytes
-        assert_eq!(i64_size.align_to(Byte::new(2)), i64_size);
+        assert_eq!(i64_size.align_to(Offset::new(2)), i64_size);
         //Align to 4 bytes
-        assert_eq!(i64_size.align_to(Byte::new(4)), i64_size);
+        assert_eq!(i64_size.align_to(Offset::new(4)), i64_size);
         //Align to 8 bytes
-        assert_eq!(i64_size.align_to(Byte::new(8)), i64_size);
+        assert_eq!(i64_size.align_to(Offset::new(8)), i64_size);
     }
 
     #[test]
@@ -183,6 +183,6 @@ mod tests {
             .get_type_information();
         // And the struct size takes the alignment into account
         assert_eq!(struct_type.get_size(&index).bits(), 192);
-        assert_eq!(struct_type.get_alignment(&index), Byte::new(8)) //Struct alignment is 64 by default
+        assert_eq!(struct_type.get_alignment(&index), Offset::new(8)) //Struct alignment is 64 by default
     }
 }
