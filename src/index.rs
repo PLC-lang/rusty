@@ -1054,6 +1054,12 @@ impl Index {
             })
     }
 
+    pub fn find_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.member_variables
+            .get(&pou_name.to_lowercase())
+            .and_then(|map| map.values().find(|item| item.location_in_parent == index))
+    }
+
     /// returns the effective DataType of the type with the given name if it exists
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
@@ -1113,6 +1119,17 @@ impl Index {
         self.type_index
             .get_type(type_name)
             .unwrap_or_else(|_| panic!("{} not found", type_name))
+    }
+
+    pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+        self.get_const_expressions()
+            .maybe_get_constant_statement(id)
+    }
+
+    pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstStatement> {
+        self.type_index
+            .find_type(type_name)
+            .and_then(|t| self.get_initial_value(&t.initial_value))
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
