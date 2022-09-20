@@ -340,7 +340,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             //Generate and load the index value
             let datatype = self.get_type_hint_info_for(last)?;
             let rhs =
-                self.generate_direct_access_index(access, &*index, datatype, expression_type)?;
+                self.generate_direct_access_index(access, index, datatype, expression_type)?;
             //Shift the qualifer value right by the index value
             let shift = self.llvm.builder.build_right_shift(
                 value.into_int_value(),
@@ -1944,7 +1944,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .const_named_struct(ordered_values.as_slice())
                     .as_basic_value_enum());
             } else {
-                return Err(Diagnostic::codegen_error(
+                Err(Diagnostic::codegen_error(
                     &format!(
                         "Expected {} fields for Struct {}, but found {}.",
                         struct_type.count_fields(),
@@ -1952,13 +1952,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         member_values.len()
                     ),
                     assignments.get_location(),
-                ));
+                ))
             }
         } else {
-            return Err(Diagnostic::codegen_error(
+            Err(Diagnostic::codegen_error(
                 &format!("Expected Struct-literal, got {:#?}", assignments),
                 assignments.get_location(),
-            ));
+            ))
         }
     }
 
