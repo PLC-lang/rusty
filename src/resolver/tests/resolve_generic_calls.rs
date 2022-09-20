@@ -931,6 +931,52 @@ fn generic_string_functions_are_annotated_correctly() {
 }
 
 #[test]
+fn generic_string_functions_without_specific_implementation_are_annotated_correctly() {
+    let (unit, index) = index(
+        r#"                
+        {external}
+        FUNCTION LEN <T: ANY_STRING> : DINT
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main
+        VAR_
+            LEN('abc');
+        END_FUNCTION
+        "#
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+
+    let mut functions = vec![];
+    let mut values = vec![];
+    annotations
+        .type_map
+        .iter()
+        .map(|(_, v)| v)
+        .for_each(|v| match v {
+            StatementAnnotation::Function { .. } => functions.push(v),
+            StatementAnnotation::Value {
+                resulting_type: res_type,
+            } => values.push(res_type),
+            _ => (),
+        });
+
+    assert_eq!(
+        functions[0],
+        &StatementAnnotation::Function {
+            return_type: "__LEN__STRING_return".to_string(),
+            qualified_name: "LEN__STRING".to_string(),
+            call_name: None,
+        }
+    );
+
+    assert_eq!(values[0], &String::from("DINT"),)
+}
+
+#[test]
 fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
     let (unit, index) = index(
         "
@@ -990,125 +1036,6 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
     );
 
     assert_eq!(values[0], &String::from("__STRING_100"),)
-}
-
-#[test]
-fn generic_string_functions_are_annotated_correctly_when_given_parameter_is_shorter_than_in_function_definition() {
-    let (unit, index) = index(
-        "
-        FUNCTION COPY<T: ANY_STRING> : T
-        VAR_INPUT {ref}
-            in : T;
-        END_VAR    
-        END_FUNCTION
-
-        {external}
-        FUNCTION COPY_EXT<T: ANY_STRING> : DINT
-        VAR_INPUT {ref}
-            IN : T;
-        END_VAR
-        VAR_IN_OUT
-            OUT: T;
-        END_VAR
-        END_FUNCTION
-
-        FUNCTION COPY__STRING : STRING[2048]
-        VAR_INPUT {ref}
-            param : STRING[2048];
-        END_VAR
-            bar(param, COPY__STRING);
-        END_FUNCTION
-
-        {external}
-        FUNCTION COPY_EXT__STRING : DINT
-        VAR_INPUT {ref}
-            IN : STRING[2048];
-        END_VAR
-        VAR_IN_OUT
-            OUT : STRING[2048];
-        END_VAR
-        END_FUNCTION
-
-        PROGRAM main
-        VAR
-            s : STRING[1024];
-        END_VAR
-            foo('     this is   a  very   long          sentence   with plenty  of      characters and weird spacing.', s);
-        END_PROGRAM
-        ",
-    );
-
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
-
-    let mut functions = vec![];
-    let mut values = vec![];
-    annotations
-        .type_map
-        .iter()
-        .map(|(_, v)| v)
-        .for_each(|v| match v {
-            StatementAnnotation::Function { .. } => functions.push(v),
-            StatementAnnotation::Value {
-                resulting_type: res_type,
-            } => values.push(res_type),
-            _ => (),
-        });
-
-    assert_eq!(
-        functions[0],
-        &StatementAnnotation::Function {
-            return_type: "__COPY__STRING_return".to_string(),
-            qualified_name: "COPY__STRING".to_string(),
-            call_name: None,
-        }
-    );
-
-    assert_eq!(values[0], &String::from("__STRING_2048"),)
-}
-#[test]
-fn placeholder() {
-    let (unit, index) = index(
-        r#"                
-        {external}
-        FUNCTION LEN <T: ANY_STRING> : DINT
-        VAR_INPUT {ref}
-            IN : T;
-        END_VAR
-        END_FUNCTION
-
-        FUNCTION main
-        VAR_
-            len('abc');
-        END_FUNCTION
-        "#
-    );
-
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
-
-    let mut functions = vec![];
-    let mut values = vec![];
-    annotations
-        .type_map
-        .iter()
-        .map(|(_, v)| v)
-        .for_each(|v| match v {
-            StatementAnnotation::Function { .. } => functions.push(v),
-            StatementAnnotation::Value {
-                resulting_type: res_type,
-            } => values.push(res_type),
-            _ => (),
-        });
-
-    assert_eq!(
-        functions[0],
-        &StatementAnnotation::Function {
-            return_type: "__LEN__STRING_return".to_string(),
-            qualified_name: "LEN__STRING".to_string(),
-            call_name: None,
-        }
-    );
-
-    assert_eq!(values[0], &String::from("DINT"),)
 }
 
 #[test]
