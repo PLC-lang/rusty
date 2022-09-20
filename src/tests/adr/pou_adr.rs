@@ -313,7 +313,10 @@ fn calling_a_function() {
     let calling_prg = format!(
         r#"
         PROGRAM prg
-            VAR x, z    : INT;      END_VAR
+        VAR
+			x : INT;
+			z : SINT;
+		END_VAR
             main_fun(x, z); 
         END_FUNCTION
 
@@ -324,7 +327,7 @@ fn calling_a_function() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %prg_interface = type { i16, i16 }
+    %prg_interface = type { i16, i8 }
 
     @prg_instance = global %prg_interface zeroinitializer
 
@@ -333,7 +336,8 @@ fn calling_a_function() {
       %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
       %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
       %load_x = load i16, i16* %x, align 2
-      %call = call i32 @main_fun(i16 %load_x, i16* %z)
+      %1 = alloca i64, align 8
+      %call = call i32 @main_fun(i16 %load_x, i8* %z, i64* %1)
       ret void
     }
 
