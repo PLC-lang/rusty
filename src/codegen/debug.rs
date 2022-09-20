@@ -394,13 +394,12 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 DataTypeInformation::Array { .. } => self.create_array_type(type_info, index),
                 DataTypeInformation::Pointer { .. } => self.create_pointer_type(type_info, index),
                 DataTypeInformation::Integer { signed, size, .. } => {
-
                     let encoding = if type_info.is_bool() {
                         DebugEncoding::DW_ATE_boolean
                     } else if type_info.is_character() {
                         DebugEncoding::DW_ATE_UTF
                     } else {
-                         match *signed {
+                        match *signed {
                             true => DebugEncoding::DW_ATE_signed,
                             false => DebugEncoding::DW_ATE_unsigned,
                         }

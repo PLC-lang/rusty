@@ -183,7 +183,7 @@ impl<'ink> CodeGen<'ink> {
 
     /// Finalize needs to be called on the debug builder, to signify that the code generation is
     /// done and that the debug builder can now mark the debug information as complete. This is
-    /// required to be called on the debug builder by the LLVM API, and has to happen on a module 
+    /// required to be called on the debug builder by the LLVM API, and has to happen on a module
     /// before it gets generated into object or IR
     pub fn finalize(&self) -> Result<(), Diagnostic> {
         self.debug.finalize()
