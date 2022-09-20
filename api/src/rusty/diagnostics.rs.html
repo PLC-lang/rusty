@@ -1059,6 +1059,16 @@
 <span id="1054">1054</span>
 <span id="1055">1055</span>
 <span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">error::Error</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
@@ -1114,6 +1124,8 @@
     <span class="ident">pou__unsupported_return_type</span>,
     <span class="ident">pou__empty_variable_block</span>,
     <span class="ident">pou__missing_action_container</span>,
+    <span class="comment">// pou call</span>
+    <span class="ident">pou__missing_inout_parameter</span>,
 
     <span class="comment">//variable related</span>
     <span class="ident">var__unresolved_constant</span>,
@@ -1694,6 +1706,14 @@
             ),
             <span class="ident">range</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::case__duplicate_condition</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_inout_parameter</span>(<span class="ident">parameter</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Missing inout parameter: {}&quot;</span>, <span class="ident">parameter</span>),
+            <span class="ident">range</span>,
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::pou__missing_action_container</span>,
         }
     }
 }
