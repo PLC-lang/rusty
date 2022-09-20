@@ -89,7 +89,7 @@ pub mod tests {
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();
-        let code_generator = crate::codegen::CodeGen::new(
+        let mut code_generator = crate::codegen::CodeGen::new(
             &context,
             "main",
             crate::OptimizationLevel::None,

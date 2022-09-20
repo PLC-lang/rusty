@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, ops::Range};
+use std::{collections::HashMap, ops::Range};
 
 use inkwell::{
     context::ContextRef,
@@ -7,7 +7,7 @@ use inkwell::{
         DIFlagsConstants, DIType, DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
-    values::{BasicMetadataValueEnum, GlobalValue},
+    values::GlobalValue,
 };
 
 use crate::{
@@ -55,7 +55,7 @@ impl From<DebugLevel> for DWARFEmissionKind {
 pub trait Debug<'ink> {
     /// Registers a new datatype for debugging
     fn register_debug_type<'idx>(
-        &self,
+        &mut self,
         name: &str,
         datatype: &'idx DataType,
         index: &'idx Index,
@@ -98,8 +98,7 @@ pub struct DebugBuilder<'ink> {
     context: ContextRef<'ink>,
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
-    types: RefCell<HashMap<String, DebugType<'ink>>>,
-    global_metadata: RefCell<Vec<BasicMetadataValueEnum<'ink>>>,
+    types: HashMap<String, DebugType<'ink>>,
 }
 
 /// A wrapper that redirects to correct debug builder implementation based on the debug context.
@@ -142,7 +141,6 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     debug_info,
                     compile_unit,
                     types: Default::default(),
-                    global_metadata: Default::default(),
                 };
                 match debug_level {
                     DebugLevel::VariablesOnly => DebugBuilderEnum::VariablesOnly(dbg_obj),
@@ -155,12 +153,12 @@ impl<'ink> DebugBuilderEnum<'ink> {
 }
 
 impl<'ink> DebugBuilder<'ink> {
-    fn register_concrete_type(&self, name: &str, di_type: DebugType<'ink>) {
-        self.types.borrow_mut().insert(name.to_lowercase(), di_type);
+    fn register_concrete_type(&mut self, name: &str, di_type: DebugType<'ink>) {
+        self.types.insert(name.to_lowercase(), di_type);
     }
 
     fn create_basic_type(
-        &self,
+        &mut self,
         name: &str,
         size: u64,
         encoding: DebugEncoding,
@@ -174,7 +172,7 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     fn create_struct_type<T: AsRef<str>>(
-        &self,
+        &mut self,
         name: &str,
         members: &[T],
         index: &Index,
@@ -238,7 +236,7 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     fn create_array_type(
-        &self,
+        &mut self,
         array: &DataTypeInformation,
         index: &Index,
     ) -> Result<(), Diagnostic> {
@@ -274,7 +272,7 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     fn create_pointer_type(
-        &self,
+        &mut self,
         pointer: &DataTypeInformation,
         index: &Index,
     ) -> Result<(), Diagnostic> {
@@ -301,7 +299,7 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     fn get_or_create_debug_type(
-        &self,
+        &mut self,
         dt: &DataType,
         index: &Index,
     ) -> Result<DebugType<'ink>, Diagnostic> {
@@ -311,7 +309,6 @@ impl<'ink> DebugBuilder<'ink> {
         //TODO: This will crash on recursive datatypes
         self.register_debug_type(&dt_name, dt, index)?;
         self.types
-            .borrow()
             .get(&dt_name)
             .ok_or_else(|| {
                 Diagnostic::debug_error(format!("Cannot find debug information for type {dt_name}"))
@@ -320,7 +317,7 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     fn create_string_type(
-        &self,
+        &mut self,
         name: &str,
         string: &DataTypeInformation,
         index: &Index,
@@ -355,7 +352,7 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     fn create_typedef_type(
-        &self,
+        &mut self,
         name: &str,
         referenced_type: &str,
         index: &Index,
@@ -379,13 +376,13 @@ impl<'ink> DebugBuilder<'ink> {
 
 impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     fn register_debug_type<'idx>(
-        &self,
+        &mut self,
         name: &str,
         datatype: &'idx DataType,
         index: &'idx Index,
     ) -> Result<(), Diagnostic> {
         //check if the type is currently registered
-        if !self.types.borrow().contains_key(&name.to_lowercase()) {
+        if !self.types.contains_key(&name.to_lowercase()) {
             let type_info = datatype.get_type_information();
             match type_info {
                 DataTypeInformation::Struct { member_names, .. } => {
@@ -430,7 +427,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         type_name: &str,
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), Diagnostic> {
-        if let Some(debug_type) = self.types.borrow().get(&type_name.to_lowercase()) {
+        if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
             let debug_variable = self.debug_info.create_global_variable_expression(
                 self.compile_unit.get_file().as_debug_info_scope(),
                 name,
@@ -444,17 +441,15 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 global_variable.get_alignment(),
             );
             let gv_metadata = debug_variable.as_metadata_value(&self.context);
-            self.global_metadata.borrow_mut().push(gv_metadata.into());
 
             global_variable.set_metadata(gv_metadata, 0);
+            self.context.metadata_node(&[gv_metadata.into()]);
         }
 
         Ok(())
     }
 
     fn finalize(&self) -> Result<(), Diagnostic> {
-        self.context
-            .metadata_node(self.global_metadata.borrow().as_slice());
         self.debug_info.finalize();
         Ok(())
     }
@@ -462,7 +457,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
 
 impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
     fn register_debug_type<'idx>(
-        &self,
+        &mut self,
         name: &str,
         datatype: &'idx DataType,
         index: &'idx Index,

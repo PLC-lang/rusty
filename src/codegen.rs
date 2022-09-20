@@ -58,7 +58,7 @@ impl<'ink> CodeGen<'ink> {
     }
 
     pub fn generate_llvm_index(
-        &self,
+        &mut self,
         annotations: &AstAnnotations,
         literals: StringLiterals,
         global_index: &Index,
@@ -68,7 +68,7 @@ impl<'ink> CodeGen<'ink> {
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(
             &llvm,
-            &self.debug,
+            &mut self.debug,
             global_index,
             annotations,
         )?;

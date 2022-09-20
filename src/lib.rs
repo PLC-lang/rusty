@@ -629,7 +629,7 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 3 ###
     // - codegen
-    let code_generator = codegen::CodeGen::new(context, "main", optimization, debug_level);
+    let mut code_generator = codegen::CodeGen::new(context, "main", optimization, debug_level);
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types

@@ -32,7 +32,7 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 
 pub struct DataTypeGenerator<'ink, 'b> {
     llvm: &'b Llvm<'ink>,
-    debug: &'b DebugBuilderEnum<'ink>,
+    debug: &'b mut DebugBuilderEnum<'ink>,
     index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: LlvmTypedIndex<'ink>,
@@ -47,7 +47,7 @@ pub struct DataTypeGenerator<'ink, 'b> {
 /// - array type for sized Strings
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
-    debug: &DebugBuilderEnum<'ink>,
+    debug: &mut DebugBuilderEnum<'ink>,
     index: &Index,
     annotations: &AstAnnotations,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
@@ -165,7 +165,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// Generates only an opaque type for structs.
     /// Eagerly generates but does not associate nested array and referenced aliased types
     fn create_type(
-        &self,
+        &mut self,
         name: &str,
         data_type: &DataType,
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
