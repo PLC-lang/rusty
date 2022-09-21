@@ -1,0 +1,49 @@
+---
+source: src/codegen/tests/compare_instructions_tests.rs
+assertion_line: 233
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i16, i16, i16*, i8 }
+
+@main_instance = global %main_interface { i16 10, i16 20, i16* null, i8 0 }
+
+define void @main(%main_interface* %0) {
+entry:
+  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %pt = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  %comp = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 3
+  store i16* %x, i16** %pt, align 8
+  %load_pt = load i16*, i16** %pt, align 8
+  %load_pt1 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp eq (i64 ptrtoint (i16* %load_pt to i64), i64 ptrtoint (i16* %load_pt1 to i64)) to i8), i8* %comp, align 1
+  %load_pt2 = load i16*, i16** %pt, align 8
+  %load_y = load i16, i16* %y, align 2
+  %1 = sext i16 %load_y to i64
+  %tmpVar = icmp ne i64 ptrtoint (i16* %load_pt2 to i64), %1
+  %2 = zext i1 %tmpVar to i8
+  store i8 %2, i8* %comp, align 1
+  %load_pt3 = load i16*, i16** %pt, align 8
+  %load_pt4 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp slt (i64 ptrtoint (i16* %load_pt3 to i64), i64 ptrtoint (i16* %load_pt4 to i64)) to i8), i8* %comp, align 1
+  %load_pt5 = load i16*, i16** %pt, align 8
+  %load_y6 = load i16, i16* %y, align 2
+  %3 = sext i16 %load_y6 to i64
+  %tmpVar7 = icmp sgt i64 ptrtoint (i16* %load_pt5 to i64), %3
+  %4 = zext i1 %tmpVar7 to i8
+  store i8 %4, i8* %comp, align 1
+  %load_pt8 = load i16*, i16** %pt, align 8
+  %load_pt9 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp sle (i64 ptrtoint (i16* %load_pt8 to i64), i64 ptrtoint (i16* %load_pt9 to i64)) to i8), i8* %comp, align 1
+  %load_y10 = load i16, i16* %y, align 2
+  %load_pt11 = load i16*, i16** %pt, align 8
+  %5 = sext i16 %load_y10 to i64
+  %tmpVar12 = icmp sge i64 %5, ptrtoint (i16* %load_pt11 to i64)
+  %6 = zext i1 %tmpVar12 to i8
+  store i8 %6, i8* %comp, align 1
+  ret void
+}
+

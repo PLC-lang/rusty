@@ -938,28 +938,35 @@ impl<'i> TypeAnnotator<'i> {
                         .or_else(|| self.annotation_map.get_type(left, self.index))
                         .and_then(|it| self.index.find_effective_type(it))
                         .unwrap_or_else(|| self.index.get_void_type());
+                    // do not use for is_pointer() check
+                    let l_intrinsic_type = self
+                        .index
+                        .get_intrinsic_type_by_name(left_type.get_name())
+                        .get_type_information();
                     let right_type = self
                         .annotation_map
                         .get_type_hint(right, self.index)
                         .or_else(|| self.annotation_map.get_type(right, self.index))
                         .and_then(|it| self.index.find_effective_type(it))
                         .unwrap_or_else(|| self.index.get_void_type());
+                    // do not use for is_pointer() check
+                    let r_intrinsic_type = self
+                        .index
+                        .get_intrinsic_type_by_name(right_type.get_name())
+                        .get_type_information();
 
-                    if left_type.get_type_information().is_numerical()
-                        && right_type.get_type_information().is_numerical()
-                    {
-                        let bigger_type = if left_type.get_type_information().is_bool()
-                            && right_type.get_type_information().is_bool()
-                        {
-                            left_type
-                        } else {
-                            let dint = self.index.get_type_or_panic(DINT_TYPE);
-                            get_bigger_type(
-                                get_bigger_type(left_type, right_type, self.index),
-                                dint,
-                                self.index,
-                            )
-                        };
+                    if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
+                        let bigger_type =
+                            if l_intrinsic_type.is_bool() && r_intrinsic_type.is_bool() {
+                                left_type
+                            } else {
+                                let dint = self.index.get_type_or_panic(DINT_TYPE);
+                                get_bigger_type(
+                                    get_bigger_type(left_type, right_type, self.index),
+                                    dint,
+                                    self.index,
+                                )
+                            };
 
                         let target_name = if operator.is_bool_type() {
                             BOOL_TYPE.to_string()
