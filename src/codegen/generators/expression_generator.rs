@@ -1235,6 +1235,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         .as_basic_value_enum()
     }
 
+    pub fn int_neg(&self, value: IntValue<'ink>) -> IntValue<'ink> {
+        if value.is_const() {
+            value.const_neg()
+        } else {
+            self.llvm.builder.build_int_neg(value, "")
+        }
+    }
+
     /// automatically derefs an inout variable pointer so it can be used like a normal variable
     ///
     /// # Arguments
@@ -1481,7 +1489,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 if let (Some(ptr), Some(mut index), Some(name)) = (ptr, index, name) {
                     // if operator is minus we need to negate the index
                     if let Operator::Minus = operator {
-                        index = index.const_neg();
+                        index = self.int_neg(index);
                     }
 
                     Ok(self
@@ -1568,10 +1576,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// address, if the given `value` is already an IntValue it is returned as is
     pub fn convert_to_int_value_if_pointer(&self, value: BasicValueEnum<'ink>) -> IntValue<'ink> {
         match value {
-            BasicValueEnum::PointerValue(v) => {
-                let int_type = v.get_type().size_of().get_type();
-                v.const_to_int(int_type)
-            }
+            BasicValueEnum::PointerValue(v) => self.ptr_as_value(v).into_int_value(),
             BasicValueEnum::IntValue(v) => v,
             _ => unimplemented!(),
         }

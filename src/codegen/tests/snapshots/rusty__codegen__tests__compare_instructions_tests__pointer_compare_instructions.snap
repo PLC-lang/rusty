@@ -19,31 +19,46 @@ entry:
   store i16* %x, i16** %pt, align 8
   %load_pt = load i16*, i16** %pt, align 8
   %load_pt1 = load i16*, i16** %pt, align 8
-  store i8 zext (i1 icmp eq (i64 ptrtoint (i16* %load_pt to i64), i64 ptrtoint (i16* %load_pt1 to i64)) to i8), i8* %comp, align 1
+  %1 = ptrtoint i16* %load_pt to i64
+  %2 = ptrtoint i16* %load_pt1 to i64
+  %tmpVar = icmp eq i64 %1, %2
+  %3 = zext i1 %tmpVar to i8
+  store i8 %3, i8* %comp, align 1
   %load_pt2 = load i16*, i16** %pt, align 8
   %load_y = load i16, i16* %y, align 2
-  %1 = sext i16 %load_y to i64
-  %tmpVar = icmp ne i64 ptrtoint (i16* %load_pt2 to i64), %1
-  %2 = zext i1 %tmpVar to i8
-  store i8 %2, i8* %comp, align 1
-  %load_pt3 = load i16*, i16** %pt, align 8
-  %load_pt4 = load i16*, i16** %pt, align 8
-  store i8 zext (i1 icmp slt (i64 ptrtoint (i16* %load_pt3 to i64), i64 ptrtoint (i16* %load_pt4 to i64)) to i8), i8* %comp, align 1
-  %load_pt5 = load i16*, i16** %pt, align 8
-  %load_y6 = load i16, i16* %y, align 2
-  %3 = sext i16 %load_y6 to i64
-  %tmpVar7 = icmp sgt i64 ptrtoint (i16* %load_pt5 to i64), %3
-  %4 = zext i1 %tmpVar7 to i8
-  store i8 %4, i8* %comp, align 1
-  %load_pt8 = load i16*, i16** %pt, align 8
-  %load_pt9 = load i16*, i16** %pt, align 8
-  store i8 zext (i1 icmp sle (i64 ptrtoint (i16* %load_pt8 to i64), i64 ptrtoint (i16* %load_pt9 to i64)) to i8), i8* %comp, align 1
-  %load_y10 = load i16, i16* %y, align 2
-  %load_pt11 = load i16*, i16** %pt, align 8
-  %5 = sext i16 %load_y10 to i64
-  %tmpVar12 = icmp sge i64 %5, ptrtoint (i16* %load_pt11 to i64)
-  %6 = zext i1 %tmpVar12 to i8
+  %4 = sext i16 %load_y to i64
+  %5 = ptrtoint i16* %load_pt2 to i64
+  %tmpVar3 = icmp ne i64 %5, %4
+  %6 = zext i1 %tmpVar3 to i8
   store i8 %6, i8* %comp, align 1
+  %load_pt4 = load i16*, i16** %pt, align 8
+  %load_pt5 = load i16*, i16** %pt, align 8
+  %7 = ptrtoint i16* %load_pt4 to i64
+  %8 = ptrtoint i16* %load_pt5 to i64
+  %tmpVar6 = icmp slt i64 %7, %8
+  %9 = zext i1 %tmpVar6 to i8
+  store i8 %9, i8* %comp, align 1
+  %load_pt7 = load i16*, i16** %pt, align 8
+  %load_y8 = load i16, i16* %y, align 2
+  %10 = sext i16 %load_y8 to i64
+  %11 = ptrtoint i16* %load_pt7 to i64
+  %tmpVar9 = icmp sgt i64 %11, %10
+  %12 = zext i1 %tmpVar9 to i8
+  store i8 %12, i8* %comp, align 1
+  %load_pt10 = load i16*, i16** %pt, align 8
+  %load_pt11 = load i16*, i16** %pt, align 8
+  %13 = ptrtoint i16* %load_pt10 to i64
+  %14 = ptrtoint i16* %load_pt11 to i64
+  %tmpVar12 = icmp sle i64 %13, %14
+  %15 = zext i1 %tmpVar12 to i8
+  store i8 %15, i8* %comp, align 1
+  %load_y13 = load i16, i16* %y, align 2
+  %load_pt14 = load i16*, i16** %pt, align 8
+  %16 = sext i16 %load_y13 to i64
+  %17 = ptrtoint i16* %load_pt14 to i64
+  %tmpVar15 = icmp sge i64 %16, %17
+  %18 = zext i1 %tmpVar15 to i8
+  store i8 %18, i8* %comp, align 1
   ret void
 }
 
