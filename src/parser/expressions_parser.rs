@@ -63,7 +63,7 @@ pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
             }
         }
         // we may have parsed no additional expression because of trailing comma
-        if expressions.is_empty() {
+        if !expressions.is_empty() {
             expressions.insert(0, left);
             return AstStatement::ExpressionList {
                 expressions,
