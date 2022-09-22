@@ -14,7 +14,7 @@ mod pre_processor;
 
 pub type AstId = usize;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GenericBinding {
     pub name: String,
     pub nature: TypeNature,
@@ -35,14 +35,14 @@ pub struct Pou {
     pub linkage: LinkageType,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum PolymorphismMode {
     None,
     Abstract,
     Final,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "direction")]
 pub enum HardwareAccessType {
     Input,
@@ -50,7 +50,7 @@ pub enum HardwareAccessType {
     Memory,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type")]
 pub enum DirectAccessType {
     Bit,
@@ -60,7 +60,7 @@ pub enum DirectAccessType {
     Template,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TypeNature {
     Any,
     Derived,
@@ -215,14 +215,14 @@ pub struct Implementation {
     pub access: Option<AccessModifier>,
 }
 
-#[derive(Debug, Copy, PartialEq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone)]
 pub enum LinkageType {
     Internal,
     External,
     BuiltIn,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum AccessModifier {
     Private,
     Public,
@@ -230,7 +230,7 @@ pub enum AccessModifier {
     Internal,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum PouType {
     Program,
     Function,
@@ -274,7 +274,7 @@ impl CompilationUnit {
     }
 }
 
-#[derive(Debug, Copy, PartialEq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone)]
 pub enum VariableBlockType {
     Local,
     Temp,
@@ -284,7 +284,7 @@ pub enum VariableBlockType {
     InOut,
 }
 
-#[derive(Debug, Copy, PartialEq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone)]
 pub enum ArgumentProperty {
     ByVal,
     ByRef,
@@ -362,7 +362,7 @@ impl DiagnosticInfo for AstStatement {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SourceRange {
     range: core::ops::Range<usize>,
 }
@@ -1177,7 +1177,7 @@ impl AstStatement {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Operator {
     Plus,
     Minus,

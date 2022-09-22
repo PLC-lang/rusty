@@ -123,7 +123,7 @@ pub struct TypeAnnotator<'i> {
     string_literals: StringLiterals,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StatementAnnotation {
     /// an expression that resolves to a certain type (e.g. `a + b` --> `INT`)
     Value { resulting_type: String },

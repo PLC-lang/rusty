@@ -123,7 +123,7 @@ impl DataType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VarArgs {
     Sized(Option<String>),
     Unsized(Option<String>),
@@ -143,7 +143,7 @@ impl VarArgs {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StringEncoding {
     Utf8,
     Utf16,
@@ -158,7 +158,7 @@ impl StringEncoding {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
@@ -197,7 +197,7 @@ impl TypeSize {
 }
 
 /// indicates where this Struct origins from.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StructSource {
     OriginalDeclaration,
     Pou(PouType),
@@ -403,7 +403,7 @@ impl DataTypeInformation {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Dimension {
     pub start_offset: TypeSize,
     pub end_offset: TypeSize,

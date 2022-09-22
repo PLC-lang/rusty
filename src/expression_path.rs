@@ -1,6 +1,6 @@
 use crate::{index::Index, typesystem::Dimension};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ExpressionPathElement<'idx> {
     Name(&'idx str),
     ArrayAccess(&'idx [Dimension]),
@@ -27,7 +27,7 @@ impl<'idx> From<&'idx [Dimension]> for ExpressionPathElement<'idx> {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct ExpressionPath<'idx> {
     names: Vec<ExpressionPathElement<'idx>>,
 }
