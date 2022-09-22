@@ -278,11 +278,28 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             LiteralFalse => parse_bool_literal(lexer, false),
             LiteralNull => parse_null_literal(lexer),
             KeywordSquareParensOpen => parse_array_literal(lexer),
-            _ => Err(Diagnostic::unexpected_token_found(
-                "Literal",
-                lexer.slice(),
-                lexer.location(),
-            )),
+            _ => {
+                if lexer.closing_keywords.contains(&vec![KeywordParensClose])
+                    && matches!(
+                        lexer.last_token,
+                        KeywordOutputAssignment | KeywordAssignment
+                    )
+                {
+                    // due to closing keyword ')' and last_token '=>' / ':='
+                    // we are probably in a call statement missing a parameter assignment 'foo(param := );
+                    // optional parameter assignments are allowed, validation should handle any unwanted cases
+                    Ok(AstStatement::EmptyStatement {
+                        location: lexer.location(),
+                        id: lexer.next_id(),
+                    })
+                } else {
+                    Err(Diagnostic::unexpected_token_found(
+                        "Literal",
+                        lexer.slice(),
+                        lexer.location(),
+                    ))
+                }
+            }
         }
     };
     let literal_parse_result = literal_parse_result.and_then(|statement| {
