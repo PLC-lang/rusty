@@ -2,7 +2,7 @@ use logos::Logos;
 
 use crate::ast::{DirectAccessType, HardwareAccessType};
 
-#[derive(Debug, PartialEq, Logos, Clone)]
+#[derive(Debug, PartialEq, Eq, Logos, Clone)]
 pub enum Token {
     #[error]
     #[regex(r"\(\*", |lex| super::parse_comments(lex))]

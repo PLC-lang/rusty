@@ -123,7 +123,7 @@ pub struct TypeAnnotator<'i> {
     string_literals: StringLiterals,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StatementAnnotation {
     /// an expression that resolves to a certain type (e.g. `a + b` --> `INT`)
     Value { resulting_type: String },
@@ -989,17 +989,30 @@ impl<'i> TypeAnnotator<'i> {
                         }
 
                         Some(target_name)
-                    } else if operator.is_bool_type() {
-                        Some(BOOL_TYPE.to_string())
                     } else if left_type.get_type_information().is_pointer()
                         || right_type.get_type_information().is_pointer()
                     {
-                        let target_name = if left_type.get_type_information().is_pointer() {
+                        // get the target type of the binary expression
+                        let target_type = if operator.is_comparison_operator() {
+                            // compare instructions result in BOOL
+                            // to generate valid IR code if a pointer is beeing compared to an integer
+                            // we need to cast the int to the pointers size
+                            if !left_type.get_type_information().is_pointer() {
+                                let left_type = left_type.clone(); // clone here, so we release the borrow on self
+                                self.annotate_to_pointer_size_if_necessary(&left_type, left);
+                            } else if !right_type.get_type_information().is_pointer() {
+                                let right_type = right_type.clone(); // clone here, so we release the borrow on self
+                                self.annotate_to_pointer_size_if_necessary(&right_type, right);
+                            }
+                            BOOL_TYPE
+                        } else if left_type.get_type_information().is_pointer() {
                             left_type.get_name()
                         } else {
                             right_type.get_name()
                         };
-                        Some(target_name.to_string())
+                        Some(target_type.to_string())
+                    } else if operator.is_bool_type() {
+                        Some(BOOL_TYPE.to_string())
                     } else {
                         None
                     }
@@ -1439,6 +1452,24 @@ impl<'i> TypeAnnotator<'i> {
             }
 
             _ => {}
+        }
+    }
+
+    fn annotate_to_pointer_size_if_necessary(
+        &mut self,
+        value_type: &typesystem::DataType,
+        statement: &AstStatement,
+    ) {
+        // pointer size is 64Bits matching LINT
+        // therefore get the bigger type of current and LINT to check if cast is necessary
+        let bigger_type = get_bigger_type(
+            value_type,
+            self.index.get_type_or_panic(LINT_TYPE),
+            self.index,
+        );
+        if bigger_type != value_type {
+            let bigger_type = bigger_type.clone();
+            self.update_expected_types(&bigger_type, statement);
         }
     }
 }

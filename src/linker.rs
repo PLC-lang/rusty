@@ -272,7 +272,7 @@ impl LinkerInterface for MsvcLinker {
     }
 }*/
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum LinkerError {
     /// Error emitted by the linker
     Link(String),

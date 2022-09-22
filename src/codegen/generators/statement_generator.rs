@@ -547,7 +547,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let exp_gen = self.create_expr_generator();
-        let selector_statement = exp_gen.generate_expression(&*selector)?;
+        let selector_statement = exp_gen.generate_expression(selector)?;
 
         let mut cases = Vec::new();
         let else_block = context.append_basic_block(current_function, "else");
