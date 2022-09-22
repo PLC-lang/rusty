@@ -53,8 +53,8 @@ entry:
   %15 = zext i1 %tmpVar12 to i8
   store i8 %15, i8* %comp, align 1
   %load_y13 = load i16, i16* %y, align 2
-  %load_pt14 = load i16*, i16** %pt, align 8
   %16 = sext i16 %load_y13 to i64
+  %load_pt14 = load i16*, i16** %pt, align 8
   %17 = ptrtoint i16* %load_pt14 to i64
   %tmpVar15 = icmp sge i64 %16, %17
   %18 = zext i1 %tmpVar15 to i8

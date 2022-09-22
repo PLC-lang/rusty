@@ -84,8 +84,8 @@ entry:
   %14 = ptrtoint i16* %load_ptr_int to i64
   %tmpVar25 = icmp sle i64 %14, %13
   %load_a26 = load i16, i16* %a, align 2
-  %load_ptr_int27 = load i16*, i16** %ptr_int, align 8
   %15 = sext i16 %load_a26 to i64
+  %load_ptr_int27 = load i16*, i16** %ptr_int, align 8
   %16 = ptrtoint i16* %load_ptr_int27 to i64
   %tmpVar28 = icmp eq i64 %15, %16
   %call = call i64 @foo()
