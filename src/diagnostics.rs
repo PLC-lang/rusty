@@ -15,7 +15,7 @@ use crate::ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Diagnostic {
     SyntaxError {
         message: String,
@@ -33,7 +33,7 @@ pub enum Diagnostic {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ErrNo {
     undefined,
 
