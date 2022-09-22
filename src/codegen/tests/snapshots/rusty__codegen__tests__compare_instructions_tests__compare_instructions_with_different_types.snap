@@ -83,8 +83,8 @@ entry:
   %13 = zext i8 %load_var_usint24 to i64
   %tmpVar25 = icmp sle i64 ptrtoint (i16* %load_ptr_int to i64), %13
   %load_a26 = load i16, i16* %a, align 2
-  %load_ptr_int27 = load i16*, i16** %ptr_int, align 8
   %14 = sext i16 %load_a26 to i64
+  %load_ptr_int27 = load i16*, i16** %ptr_int, align 8
   %tmpVar28 = icmp eq i64 %14, ptrtoint (i16* %load_ptr_int27 to i64)
   %call = call i64 @foo()
   %tmpVar29 = icmp ne i64 %call, 40

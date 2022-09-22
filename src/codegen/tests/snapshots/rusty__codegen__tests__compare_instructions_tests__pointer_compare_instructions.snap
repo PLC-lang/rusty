@@ -39,8 +39,8 @@ entry:
   %load_pt9 = load i16*, i16** %pt, align 8
   store i8 zext (i1 icmp sle (i64 ptrtoint (i16* %load_pt8 to i64), i64 ptrtoint (i16* %load_pt9 to i64)) to i8), i8* %comp, align 1
   %load_y10 = load i16, i16* %y, align 2
-  %load_pt11 = load i16*, i16** %pt, align 8
   %5 = sext i16 %load_y10 to i64
+  %load_pt11 = load i16*, i16** %pt, align 8
   %tmpVar12 = icmp sge i64 %5, ptrtoint (i16* %load_pt11 to i64)
   %6 = zext i1 %tmpVar12 to i8
   store i8 %6, i8* %comp, align 1
