@@ -1539,6 +1539,44 @@
 <span id="1534">1534</span>
 <span id="1535">1535</span>
 <span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2479,28 +2517,35 @@
                         .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type</span>(<span class="ident">left</span>, <span class="self">self</span>.<span class="ident">index</span>))
                         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>))
                         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_void_type</span>());
+                    <span class="comment">// do not use for is_pointer() check</span>
+                    <span class="kw">let</span> <span class="ident">l_intrinsic_type</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">index</span>
+                        .<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">left_type</span>.<span class="ident">get_name</span>())
+                        .<span class="ident">get_type_information</span>();
                     <span class="kw">let</span> <span class="ident">right_type</span> <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">annotation_map</span>
                         .<span class="ident">get_type_hint</span>(<span class="ident">right</span>, <span class="self">self</span>.<span class="ident">index</span>)
                         .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type</span>(<span class="ident">right</span>, <span class="self">self</span>.<span class="ident">index</span>))
                         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>))
                         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_void_type</span>());
+                    <span class="comment">// do not use for is_pointer() check</span>
+                    <span class="kw">let</span> <span class="ident">r_intrinsic_type</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">index</span>
+                        .<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">right_type</span>.<span class="ident">get_name</span>())
+                        .<span class="ident">get_type_information</span>();
 
-                    <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_numerical</span>()
-                        <span class="op">&amp;&amp;</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_numerical</span>()
-                    {
-                        <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_bool</span>()
-                            <span class="op">&amp;&amp;</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_bool</span>()
-                        {
-                            <span class="ident">left_type</span>
-                        } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">dint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">DINT_TYPE</span>);
-                            <span class="ident">get_bigger_type</span>(
-                                <span class="ident">get_bigger_type</span>(<span class="ident">left_type</span>, <span class="ident">right_type</span>, <span class="self">self</span>.<span class="ident">index</span>),
-                                <span class="ident">dint</span>,
-                                <span class="self">self</span>.<span class="ident">index</span>,
-                            )
-                        };
+                    <span class="kw">if</span> <span class="ident">l_intrinsic_type</span>.<span class="ident">is_numerical</span>() <span class="op">&amp;&amp;</span> <span class="ident">r_intrinsic_type</span>.<span class="ident">is_numerical</span>() {
+                        <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span>
+                            <span class="kw">if</span> <span class="ident">l_intrinsic_type</span>.<span class="ident">is_bool</span>() <span class="op">&amp;&amp;</span> <span class="ident">r_intrinsic_type</span>.<span class="ident">is_bool</span>() {
+                                <span class="ident">left_type</span>
+                            } <span class="kw">else</span> {
+                                <span class="kw">let</span> <span class="ident">dint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">DINT_TYPE</span>);
+                                <span class="ident">get_bigger_type</span>(
+                                    <span class="ident">get_bigger_type</span>(<span class="ident">left_type</span>, <span class="ident">right_type</span>, <span class="self">self</span>.<span class="ident">index</span>),
+                                    <span class="ident">dint</span>,
+                                    <span class="self">self</span>.<span class="ident">index</span>,
+                                )
+                            };
 
                         <span class="kw">let</span> <span class="ident">target_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">operator</span>.<span class="ident">is_bool_type</span>() {
                             <span class="ident">BOOL_TYPE</span>.<span class="ident">to_string</span>()
@@ -2523,17 +2568,30 @@
                         }
 
                         <span class="prelude-val">Some</span>(<span class="ident">target_name</span>)
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">operator</span>.<span class="ident">is_bool_type</span>() {
-                        <span class="prelude-val">Some</span>(<span class="ident">BOOL_TYPE</span>.<span class="ident">to_string</span>())
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_pointer</span>()
                         <span class="op">|</span><span class="op">|</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_pointer</span>()
                     {
-                        <span class="kw">let</span> <span class="ident">target_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_pointer</span>() {
+                        <span class="comment">// get the target type of the binary expression</span>
+                        <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">operator</span>.<span class="ident">is_comparison_operator</span>() {
+                            <span class="comment">// compare instructions result in BOOL</span>
+                            <span class="comment">// to generate valid IR code if a pointer is beeing compared to an integer</span>
+                            <span class="comment">// we need to cast the int to the pointers size</span>
+                            <span class="kw">if</span> <span class="op">!</span><span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_pointer</span>() {
+                                <span class="kw">let</span> <span class="ident">left_type</span> <span class="op">=</span> <span class="ident">left_type</span>.<span class="ident">clone</span>(); <span class="comment">// clone here, so we release the borrow on self</span>
+                                <span class="self">self</span>.<span class="ident">annotate_to_pointer_size_if_necessary</span>(<span class="kw-2">&amp;</span><span class="ident">left_type</span>, <span class="ident">left</span>);
+                            } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_pointer</span>() {
+                                <span class="kw">let</span> <span class="ident">right_type</span> <span class="op">=</span> <span class="ident">right_type</span>.<span class="ident">clone</span>(); <span class="comment">// clone here, so we release the borrow on self</span>
+                                <span class="self">self</span>.<span class="ident">annotate_to_pointer_size_if_necessary</span>(<span class="kw-2">&amp;</span><span class="ident">right_type</span>, <span class="ident">right</span>);
+                            }
+                            <span class="ident">BOOL_TYPE</span>
+                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_pointer</span>() {
                             <span class="ident">left_type</span>.<span class="ident">get_name</span>()
                         } <span class="kw">else</span> {
                             <span class="ident">right_type</span>.<span class="ident">get_name</span>()
                         };
-                        <span class="prelude-val">Some</span>(<span class="ident">target_name</span>.<span class="ident">to_string</span>())
+                        <span class="prelude-val">Some</span>(<span class="ident">target_type</span>.<span class="ident">to_string</span>())
+                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">operator</span>.<span class="ident">is_bool_type</span>() {
+                        <span class="prelude-val">Some</span>(<span class="ident">BOOL_TYPE</span>.<span class="ident">to_string</span>())
                     } <span class="kw">else</span> {
                         <span class="prelude-val">None</span>
                     }
@@ -2973,6 +3031,24 @@
             }
 
             <span class="kw">_</span> =&gt; {}
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">annotate_to_pointer_size_if_necessary</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">value_type</span>: <span class="kw-2">&amp;</span><span class="ident">typesystem::DataType</span>,
+        <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+    ) {
+        <span class="comment">// pointer size is 64Bits matching LINT</span>
+        <span class="comment">// therefore get the bigger type of current and LINT to check if cast is necessary</span>
+        <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span> <span class="ident">get_bigger_type</span>(
+            <span class="ident">value_type</span>,
+            <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">LINT_TYPE</span>),
+            <span class="self">self</span>.<span class="ident">index</span>,
+        );
+        <span class="kw">if</span> <span class="ident">bigger_type</span> <span class="op">!</span><span class="op">=</span> <span class="ident">value_type</span> {
+            <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span> <span class="ident">bigger_type</span>.<span class="ident">clone</span>();
+            <span class="self">self</span>.<span class="ident">update_expected_types</span>(<span class="kw-2">&amp;</span><span class="ident">bigger_type</span>, <span class="ident">statement</span>);
         }
     }
 }

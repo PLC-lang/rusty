@@ -914,6 +914,14 @@
 <span id="909">909</span>
 <span id="910">910</span>
 <span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">mem::size_of</span>,
@@ -1726,6 +1734,14 @@
             .<span class="ident">find_effective_type_info</span>(<span class="ident">referenced_type</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">get_rank</span>(<span class="ident">it</span>, <span class="ident">index</span>))
             .<span class="ident">unwrap_or</span>(<span class="ident">DINT_SIZE</span>),
+        <span class="ident">DataTypeInformation::SubRange</span> { <span class="ident">name</span>, .. } <span class="op">|</span> <span class="ident">DataTypeInformation::Alias</span> { <span class="ident">name</span>, .. } =&gt; {
+            <span class="ident">get_rank</span>(
+                <span class="ident">index</span>
+                    .<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">name</span>)
+                    .<span class="ident">get_type_information</span>(),
+                <span class="ident">index</span>,
+            )
+        }
         <span class="kw">_</span> =&gt; <span class="macro">todo!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">type_information</span>),
     }
 }
