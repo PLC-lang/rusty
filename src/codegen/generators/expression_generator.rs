@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::{self, DirectAccessType, SourceRange},
-    codegen::llvm_typesystem::{self, cast_int_to_target_size_if_needed},
+    codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{
         const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
@@ -9,8 +9,8 @@ use crate::{
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
-        self, is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE,
-        INT_TYPE, LINT_TYPE,
+        is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE,
+        LINT_TYPE,
     },
 };
 use inkwell::{
@@ -1444,30 +1444,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right_type: &DataTypeInformation,
         expression: &AstStatement,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        let mut left_expr = self.generate_expression(left)?;
-        let mut right_expr = self.generate_expression(right)?;
-
-        // when performing an comparison instruction
-        // we need to truncate/promote the integer value to the pointers size
-        if operator.is_comparison_operator() {
-            if !left_expr.is_pointer_value() {
-                left_expr = cast_int_to_target_size_if_needed(
-                    self.llvm,
-                    left_expr.into_int_value(),
-                    left_type,
-                    &typesystem::POINTER_SIZE,
-                )?
-                .into();
-            } else if !right_expr.is_pointer_value() {
-                right_expr = cast_int_to_target_size_if_needed(
-                    self.llvm,
-                    right_expr.into_int_value(),
-                    right_type,
-                    &typesystem::POINTER_SIZE,
-                )?
-                .into();
-            }
-        }
+        let left_expr = self.generate_expression(left)?;
+        let right_expr = self.generate_expression(right)?;
 
         let result = match operator {
             Operator::Plus | Operator::Minus => {

@@ -112,42 +112,6 @@ pub fn create_llvm_extend_int_value<'a>(
 }
 
 ///
-/// expand / truncate the given `int_value` to the given `target_size` if neccessary
-/// It returns the original `int_value` if no cast is necessary
-/// - `llvm` the llvm utilities to use for code-generation
-/// - `int_value` the value to (maybe) cast
-/// - `value_type` the current type of the given value
-/// - `target_size` the expected size
-///
-pub fn cast_int_to_target_size_if_needed<'a>(
-    llvm: &Llvm<'a>,
-    int_value: IntValue<'a>,
-    value_type: &DataTypeInformation,
-    target_size: &u32,
-) -> Result<IntValue<'a>, Diagnostic> {
-    match int_value.get_type().get_bit_width() {
-        s if s < *target_size => {
-            // extend
-            Ok(create_llvm_extend_int_value(
-                &llvm.builder,
-                int_value,
-                value_type,
-                get_llvm_int_type(llvm.context, *target_size, "Integer")?,
-            ))
-        }
-        s if s > *target_size => {
-            // truncate
-            Ok(llvm.builder.build_int_truncate_or_bit_cast(
-                int_value,
-                get_llvm_int_type(llvm.context, *target_size, "Integer")?,
-                "",
-            ))
-        }
-        _ => Ok(int_value),
-    }
-}
-
-///
 /// generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
 /// the original `value` if no cast is necessary
 ///
