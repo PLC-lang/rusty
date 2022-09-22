@@ -596,7 +596,7 @@ impl LinkerInterface for MsvcLinker {
     }
 }*/</span>
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LinkerError</span> {
     <span class="doccomment">/// Error emitted by the linker</span>
     <span class="ident">Link</span>(<span class="ident">String</span>),

@@ -96,7 +96,7 @@ so this may produce unexpected results and should not be relied upon for validat
 <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::create</span>();
 <span class="kw">let</span> <span class="ident">i8_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">i8_type</span>();
 
-<span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">i8_type</span>.<span class="ident">get_context</span>(), <span class="ident">context</span>);</code></pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">i8_type</span>.<span class="ident">get_context</span>(), <span class="ident">context</span>);</code></pre></div>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.size_of" class="method has-srclink"><span class="rightside"><a class="srclink" href="../../src/inkwell/types/int_type.rs.html#278-280">source</a></span><a href="#method.size_of" class="anchor"></a><h4 class="code-header">pub fn <a href="#method.size_of" class="fnname">size_of</a>(self) -&gt; <a class="struct" href="../values/struct.IntValue.html" title="struct inkwell::values::IntValue">IntValue</a>&lt;'ctx&gt;</h4></section></summary><div class="docblock"><p>Gets the size of this <code>IntType</code>. Value may vary depending on the target architecture.</p>
 <h5 id="example-9"><a href="#example-9">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">inkwell::context::Context</span>;

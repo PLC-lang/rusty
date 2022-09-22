@@ -394,7 +394,7 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">HardwareAccessType</span>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Logos</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Logos</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Token</span> {
     <span class="attribute">#[<span class="ident">error</span>]</span>
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;\(\*&quot;</span>, <span class="op">|</span><span class="ident">lex</span><span class="op">|</span> <span class="ident"><span class="kw">super</span>::parse_comments</span>(<span class="ident">lex</span>))]</span>

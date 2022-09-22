@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/40d7ba0/src/builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/4b67a7f/src/builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2400,30 +2400,310 @@
 <span id="2395">2395</span>
 <span id="2396">2396</span>
 <span id="2397">2397</span>
+<span id="2398">2398</span>
+<span id="2399">2399</span>
+<span id="2400">2400</span>
+<span id="2401">2401</span>
+<span id="2402">2402</span>
+<span id="2403">2403</span>
+<span id="2404">2404</span>
+<span id="2405">2405</span>
+<span id="2406">2406</span>
+<span id="2407">2407</span>
+<span id="2408">2408</span>
+<span id="2409">2409</span>
+<span id="2410">2410</span>
+<span id="2411">2411</span>
+<span id="2412">2412</span>
+<span id="2413">2413</span>
+<span id="2414">2414</span>
+<span id="2415">2415</span>
+<span id="2416">2416</span>
+<span id="2417">2417</span>
+<span id="2418">2418</span>
+<span id="2419">2419</span>
+<span id="2420">2420</span>
+<span id="2421">2421</span>
+<span id="2422">2422</span>
+<span id="2423">2423</span>
+<span id="2424">2424</span>
+<span id="2425">2425</span>
+<span id="2426">2426</span>
+<span id="2427">2427</span>
+<span id="2428">2428</span>
+<span id="2429">2429</span>
+<span id="2430">2430</span>
+<span id="2431">2431</span>
+<span id="2432">2432</span>
+<span id="2433">2433</span>
+<span id="2434">2434</span>
+<span id="2435">2435</span>
+<span id="2436">2436</span>
+<span id="2437">2437</span>
+<span id="2438">2438</span>
+<span id="2439">2439</span>
+<span id="2440">2440</span>
+<span id="2441">2441</span>
+<span id="2442">2442</span>
+<span id="2443">2443</span>
+<span id="2444">2444</span>
+<span id="2445">2445</span>
+<span id="2446">2446</span>
+<span id="2447">2447</span>
+<span id="2448">2448</span>
+<span id="2449">2449</span>
+<span id="2450">2450</span>
+<span id="2451">2451</span>
+<span id="2452">2452</span>
+<span id="2453">2453</span>
+<span id="2454">2454</span>
+<span id="2455">2455</span>
+<span id="2456">2456</span>
+<span id="2457">2457</span>
+<span id="2458">2458</span>
+<span id="2459">2459</span>
+<span id="2460">2460</span>
+<span id="2461">2461</span>
+<span id="2462">2462</span>
+<span id="2463">2463</span>
+<span id="2464">2464</span>
+<span id="2465">2465</span>
+<span id="2466">2466</span>
+<span id="2467">2467</span>
+<span id="2468">2468</span>
+<span id="2469">2469</span>
+<span id="2470">2470</span>
+<span id="2471">2471</span>
+<span id="2472">2472</span>
+<span id="2473">2473</span>
+<span id="2474">2474</span>
+<span id="2475">2475</span>
+<span id="2476">2476</span>
+<span id="2477">2477</span>
+<span id="2478">2478</span>
+<span id="2479">2479</span>
+<span id="2480">2480</span>
+<span id="2481">2481</span>
+<span id="2482">2482</span>
+<span id="2483">2483</span>
+<span id="2484">2484</span>
+<span id="2485">2485</span>
+<span id="2486">2486</span>
+<span id="2487">2487</span>
+<span id="2488">2488</span>
+<span id="2489">2489</span>
+<span id="2490">2490</span>
+<span id="2491">2491</span>
+<span id="2492">2492</span>
+<span id="2493">2493</span>
+<span id="2494">2494</span>
+<span id="2495">2495</span>
+<span id="2496">2496</span>
+<span id="2497">2497</span>
+<span id="2498">2498</span>
+<span id="2499">2499</span>
+<span id="2500">2500</span>
+<span id="2501">2501</span>
+<span id="2502">2502</span>
+<span id="2503">2503</span>
+<span id="2504">2504</span>
+<span id="2505">2505</span>
+<span id="2506">2506</span>
+<span id="2507">2507</span>
+<span id="2508">2508</span>
+<span id="2509">2509</span>
+<span id="2510">2510</span>
+<span id="2511">2511</span>
+<span id="2512">2512</span>
+<span id="2513">2513</span>
+<span id="2514">2514</span>
+<span id="2515">2515</span>
+<span id="2516">2516</span>
+<span id="2517">2517</span>
+<span id="2518">2518</span>
+<span id="2519">2519</span>
+<span id="2520">2520</span>
+<span id="2521">2521</span>
+<span id="2522">2522</span>
+<span id="2523">2523</span>
+<span id="2524">2524</span>
+<span id="2525">2525</span>
+<span id="2526">2526</span>
+<span id="2527">2527</span>
+<span id="2528">2528</span>
+<span id="2529">2529</span>
+<span id="2530">2530</span>
+<span id="2531">2531</span>
+<span id="2532">2532</span>
+<span id="2533">2533</span>
+<span id="2534">2534</span>
+<span id="2535">2535</span>
+<span id="2536">2536</span>
+<span id="2537">2537</span>
+<span id="2538">2538</span>
+<span id="2539">2539</span>
+<span id="2540">2540</span>
+<span id="2541">2541</span>
+<span id="2542">2542</span>
+<span id="2543">2543</span>
+<span id="2544">2544</span>
+<span id="2545">2545</span>
+<span id="2546">2546</span>
+<span id="2547">2547</span>
+<span id="2548">2548</span>
+<span id="2549">2549</span>
+<span id="2550">2550</span>
+<span id="2551">2551</span>
+<span id="2552">2552</span>
+<span id="2553">2553</span>
+<span id="2554">2554</span>
+<span id="2555">2555</span>
+<span id="2556">2556</span>
+<span id="2557">2557</span>
+<span id="2558">2558</span>
+<span id="2559">2559</span>
+<span id="2560">2560</span>
+<span id="2561">2561</span>
+<span id="2562">2562</span>
+<span id="2563">2563</span>
+<span id="2564">2564</span>
+<span id="2565">2565</span>
+<span id="2566">2566</span>
+<span id="2567">2567</span>
+<span id="2568">2568</span>
+<span id="2569">2569</span>
+<span id="2570">2570</span>
+<span id="2571">2571</span>
+<span id="2572">2572</span>
+<span id="2573">2573</span>
+<span id="2574">2574</span>
+<span id="2575">2575</span>
+<span id="2576">2576</span>
+<span id="2577">2577</span>
+<span id="2578">2578</span>
+<span id="2579">2579</span>
+<span id="2580">2580</span>
+<span id="2581">2581</span>
+<span id="2582">2582</span>
+<span id="2583">2583</span>
+<span id="2584">2584</span>
+<span id="2585">2585</span>
+<span id="2586">2586</span>
+<span id="2587">2587</span>
+<span id="2588">2588</span>
+<span id="2589">2589</span>
+<span id="2590">2590</span>
+<span id="2591">2591</span>
+<span id="2592">2592</span>
+<span id="2593">2593</span>
+<span id="2594">2594</span>
+<span id="2595">2595</span>
+<span id="2596">2596</span>
+<span id="2597">2597</span>
+<span id="2598">2598</span>
+<span id="2599">2599</span>
+<span id="2600">2600</span>
+<span id="2601">2601</span>
+<span id="2602">2602</span>
+<span id="2603">2603</span>
+<span id="2604">2604</span>
+<span id="2605">2605</span>
+<span id="2606">2606</span>
+<span id="2607">2607</span>
+<span id="2608">2608</span>
+<span id="2609">2609</span>
+<span id="2610">2610</span>
+<span id="2611">2611</span>
+<span id="2612">2612</span>
+<span id="2613">2613</span>
+<span id="2614">2614</span>
+<span id="2615">2615</span>
+<span id="2616">2616</span>
+<span id="2617">2617</span>
+<span id="2618">2618</span>
+<span id="2619">2619</span>
+<span id="2620">2620</span>
+<span id="2621">2621</span>
+<span id="2622">2622</span>
+<span id="2623">2623</span>
+<span id="2624">2624</span>
+<span id="2625">2625</span>
+<span id="2626">2626</span>
+<span id="2627">2627</span>
+<span id="2628">2628</span>
+<span id="2629">2629</span>
+<span id="2630">2630</span>
+<span id="2631">2631</span>
+<span id="2632">2632</span>
+<span id="2633">2633</span>
+<span id="2634">2634</span>
+<span id="2635">2635</span>
+<span id="2636">2636</span>
+<span id="2637">2637</span>
+<span id="2638">2638</span>
+<span id="2639">2639</span>
+<span id="2640">2640</span>
+<span id="2641">2641</span>
+<span id="2642">2642</span>
+<span id="2643">2643</span>
+<span id="2644">2644</span>
+<span id="2645">2645</span>
+<span id="2646">2646</span>
+<span id="2647">2647</span>
+<span id="2648">2648</span>
+<span id="2649">2649</span>
+<span id="2650">2650</span>
+<span id="2651">2651</span>
+<span id="2652">2652</span>
+<span id="2653">2653</span>
+<span id="2654">2654</span>
+<span id="2655">2655</span>
+<span id="2656">2656</span>
+<span id="2657">2657</span>
+<span id="2658">2658</span>
+<span id="2659">2659</span>
+<span id="2660">2660</span>
+<span id="2661">2661</span>
+<span id="2662">2662</span>
+<span id="2663">2663</span>
+<span id="2664">2664</span>
+<span id="2665">2665</span>
+<span id="2666">2666</span>
+<span id="2667">2667</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A `Builder` enables you to build instructions.</span>
 
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
     <span class="ident">LLVMAddCase</span>, <span class="ident">LLVMAddClause</span>, <span class="ident">LLVMAddDestination</span>, <span class="ident">LLVMBuildAShr</span>, <span class="ident">LLVMBuildAdd</span>, <span class="ident">LLVMBuildAddrSpaceCast</span>,
     <span class="ident">LLVMBuildAggregateRet</span>, <span class="ident">LLVMBuildAlloca</span>, <span class="ident">LLVMBuildAnd</span>, <span class="ident">LLVMBuildArrayAlloca</span>, <span class="ident">LLVMBuildArrayMalloc</span>,
-    <span class="ident">LLVMBuildAtomicCmpXchg</span>, <span class="ident">LLVMBuildAtomicRMW</span>, <span class="ident">LLVMBuildBitCast</span>, <span class="ident">LLVMBuildBr</span>, <span class="ident">LLVMBuildCall</span>, <span class="ident">LLVMBuildCast</span>,
-    <span class="ident">LLVMBuildCondBr</span>, <span class="ident">LLVMBuildExactSDiv</span>, <span class="ident">LLVMBuildExtractElement</span>, <span class="ident">LLVMBuildExtractValue</span>, <span class="ident">LLVMBuildFAdd</span>, <span class="ident">LLVMBuildFCmp</span>,
-    <span class="ident">LLVMBuildFDiv</span>, <span class="ident">LLVMBuildFMul</span>, <span class="ident">LLVMBuildFNeg</span>, <span class="ident">LLVMBuildFPCast</span>, <span class="ident">LLVMBuildFPExt</span>, <span class="ident">LLVMBuildFPToSI</span>, <span class="ident">LLVMBuildFPToUI</span>,
-    <span class="ident">LLVMBuildFPTrunc</span>, <span class="ident">LLVMBuildFRem</span>, <span class="ident">LLVMBuildFSub</span>, <span class="ident">LLVMBuildFence</span>, <span class="ident">LLVMBuildFree</span>, <span class="ident">LLVMBuildGEP</span>, <span class="ident">LLVMBuildGlobalString</span>,
-    <span class="ident">LLVMBuildGlobalStringPtr</span>, <span class="ident">LLVMBuildICmp</span>, <span class="ident">LLVMBuildInBoundsGEP</span>, <span class="ident">LLVMBuildIndirectBr</span>, <span class="ident">LLVMBuildInsertElement</span>,
-    <span class="ident">LLVMBuildInsertValue</span>, <span class="ident">LLVMBuildIntCast</span>, <span class="ident">LLVMBuildIntToPtr</span>, <span class="ident">LLVMBuildInvoke</span>, <span class="ident">LLVMBuildIsNotNull</span>, <span class="ident">LLVMBuildIsNull</span>,
-    <span class="ident">LLVMBuildLShr</span>, <span class="ident">LLVMBuildLandingPad</span>, <span class="ident">LLVMBuildLoad</span>, <span class="ident">LLVMBuildMalloc</span>, <span class="ident">LLVMBuildMul</span>, <span class="ident">LLVMBuildNSWAdd</span>, <span class="ident">LLVMBuildNSWMul</span>,
-    <span class="ident">LLVMBuildNSWNeg</span>, <span class="ident">LLVMBuildNSWSub</span>, <span class="ident">LLVMBuildNUWAdd</span>, <span class="ident">LLVMBuildNUWMul</span>, <span class="ident">LLVMBuildNUWNeg</span>, <span class="ident">LLVMBuildNUWSub</span>, <span class="ident">LLVMBuildNeg</span>,
-    <span class="ident">LLVMBuildNot</span>, <span class="ident">LLVMBuildOr</span>, <span class="ident">LLVMBuildPhi</span>, <span class="ident">LLVMBuildPointerCast</span>, <span class="ident">LLVMBuildPtrDiff</span>, <span class="ident">LLVMBuildPtrToInt</span>,
-    <span class="ident">LLVMBuildResume</span>, <span class="ident">LLVMBuildRet</span>, <span class="ident">LLVMBuildRetVoid</span>, <span class="ident">LLVMBuildSDiv</span>, <span class="ident">LLVMBuildSExt</span>, <span class="ident">LLVMBuildSExtOrBitCast</span>,
-    <span class="ident">LLVMBuildSIToFP</span>, <span class="ident">LLVMBuildSRem</span>, <span class="ident">LLVMBuildSelect</span>, <span class="ident">LLVMBuildShl</span>, <span class="ident">LLVMBuildShuffleVector</span>, <span class="ident">LLVMBuildStore</span>,
-    <span class="ident">LLVMBuildStructGEP</span>, <span class="ident">LLVMBuildSub</span>, <span class="ident">LLVMBuildSwitch</span>, <span class="ident">LLVMBuildTrunc</span>, <span class="ident">LLVMBuildTruncOrBitCast</span>, <span class="ident">LLVMBuildUDiv</span>,
+    <span class="ident">LLVMBuildAtomicCmpXchg</span>, <span class="ident">LLVMBuildAtomicRMW</span>, <span class="ident">LLVMBuildBitCast</span>, <span class="ident">LLVMBuildBr</span>, <span class="ident">LLVMBuildCast</span>, <span class="ident">LLVMBuildCondBr</span>,
+    <span class="ident">LLVMBuildExactSDiv</span>, <span class="ident">LLVMBuildExtractElement</span>, <span class="ident">LLVMBuildExtractValue</span>, <span class="ident">LLVMBuildFAdd</span>, <span class="ident">LLVMBuildFCmp</span>, <span class="ident">LLVMBuildFDiv</span>,
+    <span class="ident">LLVMBuildFMul</span>, <span class="ident">LLVMBuildFNeg</span>, <span class="ident">LLVMBuildFPCast</span>, <span class="ident">LLVMBuildFPExt</span>, <span class="ident">LLVMBuildFPToSI</span>, <span class="ident">LLVMBuildFPToUI</span>, <span class="ident">LLVMBuildFPTrunc</span>,
+    <span class="ident">LLVMBuildFRem</span>, <span class="ident">LLVMBuildFSub</span>, <span class="ident">LLVMBuildFence</span>, <span class="ident">LLVMBuildFree</span>, <span class="ident">LLVMBuildGlobalString</span>, <span class="ident">LLVMBuildGlobalStringPtr</span>,
+    <span class="ident">LLVMBuildICmp</span>, <span class="ident">LLVMBuildIndirectBr</span>, <span class="ident">LLVMBuildInsertElement</span>, <span class="ident">LLVMBuildInsertValue</span>, <span class="ident">LLVMBuildIntCast</span>,
+    <span class="ident">LLVMBuildIntToPtr</span>, <span class="ident">LLVMBuildIsNotNull</span>, <span class="ident">LLVMBuildIsNull</span>, <span class="ident">LLVMBuildLShr</span>, <span class="ident">LLVMBuildLandingPad</span>, <span class="ident">LLVMBuildMalloc</span>,
+    <span class="ident">LLVMBuildMul</span>, <span class="ident">LLVMBuildNSWAdd</span>, <span class="ident">LLVMBuildNSWMul</span>, <span class="ident">LLVMBuildNSWNeg</span>, <span class="ident">LLVMBuildNSWSub</span>, <span class="ident">LLVMBuildNUWAdd</span>, <span class="ident">LLVMBuildNUWMul</span>,
+    <span class="ident">LLVMBuildNUWNeg</span>, <span class="ident">LLVMBuildNUWSub</span>, <span class="ident">LLVMBuildNeg</span>, <span class="ident">LLVMBuildNot</span>, <span class="ident">LLVMBuildOr</span>, <span class="ident">LLVMBuildPhi</span>, <span class="ident">LLVMBuildPointerCast</span>,
+    <span class="ident">LLVMBuildPtrToInt</span>, <span class="ident">LLVMBuildResume</span>, <span class="ident">LLVMBuildRet</span>, <span class="ident">LLVMBuildRetVoid</span>, <span class="ident">LLVMBuildSDiv</span>, <span class="ident">LLVMBuildSExt</span>,
+    <span class="ident">LLVMBuildSExtOrBitCast</span>, <span class="ident">LLVMBuildSIToFP</span>, <span class="ident">LLVMBuildSRem</span>, <span class="ident">LLVMBuildSelect</span>, <span class="ident">LLVMBuildShl</span>, <span class="ident">LLVMBuildShuffleVector</span>,
+    <span class="ident">LLVMBuildStore</span>, <span class="ident">LLVMBuildSub</span>, <span class="ident">LLVMBuildSwitch</span>, <span class="ident">LLVMBuildTrunc</span>, <span class="ident">LLVMBuildTruncOrBitCast</span>, <span class="ident">LLVMBuildUDiv</span>,
     <span class="ident">LLVMBuildUIToFP</span>, <span class="ident">LLVMBuildURem</span>, <span class="ident">LLVMBuildUnreachable</span>, <span class="ident">LLVMBuildVAArg</span>, <span class="ident">LLVMBuildXor</span>, <span class="ident">LLVMBuildZExt</span>,
     <span class="ident">LLVMBuildZExtOrBitCast</span>, <span class="ident">LLVMClearInsertionPosition</span>, <span class="ident">LLVMDisposeBuilder</span>, <span class="ident">LLVMGetInsertBlock</span>, <span class="ident">LLVMInsertIntoBuilder</span>,
     <span class="ident">LLVMInsertIntoBuilderWithName</span>, <span class="ident">LLVMPositionBuilder</span>, <span class="ident">LLVMPositionBuilderAtEnd</span>, <span class="ident">LLVMPositionBuilderBefore</span>,
     <span class="ident">LLVMSetCleanup</span>,
 };
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="number">14.0</span>)]</span>
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
+    <span class="ident">LLVMBuildCall</span>, <span class="ident">LLVMBuildGEP</span>, <span class="ident">LLVMBuildInBoundsGEP</span>, <span class="ident">LLVMBuildInvoke</span>, <span class="ident">LLVMBuildLoad</span>, <span class="ident">LLVMBuildPtrDiff</span>,
+    <span class="ident">LLVMBuildStructGEP</span>,
+};
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">14.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
+    <span class="ident">LLVMBuildCall2</span>, <span class="ident">LLVMBuildGEP2</span>, <span class="ident">LLVMBuildInBoundsGEP2</span>, <span class="ident">LLVMBuildInvoke2</span>, <span class="ident">LLVMBuildLoad2</span>, <span class="ident">LLVMBuildPtrDiff2</span>,
+    <span class="ident">LLVMBuildStructGEP2</span>,
+};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMBuildIntCast2</span>, <span class="ident">LLVMBuildMemCpy</span>, <span class="ident">LLVMBuildMemMove</span>, <span class="ident">LLVMBuildMemSet</span>};
+
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMBuilderRef</span>, <span class="ident">LLVMValueRef</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::basic_block::BasicBlock</span>;
@@ -2566,6 +2846,43 @@
 
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>()).<span class="ident">collect</span>();
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        )))]</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">fn_ty_ref</span> <span class="op">=</span> <span class="ident">callable_value</span>.<span class="ident">as_type_ref</span>();
+            <span class="ident">LLVMBuildCall2</span>(
+                <span class="self">self</span>.<span class="ident">builder</span>,
+                <span class="ident">fn_ty_ref</span>,
+                <span class="ident">fn_val_ref</span>,
+                <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>(),
+                <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+                <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
+            )
+        };
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        ))]</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildCall</span>(
                 <span class="self">self</span>.<span class="ident">builder</span>,
@@ -2669,7 +2986,7 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">CallableValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">callable_value</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">callable_value</span>: <span class="ident">CallableValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">fn_val_ref</span> <span class="op">=</span> <span class="ident">callable_value</span>.<span class="ident">as_value_ref</span>();
 
         <span class="comment">// LLVM gets upset when void return calls are named because they don&#39;t return anything</span>
@@ -2677,6 +2994,47 @@
 
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>()).<span class="ident">collect</span>();
+
+        <span class="comment">// This ugly cfg specification is due to limitation of custom attributes (for more information, see https://github.com/rust-lang/rust/issues/54727).</span>
+        <span class="comment">// Once custom attriutes inside methods are enabled, this should be replaced with #[llvm_version(14.0..=latest)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        )))]</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">fn_ty_ref</span> <span class="op">=</span> <span class="ident">callable_value</span>.<span class="ident">as_type_ref</span>();
+            <span class="ident">LLVMBuildInvoke2</span>(
+                <span class="self">self</span>.<span class="ident">builder</span>,
+                <span class="ident">fn_ty_ref</span>,
+                <span class="ident">fn_val_ref</span>,
+                <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>(),
+                <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+                <span class="ident">then_block</span>.<span class="ident">basic_block</span>,
+                <span class="ident">catch_block</span>.<span class="ident">basic_block</span>,
+                <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
+            )
+        };
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        ))]</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildInvoke</span>(
                 <span class="self">self</span>.<span class="ident">builder</span>,
@@ -2956,6 +3314,42 @@
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ordered_indexes</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>()).<span class="ident">collect</span>();
+
+        <span class="comment">// This ugly cfg specification is due to limitation of custom attributes (for more information, see https://github.com/rust-lang/rust/issues/54727).</span>
+        <span class="comment">// Once custom attriutes inside methods are enabled, this should be replaced with #[llvm_version(14.0..=latest)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        )))]</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMBuildGEP2</span>(
+            <span class="self">self</span>.<span class="ident">builder</span>,
+            <span class="ident">ptr</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">as_type_ref</span>(),
+            <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(),
+            <span class="ident">index_values</span>.<span class="ident">as_mut_ptr</span>(),
+            <span class="ident">index_values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
+        );
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        ))]</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMBuildGEP</span>(
             <span class="self">self</span>.<span class="ident">builder</span>,
             <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(),
@@ -2979,6 +3373,42 @@
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ordered_indexes</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>()).<span class="ident">collect</span>();
+
+        <span class="comment">// This ugly cfg specification is due to limitation of custom attributes (for more information, see https://github.com/rust-lang/rust/issues/54727).</span>
+        <span class="comment">// Once custom attriutes inside methods are enabled, this should be replaced with #[llvm_version(14.0..=latest)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        )))]</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMBuildInBoundsGEP2</span>(
+            <span class="self">self</span>.<span class="ident">builder</span>,
+            <span class="ident">ptr</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">as_type_ref</span>(),
+            <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(),
+            <span class="ident">index_values</span>.<span class="ident">as_mut_ptr</span>(),
+            <span class="ident">index_values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
+        );
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        ))]</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMBuildInBoundsGEP</span>(
             <span class="self">self</span>.<span class="ident">builder</span>,
             <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(),
@@ -3038,6 +3468,43 @@
         }
 
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
+
+        <span class="comment">// This ugly cfg specification is due to limitation of custom attributes (for more information, see https://github.com/rust-lang/rust/issues/54727).</span>
+        <span class="comment">// Once custom attriutes inside methods are enabled, this should be replaced with #[llvm_version(14.0..=latest)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        )))]</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">LLVMBuildStructGEP2</span>(
+                <span class="self">self</span>.<span class="ident">builder</span>,
+                <span class="ident">ptr</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">as_type_ref</span>(),
+                <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(),
+                <span class="ident">index</span>,
+                <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
+            )
+        };
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        ))]</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMBuildStructGEP</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
 
         <span class="kw">unsafe</span> { <span class="prelude-val">Ok</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>)) }
@@ -3075,6 +3542,43 @@
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) -&gt; <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
+
+        <span class="comment">// This ugly cfg specification is due to limitation of custom attributes (for more information, see https://github.com/rust-lang/rust/issues/54727).</span>
+        <span class="comment">// Once custom attriutes inside methods are enabled, this should be replaced with #[llvm_version(14.0..=latest)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        )))]</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">LLVMBuildPtrDiff2</span>(
+                <span class="self">self</span>.<span class="ident">builder</span>,
+                <span class="ident">lhs_ptr</span>.<span class="ident">get_type</span>().<span class="ident">as_type_ref</span>(),
+                <span class="ident">lhs_ptr</span>.<span class="ident">as_value_ref</span>(),
+                <span class="ident">rhs_ptr</span>.<span class="ident">as_value_ref</span>(),
+                <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
+            )
+        };
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        ))]</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildPtrDiff</span>(
                 <span class="self">self</span>.<span class="ident">builder</span>,
@@ -3157,6 +3661,42 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
+
+        <span class="comment">// This ugly cfg specification is due to limitation of custom attributes (for more information, see https://github.com/rust-lang/rust/issues/54727).</span>
+        <span class="comment">// Once custom attriutes inside methods are enabled, this should be replaced with #[llvm_version(14.0..=latest)]</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        )))]</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">LLVMBuildLoad2</span>(
+                <span class="self">self</span>.<span class="ident">builder</span>,
+                <span class="ident">ptr</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">as_type_ref</span>(),
+                <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(),
+                <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
+            )
+        };
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm7-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm8-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm9-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm10-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>,
+            <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>,
+        ))]</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMBuildLoad</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
 
         <span class="kw">unsafe</span> { <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>) }
@@ -4743,7 +5283,7 @@
         <span class="kw">unsafe</span> {
             <span class="ident">LLVMSetCurrentDebugLocation</span>(
                 <span class="self">self</span>.<span class="ident">builder</span>,
-                <span class="ident">LLVMMetadataAsValue</span>(<span class="ident">context</span>.<span class="ident">context</span>, <span class="ident">location</span>.<span class="ident">metadata_ref</span>),
+                <span class="ident">LLVMMetadataAsValue</span>(<span class="ident">context</span>.<span class="ident">context</span>.<span class="number">0</span>, <span class="ident">location</span>.<span class="ident">metadata_ref</span>),
             );
         }
     }

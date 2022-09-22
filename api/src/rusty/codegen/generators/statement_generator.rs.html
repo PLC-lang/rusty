@@ -1383,7 +1383,7 @@
 
         <span class="kw">let</span> <span class="ident">basic_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
         <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_expr_generator</span>();
-        <span class="kw">let</span> <span class="ident">selector_statement</span> <span class="op">=</span> <span class="ident">exp_gen</span>.<span class="ident">generate_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">selector</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">selector_statement</span> <span class="op">=</span> <span class="ident">exp_gen</span>.<span class="ident">generate_expression</span>(<span class="ident">selector</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cases</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">let</span> <span class="ident">else_block</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">append_basic_block</span>(<span class="ident">current_function</span>, <span class="string">&quot;else&quot;</span>);

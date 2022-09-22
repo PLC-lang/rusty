@@ -811,7 +811,7 @@
 
 <span class="doccomment">/// a wrapper for an unresolvable const-expression with the reason</span>
 <span class="doccomment">/// why it could not be resolved</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnresolvableConstant</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ConstId</span>,
     <span class="kw">pub</span> <span class="ident">reason</span>: <span class="ident">String</span>,

@@ -99,7 +99,7 @@ so this may produce unexpected results and should not be relied upon for validat
 <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::create</span>();
 <span class="kw">let</span> <span class="ident">f32_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">f32_type</span>();
 
-<span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">f32_type</span>.<span class="ident">get_context</span>(), <span class="ident">context</span>);</code></pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">f32_type</span>.<span class="ident">get_context</span>(), <span class="ident">context</span>);</code></pre></div>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.ptr_type" class="method has-srclink"><span class="rightside"><a class="srclink" href="../../src/inkwell/types/float_type.rs.html#216-218">source</a></span><a href="#method.ptr_type" class="anchor"></a><h4 class="code-header">pub fn <a href="#method.ptr_type" class="fnname">ptr_type</a>(self, address_space: <a class="enum" href="../enum.AddressSpace.html" title="enum inkwell::AddressSpace">AddressSpace</a>) -&gt; <a class="struct" href="struct.PointerType.html" title="struct inkwell::types::PointerType">PointerType</a>&lt;'ctx&gt;</h4></section></summary><div class="docblock"><p>Creates a <code>PointerType</code> with this <code>FloatType</code> for its element type.</p>
 <h5 id="example-9"><a href="#example-9">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">inkwell::context::Context</span>;

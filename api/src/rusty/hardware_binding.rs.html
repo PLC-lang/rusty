@@ -399,7 +399,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HardwareBinding</span><span class="op">&lt;</span><span class="lifetime">&#39;idx</span><span class="op">&gt;</span> {
     <span class="ident">qualifed_name</span>: <span class="ident">ExpressionPath</span><span class="op">&lt;</span><span class="lifetime">&#39;idx</span><span class="op">&gt;</span>,
     <span class="ident">direction</span>: <span class="ident">HardwareAccessType</span>,

@@ -1463,7 +1463,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">visitor</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VariableIndexEntry</span> {
     <span class="doccomment">/// the name of this variable (e.g. &#39;x&#39; for &#39;PLC_PRG.x&#39;)</span>
     <span class="ident">name</span>: <span class="ident">String</span>,
@@ -1489,7 +1489,7 @@
     <span class="ident">varargs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VarArgs</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HardwareBinding</span> {
     <span class="doccomment">/// Specifies if the binding is an In/Out or Memory binding</span>
     <span class="kw">pub</span> <span class="ident">direction</span>: <span class="ident">HardwareAccessType</span>,
@@ -1702,7 +1702,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ArgumentType</span> {
     <span class="ident">ByVal</span>(<span class="ident">VariableType</span>),
     <span class="ident">ByRef</span>(<span class="ident">VariableType</span>),
@@ -1721,7 +1721,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableType</span> {
     <span class="ident">Local</span>, <span class="comment">// functions have no locals; others: VAR-block</span>
     <span class="ident">Temp</span>,  <span class="comment">// for functions: VAR &amp; VAR_TEMP; others: VAR_TEMP</span>
@@ -1733,7 +1733,7 @@
 }
 
 <span class="doccomment">/// information regarding a variable</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VariableInformation</span> {
     <span class="doccomment">/// the type of variable</span>
     <span class="ident">variable_type</span>: <span class="ident">VariableType</span>,
@@ -1755,7 +1755,7 @@
     <span class="ident">AliasType</span>,     <span class="comment">// a Custom-Alias-dataType</span>
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ImplementationType</span> {
     <span class="ident">Program</span>,
     <span class="ident">Function</span>,
@@ -1765,7 +1765,7 @@
     <span class="ident">Method</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplementationIndexEntry</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">call_name</span>: <span class="ident">String</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">type_name</span>: <span class="ident">String</span>,
@@ -1819,7 +1819,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PouIndexEntry</span> {
     <span class="ident">Program</span> {
         <span class="ident">name</span>: <span class="ident">String</span>,
@@ -2872,7 +2872,7 @@
 }
 <span class="kw">impl</span> <span class="ident">VariableType</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_private</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">return</span> <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">VariableType::Temp</span> <span class="op">|</span> <span class="ident">VariableType::Local</span>);
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">VariableType::Temp</span> <span class="op">|</span> <span class="ident">VariableType::Local</span>)
     }
 }
 </code></pre></div>

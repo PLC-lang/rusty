@@ -2880,7 +2880,7 @@
             <span class="comment">//Generate and load the index value</span>
             <span class="kw">let</span> <span class="ident">datatype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">last</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">generate_direct_access_index</span>(<span class="ident">access</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">index</span>, <span class="ident">datatype</span>, <span class="ident">expression_type</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">generate_direct_access_index</span>(<span class="ident">access</span>, <span class="ident">index</span>, <span class="ident">datatype</span>, <span class="ident">expression_type</span>)<span class="question-mark">?</span>;
             <span class="comment">//Shift the qualifer value right by the index value</span>
             <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_right_shift</span>(
                 <span class="ident">value</span>.<span class="ident">into_int_value</span>(),
@@ -4580,7 +4580,7 @@
                     .<span class="ident">const_named_struct</span>(<span class="ident">ordered_values</span>.<span class="ident">as_slice</span>())
                     .<span class="ident">as_basic_value_enum</span>());
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
+                <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
                     <span class="kw-2">&amp;</span><span class="macro">format!</span>(
                         <span class="string">&quot;Expected {} fields for Struct {}, but found {}.&quot;</span>,
                         <span class="ident">struct_type</span>.<span class="ident">count_fields</span>(),
@@ -4588,13 +4588,13 @@
                         <span class="ident">member_values</span>.<span class="ident">len</span>()
                     ),
                     <span class="ident">assignments</span>.<span class="ident">get_location</span>(),
-                ));
+                ))
             }
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
+            <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
                 <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Expected Struct-literal, got {:#?}&quot;</span>, <span class="ident">assignments</span>),
                 <span class="ident">assignments</span>.<span class="ident">get_location</span>(),
-            ));
+            ))
         }
     }
 
