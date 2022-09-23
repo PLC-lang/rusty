@@ -507,6 +507,45 @@ fn case_statement_with_one_condition() {
 }
 
 #[test]
+fn case_statement_with_one_condition_with_trailling_comma() {
+    let src = "
+        PROGRAM exp 
+        CASE StateMachine OF
+        1,: x;
+        END_CASE
+        END_PROGRAM
+        ";
+    let (result, diagnostics) = parse(src);
+
+    assert_eq!(diagnostics, vec![]);
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"CaseStatement {
+    selector: Reference {
+        name: "StateMachine",
+    },
+    case_blocks: [
+        ConditionalBlock {
+            condition: LiteralInteger {
+                value: 1,
+            },
+            body: [
+                Reference {
+                    name: "x",
+                },
+            ],
+        },
+    ],
+    else_block: [],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn case_statement_with_else_and_no_condition() {
     let src = "
         PROGRAM exp 
