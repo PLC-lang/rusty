@@ -5,7 +5,7 @@ use crate::{
     builtins,
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::AnnotationMap,
-    typesystem::{self, DataType, DataTypeInformation, STRING_TYPE, WSTRING_TYPE},
+    typesystem::{self, DataType, DataTypeInformation},
 };
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
@@ -388,6 +388,12 @@ impl<'i> TypeAnnotator<'i> {
                             let current_type = self
                                 .index
                                 .find_effective_type_info(current)
+                                // if type is not found, look for it in new index, because the type could have been created recently
+                                .or_else(|| {
+                                    self.annotation_map
+                                        .new_index
+                                        .find_effective_type_info(current)
+                                })
                                 .map(|it| self.index.find_intrinsic_type(it));
                             //Find bigger
                             if let Some((previous, current)) = previous_type.zip(current_type) {

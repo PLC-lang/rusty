@@ -878,7 +878,7 @@ fn resolved_generic_any_real_call_with_ints_added_to_index() {
 
 #[test]
 fn generic_string_functions_are_annotated_correctly() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
@@ -902,7 +902,7 @@ fn generic_string_functions_are_annotated_correctly() {
         ",
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let annotations = annotate(&unit, &mut index);
 
     let mut functions = vec![];
     let mut values = vec![];
@@ -921,7 +921,7 @@ fn generic_string_functions_are_annotated_correctly() {
     assert_eq!(
         functions[0],
         &StatementAnnotation::Function {
-            return_type: "__foo__STRING_return".to_string(),
+            return_type: "STRING".to_string(),
             qualified_name: "foo__STRING".to_string(),
             call_name: None,
         }
@@ -932,9 +932,8 @@ fn generic_string_functions_are_annotated_correctly() {
 
 #[test]
 fn generic_string_functions_without_specific_implementation_are_annotated_correctly() {
-    let (unit, index) = index(
-        r#"                
-        {external}
+    let (unit, mut index) = index(
+        r#"         
         FUNCTION LEN <T: ANY_STRING> : DINT
         VAR_INPUT {ref}
             IN : T;
@@ -942,38 +941,62 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
         END_FUNCTION
 
         FUNCTION main
-        VAR_
-            LEN('abc');
+        VAR
+            res : DINT;
+        END_VAR
+            res := LEN('abc');
         END_FUNCTION
-        "#
+        "#,
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let annotations = annotate(&unit, &mut index);
+    let assignment = &unit.implementations[1].statements[0];
 
-    let mut functions = vec![];
-    let mut values = vec![];
-    annotations
-        .type_map
-        .iter()
-        .map(|(_, v)| v)
-        .for_each(|v| match v {
-            StatementAnnotation::Function { .. } => functions.push(v),
-            StatementAnnotation::Value {
-                resulting_type: res_type,
-            } => values.push(res_type),
-            _ => (),
-        });
+    if let AstStatement::Assignment { right, .. } = assignment {
+        assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, Some(DINT_TYPE));
+        if let AstStatement::CallStatement {
+            operator,
+            parameters,
+            ..
+        } = &**right
+        {
+            let function_annotation = annotations.get(operator).unwrap();
+            assert_eq!(
+                function_annotation,
+                &StatementAnnotation::Function {
+                    return_type: "DINT".to_string(),
+                    qualified_name: "LEN".to_string(),
+                    call_name: Some("LEN__STRING".to_owned(),),
+                }
+            );
 
-    assert_eq!(
-        functions[0],
-        &StatementAnnotation::Function {
-            return_type: "__LEN__STRING_return".to_string(),
-            qualified_name: "LEN__STRING".to_string(),
-            call_name: None,
+            let parameters = flatten_expression_list(&parameters.as_ref().as_ref().unwrap());
+            assert_type_and_hint!(
+                &annotations,
+                &index,
+                dbg!(parameters[0]),
+                "__STRING_3",
+                None
+            );
+        } else {
+            unreachable!("Not a call statement.")
         }
-    );
+    } else {
+        unreachable!("Not an assignment.")
+    }
 
-    assert_eq!(values[0], &String::from("DINT"),)
+    let function = index.get_members("LEN__STRING").unwrap();
+    let param = function.get("in").unwrap();
+
+    let datatype = index.get_type_information_or_void(param.get_type_name());
+    if let DataTypeInformation::Pointer {
+        inner_type_name, ..
+    } = datatype
+    {
+        assert_eq!(inner_type_name, STRING_TYPE);
+    } else {
+        unreachable!("Not a pointer.")
+    }
 }
 
 #[test]
@@ -1040,7 +1063,7 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
 
 #[test]
 fn generic_return_type_name_resolved_correctly() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
     FUNCTION foo<T: ANY_INT> : T
     VAR_INPUT
@@ -1053,7 +1076,7 @@ fn generic_return_type_name_resolved_correctly() {
     END_FUNCTION",
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let annotations = annotate(&unit, &mut index);
 
     let mut functions = vec![];
     let mut values = vec![];
@@ -1081,10 +1104,10 @@ fn generic_return_type_name_resolved_correctly() {
     assert_eq!(values[0], &String::from("DINT"),)
 }
 
-
 #[test]
 fn literal_string_as_parameter_resolves_correctly() {
-    let (unit, index) = index(r#"
+    let (unit, mut index) = index(
+        r#"
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT
             x : T;
@@ -1094,16 +1117,26 @@ fn literal_string_as_parameter_resolves_correctly() {
         FUNCTION main : DINT
             foo('     this is   a  very   long          sentence   with');
         END_FUNCTION
-    "#);
+    "#,
+    );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let annotations = annotate(&unit, &mut index);
     let statement = &unit.implementations[1].statements[0];
-    
-    
-    if let AstStatement::CallStatement { operator, parameters, .. } =  statement {
+
+    if let AstStatement::CallStatement {
+        operator,
+        parameters,
+        ..
+    } = statement
+    {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, parameters[0], STRING_TYPE, None)     ;               
-        assert_type_and_hint!(&annotations, &index, statement, STRING_TYPE, None);
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            "__STRING_54",
+            Some(STRING_TYPE)
+        );
         assert_eq!(
             annotations.get(operator).unwrap(),
             &StatementAnnotation::Function {
@@ -1111,10 +1144,8 @@ fn literal_string_as_parameter_resolves_correctly() {
                 qualified_name: "foo".to_string(),
                 call_name: Some("foo__STRING".to_string()),
             }
-        );        
-        
+        );
     } else {
         unreachable!("This should always be a call statement.")
     }
-
 }

@@ -769,6 +769,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.get_type_hint_for(param_statement)
                         .map(|it| it.get_name())
                         .and_then(|type_name| {
+                            // If the variadic is defined in a by_ref block, we need to pass the argument as reference
                             if let ArgumentType::ByVal(_) = argument_type {
                                 self.generate_argument_by_val(type_name, param_statement)
                             } else {
@@ -777,11 +778,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         })
                 })
                 .collect::<Result<Vec<_>, _>>()?;
+            // For sized variadics we create an array and store all the arguments in that array
             if let VarArgs::Sized(Some(type_name)) = var_args {
-                let llvm_type = generated_params
-                    .get(0)
-                    .map(|it| Ok(it.get_type()))
-                    .unwrap_or_else(|| self.llvm_index.get_associated_type(type_name))?;
+                let llvm_type = self.llvm_index.get_associated_type(type_name)?;
+                // If the variadic argument is ByRef, wrap it in a pointer.
+                let llvm_type = if matches!(argument_type, ArgumentType::ByRef(_)) {
+                    llvm_type.ptr_type(AddressSpace::Generic).into()
+                } else {
+                    llvm_type
+                };
                 let size = generated_params.len();
                 let size_param = self.llvm.i32_type().const_int(size as u64, true);
                 let arr = Llvm::get_array_type(llvm_type, size as u32);
