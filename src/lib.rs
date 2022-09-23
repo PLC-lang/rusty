@@ -122,7 +122,7 @@ where
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
     /// Indicates that the result will be an object file (e.g. No Linking)
     Object,
@@ -160,7 +160,7 @@ impl FormatOption {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum)]
 pub enum ConfigFormat {
     JSON,
     TOML,

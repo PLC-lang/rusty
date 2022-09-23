@@ -22,7 +22,7 @@ mod instance_iterator;
 mod tests;
 pub mod visitor;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableIndexEntry {
     /// the name of this variable (e.g. 'x' for 'PLC_PRG.x')
     name: String,
@@ -48,7 +48,7 @@ pub struct VariableIndexEntry {
     varargs: Option<VarArgs>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HardwareBinding {
     /// Specifies if the binding is an In/Out or Memory binding
     pub direction: HardwareAccessType,
@@ -261,7 +261,7 @@ impl VariableIndexEntry {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ArgumentType {
     ByVal(VariableType),
     ByRef(VariableType),
@@ -280,7 +280,7 @@ impl ArgumentType {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum VariableType {
     Local, // functions have no locals; others: VAR-block
     Temp,  // for functions: VAR & VAR_TEMP; others: VAR_TEMP
@@ -292,7 +292,7 @@ pub enum VariableType {
 }
 
 /// information regarding a variable
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableInformation {
     /// the type of variable
     variable_type: VariableType,
@@ -314,7 +314,7 @@ pub enum DataTypeType {
     AliasType,     // a Custom-Alias-dataType
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ImplementationType {
     Program,
     Function,
@@ -324,7 +324,7 @@ pub enum ImplementationType {
     Method,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ImplementationIndexEntry {
     pub(crate) call_name: String,
     pub(crate) type_name: String,
@@ -378,7 +378,7 @@ impl From<&PouType> for ImplementationType {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum PouIndexEntry {
     Program {
         name: String,
@@ -1054,6 +1054,12 @@ impl Index {
             })
     }
 
+    pub fn find_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.member_variables
+            .get(&pou_name.to_lowercase())
+            .and_then(|map| map.values().find(|item| item.location_in_parent == index))
+    }
+
     /// returns the effective DataType of the type with the given name if it exists
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
@@ -1113,6 +1119,17 @@ impl Index {
         self.type_index
             .get_type(type_name)
             .unwrap_or_else(|_| panic!("{} not found", type_name))
+    }
+
+    pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+        self.get_const_expressions()
+            .maybe_get_constant_statement(id)
+    }
+
+    pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstStatement> {
+        self.type_index
+            .find_type(type_name)
+            .and_then(|t| self.get_initial_value(&t.initial_value))
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
@@ -1426,6 +1443,6 @@ pub fn get_initializer_name(name: &str) -> String {
 }
 impl VariableType {
     pub(crate) fn is_private(&self) -> bool {
-        return matches!(self, VariableType::Temp | VariableType::Local);
+        matches!(self, VariableType::Temp | VariableType::Local)
     }
 }
