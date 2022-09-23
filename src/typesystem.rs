@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     ast::{AstStatement, Operator, PouType, TypeNature},
-    datalayout::Offset,
+    datalayout::{Bytes, MemoryLocation},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -144,7 +144,7 @@ impl VarArgs {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StringEncoding {
     Utf8,
     Utf16,
@@ -383,26 +383,27 @@ impl DataTypeInformation {
         self.get_size(index).bits()
     }
 
-    pub fn get_size(&self, index: &Index) -> Offset {
+    pub fn get_size(&self, index: &Index) -> Bytes {
         match self {
-            DataTypeInformation::Integer { size, .. } => Offset::from_bits(*size),
-            DataTypeInformation::Float { size, .. } => Offset::from_bits(*size),
+            DataTypeInformation::Integer { size, .. } => Bytes::from_bits(*size),
+            DataTypeInformation::Float { size, .. } => Bytes::from_bits(*size),
             DataTypeInformation::String { size, encoding } => size
                 .as_int_value(index)
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
-                .map(Offset::from_bits)
+                .map(Bytes::from_bits)
                 .unwrap(),
             DataTypeInformation::Struct { member_names, .. } => member_names
                 .iter()
                 .filter_map(|it| index.find_member(self.get_name(), it))
                 .map(|it| it.get_type_name())
-                .fold(Offset::from_bits(0), |prev, it| {
+                .fold(MemoryLocation::new(0), |prev, it| {
                     let type_info = index.get_type_information_or_void(it);
-                    let size = type_info.get_size(index).bytes();
-                    let after_align = prev.align_to(type_info.get_alignment(index)).bytes();
+                    let size = type_info.get_size(index).value();
+                    let after_align = prev.align_to(type_info.get_alignment(index)).value();
                     let res = after_align + size;
-                    Offset::new(res)
-                }),
+                    MemoryLocation::new(res)
+                })
+                .into(),
             DataTypeInformation::Array {
                 inner_type_name,
                 dimensions,
@@ -414,24 +415,30 @@ impl DataTypeInformation {
                     .iter()
                     .map(|dim| dim.get_length(index).unwrap())
                     .product();
-                Offset::from_bits(inner_size * element_count)
+                Bytes::from_bits(inner_size * element_count)
             }
-            DataTypeInformation::Pointer { .. } => Offset::from_bits(POINTER_SIZE),
-            DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
-            DataTypeInformation::Alias { .. } => unimplemented!("alias"),
-            DataTypeInformation::Void => Offset::from_bits(0),
+            DataTypeInformation::Pointer { .. } => Bytes::from_bits(POINTER_SIZE),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            }
+            | DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => {
+                let inner_type = index.get_type_information_or_void(referenced_type);
+                inner_type.get_size(index)
+            }
             DataTypeInformation::Enum {
                 referenced_type, ..
             } => index
                 .find_effective_type_info(referenced_type)
                 .map(|it| it.get_size(index))
-                .unwrap_or_else(|| Offset::from_bits(DINT_SIZE)),
-            DataTypeInformation::Generic { .. } => unimplemented!("generics"),
+                .unwrap_or_else(|| Bytes::from_bits(DINT_SIZE)),
+            DataTypeInformation::Generic { .. } | DataTypeInformation::Void => Bytes::from_bits(0),
         }
     }
 
-    /// Returns the String encoding's alignment (charachter)
-    pub fn get_string_inner_alignment(&self, index: &Index) -> Offset {
+    /// Returns the String encoding's alignment (character)
+    pub fn get_string_character_width(&self, index: &Index) -> Bytes {
         let type_layout = index.get_type_layout();
         match self {
             DataTypeInformation::String {
@@ -446,7 +453,7 @@ impl DataTypeInformation {
         }
     }
 
-    pub fn get_alignment(&self, index: &Index) -> Offset {
+    pub fn get_alignment(&self, index: &Index) -> Bytes {
         let type_layout = index.get_type_layout();
         match self {
             DataTypeInformation::Array {
@@ -499,7 +506,7 @@ impl DataTypeInformation {
             } => index
                 .get_type_information_or_void(referenced_type)
                 .get_alignment(index),
-            _ => unimplemented!("Type alignment for {:?} not implemented", self),
+            _ => type_layout.i8,
         }
     }
 }

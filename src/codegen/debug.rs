@@ -12,10 +12,10 @@ use inkwell::{
 
 use crate::{
     ast::SourceRange,
-    datalayout::Offset,
+    datalayout::{Bytes, MemoryLocation},
     diagnostics::Diagnostic,
     index::Index,
-    typesystem::{DataType, DataTypeInformation, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
+    typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
 
@@ -188,7 +188,7 @@ impl<'ink> DebugBuilder<'ink> {
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
         let mut types = vec![];
-        let mut running_offset = Offset::new(0);
+        let mut running_offset = MemoryLocation::new(0);
         for (member_name, dt) in index_types.into_iter() {
             let di_type = self.get_or_create_debug_type(dt, index)?;
             //Adjust the offset based on the field alignment
@@ -238,20 +238,13 @@ impl<'ink> DebugBuilder<'ink> {
 
     fn create_array_type(
         &mut self,
-        array: &DataTypeInformation,
+        name: &str,
+        inner_type: &str,
+        dimensions: &[Dimension],
+        size: Bytes,
+        alignment: Bytes,
         index: &Index,
     ) -> Result<(), Diagnostic> {
-        let (name, inner_type, dimensions) = if let DataTypeInformation::Array {
-            name,
-            inner_type_name,
-            dimensions,
-            ..
-        } = array
-        {
-            (name, inner_type_name, dimensions)
-        } else {
-            unreachable!("Type info should be an array")
-        };
         //find the inner type debug info
         let inner_type = index.get_type(inner_type)?;
         //Find the dimenstions as ranges
@@ -264,8 +257,8 @@ impl<'ink> DebugBuilder<'ink> {
         let inner_type = self.get_or_create_debug_type(inner_type, index)?;
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
-            array.get_size_in_bits(index).into(),
-            array.get_alignment(index).bits(),
+            size.bits().into(),
+            alignment.bits(),
             subscript.as_slice(),
         );
         self.register_concrete_type(name, DebugType::Composite(array_type));
@@ -274,28 +267,22 @@ impl<'ink> DebugBuilder<'ink> {
 
     fn create_pointer_type(
         &mut self,
-        pointer: &DataTypeInformation,
+        name: &str,
+        inner_type: &str,
+        size: Bytes,
+        alignment: Bytes,
         index: &Index,
     ) -> Result<(), Diagnostic> {
-        if let DataTypeInformation::Pointer {
+        let inner_type = index.get_type(inner_type)?;
+        let inner_type = self.get_or_create_debug_type(inner_type, index)?;
+        let pointer_type = self.debug_info.create_pointer_type(
             name,
-            inner_type_name,
-            ..
-        } = pointer
-        {
-            let inner_type = index.get_type(inner_type_name)?;
-            let inner_type = self.get_or_create_debug_type(inner_type, index)?;
-            let pointer_type = self.debug_info.create_pointer_type(
-                name,
-                inner_type.into(),
-                pointer.get_size_in_bits(index).into(),
-                pointer.get_alignment(index).bits(),
-                inkwell::AddressSpace::Global,
-            );
-            self.register_concrete_type(name, DebugType::Derived(pointer_type));
-        } else {
-            unreachable!("Type should be pointer")
-        }
+            inner_type.into(),
+            size.bits().into(),
+            alignment.bits(),
+            inkwell::AddressSpace::Global,
+        );
+        self.register_concrete_type(name, DebugType::Derived(pointer_type));
         Ok(())
     }
 
@@ -320,21 +307,12 @@ impl<'ink> DebugBuilder<'ink> {
     fn create_string_type(
         &mut self,
         name: &str,
-        string: &DataTypeInformation,
+        length: i64,
+        encoding: StringEncoding,
+        size: Bytes,
+        alignment: Bytes,
         index: &Index,
     ) -> Result<(), Diagnostic> {
-        //Get encoding
-        let (size, encoding) = if let DataTypeInformation::String { size, encoding, .. } = string {
-            (
-                size.as_int_value(index)
-                    .map_err(|err| Diagnostic::codegen_error(&err, SourceRange::undefined()))?,
-                encoding,
-            )
-        } else {
-            unreachable!("Should be string")
-        };
-        //Calculate target size
-        let string_size = string.get_size_in_bits(index);
         // Register a utf8 or 16 basic type
         let inner_type = match encoding {
             StringEncoding::Utf8 => index.get_effective_type_or_void_by_name(CHAR_TYPE),
@@ -344,9 +322,9 @@ impl<'ink> DebugBuilder<'ink> {
         //Register an array
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
-            string_size.into(),
-            string.get_alignment(index).bits(),
-            &[(0..(size - 1))],
+            size.bits().into(),
+            alignment.bits(),
+            &[(0..(length - 1))],
         );
         self.register_concrete_type(name, DebugType::Composite(array_type));
         Ok(())
@@ -385,12 +363,30 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         //check if the type is currently registered
         if !self.types.contains_key(&name.to_lowercase()) {
             let type_info = datatype.get_type_information();
+            let size = type_info.get_size(index);
+            let alignment = type_info.get_alignment(index);
             match type_info {
                 DataTypeInformation::Struct { member_names, .. } => {
                     self.create_struct_type(name, member_names.as_slice(), index)
                 }
-                DataTypeInformation::Array { .. } => self.create_array_type(type_info, index),
-                DataTypeInformation::Pointer { .. } => self.create_pointer_type(type_info, index),
+                DataTypeInformation::Array {
+                    name,
+                    inner_type_name,
+                    dimensions,
+                    ..
+                } => self.create_array_type(
+                    name,
+                    inner_type_name,
+                    dimensions,
+                    size,
+                    alignment,
+                    index,
+                ),
+                DataTypeInformation::Pointer {
+                    name,
+                    inner_type_name,
+                    ..
+                } => self.create_pointer_type(name, inner_type_name, size, alignment, index),
                 DataTypeInformation::Integer { signed, size, .. } => {
                     let encoding = if type_info.is_bool() {
                         DebugEncoding::DW_ATE_boolean
@@ -407,8 +403,15 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 DataTypeInformation::Float { size, .. } => {
                     self.create_basic_type(name, *size as u64, DebugEncoding::DW_ATE_float)
                 }
-                DataTypeInformation::String { .. } => {
-                    self.create_string_type(name, type_info, index)
+                DataTypeInformation::String {
+                    size: string_size,
+                    encoding,
+                    ..
+                } => {
+                    let length = string_size
+                        .as_int_value(index)
+                        .map_err(|err| Diagnostic::codegen_error(&err, SourceRange::undefined()))?;
+                    self.create_string_type(name, length, *encoding, size, alignment, index)
                 }
                 DataTypeInformation::Alias {
                     name,
