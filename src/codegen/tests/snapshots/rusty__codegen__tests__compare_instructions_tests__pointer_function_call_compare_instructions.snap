@@ -1,0 +1,59 @@
+---
+source: src/codegen/tests/compare_instructions_tests.rs
+assertion_line: 262
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i16*, i16, i8 }
+
+@main_instance = global %main_interface zeroinitializer
+
+define i64 @foo() {
+entry:
+  %foo = alloca i64, align 8
+  store i64 0, i64* %foo, align 4
+  %foo_ret = load i64, i64* %foo, align 4
+  ret i64 %foo_ret
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %pt = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %comp = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  store i16* %x, i16** %pt, align 8
+  %load_pt = load i16*, i16** %pt, align 8
+  %call = call i64 @foo()
+  %tmpVar = icmp eq i64 ptrtoint (i16* %load_pt to i64), %call
+  %1 = zext i1 %tmpVar to i8
+  store i8 %1, i8* %comp, align 1
+  %load_pt1 = load i16*, i16** %pt, align 8
+  %call2 = call i64 @foo()
+  %tmpVar3 = icmp ne i64 ptrtoint (i16* %load_pt1 to i64), %call2
+  %2 = zext i1 %tmpVar3 to i8
+  store i8 %2, i8* %comp, align 1
+  %load_pt4 = load i16*, i16** %pt, align 8
+  %call5 = call i64 @foo()
+  %tmpVar6 = icmp slt i64 ptrtoint (i16* %load_pt4 to i64), %call5
+  %3 = zext i1 %tmpVar6 to i8
+  store i8 %3, i8* %comp, align 1
+  %load_pt7 = load i16*, i16** %pt, align 8
+  %call8 = call i64 @foo()
+  %tmpVar9 = icmp sgt i64 ptrtoint (i16* %load_pt7 to i64), %call8
+  %4 = zext i1 %tmpVar9 to i8
+  store i8 %4, i8* %comp, align 1
+  %load_pt10 = load i16*, i16** %pt, align 8
+  %call11 = call i64 @foo()
+  %tmpVar12 = icmp sle i64 ptrtoint (i16* %load_pt10 to i64), %call11
+  %5 = zext i1 %tmpVar12 to i8
+  store i8 %5, i8* %comp, align 1
+  %load_pt13 = load i16*, i16** %pt, align 8
+  %call14 = call i64 @foo()
+  %tmpVar15 = icmp sge i64 ptrtoint (i16* %load_pt13 to i64), %call14
+  %6 = zext i1 %tmpVar15 to i8
+  store i8 %6, i8* %comp, align 1
+  ret void
+}
+

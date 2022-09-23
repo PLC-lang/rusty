@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ops::Range};
 
 use inkwell::{
-    context::ContextRef,
+    context::Context,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
         DIFlagsConstants, DIType, DWARFEmissionKind, DebugInfoBuilder,
@@ -95,7 +95,7 @@ impl<'ink> From<DebugType<'ink>> for DIType<'ink> {
 
 /// Represents the debug builder and information for a compilation unit.
 pub struct DebugBuilder<'ink> {
-    context: ContextRef<'ink>,
+    context: &'ink Context,
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
     types: HashMap<String, DebugType<'ink>>,
@@ -112,6 +112,7 @@ pub enum DebugBuilderEnum<'ink> {
 
 impl<'ink> DebugBuilderEnum<'ink> {
     pub fn new(
+        context: &'ink Context,
         module: &Module<'ink>,
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
@@ -137,7 +138,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     "",
                 );
                 let dbg_obj = DebugBuilder {
-                    context: module.get_context(),
+                    context,
                     debug_info,
                     compile_unit,
                     types: Default::default(),
@@ -440,7 +441,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 None,
                 global_variable.get_alignment(),
             );
-            let gv_metadata = debug_variable.as_metadata_value(&self.context);
+            let gv_metadata = debug_variable.as_metadata_value(self.context);
 
             global_variable.set_metadata(gv_metadata, 0);
             self.context.metadata_node(&[gv_metadata.into()]);

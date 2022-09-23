@@ -108,7 +108,7 @@ macro_rules! compare_expression {
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct UnresolvableConstant {
     pub id: ConstId,
     pub reason: String,

@@ -49,7 +49,7 @@ impl<'ink> CodeGen<'ink> {
         debug_level: DebugLevel,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        let debug = debug::DebugBuilderEnum::new(&module, optimization_level, debug_level);
+        let debug = debug::DebugBuilderEnum::new(context, &module, optimization_level, debug_level);
         CodeGen {
             context,
             module,

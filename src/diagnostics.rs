@@ -15,7 +15,7 @@ use crate::ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Diagnostic {
     SyntaxError {
         message: String,
@@ -33,7 +33,7 @@ pub enum Diagnostic {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ErrNo {
     undefined,
 
@@ -53,6 +53,8 @@ pub enum ErrNo {
     pou__unsupported_return_type,
     pou__empty_variable_block,
     pou__missing_action_container,
+    // pou call
+    pou__missing_inout_parameter,
 
     //variable related
     var__unresolved_constant,
@@ -640,6 +642,14 @@ impl Diagnostic {
             ),
             range,
             err_no: ErrNo::case__duplicate_condition,
+        }
+    }
+
+    pub fn missing_inout_parameter(parameter: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Missing inout parameter: {}", parameter),
+            range,
+            err_no: ErrNo::pou__missing_action_container,
         }
     }
 }
