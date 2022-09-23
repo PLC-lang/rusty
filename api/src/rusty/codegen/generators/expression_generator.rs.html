@@ -2537,6 +2537,11 @@
 <span id="2532">2532</span>
 <span id="2533">2533</span>
 <span id="2534">2534</span>
+<span id="2535">2535</span>
+<span id="2536">2536</span>
+<span id="2537">2537</span>
+<span id="2538">2538</span>
+<span id="2539">2539</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -3774,6 +3779,14 @@
         .<span class="ident">as_basic_value_enum</span>()
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">int_neg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>) -&gt; <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_const</span>() {
+            <span class="ident">value</span>.<span class="ident">const_neg</span>()
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_int_neg</span>(<span class="ident">value</span>, <span class="string">&quot;&quot;</span>)
+        }
+    }
+
     <span class="doccomment">/// automatically derefs an inout variable pointer so it can be used like a normal variable</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Arguments</span>
@@ -3998,7 +4011,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">ptr</span>), <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">index</span>), <span class="prelude-val">Some</span>(<span class="ident">name</span>)) <span class="op">=</span> (<span class="ident">ptr</span>, <span class="ident">index</span>, <span class="ident">name</span>) {
                     <span class="comment">// if operator is minus we need to negate the index</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Operator::Minus</span> <span class="op">=</span> <span class="ident">operator</span> {
-                        <span class="ident">index</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">const_neg</span>();
+                        <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">int_neg</span>(<span class="ident">index</span>);
                     }
 
                     <span class="prelude-val">Ok</span>(<span class="self">self</span>
@@ -4085,10 +4098,7 @@
     <span class="doccomment">/// address, if the given `value` is already an IntValue it is returned as is</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_to_int_value_if_pointer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>) -&gt; <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">BasicValueEnum::PointerValue</span>(<span class="ident">v</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">int_type</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">get_type</span>().<span class="ident">size_of</span>().<span class="ident">get_type</span>();
-                <span class="ident">v</span>.<span class="ident">const_to_int</span>(<span class="ident">int_type</span>)
-            }
+            <span class="ident">BasicValueEnum::PointerValue</span>(<span class="ident">v</span>) =&gt; <span class="self">self</span>.<span class="ident">ptr_as_value</span>(<span class="ident">v</span>).<span class="ident">into_int_value</span>(),
             <span class="ident">BasicValueEnum::IntValue</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
             <span class="kw">_</span> =&gt; <span class="macro">unimplemented!</span>(),
         }
