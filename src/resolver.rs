@@ -938,28 +938,35 @@ impl<'i> TypeAnnotator<'i> {
                         .or_else(|| self.annotation_map.get_type(left, self.index))
                         .and_then(|it| self.index.find_effective_type(it))
                         .unwrap_or_else(|| self.index.get_void_type());
+                    // do not use for is_pointer() check
+                    let l_intrinsic_type = self
+                        .index
+                        .get_intrinsic_type_by_name(left_type.get_name())
+                        .get_type_information();
                     let right_type = self
                         .annotation_map
                         .get_type_hint(right, self.index)
                         .or_else(|| self.annotation_map.get_type(right, self.index))
                         .and_then(|it| self.index.find_effective_type(it))
                         .unwrap_or_else(|| self.index.get_void_type());
+                    // do not use for is_pointer() check
+                    let r_intrinsic_type = self
+                        .index
+                        .get_intrinsic_type_by_name(right_type.get_name())
+                        .get_type_information();
 
-                    if left_type.get_type_information().is_numerical()
-                        && right_type.get_type_information().is_numerical()
-                    {
-                        let bigger_type = if left_type.get_type_information().is_bool()
-                            && right_type.get_type_information().is_bool()
-                        {
-                            left_type
-                        } else {
-                            let dint = self.index.get_type_or_panic(DINT_TYPE);
-                            get_bigger_type(
-                                get_bigger_type(left_type, right_type, self.index),
-                                dint,
-                                self.index,
-                            )
-                        };
+                    if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
+                        let bigger_type =
+                            if l_intrinsic_type.is_bool() && r_intrinsic_type.is_bool() {
+                                left_type
+                            } else {
+                                let dint = self.index.get_type_or_panic(DINT_TYPE);
+                                get_bigger_type(
+                                    get_bigger_type(left_type, right_type, self.index),
+                                    dint,
+                                    self.index,
+                                )
+                            };
 
                         let target_name = if operator.is_bool_type() {
                             BOOL_TYPE.to_string()
@@ -982,17 +989,30 @@ impl<'i> TypeAnnotator<'i> {
                         }
 
                         Some(target_name)
-                    } else if operator.is_bool_type() {
-                        Some(BOOL_TYPE.to_string())
                     } else if left_type.get_type_information().is_pointer()
                         || right_type.get_type_information().is_pointer()
                     {
-                        let target_name = if left_type.get_type_information().is_pointer() {
+                        // get the target type of the binary expression
+                        let target_type = if operator.is_comparison_operator() {
+                            // compare instructions result in BOOL
+                            // to generate valid IR code if a pointer is beeing compared to an integer
+                            // we need to cast the int to the pointers size
+                            if !left_type.get_type_information().is_pointer() {
+                                let left_type = left_type.clone(); // clone here, so we release the borrow on self
+                                self.annotate_to_pointer_size_if_necessary(&left_type, left);
+                            } else if !right_type.get_type_information().is_pointer() {
+                                let right_type = right_type.clone(); // clone here, so we release the borrow on self
+                                self.annotate_to_pointer_size_if_necessary(&right_type, right);
+                            }
+                            BOOL_TYPE
+                        } else if left_type.get_type_information().is_pointer() {
                             left_type.get_name()
                         } else {
                             right_type.get_name()
                         };
-                        Some(target_name.to_string())
+                        Some(target_type.to_string())
+                    } else if operator.is_bool_type() {
+                        Some(BOOL_TYPE.to_string())
                     } else {
                         None
                     }
@@ -1432,6 +1452,24 @@ impl<'i> TypeAnnotator<'i> {
             }
 
             _ => {}
+        }
+    }
+
+    fn annotate_to_pointer_size_if_necessary(
+        &mut self,
+        value_type: &typesystem::DataType,
+        statement: &AstStatement,
+    ) {
+        // pointer size is 64Bits matching LINT
+        // therefore get the bigger type of current and LINT to check if cast is necessary
+        let bigger_type = get_bigger_type(
+            value_type,
+            self.index.get_type_or_panic(LINT_TYPE),
+            self.index,
+        );
+        if bigger_type != value_type {
+            let bigger_type = bigger_type.clone();
+            self.update_expected_types(&bigger_type, statement);
         }
     }
 }

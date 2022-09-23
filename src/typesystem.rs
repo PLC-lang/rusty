@@ -810,6 +810,14 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
             .find_effective_type_info(referenced_type)
             .map(|it| get_rank(it, index))
             .unwrap_or(DINT_SIZE),
+        DataTypeInformation::SubRange { name, .. } | DataTypeInformation::Alias { name, .. } => {
+            get_rank(
+                index
+                    .get_intrinsic_type_by_name(name)
+                    .get_type_information(),
+                index,
+            )
+        }
         _ => todo!("{:?}", type_information),
     }
 }
