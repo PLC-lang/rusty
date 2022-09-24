@@ -28,7 +28,8 @@ entry:
   store i16* %access___main_pt5, i16** %pt, align 8
   %load_pt6 = load i16*, i16** %pt, align 8
   %load_y = load i16, i16* %y, align 2
-  %access___main_pt7 = getelementptr inbounds i16, i16* %load_pt6, i16 sub (i16 0, i16 %load_y)
+  %1 = sub i16 0, %load_y
+  %access___main_pt7 = getelementptr inbounds i16, i16* %load_pt6, i16 %1
   store i16* %access___main_pt7, i16** %pt, align 8
   %load_pt8 = load i16*, i16** %pt, align 8
   %access___main_pt9 = getelementptr inbounds i16, i16* %load_pt8, i32 1
@@ -36,7 +37,8 @@ entry:
   store i16* %access___main_pt10, i16** %pt, align 8
   %load_pt11 = load i16*, i16** %pt, align 8
   %load_y12 = load i16, i16* %y, align 2
-  %access___main_pt13 = getelementptr inbounds i16, i16* %load_pt11, i16 sub (i16 0, i16 %load_y12)
+  %2 = sub i16 0, %load_y12
+  %access___main_pt13 = getelementptr inbounds i16, i16* %load_pt11, i16 %2
   %access___main_pt14 = getelementptr inbounds i16, i16* %access___main_pt13, i32 -1
   store i16* %access___main_pt14, i16** %pt, align 8
   %load_pt15 = load i16*, i16** %pt, align 8
@@ -46,13 +48,14 @@ entry:
   %load_pt18 = load i16*, i16** %pt, align 8
   %access___main_pt19 = getelementptr inbounds i16, i16* %load_pt18, i16 %load_y17
   %load_y20 = load i16, i16* %y, align 2
-  %access___main_pt21 = getelementptr inbounds i16, i16* %access___main_pt19, i16 sub (i16 0, i16 %load_y20)
+  %3 = sub i16 0, %load_y20
+  %access___main_pt21 = getelementptr inbounds i16, i16* %access___main_pt19, i16 %3
   store i16* %access___main_pt21, i16** %pt, align 8
   %load_y22 = load i16, i16* %y, align 2
-  %1 = sext i16 %load_y22 to i32
+  %4 = sext i16 %load_y22 to i32
   %load_y23 = load i16, i16* %y, align 2
-  %2 = sext i16 %load_y23 to i32
-  %tmpVar = add i32 %1, %2
+  %5 = sext i16 %load_y23 to i32
+  %tmpVar = add i32 %4, %5
   %load_pt24 = load i16*, i16** %pt, align 8
   %access___main_pt25 = getelementptr inbounds i16, i16* %load_pt24, i32 %tmpVar
   store i16* %access___main_pt25, i16** %pt, align 8
