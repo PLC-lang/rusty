@@ -302,7 +302,7 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
         .join(" ");
     let mut unit = parser::parse(
         lexer::lex_with_ids(&src, id_provider.clone()),
-        LinkageType::BuiltIn,
+        LinkageType::BuiltIn, "<builtin>"
     )
     .0;
     crate::ast::pre_process(&mut unit, id_provider);

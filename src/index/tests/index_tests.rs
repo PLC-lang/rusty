@@ -1431,7 +1431,7 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone()),
-        LinkageType::Internal,
+        LinkageType::Internal, "test.st"
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1478,7 +1478,7 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone()),
-        LinkageType::Internal,
+        LinkageType::Internal, "test.st"
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1519,7 +1519,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone()),
-        LinkageType::Internal,
+        LinkageType::Internal, "test.st"
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1549,7 +1549,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone()),
-        LinkageType::Internal,
+        LinkageType::Internal, "test.st"
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1633,7 +1633,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone()),
-        LinkageType::Internal,
+        LinkageType::Internal, "test.st"
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());

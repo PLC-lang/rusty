@@ -627,7 +627,7 @@ fn parse_and_index<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     id_provider: &IdProvider,
     diagnostician: &mut Diagnostician,
-    linkage: LinkageType,
+    linkage: LinkageType
 ) -> Result<(Index, Units), Diagnostic> {
     let mut index = Index::default();
 
@@ -645,7 +645,7 @@ fn parse_and_index<T: SourceContainer>(
 
         let (mut parse_result, diagnostics) = parser::parse(
             lexer::lex_with_ids(e.source.as_str(), id_provider.clone()),
-            linkage,
+            linkage, location.as_str()
         );
 
         //pre-process the ast (create inlined types)

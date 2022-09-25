@@ -20,7 +20,7 @@ pub mod tests {
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
             lexer::lex_with_ids(src, IdProvider::default()),
-            ast::LinkageType::Internal,
+            ast::LinkageType::Internal, "test.st"
         )
     }
 
@@ -28,7 +28,7 @@ pub mod tests {
         let id_provider = IdProvider::default();
         let (mut unit, diagnostic) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone()),
-            ast::LinkageType::Internal,
+            ast::LinkageType::Internal, "test.st"
         );
         ast::pre_process(&mut unit, id_provider);
         (unit, diagnostic)
@@ -43,7 +43,7 @@ pub mod tests {
 
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone()),
-            ast::LinkageType::Internal,
+            ast::LinkageType::Internal, "test.st"
         );
         ast::pre_process(&mut unit, id_provider.clone());
         index.import(index::visitor::visit(&unit, id_provider));

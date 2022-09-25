@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use indexmap::IndexMap;
+use logos::Source;
+use string_interner::StringInterner;
 
 use crate::{
     ast::{

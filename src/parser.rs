@@ -19,8 +19,8 @@ mod expressions_parser;
 pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
-pub fn parse(mut lexer: ParseSession, lnk: LinkageType) -> ParsedAst {
-    let mut unit = CompilationUnit::default();
+pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> ParsedAst {
+    let mut unit = CompilationUnit::new(file_name, NewLines::build(lexer.get_src()));
 
     let mut linkage = lnk;
     loop {
