@@ -279,6 +279,4 @@ fn constant_date_time_values_values_used_as_initial_values() {
     // WHEN the code gets executed
     let mut main = MainType::default();
     let _: i32 = compile_and_run(src, &mut main);
-
-
 }
