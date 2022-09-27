@@ -511,3 +511,21 @@ fn lreal_to_lreal_expt() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn compare_date_time_literals() {
+    let result = codegen(
+        "
+    PROGRAM main
+    VAR_TEMP
+        cmp1: BOOL; 
+        cmp2: BOOL;
+    END_VAR
+        cmp1 := LTOD#08:30:00:0011 < LTOD#16:42:9911002;
+        cmp2 := LDT#1999-12-24-08:30:00:0011 > LDT#1970-01-01-16:42:9911002;
+    END_FUNCTION
+    ",
+    );
+
+    insta::assert_snapshot!(result);
+}
