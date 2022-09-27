@@ -390,6 +390,12 @@
 <span id="385">385</span>
 <span id="386">386</span>
 <span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">HardwareAccessType</span>};
@@ -741,19 +747,25 @@
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FALSE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralFalse</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(LDATE|DATE|D)#\\d+-\\d+-\\d+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(LDATE|DATE|LD|D)#\\d+-\\d+-\\d+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralDate</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(
-        <span class="string">&quot;(DATE_AND_TIME|DT|LDT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>,
+        <span class="string">&quot;(DATE_AND_TIME|DT|LDATE_AND_TIME|LDT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>,
         <span class="ident">ignore</span>(<span class="ident">case</span>)
     )]</span>
     <span class="ident">LiteralDateAndTime</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(TIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(
+        <span class="string">&quot;(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>,
+        <span class="ident">ignore</span>(<span class="ident">case</span>)
+    )]</span>
     <span class="ident">LiteralTimeOfDay</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(LTIME|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(
+        <span class="string">&quot;(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>,
+        <span class="ident">ignore</span>(<span class="ident">case</span>)
+    )]</span>
     <span class="ident">LiteralTime</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;%(B|b|D|d|W|w|X|x)&quot;</span>, <span class="ident"><span class="kw">super</span>::parse_access_type</span>)]</span>
