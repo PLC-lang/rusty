@@ -7,6 +7,7 @@ use crate::{
         LinkageType, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
+    datalayout::DataLayout,
     diagnostics::Diagnostic,
     typesystem::{self, *},
 };
@@ -738,6 +739,9 @@ pub struct Index {
     type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
+
+    /// Type layout for the target
+    data_layout: DataLayout,
 }
 
 impl Index {
@@ -1422,6 +1426,10 @@ impl Index {
         } else {
             None
         }
+    }
+
+    pub fn get_type_layout(&self) -> &DataLayout {
+        &self.data_layout
     }
 }
 

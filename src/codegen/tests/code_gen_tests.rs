@@ -1319,12 +1319,12 @@ FUNCTION drive : DINT
 
 	CASE input OF
 		FORWARD : 
-			horiz := horiz + 1;
-        FORWARD*2:
+        horiz := horiz + 1;
+    FORWARD*2:
             horiz := horiz + 2;
-		UP :
-			depth := depth - 1;
-		DOWN : 
+    UP : 
+        depth := depth - 1;
+    DOWN : 
 			depth := depth + 1;
 
 	END_CASE
