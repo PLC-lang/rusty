@@ -1,0 +1,48 @@
+---
+source: src/codegen/tests/debug_tests.rs
+expression: codegen
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@en3 = global i64 0, !dbg !0
+@a = unnamed_addr constant i32 0, !dbg !4
+@b = unnamed_addr constant i32 1, !dbg !7
+@c = unnamed_addr constant i32 2, !dbg !9
+@d = unnamed_addr constant i8 0, !dbg !11
+@e = unnamed_addr constant i8 1, !dbg !14
+@f = unnamed_addr constant i8 2, !dbg !16
+@a.1 = unnamed_addr constant i64 0, !dbg !18
+@b.2 = unnamed_addr constant i64 1, !dbg !20
+@c.3 = unnamed_addr constant i64 2, !dbg !22
+
+!llvm.dbg.cu = !{!24}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "main", directory: "")
+!3 = !DIBasicType(name: "__global_en3", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!4 = !DIGlobalVariableExpression(var: !5, expr: !DIExpression())
+!5 = distinct !DIGlobalVariable(name: "en1.a", scope: !2, file: !2, type: !6, isLocal: false, isDefinition: true)
+!6 = !DIBasicType(name: "en1", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
+!8 = distinct !DIGlobalVariable(name: "en1.b", scope: !2, file: !2, type: !6, isLocal: false, isDefinition: true)
+!9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
+!10 = distinct !DIGlobalVariable(name: "en1.c", scope: !2, file: !2, type: !6, isLocal: false, isDefinition: true)
+!11 = !DIGlobalVariableExpression(var: !12, expr: !DIExpression())
+!12 = distinct !DIGlobalVariable(name: "en2.d", scope: !2, file: !2, type: !13, isLocal: false, isDefinition: true)
+!13 = !DIBasicType(name: "en2", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+!14 = !DIGlobalVariableExpression(var: !15, expr: !DIExpression())
+!15 = distinct !DIGlobalVariable(name: "en2.e", scope: !2, file: !2, type: !13, isLocal: false, isDefinition: true)
+!16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
+!17 = distinct !DIGlobalVariable(name: "en2.f", scope: !2, file: !2, type: !13, isLocal: false, isDefinition: true)
+!18 = !DIGlobalVariableExpression(var: !19, expr: !DIExpression())
+!19 = distinct !DIGlobalVariable(name: "__global_en3.a", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!20 = !DIGlobalVariableExpression(var: !21, expr: !DIExpression())
+!21 = distinct !DIGlobalVariable(name: "__global_en3.b", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!22 = !DIGlobalVariableExpression(var: !23, expr: !DIExpression())
+!23 = distinct !DIGlobalVariable(name: "__global_en3.c", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!24 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !25, globals: !26, splitDebugInlining: false)
+!25 = !{}
+!26 = !{!0, !4, !7, !9, !11, !14, !16, !18, !20, !22}
+
