@@ -79,7 +79,7 @@ impl Serialize for HardwareConfiguration<'_> {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct HardwareBinding<'idx> {
     qualifed_name: ExpressionPath<'idx>,
     direction: HardwareAccessType,

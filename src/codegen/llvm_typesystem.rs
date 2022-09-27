@@ -94,7 +94,7 @@ pub fn promote_value_if_needed<'ctx>(
     }
 }
 
-fn create_llvm_extend_int_value<'a>(
+pub fn create_llvm_extend_int_value<'a>(
     builder: &Builder<'a>,
     lvalue: IntValue<'a>,
     ltype: &DataTypeInformation,

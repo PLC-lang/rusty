@@ -2122,6 +2122,45 @@ fn function_call_params() {
 }
 
 #[test]
+fn function_call_params_with_trailling_comma() {
+    let src = "
+    PROGRAM prg
+    fn(1,2,3,);
+    END_PROGRAM
+    ";
+    let (parse_result, diagnostics) = parse(src);
+
+    assert_eq!(diagnostics, vec![]);
+
+    let statement = &parse_result.implementations[0].statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+
+    let expected_ast = r#"CallStatement {
+    operator: Reference {
+        name: "fn",
+    },
+    parameters: Some(
+        ExpressionList {
+            expressions: [
+                LiteralInteger {
+                    value: 1,
+                },
+                LiteralInteger {
+                    value: 2,
+                },
+                LiteralInteger {
+                    value: 3,
+                },
+            ],
+        },
+    ),
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn string_can_be_parsed() {
     let src = "PROGRAM buz VAR x : STRING; END_VAR x := 'Hello, World!'; x := ''; END_PROGRAM";
     let result = parse(src).0;

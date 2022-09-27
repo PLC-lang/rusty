@@ -588,9 +588,9 @@ fn var_output_unassigned() {
 
         PROGRAM main
             VAR
-                var : DINT;
+                var1 : DINT;
             END_VAR
-            foo(output2 => var);
+            foo(output2 => var1);
         END_PROGRAM
     "#;
 

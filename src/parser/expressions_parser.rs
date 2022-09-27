@@ -54,16 +54,22 @@ pub fn parse_expression(lexer: &mut ParseSession) -> AstStatement {
 pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
-        let mut expressions = vec![left];
+        let mut expressions = vec![];
         // this starts an expression list
         while lexer.token == KeywordComma {
             lexer.advance();
-            expressions.push(parse_range_statement(lexer));
+            if !lexer.closes_open_region(&lexer.token) {
+                expressions.push(parse_range_statement(lexer));
+            }
         }
-        return AstStatement::ExpressionList {
-            expressions,
-            id: lexer.next_id(),
-        };
+        // we may have parsed no additional expression because of trailing comma
+        if !expressions.is_empty() {
+            expressions.insert(0, left);
+            return AstStatement::ExpressionList {
+                expressions,
+                id: lexer.next_id(),
+            };
+        }
     }
     left
 }

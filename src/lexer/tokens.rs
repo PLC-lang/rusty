@@ -2,7 +2,7 @@ use logos::Logos;
 
 use crate::ast::{DirectAccessType, HardwareAccessType};
 
-#[derive(Debug, PartialEq, Logos, Clone)]
+#[derive(Debug, PartialEq, Eq, Logos, Clone)]
 pub enum Token {
     #[error]
     #[regex(r"\(\*", |lex| super::parse_comments(lex))]
@@ -349,19 +349,25 @@ pub enum Token {
     #[token("FALSE", ignore(case))]
     LiteralFalse,
 
-    #[regex("(LDATE|DATE|D)#\\d+-\\d+-\\d+", ignore(case))]
+    #[regex("(LDATE|DATE|LD|D)#\\d+-\\d+-\\d+", ignore(case))]
     LiteralDate,
 
     #[regex(
-        "(DATE_AND_TIME|DT|LDT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?",
+        "(DATE_AND_TIME|DT|LDATE_AND_TIME|LDT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?",
         ignore(case)
     )]
     LiteralDateAndTime,
 
-    #[regex("(TIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?", ignore(case))]
+    #[regex(
+        "(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?",
+        ignore(case)
+    )]
     LiteralTimeOfDay,
 
-    #[regex("(LTIME|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]
+    #[regex(
+        "(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+",
+        ignore(case)
+    )]
     LiteralTime,
 
     #[regex("%(B|b|D|d|W|w|X|x)", super::parse_access_type)]

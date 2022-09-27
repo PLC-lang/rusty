@@ -3,7 +3,7 @@ use clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
-use crate::{ConfigFormat, ErrorFormat, FormatOption};
+use crate::{ConfigFormat, DebugLevel, ErrorFormat, FormatOption};
 
 pub type ParameterError = clap::Error;
 
@@ -169,6 +169,25 @@ pub struct CompileParameters {
     )]
     pub linker: Option<String>,
 
+    #[clap(
+        name = "debug",
+        long,
+        short = 'g',
+        help = "Generate source-level debug information",
+        global = true,
+        group = "dbg"
+    )]
+    pub generate_debug: bool,
+
+    #[clap(
+        name = "debug-variables",
+        long,
+        help = "Generate debug information for global variables",
+        global = true,
+        group = "dbg"
+    )]
+    pub generate_varinfo: bool,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -235,6 +254,16 @@ impl CompileParameters {
                 Ok(result)
             }
         })
+    }
+
+    pub fn debug_level(&self) -> DebugLevel {
+        if self.generate_debug {
+            DebugLevel::Full
+        } else if self.generate_varinfo {
+            DebugLevel::VariablesOnly
+        } else {
+            DebugLevel::None
+        }
     }
 
     // convert the scattered bools from structopt into an enum

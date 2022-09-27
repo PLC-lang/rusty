@@ -392,3 +392,282 @@ fn array_type_initialization_with_literals_can_be_parsed_test() {
 )"#;
     assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn date_and_time_constants_can_be_parsed() {
+    let src = r#"
+    VAR_GLOBAL CONSTANT
+        cT          : TIME              := TIME#1s;
+        cT_SHORT    : TIME              := T#2h1s10ns;
+        cLT         : LTIME             := LTIME#1h1s1ms1us1ns;
+        cLT_SHORT   : LTIME             := LT#1000s;
+        cD          : DATE              := DATE#1970-01-01;
+        cD_SHORT    : DATE              := D#1970-01-01;
+        cLD         : LDATE             := LDATE#1970-01-01;
+        cLD_SHORT   : LDATE             := LD#1970-01-01;
+        cTOD        : TIME_OF_DAY       := TIME_OF_DAY#00:00:00;
+        cTOD_SHORT  : TOD               := TOD#00:00:00;
+        cLTOD       : LTOD              := LTIME_OF_DAY#23:59:59.999999999;
+        cLTOD_SHORT : LTOD              := LTOD#23:59:59.999999999;
+        cDT         : DATE_AND_TIME     := DATE_AND_TIME#1970-01-01-23:59:59;
+        cDT_SHORT   : DT                := DT#1970-01-01-23:59:59;
+        cLDT        : LDT               := LDATE_AND_TIME#1970-01-01-23:59:59.123;
+        cLDT_SHORT  : LDT               := LDT#1970-01-01-23:59:59.123;
+    END_VAR"#;
+
+    let (result, _) = parse(src);
+
+    let vars = dbg!(&result.global_vars[0].variables);
+    let ast_string = format!("{:#?}", &vars);
+    let expected_ast = r#"[
+    Variable {
+        name: "cT",
+        data_type: DataTypeReference {
+            referenced_type: "TIME",
+        },
+        initializer: Some(
+            LiteralTime {
+                day: 0.0,
+                hour: 0.0,
+                min: 0.0,
+                sec: 1.0,
+                milli: 0.0,
+                micro: 0.0,
+                nano: 0,
+                negative: false,
+            },
+        ),
+    },
+    Variable {
+        name: "cT_SHORT",
+        data_type: DataTypeReference {
+            referenced_type: "TIME",
+        },
+        initializer: Some(
+            LiteralTime {
+                day: 0.0,
+                hour: 2.0,
+                min: 0.0,
+                sec: 1.0,
+                milli: 0.0,
+                micro: 0.0,
+                nano: 10,
+                negative: false,
+            },
+        ),
+    },
+    Variable {
+        name: "cLT",
+        data_type: DataTypeReference {
+            referenced_type: "LTIME",
+        },
+        initializer: Some(
+            LiteralTime {
+                day: 0.0,
+                hour: 1.0,
+                min: 0.0,
+                sec: 1.0,
+                milli: 1.0,
+                micro: 1.0,
+                nano: 1,
+                negative: false,
+            },
+        ),
+    },
+    Variable {
+        name: "cLT_SHORT",
+        data_type: DataTypeReference {
+            referenced_type: "LTIME",
+        },
+        initializer: Some(
+            LiteralTime {
+                day: 0.0,
+                hour: 0.0,
+                min: 0.0,
+                sec: 1000.0,
+                milli: 0.0,
+                micro: 0.0,
+                nano: 0,
+                negative: false,
+            },
+        ),
+    },
+    Variable {
+        name: "cD",
+        data_type: DataTypeReference {
+            referenced_type: "DATE",
+        },
+        initializer: Some(
+            LiteralDate {
+                year: 1970,
+                month: 1,
+                day: 1,
+            },
+        ),
+    },
+    Variable {
+        name: "cD_SHORT",
+        data_type: DataTypeReference {
+            referenced_type: "DATE",
+        },
+        initializer: Some(
+            LiteralDate {
+                year: 1970,
+                month: 1,
+                day: 1,
+            },
+        ),
+    },
+    Variable {
+        name: "cLD",
+        data_type: DataTypeReference {
+            referenced_type: "LDATE",
+        },
+        initializer: Some(
+            LiteralDate {
+                year: 1970,
+                month: 1,
+                day: 1,
+            },
+        ),
+    },
+    Variable {
+        name: "cLD_SHORT",
+        data_type: DataTypeReference {
+            referenced_type: "LDATE",
+        },
+        initializer: Some(
+            LiteralDate {
+                year: 1970,
+                month: 1,
+                day: 1,
+            },
+        ),
+    },
+    Variable {
+        name: "cTOD",
+        data_type: DataTypeReference {
+            referenced_type: "TIME_OF_DAY",
+        },
+        initializer: Some(
+            LiteralTimeOfDay {
+                hour: 0,
+                min: 0,
+                sec: 0,
+                milli: 0,
+            },
+        ),
+    },
+    Variable {
+        name: "cTOD_SHORT",
+        data_type: DataTypeReference {
+            referenced_type: "TOD",
+        },
+        initializer: Some(
+            LiteralTimeOfDay {
+                hour: 0,
+                min: 0,
+                sec: 0,
+                milli: 0,
+            },
+        ),
+    },
+    Variable {
+        name: "cLTOD",
+        data_type: DataTypeReference {
+            referenced_type: "LTOD",
+        },
+        initializer: Some(
+            LiteralTimeOfDay {
+                hour: 23,
+                min: 59,
+                sec: 59,
+                milli: 1000,
+            },
+        ),
+    },
+    Variable {
+        name: "cLTOD_SHORT",
+        data_type: DataTypeReference {
+            referenced_type: "LTOD",
+        },
+        initializer: Some(
+            LiteralTimeOfDay {
+                hour: 23,
+                min: 59,
+                sec: 59,
+                milli: 1000,
+            },
+        ),
+    },
+    Variable {
+        name: "cDT",
+        data_type: DataTypeReference {
+            referenced_type: "DATE_AND_TIME",
+        },
+        initializer: Some(
+            LiteralDateAndTime {
+                year: 1970,
+                month: 1,
+                day: 1,
+                hour: 23,
+                min: 59,
+                sec: 59,
+                milli: 0,
+            },
+        ),
+    },
+    Variable {
+        name: "cDT_SHORT",
+        data_type: DataTypeReference {
+            referenced_type: "DT",
+        },
+        initializer: Some(
+            LiteralDateAndTime {
+                year: 1970,
+                month: 1,
+                day: 1,
+                hour: 23,
+                min: 59,
+                sec: 59,
+                milli: 0,
+            },
+        ),
+    },
+    Variable {
+        name: "cLDT",
+        data_type: DataTypeReference {
+            referenced_type: "LDT",
+        },
+        initializer: Some(
+            LiteralDateAndTime {
+                year: 1970,
+                month: 1,
+                day: 1,
+                hour: 23,
+                min: 59,
+                sec: 59,
+                milli: 123,
+            },
+        ),
+    },
+    Variable {
+        name: "cLDT_SHORT",
+        data_type: DataTypeReference {
+            referenced_type: "LDT",
+        },
+        initializer: Some(
+            LiteralDateAndTime {
+                year: 1970,
+                month: 1,
+                day: 1,
+                hour: 23,
+                min: 59,
+                sec: 59,
+                milli: 123,
+            },
+        ),
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast)
+}
