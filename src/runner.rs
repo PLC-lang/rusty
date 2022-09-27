@@ -93,6 +93,8 @@ pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
         vec![],
         None,
         Diagnostician::null_diagnostician(),
+        crate::OptimizationLevel::None,
+        crate::DebugLevel::None,
     )
     .unwrap();
     #[cfg(feature = "debug")]

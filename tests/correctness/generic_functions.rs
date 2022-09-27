@@ -50,6 +50,8 @@ fn test_external_function_called() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
@@ -167,6 +169,8 @@ fn test_generic_function_with_param_by_ref_called() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
