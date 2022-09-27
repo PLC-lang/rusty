@@ -106,6 +106,8 @@ fn sized_variadic_call() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
@@ -148,6 +150,8 @@ fn sized_pointer_variadic_call() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
@@ -224,6 +228,8 @@ fn string_sized_variadic_call() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
@@ -266,6 +272,8 @@ fn string_sized_pointer_variadic_call() {
         vec![],
         None,
         Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     let exec_engine = code_gen
