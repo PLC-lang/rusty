@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
+    index::Index,
     lexer::IdProvider,
     typesystem::{DataTypeInformation, REAL_TYPE, VOID_TYPE},
 };
@@ -152,18 +153,23 @@ impl TypeNature {
 
 impl DirectAccessType {
     /// Returns true if the current index is in the range for the given type
-    pub fn is_in_range(&self, index: u64, data_type: &DataTypeInformation) -> bool {
-        (self.get_bit_width() * index) < data_type.get_size() as u64
+    pub fn is_in_range(
+        &self,
+        access_index: u64,
+        data_type: &DataTypeInformation,
+        index: &Index,
+    ) -> bool {
+        (self.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
     }
 
     /// Returns the range from 0 for the given data type
-    pub fn get_range(&self, data_type: &DataTypeInformation) -> Range<u64> {
-        0..((data_type.get_size() as u64 / self.get_bit_width()) - 1)
+    pub fn get_range(&self, data_type: &DataTypeInformation, index: &Index) -> Range<u64> {
+        0..((data_type.get_size_in_bits(index) as u64 / self.get_bit_width()) - 1)
     }
 
     /// Returns true if the direct access can be used for the given type
-    pub fn is_compatible(&self, data_type: &DataTypeInformation) -> bool {
-        data_type.get_semantic_size() as u64 > self.get_bit_width()
+    pub fn is_compatible(&self, data_type: &DataTypeInformation, index: &Index) -> bool {
+        data_type.get_semantic_size(index) as u64 > self.get_bit_width()
     }
 
     /// Returns the size of the bitaccess result

@@ -2,6 +2,7 @@
 
 /// module to generate llvm intermediate representation for a CompilationUnit
 use self::{
+    debug::{Debug, DebugBuilderEnum},
     generators::{
         data_type_generator,
         llvm::{GlobalValueExt, Llvm},
@@ -13,6 +14,7 @@ use self::{
 use crate::{
     diagnostics::Diagnostic,
     resolver::{AstAnnotations, StringLiterals},
+    DebugLevel, OptimizationLevel,
 };
 
 use super::ast::*;
@@ -20,6 +22,7 @@ use super::index::*;
 use inkwell::module::Module;
 use inkwell::{context::Context, types::BasicType};
 
+mod debug;
 pub(crate) mod generators;
 mod llvm_index;
 mod llvm_typesystem;
@@ -33,17 +36,29 @@ pub struct CodeGen<'ink> {
     pub context: &'ink Context,
     /// the module represents a llvm compilation unit
     pub module: Module<'ink>,
+    /// the debugging module creates debug information at appropriate locations
+    pub debug: DebugBuilderEnum<'ink>,
 }
 
 impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
-    pub fn new(context: &'ink Context, module_name: &str) -> CodeGen<'ink> {
+    pub fn new(
+        context: &'ink Context,
+        module_name: &str,
+        optimization_level: OptimizationLevel,
+        debug_level: DebugLevel,
+    ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        CodeGen { context, module }
+        let debug = debug::DebugBuilderEnum::new(context, &module, optimization_level, debug_level);
+        CodeGen {
+            context,
+            module,
+            debug,
+        }
     }
 
     pub fn generate_llvm_index(
-        &self,
+        &mut self,
         annotations: &AstAnnotations,
         literals: StringLiterals,
         global_index: &Index,
@@ -51,14 +66,19 @@ impl<'ink> CodeGen<'ink> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let mut index = LlvmTypedIndex::default();
         //Generate types index, and any global variables associated with them.
-        let llvm_type_index =
-            data_type_generator::generate_data_types(&llvm, global_index, annotations)?;
+        let llvm_type_index = data_type_generator::generate_data_types(
+            &llvm,
+            &mut self.debug,
+            global_index,
+            annotations,
+        )?;
         index.merge(llvm_type_index);
 
         //Generate global variables
         let llvm_gv_index = variable_generator::generate_global_variables(
             &self.module,
             &llvm,
+            &self.debug,
             global_index,
             annotations,
             &index,
@@ -161,15 +181,12 @@ impl<'ink> CodeGen<'ink> {
         Ok(())
     }
 
-    pub fn generate_to_string(
-        &self,
-        unit: &CompilationUnit,
-        annotations: &AstAnnotations,
-        global_index: &Index,
-        llvm_index: &LlvmTypedIndex,
-    ) -> Result<String, Diagnostic> {
-        self.generate(unit, annotations, global_index, llvm_index)
-            .map(|_| self.module.print_to_string().to_string())
+    /// Finalize needs to be called on the debug builder, to signify that the code generation is
+    /// done and that the debug builder can now mark the debug information as complete. This is
+    /// required to be called on the debug builder by the LLVM API, and has to happen on a module
+    /// before it gets generated into object or IR
+    pub fn finalize(&self) -> Result<(), Diagnostic> {
+        self.debug.finalize()
     }
 }
 

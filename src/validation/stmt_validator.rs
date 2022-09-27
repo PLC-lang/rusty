@@ -88,7 +88,7 @@ impl StatementValidator {
                         .get_type_or_void(reference, context.index)
                         .get_type_information();
                     if target_type.is_int() {
-                        if !access.is_compatible(target_type) {
+                        if !access.is_compatible(target_type, context.index) {
                             self.diagnostics.push(Diagnostic::incompatible_directaccess(
                                 &format!("{:?}", access),
                                 access.get_bit_width(),
@@ -141,11 +141,11 @@ impl StatementValidator {
                     //check if Datatype can hold a Pointer (u64)
                     if r_effective_type.is_pointer()
                         && !l_effective_type.is_pointer()
-                        && l_effective_type.get_size() < POINTER_SIZE
+                        && l_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
                     {
                         self.diagnostics.push(Diagnostic::incompatible_type_size(
                             l_effective_type.get_name(),
-                            l_effective_type.get_size(),
+                            l_effective_type.get_size_in_bits(context.index),
                             "hold a",
                             statement.get_location(),
                         ));
@@ -153,11 +153,11 @@ impl StatementValidator {
                     //check if size allocated to Pointer is standart pointer size (u64)
                     else if l_effective_type.is_pointer()
                         && !r_effective_type.is_pointer()
-                        && r_effective_type.get_size() < POINTER_SIZE
+                        && r_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
                     {
                         self.diagnostics.push(Diagnostic::incompatible_type_size(
                             r_effective_type.get_name(),
-                            r_effective_type.get_size(),
+                            r_effective_type.get_size_in_bits(context.index),
                             "to be stored in a",
                             statement.get_location(),
                         ));
@@ -297,12 +297,16 @@ impl StatementValidator {
     ) {
         match *access_index {
             AstStatement::LiteralInteger { value, .. } => {
-                if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type) {
+                if !access_type.is_in_range(
+                    value.try_into().unwrap_or_default(),
+                    target_type,
+                    context.index,
+                ) {
                     self.diagnostics
                         .push(Diagnostic::incompatible_directaccess_range(
                             &format!("{:?}", access_type),
                             target_type.get_name(),
-                            access_type.get_range(target_type),
+                            access_type.get_range(target_type, context.index),
                             location.clone(),
                         ))
                 }
@@ -335,7 +339,7 @@ impl StatementValidator {
             if let Some(dimension) = dimension {
                 let range = dimension.get_range(context.index);
                 if let Ok(range) = range {
-                    if !(&range.start <= value && &range.end >= value) {
+                    if !(range.start as i128 <= *value && range.end as i128 >= *value) {
                         self.diagnostics
                             .push(Diagnostic::incompatible_array_access_range(
                                 range,
@@ -445,7 +449,9 @@ impl StatementValidator {
             //see if target and cast_type are compatible
         } else if cast_type.is_int() && literal_type.is_int() {
             //INTs with INTs
-            if cast_type.get_semantic_size() < literal_type.get_semantic_size() {
+            if cast_type.get_semantic_size(context.index)
+                < literal_type.get_semantic_size(context.index)
+            {
                 self.diagnostics.push(Diagnostic::literal_out_of_range(
                     StatementValidator::get_literal_value(literal).as_str(),
                     cast_type.get_name(),
