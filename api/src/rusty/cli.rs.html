@@ -775,12 +775,41 @@
 <span id="770">770</span>
 <span id="771">771</span>
 <span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">ArgGroup</span>, <span class="ident">CommandFactory</span>, <span class="ident">ErrorKind</span>, <span class="ident">Parser</span>, <span class="ident">Subcommand</span>};
 <span class="kw">use</span> <span class="ident">encoding_rs::Encoding</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi::OsStr</span>, <span class="ident">path::Path</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ConfigFormat</span>, <span class="ident">ErrorFormat</span>, <span class="ident">FormatOption</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ConfigFormat</span>, <span class="ident">DebugLevel</span>, <span class="ident">ErrorFormat</span>, <span class="ident">FormatOption</span>};
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParameterError</span> <span class="op">=</span> <span class="ident">clap::Error</span>;
 
@@ -946,6 +975,25 @@
     )]</span>
     <span class="kw">pub</span> <span class="ident">linker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 
+    <span class="attribute">#[<span class="ident">clap</span>(
+        <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>,
+        <span class="ident">long</span>,
+        <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;g&#39;</span>,
+        <span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Generate source-level debug information&quot;</span>,
+        <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>,
+        <span class="ident">group</span> <span class="op">=</span> <span class="string">&quot;dbg&quot;</span>
+    )]</span>
+    <span class="kw">pub</span> <span class="ident">generate_debug</span>: <span class="ident">bool</span>,
+
+    <span class="attribute">#[<span class="ident">clap</span>(
+        <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;debug-variables&quot;</span>,
+        <span class="ident">long</span>,
+        <span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Generate debug information for global variables&quot;</span>,
+        <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>,
+        <span class="ident">group</span> <span class="op">=</span> <span class="string">&quot;dbg&quot;</span>
+    )]</span>
+    <span class="kw">pub</span> <span class="ident">generate_varinfo</span>: <span class="ident">bool</span>,
+
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
     <span class="kw">pub</span> <span class="ident">commands</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SubCommands</span><span class="op">&gt;</span>,
 }
@@ -1012,6 +1060,16 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
             }
         })
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_level</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DebugLevel</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">generate_debug</span> {
+            <span class="ident">DebugLevel::Full</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">generate_varinfo</span> {
+            <span class="ident">DebugLevel::VariablesOnly</span>
+        } <span class="kw">else</span> {
+            <span class="ident">DebugLevel::None</span>
+        }
     }
 
     <span class="comment">// convert the scattered bools from structopt into an enum</span>

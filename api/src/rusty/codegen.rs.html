@@ -191,10 +191,28 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">/// module to generate llvm intermediate representation for a CompilationUnit</span>
 <span class="kw">use</span> <span class="self">self</span>::{
+    <span class="ident">debug</span>::{<span class="ident">Debug</span>, <span class="ident">DebugBuilderEnum</span>},
     <span class="ident">generators</span>::{
         <span class="ident">data_type_generator</span>,
         <span class="ident">llvm</span>::{<span class="ident">GlobalValueExt</span>, <span class="ident">Llvm</span>},
@@ -206,6 +224,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">diagnostics::Diagnostic</span>,
     <span class="ident">resolver</span>::{<span class="ident">AstAnnotations</span>, <span class="ident">StringLiterals</span>},
+    <span class="ident">DebugLevel</span>, <span class="ident">OptimizationLevel</span>,
 };
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ast</span>::<span class="kw-2">*</span>;
@@ -213,6 +232,7 @@
 <span class="kw">use</span> <span class="ident">inkwell::module::Module</span>;
 <span class="kw">use</span> <span class="ident">inkwell</span>::{<span class="ident">context::Context</span>, <span class="ident">types::BasicType</span>};
 
+<span class="kw">mod</span> <span class="ident">debug</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">generators</span>;
 <span class="kw">mod</span> <span class="ident">llvm_index</span>;
 <span class="kw">mod</span> <span class="ident">llvm_typesystem</span>;
@@ -226,17 +246,29 @@
     <span class="kw">pub</span> <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink</span> <span class="ident">Context</span>,
     <span class="doccomment">/// the module represents a llvm compilation unit</span>
     <span class="kw">pub</span> <span class="ident">module</span>: <span class="ident">Module</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// the debugging module creates debug information at appropriate locations</span>
+    <span class="kw">pub</span> <span class="ident">debug</span>: <span class="ident">DebugBuilderEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> <span class="ident">CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
     <span class="doccomment">/// constructs a new code-generator that generates CompilationUnits into a module with the given module_name</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink</span> <span class="ident">Context</span>, <span class="ident">module_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink</span> <span class="ident">Context</span>,
+        <span class="ident">module_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">optimization_level</span>: <span class="ident">OptimizationLevel</span>,
+        <span class="ident">debug_level</span>: <span class="ident">DebugLevel</span>,
+    ) -&gt; <span class="ident">CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">create_module</span>(<span class="ident">module_name</span>);
-        <span class="ident">CodeGen</span> { <span class="ident">context</span>, <span class="ident">module</span> }
+        <span class="kw">let</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">debug::DebugBuilderEnum::new</span>(<span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">module</span>, <span class="ident">optimization_level</span>, <span class="ident">debug_level</span>);
+        <span class="ident">CodeGen</span> {
+            <span class="ident">context</span>,
+            <span class="ident">module</span>,
+            <span class="ident">debug</span>,
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_llvm_index</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AstAnnotations</span>,
         <span class="ident">literals</span>: <span class="ident">StringLiterals</span>,
         <span class="ident">global_index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
@@ -244,14 +276,19 @@
         <span class="kw">let</span> <span class="ident">llvm</span> <span class="op">=</span> <span class="ident">Llvm::new</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_builder</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::default</span>();
         <span class="comment">//Generate types index, and any global variables associated with them.</span>
-        <span class="kw">let</span> <span class="ident">llvm_type_index</span> <span class="op">=</span>
-            <span class="ident">data_type_generator::generate_data_types</span>(<span class="kw-2">&amp;</span><span class="ident">llvm</span>, <span class="ident">global_index</span>, <span class="ident">annotations</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">llvm_type_index</span> <span class="op">=</span> <span class="ident">data_type_generator::generate_data_types</span>(
+            <span class="kw-2">&amp;</span><span class="ident">llvm</span>,
+            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">debug</span>,
+            <span class="ident">global_index</span>,
+            <span class="ident">annotations</span>,
+        )<span class="question-mark">?</span>;
         <span class="ident">index</span>.<span class="ident">merge</span>(<span class="ident">llvm_type_index</span>);
 
         <span class="comment">//Generate global variables</span>
         <span class="kw">let</span> <span class="ident">llvm_gv_index</span> <span class="op">=</span> <span class="ident">variable_generator::generate_global_variables</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">module</span>,
             <span class="kw-2">&amp;</span><span class="ident">llvm</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">debug</span>,
             <span class="ident">global_index</span>,
             <span class="ident">annotations</span>,
             <span class="kw-2">&amp;</span><span class="ident">index</span>,
@@ -354,15 +391,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_to_string</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="ident">CompilationUnit</span>,
-        <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AstAnnotations</span>,
-        <span class="ident">global_index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
-        <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">generate</span>(<span class="ident">unit</span>, <span class="ident">annotations</span>, <span class="ident">global_index</span>, <span class="ident">llvm_index</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">print_to_string</span>().<span class="ident">to_string</span>())
+    <span class="doccomment">/// Finalize needs to be called on the debug builder, to signify that the code generation is</span>
+    <span class="doccomment">/// done and that the debug builder can now mark the debug information as complete. This is</span>
+    <span class="doccomment">/// required to be called on the debug builder by the LLVM API, and has to happen on a module</span>
+    <span class="doccomment">/// before it gets generated into object or IR</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">debug</span>.<span class="ident">finalize</span>()
     }
 }
 

@@ -116,6 +116,8 @@
 <span id="111">111</span>
 <span id="112">112</span>
 <span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">context::Context</span>,
     <span class="ident">execution_engine</span>::{<span class="ident">ExecutionEngine</span>, <span class="ident">JitFunction</span>},
@@ -211,6 +213,8 @@
         <span class="macro">vec!</span>[],
         <span class="prelude-val">None</span>,
         <span class="ident">Diagnostician::null_diagnostician</span>(),
+        <span class="ident"><span class="kw">crate</span>::OptimizationLevel::None</span>,
+        <span class="ident"><span class="kw">crate</span>::DebugLevel::None</span>,
     )
     .<span class="ident">unwrap</span>();
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>)]</span>

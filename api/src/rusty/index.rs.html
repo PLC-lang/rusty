@@ -1439,6 +1439,14 @@
 <span id="1434">1434</span>
 <span id="1435">1435</span>
 <span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 
@@ -1448,6 +1456,7 @@
         <span class="ident">LinkageType</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">TypeNature</span>,
     },
     <span class="ident">builtins</span>::{<span class="self">self</span>, <span class="ident">BuiltIn</span>},
+    <span class="ident">datalayout::DataLayout</span>,
     <span class="ident">diagnostics::Diagnostic</span>,
     <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="kw-2">*</span>},
 };
@@ -2179,6 +2188,9 @@
     <span class="ident">type_index</span>: <span class="ident">TypeIndex</span>,
 
     <span class="ident">constant_expressions</span>: <span class="ident">ConstExpressions</span>,
+
+    <span class="doccomment">/// Type layout for the target</span>
+    <span class="ident">data_layout</span>: <span class="ident">DataLayout</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Index</span> {
@@ -2863,6 +2875,10 @@
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">DataLayout</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data_layout</span>
     }
 }
 
