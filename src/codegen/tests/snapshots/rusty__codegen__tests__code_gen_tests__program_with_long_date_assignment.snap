@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 381
 expression: result
 ---
 ; ModuleID = 'main'
@@ -21,9 +20,9 @@ entry:
   store i64 465436800000000000, i64* %x, align 4
   store i64 0, i64* %x, align 4
   store i64 465509714000000000, i64* %y, align 4
-  store i64 58804123000000, i64* %y, align 4
-  store i64 56191000000000, i64* %z, align 4
-  store i64 56190123000000, i64* %z, align 4
+  store i64 58804123456789, i64* %y, align 4
+  store i64 56190999999999, i64* %z, align 4
+  store i64 56190123456000, i64* %z, align 4
   ret void
 }
 
