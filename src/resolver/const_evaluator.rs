@@ -593,15 +593,19 @@ pub fn evaluate(
                     }
                 }
             })
-        },
+        }
         AstStatement::Assignment { left, right, id } => {
             //Rignt needs evaluation
             if let Some(right) = evaluate(right, scope, index)? {
-                Some(AstStatement::Assignment { left: left.clone(), right : Box::new(right), id: *id })
+                Some(AstStatement::Assignment {
+                    left: left.clone(),
+                    right: Box::new(right),
+                    id: *id,
+                })
             } else {
                 Some(initial.clone())
             }
-        },
+        }
         _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),
     };
     Ok(literal)

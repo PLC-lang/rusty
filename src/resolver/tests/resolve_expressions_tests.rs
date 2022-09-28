@@ -3137,8 +3137,8 @@ fn and_statement_of_dints_results_in_dint() {
 
 #[test]
 fn function_block_initialization_test() {
-    let (unit,mut index) = index(
-            "
+    let (unit, mut index) = index(
+        "
             FUNCTION_BLOCK TON
             VAR_INPUT
               PT: TIME;
@@ -3152,29 +3152,29 @@ fn function_block_initialization_test() {
                 timer : TON := (PT := T#0s); 
             END_VAR
             END_PROGRAM
-            "
-        );
+            ",
+    );
 
     let annotations = annotate(&unit, &mut index);
 
-
     //PT will be a TIME variable, qualified name will be TON.PT
-    let statement = unit.units[1].variable_blocks[0].variables[0].initializer.as_ref().unwrap();
-    if let AstStatement::Assignment { left, ..} = statement {
+    let statement = unit.units[1].variable_blocks[0].variables[0]
+        .initializer
+        .as_ref()
+        .unwrap();
+    if let AstStatement::Assignment { left, .. } = statement {
         let left = left.as_ref();
         let annotation = annotations.get(left).unwrap();
         assert_eq!(
             annotation,
-            &StatementAnnotation::Variable { 
-                resulting_type: "TIME".into(), 
-                qualified_name: "TON.PT".into(), 
-                constant: false, 
-                variable_type: VariableType::Input, 
-                is_auto_deref: false 
+            &StatementAnnotation::Variable {
+                resulting_type: "TIME".into(),
+                qualified_name: "TON.PT".into(),
+                constant: false,
+                variable_type: VariableType::Input,
+                is_auto_deref: false
             }
         )
-
-
     } else {
         unreachable!("Should be an assignment")
     }

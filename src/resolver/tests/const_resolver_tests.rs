@@ -1496,10 +1496,9 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
 
 #[test]
 fn function_block_initializers_constant_resolved_in_assignment() {
-
     // GIVEN a multi-nested Array Type with an initializer
     let (parse_result, mut index) = index(
-            "FUNCTION_BLOCK TON
+        "FUNCTION_BLOCK TON
             VAR_OUTPUT
                 a : INT;
                 b : INT;

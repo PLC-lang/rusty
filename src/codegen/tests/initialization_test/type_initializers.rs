@@ -240,7 +240,8 @@ fn initial_values_in_fb_variable() {
             struct1 : TON := (b := 10, a := TEN);
         END_VAR
         END_PROGRAM
-        ");
+        ",
+    );
     insta::assert_snapshot!(result);
 }
 
