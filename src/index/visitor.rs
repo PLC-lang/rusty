@@ -40,8 +40,6 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
 }
 
 pub fn visit_pou(index: &mut Index, pou: &Pou) {
-    let interface_name = format!("{}_interface", &pou.name);
-
     let mut member_names = vec![];
 
     //register the pou's member variables
@@ -147,7 +145,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         name: pou.name.to_string(),
         initial_value: None,
         information: DataTypeInformation::Struct {
-            name: interface_name,
+            name: pou.name.to_string(),
             member_names,
             source: StructSource::Pou(pou.pou_type.clone()),
         },

@@ -1493,3 +1493,37 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
         unreachable!()
     }
 }
+
+#[test]
+fn function_block_initializers_constant_resolved_in_assignment() {
+
+    // GIVEN a multi-nested Array Type with an initializer
+    let (parse_result, mut index) = index(
+            "FUNCTION_BLOCK TON
+            VAR_OUTPUT
+                a : INT;
+                b : INT;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+        PROGRAM main 
+
+        VAR CONSTANT
+            TEN : INT := 10;
+        END_VAR
+        VAR
+            struct1 : TON := (a := 10, b := TEN);
+            struct1 : TON := (b := 10, a := TEN);
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    annotate(&parse_result, &mut index);
+    let (_, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+}

@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { [6 x i8] }
+%main = type { [6 x i8] }
 
-@main_instance = global %main_interface zeroinitializer
+@main_instance = global %main zeroinitializer
 @utf08_literal_0 = unnamed_addr constant [6 x i8] c"12345\00"
 
 define i32 @func([6 x i8] %0) {
@@ -20,9 +20,9 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = alloca [6 x i8], align 1
   %2 = bitcast [6 x i8]* %1 to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([6 x i8]* getelementptr ([6 x i8], [6 x i8]* null, i32 1) to i64), i1 false)

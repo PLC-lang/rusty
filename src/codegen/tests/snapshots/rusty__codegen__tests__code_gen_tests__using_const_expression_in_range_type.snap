@@ -5,11 +5,11 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i16 }
+%prg = type { i16 }
 
 @CONST = global i16 7
 @MIN = global i16 7
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
@@ -27,9 +27,9 @@ entry:
   ret i16 %CheckRangeSigned_ret
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %load_MIN = load i16, i16* @MIN, align 2
   %1 = sext i16 %load_MIN to i32
   %tmpVar = add i32 %1, 1

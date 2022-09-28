@@ -1,21 +1,19 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1719
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i8, i8*, i8* }
+%prg = type { i8, i8*, i8* }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %X = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %pX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %rX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %X = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %pX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %rX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
   store i8* null, i8** %pX, align 8
   store i8* null, i8** %rX, align 8
   store i8* %X, i8** %pX, align 8

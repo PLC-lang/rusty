@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { i16 }
+%main = type { i16 }
 
-@main_instance = global %main_interface { i16 4 }
+@main_instance = global %main { i16 4 }
 
 define i32 @func(i16* %0) {
 entry:
@@ -22,9 +22,9 @@ entry:
   ret i32 %func_ret
 }
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %call = call i32 @func(i16* %x)
   ret void
 }

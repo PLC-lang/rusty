@@ -1,36 +1,34 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1895
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { %foo_interface }
-%foo_interface = type { %bar_interface }
-%bar_interface = type {}
+%prg = type { %foo }
+%foo = type { %bar }
+%bar = type {}
 
-@prg_instance = global %prg_interface zeroinitializer
-@foo__init = unnamed_addr constant %foo_interface zeroinitializer
-@bar__init = unnamed_addr constant %bar_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
+@foo__init = unnamed_addr constant %foo zeroinitializer
+@bar__init = unnamed_addr constant %bar zeroinitializer
 
-define void @foo(%foo_interface* %0) {
+define void @foo(%foo* %0) {
 entry:
-  %bar_inst = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %bar_inst = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   ret void
 }
 
-define void @bar(%bar_interface* %0) {
+define void @bar(%bar* %0) {
 entry:
   ret void
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %foo_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %bar_inst = getelementptr inbounds %foo_interface, %foo_interface* %foo_inst, i32 0, i32 0
-  call void @bar(%bar_interface* %bar_inst)
+  %foo_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %bar_inst = getelementptr inbounds %foo, %foo* %foo_inst, i32 0, i32 0
+  call void @bar(%bar* %bar_inst)
   ret void
 }
 

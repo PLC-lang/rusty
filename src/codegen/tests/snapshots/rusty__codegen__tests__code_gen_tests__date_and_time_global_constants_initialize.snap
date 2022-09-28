@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type {}
+%main = type {}
 
 @cT = unnamed_addr constant i64 1000000000
 @cT_SHORT = unnamed_addr constant i64 1000000000
@@ -23,9 +23,9 @@ source_filename = "main"
 @cDT_SHORT = unnamed_addr constant i64 172799000000000
 @cLDT = unnamed_addr constant i64 172799123000000
 @cLDT_SHORT = unnamed_addr constant i64 172799123000000
-@main_instance = global %main_interface zeroinitializer
+@main_instance = global %main zeroinitializer
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
   %t1 = alloca i64, align 8
   %t2 = alloca i64, align 8

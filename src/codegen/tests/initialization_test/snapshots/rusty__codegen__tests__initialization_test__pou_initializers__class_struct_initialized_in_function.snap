@@ -5,30 +5,30 @@ expression: function
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { %fb_interface }
-%fb_interface = type { i16 }
+%main = type { %fb }
+%fb = type { i16 }
 
-@main_instance = global %main_interface { %fb_interface { i16 9 } }
-@fb__init = unnamed_addr constant %fb_interface { i16 9 }
+@main_instance = global %main { %fb { i16 9 } }
+@fb__init = unnamed_addr constant %fb { i16 9 }
 
-define i32 @func(%fb_interface %0) {
+define i32 @func(%fb %0) {
 entry:
-  %in = alloca %fb_interface, align 8
-  store %fb_interface %0, %fb_interface* %in, align 2
-  %x = alloca %fb_interface, align 8
+  %in = alloca %fb, align 8
+  store %fb %0, %fb* %in, align 2
+  %x = alloca %fb, align 8
   %func = alloca i32, align 4
-  %1 = bitcast %fb_interface* %x to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb_interface* @fb__init to i8*), i64 ptrtoint (%fb_interface* getelementptr (%fb_interface, %fb_interface* null, i32 1) to i64), i1 false)
+  %1 = bitcast %fb* %x to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb* @fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
   store i32 0, i32* %func, align 4
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret
 }
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %fb0 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %load_fb0 = load %fb_interface, %fb_interface* %fb0, align 2
-  %call = call i32 @func(%fb_interface %load_fb0)
+  %fb0 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %load_fb0 = load %fb, %fb* %fb0, align 2
+  %call = call i32 @func(%fb %load_fb0)
   ret void
 }
 

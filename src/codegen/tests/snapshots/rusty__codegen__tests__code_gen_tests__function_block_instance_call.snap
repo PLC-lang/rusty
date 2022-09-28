@@ -1,29 +1,27 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1870
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { %foo_interface }
-%foo_interface = type { i16, i16 }
+%prg = type { %foo }
+%foo = type { i16, i16 }
 
-@prg_instance = global %prg_interface zeroinitializer
-@foo__init = unnamed_addr constant %foo_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
+@foo__init = unnamed_addr constant %foo zeroinitializer
 
-define void @foo(%foo_interface* %0) {
+define void @foo(%foo* %0) {
 entry:
-  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+  %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
   ret void
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %fb_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  call void @foo(%foo_interface* %fb_inst)
+  %fb_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  call void @foo(%foo* %fb_inst)
   ret void
 }
 

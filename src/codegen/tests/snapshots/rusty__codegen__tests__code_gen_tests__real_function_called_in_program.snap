@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i32 }
+%prg = type { i32 }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define float @foo() {
 entry:
@@ -18,9 +18,9 @@ entry:
   ret float %foo_ret
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %call = call float @foo()
   %1 = fptosi float %call to i32
   store i32 %1, i32* %x, align 4

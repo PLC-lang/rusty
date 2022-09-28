@@ -1,0 +1,28 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main = type { i16, %TON }
+%TON = type { i16*, i16* }
+
+@main_instance = global %main { i16 10, %TON { i16 10, i32 10 } }
+@TON__init = unnamed_addr constant %TON zeroinitializer
+@main.struct1__init = unnamed_addr constant %TON { i16 10, i32 10 }
+
+define void @TON(%TON* %0) {
+entry:
+  %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
+  %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
+  ret void
+}
+
+define void @main(%main* %0) {
+entry:
+  %TEN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %struct1 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  ret void
+}
+
