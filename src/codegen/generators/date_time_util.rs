@@ -13,7 +13,7 @@ pub fn calculate_time_nano(negative: bool, sec: f64, milli: f64, micro: f64, nan
     let micro = millis * 1000_f64 + micro;
     let nano = micro * 1000_f64 + nano as f64;
     //go to full micro
-    let nanos = (nano).round() as i64;
+    let nanos = nano.round() as i64;
 
     if negative {
         -nanos
@@ -31,16 +31,16 @@ pub fn calculate_date_time(
     hour: u32,
     min: u32,
     sec: u32,
-    milli: u32,
+    nano: u32,
 ) -> Result<i64, String> {
     if let LocalResult::Single(date_time) = Utc
         .ymd_opt(year, month, day)
-        .and_hms_milli_opt(hour, min, sec, milli)
+        .and_hms_nano_opt(hour, min, sec, nano)
     {
         return Ok(date_time.timestamp_nanos());
     }
     Err(format!(
         "Invalid Date {}-{}-{}-{}:{}:{}.{}",
-        year, month, day, hour, min, sec, milli
+        year, month, day, hour, min, sec, nano
     ))
 }

@@ -620,7 +620,7 @@ pub enum AstStatement {
         hour: u32,
         min: u32,
         sec: u32,
-        milli: u32,
+        nano: u32,
         location: SourceRange,
         id: AstId,
     },
@@ -628,7 +628,7 @@ pub enum AstStatement {
         hour: u32,
         min: u32,
         sec: u32,
-        milli: u32,
+        nano: u32,
         location: SourceRange,
         id: AstId,
     },
@@ -830,7 +830,7 @@ impl Debug for AstStatement {
                 hour,
                 min,
                 sec,
-                milli,
+                nano,
                 ..
             } => f
                 .debug_struct("LiteralDateAndTime")
@@ -840,20 +840,20 @@ impl Debug for AstStatement {
                 .field("hour", hour)
                 .field("min", min)
                 .field("sec", sec)
-                .field("milli", milli)
+                .field("nano", nano)
                 .finish(),
             AstStatement::LiteralTimeOfDay {
                 hour,
                 min,
                 sec,
-                milli,
+                nano,
                 ..
             } => f
                 .debug_struct("LiteralTimeOfDay")
                 .field("hour", hour)
                 .field("min", min)
                 .field("sec", sec)
-                .field("milli", milli)
+                .field("nano", nano)
                 .finish(),
             AstStatement::LiteralTime {
                 day,
