@@ -4328,12 +4328,12 @@
                 <span class="ident">hour</span>,
                 <span class="ident">min</span>,
                 <span class="ident">sec</span>,
-                <span class="ident">milli</span>,
+                <span class="ident">nano</span>,
                 <span class="ident">location</span>,
                 ..
             } =&gt; <span class="self">self</span>.<span class="ident">create_const_int</span>(
                 <span class="ident"><span class="kw">super</span>::date_time_util::calculate_date_time</span>(
-                    <span class="kw-2">*</span><span class="ident">year</span>, <span class="kw-2">*</span><span class="ident">month</span>, <span class="kw-2">*</span><span class="ident">day</span>, <span class="kw-2">*</span><span class="ident">hour</span>, <span class="kw-2">*</span><span class="ident">min</span>, <span class="kw-2">*</span><span class="ident">sec</span>, <span class="kw-2">*</span><span class="ident">milli</span>,
+                    <span class="kw-2">*</span><span class="ident">year</span>, <span class="kw-2">*</span><span class="ident">month</span>, <span class="kw-2">*</span><span class="ident">day</span>, <span class="kw-2">*</span><span class="ident">hour</span>, <span class="kw-2">*</span><span class="ident">min</span>, <span class="kw-2">*</span><span class="ident">sec</span>, <span class="kw-2">*</span><span class="ident">nano</span>,
                 )
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">op</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">op</span>.<span class="ident">as_str</span>(), <span class="ident">location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>,
             ),
@@ -4341,11 +4341,11 @@
                 <span class="ident">hour</span>,
                 <span class="ident">min</span>,
                 <span class="ident">sec</span>,
-                <span class="ident">milli</span>,
+                <span class="ident">nano</span>,
                 <span class="ident">location</span>,
                 ..
             } =&gt; <span class="self">self</span>.<span class="ident">create_const_int</span>(
-                <span class="ident"><span class="kw">super</span>::date_time_util::calculate_date_time</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="kw-2">*</span><span class="ident">hour</span>, <span class="kw-2">*</span><span class="ident">min</span>, <span class="kw-2">*</span><span class="ident">sec</span>, <span class="kw-2">*</span><span class="ident">milli</span>)
+                <span class="ident"><span class="kw">super</span>::date_time_util::calculate_date_time</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="kw-2">*</span><span class="ident">hour</span>, <span class="kw-2">*</span><span class="ident">min</span>, <span class="kw-2">*</span><span class="ident">sec</span>, <span class="kw-2">*</span><span class="ident">nano</span>)
                     .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">op</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">op</span>.<span class="ident">as_str</span>(), <span class="ident">location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>,
             ),
             <span class="ident">AstStatement::LiteralTime</span> {

@@ -2021,7 +2021,7 @@
         <span class="ident">hour</span>: <span class="ident">u32</span>,
         <span class="ident">min</span>: <span class="ident">u32</span>,
         <span class="ident">sec</span>: <span class="ident">u32</span>,
-        <span class="ident">milli</span>: <span class="ident">u32</span>,
+        <span class="ident">nano</span>: <span class="ident">u32</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
         <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
@@ -2029,7 +2029,7 @@
         <span class="ident">hour</span>: <span class="ident">u32</span>,
         <span class="ident">min</span>: <span class="ident">u32</span>,
         <span class="ident">sec</span>: <span class="ident">u32</span>,
-        <span class="ident">milli</span>: <span class="ident">u32</span>,
+        <span class="ident">nano</span>: <span class="ident">u32</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
         <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
@@ -2231,7 +2231,7 @@
                 <span class="ident">hour</span>,
                 <span class="ident">min</span>,
                 <span class="ident">sec</span>,
-                <span class="ident">milli</span>,
+                <span class="ident">nano</span>,
                 ..
             } =&gt; <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;LiteralDateAndTime&quot;</span>)
@@ -2241,20 +2241,20 @@
                 .<span class="ident">field</span>(<span class="string">&quot;hour&quot;</span>, <span class="ident">hour</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;min&quot;</span>, <span class="ident">min</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;sec&quot;</span>, <span class="ident">sec</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;milli&quot;</span>, <span class="ident">milli</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;nano&quot;</span>, <span class="ident">nano</span>)
                 .<span class="ident">finish</span>(),
             <span class="ident">AstStatement::LiteralTimeOfDay</span> {
                 <span class="ident">hour</span>,
                 <span class="ident">min</span>,
                 <span class="ident">sec</span>,
-                <span class="ident">milli</span>,
+                <span class="ident">nano</span>,
                 ..
             } =&gt; <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;LiteralTimeOfDay&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;hour&quot;</span>, <span class="ident">hour</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;min&quot;</span>, <span class="ident">min</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;sec&quot;</span>, <span class="ident">sec</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;milli&quot;</span>, <span class="ident">milli</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;nano&quot;</span>, <span class="ident">nano</span>)
                 .<span class="ident">finish</span>(),
             <span class="ident">AstStatement::LiteralTime</span> {
                 <span class="ident">day</span>,
