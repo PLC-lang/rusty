@@ -1043,7 +1043,7 @@ fn literal_time_of_day_test() {
             TOD#00:00:12;
             TIME_OF_DAY#04:16:22;
             TIME_OF_DAY#04:16:22.1;
-            TIME_OF_DAY#04:16:22.001;
+            TIME_OF_DAY#04:16:22.001002003;
 			TIME_OF_DAY#04:16;
         END_PROGRAM
         ";
@@ -1054,43 +1054,43 @@ fn literal_time_of_day_test() {
         hour: 12,
         min: 0,
         sec: 0,
-        milli: 0,
+        nano: 0,
     },
     LiteralTimeOfDay {
         hour: 0,
         min: 12,
         sec: 0,
-        milli: 0,
+        nano: 0,
     },
     LiteralTimeOfDay {
         hour: 0,
         min: 0,
         sec: 12,
-        milli: 0,
+        nano: 0,
     },
     LiteralTimeOfDay {
         hour: 4,
         min: 16,
         sec: 22,
-        milli: 0,
+        nano: 0,
     },
     LiteralTimeOfDay {
         hour: 4,
         min: 16,
         sec: 22,
-        milli: 100,
+        nano: 100000000,
     },
     LiteralTimeOfDay {
         hour: 4,
         min: 16,
         sec: 22,
-        milli: 1,
+        nano: 1002003,
     },
     LiteralTimeOfDay {
         hour: 4,
         min: 16,
         sec: 0,
-        milli: 0,
+        nano: 0,
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);
@@ -1100,8 +1100,8 @@ fn literal_time_of_day_test() {
 fn literal_long_time_of_day_test() {
     let src = "
         PROGRAM exp 
-            LTOD#12:00:00;
-            LTOD#00:12:00;
+            LTOD#12:00:00.123456789;
+            LTOD#00:12:00.99;
             LTOD#00:00:12;
         END_PROGRAM
         ";
@@ -1112,19 +1112,19 @@ fn literal_long_time_of_day_test() {
         hour: 12,
         min: 0,
         sec: 0,
-        milli: 0,
+        nano: 123456789,
     },
     LiteralTimeOfDay {
         hour: 0,
         min: 12,
         sec: 0,
-        milli: 0,
+        nano: 990000000,
     },
     LiteralTimeOfDay {
         hour: 0,
         min: 0,
         sec: 12,
-        milli: 0,
+        nano: 0,
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);
@@ -1136,7 +1136,7 @@ fn literal_date_and_time_test() {
         PROGRAM exp 
             DATE_AND_TIME#1984-10-01-16:40:22; 
             DT#2021-04-20-22:33:14; 
-            DT#2021-04-20-22:33:14.999; 
+            DT#2021-04-20-22:33:14.999999999; 
 			DATE_AND_TIME#2000-01-01-20:15;
         END_PROGRAM
         ";
@@ -1150,7 +1150,7 @@ fn literal_date_and_time_test() {
         hour: 16,
         min: 40,
         sec: 22,
-        milli: 0,
+        nano: 0,
     },
     LiteralDateAndTime {
         year: 2021,
@@ -1159,7 +1159,7 @@ fn literal_date_and_time_test() {
         hour: 22,
         min: 33,
         sec: 14,
-        milli: 0,
+        nano: 0,
     },
     LiteralDateAndTime {
         year: 2021,
@@ -1168,7 +1168,7 @@ fn literal_date_and_time_test() {
         hour: 22,
         min: 33,
         sec: 14,
-        milli: 999,
+        nano: 999999999,
     },
     LiteralDateAndTime {
         year: 2000,
@@ -1177,7 +1177,7 @@ fn literal_date_and_time_test() {
         hour: 20,
         min: 15,
         sec: 0,
-        milli: 0,
+        nano: 0,
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);
@@ -1187,7 +1187,7 @@ fn literal_date_and_time_test() {
 fn literal_long_date_and_time_test() {
     let src = "
         PROGRAM exp 
-            LDT#1984-10-01-16:40:22; 
+            LDT#1984-10-01-16:40:22.123456789; 
             LDT#2021-04-20-22:33:14;
         END_PROGRAM
         ";
@@ -1201,7 +1201,7 @@ fn literal_long_date_and_time_test() {
         hour: 16,
         min: 40,
         sec: 22,
-        milli: 0,
+        nano: 123456789,
     },
     LiteralDateAndTime {
         year: 2021,
@@ -1210,7 +1210,7 @@ fn literal_long_date_and_time_test() {
         hour: 22,
         min: 33,
         sec: 14,
-        milli: 0,
+        nano: 0,
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);
