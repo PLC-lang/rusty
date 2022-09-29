@@ -17,8 +17,8 @@ source_filename = "main"
 @cLD_SHORT = unnamed_addr constant i64 161308800000000000
 @cTOD = unnamed_addr constant i64 0
 @cTOD_SHORT = unnamed_addr constant i64 0
-@cLTOD = unnamed_addr constant i64 86400000000000
-@cLTOD_SHORT = unnamed_addr constant i64 86400000000000
+@cLTOD = unnamed_addr constant i64 86399999999999
+@cLTOD_SHORT = unnamed_addr constant i64 86399999999999
 @cDT = unnamed_addr constant i64 172799000000000
 @cDT_SHORT = unnamed_addr constant i64 172799000000000
 @cLDT = unnamed_addr constant i64 172799123000000
@@ -69,8 +69,8 @@ entry:
   store i64 161308800000000000, i64* %ld2, align 4
   store i64 0, i64* %tod1, align 4
   store i64 0, i64* %tod2, align 4
-  store i64 86400000000000, i64* %ltod1, align 4
-  store i64 86400000000000, i64* %ltod2, align 4
+  store i64 86399999999999, i64* %ltod1, align 4
+  store i64 86399999999999, i64* %ltod2, align 4
   store i64 172799000000000, i64* %dt1, align 4
   store i64 172799000000000, i64* %dt2, align 4
   store i64 172799123000000, i64* %ldt1, align 4

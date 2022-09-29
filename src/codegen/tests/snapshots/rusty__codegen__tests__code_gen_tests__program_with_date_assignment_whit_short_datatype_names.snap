@@ -23,7 +23,7 @@ entry:
   store i64 0, i64* %y, align 4
   store i64 465509700000000000, i64* %z, align 4
   store i64 58808123000000, i64* %z, align 4
-  store i64 58804123000000, i64* %z, align 4
+  store i64 58804123456789, i64* %z, align 4
   ret void
 }
 
