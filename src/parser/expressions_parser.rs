@@ -678,7 +678,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement,
 
     //we can safely expect 3 numbers
     let mut segments = time.split(':');
-    let (hour, min, sec, milli) = parse_time_of_day(&mut segments, &location)?;
+    let (hour, min, sec, nano) = parse_time_of_day(&mut segments, &location)?;
 
     Ok(AstStatement::LiteralDateAndTime {
         location,
@@ -688,7 +688,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement,
         hour,
         min,
         sec,
-        milli,
+        nano,
         id: lexer.next_id(),
     })
 }
@@ -711,13 +711,13 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<AstStatement, D
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
     let mut segments = slice.split(':');
-    let (hour, min, sec, milli) = parse_time_of_day(&mut segments, &location)?;
+    let (hour, min, sec, nano) = parse_time_of_day(&mut segments, &location)?;
 
     Ok(AstStatement::LiteralTimeOfDay {
         hour,
         min,
         sec,
-        milli,
+        nano,
         location,
         id: lexer.next_id(),
     })
@@ -736,9 +736,9 @@ fn parse_time_of_day(
         None => 0.0,
     };
 
-    let milli = (sec.fract() * 1000_f64).round() as u32;
+    let nano = (sec.fract() * 1e+9_f64).round() as u32;
 
-    Ok((hour, min, sec.floor() as u32, milli))
+    Ok((hour, min, sec.floor() as u32, nano))
 }
 
 fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {

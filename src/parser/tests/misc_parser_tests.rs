@@ -632,7 +632,7 @@ fn id_implementation_for_all_statements() {
             month: 0,
             year: 0,
             hour: 0,
-            milli: 0,
+            nano: 0,
             min: 0,
             sec: 0,
             location: (1..5).into(),
@@ -681,7 +681,7 @@ fn id_implementation_for_all_statements() {
             hour: 0,
             min: 0,
             sec: 0,
-            milli: 0,
+            nano: 0,
             location: (1..5).into(),
             id: 7
         }
@@ -914,7 +914,7 @@ fn location_implementation_for_all_statements() {
             month: 0,
             year: 0,
             hour: 0,
-            milli: 0,
+            nano: 0,
             min: 0,
             sec: 0,
             location: (1..5).into(),
@@ -963,7 +963,7 @@ fn location_implementation_for_all_statements() {
             hour: 0,
             min: 0,
             sec: 0,
-            milli: 0,
+            nano: 0,
             location: (1..5).into(),
             id: 7
         }
