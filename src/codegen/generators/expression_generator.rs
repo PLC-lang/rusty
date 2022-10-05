@@ -1784,12 +1784,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 hour,
                 min,
                 sec,
-                milli,
+                nano,
                 location,
                 ..
             } => self.create_const_int(
                 super::date_time_util::calculate_date_time(
-                    *year, *month, *day, *hour, *min, *sec, *milli,
+                    *year, *month, *day, *hour, *min, *sec, *nano,
                 )
                 .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))?,
             ),
@@ -1797,11 +1797,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 hour,
                 min,
                 sec,
-                milli,
+                nano,
                 location,
                 ..
             } => self.create_const_int(
-                super::date_time_util::calculate_date_time(1970, 1, 1, *hour, *min, *sec, *milli)
+                super::date_time_util::calculate_date_time(1970, 1, 1, *hour, *min, *sec, *nano)
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location.clone()))?,
             ),
             AstStatement::LiteralTime {
