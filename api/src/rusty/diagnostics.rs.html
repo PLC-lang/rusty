@@ -1075,7 +1075,6 @@
 <span id="1070">1070</span>
 <span id="1071">1071</span>
 <span id="1072">1072</span>
-<span id="1073">1073</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">error::Error</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
@@ -1277,10 +1276,9 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_action_container</span>(<span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
-        <span class="ident">Diagnostic::SyntaxError</span> {
+        <span class="ident">Diagnostic::ImprovementSuggestion</span> {
             <span class="ident">message</span>: <span class="string">&quot;Missing Actions Container Name&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">range</span>,
-            <span class="ident">err_no</span>: <span class="ident">ErrNo::pou__missing_action_container</span>,
         }
     }
 

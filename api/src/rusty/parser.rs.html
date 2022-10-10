@@ -1108,7 +1108,6 @@
 <span id="1103">1103</span>
 <span id="1104">1104</span>
 <span id="1105">1105</span>
-<span id="1106">1106</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::<span class="kw-2">*</span>,
@@ -1204,7 +1203,6 @@
         <span class="kw">let</span> <span class="ident">container</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">==</span> <span class="ident">Identifier</span> {
             <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>()
         } <span class="kw">else</span> {
-            <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::missing_action_container</span>(<span class="ident">lexer</span>.<span class="ident">location</span>()));
             <span class="ident">default_container</span>.<span class="ident">into</span>()
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">impls</span> <span class="op">=</span> <span class="macro">vec!</span>[];
