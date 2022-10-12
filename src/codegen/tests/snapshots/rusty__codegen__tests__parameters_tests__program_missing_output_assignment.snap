@@ -1,12 +1,12 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
-assertion_line: 432
+assertion_line: 551
 expression: result
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prog_interface = type { i32, i32*, i32* }
+%prog_interface = type { i32, i32, i32* }
 %main_interface = type { i32, i32, i32 }
 
 @prog_instance = global %prog_interface zeroinitializer

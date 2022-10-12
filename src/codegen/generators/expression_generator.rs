@@ -5,7 +5,7 @@ use crate::{
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{
         const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
-        VariableIndexEntry,
+        VariableIndexEntry, VariableType,
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
@@ -496,27 +496,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .find_implementation(self.index)
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
+        let parameters_list = parameters
+            .as_ref()
+            .map(ast::flatten_expression_list)
+            .unwrap_or_default();
+
         //If the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self
             .index
             .get_builtin_function(implementation.get_call_name())
         {
             //adr, ref, etc.
-            return builtin.codegen(
-                self,
-                parameters
-                    .as_ref()
-                    .map(ast::flatten_expression_list)
-                    .unwrap_or_default()
-                    .as_slice(),
-                operator.get_location(),
-            );
+            return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
 
         let function_name = implementation.get_call_name();
         let arguments_list = self.generate_pou_call_arguments_list(
             pou,
-            parameters,
+            parameters_list.clone(),
             implementation,
             operator,
             function_context,
@@ -552,7 +549,107 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             })
         })?;
 
+        // after the call we need to copy the values for assigned outputs
+        // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)
+        // FUNCTION outputs are defined as `rusty::index::ArgumentType::ByRef`
+        if !pou.is_function() {
+            let parameter_struct = match arguments_list.first() {
+                Some(v) => v.into_pointer_value(),
+                None => self.generate_element_pointer(operator)?,
+            };
+            self.assign_output_values(parameter_struct, function_name, parameters_list)?
+        }
+
         Ok(value)
+    }
+
+    /// copies the output values to the assigned output variables
+    /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
+    /// - `function_name` the name of the callable
+    /// - `parameters` vec of passed parameters to the call
+    fn assign_output_values(
+        &self,
+        parameter_struct: PointerValue<'ink>,
+        function_name: &str,
+        parameters: Vec<&AstStatement>,
+    ) -> Result<(), Diagnostic> {
+        for (index, assignment_statement) in parameters.into_iter().enumerate() {
+            self.assign_output_value(&CallParameterAssignment {
+                assignment_statement,
+                function_name,
+                index: index as u32,
+                parameter_struct,
+            })?
+        }
+        Ok(())
+    }
+
+    fn assign_output_value(
+        &self,
+        param_context: &CallParameterAssignment,
+    ) -> Result<(), Diagnostic> {
+        match param_context.assignment_statement {
+            AstStatement::OutputAssignment { left, right, .. }
+            | AstStatement::Assignment { left, right, .. } => self
+                .generate_explicit_output_assignment(
+                    param_context.parameter_struct,
+                    param_context.function_name,
+                    left,
+                    right,
+                ),
+            _ => self.generate_output_assignment(param_context),
+        }
+    }
+
+    fn generate_output_assignment(
+        &self,
+        param_context: &CallParameterAssignment,
+    ) -> Result<(), Diagnostic> {
+        let builder = &self.llvm.builder;
+        let expression = param_context.assignment_statement;
+        let parameter_struct = param_context.parameter_struct;
+        let function_name = param_context.function_name;
+        let index = param_context.index;
+        if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
+            if matches!(parameter.get_variable_type(), VariableType::Output) {
+                let output_param = builder
+                    .build_struct_gep(parameter_struct, index as u32, "")
+                    .map_err(|_| {
+                        Diagnostic::codegen_error(
+                            &format!("Cannot build generate parameter: {:#?}", expression),
+                            expression.get_location(),
+                        )
+                    })?;
+                let output_value = builder.build_load(output_param, "");
+                let assigned_output = self.generate_element_pointer(expression)?;
+
+                builder.build_store(assigned_output, output_value);
+            }
+        }
+        Ok(())
+    }
+
+    fn generate_explicit_output_assignment(
+        &self,
+        parameter_struct: PointerValue<'ink>,
+        function_name: &str,
+        left: &AstStatement,
+        right: &AstStatement,
+    ) -> Result<(), Diagnostic> {
+        if let AstStatement::Reference { name, .. } = left {
+            let parameter = self
+                .index
+                .find_member(function_name, name)
+                .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
+            let index = parameter.get_location_in_parent();
+            self.assign_output_value(&CallParameterAssignment {
+                assignment_statement: right,
+                function_name,
+                index,
+                parameter_struct,
+            })?
+        };
+        Ok(())
     }
 
     /// generates the argument list for a call to a pou
@@ -561,7 +658,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_pou_call_arguments_list(
         &self,
         pou: &PouIndexEntry,
-        parameters: &Option<AstStatement>,
+        parameters: Vec<&AstStatement>,
         implementation: &ImplementationIndexEntry,
         operator: &AstStatement,
         function_context: &'b FunctionContext<'ink>,
@@ -570,11 +667,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {
             //we're calling a function
 
-            let call_params = parameters
-                .as_ref()
-                .map(ast::flatten_expression_list)
-                .unwrap_or_default();
-
             // foo(a,b,c)
             // foo(z:= a, x:=c, y := b);
             let declared_parameters = self
@@ -582,7 +674,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .get_declared_parameters(implementation.get_type_name());
 
             // the parameters to be passed to the function call
-            self.generate_function_arguments(pou, call_params, declared_parameters)?
+            self.generate_function_arguments(pou, parameters, declared_parameters)?
         } else {
             // no function
             let (class_ptr, call_ptr) = match pou {
@@ -610,8 +702,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             };
 
-            //First go to the input block
-            //Generate all parameters, this function may jump to the output block
+            //Generate the pou call assignments
             self.generate_stateful_pou_call_parameters(
                 function_name,
                 class_ptr,
@@ -867,19 +958,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .create_local_variable(&instance_name, &function_type))
     }
 
-    /// generates the assignments of a function-call's parameters
-    /// the call parameters are passed to the function using a struct-instance with all the parameters
+    /// generates the assignments of a pou-call's parameters
+    /// the call parameters are passed to the pou using a struct-instance with all the parameters
     ///
-    /// - `function_name` the name of the function we're calling
-    /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
-    /// - `input_block` the block to generate the input-assignments into
-    /// - `output_block` the block to generate the output-assignments into
+    /// - `pou_name` the name of the pou we're calling
+    /// - `parameter_struct` a pointer to a struct-instance that holds all pou-parameters
+    /// - `parameters` a vec of all passed parameters to the pou-call
     fn generate_stateful_pou_call_parameters(
         &self,
-        function_name: &str,
+        pou_name: &str,
         class_struct: Option<PointerValue<'ink>>,
         parameter_struct: PointerValue<'ink>,
-        parameters: &Option<AstStatement>,
+        parameters: Vec<&AstStatement>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = class_struct
             .map(|class_struct| {
@@ -890,16 +980,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             })
             .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
 
-        let expressions = parameters
-            .as_ref()
-            .map(ast::flatten_expression_list)
-            .unwrap_or_else(std::vec::Vec::new);
-
-        for (index, exp) in expressions.iter().enumerate() {
+        for (index, exp) in parameters.iter().enumerate() {
             let parameter =
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment_statement: exp,
-                    function_name,
+                    function_name: pou_name,
                     index: index as u32,
                     parameter_struct,
                 })?;
@@ -972,20 +1057,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     /// generates an assignemnt of a single call's argument
     ///
-    /// - `assignment_statement' the parameter-assignment, either an AssignmentStatement, an OutputAssignmentStatement or an expression
+    /// - `CallParameterAssignment` containing following information
+    /// - `assignment_statement` the parameter-assignment, either an AssignmentStatement, an OutputAssignmentStatement or an expression
     /// - `function_name` the name of the callable
-    /// - `parameter_type` the datatype of the parameter
     /// - `index` the index of the parameter (0 for first parameter, 1 for the next one, etc.)
-    /// - `parameter_struct' a pointer to a struct-instance that holds all function-parameters
-    /// - `input_block` the block to generate the input-assignments into
-    /// - `output_block` the block to generate the output-assignments into
+    /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
     fn generate_call_struct_argument_assignment(
         &self,
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
-        let assignment_statement = param_context.assignment_statement;
-
-        let parameter_value = match assignment_statement {
+        let parameter_value = match param_context.assignment_statement {
             // explicit call parameter: foo(param := value)
             AstStatement::OutputAssignment { left, right, .. }
             | AstStatement::Assignment { left, right, .. } => {
@@ -993,7 +1074,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 None
             }
             // foo(x)
-            _ => self.generate_nameless_parameter(param_context, assignment_statement)?,
+            _ => self.generate_nameless_parameter(param_context)?,
         };
 
         Ok(parameter_value)
@@ -1004,13 +1085,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_nameless_parameter(
         &self,
         param_context: &CallParameterAssignment,
-        expression: &AstStatement,
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let builder = &self.llvm.builder;
         let function_name = param_context.function_name;
         let index = param_context.index;
         let parameter_struct = param_context.parameter_struct;
-        if self.index.is_declared_parameter(function_name, index) {
+        let expression = param_context.assignment_statement;
+        if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
+            // this happens before the pou call
+            // before the call statement we may only consider inputs and inouts
+            // after the call we need to copy the output values to the correct assigned variables
+            if matches!(parameter.get_variable_type(), VariableType::Output) {
+                return Ok(None);
+            }
+
             let pointer_to_param = builder
                 .build_struct_gep(parameter_struct, index as u32, "")
                 .map_err(|_| {
@@ -1033,7 +1121,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ..
             } = parameter
             {
-                //this is VAR_OUT or VAR_IN_OUT assignemt, so don't load the value, assign the pointer
+                //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
 
                 //expression may be empty -> generate a local variable for it
                 let generated_exp = if matches!(expression, AstStatement::EmptyStatement { .. }) {
