@@ -199,10 +199,9 @@ impl Diagnostic {
     }
 
     pub fn missing_action_container(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
+        Diagnostic::ImprovementSuggestion {
             message: "Missing Actions Container Name".to_string(),
             range,
-            err_no: ErrNo::pou__missing_action_container,
         }
     }
 

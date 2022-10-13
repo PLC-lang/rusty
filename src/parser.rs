@@ -93,7 +93,6 @@ fn parse_actions(
         let container = if lexer.token == Identifier {
             lexer.slice_and_advance()
         } else {
-            lexer.accept_diagnostic(Diagnostic::missing_action_container(lexer.location()));
             default_container.into()
         };
         let mut impls = vec![];
