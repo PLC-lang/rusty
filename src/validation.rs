@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::{
     ast::{
-        AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, SourceRange,
+        AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, PouType, SourceRange,
         UserTypeDeclaration, Variable, VariableBlock,
     },
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -124,6 +124,11 @@ impl Validator {
                 index,
                 qualifier: Some(i.name.as_str()),
             };
+            if i.pou_type == PouType::Action && i.type_name == "__unknown__" {
+                self.pou_validator
+                    .diagnostics
+                    .push(Diagnostic::missing_action_container(i.location.clone()));
+            }
             i.statements
                 .iter()
                 .for_each(|s| self.visit_statement(s, &context));
