@@ -964,6 +964,23 @@
 <span id="959">959</span>
 <span id="960">960</span>
 <span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1250,11 +1267,28 @@
             <span class="ident">LiteralFalse</span> =&gt; <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>),
             <span class="ident">LiteralNull</span> =&gt; <span class="ident">parse_null_literal</span>(<span class="ident">lexer</span>),
             <span class="ident">KeywordSquareParensOpen</span> =&gt; <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
-                <span class="string">&quot;Literal&quot;</span>,
-                <span class="ident">lexer</span>.<span class="ident">slice</span>(),
-                <span class="ident">lexer</span>.<span class="ident">location</span>(),
-            )),
+            <span class="kw">_</span> =&gt; {
+                <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">closing_keywords</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="ident">KeywordParensClose</span>])
+                    <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(
+                        <span class="ident">lexer</span>.<span class="ident">last_token</span>,
+                        <span class="ident">KeywordOutputAssignment</span> <span class="op">|</span> <span class="ident">KeywordAssignment</span>
+                    )
+                {
+                    <span class="comment">// due to closing keyword &#39;)&#39; and last_token &#39;=&gt;&#39; / &#39;:=&#39;</span>
+                    <span class="comment">// we are probably in a call statement missing a parameter assignment &#39;foo(param := );</span>
+                    <span class="comment">// optional parameter assignments are allowed, validation should handle any unwanted cases</span>
+                    <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::EmptyStatement</span> {
+                        <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
+                        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+                    })
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
+                        <span class="string">&quot;Literal&quot;</span>,
+                        <span class="ident">lexer</span>.<span class="ident">slice</span>(),
+                        <span class="ident">lexer</span>.<span class="ident">location</span>(),
+                    ))
+                }
+            }
         }
     };
     <span class="kw">let</span> <span class="ident">literal_parse_result</span> <span class="op">=</span> <span class="ident">literal_parse_result</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">statement</span><span class="op">|</span> {
