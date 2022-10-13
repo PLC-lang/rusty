@@ -1,0 +1,145 @@
+---
+source: src/parser/tests/statement_parser_tests.rs
+assertion_line: 294
+expression: ast_string
+---
+CompilationUnit {
+    global_vars: [],
+    units: [
+        POU {
+            name: "foo",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "input1",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Input(
+                        ByVal,
+                    ),
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "output1",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Output,
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "inout1",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                    ],
+                    variable_block_type: InOut,
+                },
+            ],
+            pou_type: Function,
+            return_type: Some(
+                DataTypeReference {
+                    referenced_type: "INT",
+                },
+            ),
+        },
+        POU {
+            name: "main",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "a",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                        Variable {
+                            name: "b",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                        Variable {
+                            name: "c",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: Program,
+            return_type: None,
+        },
+    ],
+    implementations: [
+        Implementation {
+            name: "foo",
+            type_name: "foo",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [],
+            location: SourceRange {
+                range: 150..162,
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Program,
+            statements: [
+                CallStatement {
+                    operator: Reference {
+                        name: "foo",
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                Assignment {
+                                    left: Reference {
+                                        name: "input1",
+                                    },
+                                    right: EmptyStatement,
+                                },
+                                OutputAssignment {
+                                    left: Reference {
+                                        name: "output1",
+                                    },
+                                    right: EmptyStatement,
+                                },
+                                OutputAssignment {
+                                    left: Reference {
+                                        name: "inout1",
+                                    },
+                                    right: EmptyStatement,
+                                },
+                            ],
+                        },
+                    ),
+                },
+            ],
+            location: SourceRange {
+                range: 215..270,
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+    ],
+    types: [],
+}
