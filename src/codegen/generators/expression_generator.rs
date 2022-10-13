@@ -616,14 +616,44 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .build_struct_gep(parameter_struct, index as u32, "")
                     .map_err(|_| {
                         Diagnostic::codegen_error(
-                            &format!("Cannot build generate parameter: {:#?}", expression),
-                            expression.get_location(),
+                            &format!("Cannot build generate parameter: {:#?}", parameter),
+                            parameter.source_location.clone(),
                         )
                     })?;
-                let output_value = builder.build_load(output_param, "");
+
                 let assigned_output = self.generate_element_pointer(expression)?;
 
-                builder.build_store(assigned_output, output_value);
+                let dest_type = self
+                    .annotations
+                    .get_type_or_void(expression, self.index)
+                    .get_type_information();
+
+                let src_type = self
+                    .index
+                    .get_type_information_or_void(parameter.get_type_name());
+
+                if dest_type.is_string() & src_type.is_string() {
+                    let target_size = self.get_string_size(dest_type, expression.get_location())?; //we report error on parameter :-/
+                    let value_size =
+                        self.get_string_size(src_type, parameter.source_location.clone())?;
+                    let size = std::cmp::min(target_size - 1, value_size) as i64;
+                    let align_left = dest_type.get_string_character_width(self.index).value();
+                    let align_right = src_type.get_string_character_width(self.index).value();
+                    //Multiply by the string alignment to copy enough for widestrings
+                    //This is done at compile time to avoid generating an extra mul
+                    let size = self
+                        .llvm
+                        .context
+                        .i32_type()
+                        .const_int((size * align_left as i64) as u64, true);
+                    self.llvm
+                        .builder
+                        .build_memcpy(assigned_output, align_left, output_param, align_right, size)
+                        .map_err(|err| Diagnostic::codegen_error(err, expression.get_location()))?;
+                } else {
+                    let output_value = builder.build_load(output_param, "");
+                    builder.build_store(assigned_output, output_value);
+                }
             }
         }
         Ok(())
