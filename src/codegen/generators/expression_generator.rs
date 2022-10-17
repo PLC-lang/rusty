@@ -835,6 +835,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 )?;
                 self.llvm.builder.build_store(ele_ptr, *ele);
             }
+            // bitcast the array to pointer so it matches the declared function signature
             let arr_storage = self.llvm.builder.build_bitcast(
                 arr_storage,
                 llvm_type.ptr_type(AddressSpace::Generic),
