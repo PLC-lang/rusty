@@ -551,8 +551,11 @@ impl StatementValidator {
             .get_type_or_void(right, context.index)
             .get_type_information();
 
+        // if the type is a subrange, check if the intrinsic type is numerical
+        let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
+
         if std::mem::discriminant(left_type) == std::mem::discriminant(right_type)
-            && !(left_type.is_numerical() || left_type.is_pointer())
+            && !(is_numerical || left_type.is_pointer())
         {
             //see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
             if operator.is_comparison_operator()
