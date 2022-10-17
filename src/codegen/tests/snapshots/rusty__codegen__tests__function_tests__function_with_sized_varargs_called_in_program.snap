@@ -23,7 +23,8 @@ entry:
   store i32 3, i32* %3, align 4
   %4 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 2
   store i32 %tmpVar, i32* %4, align 4
-  %call = call i32 @foo(i32 3, [3 x i32]* %1)
+  %5 = bitcast [3 x i32]* %1 to i32*
+  %call = call i32 @foo(i32 3, i32* %5)
   store i32 %call, i32* %x, align 4
   ret void
 }
