@@ -513,7 +513,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let function_name = implementation.get_call_name();
         let arguments_list = self.generate_pou_call_arguments_list(
             pou,
-            parameters_list.clone(),
+            parameters_list.as_slice(),
             implementation,
             operator,
             function_context,
@@ -688,7 +688,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_pou_call_arguments_list(
         &self,
         pou: &PouIndexEntry,
-        parameters: Vec<&AstStatement>,
+        parameters: &[&AstStatement],
         implementation: &ImplementationIndexEntry,
         operator: &AstStatement,
         function_context: &'b FunctionContext<'ink>,
@@ -746,14 +746,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_function_arguments(
         &self,
         pou: &PouIndexEntry,
-        arguments: Vec<&AstStatement>,
+        arguments: &[&AstStatement],
         declared_parameters: Vec<&VariableIndexEntry>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = Vec::new();
         let mut variadic_params = Vec::new();
 
         let mut passed_args = Vec::new();
-        for (idx, param_statement) in arguments.into_iter().enumerate() {
+        for (idx, param_statement) in arguments.iter().enumerate() {
             let (location, param_statement) =
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
 
@@ -999,7 +999,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         pou_name: &str,
         class_struct: Option<PointerValue<'ink>>,
         parameter_struct: PointerValue<'ink>,
-        parameters: Vec<&AstStatement>,
+        parameters: &[&AstStatement],
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = class_struct
             .map(|class_struct| {
