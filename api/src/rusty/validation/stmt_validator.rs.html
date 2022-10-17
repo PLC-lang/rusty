@@ -649,6 +649,9 @@
 <span id="644">644</span>
 <span id="645">645</span>
 <span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::discriminant</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ValidationContext</span>;
@@ -1202,8 +1205,11 @@
             .<span class="ident">get_type_or_void</span>(<span class="ident">right</span>, <span class="ident">context</span>.<span class="ident">index</span>)
             .<span class="ident">get_type_information</span>();
 
+        <span class="comment">// if the type is a subrange, check if the intrinsic type is numerical</span>
+        <span class="kw">let</span> <span class="ident">is_numerical</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">index</span>.<span class="ident">find_intrinsic_type</span>(<span class="ident">left_type</span>).<span class="ident">is_numerical</span>();
+
         <span class="kw">if</span> <span class="ident">std::mem::discriminant</span>(<span class="ident">left_type</span>) <span class="op">==</span> <span class="ident">std::mem::discriminant</span>(<span class="ident">right_type</span>)
-            <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="ident">left_type</span>.<span class="ident">is_numerical</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">left_type</span>.<span class="ident">is_pointer</span>())
+            <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="ident">is_numerical</span> <span class="op">|</span><span class="op">|</span> <span class="ident">left_type</span>.<span class="ident">is_pointer</span>())
         {
             <span class="comment">//see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)</span>
             <span class="kw">if</span> <span class="ident">operator</span>.<span class="ident">is_comparison_operator</span>()
