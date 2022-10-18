@@ -3134,3 +3134,66 @@ fn and_statement_of_dints_results_in_dint() {
         None
     );
 }
+
+#[test]
+fn resolve_recursive_function_call() {
+    //GIVEN
+    let (unit, index) = index(
+        "
+        FUNCTION foo : DINT
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			foo(input1 := var1, inout1 := var2, output1 => var3, );
+			foo := var1;
+		END_FUNCTION
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let type_map = annotations.type_map;
+    let annotated_types = format!("{:#?}", type_map);
+
+    insta::assert_snapshot!(annotated_types);
+}
+
+#[test]
+fn resolve_recursive_program_call() {
+    //GIVEN
+    let (unit, index) = index(
+        "
+        PROGRAM mainProg
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			mainProg(input1 := var1, inout1 := var2, output1 => var3, );
+		END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let type_map = annotations.type_map;
+    let annotated_types = format!("{:#?}", type_map);
+
+    insta::assert_snapshot!(annotated_types);
+}
