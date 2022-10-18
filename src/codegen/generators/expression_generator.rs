@@ -612,7 +612,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let index = param_context.index;
         if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
             if matches!(parameter.get_variable_type(), VariableType::Output) {
-                let output_param = builder
+                let left = self.generate_element_pointer(expression)?;
+
+                let left_type = self
+                    .annotations
+                    .get_type_or_void(expression, self.index)
+                    .get_type_information();
+
+                let right = builder
                     .build_struct_gep(parameter_struct, index as u32, "")
                     .map_err(|_| {
                         Diagnostic::codegen_error(
@@ -621,38 +628,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         )
                     })?;
 
-                let assigned_output = self.generate_element_pointer(expression)?;
-
-                let dest_type = self
-                    .annotations
-                    .get_type_or_void(expression, self.index)
-                    .get_type_information();
-
-                let src_type = self
+                let right_type = self
                     .index
                     .get_type_information_or_void(parameter.get_type_name());
 
-                if dest_type.is_string() & src_type.is_string() {
-                    let target_size = self.get_string_size(dest_type, expression.get_location())?; //we report error on parameter :-/
-                    let value_size =
-                        self.get_string_size(src_type, parameter.source_location.clone())?;
-                    let size = std::cmp::min(target_size - 1, value_size) as i64;
-                    let align_left = dest_type.get_string_character_width(self.index).value();
-                    let align_right = src_type.get_string_character_width(self.index).value();
-                    //Multiply by the string alignment to copy enough for widestrings
-                    //This is done at compile time to avoid generating an extra mul
-                    let size = self
-                        .llvm
-                        .context
-                        .i32_type()
-                        .const_int((size * align_left as i64) as u64, true);
-                    self.llvm
-                        .builder
-                        .build_memcpy(assigned_output, align_left, output_param, align_right, size)
-                        .map_err(|err| Diagnostic::codegen_error(err, expression.get_location()))?;
+                //Special string handling
+                if left_type.is_string() && right_type.is_string() {
+                    self.generate_string_store(
+                        left,
+                        left_type,
+                        expression.get_location(),
+                        right,
+                        right_type,
+                        parameter.source_location.clone(),
+                    )?;
                 } else {
-                    let output_value = builder.build_load(output_param, "");
-                    builder.build_store(assigned_output, output_value);
+                    let right_value = builder.build_load(right, "");
+                    builder.build_store(left, right_value);
                 }
             }
         }
@@ -874,7 +866,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 })?,
             )
             .map_err(|it| Diagnostic::codegen_error(it, argument.get_location()))?;
-        self.generate_store(type_info.get_type_information(), argument, temp_variable)?;
+        self.generate_store(temp_variable, type_info.get_type_information(), argument)?;
         Ok(self.llvm.builder.build_load(temp_variable, ""))
     }
 
@@ -1173,7 +1165,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 };
                 builder.build_store(pointer_to_param, generated_exp);
             } else {
-                self.generate_store(parameter, expression, pointer_to_param)?;
+                self.generate_store(pointer_to_param, parameter, expression)?;
             };
 
             Ok(None)
@@ -2533,9 +2525,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     pub fn generate_store(
         &self,
+        left: inkwell::values::PointerValue,
         left_type: &DataTypeInformation,
         right_statement: &AstStatement,
-        left: inkwell::values::PointerValue,
     ) -> Result<(), Diagnostic> {
         let right_type = self
             .annotations
@@ -2565,27 +2557,46 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
             };
-            let target_size = self.get_string_size(left_type, right_statement.get_location())?; //we report error on parameter :-/
-            let value_size = self.get_string_size(right_type, right_statement.get_location())?;
-            let size = std::cmp::min(target_size - 1, value_size) as i64;
-            let align_left = left_type.get_string_character_width(self.index).value();
-            let align_right = right_type.get_string_character_width(self.index).value();
-            //Multiply by the string alignment to copy enough for widestrings
-            //This is done at compile time to avoid generating an extra mul
-            let size = self
-                .llvm
-                .context
-                .i32_type()
-                .const_int((size * align_left as i64) as u64, true);
-            self.llvm
-                .builder
-                .build_memcpy(left, align_left, right, align_right, size)
-                .map_err(|err| Diagnostic::codegen_error(err, right_statement.get_location()))?;
+            self.generate_string_store(
+                left,
+                left_type,
+                right_statement.get_location(),
+                right,
+                right_type,
+                right_statement.get_location(),
+            )?;
         } else {
             let expression = self.generate_expression(right_statement)?;
             self.llvm.builder.build_store(left, expression);
         }
         Ok(())
+    }
+
+    pub fn generate_string_store(
+        &self,
+        left: inkwell::values::PointerValue<'ink>,
+        left_type: &DataTypeInformation,
+        left_location: SourceRange,
+        right: inkwell::values::PointerValue<'ink>,
+        right_type: &DataTypeInformation,
+        right_location: SourceRange,
+    ) -> Result<PointerValue<'ink>, Diagnostic> {
+        let target_size = self.get_string_size(left_type, left_location.clone())?;
+        let value_size = self.get_string_size(right_type, right_location)?;
+        let size = std::cmp::min(target_size - 1, value_size) as i64;
+        let align_left = left_type.get_string_character_width(self.index).value();
+        let align_right = right_type.get_string_character_width(self.index).value();
+        //Multiply by the string alignment to copy enough for widestrings
+        //This is done at compile time to avoid generating an extra mul
+        let size = self
+            .llvm
+            .context
+            .i32_type()
+            .const_int((size * align_left as i64) as u64, true);
+        self.llvm
+            .builder
+            .build_memcpy(left, align_left, right, align_right, size)
+            .map_err(|err| Diagnostic::codegen_error(err, left_location))
     }
 
     fn get_string_size(
