@@ -612,14 +612,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let index = param_context.index;
         if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
             if matches!(parameter.get_variable_type(), VariableType::Output) {
-                let left = self.generate_element_pointer(expression)?;
+                let assigned_output = self.generate_element_pointer(expression)?;
 
-                let left_type = self
+                let assigned_output_type = self
                     .annotations
                     .get_type_or_void(expression, self.index)
                     .get_type_information();
 
-                let right = builder
+                let output = builder
                     .build_struct_gep(parameter_struct, index as u32, "")
                     .map_err(|_| {
                         Diagnostic::codegen_error(
@@ -628,23 +628,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         )
                     })?;
 
-                let right_type = self
+                let output_value_type = self
                     .index
                     .get_type_information_or_void(parameter.get_type_name());
 
                 //Special string handling
-                if left_type.is_string() && right_type.is_string() {
+                if assigned_output_type.is_string() && output_value_type.is_string() {
                     self.generate_string_store(
-                        left,
-                        left_type,
+                        assigned_output,
+                        assigned_output_type,
                         expression.get_location(),
-                        right,
-                        right_type,
+                        output,
+                        output_value_type,
                         parameter.source_location.clone(),
                     )?;
                 } else {
-                    let right_value = builder.build_load(right, "");
-                    builder.build_store(left, right_value);
+                    let output_value = builder.build_load(output, "");
+                    builder.build_store(assigned_output, output_value);
                 }
             }
         }
