@@ -254,3 +254,31 @@ fn string_function_parameters() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn program_string_output() {
+    // GIVEN PROGRAM returning strings
+    let result = codegen(
+        r#"
+		PROGRAM prog
+		VAR_OUTPUT
+			output1 : STRING;
+			output2 : WSTRING;
+		END_VAR
+			output1 := 'string';
+			output2 := "wstring";
+		END_PROGRAM
+
+        PROGRAM main
+		VAR 
+			x : STRING[6]; 
+			y : WSTRING[7]; 
+		END_VAR
+			prog(x, y);
+        END_PROGRAM
+    "#,
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
