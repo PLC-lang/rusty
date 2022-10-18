@@ -1,0 +1,75 @@
+---
+source: src/index/tests/index_tests.rs
+assertion_line: 2016
+expression: members
+---
+[
+    VariableIndexEntry {
+        name: "input1",
+        qualified_name: "foo.input1",
+        initial_value: None,
+        variable_type: ByVal(
+            Input,
+        ),
+        is_constant: false,
+        data_type_name: "INT",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceRange {
+            range: 37..43,
+        },
+        varargs: None,
+    },
+    VariableIndexEntry {
+        name: "output1",
+        qualified_name: "foo.output1",
+        initial_value: None,
+        variable_type: ByRef(
+            Output,
+        ),
+        is_constant: false,
+        data_type_name: "auto_pointer_to_INT",
+        location_in_parent: 1,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceRange {
+            range: 77..84,
+        },
+        varargs: None,
+    },
+    VariableIndexEntry {
+        name: "inout1",
+        qualified_name: "foo.inout1",
+        initial_value: None,
+        variable_type: ByRef(
+            InOut,
+        ),
+        is_constant: false,
+        data_type_name: "auto_pointer_to_INT",
+        location_in_parent: 2,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceRange {
+            range: 118..124,
+        },
+        varargs: None,
+    },
+    VariableIndexEntry {
+        name: "foo",
+        qualified_name: "foo.foo",
+        initial_value: None,
+        variable_type: ByVal(
+            Return,
+        ),
+        is_constant: false,
+        data_type_name: "INT",
+        location_in_parent: 3,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceRange {
+            range: 156..156,
+        },
+        varargs: None,
+    },
+]
