@@ -2671,6 +2671,12 @@
 <span id="2666">2666</span>
 <span id="2667">2667</span>
 <span id="2668">2668</span>
+<span id="2669">2669</span>
+<span id="2670">2670</span>
+<span id="2671">2671</span>
+<span id="2672">2672</span>
+<span id="2673">2673</span>
+<span id="2674">2674</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -3621,7 +3627,13 @@
                 )<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">ele_ptr</span>, <span class="kw-2">*</span><span class="ident">ele</span>);
             }
-            <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[<span class="ident">size_param</span>.<span class="ident">into</span>(), <span class="ident">arr_storage</span>.<span class="ident">into</span>()])
+            <span class="comment">// bitcast the array to pointer so it matches the declared function signature</span>
+            <span class="kw">let</span> <span class="ident">arr_storage</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_bitcast</span>(
+                <span class="ident">arr_storage</span>,
+                <span class="ident">llvm_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>),
+                <span class="string">&quot;&quot;</span>,
+            );
+            <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[<span class="ident">size_param</span>.<span class="ident">into</span>(), <span class="ident">arr_storage</span>])
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">generated_params</span>)
         }
