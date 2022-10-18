@@ -1060,7 +1060,7 @@
 
         <span class="kw">let</span> <span class="ident">right_statement</span> <span class="op">=</span> <span class="ident">range_checked_right_side</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="ident">right_statement</span>);
 
-        <span class="ident">exp_gen</span>.<span class="ident">generate_store</span>(<span class="ident">left_type</span>, <span class="ident">right_statement</span>, <span class="ident">left</span>)<span class="question-mark">?</span>;
+        <span class="ident">exp_gen</span>.<span class="ident">generate_store</span>(<span class="ident">left</span>, <span class="ident">left_type</span>, <span class="ident">right_statement</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
