@@ -28,6 +28,44 @@ fn build_to_temp() {
 }
 
 #[test]
+fn exports_env_variable() {
+    let dir = tempfile::tempdir().unwrap();
+    let parameters = CompileParameters::parse(&[
+        "rustyc",
+        "build",
+        &get_test_file("json/build_to_temp.json"),
+        "--target",
+        "x86_64-linux-gnu",
+        "--build-location",
+        dir.path().to_str().unwrap(),
+    ])
+    .unwrap();
+    build_with_subcommand(parameters).unwrap();
+
+    assert_eq!(
+        std::env::var("ARCH").unwrap(),
+        "x86_64-linux-gnu" 
+    );
+
+    let parameters = CompileParameters::parse(&[
+        "rustyc",
+        "build",
+        &get_test_file("json/build_to_temp.json"),
+        "--target",
+        "aarch64-unknown-linux-gnu",
+        "--build-location",
+        dir.path().to_str().unwrap(),
+    ])
+    .unwrap();
+    build_with_subcommand(parameters).unwrap();
+
+    assert_eq!(
+        std::env::var("ARCH").unwrap(),
+        "aarch64-unknown-linux-gnu" 
+    );
+}
+
+#[test]
 fn build_with_separate_lib_folder() {
     let dir = tempfile::tempdir().unwrap();
     let lib_dir = tempfile::tempdir().unwrap();
