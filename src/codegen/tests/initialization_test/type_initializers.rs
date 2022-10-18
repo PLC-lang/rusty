@@ -224,9 +224,9 @@ fn initial_values_in_struct_variable() {
 fn initial_values_in_fb_variable() {
     let result = codegen(
         "FUNCTION_BLOCK TON
-        VAR_OUTPUT
-            a : INT;
-            b : INT;
+        VAR_INPUT
+            a: INT;
+            b: INT;
         END_VAR
         END_FUNCTION_BLOCK
 
@@ -236,8 +236,8 @@ fn initial_values_in_fb_variable() {
             TEN : INT := 10;
         END_VAR
         VAR
-            struct1 : TON := (a := 10, b := TEN);
-            struct1 : TON := (b := 10, a := TEN);
+            struct1 : TON := (a := 10, b := TEN + 7);
+            struct2 : TON := (b := 10, a := TEN + 7);
         END_VAR
         END_PROGRAM
         ",

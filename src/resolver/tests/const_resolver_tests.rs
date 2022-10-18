@@ -1511,8 +1511,8 @@ fn function_block_initializers_constant_resolved_in_assignment() {
             TEN : INT := 10;
         END_VAR
         VAR
-            struct1 : TON := (a := 10, b := TEN);
-            struct1 : TON := (b := 10, a := TEN);
+            struct1 : TON := (a := 10, b := TEN + 7);
+            struct2 : TON := (b := 10, a := TEN + 7);
         END_VAR
         END_PROGRAM
         ",

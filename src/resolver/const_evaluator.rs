@@ -595,7 +595,7 @@ pub fn evaluate(
             })
         }
         AstStatement::Assignment { left, right, id } => {
-            //Rignt needs evaluation
+            //Right needs evaluation
             if let Some(right) = evaluate(right, scope, index)? {
                 Some(AstStatement::Assignment {
                     left: left.clone(),
