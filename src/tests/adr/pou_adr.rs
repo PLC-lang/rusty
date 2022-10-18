@@ -87,7 +87,7 @@ fn codegen_of_a_program_pou() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %main_prg = type { i16, i16*, i16*, i16 }
+    %main_prg = type { i16, i16*, i16, i16 }
 
     @main_prg_instance = global %main_prg zeroinitializer
 
@@ -125,7 +125,7 @@ fn calling_a_program() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %main_prg = type { i16, i16*, i16*, i16 }
+    %main_prg = type { i16, i16*, i16, i16 }
 
     @main_prg_instance = global %main_prg zeroinitializer
 
@@ -139,8 +139,9 @@ fn calling_a_program() {
       store i16 0, i16* %foo, align 2
       store i16 1, i16* getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 0), align 2
       store i16* %y, i16** getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 1), align 8
-      store i16* %x, i16** getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 2), align 8
       call void @main_prg(%main_prg* @main_prg_instance)
+      %0 = load i16, i16* getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 2), align 2
+      store i16 %0, i16* %x, align 2
       %foo_ret = load i16, i16* %foo, align 2
       ret i16 %foo_ret
     }
@@ -188,9 +189,9 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %main_fb = type { i16, i16*, i16*, i16 }
+    %main_fb = type { i16, i16*, i16, i16 }
 
-    @main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16* null, i16 1 }
+    @main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
 
     define void @main_fb(%main_fb* %0) {
     entry:
@@ -228,10 +229,10 @@ fn calling_a_function_block() {
     source_filename = "main"
 
     %foo = type { i16, i16, %main_fb }
-    %main_fb = type { i16, i16*, i16*, i16 }
+    %main_fb = type { i16, i16*, i16, i16 }
 
-    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16* null, i16 1 } }
-    @main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16* null, i16 1 }
+    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }
+    @main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
 
     define void @foo(%foo* %0) {
     entry:
@@ -242,9 +243,10 @@ fn calling_a_function_block() {
       store i16 1, i16* %1, align 2
       %2 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 1
       store i16* %y, i16** %2, align 8
-      %3 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 2
-      store i16* %x, i16** %3, align 8
       call void @main_fb(%main_fb* %fb)
+      %3 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 2
+      %4 = load i16, i16* %3, align 2
+      store i16 %4, i16* %x, align 2
       ret void
     }
 

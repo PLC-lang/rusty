@@ -438,7 +438,7 @@ fn program_empty_input_assignment() {
 #[test]
 fn program_empty_output_assignment() {
     // GIVEN
-    let result = codegen(
+    let result = codegen_without_unwrap(
         "
 		PROGRAM prog
 		VAR_INPUT
@@ -461,7 +461,17 @@ fn program_empty_output_assignment() {
 		",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    if let Err(msg) = result {
+        assert_eq!(
+            Diagnostic::codegen_error(
+                "Cannot generate a LValue for EmptyStatement",
+                (248..249).into(),
+            ),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
 }
 
 #[test]

@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%foo = type { i32, i8* }
+%foo = type { i32, i8 }
 %prg = type { i8 }
 
 @foo_instance = global %foo zeroinitializer
@@ -21,9 +21,10 @@ entry:
 define void @prg(%prg* %0) {
 entry:
   %baz = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i8* %baz, i8** getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 1), align 8
   store i32 2, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 4
   call void @foo(%foo* @foo_instance)
+  %1 = load i8, i8* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 1), align 1
+  store i8 %1, i8* %baz, align 1
   ret void
 }
 
