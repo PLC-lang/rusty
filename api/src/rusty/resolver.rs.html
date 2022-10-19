@@ -1577,6 +1577,9 @@
 <span id="1572">1572</span>
 <span id="1573">1573</span>
 <span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2260,10 +2263,8 @@
     <span class="kw">fn</span> <span class="ident">visit_variable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">variable</span>: <span class="kw-2">&amp;</span><span class="ident">Variable</span>) {
         <span class="self">self</span>.<span class="ident">visit_data_type_declaration</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">variable</span>.<span class="ident">data_type</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">initializer</span>) <span class="op">=</span> <span class="ident">variable</span>.<span class="ident">initializer</span>.<span class="ident">as_ref</span>() {
-            <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">initializer</span>);
-
             <span class="comment">// annotate a type-hint for the initializer, it should be the same type as the variable</span>
-            <span class="comment">// e.g. x : BYTE := 7 + 3;  --&gt; 7+3 should be casted into a byte</span>
+            <span class="comment">// e.g. x : BYTE := 7 + 3;  --&gt; 7+3 should be cast into a byte</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expected_type</span>) <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">index</span>
                 .<span class="ident">find_variable</span>(
@@ -2272,6 +2273,11 @@
                 )
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">ve</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">ve</span>.<span class="ident">get_type_name</span>()))
             {
+                <span class="comment">//Create a new context with the left operator being the target variable type, and the</span>
+                <span class="comment">//right side being the local context</span>
+                <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_call</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>());
+                <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">initializer</span>);
+
                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(
                     <span class="ident">initializer</span>,
                     <span class="ident">StatementAnnotation::value</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>()),
