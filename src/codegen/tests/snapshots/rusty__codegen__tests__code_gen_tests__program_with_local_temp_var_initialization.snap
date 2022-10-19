@@ -1,21 +1,19 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1459
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%foo_interface = type { i16 }
-%prg_interface = type {}
+%foo = type { i16 }
+%prg = type {}
 
-@foo_instance = global %foo_interface { i16 7 }
-@prg_instance = global %prg_interface zeroinitializer
+@foo_instance = global %foo { i16 7 }
+@prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo_interface* %0) {
+define void @foo(%foo* %0) {
 entry:
-  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %y = alloca i16, align 2
   %z = alloca i16, align 2
   store i16 0, i16* %y, align 2
@@ -28,9 +26,9 @@ entry:
   ret void
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  call void @foo(%foo_interface* @foo_instance)
+  call void @foo(%foo* @foo_instance)
   ret void
 }
 
