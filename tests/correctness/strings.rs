@@ -361,18 +361,15 @@ struct Wrapper<T> {
 unsafe extern "C" fn string_id(input: *const i8) -> Wrapper<[u8; 81]> {
     let mut res = [0; 81];
 
-    // Depending on the architecture `CStr::from_ptr` might either
-    // take a `i8` or `u8` as an argument. For ARM it's the latter
-    // hence we cast `input` to `u8` here if it's the case. See also
+    // Depending on the architecture `CStr::from_ptr` might either take
+    // `i8` or `u8` as an argument. For example x86_64 would yield `i8` 
+    // whereas aarch64 would yield `u8`. Instead of relying on conditional
+    // compilation we can ask the compiler to deduce the right type here,
+    // i.e. by casting with `as *const _`.
+    // For more information regarding `CStr::from_ptr` see:
     // * https://doc.rust-lang.org/nightly/src/core/ffi/mod.rs.html#54
     // * https://doc.rust-lang.org/nightly/src/core/ffi/mod.rs.html#104
-    let bytes = match () {
-        #[cfg(target_arch = "aarch64")]
-        _ => CStr::from_ptr(input as *const u8).to_bytes(),
-
-        #[cfg(not(target_arch = "aarch64"))]
-        _ => CStr::from_ptr(input).to_bytes(),
-    };
+    let bytes = CStr::from_ptr(input as *const _).to_bytes();
 
     for (index, val) in bytes.iter().enumerate() {
         res[index] = *val;

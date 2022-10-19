@@ -111,15 +111,22 @@ fn build_for_multiple_targets_and_sysroots() {
 
 #[test]
 #[cfg_attr(target_os = "windows", ignore = "linker not available for Windows")]
-#[cfg_attr(target_arch = "aarch64", ignore = "linker not available for ARM64")]
 fn build_with_cc_linker() {
     let dir = tempfile::tempdir().unwrap();
+    let arch = match () {
+        #[cfg(target_arch = "x86_64")]
+        _ => "x86_64-unknown-linux-gnu",
+
+        #[cfg(target_arch = "aarch64")]
+        _ => "aarch64-unknown-linux-gnu",
+    };
+
     let parameters = CompileParameters::parse(&[
         "rustyc",
         "build",
         &get_test_file("json/build_cc_linker.json"),
         "--target",
-        "x86_64-unknown-linux-gnu",
+        arch,
         "--build-location",
         dir.path().to_str().unwrap(),
         "--linker",
@@ -130,7 +137,7 @@ fn build_with_cc_linker() {
 
     assert!(dir
         .path()
-        .join("x86_64-unknown-linux-gnu")
+        .join(arch)
         .join("cc_proj.so")
         .is_file());
 }
