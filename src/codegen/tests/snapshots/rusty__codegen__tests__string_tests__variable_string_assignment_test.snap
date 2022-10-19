@@ -1,21 +1,19 @@
 ---
 source: src/codegen/tests/string_tests.rs
-assertion_line: 25
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { [16 x i8], [31 x i8] }
+%prg = type { [16 x i8], [31 x i8] }
 
-@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00" }
+@prg_instance = global %prg { [16 x i8] zeroinitializer, [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00" }
 @prg.z__init = unnamed_addr constant [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %1 = bitcast [16 x i8]* %y to i8*
   %2 = bitcast [31 x i8]* %z to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 %2, i32 15, i1 false)

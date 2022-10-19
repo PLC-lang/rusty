@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%Main_interface = type { i16 }
+%Main = type { i16 }
 
-@Main_instance = global %Main_interface zeroinitializer
+@Main_instance = global %Main zeroinitializer
 
 define i16 @Check_XX_RangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
@@ -25,9 +25,9 @@ entry:
   ret i16 %Check_XX_RangeSigned_ret
 }
 
-define void @Main(%Main_interface* %0) {
+define void @Main(%Main* %0) {
 entry:
-  %x = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   store i16 7, i16* %x, align 2
   ret void
 }

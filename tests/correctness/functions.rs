@@ -272,7 +272,6 @@ fn function_block_instances_save_state_per_instance() {
 }
 
 #[test]
-#[ignore = "https://github.com/PLC-lang/rusty/issues/530"]
 fn function_block_instances_save_outputs() {
     #[repr(C)]
     struct MainType {
@@ -292,7 +291,7 @@ fn function_block_instances_save_outputs() {
 
         PROGRAM main
             VAR
-                var : DINT;
+                var1 : DINT;
             END_VAR
             VAR_TEMP
                 t : BOOL;
@@ -302,7 +301,7 @@ fn function_block_instances_save_outputs() {
 
             j(a := TRUE, b => t);
             j(a := FALSE, b => k);
-            var := k;
+            var1 := k;
         END_PROGRAM
     "#;
 
@@ -569,7 +568,6 @@ fn var_output_assignment() {
 }
 
 #[test]
-#[ignore = "https://github.com/PLC-lang/rusty/issues/530"]
 fn var_output_unassigned() {
     #[repr(C)]
     struct MainType {
@@ -634,39 +632,6 @@ fn var_output_assignment_in_functions() {
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!((7 + 2, 8 + 3), (interface.var1, interface.var2));
-}
-
-#[test]
-fn optional_output_assignment() {
-    struct MainType {
-        var1: i32,
-        var2: i32,
-    }
-
-    let function = r#"
-		PROGRAM foo 
-            VAR_OUTPUT
-            	output1 : DINT;
-				output2 : DINT;
-            END_VAR
-			output1 := 1;
-			output2 := 2;
-        END_PROGRAM
-
-        PROGRAM main
-            VAR
-                var1 : DINT;
-				var2 : DINT;
-            END_VAR
-            foo(output1 =>, output2 => var2);
-        END_PROGRAM
-    "#;
-
-    let mut interface = MainType { var1: 0, var2: 0 };
-    let _: i32 = compile_and_run(function.to_string(), &mut interface);
-
-    assert_eq!(0, interface.var1);
-    assert_eq!(2, interface.var2);
 }
 
 #[test]

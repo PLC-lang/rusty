@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { [11 x i8], [81 x i8] }
+%prg = type { [11 x i8], [81 x i8] }
 
-@prg_instance = global %prg_interface { [11 x i8] c"hello\00\00\00\00\00\00", [81 x i8] zeroinitializer }
+@prg_instance = global %prg { [11 x i8] c"hello\00\00\00\00\00\00", [81 x i8] zeroinitializer }
 @prg.s__init = unnamed_addr constant [11 x i8] c"hello\00\00\00\00\00\00"
 @utf08_literal_0 = unnamed_addr constant [6 x i8] c"hello\00"
 
@@ -25,10 +25,10 @@ buffer_block:                                     ; No predecessors!
   ret i16 %foo_ret1
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %s = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %a = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %1 = bitcast [81 x i8]* %a to i8*
   %2 = bitcast [11 x i8]* %s to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 %2, i32 11, i1 false)

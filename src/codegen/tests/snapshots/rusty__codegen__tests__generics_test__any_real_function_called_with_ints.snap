@@ -1,14 +1,13 @@
 ---
 source: src/codegen/tests/generics_test.rs
-assertion_line: 131
 expression: codegen(src)
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { float, float, float, double, float, float, float, double }
+%prg = type { float, float, float, double, float, float, float, double }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define float @foo__REAL(float %0) {
 entry:
@@ -20,16 +19,16 @@ entry:
   ret float %foo__REAL_ret
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %res_sint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %res_int = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %res_dint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %res_lint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
-  %res_usint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 4
-  %res_uint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 5
-  %res_udint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 6
-  %res_ulint = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 7
+  %res_sint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %res_int = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %res_dint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
+  %res_lint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
+  %res_usint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 4
+  %res_uint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 5
+  %res_udint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 6
+  %res_ulint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 7
   %v_dint = alloca i32, align 4
   %v_udint = alloca i32, align 4
   store i32 1, i32* %v_dint, align 4

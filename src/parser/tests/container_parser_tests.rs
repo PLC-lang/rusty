@@ -47,11 +47,8 @@ fn actions_with_no_container_have_unknown_container() {
     assert_eq!(prg.name, "__unknown__.bar");
     assert_eq!(prg.type_name, "__unknown__");
 
-    //Expect a diagnostic
-    assert_eq!(
-        diagnostic,
-        [Diagnostic::missing_action_container((8..14).into())]
-    );
+    //Expect no diagnostic, actions container name is optional
+    assert_eq!(diagnostic, []);
 }
 
 #[test]
@@ -71,11 +68,8 @@ fn actions_with_no_container_inherits_previous_pou() {
     assert_eq!(prg.name, "foo.bar");
     assert_eq!(prg.type_name, "foo");
 
-    //Expect a diagnostic
-    assert_eq!(
-        diagnostic,
-        [Diagnostic::missing_action_container((56..62).into())]
-    );
+    //Expect no diagnostic, actions container name is optional
+    assert_eq!(diagnostic, []);
 }
 
 #[test]

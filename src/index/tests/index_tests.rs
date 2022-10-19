@@ -116,7 +116,7 @@ fn actions_are_indexed() {
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
         index.find_effective_type_info(info.get_name()).unwrap()
     {
-        assert_eq!("myProgram_interface", name);
+        assert_eq!("myProgram", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -142,7 +142,7 @@ fn actions_are_indexed() {
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
         index.find_effective_type_info(info.get_name()).unwrap()
     {
-        assert_eq!("myProgram_interface", name);
+        assert_eq!("myProgram", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -173,7 +173,7 @@ fn fb_methods_are_indexed() {
         name, member_names, ..
     } = info
     {
-        assert_eq!("myFuncBlock.foo_interface", name);
+        assert_eq!("myFuncBlock.foo", name);
         assert_eq!(&vec!["x"], member_names);
     } else {
         panic!("Wrong variant : {:#?}", info);
@@ -203,7 +203,7 @@ fn class_methods_are_indexed() {
         name, member_names, ..
     } = info
     {
-        assert_eq!("myClass.foo_interface", name);
+        assert_eq!("myClass.foo", name);
         assert_eq!(&vec!["y"], member_names);
     } else {
         panic!("Wrong variant : {:#?}", info);
@@ -1933,4 +1933,95 @@ fn a_program_pou_is_indexed() {
         }),
         index.find_pou("myProgram.act"),
     );
+}
+
+#[test]
+fn program_parameters_variable_type() {
+    // GIVEN PROGRAM with some parameters
+    // WHEN the PROGRAM is indexed
+    let (_, index) = index(
+        "
+		PROGRAM main
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : INT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : INT;
+		END_VAR
+		END_PROGRAM
+		",
+    );
+
+    // THEN the parameters should have the correct VariableType
+    let members = index.get_container_members("main");
+    assert_eq!(members.len(), 3);
+
+    // INPUT => ByVal
+    // OUTPUT => ByVal
+    // IN_OUT => ByRef
+    insta::assert_debug_snapshot!(members);
+}
+
+#[test]
+fn fb_parameters_variable_type() {
+    // GIVEN FB with some parameters
+    // WHEN the FB is indexed
+    let (_, index) = index(
+        "
+		FUNCTION_BLOCK fb
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : INT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : INT;
+		END_VAR
+		END_FUNCTION_BLOCK
+		",
+    );
+
+    // THEN the parameters should have the correct VariableType
+    let members = index.get_container_members("fb");
+    assert_eq!(members.len(), 3);
+
+    // INPUT => ByVal
+    // OUTPUT => ByVal
+    // IN_OUT => ByRef
+    insta::assert_debug_snapshot!(members);
+}
+
+#[test]
+fn function_parameters_variable_type() {
+    // GIVEN FUNCTION with some parameters
+    // WHEN the FUNCTION is indexed
+    let (_, index) = index(
+        "
+		FUNCTION foo : INT
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : INT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : INT;
+		END_VAR
+		END_FUNCTION
+		",
+    );
+
+    // THEN the parameters should have the correct VariableType
+    let members = index.get_container_members("foo");
+    assert_eq!(members.len(), 4);
+    // 4th entry is the return type
+
+    // INPUT => ByVal
+    // OUTPUT => ByRef
+    // IN_OUT => ByRef
+    insta::assert_debug_snapshot!(members);
 }

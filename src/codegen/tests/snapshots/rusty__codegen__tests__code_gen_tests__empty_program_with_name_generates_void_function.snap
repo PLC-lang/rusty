@@ -1,16 +1,15 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type {}
+%prg = type {}
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
   ret void
 }

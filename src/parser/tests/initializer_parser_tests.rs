@@ -417,7 +417,7 @@ fn date_and_time_constants_can_be_parsed() {
 
     let (result, _) = parse(src);
 
-    let vars = dbg!(&result.global_vars[0].variables);
+    let vars = &result.global_vars[0].variables;
     let ast_string = format!("{:#?}", &vars);
     let expected_ast = r#"[
     Variable {
@@ -554,7 +554,7 @@ fn date_and_time_constants_can_be_parsed() {
                 hour: 0,
                 min: 0,
                 sec: 0,
-                milli: 0,
+                nano: 0,
             },
         ),
     },
@@ -568,7 +568,7 @@ fn date_and_time_constants_can_be_parsed() {
                 hour: 0,
                 min: 0,
                 sec: 0,
-                milli: 0,
+                nano: 0,
             },
         ),
     },
@@ -582,7 +582,7 @@ fn date_and_time_constants_can_be_parsed() {
                 hour: 23,
                 min: 59,
                 sec: 59,
-                milli: 1000,
+                nano: 999999999,
             },
         ),
     },
@@ -596,7 +596,7 @@ fn date_and_time_constants_can_be_parsed() {
                 hour: 23,
                 min: 59,
                 sec: 59,
-                milli: 1000,
+                nano: 999999999,
             },
         ),
     },
@@ -613,7 +613,7 @@ fn date_and_time_constants_can_be_parsed() {
                 hour: 23,
                 min: 59,
                 sec: 59,
-                milli: 0,
+                nano: 0,
             },
         ),
     },
@@ -630,7 +630,7 @@ fn date_and_time_constants_can_be_parsed() {
                 hour: 23,
                 min: 59,
                 sec: 59,
-                milli: 0,
+                nano: 0,
             },
         ),
     },
@@ -647,7 +647,7 @@ fn date_and_time_constants_can_be_parsed() {
                 hour: 23,
                 min: 59,
                 sec: 59,
-                milli: 123,
+                nano: 123000000,
             },
         ),
     },
@@ -664,7 +664,7 @@ fn date_and_time_constants_can_be_parsed() {
                 hour: 23,
                 min: 59,
                 sec: 59,
-                milli: 123,
+                nano: 123000000,
             },
         ),
     },

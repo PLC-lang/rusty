@@ -262,3 +262,34 @@ fn string_variable_declaration_can_be_parsed() {
 }"#;
     assert_eq!(expected, format!("{:#?}", x).as_str());
 }
+
+#[test]
+fn empty_parameter_assignments_in_call_statement() {
+    let (result, diagnostics) = parse(
+        r#"
+        FUNCTION foo : INT
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : INT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : INT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+		VAR
+			a, b, c : INT;
+		END_VAR
+		foo(input1 := , output1 => , inout1 => );
+		END_PROGRAM
+        "#,
+    );
+
+    assert_eq!(diagnostics, vec![]);
+
+    let ast_string = format!("{:#?}", &result);
+    insta::assert_snapshot!(ast_string);
+}
