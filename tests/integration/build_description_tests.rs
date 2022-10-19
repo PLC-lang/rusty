@@ -111,6 +111,7 @@ fn build_for_multiple_targets_and_sysroots() {
 
 #[test]
 #[cfg_attr(target_os = "windows", ignore = "linker not available for Windows")]
+#[cfg_attr(target_arch = "aarch64", ignore = "linker not available for ARM64")]
 fn build_with_cc_linker() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(&[

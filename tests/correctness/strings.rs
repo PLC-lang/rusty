@@ -360,7 +360,20 @@ struct Wrapper<T> {
 #[allow(dead_code)]
 unsafe extern "C" fn string_id(input: *const i8) -> Wrapper<[u8; 81]> {
     let mut res = [0; 81];
-    let bytes = CStr::from_ptr(input).to_bytes();
+
+    // Depending on the architecture `CStr::from_ptr` might either
+    // take a `i8` or `u8` as an argument. For ARM it's the latter
+    // hence we cast `input` to `u8` here if it's the case. See also
+    // * https://doc.rust-lang.org/nightly/src/core/ffi/mod.rs.html#54
+    // * https://doc.rust-lang.org/nightly/src/core/ffi/mod.rs.html#104
+    let bytes = match () {
+        #[cfg(target_arch = "aarch64")]
+        _ => CStr::from_ptr(input as *const u8).to_bytes(),
+
+        #[cfg(not(target_arch = "aarch64"))]
+        _ => CStr::from_ptr(input).to_bytes(),
+    };
+
     for (index, val) in bytes.iter().enumerate() {
         res[index] = *val;
     }
