@@ -1,23 +1,21 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
-assertion_line: 23
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i16, i16 }
+%prg = type { i16, i16 }
 
 @MAX_LEN = unnamed_addr constant i16 99
 @MIN_LEN = unnamed_addr constant i16 10
 @LEN = unnamed_addr constant i16 20
-@prg_instance = global %prg_interface { i16 24, i16 89 }
+@prg_instance = global %prg { i16 24, i16 89 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %my_len = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %my_size = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %my_len = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %my_size = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   ret void
 }
 

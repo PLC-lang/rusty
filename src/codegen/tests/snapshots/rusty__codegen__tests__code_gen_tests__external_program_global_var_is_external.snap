@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i32, i32 }
+%prg = type { i32, i32 }
 
-@prg_instance = external global %prg_interface
+@prg_instance = external global %prg
 
-declare void @prg(%prg_interface*)
+declare void @prg(%prg*)
 

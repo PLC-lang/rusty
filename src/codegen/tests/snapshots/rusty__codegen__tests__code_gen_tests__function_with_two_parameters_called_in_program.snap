@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i32 }
+%prg = type { i32 }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define i32 @foo(i32 %0, i8 %1) {
 entry:
@@ -22,9 +22,9 @@ entry:
   ret i32 %foo_ret
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %call = call i32 @foo(i32 2, i8 1)
   store i32 %call, i32* %x, align 4
   ret void

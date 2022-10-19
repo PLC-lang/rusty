@@ -681,10 +681,8 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_variable(&mut self, ctx: &VisitorContext, variable: &Variable) {
         self.visit_data_type_declaration(ctx, &variable.data_type);
         if let Some(initializer) = variable.initializer.as_ref() {
-            self.visit_statement(ctx, initializer);
-
             // annotate a type-hint for the initializer, it should be the same type as the variable
-            // e.g. x : BYTE := 7 + 3;  --> 7+3 should be casted into a byte
+            // e.g. x : BYTE := 7 + 3;  --> 7+3 should be cast into a byte
             if let Some(expected_type) = self
                 .index
                 .find_variable(
@@ -693,6 +691,11 @@ impl<'i> TypeAnnotator<'i> {
                 )
                 .and_then(|ve| self.index.find_effective_type_by_name(ve.get_type_name()))
             {
+                //Create a new context with the left operator being the target variable type, and the
+                //right side being the local context
+                let ctx = ctx.with_call(expected_type.get_name());
+                self.visit_statement(&ctx, initializer);
+
                 self.annotation_map.annotate_type_hint(
                     initializer,
                     StatementAnnotation::value(expected_type.get_name()),

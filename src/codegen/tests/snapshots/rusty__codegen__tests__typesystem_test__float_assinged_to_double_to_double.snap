@@ -1,19 +1,18 @@
 ---
 source: src/codegen/tests/typesystem_test.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { float, double }
+%prg = type { float, double }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %a = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %b = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %load_a = load float, float* %a, align 4
   %1 = fpext float %load_a to double
   store double %1, double* %b, align 8

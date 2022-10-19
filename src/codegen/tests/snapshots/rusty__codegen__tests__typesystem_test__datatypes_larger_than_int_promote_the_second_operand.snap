@@ -1,20 +1,19 @@
 ---
 source: src/codegen/tests/typesystem_test.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i32, i64, i64 }
+%prg = type { i32, i64, i64 }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %b = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %c = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %c = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
   %load_b = load i32, i32* %b, align 4
   %1 = sext i32 %load_b to i64
   %load_c = load i64, i64* %c, align 4
