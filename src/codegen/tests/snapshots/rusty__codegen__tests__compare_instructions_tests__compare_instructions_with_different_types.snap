@@ -1,14 +1,13 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
-assertion_line: 320
 expression: result
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { i16*, i16, i32, i8, i16, i32, i64, i8, i16, i32, i64 }
+%main = type { i16*, i16, i32, i8, i16, i32, i64, i8, i16, i32, i64 }
 
-@main_instance = global %main_interface zeroinitializer
+@main_instance = global %main zeroinitializer
 
 define i64 @foo() {
 entry:
@@ -18,19 +17,19 @@ entry:
   ret i64 %foo_ret
 }
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %ptr_int = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
-  %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
-  %var_sint = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 3
-  %var_int = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 4
-  %var_dint = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 5
-  %var_lint = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 6
-  %var_usint = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 7
-  %var_uint = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 8
-  %var_udint = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 9
-  %var_ulint = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 10
+  %ptr_int = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 2
+  %var_sint = getelementptr inbounds %main, %main* %0, i32 0, i32 3
+  %var_int = getelementptr inbounds %main, %main* %0, i32 0, i32 4
+  %var_dint = getelementptr inbounds %main, %main* %0, i32 0, i32 5
+  %var_lint = getelementptr inbounds %main, %main* %0, i32 0, i32 6
+  %var_usint = getelementptr inbounds %main, %main* %0, i32 0, i32 7
+  %var_uint = getelementptr inbounds %main, %main* %0, i32 0, i32 8
+  %var_udint = getelementptr inbounds %main, %main* %0, i32 0, i32 9
+  %var_ulint = getelementptr inbounds %main, %main* %0, i32 0, i32 10
   store i16* %var_int, i16** %ptr_int, align 8
   %load_var_sint = load i8, i8* %var_sint, align 1
   %1 = sext i8 %load_var_sint to i32

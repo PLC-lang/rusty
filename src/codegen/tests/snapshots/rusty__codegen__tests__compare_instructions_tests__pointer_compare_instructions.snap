@@ -1,21 +1,20 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
-assertion_line: 233
 expression: result
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { i16, i16, i16*, i8 }
+%main = type { i16, i16, i16*, i8 }
 
-@main_instance = global %main_interface { i16 10, i16 20, i16* null, i8 0 }
+@main_instance = global %main { i16 10, i16 20, i16* null, i8 0 }
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
-  %pt = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
-  %comp = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 3
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %pt = getelementptr inbounds %main, %main* %0, i32 0, i32 2
+  %comp = getelementptr inbounds %main, %main* %0, i32 0, i32 3
   store i16* %x, i16** %pt, align 8
   %load_pt = load i16*, i16** %pt, align 8
   %load_pt1 = load i16*, i16** %pt, align 8

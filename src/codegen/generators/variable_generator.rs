@@ -71,7 +71,11 @@ pub fn generate_global_variables<'ctx, 'b>(
         })?;
         index.associate_global(name, global_variable)?;
         //generate debug info
-        debug.create_global_variable(name, &variable.data_type_name, global_variable)?;
+        debug.create_global_variable(
+            variable.get_qualified_name(),
+            &variable.data_type_name,
+            global_variable,
+        )?;
     }
     Ok(index)
 }

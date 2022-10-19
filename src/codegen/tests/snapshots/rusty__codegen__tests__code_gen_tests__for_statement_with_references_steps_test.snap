@@ -1,22 +1,20 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1094
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i32, i32, i32, i32 }
+%prg = type { i32, i32, i32, i32 }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %step = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  %step = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
+  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
   %load_y = load i32, i32* %y, align 4
   store i32 %load_y, i32* %x, align 4
   br label %condition_check

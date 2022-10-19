@@ -1,28 +1,26 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
-assertion_line: 79
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%MyFB_interface = type { i16 }
-%prg_interface = type { %MyFB_interface }
+%MyFB = type { i16 }
+%prg = type { %MyFB }
 
-@x = global %MyFB_interface { i16 77 }
-@prg_instance = global %prg_interface { %MyFB_interface { i16 77 } }
-@MyFB__init = unnamed_addr constant %MyFB_interface { i16 77 }
+@x = global %MyFB { i16 77 }
+@prg_instance = global %prg { %MyFB { i16 77 } }
+@MyFB__init = unnamed_addr constant %MyFB { i16 77 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   ret void
 }
 
-define void @MyFB(%MyFB_interface* %0) {
+define void @MyFB(%MyFB* %0) {
 entry:
-  %x = getelementptr inbounds %MyFB_interface, %MyFB_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
   ret void
 }
 

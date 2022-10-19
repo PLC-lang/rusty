@@ -1,26 +1,24 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1475
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%foo_interface = type {}
-%prg_interface = type {}
+%foo = type {}
+%prg = type {}
 
-@foo_instance = global %foo_interface zeroinitializer
-@prg_instance = global %prg_interface zeroinitializer
+@foo_instance = global %foo zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo_interface* %0) {
+define void @foo(%foo* %0) {
 entry:
   ret void
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  call void @foo(%foo_interface* @foo_instance)
+  call void @foo(%foo* @foo_instance)
   ret void
 }
 

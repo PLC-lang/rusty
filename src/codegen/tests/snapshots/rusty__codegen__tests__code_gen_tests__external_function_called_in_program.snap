@@ -5,13 +5,13 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type {}
+%prg = type {}
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 declare i32 @foo()
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
   %call = call i32 @foo()
   ret void

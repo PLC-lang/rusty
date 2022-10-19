@@ -57,7 +57,7 @@ fn programs_state_is_stored_in_a_struct() {
             name: "main_prg",
             initial_value: None,
             information: Struct {
-                name: "main_prg_interface",
+                name: "main_prg",
                 member_names: [
                     "i",
                     "io",
@@ -87,16 +87,16 @@ fn codegen_of_a_program_pou() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %main_prg_interface = type { i16, i16*, i16, i16 }
+    %main_prg = type { i16, i16*, i16, i16 }
 
-    @main_prg_instance = global %main_prg_interface zeroinitializer
+    @main_prg_instance = global %main_prg zeroinitializer
 
-    define void @main_prg(%main_prg_interface* %0) {
+    define void @main_prg(%main_prg* %0) {
     entry:
-      %i = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 3
+      %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 0, i16* %vt, align 2
       ret void
@@ -125,9 +125,9 @@ fn calling_a_program() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %main_prg_interface = type { i16, i16*, i16, i16 }
+    %main_prg = type { i16, i16*, i16, i16 }
 
-    @main_prg_instance = global %main_prg_interface zeroinitializer
+    @main_prg_instance = global %main_prg zeroinitializer
 
     define i16 @foo() {
     entry:
@@ -137,21 +137,21 @@ fn calling_a_program() {
       store i16 0, i16* %x, align 2
       store i16 0, i16* %y, align 2
       store i16 0, i16* %foo, align 2
-      store i16 1, i16* getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 0), align 2
-      store i16* %y, i16** getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 1), align 8
-      call void @main_prg(%main_prg_interface* @main_prg_instance)
-      %0 = load i16, i16* getelementptr inbounds (%main_prg_interface, %main_prg_interface* @main_prg_instance, i32 0, i32 2), align 2
+      store i16 1, i16* getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 0), align 2
+      store i16* %y, i16** getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 1), align 8
+      call void @main_prg(%main_prg* @main_prg_instance)
+      %0 = load i16, i16* getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 2), align 2
       store i16 %0, i16* %x, align 2
       %foo_ret = load i16, i16* %foo, align 2
       ret i16 %foo_ret
     }
 
-    define void @main_prg(%main_prg_interface* %0) {
+    define void @main_prg(%main_prg* %0) {
     entry:
-      %i = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_prg_interface, %main_prg_interface* %0, i32 0, i32 3
+      %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 0, i16* %vt, align 2
       ret void
@@ -189,16 +189,16 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %main_fb_interface = type { i16, i16*, i16, i16 }
+    %main_fb = type { i16, i16*, i16, i16 }
 
-    @main_fb__init = unnamed_addr constant %main_fb_interface { i16 6, i16* null, i16 0, i16 1 }
+    @main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
 
-    define void @main_fb(%main_fb_interface* %0) {
+    define void @main_fb(%main_fb* %0) {
     entry:
-      %i = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 3
+      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 2, i16* %vt, align 2
       ret void
@@ -228,34 +228,34 @@ fn calling_a_function_block() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %foo_interface = type { i16, i16, %main_fb_interface }
-    %main_fb_interface = type { i16, i16*, i16, i16 }
+    %foo = type { i16, i16, %main_fb }
+    %main_fb = type { i16, i16*, i16, i16 }
 
-    @foo_instance = global %foo_interface { i16 0, i16 0, %main_fb_interface { i16 6, i16* null, i16 0, i16 1 } }
-    @main_fb__init = unnamed_addr constant %main_fb_interface { i16 6, i16* null, i16 0, i16 1 }
+    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }
+    @main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
 
-    define void @foo(%foo_interface* %0) {
+    define void @foo(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
-      %fb = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 2
-      %1 = getelementptr inbounds %main_fb_interface, %main_fb_interface* %fb, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %fb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %1 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 0
       store i16 1, i16* %1, align 2
-      %2 = getelementptr inbounds %main_fb_interface, %main_fb_interface* %fb, i32 0, i32 1
+      %2 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 1
       store i16* %y, i16** %2, align 8
-      call void @main_fb(%main_fb_interface* %fb)
-      %3 = getelementptr inbounds %main_fb_interface, %main_fb_interface* %fb, i32 0, i32 2
+      call void @main_fb(%main_fb* %fb)
+      %3 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 2
       %4 = load i16, i16* %3, align 2
       store i16 %4, i16* %x, align 2
       ret void
     }
 
-    define void @main_fb(%main_fb_interface* %0) {
+    define void @main_fb(%main_fb* %0) {
     entry:
-      %i = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb_interface, %main_fb_interface* %0, i32 0, i32 3
+      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 2, i16* %vt, align 2
       ret void
@@ -329,14 +329,14 @@ fn calling_a_function() {
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %prg_interface = type { i16, i8 }
+    %prg = type { i16, i8 }
 
-    @prg_instance = global %prg_interface zeroinitializer
+    @prg_instance = global %prg zeroinitializer
 
-    define void @prg(%prg_interface* %0) {
+    define void @prg(%prg* %0) {
     entry:
-      %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-      %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+      %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+      %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
       %load_x = load i16, i16* %x, align 2
       %1 = alloca i64, align 8
       %call = call i32 @main_fun(i16 %load_x, i8* %z, i64* %1)
