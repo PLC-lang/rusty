@@ -3198,6 +3198,7 @@ fn resolve_recursive_program_call() {
     insta::assert_snapshot!(annotated_types);
 }
 
+#[test]
 fn function_block_initialization_test() {
     let (unit, mut index) = index(
         "
