@@ -57,6 +57,8 @@ pub struct VisitorContext<'s> {
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
     call: Option<&'s str>,
+    /// true if visiting a call statement
+    is_call: bool,
 
     /// true if the expression passed a constant-variable on the way
     /// e.g. true for `x` if x is declared in a constant block
@@ -74,6 +76,7 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: Some(qualifier),
             call: self.call,
+            is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
         }
@@ -85,6 +88,7 @@ impl<'s> VisitorContext<'s> {
             pou: Some(pou),
             qualifier: self.qualifier.clone(),
             call: self.call,
+            is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
         }
@@ -96,6 +100,19 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
             call: Some(lhs_pou),
+            is_call: self.is_call,
+            constant: false,
+            in_body: self.in_body,
+        }
+    }
+
+    /// returns a copy of the current context and changes the `is_call` to true
+    fn set_is_call(&self) -> VisitorContext<'s> {
+        VisitorContext {
+            pou: self.pou,
+            qualifier: self.qualifier.clone(),
+            call: self.call,
+            is_call: true,
             constant: false,
             in_body: self.in_body,
         }
@@ -107,6 +124,7 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
             call: self.call,
+            is_call: self.is_call,
             constant: self.constant,
             in_body: true,
         }
@@ -443,6 +461,7 @@ impl<'i> TypeAnnotator<'i> {
             pou: None,
             qualifier: None,
             call: None,
+            is_call: false,
             constant: false,
             in_body: false,
         };
@@ -843,6 +862,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(
                     &VisitorContext {
                         call: None,
+                        is_call: false,
                         constant: false,
                         pou: ctx.pou,
                         qualifier: None,
@@ -1088,6 +1108,18 @@ impl<'i> TypeAnnotator<'i> {
                             // ... first look at POU-local variables
                             self.index
                                 .find_member(qualifier, name)
+                                .and_then(|m| {
+                                    // #604 needed for recursive function calls
+                                    // if we are in a call statement and the member name equals the pou name
+                                    // we are in a recursive function call -> FUNCTION foo : INT foo(); END_FUNCTION
+                                    if ctx.is_call & (m.get_name() == qualifier) {
+                                        // return `None` because this would be foo.foo pointing to the function return
+                                        // we need the POU
+                                        None
+                                    } else {
+                                        Some(m)
+                                    }
+                                })
                                 .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
                                     // ... then check if we're in a method and we're referencing
@@ -1254,7 +1286,9 @@ impl<'i> TypeAnnotator<'i> {
         } else {
             unreachable!("Always a call statement");
         };
-        self.visit_statement(ctx, operator);
+        // #604 needed for recursive function calls
+        let ctx = ctx.set_is_call();
+        self.visit_statement(&ctx, operator);
         let operator_qualifier = self.get_call_name(operator);
         let ctx = ctx.with_call(operator_qualifier.as_str());
         let parameters = if let Some(parameters) = parameters_stmt {
