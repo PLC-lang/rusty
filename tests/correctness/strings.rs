@@ -360,7 +360,7 @@ struct Wrapper<T> {
 #[allow(dead_code)]
 unsafe extern "C" fn string_id(input: *const i8) -> Wrapper<[u8; 81]> {
     let mut res = [0; 81];
-    let bytes = CStr::from_ptr(input).to_bytes();
+    let bytes = CStr::from_ptr(input as *const _).to_bytes();
     for (index, val) in bytes.iter().enumerate() {
         res[index] = *val;
     }
