@@ -14,7 +14,7 @@ source_filename = "main"
 !llvm.dbg.cu = !{!18}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-!1 = distinct !DIGlobalVariable(name: "gstruct", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!1 = distinct !DIGlobalVariable(name: "gStruct", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "main", directory: "")
 !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mystruct", scope: !2, file: !2, size: 480, align: 64, flags: DIFlagPublic, elements: !4, identifier: "mystruct")
 !4 = !{!5, !7, !9}
@@ -30,7 +30,7 @@ source_filename = "main"
 !14 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, type: !15, isLocal: false, isDefinition: true)
 !15 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 5280, align: 64, elements: !11)
 !16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
-!17 = distinct !DIGlobalVariable(name: "mystruct__init", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!17 = distinct !DIGlobalVariable(name: "myStruct__init", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
 !18 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !19, globals: !20, splitDebugInlining: false)
 !19 = !{}
 !20 = !{!0, !13, !16}

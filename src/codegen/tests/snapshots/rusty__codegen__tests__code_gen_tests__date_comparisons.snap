@@ -1,21 +1,20 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 493
 expression: result
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i64, i64, i64, i64 }
+%prg = type { i64, i64, i64, i64 }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %a = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %b = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %c = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %d = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %c = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
+  %d = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
   %load_a = load i64, i64* %a, align 4
   %tmpVar = icmp sgt i64 %load_a, 1619827200000000000
   %load_b = load i64, i64* %b, align 4
