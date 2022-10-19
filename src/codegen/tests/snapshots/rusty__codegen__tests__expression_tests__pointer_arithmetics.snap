@@ -1,20 +1,19 @@
 ---
 source: src/codegen/tests/expression_tests.rs
-assertion_line: 192
 expression: result
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { i16, i16, i16* }
+%main = type { i16, i16, i16* }
 
-@main_instance = global %main_interface { i16 10, i16 20, i16* null }
+@main_instance = global %main { i16 10, i16 20, i16* null }
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
-  %pt = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %pt = getelementptr inbounds %main, %main* %0, i32 0, i32 2
   store i16* %x, i16** %pt, align 8
   %load_pt = load i16*, i16** %pt, align 8
   %access___main_pt = getelementptr inbounds i16, i16* %load_pt, i32 1

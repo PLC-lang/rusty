@@ -1,18 +1,16 @@
 ---
 source: src/codegen/tests/string_tests.rs
-assertion_line: 42
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type {}
+%prg = type {}
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 @prg.z__init = unnamed_addr constant [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
   %y = alloca [16 x i8], align 1
   %z = alloca [31 x i8], align 1

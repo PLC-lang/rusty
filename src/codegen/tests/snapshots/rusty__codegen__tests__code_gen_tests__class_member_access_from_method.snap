@@ -1,23 +1,21 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 940
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%MyClass_interface = type { i16, i16 }
-%MyClass.testMethod_interface = type { i16, i16 }
+%MyClass = type { i16, i16 }
+%MyClass.testMethod = type { i16, i16 }
 
-@MyClass__init = unnamed_addr constant %MyClass_interface zeroinitializer
+@MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
-define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
+define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:
-  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
+  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 0
+  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod, %MyClass.testMethod* %1, i32 0, i32 1
   store i16 0, i16* %myMethodLocalVar, align 2
   %load_myMethodArg = load i16, i16* %myMethodArg, align 2
   store i16 %load_myMethodArg, i16* %x, align 2

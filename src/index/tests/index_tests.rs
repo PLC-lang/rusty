@@ -116,7 +116,7 @@ fn actions_are_indexed() {
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
         index.find_effective_type_info(info.get_name()).unwrap()
     {
-        assert_eq!("myProgram_interface", name);
+        assert_eq!("myProgram", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -142,7 +142,7 @@ fn actions_are_indexed() {
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
         index.find_effective_type_info(info.get_name()).unwrap()
     {
-        assert_eq!("myProgram_interface", name);
+        assert_eq!("myProgram", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -173,7 +173,7 @@ fn fb_methods_are_indexed() {
         name, member_names, ..
     } = info
     {
-        assert_eq!("myFuncBlock.foo_interface", name);
+        assert_eq!("myFuncBlock.foo", name);
         assert_eq!(&vec!["x"], member_names);
     } else {
         panic!("Wrong variant : {:#?}", info);
@@ -203,7 +203,7 @@ fn class_methods_are_indexed() {
         name, member_names, ..
     } = info
     {
-        assert_eq!("myClass.foo_interface", name);
+        assert_eq!("myClass.foo", name);
         assert_eq!(&vec!["y"], member_names);
     } else {
         panic!("Wrong variant : {:#?}", info);

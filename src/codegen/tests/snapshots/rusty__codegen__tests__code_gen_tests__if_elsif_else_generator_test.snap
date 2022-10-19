@@ -1,25 +1,23 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 744
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i32, i32, i32, i32, i8, i8, i8 }
+%prg = type { i32, i32, i32, i32, i8, i8, i8 }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %u = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
-  %b1 = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 4
-  %b2 = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 5
-  %b3 = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 6
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
+  %u = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
+  %b1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 4
+  %b2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 5
+  %b3 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 6
   %load_b1 = load i8, i8* %b1, align 1
   %1 = icmp ne i8 %load_b1, 0
   br i1 %1, label %condition_body, label %branch

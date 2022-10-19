@@ -221,6 +221,31 @@ fn initial_values_in_struct_variable() {
 }
 
 #[test]
+fn initial_values_in_fb_variable() {
+    let result = codegen(
+        "FUNCTION_BLOCK TON
+        VAR_INPUT
+            a: INT;
+            b: INT;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main 
+
+        VAR CONSTANT
+            TEN : INT := 10;
+        END_VAR
+        VAR
+            struct1 : TON := (a := 10, b := TEN + 7);
+            struct2 : TON := (b := 10, a := TEN + 7);
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
     let result = codegen(
         "

@@ -417,7 +417,7 @@ fn date_and_time_constants_can_be_parsed() {
 
     let (result, _) = parse(src);
 
-    let vars = dbg!(&result.global_vars[0].variables);
+    let vars = &result.global_vars[0].variables;
     let ast_string = format!("{:#?}", &vars);
     let expected_ast = r#"[
     Variable {

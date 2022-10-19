@@ -5,9 +5,9 @@ expression: prg
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i16, i16 }
+%prg = type { i16, i16 }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define i32 @MAX__DINT(i32 %0, i32 %1) {
 entry:
@@ -21,10 +21,10 @@ entry:
   ret i32 %MAX__DINT_ret
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %a = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %b = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %call = call i32 @MAX__DINT(i32 1, i32 2)
   %load_a = load i16, i16* %a, align 2
   %load_b = load i16, i16* %b, align 2
