@@ -214,13 +214,12 @@ fn parse_pou(
                     !generics.is_empty(),
                 ));
             }
-
             let mut pous = vec![Pou {
                 name,
                 pou_type,
                 variable_blocks,
                 return_type,
-                location: SourceRange::new(start..lexer.range().end),
+                location: lexer.source_range_factory.create_range(start..lexer.range().end),
                 name_location,
                 poly_mode,
                 generics,
@@ -237,7 +236,7 @@ fn parse_pou(
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
             format!("{:?}", expected_end_token).as_str(),
             lexer.slice_region(lexer.last_range.clone()),
-            SourceRange::new(lexer.last_range.clone()),
+            lexer.source_range_factory.create_range(lexer.last_range.clone()),
         ));
     }
     pou
@@ -330,7 +329,7 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
             if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
                     pou_type,
-                    SourceRange::new(start_return_type..lexer.last_range.end),
+                    lexer.source_range_factory.create_range(start_return_type..lexer.last_range.end),
                 ));
             }
 
@@ -350,7 +349,7 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
                 "Datatype",
                 lexer.slice(),
-                SourceRange::new(lexer.range()),
+                lexer.source_range_factory.create_range(lexer.range()),
             ));
             None
         }
@@ -420,7 +419,7 @@ fn parse_method(
                 pou_type,
                 variable_blocks,
                 return_type,
-                location: SourceRange::new(method_start..method_end),
+                location: lexer.source_range_factory.create_range(method_start..method_end),
                 name_location,
                 poly_mode,
                 generics,
@@ -478,7 +477,7 @@ fn parse_implementation(
         linkage,
         pou_type,
         statements,
-        location: SourceRange::new(start..lexer.range().end),
+        location: lexer.source_range_factory.create_range(start..lexer.range().end),
         overriding: false,
         generic,
         access: None,
@@ -764,7 +763,7 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstStatement
         let closing_tokens = vec![KeywordSquareParensClose, KeywordParensClose];
         parse_any_in_region(lexer, closing_tokens, |lexer| {
             let size_expr = parse_expression(lexer);
-            let error_range = SourceRange::new(opening_location..lexer.location().get_end());
+            let error_range = lexer.source_range_factory.create_range(opening_location..lexer.location().get_end());
 
             if (opening_token == KeywordParensOpen && lexer.token == KeywordSquareParensClose)
                 || (opening_token == KeywordSquareParensOpen && lexer.token == KeywordParensClose)
@@ -861,7 +860,7 @@ fn parse_array_type_definition(
 
     let inner_type_defintion = parse_data_type_definition(lexer, None);
     inner_type_defintion.map(|(reference, initializer)| {
-        let location = SourceRange::new(start..reference.get_location().get_end());
+        let location = lexer.source_range_factory.create_range(start..reference.get_location().get_end());
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::ArrayType {
@@ -1027,7 +1026,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             let next_token_start = lexer.location().get_start();
             lexer.accept_diagnostic(Diagnostic::missing_token(
                 format!("{:?} or {:?}", KeywordColon, KeywordComma).as_str(),
-                SourceRange::new(identifier_end..next_token_start),
+                lexer.source_range_factory.create_range(identifier_end..next_token_start),
             ));
         }
     }

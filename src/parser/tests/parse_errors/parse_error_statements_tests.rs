@@ -33,7 +33,7 @@ fn missing_semicolon_after_call() {
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected =
-        Diagnostic::unexpected_token_found("KeywordSemicolon", "'foo()'", SourceRange::new(76..81));
+        Diagnostic::unexpected_token_found("KeywordSemicolon", "'foo()'", SourceRange::new(76..81, None));
     assert_eq!(diagnostics[0], expected);
 
     let pou = &compilation_unit.implementations[0];
@@ -64,7 +64,7 @@ fn missing_comma_in_call_parameters() {
 
     let (compilation_unit, diagnostics) = parse(src);
     let expected =
-        Diagnostic::unexpected_token_found("KeywordParensClose", "'c'", SourceRange::new(58..59));
+        Diagnostic::unexpected_token_found("KeywordParensClose", "'c'", SourceRange::new(58..59, None));
     assert_eq!(diagnostics, vec![expected]);
 
     let pou = &compilation_unit.implementations[0];
@@ -101,13 +101,13 @@ fn illegal_semicolon_in_call_parameters() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::missing_token("[KeywordParensClose]", SourceRange::new(57..58)),
+            Diagnostic::missing_token("[KeywordParensClose]", SourceRange::new(57..58, None)),
             Diagnostic::unexpected_token_found(
                 "KeywordParensClose",
                 "';'",
-                SourceRange::new(57..58)
+                SourceRange::new(57..58, None)
             ),
-            Diagnostic::unexpected_token_found("KeywordSemicolon", "')'", SourceRange::new(60..61))
+            Diagnostic::unexpected_token_found("KeywordSemicolon", "')'", SourceRange::new(60..61, None))
         ]
     );
 
@@ -247,7 +247,7 @@ fn mismatched_parantheses_recovery_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::missing_token("[KeywordParensClose]", SourceRange::new(40..41))
+        Diagnostic::missing_token("[KeywordParensClose]", SourceRange::new(40..41, None))
     );
 }
 
@@ -294,7 +294,7 @@ fn invalid_variable_name_error_recovery() {
         Diagnostic::unexpected_token_found(
             format!("{:?}", Token::KeywordEndVar).as_str(),
             "'4 : INT;'",
-            SourceRange::new(77..85)
+            SourceRange::new(77..85, None)
         )
     );
 }
@@ -332,27 +332,27 @@ fn invalid_variable_data_type_error_recovery() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::missing_token("KeywordColon or KeywordComma", SourceRange::new(53..54)),
+            Diagnostic::missing_token("KeywordColon or KeywordComma", SourceRange::new(53..54, None)),
             Diagnostic::unexpected_token_found(
                 "DataTypeDefinition",
                 "KeywordSemicolon",
-                SourceRange::new(61..62)
+                SourceRange::new(61..62, None)
             ),
-            Diagnostic::missing_token("KeywordColon", SourceRange::new(108..109)),
+            Diagnostic::missing_token("KeywordColon", SourceRange::new(108..109, None)),
             Diagnostic::unexpected_token_found(
                 "DataTypeDefinition",
                 "KeywordComma",
-                SourceRange::new(108..109)
+                SourceRange::new(108..109, None)
             ),
             Diagnostic::unexpected_token_found(
                 "KeywordSemicolon",
                 "', : INT'",
-                SourceRange::new(108..115)
+                SourceRange::new(108..115, None)
             ),
             Diagnostic::unexpected_token_found(
                 "DataTypeDefinition",
                 "KeywordSemicolon",
-                SourceRange::new(143..144)
+                SourceRange::new(143..144, None)
             ),
         ]
     );
@@ -1046,7 +1046,7 @@ fn pointer_type_without_to_test() {
         vec![
             Diagnostic::ImprovementSuggestion {
                 message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-                range: SourceRange::new(42..49)
+                range: SourceRange::new(42..49, None)
             },
             Diagnostic::unexpected_token_found("KeywordTo", "INT", (50..53).into())
         ],
@@ -1083,7 +1083,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         vec![
             Diagnostic::ImprovementSuggestion {
                 message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-                range: SourceRange::new(42..49)
+                range: SourceRange::new(42..49, None)
             },
             Diagnostic::unexpected_token_found("KeywordTo", "tu", (50..52).into()),
             Diagnostic::unexpected_token_found("KeywordSemicolon", "'INT'", (53..56).into())

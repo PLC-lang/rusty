@@ -167,11 +167,11 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn location(&self) -> SourceRange {
-        SourceRange::new(self.range())
+        self.source_range_factory.create_range(self.range())
     }
 
     pub fn last_location(&self) -> SourceRange {
-        SourceRange::new(self.last_range.clone())
+        self.source_range_factory.create_range(self.last_range.clone())
     }
 
     pub fn range(&self) -> Range<usize> {
@@ -239,7 +239,7 @@ impl<'a> ParseSession<'a> {
                 )
                 .as_str(),
                 format!("'{}'", self.slice_region(range.clone())).as_str(),
-                SourceRange::new(range),
+                self.source_range_factory.create_range(range),
             ));
         }
 
@@ -382,11 +382,11 @@ impl Default for IdProvider {
 
 #[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceRangeFactory::default())
+    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceRangeFactory::internal())
 }
 
-pub fn lex_with_ids(source: &str, id_provider: IdProvider) -> ParseSession {
-    ParseSession::new(Token::lexer(source), id_provider, SourceRangeFactory::default())
+pub fn lex_with_ids(source: &str, id_provider: IdProvider, location_factory: SourceRangeFactory) -> ParseSession {
+    ParseSession::new(Token::lexer(source), id_provider, location_factory)
 }
 
 #[cfg(test)]

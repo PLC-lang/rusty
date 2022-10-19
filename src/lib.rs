@@ -33,7 +33,7 @@ use regex::{Captures, Regex};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-use ast::{LinkageType, PouType, SourceRange};
+use ast::{LinkageType, PouType, SourceRange, SourceRangeFactory};
 use cli::{CompileParameters, SubCommands};
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
@@ -638,15 +638,14 @@ fn parse_and_index<T: SourceContainer>(
     index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
     for container in source {
-        let location: String = container.get_location().into();
+        let location = static_str(container.get_location().to_string());
         let e = container
             .load_source(encoding)
-            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
+            .map_err(|err| Diagnostic::io_read_error(location, err.as_str()))?;
 
         let (mut parse_result, diagnostics) = parser::parse(
-            lexer::lex_with_ids(e.source.as_str(), id_provider.clone()),
-            linkage, location.as_str()
-        );
+            lexer::lex_with_ids(e.source.as_str(), id_provider.clone(), SourceRangeFactory::for_file(location)),
+            linkage, location);
 
         //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result, id_provider.clone());
@@ -654,7 +653,7 @@ fn parse_and_index<T: SourceContainer>(
         index.import(index::visitor::visit(&parse_result, id_provider.clone()));
 
         //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
-        let file_id = diagnostician.register_file(location.clone(), e.source);
+        let file_id = diagnostician.register_file(location.to_string(), e.source);
         units.push((file_id, diagnostics, parse_result));
     }
     Ok((index, units))
@@ -819,6 +818,10 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         }
     }
     Ok(())
+}
+
+fn static_str(s: String) -> &'static str {
+    Box::leak(s.into_boxed_str())
 }
 
 // fn make_absolute(location: &Path, root: &Path) -> PathBuf {

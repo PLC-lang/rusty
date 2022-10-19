@@ -819,13 +819,13 @@ fn multi_named_keywords_without_underscore_test() {
         d1.get_message(),
         "the words in VARINPUT should be separated by a '_'"
     );
-    assert_eq!(d1.get_location(), SourceRange::new(0..8));
+    assert_eq!(d1.get_location(), SourceRange::new(0..8, None));
 
     assert_eq!(
         d2.get_message(),
         "the words in ENDREPEAT should be separated by a '_'"
     );
-    assert_eq!(d2.get_location(), SourceRange::new(191..200));
+    assert_eq!(d2.get_location(), SourceRange::new(191..200, None));
 }
 
 #[test]

@@ -181,7 +181,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
         let expression = parse_parenthesized_expression(lexer);
         let expression_location = expression.get_location();
-        let location = SourceRange::new(start..expression_location.get_end());
+        let location = lexer.source_range_factory.create_range(start..expression_location.get_end());
 
         if let (AstStatement::LiteralInteger { value, .. }, Operator::Minus) =
             (&expression, &operator)
@@ -350,7 +350,7 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnos
     lexer.advance();
     Ok(AstStatement::LiteralArray {
         elements,
-        location: SourceRange::new(start..end),
+        location: lexer.source_range_factory.create_range(start..end),
         id: lexer.next_id(),
     })
 }
@@ -418,7 +418,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
-                location: SourceRange::new(start..lexer.range().end),
+                location: lexer.source_range_factory.create_range(start..lexer.range().end),
                 id: lexer.next_id(),
             }
         } else {
@@ -426,7 +426,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                 AstStatement::CallStatement {
                     operator: Box::new(reference),
                     parameters: Box::new(Some(parse_expression_list(lexer))),
-                    location: SourceRange::new(start..lexer.range().end),
+                    location: lexer.source_range_factory.create_range(start..lexer.range().end),
                     id: lexer.next_id(),
                 }
             })
@@ -554,7 +554,7 @@ fn parse_literal_number(
         return Ok(AstStatement::MultipliedStatement {
             multiplier,
             element: Box::new(element),
-            location: SourceRange::new(location.get_start()..end),
+            location: lexer.source_range_factory.create_range(location.get_start()..end),
             id: lexer.next_id(),
         });
     }
@@ -914,7 +914,7 @@ fn parse_literal_real(
             integer,
             fractional
         );
-        let new_location = SourceRange::new(start..end);
+        let new_location = lexer.source_range_factory.create_range(start..end);
         Ok(AstStatement::LiteralReal {
             value: result,
             location: new_location,

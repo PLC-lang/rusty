@@ -7,7 +7,7 @@ fn simple_class_without_name() {
 
     assert_eq!(
         diagnostics.first().unwrap(),
-        &Diagnostic::unexpected_token_found("Identifier", "END_CLASS", SourceRange::new(6..15))
+        &Diagnostic::unexpected_token_found("Identifier", "END_CLASS", SourceRange::new(6..15, None))
     );
 }
 
@@ -21,7 +21,7 @@ fn method_with_invalid_return_type() {
         &Diagnostic::unexpected_token_found(
             "DataTypeDefinition",
             "KeywordAbstract",
-            SourceRange::new(29..37),
+            SourceRange::new(29..37, None),
         )
     );
 }

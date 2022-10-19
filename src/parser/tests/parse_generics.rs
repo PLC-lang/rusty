@@ -185,21 +185,21 @@ fn generic_parameters_are_datatypes() {
                 name: "x".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "T".into(),
-                    location: SourceRange::new(53..54),
+                    location: SourceRange::new(53..54, None),
                 },
                 initializer: None,
                 address: None,
-                location: SourceRange::new(49..50),
+                location: SourceRange::new(49..50, None),
             },
             Variable {
                 name: "y".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "R".into(),
-                    location: SourceRange::new(60..61),
+                    location: SourceRange::new(60..61, None),
                 },
                 initializer: None,
                 address: None,
-                location: SourceRange::new(56..57),
+                location: SourceRange::new(56..57, None),
             },
         ],
         variables
@@ -218,22 +218,22 @@ fn generic_method_parameters_are_datatypes() {
                 name: "x".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "T".into(),
-                    location: SourceRange::new(61..62),
+                    location: SourceRange::new(61..62, None),
                 },
                 initializer: None,
                 address: None,
-                location: SourceRange::new(57..58),
+                location: SourceRange::new(57..58, None),
             },
             Variable {
                 name: "y".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "R".into(),
-                    location: SourceRange::new(68..69),
+                    location: SourceRange::new(68..69, None),
                 },
                 initializer: None,
                 address: None,
 
-                location: SourceRange::new(64..65),
+                location: SourceRange::new(64..65, None),
             },
         ],
         variables

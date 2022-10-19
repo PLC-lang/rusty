@@ -24,7 +24,7 @@ fn missing_pou_name() {
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected =
-        Diagnostic::unexpected_token_found("Identifier", "VAR", SourceRange::new(35..38));
+        Diagnostic::unexpected_token_found("Identifier", "VAR", SourceRange::new(35..38, None));
     assert_eq!(diagnostics[0], expected);
 
     let pou = &compilation_unit.implementations[0];
@@ -89,7 +89,7 @@ fn illegal_end_pou_keyword() {
     let expected = Diagnostic::unexpected_token_found(
         format!("{:?}", Token::KeywordEndProgram).as_str(),
         "END_FUNCTION",
-        SourceRange::new(52..64),
+        SourceRange::new(52..64, None),
     );
     assert_eq!(diagnostics, vec![expected]);
 
@@ -123,7 +123,7 @@ fn function_without_return_variable_declaration() {
 
     // THEN I expect a diagnostic complaining about a missing return type
     let expected =
-        Diagnostic::unexpected_token_found("COLON", "'a', (Identifier)", SourceRange::new(76..79));
+        Diagnostic::unexpected_token_found("COLON", "'a', (Identifier)", SourceRange::new(76..79, None));
     assert_eq!(diagnostics, vec![expected]);
 
     // AND I expect the body to be parsed successfully
@@ -153,7 +153,7 @@ fn function_with_illegal_return_variable_declaration() {
     let expected = Diagnostic::unexpected_token_found(
         "DataTypeDefinition",
         "KeywordVar",
-        SourceRange::new(40..43),
+        SourceRange::new(40..43, None),
     );
     assert_eq!(diagnostics[0], expected);
 
@@ -181,7 +181,7 @@ fn function_return_type_with_initializer() {
     let (compilation_unit, diagnostics) = parse(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::unexpected_initializer_on_function_return(SourceRange::new(35..36));
+    let expected = Diagnostic::unexpected_initializer_on_function_return(SourceRange::new(35..36, None));
     assert_eq!(diagnostics[0], expected);
 
     //check if a was parsed successfully
@@ -209,7 +209,7 @@ fn program_with_illegal_return_variable_declaration() {
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected =
-        Diagnostic::return_type_not_supported(&PouType::Program, SourceRange::new(29..34));
+        Diagnostic::return_type_not_supported(&PouType::Program, SourceRange::new(29..34, None));
     assert_eq!(diagnostics.get(0), Some(&expected));
 
     //check if a was parsed successfully

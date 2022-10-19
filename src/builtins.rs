@@ -9,7 +9,7 @@ use lazy_static::lazy_static;
 use crate::{
     ast::{
         flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType,
-        SourceRange,
+        SourceRange, SourceRangeFactory,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator},
     diagnostics::Diagnostic,
@@ -301,7 +301,7 @@ pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
         .collect::<Vec<&str>>()
         .join(" ");
     let mut unit = parser::parse(
-        lexer::lex_with_ids(&src, id_provider.clone()),
+        lexer::lex_with_ids(&src, id_provider.clone(), SourceRangeFactory::internal()),
         LinkageType::BuiltIn, "<builtin>"
     )
     .0;

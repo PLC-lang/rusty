@@ -5,7 +5,7 @@ pub mod tests {
     use inkwell::context::Context;
 
     use crate::{
-        ast::{self, CompilationUnit},
+        ast::{self, CompilationUnit, SourceRangeFactory},
         builtins,
         diagnostics::{Diagnostic, Diagnostician},
         index::{self, Index},
@@ -19,7 +19,7 @@ pub mod tests {
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
-            lexer::lex_with_ids(src, IdProvider::default()),
+            lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
             ast::LinkageType::Internal, "test.st"
         )
     }
@@ -27,7 +27,7 @@ pub mod tests {
     pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         let id_provider = IdProvider::default();
         let (mut unit, diagnostic) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
             ast::LinkageType::Internal, "test.st"
         );
         ast::pre_process(&mut unit, id_provider);
@@ -42,7 +42,7 @@ pub mod tests {
         index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
         let (mut unit, ..) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
             ast::LinkageType::Internal, "test.st"
         );
         ast::pre_process(&mut unit, id_provider.clone());
