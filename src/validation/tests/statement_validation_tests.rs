@@ -545,7 +545,7 @@ fn case_condition_used_outside_case_statement() {
       "#,
     );
 
-    // THEN the non constant variables are reported
+    // THEN
     assert_eq!(
         diagnostics,
         vec![
