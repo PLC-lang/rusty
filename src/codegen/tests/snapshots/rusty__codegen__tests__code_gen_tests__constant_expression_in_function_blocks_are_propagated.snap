@@ -5,14 +5,14 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%fbWithConstant_interface = type { i16, i16 }
+%fbWithConstant = type { i16, i16 }
 
-@fbWithConstant__init = unnamed_addr constant %fbWithConstant_interface { i16 0, i16 2 }
+@fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }
 
-define void @fbWithConstant(%fbWithConstant_interface* %0) {
+define void @fbWithConstant(%fbWithConstant* %0) {
 entry:
-  %x = getelementptr inbounds %fbWithConstant_interface, %fbWithConstant_interface* %0, i32 0, i32 0
-  %const = getelementptr inbounds %fbWithConstant_interface, %fbWithConstant_interface* %0, i32 0, i32 1
+  %x = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 0
+  %const = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 1
   store i16 2, i16* %x, align 2
   ret void
 }

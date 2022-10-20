@@ -224,7 +224,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
 
-        exp_gen.generate_store(left_type, right_statement, left)?;
+        exp_gen.generate_store(left, left_type, right_statement)?;
         Ok(())
     }
 

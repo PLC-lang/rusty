@@ -3,6 +3,7 @@
 /// offers operations to generate global variables
 use crate::{
     ast::SourceRange,
+    codegen::debug::Debug,
     diagnostics::{Diagnostic, ErrNo},
     index::{Index, PouIndexEntry},
     resolver::AstAnnotations,
@@ -16,10 +17,12 @@ use super::{
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
 };
+use crate::codegen::debug::DebugBuilderEnum;
 
 pub fn generate_global_variables<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
+    debug: &'b DebugBuilderEnum<'ctx>,
     global_index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: &'b LlvmTypedIndex<'ctx>,
@@ -66,7 +69,13 @@ pub fn generate_global_variables<'ctx, 'b>(
             }
             _ => err,
         })?;
-        index.associate_global(name, global_variable)?
+        index.associate_global(name, global_variable)?;
+        //generate debug info
+        debug.create_global_variable(
+            variable.get_qualified_name(),
+            &variable.data_type_name,
+            global_variable,
+        )?;
     }
     Ok(index)
 }

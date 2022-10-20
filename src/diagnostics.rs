@@ -91,6 +91,8 @@ pub enum ErrNo {
     codegen__missing_function,
     codegen__missing_compare_function,
 
+    //Debug code
+    debug_general,
     //linker
     linker__generic_error,
 
@@ -197,10 +199,9 @@ impl Diagnostic {
     }
 
     pub fn missing_action_container(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
+        Diagnostic::ImprovementSuggestion {
             message: "Missing Actions Container Name".to_string(),
             range,
-            err_no: ErrNo::pou__missing_action_container,
         }
     }
 
@@ -296,10 +297,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn incompatible_array_access_range(
-        range: Range<i128>,
-        location: SourceRange,
-    ) -> Diagnostic {
+    pub fn incompatible_array_access_range(range: Range<i64>, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Array access must be in the range {}..{}",
@@ -435,6 +433,14 @@ impl Diagnostic {
             message: message.into(),
             range: location,
             err_no: ErrNo::codegen__general,
+        }
+    }
+
+    pub fn debug_error<T: Into<String>>(message: T) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: message.into(),
+            range: SourceRange::undefined(),
+            err_no: ErrNo::debug_general,
         }
     }
 

@@ -492,3 +492,86 @@ fn switch_case_duplicate_integer() {
         ]
     );
 }
+
+#[test]
+fn subrange_compare_function_causes_no_error() {
+    // GIVEN comparison of subranges
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM main
+        VAR 
+            a, b, c, d, e, f : BOOL;
+        END_VAR      
+        VAR_TEMP
+            x,y : INT(0..500);
+        END_VAR
+            a := x < y;
+            b := x = y;
+            c := x = 3;
+            d := y = 500;
+            e := x >= 0 AND x <= 500;
+            f := x < 0 OR x > 500;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN the validator does not throw an error
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn aliased_subrange_compare_function_causes_no_error() {
+    // GIVEN comparison of aliased subranges
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        TYPE MyInt: INT(0..500); END_TYPE
+        PROGRAM main
+        VAR 
+            a, b, c, d, e, f : BOOL;
+        END_VAR      
+        VAR_TEMP
+            x,y : MyInt;
+        END_VAR
+            a := x < y;
+            b := x = y;
+            c := x = 3;
+            d := y = 500;
+            e := x >= 0 AND x <= 500;
+            f := x < 0 OR x > 500;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN the validator does not throw an error
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn aliased_int_compare_function_causes_no_error() {
+    // GIVEN comparison of aliased integers
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        TYPE MyInt: INT; END_TYPE
+        PROGRAM main
+        VAR 
+            a, b, c, d, e, f : BOOL;
+        END_VAR      
+        VAR_TEMP
+            x,y : MyInt;
+        END_VAR
+            a := x < y;
+            b := x = y;
+            c := x = 3;
+            d := y = 500;
+            e := x >= 0 AND x <= 500;
+            f := x < 0 OR x > 500;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN the validator does not throw an error
+    assert_eq!(diagnostics, vec![]);
+}

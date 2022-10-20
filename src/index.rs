@@ -7,6 +7,7 @@ use crate::{
         LinkageType, NewLines, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
+    datalayout::DataLayout,
     diagnostics::Diagnostic,
     typesystem::{self, *},
 };
@@ -668,6 +669,11 @@ impl PouIndexEntry {
     pub fn is_action(&self) -> bool {
         matches!(self, PouIndexEntry::Action { .. })
     }
+
+    /// return true if this pou is a function
+    pub fn is_function(&self) -> bool {
+        matches!(self, PouIndexEntry::Function { .. })
+    }
 }
 
 /// the TypeIndex carries all types.
@@ -771,6 +777,9 @@ pub struct Index {
     type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
+
+    /// Type layout for the target
+    data_layout: DataLayout,
 }
 
 impl Index {
@@ -1057,10 +1066,14 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
-    /// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
-    /// In other words it returns whether the member variable at `index` of the given container is a possible parameter in
-    /// call to it
-    pub fn is_declared_parameter(&self, container_name: &str, index: u32) -> bool {
+    /// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
+    /// In other words it returns some if the member variable at `index` of the given container is a possible parameter in
+    /// the call to it
+    pub fn get_declared_parameter(
+        &self,
+        container_name: &str,
+        index: u32,
+    ) -> Option<&VariableIndexEntry> {
         self.member_variables
             .get(&container_name.to_lowercase())
             .and_then(|map| {
@@ -1068,7 +1081,6 @@ impl Index {
                     .filter(|item| item.is_parameter() && !item.is_variadic())
                     .find(|item| item.location_in_parent == index)
             })
-            .is_some()
     }
 
     pub fn get_variadic_member(&self, container_name: &str) -> Option<&VariableIndexEntry> {
@@ -1451,6 +1463,10 @@ impl Index {
         } else {
             None
         }
+    }
+
+    pub fn get_type_layout(&self) -> &DataLayout {
+        &self.data_layout
     }
 }
 

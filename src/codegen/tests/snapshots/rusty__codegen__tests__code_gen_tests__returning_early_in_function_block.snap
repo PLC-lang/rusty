@@ -1,19 +1,17 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2406
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%abcdef_interface = type { i8 }
+%abcdef = type { i8 }
 
-@abcdef__init = unnamed_addr constant %abcdef_interface zeroinitializer
+@abcdef__init = unnamed_addr constant %abcdef zeroinitializer
 
-define void @abcdef(%abcdef_interface* %0) {
+define void @abcdef(%abcdef* %0) {
 entry:
-  %n = getelementptr inbounds %abcdef_interface, %abcdef_interface* %0, i32 0, i32 0
+  %n = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 0
   %load_n = load i8, i8* %n, align 1
   %1 = sext i8 %load_n to i32
   %tmpVar = icmp slt i32 %1, 10

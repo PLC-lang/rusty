@@ -1,0 +1,66 @@
+---
+source: src/index/tests/index_tests.rs
+expression: members
+---
+[
+    VariableIndexEntry {
+        name: "input1",
+        qualified_name: "fb.input1",
+        initial_value: None,
+        variable_type: ByVal(
+            Input,
+        ),
+        is_constant: false,
+        data_type_name: "INT",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: None,
+        source_location: SymbolLocation {
+            line_number: 3,
+            range: SourceRange {
+                range: 36..42,
+            },
+        },
+        varargs: None,
+    },
+    VariableIndexEntry {
+        name: "output1",
+        qualified_name: "fb.output1",
+        initial_value: None,
+        variable_type: ByVal(
+            Output,
+        ),
+        is_constant: false,
+        data_type_name: "INT",
+        location_in_parent: 1,
+        linkage: Internal,
+        binding: None,
+        source_location: SymbolLocation {
+            line_number: 6,
+            range: SourceRange {
+                range: 76..83,
+            },
+        },
+        varargs: None,
+    },
+    VariableIndexEntry {
+        name: "inout1",
+        qualified_name: "fb.inout1",
+        initial_value: None,
+        variable_type: ByRef(
+            InOut,
+        ),
+        is_constant: false,
+        data_type_name: "auto_pointer_to_INT",
+        location_in_parent: 2,
+        linkage: Internal,
+        binding: None,
+        source_location: SymbolLocation {
+            line_number: 9,
+            range: SourceRange {
+                range: 117..123,
+            },
+        },
+        varargs: None,
+    },
+]

@@ -49,15 +49,13 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
 }
 
 pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolLocationFactory) {
-    let interface_name = format!("{}_interface", &pou.name);
-
     let mut member_names = vec![];
 
     //register the pou's member variables
     let mut member_varargs = None;
     let mut count = 0;
     for block in &pou.variable_blocks {
-        let block_type = get_declaration_type_for(block);
+        let block_type = get_declaration_type_for(block, &pou.pou_type);
         for var in &block.variables {
             let varargs = if let DataTypeDeclaration::DataTypeDefinition {
                 data_type:
@@ -155,7 +153,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
         name: pou.name.to_string(),
         initial_value: None,
         information: DataTypeInformation::Struct {
-            name: interface_name,
+            name: pou.name.to_string(),
             member_names,
             source: StructSource::Pou(pou.pou_type.clone()),
         },
@@ -224,14 +222,18 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
 }
 
 /// returns the declaration type (ByRef or ByVal) for the given VariableBlock (VAR_INPUT, VAR_OUTPUT, VAR_INOUT, etc.)
-fn get_declaration_type_for(block: &VariableBlock) -> ArgumentType {
+fn get_declaration_type_for(block: &VariableBlock, pou_type: &PouType) -> ArgumentType {
     if matches!(
         block.variable_block_type,
-        VariableBlockType::InOut
-            | VariableBlockType::Output
-            | VariableBlockType::Input(ArgumentProperty::ByRef)
+        VariableBlockType::InOut | VariableBlockType::Input(ArgumentProperty::ByRef)
     ) {
         ArgumentType::ByRef(get_variable_type_from_block(block))
+    } else if block.variable_block_type == VariableBlockType::Output {
+        // outputs differ depending on pou type
+        match pou_type {
+            PouType::Function => ArgumentType::ByRef(get_variable_type_from_block(block)),
+            _ => ArgumentType::ByVal(get_variable_type_from_block(block)),
+        }
     } else {
         ArgumentType::ByVal(get_variable_type_from_block(block))
     }
