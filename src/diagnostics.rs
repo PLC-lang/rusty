@@ -98,6 +98,8 @@ pub enum ErrNo {
 
     //switch case
     case__duplicate_condition,
+    case__case_condition_outside_case_statement,
+    case__invalid_case_condition,
 }
 
 impl<T: Error> From<T> for Diagnostic {
@@ -641,6 +643,23 @@ impl Diagnostic {
             ),
             range,
             err_no: ErrNo::case__duplicate_condition,
+        }
+    }
+
+    pub fn case_condition_used_outside_case_statement(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Case condition used outside of case statement! Did you mean to use ';'?"
+                .into(),
+            range,
+            err_no: ErrNo::case__case_condition_outside_case_statement,
+        }
+    }
+
+    pub fn invalid_case_condition(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Invalid case condition!".into(),
+            range,
+            err_no: ErrNo::case__case_condition_outside_case_statement,
         }
     }
 

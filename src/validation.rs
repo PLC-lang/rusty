@@ -356,6 +356,17 @@ impl Validator {
                 case_blocks.iter().for_each(|b| {
                     let condition = b.condition.as_ref();
 
+                    // invalid case conditions
+                    if matches!(
+                        condition,
+                        AstStatement::Assignment { .. } | AstStatement::CallStatement { .. }
+                    ) {
+                        eprintln!("{:#?}", condition);
+                        self.stmt_validator
+                            .diagnostics
+                            .push(Diagnostic::invalid_case_condition(condition.get_location()));
+                    }
+
                     // validate for duplicate conditions
                     // first try to evaluate the conditions value
                     const_evaluator::evaluate(condition, context.qualifier, context.index)
@@ -392,6 +403,15 @@ impl Validator {
                     .for_each(|s| self.visit_statement(s, context));
             }
             AstStatement::CaseCondition { condition, .. } => {
+                // if we get here, then a `CaseCondition` is used outside a `CaseStatement`
+                // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
+                // see `control_parser` `parse_case_statement()`
+                eprintln!("{:?}", condition);
+                self.stmt_validator.diagnostics.push(
+                    Diagnostic::case_condition_used_outside_case_statement(
+                        condition.get_location(),
+                    ),
+                );
                 self.visit_statement(condition, context)
             }
             _ => {}
