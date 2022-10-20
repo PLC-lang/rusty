@@ -1,5 +1,5 @@
 use crate::{
-    ast::{CompilationUnit, Operator, TypeNature, NewLines},
+    ast::{CompilationUnit, NewLines, Operator, TypeNature},
     index::{visitor::visit, Index},
     lexer::IdProvider,
     typesystem::{

@@ -100,7 +100,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                         .ok_or_else(|| {
                             Diagnostic::cannot_generate_initializer(
                                 variable.get_qualified_name(),
-                                variable.source_location.clone(),
+                                variable.source_location.range.clone(),
                             )
                         })?,
                 ),
@@ -378,7 +378,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else if m.is_parameter() {
                 let ptr_value = current_function
                     .get_nth_param(var_count)
-                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
+                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.range.clone()))?;
 
                 let ptr = self.llvm.create_local_variable(
                     m.get_name(),
@@ -429,7 +429,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let ptr_value = current_function
                     .get_nth_param(arg_index)
                     .map(BasicValueEnum::into_pointer_value)
-                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
+                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.range.clone()))?;
 
                 let ptr = self
                     .llvm
@@ -480,7 +480,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             .ok_or_else(|| {
                                 Diagnostic::cannot_generate_initializer(
                                     variable.get_qualified_name(),
-                                    variable.source_location.clone(),
+                                    variable.source_location.range.clone(),
                                 )
                             })?,
                     ),
@@ -490,7 +490,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
-                    variable.source_location.clone(),
+                    variable.source_location.range.clone(),
                 ));
             }
         }
@@ -510,12 +510,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let variable_type = self
             .llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| Diagnostic::relocate(err, variable.source_location.clone()))?;
+            .map_err(|err| Diagnostic::relocate(err, variable.source_location.range.clone()))?;
 
         let type_size = variable_type.size_of().ok_or_else(|| {
             Diagnostic::codegen_error(
                 "Couldn't determine type size",
-                variable.source_location.clone(),
+                variable.source_location.range.clone(),
             )
         });
 
@@ -572,8 +572,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 unreachable!("initializing an array should be memcpy-able or memset-able");
             };
-            init_result
-                .map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))?;
+            init_result.map_err(|msg| {
+                Diagnostic::codegen_error(msg, variable.source_location.range.clone())
+            })?;
         } else {
             self.llvm.builder.build_store(variable_to_initialize, value);
         }

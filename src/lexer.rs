@@ -12,8 +12,8 @@ use crate::ast::AstId;
 use crate::ast::DirectAccessType;
 use crate::ast::HardwareAccessType;
 use crate::ast::SourceRange;
-use crate::Diagnostic;
 use crate::ast::SourceRangeFactory;
+use crate::Diagnostic;
 
 #[cfg(test)]
 mod tests;
@@ -49,7 +49,11 @@ macro_rules! expect_token {
 }
 
 impl<'a> ParseSession<'a> {
-    pub fn new(l: Lexer<'a, Token>, id_provider: IdProvider, source_range_factory: SourceRangeFactory) -> ParseSession<'a> {
+    pub fn new(
+        l: Lexer<'a, Token>,
+        id_provider: IdProvider,
+        source_range_factory: SourceRangeFactory,
+    ) -> ParseSession<'a> {
         let mut lexer = ParseSession {
             lexer: l,
             token: Token::KeywordBy,
@@ -60,14 +64,14 @@ impl<'a> ParseSession<'a> {
             parse_progress: 0,
             id_provider,
             scope: None,
-            source_range_factory
+            source_range_factory,
         };
         lexer.advance();
         lexer
     }
 
     pub fn get_src(&self) -> &str {
-        self.lexer.source().into()
+        self.lexer.source()
     }
 
     pub fn next_id(&mut self) -> AstId {
@@ -171,7 +175,8 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn last_location(&self) -> SourceRange {
-        self.source_range_factory.create_range(self.last_range.clone())
+        self.source_range_factory
+            .create_range(self.last_range.clone())
     }
 
     pub fn range(&self) -> Range<usize> {
@@ -382,10 +387,18 @@ impl Default for IdProvider {
 
 #[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceRangeFactory::internal())
+    ParseSession::new(
+        Token::lexer(source),
+        IdProvider::default(),
+        SourceRangeFactory::internal(),
+    )
 }
 
-pub fn lex_with_ids(source: &str, id_provider: IdProvider, location_factory: SourceRangeFactory) -> ParseSession {
+pub fn lex_with_ids(
+    source: &str,
+    id_provider: IdProvider,
+    location_factory: SourceRangeFactory,
+) -> ParseSession {
     ParseSession::new(Token::lexer(source), id_provider, location_factory)
 }
 

@@ -421,7 +421,9 @@ impl SourceRangeFactory {
      * constructs a SourceRangeFactory used to construct SourceRanes that point into the given file_name
      */
     pub fn for_file(file_name: &'static str) -> Self {
-        SourceRangeFactory { file: Some(file_name) }
+        SourceRangeFactory {
+            file: Some(file_name),
+        }
     }
 
     pub fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
@@ -458,8 +460,16 @@ impl Debug for SourceRange {
 }
 
 impl SourceRange {
-    pub fn new(range: core::ops::Range<usize>, file_name: Option<&'static str>) -> SourceRange {
-        SourceRange { range, file: file_name }
+    /// Constructs a new SourceRange with the given Range and Filename
+    pub fn in_file(range: core::ops::Range<usize>, file_name: &'static str) -> SourceRange {
+        SourceRange {
+            range,
+            file: Some(file_name),
+        }
+    }
+
+    pub fn without_file(range: core::ops::Range<usize>) -> SourceRange {
+        SourceRange { range, file: None }
     }
 
     pub fn undefined() -> SourceRange {
@@ -478,7 +488,17 @@ impl SourceRange {
     }
 
     pub fn sub_range(&self, start: usize, len: usize) -> SourceRange {
-        SourceRange::new((self.get_start() + start)..(self.get_start() + len), self.file)
+        SourceRange {
+            range: self.get_start() + start..self.get_start() + len,
+            file: self.get_file_name(),
+        }
+    }
+
+    pub fn span(&self, other: &SourceRange) -> SourceRange {
+        SourceRange {
+            range: self.get_start()..other.get_end(),
+            file: self.get_file_name(),
+        }
     }
 
     pub fn to_range(&self) -> Range<usize> {
@@ -492,7 +512,7 @@ impl SourceRange {
 
 impl From<std::ops::Range<usize>> for SourceRange {
     fn from(range: std::ops::Range<usize>) -> SourceRange {
-        SourceRange::new(range, None)
+        SourceRange::without_file(range)
     }
 }
 
@@ -1168,12 +1188,12 @@ impl AstStatement {
                 let last = elements
                     .last()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
-                SourceRange::new(first.get_start()..last.get_end(), first.file)
+                first.span(&last)
             }
             AstStatement::BinaryExpression { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end, left_loc.file)
+                left_loc.span(&right_loc)
             }
             AstStatement::UnaryExpression { location, .. } => location.clone(),
             AstStatement::ExpressionList { expressions, .. } => {
@@ -1183,22 +1203,22 @@ impl AstStatement {
                 let last = expressions
                     .last()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
-                SourceRange::new(first.get_start()..last.get_end(), first.file)
+                first.span(&last)
             }
             AstStatement::RangeStatement { start, end, .. } => {
                 let start_loc = start.get_location();
                 let end_loc = end.get_location();
-                SourceRange::new(start_loc.range.start..end_loc.range.end, start_loc.file)
+                start_loc.span(&end_loc)
             }
             AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end, left_loc.file)
+                left_loc.span(&right_loc)
             }
             AstStatement::OutputAssignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end, left_loc.file)
+                left_loc.span(&right_loc)
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
             AstStatement::IfStatement { location, .. } => location.clone(),
@@ -1211,7 +1231,7 @@ impl AstStatement {
             } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
-                SourceRange::new(reference_loc.range.start..access_loc.range.end, reference_loc.file)
+                reference_loc.span(&access_loc)
             }
             AstStatement::PointerAccess { reference, .. } => reference.get_location(),
             AstStatement::DirectAccess { location, .. } => location.clone(),

@@ -2,7 +2,7 @@
 use pretty_assertions::{assert_eq, assert_ne};
 
 use crate::{
-    ast::{DirectAccessType, HardwareAccessType, SourceRange, NewLines},
+    ast::{DirectAccessType, HardwareAccessType, NewLines},
     lexer::{lex, Token::*},
 };
 
@@ -819,13 +819,13 @@ fn multi_named_keywords_without_underscore_test() {
         d1.get_message(),
         "the words in VARINPUT should be separated by a '_'"
     );
-    assert_eq!(d1.get_location(), SourceRange::new(0..8, None));
+    assert_eq!(d1.get_location(), (0..8).into());
 
     assert_eq!(
         d2.get_message(),
         "the words in ENDREPEAT should be separated by a '_'"
     );
-    assert_eq!(d2.get_location(), SourceRange::new(191..200, None));
+    assert_eq!(d2.get_location(), (191..200).into());
 }
 
 #[test]
@@ -860,10 +860,10 @@ fn new_lines_test_empty_string() {
     let text = "";
     let nl = NewLines::build(text);
 
-    assert_eq!(nl.get_line_nr(0), 0); 
-    assert_eq!(nl.get_line_nr(1), 0); 
-    assert_eq!(nl.get_line_nr(2), 0); 
-    assert_eq!(nl.get_line_nr(3), 0); 
+    assert_eq!(nl.get_line_nr(0), 0);
+    assert_eq!(nl.get_line_nr(1), 0);
+    assert_eq!(nl.get_line_nr(2), 0);
+    assert_eq!(nl.get_line_nr(3), 0);
 }
 
 #[test]
@@ -871,9 +871,9 @@ fn new_lines_test_three_lines_with_crlf() {
     let text = "A\r\nB\r\nC";
     let nl = NewLines::build(text);
 
-    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0); 
-    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1); 
-    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2); 
+    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
+    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
+    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
 }
 
 #[test]
@@ -881,11 +881,10 @@ fn new_lines_test_three_lines_with_lf() {
     let text = "A\r\nB\r\nC";
     let nl = NewLines::build(text);
 
-    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0); 
-    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1); 
-    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2); 
+    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
+    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
+    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
 }
-
 
 #[test]
 fn new_lines_test_three_long_lines_with_lf() {
@@ -895,7 +894,7 @@ fn new_lines_test_three_long_lines_with_lf() {
 
     xxxx C xxxxx";
     let nl = NewLines::build(text);
-    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0); 
-    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 2); 
-    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 4); 
+    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
+    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 2);
+    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 4);
 }

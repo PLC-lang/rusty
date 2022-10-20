@@ -181,7 +181,9 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
         let expression = parse_parenthesized_expression(lexer);
         let expression_location = expression.get_location();
-        let location = lexer.source_range_factory.create_range(start..expression_location.get_end());
+        let location = lexer
+            .source_range_factory
+            .create_range(start..expression_location.get_end());
 
         if let (AstStatement::LiteralInteger { value, .. }, Operator::Minus) =
             (&expression, &operator)
@@ -418,7 +420,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
-                location: lexer.source_range_factory.create_range(start..lexer.range().end),
+                location: lexer
+                    .source_range_factory
+                    .create_range(start..lexer.range().end),
                 id: lexer.next_id(),
             }
         } else {
@@ -426,7 +430,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                 AstStatement::CallStatement {
                     operator: Box::new(reference),
                     parameters: Box::new(Some(parse_expression_list(lexer))),
-                    location: lexer.source_range_factory.create_range(start..lexer.range().end),
+                    location: lexer
+                        .source_range_factory
+                        .create_range(start..lexer.range().end),
                     id: lexer.next_id(),
                 }
             })
@@ -554,7 +560,9 @@ fn parse_literal_number(
         return Ok(AstStatement::MultipliedStatement {
             multiplier,
             element: Box::new(element),
-            location: lexer.source_range_factory.create_range(location.get_start()..end),
+            location: lexer
+                .source_range_factory
+                .create_range(location.get_start()..end),
             id: lexer.next_id(),
         });
     }

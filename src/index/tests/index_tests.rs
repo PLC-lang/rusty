@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
-use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};
+use crate::index::{ArgumentType, PouIndexEntry, SymbolLocation, VariableIndexEntry};
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
@@ -654,7 +654,7 @@ fn pre_processing_generates_inline_structs_global() {
     let new_struct_type = &ast.types[0].data_type;
 
     if let DataType::StructType { variables, .. } = new_struct_type {
-        assert_eq!(variables[0].location, SourceRange::new(54..55, None));
+        assert_eq!(variables[0].location, (54..55).into());
     } else {
         panic!("expected struct")
     }
@@ -733,7 +733,7 @@ fn pre_processing_generates_inline_structs() {
 
     let new_struct_type = &ast.types[0].data_type;
     if let DataType::StructType { variables, .. } = new_struct_type {
-        assert_eq!(variables[0].location, SourceRange::new(67..68, None));
+        assert_eq!(variables[0].location, (67..68).into());
     } else {
         panic!("expected struct")
     }
@@ -1431,7 +1431,8 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
-        LinkageType::Internal, "test.st"
+        LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1478,7 +1479,8 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
-        LinkageType::Internal, "test.st"
+        LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1519,7 +1521,8 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
-        LinkageType::Internal, "test.st"
+        LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1549,7 +1552,8 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
-        LinkageType::Internal, "test.st"
+        LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1633,7 +1637,8 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
         crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
-        LinkageType::Internal, "test.st"
+        LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1883,7 +1888,10 @@ fn a_program_pou_is_indexed() {
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
                 binding: None,
-                source_location: SourceRange::new(9..46, None),
+                source_location: SymbolLocation {
+                    range: (9..46).into(),
+                    line_number: 1
+                },
                 varargs: None,
             }
         }),

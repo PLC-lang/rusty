@@ -1,4 +1,5 @@
 use crate::{
+    ast::SourceRange,
     diagnostics::{Diagnostic, Diagnostician},
     test_utils::tests::compile_to_string,
     SourceCode,
@@ -86,7 +87,7 @@ fn calling_external_file_function_without_including_file_results_in_error() {
         assert_eq!(
             Diagnostic::codegen_error(
                 r#"cannot generate call statement for "Reference { name: \"external\" }""#,
-                (30..38).into()
+                SourceRange::in_file(30..38, "external_file.st")
             ),
             msg
         )

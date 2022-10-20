@@ -1,6 +1,5 @@
 use crate::ast::{DataTypeDeclaration, GenericBinding, TypeNature, Variable};
 use crate::test_utils::tests::parse;
-use crate::SourceRange;
 
 #[test]
 fn generic_markers_on_pou_added() {
@@ -185,21 +184,21 @@ fn generic_parameters_are_datatypes() {
                 name: "x".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "T".into(),
-                    location: SourceRange::new(53..54, None),
+                    location: (53..54).into(),
                 },
                 initializer: None,
                 address: None,
-                location: SourceRange::new(49..50, None),
+                location: (49..50).into(),
             },
             Variable {
                 name: "y".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "R".into(),
-                    location: SourceRange::new(60..61, None),
+                    location: (60..61).into(),
                 },
                 initializer: None,
                 address: None,
-                location: SourceRange::new(56..57, None),
+                location: (56..57).into(),
             },
         ],
         variables
@@ -218,22 +217,22 @@ fn generic_method_parameters_are_datatypes() {
                 name: "x".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "T".into(),
-                    location: SourceRange::new(61..62, None),
+                    location: (61..62).into(),
                 },
                 initializer: None,
                 address: None,
-                location: SourceRange::new(57..58, None),
+                location: (57..58).into(),
             },
             Variable {
                 name: "y".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "R".into(),
-                    location: SourceRange::new(68..69, None),
+                    location: (68..69).into(),
                 },
                 initializer: None,
                 address: None,
 
-                location: SourceRange::new(64..65, None),
+                location: (64..65).into(),
             },
         ],
         variables
