@@ -40,7 +40,7 @@ impl<'a> SymbolLocationFactory<'a> {
     /// NewLines
     pub fn create_symbol_location(&self, source_range: &SourceRange) -> SymbolLocation {
         SymbolLocation {
-            range: source_range.clone(),
+            source_range: source_range.clone(),
             line_number: self.new_lines.get_line_nr(source_range.get_start()),
         }
     }
@@ -53,7 +53,7 @@ pub struct SymbolLocation {
     /// the line-number of this symbol in the source-file
     pub line_number: usize,
     /// the exact location of the symbol and the file_name
-    pub range: SourceRange,
+    pub source_range: SourceRange,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

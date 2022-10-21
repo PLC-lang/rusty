@@ -164,7 +164,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
         PouType::Program => {
             index.register_program(
                 &pou.name,
-                symbol_location_factory.create_symbol_location(&pou.location),
+                symbol_location_factory.create_symbol_location(&pou.name_location),
                 pou.linkage,
             );
             index.register_pou_type(datatype);
@@ -175,7 +175,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &global_struct_name,
                 &global_struct_name,
                 &pou.name,
-                symbol_location_factory.create_symbol_location(&pou.location),
+                symbol_location_factory.create_symbol_location(&pou.name_location),
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);

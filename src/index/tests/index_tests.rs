@@ -1889,7 +1889,7 @@ fn a_program_pou_is_indexed() {
                 linkage: LinkageType::Internal,
                 binding: None,
                 source_location: SymbolLocation {
-                    range: (9..46).into(),
+                    source_range: (17..26).into(),
                     line_number: 1
                 },
                 varargs: None,

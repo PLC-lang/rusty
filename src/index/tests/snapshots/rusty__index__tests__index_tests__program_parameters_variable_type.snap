@@ -17,7 +17,7 @@ expression: members
         binding: None,
         source_location: SymbolLocation {
             line_number: 3,
-            range: SourceRange {
+            source_range: SourceRange {
                 range: 31..37,
             },
         },
@@ -37,7 +37,7 @@ expression: members
         binding: None,
         source_location: SymbolLocation {
             line_number: 6,
-            range: SourceRange {
+            source_range: SourceRange {
                 range: 71..78,
             },
         },
@@ -57,7 +57,7 @@ expression: members
         binding: None,
         source_location: SymbolLocation {
             line_number: 9,
-            range: SourceRange {
+            source_range: SourceRange {
                 range: 112..118,
             },
         },

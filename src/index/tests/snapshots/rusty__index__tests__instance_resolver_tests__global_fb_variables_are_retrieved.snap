@@ -25,7 +25,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             binding: None,
             source_location: SymbolLocation {
                 line_number: 7,
-                range: SourceRange {
+                source_range: SourceRange {
                     range: 110..113,
                 },
             },
@@ -57,7 +57,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             binding: None,
             source_location: SymbolLocation {
                 line_number: 3,
-                range: SourceRange {
+                source_range: SourceRange {
                     range: 40..41,
                 },
             },
@@ -89,7 +89,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             binding: None,
             source_location: SymbolLocation {
                 line_number: 3,
-                range: SourceRange {
+                source_range: SourceRange {
                     range: 42..43,
                 },
             },
@@ -118,8 +118,8 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             binding: None,
             source_location: SymbolLocation {
                 line_number: 9,
-                range: SourceRange {
-                    range: 136..206,
+                source_range: SourceRange {
+                    range: 144..152,
                 },
             },
             varargs: None,
@@ -150,7 +150,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             binding: None,
             source_location: SymbolLocation {
                 line_number: 11,
-                range: SourceRange {
+                source_range: SourceRange {
                     range: 169..172,
                 },
             },
@@ -185,7 +185,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             binding: None,
             source_location: SymbolLocation {
                 line_number: 3,
-                range: SourceRange {
+                source_range: SourceRange {
                     range: 40..41,
                 },
             },
@@ -220,7 +220,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             binding: None,
             source_location: SymbolLocation {
                 line_number: 3,
-                range: SourceRange {
+                source_range: SourceRange {
                     range: 42..43,
                 },
             },

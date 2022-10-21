@@ -624,7 +624,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .map_err(|_| {
                         Diagnostic::codegen_error(
                             &format!("Cannot build generate parameter: {:#?}", parameter),
-                            parameter.source_location.range.clone(),
+                            parameter.source_location.source_range.clone(),
                         )
                     })?;
 
@@ -640,7 +640,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         expression.get_location(),
                         output,
                         output_value_type,
-                        parameter.source_location.range.clone(),
+                        parameter.source_location.source_range.clone(),
                     )?;
                 } else {
                     let output_value = builder.build_load(output, "");
