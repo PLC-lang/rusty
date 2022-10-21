@@ -237,22 +237,26 @@ fn using_duplicate_enums_with_casts() {
     TYPE MyEnum: BYTE(red := 1, yellow := 2, green := 3);
     END_TYPE
 
-    TYPE MyEnum2: UINT(red := 10, yellow := 11, green := 12);
-    END_TYPE
+    VAR_GLOBAL CONSTANT
+        gV : BYTE := 1;
+    END_VAR
+
+//     TYPE MyEnum2: UINT(red := 10, yellow := 11, green := 12);
+//     END_TYPE
     
-    TYPE MyEnum3: DINT(red := 22, yellow := 33, green := 44);
-    END_TYPE
+//     TYPE MyEnum3: DINT(red := 22, yellow := 33, green := 44);
+//     END_TYPE
 
 
     PROGRAM main
     VAR
-        tf1 : MyEnum;        
-        tf2 : MyEnum2;        
-        tf3 : MyEnum3;        
+        // tf1 : MyEnum;        
+        // tf2 : MyEnum2;        
+        // tf3 : MyEnum3;        
     END_VAR
-        tf1 := MyEnum#red;
-        tf2 := MyEnum2#yellow;
-        tf3 := MyEnum3#green;
+        // tf1 := MyEnum#red;
+        // tf2 := MyEnum2#yellow;
+        // tf3 := MyEnum3#green;
         
     END_PROGRAM
     "#;

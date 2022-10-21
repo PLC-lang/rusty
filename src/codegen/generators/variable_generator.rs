@@ -7,6 +7,7 @@ use crate::{
     diagnostics::{Diagnostic, ErrNo},
     index::{Index, PouIndexEntry},
     resolver::AstAnnotations,
+    resolver::AnnotationMap,
 };
 use inkwell::{module::Module, values::GlobalValue};
 
@@ -94,7 +95,7 @@ pub fn generate_global_variable<'ctx, 'b>(
     index: &'b LlvmTypedIndex<'ctx>,
     global_variable: &VariableIndexEntry,
 ) -> Result<GlobalValue<'ctx>, Diagnostic> {
-    let type_name = global_variable.get_type_name();
+    let type_name = dbg!(global_variable.get_type_name());
     let variable_type = index.get_associated_type(type_name)?;
 
     let initial_value = if let Some(initializer) = global_index
@@ -108,7 +109,7 @@ pub fn generate_global_variable<'ctx, 'b>(
         if let Some(value) = index.find_constant_value(global_variable.get_qualified_name()) {
             Some(value)
         } else {
-            let value = expr_generator.generate_expression(initializer)?;
+            let value = expr_generator.generate_expression(dbg!(initializer))?;
             Some(value)
         }
     } else {
@@ -125,7 +126,7 @@ pub fn generate_global_variable<'ctx, 'b>(
             .or_else(|| index.find_associated_initial_value(type_name))
             // 3rd try: get the compiler's default for the given type (zero-initializer)
             .or_else(|| index.find_associated_type(type_name).map(get_default_for));
-        global_ir_variable.set_initial_value(initial_value, variable_type);
+        global_ir_variable.set_initial_value(initial_value, dbg!(variable_type));
         if global_variable.is_constant() {
             global_ir_variable = global_ir_variable.make_constant();
             if initial_value.is_none() {
