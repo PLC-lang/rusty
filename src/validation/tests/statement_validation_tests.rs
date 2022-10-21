@@ -575,3 +575,83 @@ fn aliased_int_compare_function_causes_no_error() {
     // THEN the validator does not throw an error
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn program_missing_inout_assignment() {
+    // GIVEN
+    let result = parse_and_validate(
+        "
+		PROGRAM prog
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		END_PROGRAM
+
+		PROGRAM main
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			prog(input1 := var1, output1 => var2);
+			prog(var1, var2);
+			prog(var1);
+			prog();
+		END_PROGRAM
+		",
+    );
+    // THEN
+    assert_eq!(
+        vec![
+            Diagnostic::missing_inout_parameter("inout1", (216..220).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (258..262).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (279..283).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (294..298).into(),)
+        ],
+        result
+    )
+}
+
+#[test]
+fn call_statement_parameter_validation() {
+    // GIVEN
+    // WHEN
+    let diagnostics = parse_and_validate(
+        r#"
+		FUNCTION foo : DINT
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+		VAR
+			var1 : DINT;
+			var2 : STRING;
+		END_VAR
+			foo(input1 := var1, inout1 := var1, output1 => var1); // valid
+
+			foo(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit
+
+			foo(input1 := var2, inout1 := var2, output1 => var2); // invalid types assigned
+			foo(var2, var2, var2); // invalid types assigned
+		END_PROGRAM
+        "#,
+    );
+
+    // THEN the validator does not throw an error
+    assert_eq!(diagnostics, vec![]);
+    if diagnostics.is_empty() {
+        panic!("should have errors");
+    }
+}

@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use crate::{
     ast::{
-        AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, PouType, SourceRange,
-        UserTypeDeclaration, Variable, VariableBlock,
+        self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, PouType,
+        SourceRange, UserTypeDeclaration, Variable, VariableBlock,
     },
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -261,35 +261,28 @@ impl Validator {
                 | Some(PouIndexEntry::Program { name, .. }) = context.find_pou(operator)
                 {
                     let declared_parameters = context.index.get_declared_parameters(name);
+                    let passed_parameters = parameters
+                        .as_ref()
+                        .as_ref()
+                        .map(ast::flatten_expression_list)
+                        .unwrap_or_default();
+
+                    let mut passed_params_idx = Vec::new();
+                    for (i, p) in passed_parameters.iter().enumerate() {
+                        // safe index of passed parameter
+                        if let Ok((idx, _)) =
+                            get_implicit_call_parameter(p, &declared_parameters, i)
+                        {
+                            passed_params_idx.push(idx);
+                        }
+                    }
+
                     let inouts: Vec<&&VariableIndexEntry> = declared_parameters
                         .iter()
                         .filter(|p| VariableType::InOut == p.get_variable_type())
                         .collect();
                     // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
                     if !inouts.is_empty() {
-                        let mut passed_params_idx = Vec::new();
-                        if let Some(s) = parameters.as_ref() {
-                            match s {
-                                AstStatement::ExpressionList { expressions, .. } => {
-                                    for (i, e) in expressions.iter().enumerate() {
-                                        // safe index of passed parameter
-                                        if let Ok((idx, _)) =
-                                            get_implicit_call_parameter(e, &declared_parameters, i)
-                                        {
-                                            passed_params_idx.push(idx);
-                                        }
-                                    }
-                                }
-                                _ => {
-                                    // safe index of passed parameter
-                                    if let Ok((idx, _)) =
-                                        get_implicit_call_parameter(s, &declared_parameters, 0)
-                                    {
-                                        passed_params_idx.push(idx);
-                                    }
-                                }
-                            }
-                        }
                         // check if all inouts were passed to the pou call
                         inouts.into_iter().for_each(|p| {
                             if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
@@ -303,6 +296,7 @@ impl Validator {
                         });
                     }
                 }
+                // validate the passed parameters
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(s, context);
                 }
