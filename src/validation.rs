@@ -361,7 +361,6 @@ impl Validator {
                         condition,
                         AstStatement::Assignment { .. } | AstStatement::CallStatement { .. }
                     ) {
-                        eprintln!("{:#?}", condition);
                         self.stmt_validator
                             .diagnostics
                             .push(Diagnostic::invalid_case_condition(condition.get_location()));
@@ -406,7 +405,6 @@ impl Validator {
                 // if we get here, then a `CaseCondition` is used outside a `CaseStatement`
                 // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
                 // see `control_parser` `parse_case_statement()`
-                eprintln!("{:?}", condition);
                 self.stmt_validator.diagnostics.push(
                     Diagnostic::case_condition_used_outside_case_statement(
                         condition.get_location(),
