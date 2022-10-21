@@ -1,7 +1,7 @@
 use core::panic;
 
 use crate::{
-    ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration},
+    ast::{self, AstStatement, DataType, DataTypeDeclaration, Pou, UserTypeDeclaration, flatten_expression_list},
     index::{Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
@@ -1966,6 +1966,26 @@ fn global_lint_enums_type_resolving() {
     );
 }
 
+#[test]
+fn enum_element_initialization_is_annotated_correctly() {
+    let (unit, mut index) = index(" TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE ");
+
+    let annotations = annotate(&unit, &mut index);
+    dbg!(&annotations);
+
+    let data_type = &unit.types[0].data_type;
+    if let DataType::EnumType { elements, .. } = data_type {
+        if let AstStatement::Assignment { right, .. } = flatten_expression_list(&elements)[2] {
+            let hint = annotations.get_hint(right).unwrap();
+            dbg!(hint);
+            assert_type_and_hint!(&annotations, &index, &*right, "DINT", Some("MyEnum"));
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+}
 #[test]
 fn enum_initialization_is_annotated_correctly() {
     let (unit, mut index) = index(
