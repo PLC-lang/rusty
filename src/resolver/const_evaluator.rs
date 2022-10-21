@@ -162,6 +162,9 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
         AstStatement::ExpressionList { expressions, .. } => {
             expressions.iter().any(needs_evaluation)
         }
+        AstStatement::RangeStatement { start, end, .. } => {
+            needs_evaluation(start) || needs_evaluation(end)
+        }
         _ => true,
     }
 }
@@ -605,6 +608,16 @@ pub fn evaluate(
             } else {
                 Some(initial.clone())
             }
+        }
+        AstStatement::RangeStatement { start, end, id } => {
+            let start =
+                Box::new(evaluate(start, scope, index)?.unwrap_or_else(|| *start.to_owned()));
+            let end = Box::new(evaluate(end, scope, index)?.unwrap_or_else(|| *end.to_owned()));
+            Some(AstStatement::RangeStatement {
+                start,
+                end,
+                id: *id,
+            })
         }
         _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),
     };

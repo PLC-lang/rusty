@@ -394,6 +394,8 @@ fn switch_case() {
 					res := 4;
 				2*2+1:
 					res := 5;
+        (BASE*5)..(BASE*10):
+					res := 6;
 			END_CASE
 		END_PROGRAM
       "#,
