@@ -13,7 +13,7 @@ fn illegal_literal_time_missing_segments_test() {
         vec![Diagnostic::unexpected_token_found(
             "Literal",
             ";",
-            SourceRange::new(36..37)
+            (36..37).into()
         )]
     );
 }
@@ -52,7 +52,7 @@ fn illegal_literal_time_double_segments_test() {
         diagnostics[0],
         Diagnostic::syntax_error(
             "Invalid TIME Literal: segments must be unique",
-            SourceRange::new(34..44)
+            (34..44).into()
         )
     );
 }
@@ -70,7 +70,7 @@ fn illegal_literal_time_out_of_order_segments_test() {
         diagnostics[0],
         Diagnostic::syntax_error(
             "Invalid TIME Literal: segments out of order, use d-h-m-s-ms",
-            SourceRange::new(34..42),
+            (34..42).into(),
         )
     );
 }
@@ -134,15 +134,15 @@ fn string_with_round_parens_can_be_parsed() {
             Diagnostic::ImprovementSuggestion {
                 message: "Unusual type of parentheses around string size expression, consider using square parentheses '[]'"
                     .into(),
-                range: SourceRange::new(37..41),
+                range: (37..41).into(),
             },
             Diagnostic::ImprovementSuggestion {
                 message: "Mismatched types of parentheses around string size expression".into(),
-                range: SourceRange::new(88..92),
+                range: (88..92).into(),
             },
             Diagnostic::ImprovementSuggestion {
                 message: "Mismatched types of parentheses around string size expression".into(),
-                range: SourceRange::new(148..152),
+                range: (148..152).into(),
             }
         ]
     );
