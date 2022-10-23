@@ -1,6 +1,5 @@
 ---
 source: src/parser/tests/statement_parser_tests.rs
-assertion_line: 294
 expression: ast_string
 ---
 CompilationUnit {
@@ -142,4 +141,29 @@ CompilationUnit {
         },
     ],
     types: [],
+    file_name: "test.st",
+    new_lines: NewLines {
+        line_breaks: [
+            1,
+            28,
+            40,
+            57,
+            67,
+            80,
+            98,
+            108,
+            121,
+            138,
+            148,
+            163,
+            164,
+            179,
+            185,
+            203,
+            213,
+            257,
+            271,
+            280,
+        ],
+    },
 }
