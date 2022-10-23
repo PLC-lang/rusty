@@ -70,6 +70,12 @@ fn programs_state_is_stored_in_a_struct() {
                 ),
             },
             nature: Any,
+            location: SymbolLocation {
+                line_number: 1,
+                source_range: SourceRange {
+                    range: 5..238,
+                },
+            },
         },
     )
     "###);

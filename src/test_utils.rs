@@ -14,7 +14,7 @@ pub mod tests {
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator,
         },
-        DebugLevel, SourceContainer, Validator,
+        DebugLevel, SourceContainer, Validator, typesystem::get_builtin_types,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -42,6 +42,10 @@ pub mod tests {
         let builtins = builtins::parse_built_ins(id_provider.clone());
 
         index.import(index::visitor::visit(&builtins, id_provider.clone()));
+        // import built-in types like INT, BOOL, etc.
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
+        }
 
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
@@ -72,6 +76,7 @@ pub mod tests {
         index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new();
+        validator.perform_global_validation(&index);
         validator.visit_unit(&annotations, &index, &unit);
         validator.diagnostics()
     }

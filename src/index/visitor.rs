@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
-    HardwareBinding, PouIndexEntry, SymbolLocationFactory, VariableIndexEntry, VariableType,
+    HardwareBinding, PouIndexEntry, SymbolLocationFactory, VariableIndexEntry, VariableType, SymbolLocation,
 };
 use crate::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
@@ -15,13 +15,8 @@ use crate::typesystem::{self, *};
 pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     let mut index = Index::default();
     //Create the typesystem
-    let builtins = get_builtin_types();
     let symbol_location_factory = SymbolLocationFactory::new(&unit.new_lines);
-
-    for data_type in builtins {
-        index.register_type(data_type);
-    }
-
+    
     //Create user defined datatypes
     for user_type in &unit.types {
         visit_data_type(
@@ -43,7 +38,7 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     }
 
     for implementation in &unit.implementations {
-        visit_implementation(&mut index, implementation);
+        visit_implementation(&mut index, implementation, &symbol_location_factory);
     }
     index
 }
@@ -158,6 +153,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             source: StructSource::Pou(pou.pou_type.clone()),
         },
         nature: TypeNature::Any,
+        location: symbol_location_factory.create_symbol_location(&pou.location)
     };
 
     match &pou.pou_type {
@@ -182,6 +178,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             index.register_pou(PouIndexEntry::create_function_block_entry(
                 &pou.name,
                 pou.linkage,
+                symbol_location_factory.create_symbol_location(&pou.name_location),
             ));
             index.register_pou_type(datatype);
         }
@@ -195,7 +192,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
-            index.register_pou(PouIndexEntry::create_class_entry(&pou.name, pou.linkage));
+            index.register_pou(PouIndexEntry::create_class_entry(
+                &pou.name,
+                pou.linkage,
+                symbol_location_factory.create_symbol_location(&pou.location),
+            ));
             index.register_pou_type(datatype);
         }
         PouType::Function => {
@@ -205,6 +206,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &pou.generics,
                 pou.linkage,
                 has_varargs,
+                symbol_location_factory.create_symbol_location(&pou.location),
             ));
             index.register_pou_type(datatype);
         }
@@ -214,6 +216,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 return_type_name,
                 owner_class,
                 pou.linkage,
+                symbol_location_factory.create_symbol_location(&pou.location),
             ));
             index.register_pou_type(datatype);
         }
@@ -239,7 +242,11 @@ fn get_declaration_type_for(block: &VariableBlock, pou_type: &PouType) -> Argume
     }
 }
 
-fn visit_implementation(index: &mut Index, implementation: &Implementation) {
+fn visit_implementation(
+    index: &mut Index,
+    implementation: &Implementation,
+    symbol_location_factory: &SymbolLocationFactory,
+) {
     let pou_type = &implementation.pou_type;
     index.register_implementation(
         &implementation.name,
@@ -258,12 +265,14 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
                 referenced_type: implementation.type_name.clone(),
             },
             nature: TypeNature::Derived,
+            location: symbol_location_factory.create_symbol_location(&implementation.name_location),
         };
 
         index.register_pou(PouIndexEntry::create_action_entry(
             implementation.name.as_str(),
             implementation.type_name.as_str(),
             ast::LinkageType::Internal, //TODO: where do I get correct linkage from?
+            symbol_location_factory.create_symbol_location(&implementation.name_location),
         ));
         index.register_pou_type(datatype);
     }
@@ -283,6 +292,7 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
             auto_deref: true,
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal()
     });
 
     type_name
@@ -366,6 +376,7 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Derived,
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
             //Generate an initializer for the struct
             let global_struct_name = crate::index::get_initializer_name(name);
@@ -473,6 +484,7 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
 
@@ -507,6 +519,7 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
         DataType::ArrayType {
@@ -574,6 +587,7 @@ fn visit_data_type(
                 initial_value: init1,
                 information,
                 nature: TypeNature::Any,
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
             let global_init_name = crate::index::get_initializer_name(name);
             if init2.is_some() {
@@ -612,6 +626,7 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Any,
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
         DataType::StringType {
@@ -667,6 +682,7 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::String,
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
 
             if init.is_some() {
@@ -699,6 +715,7 @@ fn visit_data_type(
                 initial_value: None,
                 information,
                 nature: TypeNature::Any,
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
 

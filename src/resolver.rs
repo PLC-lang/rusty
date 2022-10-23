@@ -18,7 +18,7 @@ use crate::{
         DataTypeDeclaration, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
-    index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{Index, PouIndexEntry, VariableIndexEntry, VariableType, SymbolLocation},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
@@ -1539,6 +1539,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
+            location: SymbolLocation::internal()
         });
     }
     new_type_name
@@ -1556,6 +1557,7 @@ fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
             inner_type_name,
             name: new_type_name.clone(),
         },
+        location: SymbolLocation::internal()
     });
     new_type_name
 }

@@ -31,6 +31,7 @@ use glob::glob;
 use inkwell::passes::PassBuilderOptions;
 use regex::{Captures, Regex};
 use serde::{Deserialize, Serialize};
+use typesystem::get_builtin_types;
 use std::path::{Path, PathBuf};
 
 use ast::{LinkageType, PouType, SourceRange, SourceRangeFactory};
@@ -559,6 +560,11 @@ fn index_module<T: SourceContainer>(
         LinkageType::Internal,
     )?;
     full_index.import(index);
+    // import built-in types like INT, BOOL, etc.
+    for data_type in get_builtin_types() {
+        full_index.register_type(data_type);
+    }
+
     all_units.append(&mut units);
 
     let (includes_index, mut includes_units) = parse_and_index(
@@ -574,6 +580,14 @@ fn index_module<T: SourceContainer>(
     // ### PHASE 1.1 resolve constant literal values
     let (mut full_index, _unresolvables) =
         resolver::const_evaluator::evaluate_constants(full_index);
+
+    // perform global validation
+    let global_diagnostics = {
+        let mut validator = Validator::new();
+        validator.perform_global_validation(&full_index);
+        validator.diagnostics()
+    };
+    diagnostician.handle_global(global_diagnostics);
 
     // ### PHASE 2 ###
     // annotation & validation everything

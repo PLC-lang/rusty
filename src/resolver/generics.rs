@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     ast::{self, AstStatement, GenericBinding, LinkageType, TypeNature},
     builtins,
-    index::{Index, PouIndexEntry, VariableIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry, SymbolLocation},
     resolver::AnnotationMap,
     typesystem::{self, DataType, DataTypeInformation},
 };
@@ -147,6 +147,7 @@ impl<'i> TypeAnnotator<'i> {
                     &[],
                     LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
                     generic_function.is_variadic(),
+                    generic_function.get_location().clone(),
                 ));
 
             // register the member-variables (interface) of the new function
@@ -206,6 +207,7 @@ impl<'i> TypeAnnotator<'i> {
                     initial_value: None,
                     name: name.clone(),
                     nature: TypeNature::Any,
+                    location: SymbolLocation::internal()
                 });
 
                 name

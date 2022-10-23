@@ -1878,6 +1878,11 @@ fn a_program_pou_is_indexed() {
             name: "myProgram".into(),
             instance_struct_name: "myProgram".into(),
             linkage: LinkageType::Internal,
+            location: SymbolLocation {
+                source_range: (17..26).into(),
+                line_number: 1
+            },
+
             instance_variable: VariableIndexEntry {
                 name: "myProgram_instance".into(),
                 qualified_name: "myProgram".into(),
@@ -1909,7 +1914,11 @@ fn a_program_pou_is_indexed() {
             }]
             .to_vec(),
             return_type: "INT".into(),
-            is_variadic: false
+            is_variadic: false,
+            location: SymbolLocation {
+                source_range: (56..114).into(),
+                line_number: 4
+            },
         }),
         index.find_pou("myFunction"),
     );
@@ -1918,7 +1927,11 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::FunctionBlock {
             name: "myFunctionBlock".into(),
             linkage: LinkageType::Internal,
-            instance_struct_name: "myFunctionBlock".into()
+            instance_struct_name: "myFunctionBlock".into(),
+            location: SymbolLocation {
+                source_range: (139..154).into(),
+                line_number: 7
+            },
         }),
         index.find_pou("myFunctionBlock"),
     );
@@ -1927,7 +1940,11 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::Class {
             name: "myClass".into(),
             linkage: LinkageType::Internal,
-            instance_struct_name: "myClass".into()
+            instance_struct_name: "myClass".into(),
+            location: SymbolLocation {
+                source_range: (191..222).into(),
+                line_number: 10
+            },
         }),
         index.find_pou("myClass"),
     );
@@ -1937,7 +1954,11 @@ fn a_program_pou_is_indexed() {
             name: "myProgram.act".into(),
             parent_pou_name: "myProgram".into(),
             linkage: LinkageType::Internal,
-            instance_struct_name: "myProgram".into()
+            instance_struct_name: "myProgram".into(),
+            location: SymbolLocation {
+                source_range: (269..272).into(),
+                line_number: 14
+            },
         }),
         index.find_pou("myProgram.act"),
     );

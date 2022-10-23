@@ -216,6 +216,7 @@ pub struct Implementation {
     pub pou_type: PouType,
     pub statements: Vec<AstStatement>,
     pub location: SourceRange,
+    pub name_location: SourceRange,
     pub overriding: bool,
     pub generic: bool,
     pub access: Option<AccessModifier>,

@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use indexmap::IndexMap;
 use std::hash::Hash;
+use indexmap::IndexMap;
 
 use crate::{
     ast::{
@@ -76,7 +76,11 @@ where
     K: Hash + Eq,
 {
     pub fn get(&self, key: &K) -> Option<&V> {
-        self.inner_map.get(key).and_then(|it| it.get(0))
+        self.get_all(key).and_then(|it| it.get(0))
+    }
+
+    pub fn get_all(&self, key: &K) -> Option<&Vec<V>> {
+        self.inner_map.get(key)
     }
 
     pub fn get_or_default(&mut self, key: K) -> &mut Vec<V> {
@@ -104,6 +108,14 @@ where
             .flat_map(|(k, v)| v.iter().map(move |v| (k, v)))
     }
 
+    pub fn keys(&self) -> impl Iterator<Item = &'_ K> {
+        self.inner_map.keys()
+    }
+
+    pub fn entries(&self) -> impl Iterator<Item = (&'_ K, &'_ Vec<V>)> {
+        self.inner_map.iter()
+    }
+
     pub fn values(&self) -> impl Iterator<Item = &'_ V> {
         self.inner_map.iter().flat_map(|(_, v)| v.iter())
     }
@@ -116,6 +128,15 @@ where
 
     pub fn contains_key(&self, key: &K) -> bool {
         self.inner_map.contains_key(key)
+    }
+}
+
+impl SymbolLocation {
+    pub fn internal() -> SymbolLocation {
+        SymbolLocation {
+            line_number: 0,
+            source_range: SourceRange::undefined(),
+        }
     }
 }
 
@@ -482,11 +503,13 @@ pub enum PouIndexEntry {
         instance_struct_name: String,
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
     FunctionBlock {
         name: String,
         instance_struct_name: String,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
     Function {
         name: String,
@@ -495,11 +518,13 @@ pub enum PouIndexEntry {
         generics: Vec<GenericBinding>,
         linkage: LinkageType,
         is_variadic: bool,
+        location: SymbolLocation,
     },
     Class {
         name: String,
         instance_struct_name: String,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
     Method {
         name: String,
@@ -507,12 +532,14 @@ pub enum PouIndexEntry {
         return_type: String,
         instance_struct_name: String,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
     Action {
         name: String,
         parent_pou_name: String,
         instance_struct_name: String,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
 }
 
@@ -525,12 +552,14 @@ impl PouIndexEntry {
         pou_name: &str,
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
+        location: SymbolLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             instance_variable,
             linkage,
+            location,
         }
     }
 
@@ -538,11 +567,16 @@ impl PouIndexEntry {
     /// # Arguments
     /// - `name` the name of the FunctionBlock
     /// - `linkage` the linkage type of the pou
-    pub fn create_function_block_entry(pou_name: &str, linkage: LinkageType) -> PouIndexEntry {
+    pub fn create_function_block_entry(
+        pou_name: &str,
+        linkage: LinkageType,
+        location: SymbolLocation,
+    ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
+            location,
         }
     }
 
@@ -556,6 +590,7 @@ impl PouIndexEntry {
         generic_names: &[GenericBinding],
         linkage: LinkageType,
         is_variadic: bool,
+        location: SymbolLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -564,6 +599,7 @@ impl PouIndexEntry {
             instance_struct_name: name.into(),
             linkage,
             is_variadic,
+            location,
         }
     }
 
@@ -575,23 +611,30 @@ impl PouIndexEntry {
         qualified_name: &str,
         pou_name: &str,
         linkage: LinkageType,
+        location: SymbolLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Action {
             name: qualified_name.into(),
             parent_pou_name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
+            location,
         }
     }
 
     /// creates a new Class-PouIndexEntry
     /// # Arguments
     /// - `name` the name of the Class
-    pub fn create_class_entry(pou_name: &str, linkage: LinkageType) -> PouIndexEntry {
+    pub fn create_class_entry(
+        pou_name: &str,
+        linkage: LinkageType,
+        location: SymbolLocation,
+    ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
+            location,
         }
     }
 
@@ -605,6 +648,7 @@ impl PouIndexEntry {
         return_type: &str,
         owner_class: &str,
         linkage: LinkageType,
+        location: SymbolLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
@@ -612,6 +656,7 @@ impl PouIndexEntry {
             instance_struct_name: name.into(),
             return_type: return_type.into(),
             linkage,
+            location,
         }
     }
 
@@ -737,6 +782,17 @@ impl PouIndexEntry {
     pub fn is_function(&self) -> bool {
         matches!(self, PouIndexEntry::Function { .. })
     }
+
+    pub fn get_location(&self) -> &SymbolLocation {
+        match self {
+            PouIndexEntry::Program { location, .. }
+            | PouIndexEntry::FunctionBlock { location, .. }
+            | PouIndexEntry::Function { location, .. }
+            | PouIndexEntry::Method { location, .. }
+            | PouIndexEntry::Action { location, .. }
+            | PouIndexEntry::Class { location, .. } => location,
+        }
+    }
 }
 
 /// the TypeIndex carries all types.
@@ -761,6 +817,7 @@ impl Default for TypeIndex {
                 initial_value: None,
                 information: DataTypeInformation::Void,
                 nature: TypeNature::Any,
+                location: SymbolLocation::internal()
             },
         }
     }
@@ -1350,11 +1407,15 @@ impl Index {
     }
 
     pub fn register_program(&mut self, name: &str, location: SymbolLocation, linkage: LinkageType) {
-        let instance_variable =
-            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location)
-                .set_linkage(linkage);
+        let instance_variable = VariableIndexEntry::create_global(
+            &format!("{}_instance", &name),
+            name,
+            name,
+            location.clone(),
+        )
+        .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
-        let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage);
+        let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
         self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
@@ -1454,7 +1515,7 @@ impl Index {
     pub fn register_type(&mut self, datatype: DataType) {
         self.type_index
             .types
-            .insert(datatype.get_name().to_lowercase(), datatype);
+            .insert(dbg!(datatype.get_name().to_lowercase()) , datatype);
     }
 
     pub fn register_pou_type(&mut self, datatype: DataType) {
