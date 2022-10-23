@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use indexmap::IndexMap;
+use std::hash::Hash;
 
 use crate::{
     ast::{
@@ -54,6 +56,67 @@ pub struct SymbolLocation {
     pub line_number: usize,
     /// the exact location of the symbol and the file_name
     pub source_range: SourceRange,
+}
+
+#[derive(Debug)]
+pub struct SymbolMap<K, V> {
+    inner_map: IndexMap<K, Vec<V>>,
+}
+
+impl<K, V> Default for SymbolMap<K, V> {
+    fn default() -> Self {
+        Self {
+            inner_map: Default::default(),
+        }
+    }
+}
+
+impl<K, V> SymbolMap<K, V>
+where
+    K: Hash + Eq,
+{
+    pub fn get(&self, key: &K) -> Option<&V> {
+        self.inner_map.get(key).and_then(|it| it.get(0))
+    }
+
+    pub fn get_or_default(&mut self, key: K) -> &mut Vec<V> {
+        self.inner_map.entry(key).or_default()
+    }
+
+    pub fn insert(&mut self, key: K, value: V) {
+        self.inner_map.entry(key).or_default().push(value);
+    }
+
+    pub fn drain(
+        &mut self,
+        range: std::ops::RangeFull,
+    ) -> indexmap::map::Drain<'_, K, std::vec::Vec<V>> {
+        self.inner_map.drain(range)
+    }
+
+    pub fn insert_many<T: IntoIterator<Item = V>>(&mut self, key: K, values: T) {
+        self.inner_map.entry(key).or_default().extend(values);
+    }
+
+    pub fn elements(&self) -> impl Iterator<Item = (&'_ K, &'_ V)> {
+        self.inner_map
+            .iter()
+            .flat_map(|(k, v)| v.iter().map(move |v| (k, v)))
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &'_ V> {
+        self.inner_map.iter().flat_map(|(_, v)| v.iter())
+    }
+
+    pub fn extend(&mut self, other: SymbolMap<K, V>) {
+        for (k, v) in other.inner_map.into_iter() {
+            self.insert_many(k, v)
+        }
+    }
+
+    pub fn contains_key(&self, key: &K) -> bool {
+        self.inner_map.contains_key(key)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -679,11 +742,11 @@ impl PouIndexEntry {
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
-    types: IndexMap<String, DataType>,
-    pou_types: IndexMap<String, DataType>,
+    types: SymbolMap<String, DataType>,
+    pou_types: SymbolMap<String, DataType>,
 
     void_type: DataType,
 }
@@ -691,8 +754,8 @@ pub struct TypeIndex {
 impl Default for TypeIndex {
     fn default() -> Self {
         TypeIndex {
-            types: IndexMap::new(),
-            pou_types: IndexMap::new(),
+            types: SymbolMap::default(),
+            pou_types: SymbolMap::default(),
             void_type: DataType {
                 name: VOID_TYPE.into(),
                 initial_value: None,
@@ -753,25 +816,25 @@ impl TypeIndex {
 #[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
-    global_variables: IndexMap<String, VariableIndexEntry>,
+    global_variables: SymbolMap<String, VariableIndexEntry>, // IndexMap<String, Vec<VariableIndexEntry>>,
 
     /// all struct initializers
-    global_initializers: IndexMap<String, VariableIndexEntry>,
+    global_initializers: SymbolMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
-    enum_global_variables: IndexMap<String, VariableIndexEntry>,
+    enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all enum-members with their qualified names <enum-type>.<element-name>
-    enum_qualified_variables: IndexMap<String, VariableIndexEntry>,
+    enum_qualified_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all local variables, grouped by the POU's name
-    member_variables: IndexMap<String, IndexMap<String, VariableIndexEntry>>,
+    member_variables: IndexMap<String, SymbolMap<String, VariableIndexEntry>>,
 
     // all pous,
-    pous: IndexMap<String, PouIndexEntry>,
+    pous: SymbolMap<String, PouIndexEntry>,
 
     /// all implementations
-    implementations: IndexMap<String, ImplementationIndexEntry>,
+    implementations: SymbolMap<String, ImplementationIndexEntry>,
 
     /// an index with all type-information
     type_index: TypeIndex,
@@ -791,64 +854,84 @@ impl Index {
     /// into the current one
     pub fn import(&mut self, mut other: Index) {
         //global variables
-        for (name, e) in other.global_variables.drain(..) {
-            let e = self.transfer_constants(e, &mut other.constant_expressions);
-            self.global_variables.insert(name, e);
+        for (name, e) in other.global_variables.inner_map.drain(..) {
+            let entries = e
+                .into_iter()
+                .map(|it| self.transfer_constants(it, &mut other.constant_expressions))
+                .collect::<Vec<_>>();
+            self.global_variables.insert_many(name, entries);
         }
 
         //enmu_variables use the qualified variables since name conflicts will be overriden in the enum_global
-        for (qualified_name, e) in other.enum_qualified_variables.drain(..) {
-            let e = self.transfer_constants(e, &mut other.constant_expressions);
-            self.enum_global_variables
-                .insert(e.get_name().to_lowercase(), e.clone());
-            self.enum_qualified_variables.insert(qualified_name, e);
+        for (qualified_name, elements) in other.enum_qualified_variables.drain(..) {
+            let elements = elements
+                .into_iter()
+                .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
+                .collect::<Vec<_>>();
+
+            for e in elements.iter() {
+                self.enum_global_variables
+                    .insert(e.get_name().to_lowercase(), e.clone());
+            }
+
+            self.enum_qualified_variables
+                .insert_many(qualified_name, elements);
         }
 
         //initializers
-        for (name, e) in other.global_initializers.drain(..) {
-            let e = self.transfer_constants(e, &mut other.constant_expressions);
-            self.global_initializers.insert(name, e);
+        for (name, elements) in other.global_initializers.drain(..) {
+            let elements = elements
+                .into_iter()
+                .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
+                .collect::<Vec<_>>();
+            self.global_initializers.insert_many(name, elements);
         }
 
         //member variables
         for (name, mut members) in other.member_variables.drain(..) {
             //enum qualified variables
-            let mut new_members = IndexMap::default();
-            for (name, e) in members.drain(..) {
-                let e = self.transfer_constants(e, &mut other.constant_expressions);
-                new_members.insert(name, e);
+            let mut new_members = SymbolMap::default();
+            for (name, entries) in members.drain(..) {
+                let entries = entries
+                    .into_iter()
+                    .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
+                    .collect::<Vec<_>>();
+                new_members.insert_many(name, entries);
             }
             self.member_variables.insert(name, new_members);
         }
 
         //types
-        for (name, mut e) in other.type_index.types.drain(..) {
-            e.initial_value =
-                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-            match &mut e.information {
-                //import constant expressions in array-type-definitions
-                DataTypeInformation::Array { dimensions, .. } => {
-                    for d in dimensions.iter_mut() {
-                        d.start_offset =
-                            self.import_type_size(&mut other.constant_expressions, &d.start_offset);
-                        d.end_offset =
-                            self.import_type_size(&mut other.constant_expressions, &d.end_offset);
+        for (name, mut elements) in other.type_index.types.drain(..) {
+            for e in elements.iter_mut() {
+                e.initial_value =
+                    self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+                match &mut e.information {
+                    //import constant expressions in array-type-definitions
+                    DataTypeInformation::Array { dimensions, .. } => {
+                        for d in dimensions.iter_mut() {
+                            d.start_offset = self
+                                .import_type_size(&mut other.constant_expressions, &d.start_offset);
+                            d.end_offset = self
+                                .import_type_size(&mut other.constant_expressions, &d.end_offset);
+                        }
                     }
+                    // import constant expressions in String-size defintions
+                    DataTypeInformation::String { size, .. } => {
+                        *size = self.import_type_size(&mut other.constant_expressions, size);
+                    }
+                    _ => {}
                 }
-                // import constant expressions in String-size defintions
-                DataTypeInformation::String { size, .. } => {
-                    *size = self.import_type_size(&mut other.constant_expressions, size);
-                }
-                _ => {}
             }
-            self.type_index.types.insert(name, e);
+            self.type_index.types.insert_many(name, elements);
         }
 
         //pou_types
-        for (name, mut e) in other.type_index.pou_types.drain(..) {
-            e.initial_value =
+        for (name, elements) in other.type_index.pou_types.drain(..) {
+            elements.iter().for_each(|e| {
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-            self.type_index.pou_types.insert(name, e);
+            });
+            self.type_index.pou_types.insert_many(name, elements)
         }
 
         //implementations
@@ -1178,15 +1261,13 @@ impl Index {
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
-        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||Diagnostic::unknown_type(pou_name, 0..0))?;
-        if let Some(members) = members {
-            for (_, variable) in members {
-                if variable.get_variable_type() == VariableType::Return {
-                    return Some(variable);
-                }
-            }
-        }
-        None
+        let members = self.member_variables.get(&pou_name.to_lowercase());
+
+        members.and_then(|members| {
+            members
+                .values()
+                .find(|it| it.get_variable_type() == VariableType::Return)
+        })
     }
 
     pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
@@ -1201,14 +1282,14 @@ impl Index {
     }
 
     /// Returns a list of types, should not be used to search for types, just to react on them
-    pub fn get_types(&self) -> &IndexMap<String, DataType> {
+    pub fn get_types(&self) -> &SymbolMap<String, DataType> {
         &self.type_index.types
     }
-    pub fn get_pou_types(&self) -> &IndexMap<String, DataType> {
+    pub fn get_pou_types(&self) -> &SymbolMap<String, DataType> {
         &self.type_index.pou_types
     }
 
-    pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
+    pub fn get_globals(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.global_variables
     }
 
@@ -1224,23 +1305,23 @@ impl Index {
             .collect()
     }
 
-    pub fn get_pous(&self) -> &IndexMap<String, PouIndexEntry> {
+    pub fn get_pous(&self) -> &SymbolMap<String, PouIndexEntry> {
         &self.pous
     }
 
-    pub fn get_global_initializers(&self) -> &IndexMap<String, VariableIndexEntry> {
+    pub fn get_global_initializers(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.global_initializers
     }
 
-    pub fn get_members(&self, name: &str) -> Option<&IndexMap<String, VariableIndexEntry>> {
-        self.member_variables.get(name.to_lowercase().as_str())
+    pub fn get_members(&self, name: &str) -> Option<&SymbolMap<String, VariableIndexEntry>> {
+        self.member_variables.get(&name.to_lowercase())
     }
 
-    pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
+    pub fn get_global_qualified_enums(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.enum_qualified_variables
     }
 
-    pub fn get_implementations(&self) -> &IndexMap<String, ImplementationIndexEntry> {
+    pub fn get_implementations(&self) -> &SymbolMap<String, ImplementationIndexEntry> {
         &self.implementations
     }
 
@@ -1281,7 +1362,7 @@ impl Index {
         self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
-    pub(self) fn find_implementation_by_name(
+    pub fn find_implementation_by_name(
         &self,
         call_name: &str,
     ) -> Option<&ImplementationIndexEntry> {
@@ -1333,10 +1414,8 @@ impl Index {
         self.register_member_entry(container_name, entry);
     }
     pub fn register_member_entry(&mut self, container_name: &str, entry: VariableIndexEntry) {
-        let members = self
-            .member_variables
-            .entry(container_name.to_lowercase())
-            .or_insert_with(IndexMap::new);
+        let key = container_name.to_lowercase();
+        let members = self.member_variables.entry(key).or_default();
         members.insert(entry.name.to_lowercase(), entry);
     }
 

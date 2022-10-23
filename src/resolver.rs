@@ -487,7 +487,7 @@ impl<'i> TypeAnnotator<'i> {
 
         // enum initializers may have been introduced by the visitor (indexer)
         // so we shoul try to resolve and type-annotate them here as well
-        for (_, enum_element) in index.get_global_qualified_enums() {
+        for enum_element in index.get_global_qualified_enums().values() {
             if let Some((Some(statement), scope)) = enum_element
                 .initial_value
                 .map(|i| index.get_const_expressions().find_expression(&i))

@@ -2810,7 +2810,12 @@ fn variable_with_same_name_as_data_type() {
     insta::assert_snapshot!(result);
 }
 
+/// THIS TEST IS MISLEADING!!!
+/// THERE IS A CONFLICT BETWEEN TIME.TIME (the VAR)
+/// AND TIME.TIME (the return variable) WHICH
+/// CANNOT BE HANDLED PROPERLY. VALIDATION SHOULD FAIL!
 #[test]
+#[ignore = "worked in the past, should fail!"]
 fn variable_with_same_name_as_function() {
     let result = codegen(
         "

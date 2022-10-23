@@ -2033,3 +2033,129 @@ fn function_parameters_variable_type() {
     // IN_OUT => ByRef
     insta::assert_debug_snapshot!(members);
 }
+
+#[test]
+fn pou_duplicates_are_indexed() {
+    // GIVEN 2 POUs with the same name
+    // WHEN the code is indexed
+    let (_, index) = index(
+        "
+		PROGRAM foo
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		END_PROGRAM
+
+		PROGRAM foo
+		VAR_INPUT
+			input2 : INT;
+		END_VAR
+		END_PROGRAM
+		",
+    );
+
+    //THEN I expect both PouIndexEntries
+    let pous = index
+        .get_pous()
+        .values()
+        .filter(|it| it.get_name().eq("foo"))
+        .collect::<Vec<_>>();
+    let members = index
+        .get_members("foo")
+        .unwrap()
+        .values()
+        .collect::<Vec<_>>();
+
+    let foo1 = pous.get(0).unwrap();
+    assert_eq!(foo1.get_name(), "foo");
+    assert_eq!(members.get(0).unwrap().get_name(), "input1");
+
+    let foo2 = pous.get(1).unwrap();
+    assert_eq!(foo2.get_name(), "foo");
+    assert_eq!(members.get(1).unwrap().get_name(), "input2");
+}
+
+#[test]
+fn type_duplicates_are_indexed() {
+    // GIVEN 3 types with the same name
+    // WHEN the code is indexed
+    let (_, index) = index(
+        "
+		TYPE MyStruct:
+        STRUCT 
+          field1 : INT;
+        END_STRUCT
+        END_TYPE
+        
+		TYPE MyStruct:
+        STRUCT 
+          field2 : INT;
+        END_STRUCT
+        END_TYPE
+
+		TYPE MyStruct:
+        STRUCT 
+          field3 : INT;
+        END_STRUCT
+        END_TYPE
+        ",
+    );
+
+    //THEN I expect all 3 DataTypes
+    let types = index
+        .get_types()
+        .values()
+        .filter(|it| it.get_name().eq("MyStruct"))
+        .collect::<Vec<_>>();
+    let members = index
+        .get_members("MyStruct")
+        .unwrap()
+        .values()
+        .collect::<Vec<_>>();
+
+    let mystruct1 = types.get(0).unwrap();
+    assert_eq!(mystruct1.get_name(), "MyStruct");
+    assert_eq!(members.get(0).unwrap().get_name(), "field1");
+
+    let mystruct2 = types.get(1).unwrap();
+    assert_eq!(mystruct2.get_name(), "MyStruct");
+    assert_eq!(members.get(1).unwrap().get_name(), "field2");
+
+    let mystruct3 = types.get(2).unwrap();
+    assert_eq!(mystruct3.get_name(), "MyStruct");
+    assert_eq!(members.get(2).unwrap().get_name(), "field3");
+}
+
+#[test]
+fn global_variables_duplicates_are_indexed() {
+    // GIVEN 2 global variables with the same name
+    // WHEN the code is indexed
+    let (_, index) = index(
+        "
+            VAR_GLOBAL
+                x : INT;
+            END_VAR
+
+            VAR_GLOBAL
+                x : BOOL;
+            END_VAR
+        ",
+    );
+
+    //THEN I expect both globals
+    let globals = index
+        .get_globals()
+        .values()
+        .filter(|it| it.get_name().eq("x"))
+        .collect::<Vec<_>>();
+
+    dbg!(&globals);
+
+    let x1 = globals.get(0).unwrap();
+    assert_eq!(x1.get_name(), "x");
+    assert_eq!(x1.get_type_name(), "INT");
+
+    let x2 = globals.get(1).unwrap();
+    assert_eq!(x2.get_name(), "x");
+    assert_eq!(x2.get_type_name(), "BOOL");
+}
