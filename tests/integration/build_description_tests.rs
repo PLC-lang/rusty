@@ -135,11 +135,7 @@ fn build_with_cc_linker() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir
-        .path()
-        .join(arch)
-        .join("cc_proj.so")
-        .is_file());
+    assert!(dir.path().join(arch).join("cc_proj.so").is_file());
 }
 
 #[test]

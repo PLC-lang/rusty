@@ -362,7 +362,7 @@ unsafe extern "C" fn string_id(input: *const i8) -> Wrapper<[u8; 81]> {
     let mut res = [0; 81];
 
     // Depending on the architecture `CStr::from_ptr` might either take
-    // `i8` or `u8` as an argument. For example x86_64 would yield `i8` 
+    // `i8` or `u8` as an argument. For example x86_64 would yield `i8`
     // whereas aarch64 would yield `u8`. Instead of relying on conditional
     // compilation we can ask the compiler to deduce the right type here,
     // i.e. by casting with `as *const _`.
