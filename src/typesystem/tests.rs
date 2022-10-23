@@ -1,5 +1,5 @@
 use crate::{
-    ast::{CompilationUnit, Operator, TypeNature},
+    ast::{CompilationUnit, NewLines, Operator, TypeNature},
     index::{visitor::visit, Index},
     lexer::IdProvider,
     typesystem::{
@@ -24,7 +24,7 @@ macro_rules! assert_signed_type {
 #[test]
 pub fn signed_types_tests() {
     // Given an initialized index
-    let index = visit(&CompilationUnit::default(), IdProvider::default());
+    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
     assert_signed_type!(SINT_TYPE, BYTE_TYPE, index);
     assert_signed_type!(SINT_TYPE, USINT_TYPE, index);
     assert_signed_type!(INT_TYPE, WORD_TYPE, index);
@@ -51,6 +51,10 @@ pub fn signed_types_tests() {
             &index
         )
     );
+}
+
+fn get_empty_compilation_unit() -> CompilationUnit {
+    CompilationUnit::new("test_file", NewLines::build(""))
 }
 
 #[test]
@@ -84,7 +88,7 @@ pub fn equal_method_function_names() {
 #[test]
 fn get_bigger_size_integers_test() {
     // Given an initialized index
-    let index = visit(&CompilationUnit::default(), IdProvider::default());
+    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
     //Given integer types
     let sint_type = index.get_type_or_panic(SINT_TYPE);
     let int_type = index.get_type_or_panic(INT_TYPE);
@@ -126,7 +130,7 @@ fn get_bigger_size_integers_test() {
 #[test]
 fn get_bigger_size_integers_mix_test() {
     // Given an initialized index
-    let index = visit(&CompilationUnit::default(), IdProvider::default());
+    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
     //Given integer types
     let sint_type = index.get_type_or_panic(SINT_TYPE);
     let int_type = index.get_type_or_panic(INT_TYPE);
@@ -180,7 +184,7 @@ fn get_bigger_size_integers_mix_test() {
 #[test]
 fn get_bigger_size_real_test() {
     // Given an initialized index
-    let index = visit(&CompilationUnit::default(), IdProvider::default());
+    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
     //Given two float numbers (REAL/LREAL)
     let real_type = index.get_type_or_panic(REAL_TYPE);
     let lreal_type = index.get_type_or_panic(LREAL_TYPE);
@@ -194,7 +198,7 @@ fn get_bigger_size_real_test() {
 #[test]
 fn get_bigger_size_numeric_test() {
     // Given an initialized index
-    let index = visit(&CompilationUnit::default(), IdProvider::default());
+    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
     //Given a float and an int
     //integer types
     let int_type = index.get_type_or_panic(INT_TYPE);
@@ -224,7 +228,7 @@ fn get_bigger_size_numeric_test() {
 #[test]
 fn get_bigger_size_string_test() {
     // Given an initialized index
-    let index = visit(&CompilationUnit::default(), IdProvider::default());
+    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
     //Given two STRING
     let string_1024 = typesystem::DataType {
         name: "STRING_1024".into(),
@@ -261,7 +265,7 @@ fn get_bigger_size_string_test() {
 #[test]
 fn get_bigger_size_array_test_returns_first() {
     // Given an initialized index
-    let index = visit(&CompilationUnit::default(), IdProvider::default());
+    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
     //Given two ARRAY of the same type and dimensions
     let array_1024 = typesystem::DataType {
         name: "ARRAY_1024".into(),
@@ -303,7 +307,7 @@ fn get_bigger_size_array_test_returns_first() {
 #[test]
 fn get_bigger_size_mixed_test_no_() {
     // Given an initialized index
-    let index = visit(&CompilationUnit::default(), IdProvider::default());
+    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
     //Int
     let int_type = index.get_type_or_panic(INT_TYPE);
     //String

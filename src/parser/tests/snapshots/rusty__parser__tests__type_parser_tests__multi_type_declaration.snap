@@ -1,6 +1,5 @@
 ---
 source: src/parser/tests/type_parser_tests.rs
-assertion_line: 18
 expression: result
 ---
 CompilationUnit {
@@ -61,4 +60,19 @@ CompilationUnit {
             scope: None,
         },
     ],
+    file_name: "test.st",
+    new_lines: NewLines {
+        line_breaks: [
+            1,
+            14,
+            43,
+            70,
+            93,
+            122,
+            151,
+            174,
+            191,
+            200,
+        ],
+    },
 }
