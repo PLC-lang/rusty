@@ -260,7 +260,7 @@ impl PouType {
  * A datastructure that stores the location of newline characters of a string.
  * It also offers some useful methods to determine the line-number of an offset-location.
  */
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub struct NewLines {
     line_breaks: Vec<usize>,
 }
