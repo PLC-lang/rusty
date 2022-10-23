@@ -692,8 +692,28 @@
 <span id="687">687</span>
 <span id="688">688</span>
 <span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">HardwareBinding</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident">HardwareBinding</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">SymbolLocationFactory</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>,
+};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{
     <span class="self">self</span>, <span class="ident">ArgumentProperty</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>,
     <span class="ident">Implementation</span>, <span class="ident">Pou</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">TypeNature</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">VariableBlock</span>,
@@ -708,23 +728,30 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">Index::default</span>();
     <span class="comment">//Create the typesystem</span>
     <span class="kw">let</span> <span class="ident">builtins</span> <span class="op">=</span> <span class="ident">get_builtin_types</span>();
+    <span class="kw">let</span> <span class="ident">symbol_location_factory</span> <span class="op">=</span> <span class="ident">SymbolLocationFactory::new</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">new_lines</span>);
+
     <span class="kw">for</span> <span class="ident">data_type</span> <span class="kw">in</span> <span class="ident">builtins</span> {
         <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">data_type</span>);
     }
 
     <span class="comment">//Create user defined datatypes</span>
     <span class="kw">for</span> <span class="ident">user_type</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">types</span> {
-        <span class="ident">visit_data_type</span>(<span class="kw-2">&amp;mut</span> <span class="ident">index</span>, <span class="kw-2">&amp;mut</span> <span class="ident">id_provider</span>, <span class="ident">user_type</span>);
+        <span class="ident">visit_data_type</span>(
+            <span class="kw-2">&amp;mut</span> <span class="ident">index</span>,
+            <span class="kw-2">&amp;mut</span> <span class="ident">id_provider</span>,
+            <span class="ident">user_type</span>,
+            <span class="kw-2">&amp;</span><span class="ident">symbol_location_factory</span>,
+        );
     }
 
     <span class="comment">//Create defined global variables</span>
     <span class="kw">for</span> <span class="ident">global_vars</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">global_vars</span> {
-        <span class="ident">visit_global_var_block</span>(<span class="kw-2">&amp;mut</span> <span class="ident">index</span>, <span class="ident">global_vars</span>);
+        <span class="ident">visit_global_var_block</span>(<span class="kw-2">&amp;mut</span> <span class="ident">index</span>, <span class="ident">global_vars</span>, <span class="kw-2">&amp;</span><span class="ident">symbol_location_factory</span>);
     }
 
     <span class="comment">//Create types and variables for POUs</span>
     <span class="kw">for</span> <span class="ident">pou</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">units</span> {
-        <span class="ident">visit_pou</span>(<span class="kw-2">&amp;mut</span> <span class="ident">index</span>, <span class="ident">pou</span>);
+        <span class="ident">visit_pou</span>(<span class="kw-2">&amp;mut</span> <span class="ident">index</span>, <span class="ident">pou</span>, <span class="kw-2">&amp;</span><span class="ident">symbol_location_factory</span>);
     }
 
     <span class="kw">for</span> <span class="ident">implementation</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">implementations</span> {
@@ -733,7 +760,7 @@
     <span class="ident">index</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_pou</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">pou</span>: <span class="kw-2">&amp;</span><span class="ident">Pou</span>) {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_pou</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">pou</span>: <span class="kw-2">&amp;</span><span class="ident">Pou</span>, <span class="ident">symbol_location_factory</span>: <span class="kw-2">&amp;</span><span class="ident">SymbolLocationFactory</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">member_names</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
     <span class="comment">//register the pou&#39;s member variables</span>
@@ -801,7 +828,7 @@
                         <span class="ident">varargs</span>,
                     },
                     <span class="ident">initial_value</span>,
-                    <span class="ident">var</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                    <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">location</span>),
                     <span class="ident">count</span>,
                 );
                 <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -817,7 +844,6 @@
         .<span class="ident">unwrap_or</span>(<span class="ident">VOID_TYPE</span>);
     <span class="kw">if</span> <span class="ident">pou</span>.<span class="ident">return_type</span>.<span class="ident">is_some</span>() {
         <span class="ident">member_names</span>.<span class="ident">push</span>(<span class="ident">pou</span>.<span class="ident">get_return_name</span>().<span class="ident">into</span>());
-        <span class="kw">let</span> <span class="ident">source_location</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">get_end</span>()..<span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">get_end</span>());
         <span class="ident">index</span>.<span class="ident">register_member_variable</span>(
             <span class="ident">MemberInfo</span> {
                 <span class="ident">container_name</span>: <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
@@ -829,7 +855,7 @@
                 <span class="ident">varargs</span>: <span class="prelude-val">None</span>,
             },
             <span class="prelude-val">None</span>,
-            <span class="ident">source_location</span>,
+            <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">location</span>),
             <span class="ident">count</span>,
         )
     }
@@ -848,7 +874,11 @@
 
     <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">pou_type</span> {
         <span class="ident">PouType::Program</span> =&gt; {
-            <span class="ident">index</span>.<span class="ident">register_program</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">location</span>, <span class="ident">pou</span>.<span class="ident">linkage</span>);
+            <span class="ident">index</span>.<span class="ident">register_program</span>(
+                <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
+                <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name_location</span>),
+                <span class="ident">pou</span>.<span class="ident">linkage</span>,
+            );
             <span class="ident">index</span>.<span class="ident">register_pou_type</span>(<span class="ident">datatype</span>);
         }
         <span class="ident">PouType::FunctionBlock</span> =&gt; {
@@ -857,7 +887,7 @@
                 <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
                 <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
                 <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
-                <span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name_location</span>),
             )
             .<span class="ident">set_constant</span>(<span class="bool-val">true</span>);
             <span class="ident">index</span>.<span class="ident">register_global_initializer</span>(<span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>, <span class="ident">variable</span>);
@@ -873,7 +903,7 @@
                 <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
                 <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
                 <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
-                <span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">location</span>),
             )
             .<span class="ident">set_constant</span>(<span class="bool-val">true</span>);
             <span class="ident">index</span>.<span class="ident">register_global_initializer</span>(<span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>, <span class="ident">variable</span>);
@@ -970,7 +1000,11 @@
     <span class="ident">type_name</span>
 }
 
-<span class="kw">fn</span> <span class="ident">visit_global_var_block</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>) {
+<span class="kw">fn</span> <span class="ident">visit_global_var_block</span>(
+    <span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>,
+    <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>,
+    <span class="ident">symbol_location_factory</span>: <span class="kw-2">&amp;</span><span class="ident">SymbolLocationFactory</span>,
+) {
     <span class="kw">let</span> <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">linkage</span>;
     <span class="kw">for</span> <span class="ident">var</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">variables</span> {
         <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap_or_default</span>();
@@ -981,7 +1015,7 @@
             <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">name</span>,
             <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">name</span>,
             <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">expect</span>(<span class="string">&quot;named variable datatype&quot;</span>),
-            <span class="ident">var</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+            <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">location</span>),
         )
         .<span class="ident">set_initial_value</span>(<span class="ident">initializer</span>)
         .<span class="ident">set_constant</span>(<span class="ident">block</span>.<span class="ident">constant</span>)
@@ -1010,6 +1044,7 @@
     <span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>,
     <span class="ident">id_provider</span>: <span class="kw-2">&amp;mut</span> <span class="ident">IdProvider</span>,
     <span class="ident">type_declaration</span>: <span class="kw-2">&amp;</span><span class="ident">UserTypeDeclaration</span>,
+    <span class="ident">symbol_location_factory</span>: <span class="kw-2">&amp;</span><span class="ident">SymbolLocationFactory</span>,
 ) {
     <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">type_declaration</span>.<span class="ident">data_type</span>;
     <span class="kw">let</span> <span class="ident">scope</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">type_declaration</span>.<span class="ident">scope</span>;
@@ -1050,7 +1085,7 @@
                 <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
                 <span class="kw-2">&amp;</span><span class="ident">global_struct_name</span>,
                 <span class="ident">type_name</span>.<span class="ident">as_str</span>(),
-                <span class="ident">type_declaration</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">type_declaration</span>.<span class="ident">location</span>),
             )
             .<span class="ident">set_initial_value</span>(<span class="ident">init</span>)
             .<span class="ident">set_constant</span>(<span class="bool-val">true</span>);
@@ -1070,6 +1105,7 @@
                             <span class="ident">location</span>: <span class="ident">SourceRange::undefined</span>(),
                             <span class="ident">scope</span>: <span class="ident">scope</span>.<span class="ident">clone</span>(),
                         },
+                        <span class="ident">symbol_location_factory</span>,
                     )
                 }
 
@@ -1098,7 +1134,7 @@
                         <span class="ident">varargs</span>: <span class="prelude-val">None</span>,
                     },
                     <span class="ident">init</span>,
-                    <span class="ident">var</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                    <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">location</span>),
                     <span class="ident">count</span> <span class="kw">as</span> <span class="ident">u32</span>,
                 );
             }
@@ -1130,7 +1166,7 @@
                         <span class="kw-2">&amp;</span><span class="ident">element_name</span>,
                         <span class="ident">enum_name</span>,
                         <span class="prelude-val">Some</span>(<span class="ident">init</span>),
-                        <span class="ident">ele</span>.<span class="ident">get_location</span>(),
+                        <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">ele</span>.<span class="ident">get_location</span>()),
                     )
                 } <span class="kw">else</span> {
                     <span class="macro">unreachable!</span>(<span class="string">&quot;the preprocessor should have provided explicit assignments for enum values&quot;</span>)
@@ -1257,7 +1293,7 @@
                     <span class="ident">global_init_name</span>.<span class="ident">as_str</span>(),
                     <span class="ident">global_init_name</span>.<span class="ident">as_str</span>(),
                     <span class="ident">name</span>,
-                    <span class="ident">type_declaration</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                    <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">type_declaration</span>.<span class="ident">location</span>),
                 )
                 .<span class="ident">set_constant</span>(<span class="bool-val">true</span>)
                 .<span class="ident">set_initial_value</span>(<span class="ident">init2</span>);
@@ -1352,7 +1388,7 @@
                     <span class="ident">global_init_name</span>.<span class="ident">as_str</span>(),
                     <span class="ident">global_init_name</span>.<span class="ident">as_str</span>(),
                     <span class="ident">name</span>,
-                    <span class="ident">type_declaration</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                    <span class="ident">symbol_location_factory</span>.<span class="ident">create_symbol_location</span>(<span class="kw-2">&amp;</span><span class="ident">type_declaration</span>.<span class="ident">location</span>),
                 )
                 .<span class="ident">set_constant</span>(<span class="bool-val">true</span>)
                 .<span class="ident">set_initial_value</span>(<span class="ident">init</span>);

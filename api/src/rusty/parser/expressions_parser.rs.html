@@ -981,6 +981,14 @@
 <span id="976">976</span>
 <span id="977">977</span>
 <span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1164,7 +1172,9 @@
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>);
         <span class="kw">let</span> <span class="ident">expression_location</span> <span class="op">=</span> <span class="ident">expression</span>.<span class="ident">get_location</span>();
-        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">expression_location</span>.<span class="ident">get_end</span>());
+        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>
+            .<span class="ident">source_range_factory</span>
+            .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">expression_location</span>.<span class="ident">get_end</span>());
 
         <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. }, <span class="ident">Operator::Minus</span>) <span class="op">=</span>
             (<span class="kw-2">&amp;</span><span class="ident">expression</span>, <span class="kw-2">&amp;</span><span class="ident">operator</span>)
@@ -1350,7 +1360,7 @@
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralArray</span> {
         <span class="ident">elements</span>,
-        <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">source_range_factory</span>.<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
 }
@@ -1418,7 +1428,9 @@
             <span class="ident">AstStatement::CallStatement</span> {
                 <span class="ident">operator</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
                 <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">None</span>),
-                <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
+                <span class="ident">location</span>: <span class="ident">lexer</span>
+                    .<span class="ident">source_range_factory</span>
+                    .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
                 <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
             }
         } <span class="kw">else</span> {
@@ -1426,7 +1438,9 @@
                 <span class="ident">AstStatement::CallStatement</span> {
                     <span class="ident">operator</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
                     <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">Some</span>(<span class="ident">parse_expression_list</span>(<span class="ident">lexer</span>))),
-                    <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
+                    <span class="ident">location</span>: <span class="ident">lexer</span>
+                        .<span class="ident">source_range_factory</span>
+                        .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
                     <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
                 }
             })
@@ -1554,7 +1568,9 @@
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::MultipliedStatement</span> {
             <span class="ident">multiplier</span>,
             <span class="ident">element</span>: <span class="ident">Box::new</span>(<span class="ident">element</span>),
-            <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">location</span>.<span class="ident">get_start</span>()..<span class="ident">end</span>),
+            <span class="ident">location</span>: <span class="ident">lexer</span>
+                .<span class="ident">source_range_factory</span>
+                .<span class="ident">create_range</span>(<span class="ident">location</span>.<span class="ident">get_start</span>()..<span class="ident">end</span>),
             <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         });
     }
@@ -1914,7 +1930,7 @@
             <span class="ident">integer</span>,
             <span class="ident">fractional</span>
         );
-        <span class="kw">let</span> <span class="ident">new_location</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">end</span>);
+        <span class="kw">let</span> <span class="ident">new_location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">source_range_factory</span>.<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">end</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralReal</span> {
             <span class="ident">value</span>: <span class="ident">result</span>,
             <span class="ident">location</span>: <span class="ident">new_location</span>,

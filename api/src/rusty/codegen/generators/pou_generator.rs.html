@@ -636,6 +636,11 @@
 <span id="631">631</span>
 <span id="632">632</span>
 <span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">data_type_generator::get_default_for</span>,
@@ -738,7 +743,7 @@
                         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">Diagnostic::cannot_generate_initializer</span>(
                                 <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
-                                <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                                <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
                             )
                         })<span class="question-mark">?</span>,
                 ),
@@ -1014,9 +1019,9 @@
                     <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_local_variable</span>(<span class="ident">type_name</span>, <span class="kw-2">&amp;</span><span class="ident">return_type</span>),
                 )
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">m</span>.<span class="ident">is_parameter</span>() {
-                <span class="kw">let</span> <span class="ident">ptr_value</span> <span class="op">=</span> <span class="ident">current_function</span>
-                    .<span class="ident">get_nth_param</span>(<span class="ident">var_count</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::missing_function</span>(<span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">ptr_value</span> <span class="op">=</span> <span class="ident">current_function</span>.<span class="ident">get_nth_param</span>(<span class="ident">var_count</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">Diagnostic::missing_function</span>(<span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>())
+                })<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_local_variable</span>(
                     <span class="ident">m</span>.<span class="ident">get_name</span>(),
@@ -1067,7 +1072,9 @@
                 <span class="kw">let</span> <span class="ident">ptr_value</span> <span class="op">=</span> <span class="ident">current_function</span>
                     .<span class="ident">get_nth_param</span>(<span class="ident">arg_index</span>)
                     .<span class="ident">map</span>(<span class="ident">BasicValueEnum::into_pointer_value</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::missing_function</span>(<span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">Diagnostic::missing_function</span>(<span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>())
+                    })<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">llvm</span>
@@ -1118,7 +1125,7 @@
                             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                                 <span class="ident">Diagnostic::cannot_generate_initializer</span>(
                                     <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
-                                    <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                                    <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
                                 )
                             })<span class="question-mark">?</span>,
                     ),
@@ -1128,7 +1135,7 @@
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::cannot_generate_initializer</span>(
                     <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
-                    <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                    <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
                 ));
             }
         }
@@ -1148,12 +1155,14 @@
         <span class="kw">let</span> <span class="ident">variable_type</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">llvm_index</span>
             .<span class="ident">get_associated_type</span>(<span class="ident">variable</span>.<span class="ident">get_type_name</span>())
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Diagnostic::relocate</span>(<span class="ident">err</span>, <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                <span class="ident">Diagnostic::relocate</span>(<span class="ident">err</span>, <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>())
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">type_size</span> <span class="op">=</span> <span class="ident">variable_type</span>.<span class="ident">size_of</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">Diagnostic::codegen_error</span>(
                 <span class="string">&quot;Couldn&#39;t determine type size&quot;</span>,
-                <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
             )
         });
 
@@ -1210,8 +1219,9 @@
             } <span class="kw">else</span> {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;initializing an array should be memcpy-able or memset-able&quot;</span>);
             };
-            <span class="ident">init_result</span>
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">msg</span>, <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
+            <span class="ident">init_result</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> {
+                <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">msg</span>, <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>())
+            })<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">variable_to_initialize</span>, <span class="ident">value</span>);
         }

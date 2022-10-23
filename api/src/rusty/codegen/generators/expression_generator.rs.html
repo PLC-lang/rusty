@@ -3303,7 +3303,7 @@
                     .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                         <span class="ident">Diagnostic::codegen_error</span>(
                             <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {:#?}&quot;</span>, <span class="ident">parameter</span>),
-                            <span class="ident">parameter</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                            <span class="ident">parameter</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
                         )
                     })<span class="question-mark">?</span>;
 
@@ -3319,7 +3319,7 @@
                         <span class="ident">expression</span>.<span class="ident">get_location</span>(),
                         <span class="ident">output</span>,
                         <span class="ident">output_value_type</span>,
-                        <span class="ident">parameter</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                        <span class="ident">parameter</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
                     )<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">output_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_load</span>(<span class="ident">output</span>, <span class="string">&quot;&quot;</span>);

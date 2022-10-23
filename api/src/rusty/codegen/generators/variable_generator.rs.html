@@ -276,7 +276,7 @@
             <span class="kw">if</span> <span class="ident">initial_value</span>.<span class="ident">is_none</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
                     <span class="string">&quot;Cannot generate uninitialized constant&quot;</span>,
-                    <span class="ident">global_variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                    <span class="ident">global_variable</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
                 ));
             }
         }

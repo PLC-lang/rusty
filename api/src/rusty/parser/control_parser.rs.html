@@ -256,6 +256,12 @@
 <span id="251">251</span>
 <span id="252">252</span>
 <span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::<span class="kw-2">*</span>,
@@ -345,7 +351,7 @@
     <span class="ident">AstStatement::IfStatement</span> {
         <span class="ident">blocks</span>: <span class="ident">conditional_blocks</span>,
         <span class="ident">else_block</span>,
-        <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">source_range_factory</span>.<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
@@ -392,7 +398,9 @@
         <span class="ident">end</span>: <span class="ident">Box::new</span>(<span class="ident">end_expression</span>),
         <span class="ident">by_step</span>: <span class="ident">step</span>,
         <span class="ident">body</span>: <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndFor</span>]),
-        <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>
+            .<span class="ident">source_range_factory</span>
+            .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
@@ -407,7 +415,9 @@
     <span class="ident">AstStatement::WhileLoopStatement</span> {
         <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">condition</span>),
         <span class="ident">body</span>: <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndWhile</span>]),
-        <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>
+            .<span class="ident">source_range_factory</span>
+            .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
@@ -431,7 +441,9 @@
     <span class="ident">AstStatement::RepeatLoopStatement</span> {
         <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">condition</span>),
         <span class="ident">body</span>,
-        <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>
+            .<span class="ident">source_range_factory</span>
+            .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
@@ -505,7 +517,7 @@
         <span class="ident">selector</span>,
         <span class="ident">case_blocks</span>,
         <span class="ident">else_block</span>,
-        <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">source_range_factory</span>.<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
