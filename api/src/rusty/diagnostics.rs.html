@@ -1075,6 +1075,25 @@
 <span id="1070">1070</span>
 <span id="1071">1071</span>
 <span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">error::Error</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
@@ -1175,6 +1194,8 @@
 
     <span class="comment">//switch case</span>
     <span class="ident">case__duplicate_condition</span>,
+    <span class="ident">case__case_condition_outside_case_statement</span>,
+    <span class="ident">case__invalid_case_condition</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Error</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Diagnostic</span> {
@@ -1718,6 +1739,23 @@
             ),
             <span class="ident">range</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::case__duplicate_condition</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_condition_used_outside_case_statement</span>(<span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="string">&quot;Case condition used outside of case statement! Did you mean to use &#39;;&#39;?&quot;</span>
+                .<span class="ident">into</span>(),
+            <span class="ident">range</span>,
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::case__case_condition_outside_case_statement</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalid_case_condition</span>(<span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="string">&quot;Invalid case condition!&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">range</span>,
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::case__case_condition_outside_case_statement</span>,
         }
     }
 

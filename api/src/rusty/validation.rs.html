@@ -405,6 +405,24 @@
 <span id="400">400</span>
 <span id="401">401</span>
 <span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -763,6 +781,16 @@
                 <span class="ident">case_blocks</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> {
                     <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">condition</span>.<span class="ident">as_ref</span>();
 
+                    <span class="comment">// invalid case conditions</span>
+                    <span class="kw">if</span> <span class="macro">matches!</span>(
+                        <span class="ident">condition</span>,
+                        <span class="ident">AstStatement::Assignment</span> { .. } <span class="op">|</span> <span class="ident">AstStatement::CallStatement</span> { .. }
+                    ) {
+                        <span class="self">self</span>.<span class="ident">stmt_validator</span>
+                            .<span class="ident">diagnostics</span>
+                            .<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_case_condition</span>(<span class="ident">condition</span>.<span class="ident">get_location</span>()));
+                    }
+
                     <span class="comment">// validate for duplicate conditions</span>
                     <span class="comment">// first try to evaluate the conditions value</span>
                     <span class="ident">const_evaluator::evaluate</span>(<span class="ident">condition</span>, <span class="ident">context</span>.<span class="ident">qualifier</span>, <span class="ident">context</span>.<span class="ident">index</span>)
@@ -799,6 +827,14 @@
                     .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
             }
             <span class="ident">AstStatement::CaseCondition</span> { <span class="ident">condition</span>, .. } =&gt; {
+                <span class="comment">// if we get here, then a `CaseCondition` is used outside a `CaseStatement`</span>
+                <span class="comment">// `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`</span>
+                <span class="comment">// see `control_parser` `parse_case_statement()`</span>
+                <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(
+                    <span class="ident">Diagnostic::case_condition_used_outside_case_statement</span>(
+                        <span class="ident">condition</span>.<span class="ident">get_location</span>(),
+                    ),
+                );
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">condition</span>, <span class="ident">context</span>)
             }
             <span class="kw">_</span> =&gt; {}
