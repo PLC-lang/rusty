@@ -54,16 +54,22 @@ pub fn parse_expression(lexer: &mut ParseSession) -> AstStatement {
 pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
-        let mut expressions = vec![left];
+        let mut expressions = vec![];
         // this starts an expression list
         while lexer.token == KeywordComma {
             lexer.advance();
-            expressions.push(parse_range_statement(lexer));
+            if !lexer.closes_open_region(&lexer.token) {
+                expressions.push(parse_range_statement(lexer));
+            }
         }
-        return AstStatement::ExpressionList {
-            expressions,
-            id: lexer.next_id(),
-        };
+        // we may have parsed no additional expression because of trailing comma
+        if !expressions.is_empty() {
+            expressions.insert(0, left);
+            return AstStatement::ExpressionList {
+                expressions,
+                id: lexer.next_id(),
+            };
+        }
     }
     left
 }
@@ -175,7 +181,9 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
         lexer.advance();
         let expression = parse_parenthesized_expression(lexer);
         let expression_location = expression.get_location();
-        let location = SourceRange::new(start..expression_location.get_end());
+        let location = lexer
+            .source_range_factory
+            .create_range(start..expression_location.get_end());
 
         if let (AstStatement::LiteralInteger { value, .. }, Operator::Minus) =
             (&expression, &operator)
@@ -278,11 +286,28 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             LiteralFalse => parse_bool_literal(lexer, false),
             LiteralNull => parse_null_literal(lexer),
             KeywordSquareParensOpen => parse_array_literal(lexer),
-            _ => Err(Diagnostic::unexpected_token_found(
-                "Literal",
-                lexer.slice(),
-                lexer.location(),
-            )),
+            _ => {
+                if lexer.closing_keywords.contains(&vec![KeywordParensClose])
+                    && matches!(
+                        lexer.last_token,
+                        KeywordOutputAssignment | KeywordAssignment
+                    )
+                {
+                    // due to closing keyword ')' and last_token '=>' / ':='
+                    // we are probably in a call statement missing a parameter assignment 'foo(param := );
+                    // optional parameter assignments are allowed, validation should handle any unwanted cases
+                    Ok(AstStatement::EmptyStatement {
+                        location: lexer.location(),
+                        id: lexer.next_id(),
+                    })
+                } else {
+                    Err(Diagnostic::unexpected_token_found(
+                        "Literal",
+                        lexer.slice(),
+                        lexer.location(),
+                    ))
+                }
+            }
         }
     };
     let literal_parse_result = literal_parse_result.and_then(|statement| {
@@ -344,7 +369,7 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnos
     lexer.advance();
     Ok(AstStatement::LiteralArray {
         elements,
-        location: SourceRange::new(start..end),
+        location: lexer.source_range_factory.create_range(start..end),
         id: lexer.next_id(),
     })
 }
@@ -412,7 +437,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
-                location: SourceRange::new(start..lexer.range().end),
+                location: lexer
+                    .source_range_factory
+                    .create_range(start..lexer.range().end),
                 id: lexer.next_id(),
             }
         } else {
@@ -420,7 +447,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                 AstStatement::CallStatement {
                     operator: Box::new(reference),
                     parameters: Box::new(Some(parse_expression_list(lexer))),
-                    location: SourceRange::new(start..lexer.range().end),
+                    location: lexer
+                        .source_range_factory
+                        .create_range(start..lexer.range().end),
                     id: lexer.next_id(),
                 }
             })
@@ -548,7 +577,9 @@ fn parse_literal_number(
         return Ok(AstStatement::MultipliedStatement {
             multiplier,
             element: Box::new(element),
-            location: SourceRange::new(location.get_start()..end),
+            location: lexer
+                .source_range_factory
+                .create_range(location.get_start()..end),
             id: lexer.next_id(),
         });
     }
@@ -655,7 +686,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement,
 
     //we can safely expect 3 numbers
     let mut segments = time.split(':');
-    let (hour, min, sec, milli) = parse_time_of_day(&mut segments, &location)?;
+    let (hour, min, sec, nano) = parse_time_of_day(&mut segments, &location)?;
 
     Ok(AstStatement::LiteralDateAndTime {
         location,
@@ -665,7 +696,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement,
         hour,
         min,
         sec,
-        milli,
+        nano,
         id: lexer.next_id(),
     })
 }
@@ -688,13 +719,13 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<AstStatement, D
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
     let mut segments = slice.split(':');
-    let (hour, min, sec, milli) = parse_time_of_day(&mut segments, &location)?;
+    let (hour, min, sec, nano) = parse_time_of_day(&mut segments, &location)?;
 
     Ok(AstStatement::LiteralTimeOfDay {
         hour,
         min,
         sec,
-        milli,
+        nano,
         location,
         id: lexer.next_id(),
     })
@@ -713,9 +744,9 @@ fn parse_time_of_day(
         None => 0.0,
     };
 
-    let milli = (sec.fract() * 1000_f64).round() as u32;
+    let nano = (sec.fract() * 1e+9_f64).round() as u32;
 
-    Ok((hour, min, sec.floor() as u32, milli))
+    Ok((hour, min, sec.floor() as u32, nano))
 }
 
 fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
@@ -908,7 +939,7 @@ fn parse_literal_real(
             integer,
             fractional
         );
-        let new_location = SourceRange::new(start..end);
+        let new_location = lexer.source_range_factory.create_range(start..end);
         Ok(AstStatement::LiteralReal {
             value: result,
             location: new_location,

@@ -1,18 +1,17 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { [3 x i32] }
+%prg = type { [3 x i32] }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %tmpVar = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 0
   store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 1

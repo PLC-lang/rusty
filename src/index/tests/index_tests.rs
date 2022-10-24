@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
-use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};
+use crate::index::{ArgumentType, PouIndexEntry, SymbolLocation, VariableIndexEntry};
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
@@ -42,7 +42,7 @@ fn index_not_case_sensitive() {
     let entry = index.find_member("ST", "X").unwrap();
     assert_eq!("x", entry.name);
     assert_eq!("INT", entry.data_type_name);
-    let entry = index.find_effective_type("APROGRAM").unwrap();
+    let entry = index.find_effective_type_by_name("APROGRAM").unwrap();
     assert_eq!("aProgram", entry.name);
     let entry = index.find_implementation_by_name("Foo").unwrap();
     assert_eq!("foo", entry.call_name);
@@ -78,7 +78,7 @@ fn program_is_indexed() {
     "#,
     );
 
-    index.find_effective_type("myProgram").unwrap();
+    index.find_effective_type_by_name("myProgram").unwrap();
 }
 
 #[test]
@@ -116,7 +116,7 @@ fn actions_are_indexed() {
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
         index.find_effective_type_info(info.get_name()).unwrap()
     {
-        assert_eq!("myProgram_interface", name);
+        assert_eq!("myProgram", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -142,7 +142,7 @@ fn actions_are_indexed() {
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
         index.find_effective_type_info(info.get_name()).unwrap()
     {
-        assert_eq!("myProgram_interface", name);
+        assert_eq!("myProgram", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -173,7 +173,7 @@ fn fb_methods_are_indexed() {
         name, member_names, ..
     } = info
     {
-        assert_eq!("myFuncBlock.foo_interface", name);
+        assert_eq!("myFuncBlock.foo", name);
         assert_eq!(&vec!["x"], member_names);
     } else {
         panic!("Wrong variant : {:#?}", info);
@@ -203,7 +203,7 @@ fn class_methods_are_indexed() {
         name, member_names, ..
     } = info
     {
-        assert_eq!("myClass.foo_interface", name);
+        assert_eq!("myClass.foo", name);
         assert_eq!(&vec!["y"], member_names);
     } else {
         panic!("Wrong variant : {:#?}", info);
@@ -219,7 +219,7 @@ fn function_is_indexed() {
     "#,
     );
 
-    index.find_effective_type("myFunction").unwrap();
+    index.find_effective_type_by_name("myFunction").unwrap();
 
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
@@ -290,11 +290,13 @@ fn pous_are_indexed() {
     "#,
     );
 
-    index.find_effective_type("myFunction").unwrap();
-    index.find_effective_type("myProgram").unwrap();
-    index.find_effective_type("myFunctionBlock").unwrap();
-    index.find_effective_type("myClass").unwrap();
-    index.find_effective_type("myProgram.act").unwrap();
+    index.find_effective_type_by_name("myFunction").unwrap();
+    index.find_effective_type_by_name("myProgram").unwrap();
+    index
+        .find_effective_type_by_name("myFunctionBlock")
+        .unwrap();
+    index.find_effective_type_by_name("myClass").unwrap();
+    index.find_effective_type_by_name("myProgram.act").unwrap();
 }
 
 #[test]
@@ -583,19 +585,19 @@ fn find_effective_type_finds_the_inner_effective_type() {
     );
 
     let my_alias = "MyAlias";
-    let int = index.find_effective_type(my_alias).unwrap();
+    let int = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
     let my_alias = "MySecondAlias";
-    let int = index.find_effective_type(my_alias).unwrap();
+    let int = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
     let my_alias = "MyArrayAlias";
-    let array = index.find_effective_type(my_alias).unwrap();
+    let array = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 
     let my_alias = "MyArray";
-    let array = index.find_effective_type(my_alias).unwrap();
+    let array = index.find_effective_type_by_name(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 }
 
@@ -652,7 +654,7 @@ fn pre_processing_generates_inline_structs_global() {
     let new_struct_type = &ast.types[0].data_type;
 
     if let DataType::StructType { variables, .. } = new_struct_type {
-        assert_eq!(variables[0].location, SourceRange::new(54..55));
+        assert_eq!(variables[0].location, (54..55).into());
     } else {
         panic!("expected struct")
     }
@@ -731,7 +733,7 @@ fn pre_processing_generates_inline_structs() {
 
     let new_struct_type = &ast.types[0].data_type;
     if let DataType::StructType { variables, .. } = new_struct_type {
-        assert_eq!(variables[0].location, SourceRange::new(67..68));
+        assert_eq!(variables[0].location, (67..68).into());
     } else {
         panic!("expected struct")
     }
@@ -1428,8 +1430,9 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
         LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1475,8 +1478,9 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
         LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1516,8 +1520,9 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
         LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1546,8 +1551,9 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
         LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1630,8 +1636,9 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     // WHEN the program is indexed
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone()),
+        crate::lexer::lex_with_ids(src, ids.clone(), SourceRangeFactory::internal()),
         LinkageType::Internal,
+        "test.st",
     );
 
     crate::ast::pre_process(&mut ast, ids.clone());
@@ -1881,7 +1888,10 @@ fn a_program_pou_is_indexed() {
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
                 binding: None,
-                source_location: SourceRange::new(9..46),
+                source_location: SymbolLocation {
+                    source_range: (17..26).into(),
+                    line_number: 1
+                },
                 varargs: None,
             }
         }),
@@ -1931,4 +1941,95 @@ fn a_program_pou_is_indexed() {
         }),
         index.find_pou("myProgram.act"),
     );
+}
+
+#[test]
+fn program_parameters_variable_type() {
+    // GIVEN PROGRAM with some parameters
+    // WHEN the PROGRAM is indexed
+    let (_, index) = index(
+        "
+		PROGRAM main
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : INT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : INT;
+		END_VAR
+		END_PROGRAM
+		",
+    );
+
+    // THEN the parameters should have the correct VariableType
+    let members = index.get_container_members("main");
+    assert_eq!(members.len(), 3);
+
+    // INPUT => ByVal
+    // OUTPUT => ByVal
+    // IN_OUT => ByRef
+    insta::assert_debug_snapshot!(members);
+}
+
+#[test]
+fn fb_parameters_variable_type() {
+    // GIVEN FB with some parameters
+    // WHEN the FB is indexed
+    let (_, index) = index(
+        "
+		FUNCTION_BLOCK fb
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : INT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : INT;
+		END_VAR
+		END_FUNCTION_BLOCK
+		",
+    );
+
+    // THEN the parameters should have the correct VariableType
+    let members = index.get_container_members("fb");
+    assert_eq!(members.len(), 3);
+
+    // INPUT => ByVal
+    // OUTPUT => ByVal
+    // IN_OUT => ByRef
+    insta::assert_debug_snapshot!(members);
+}
+
+#[test]
+fn function_parameters_variable_type() {
+    // GIVEN FUNCTION with some parameters
+    // WHEN the FUNCTION is indexed
+    let (_, index) = index(
+        "
+		FUNCTION foo : INT
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : INT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : INT;
+		END_VAR
+		END_FUNCTION
+		",
+    );
+
+    // THEN the parameters should have the correct VariableType
+    let members = index.get_container_members("foo");
+    assert_eq!(members.len(), 4);
+    // 4th entry is the return type
+
+    // INPUT => ByVal
+    // OUTPUT => ByRef
+    // IN_OUT => ByRef
+    insta::assert_debug_snapshot!(members);
 }

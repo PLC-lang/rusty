@@ -1,21 +1,19 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2011
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%MainProg_interface = type { %MyStruct }
+%MainProg = type { %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@MainProg_instance = global %MainProg_interface zeroinitializer
+@MainProg_instance = global %MainProg zeroinitializer
 @MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
-define void @MainProg(%MainProg_interface* %0) {
+define void @MainProg(%MainProg* %0) {
 entry:
-  %Cord = getelementptr inbounds %MainProg_interface, %MainProg_interface* %0, i32 0, i32 0
+  %Cord = getelementptr inbounds %MainProg, %MainProg* %0, i32 0, i32 0
   %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0
   store i32 0, i32* %a, align 4
   ret void

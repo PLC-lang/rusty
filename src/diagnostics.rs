@@ -15,7 +15,7 @@ use crate::ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Diagnostic {
     SyntaxError {
         message: String,
@@ -33,7 +33,7 @@ pub enum Diagnostic {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ErrNo {
     undefined,
 
@@ -53,6 +53,8 @@ pub enum ErrNo {
     pou__unsupported_return_type,
     pou__empty_variable_block,
     pou__missing_action_container,
+    // pou call
+    pou__missing_inout_parameter,
 
     //variable related
     var__unresolved_constant,
@@ -69,6 +71,7 @@ pub enum ErrNo {
     //type related
     type__cast_error,
     type__unknown_type,
+    type__invalid_type,
     type__literal_out_of_range,
     type__incompatible_literal_cast,
     type__incompatible_directaccess,
@@ -88,8 +91,15 @@ pub enum ErrNo {
     codegen__missing_function,
     codegen__missing_compare_function,
 
+    //Debug code
+    debug_general,
     //linker
     linker__generic_error,
+
+    //switch case
+    case__duplicate_condition,
+    case__case_condition_outside_case_statement,
+    case__invalid_case_condition,
 }
 
 impl<T: Error> From<T> for Diagnostic {
@@ -191,10 +201,9 @@ impl Diagnostic {
     }
 
     pub fn missing_action_container(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
+        Diagnostic::ImprovementSuggestion {
             message: "Missing Actions Container Name".to_string(),
             range,
-            err_no: ErrNo::pou__missing_action_container,
         }
     }
 
@@ -290,10 +299,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn incompatible_array_access_range(
-        range: Range<i128>,
-        location: SourceRange,
-    ) -> Diagnostic {
+    pub fn incompatible_array_access_range(range: Range<i64>, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Array access must be in the range {}..{}",
@@ -429,6 +435,14 @@ impl Diagnostic {
             message: message.into(),
             range: location,
             err_no: ErrNo::codegen__general,
+        }
+    }
+
+    pub fn debug_error<T: Into<String>>(message: T) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: message.into(),
+            range: SourceRange::undefined(),
+            err_no: ErrNo::debug_general,
         }
     }
 
@@ -607,6 +621,53 @@ impl Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: format!("Invalid pragma location: {}", message),
             range,
+        }
+    }
+
+    pub fn non_constant_case_condition(case: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "{}. Non constant variables are not supported in case conditions",
+                case
+            ),
+            range,
+            err_no: ErrNo::type__invalid_type,
+        }
+    }
+
+    pub fn duplicate_case_condition(value: &i128, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Duplicate condition value: {}. Occurred more than once!",
+                value
+            ),
+            range,
+            err_no: ErrNo::case__duplicate_condition,
+        }
+    }
+
+    pub fn case_condition_used_outside_case_statement(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Case condition used outside of case statement! Did you mean to use ';'?"
+                .into(),
+            range,
+            err_no: ErrNo::case__case_condition_outside_case_statement,
+        }
+    }
+
+    pub fn invalid_case_condition(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Invalid case condition!".into(),
+            range,
+            err_no: ErrNo::case__case_condition_outside_case_statement,
+        }
+    }
+
+    pub fn missing_inout_parameter(parameter: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Missing inout parameter: {}", parameter),
+            range,
+            err_no: ErrNo::pou__missing_action_container,
         }
     }
 }

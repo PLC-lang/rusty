@@ -5,7 +5,7 @@ pub mod tests {
     use inkwell::context::Context;
 
     use crate::{
-        ast::{self, CompilationUnit},
+        ast::{self, CompilationUnit, SourceRangeFactory},
         builtins,
         diagnostics::{Diagnostic, Diagnostician},
         index::{self, Index},
@@ -14,21 +14,23 @@ pub mod tests {
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator,
         },
-        SourceContainer, Validator,
+        DebugLevel, SourceContainer, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(
-            lexer::lex_with_ids(src, IdProvider::default()),
+            lexer::lex_with_ids(src, IdProvider::default(), SourceRangeFactory::internal()),
             ast::LinkageType::Internal,
+            "test.st",
         )
     }
 
     pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         let id_provider = IdProvider::default();
         let (mut unit, diagnostic) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
             ast::LinkageType::Internal,
+            "test.st",
         );
         ast::pre_process(&mut unit, id_provider);
         (unit, diagnostic)
@@ -42,8 +44,9 @@ pub mod tests {
         index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
         let (mut unit, ..) = parser::parse(
-            lexer::lex_with_ids(src, id_provider.clone()),
+            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
             ast::LinkageType::Internal,
+            "test.st",
         );
         ast::pre_process(&mut unit, id_provider.clone());
         index.import(index::visitor::visit(&unit, id_provider));
@@ -74,6 +77,13 @@ pub mod tests {
     }
 
     pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
+        codegen_debug_without_unwrap(src, DebugLevel::None)
+    }
+
+    pub fn codegen_debug_without_unwrap(
+        src: &str,
+        debug_level: DebugLevel,
+    ) -> Result<String, Diagnostic> {
         let mut id_provider = IdProvider::default();
         let (unit, index) = do_index(src, id_provider.clone());
 
@@ -82,12 +92,24 @@ pub mod tests {
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();
-        let code_generator = crate::codegen::CodeGen::new(&context, "main");
+        let mut code_generator = crate::codegen::CodeGen::new(
+            &context,
+            "main",
+            crate::OptimizationLevel::None,
+            debug_level,
+        );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator.generate_llvm_index(&annotations, literals, &index)?;
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)
-            .map(|_| code_generator.module.print_to_string().to_string())
+            .map(|_| {
+                code_generator.finalize().unwrap();
+                code_generator.module.print_to_string().to_string()
+            })
+    }
+
+    pub fn codegen_with_debug(src: &str) -> String {
+        codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
     }
 
     pub fn codegen(src: &str) -> String {
@@ -106,7 +128,15 @@ pub mod tests {
         diagnostician: Diagnostician,
     ) -> Result<String, Diagnostic> {
         let context = Context::create();
-        let (_, cg) = crate::compile_module(&context, sources, includes, encoding, diagnostician)?;
+        let (_, cg) = crate::compile_module(
+            &context,
+            sources,
+            includes,
+            encoding,
+            diagnostician,
+            crate::OptimizationLevel::None,
+            crate::DebugLevel::None,
+        )?;
         Ok(cg.module.print_to_string().to_string())
     }
 }

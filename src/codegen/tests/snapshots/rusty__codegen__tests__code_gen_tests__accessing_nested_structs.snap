@@ -1,23 +1,21 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2187
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%Main_interface = type { %OuterStruct }
+%Main = type { %OuterStruct }
 %OuterStruct = type { %InnerStruct, %InnerStruct }
 %InnerStruct = type { i16, i16 }
 
-@Main_instance = global %Main_interface zeroinitializer
+@Main_instance = global %Main zeroinitializer
 @InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer
 @OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer
 
-define void @Main(%Main_interface* %0) {
+define void @Main(%Main* %0) {
 entry:
-  %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %m = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
   %inner1 = getelementptr inbounds %InnerStruct, %InnerStruct* %out1, i32 0, i32 0
   store i16 3, i16* %inner1, align 2

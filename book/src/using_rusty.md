@@ -25,36 +25,29 @@ More examples:
 ## Example: Building a hello world program
 ### Writing the code
 We want to print something to the terminal, so we're going to declare external functions
-for that and link with libc when we're done. This program can also be found at
-`examples/hello_world.st` in the source tree of Rusty. 
+for that.
+This example is available under `examples/hello_world.st` in the main ruSTy repository
 
-* `_start` is our entry point to the program, because most linker scripts define it this way. 
-
-* Since we don't have a `crt0` right now, we have to call the `exit()` function by ourselves after we're
-done. Otherwise, the program will most likely crash (because it tries to return to a function that never
-existed).
+* `main` is our entry point to the program.
+* To link the program, we are going to use the system's linker using the `--linker=cc` argument. 
+* On windows, replace this with --linker=clang as cc is usually not available.
 
 ```iecst
-@EXTERNAL FUNCTION puts : DINT
-VAR_INPUT
+{external} 
+FUNCTION puts : DINT
+VAR_INPUT {ref}
     text : STRING;
 END_VAR
 END_FUNCTION
 
-@EXTERNAL FUNCTION exit : DINT
-VAR_INPUT
-    status : DINT;
-END_VAR
-END_FUNCTION
-
-FUNCTION _start : DINT
-    puts('hello, world!');
-    exit(0);
+FUNCTION main : DINT
+    puts('hello, world!$N');
 END_FUNCTION
 ```
 
 ### Compiling with rusty
-Compiling with rusty is very easy. If you just want to build an object file, then do this:
+The rusty command line interface is similar to that of other compilers.
+If you just want to build an object file, then do this:
 ```bash
 rustyc -c hello_world.st -o hello_world.o
 ```
@@ -74,13 +67,33 @@ By default `rustyc` will use `default` which corresponds to clang's `-O2`.
 ### Linking an executable
 Instead, you can also compile this into an executable and run it:
 ```bash
-rustyc hello_world.st -o hello_world -L/path/to/libs -lc
+rustyc hello_world.st -o hello_world --linker=cc
 ./hello_world
 ```
 
 Please note that RuSTy will attempt to link the generated object file by default to generate
 an executable if you didn't specify something else (option `-c`).
-* The `-lc` flag tells the linker it should link against `libc`. Depending on the available libraries on your system,
-the linker will prefer a dynamically linked library if available, and revert to a static one otherwise.
+* The `--linker=cc` flag tells the rusty that it should link with the system's compiler driver 
+instead of the built in linker. This provides support to create executables.
+* Additional libraries can be linked using the `-l` flag, additial library pathes can be added with `-L`
 * You add library search pathes by providing additional `-L /path/...` options. By default, this will be
 the current directory.
+* The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.
+
+### Building for separate targets
+
+RuSTy supports building for multiple targets by specifing the `--target` and optionally the `--sysroot` command.
+
+* Multiple targets and sysroot can be specified for the compilation simply by adding additional
+`--target` and `--sysroot` entries.
+
+### --target
+
+To build and compile [structured text](https://en.wikipedia.org/wiki/Structured_text) for the rigth platform we need to specify the `target`. As `rustyc` is using [LLVM](https://en.wikipedia.org/wiki/LLVM) a target-tripple supported by LLVM needs to be selected. The default `target` is the host machine's target. So if a dev container on an `x86_64-docker` is used the target is `x86_64-linux-gnu`.
+
+### --sysroot
+
+`rustyc` use the `sysroot` option for linking purposes. It is considered to be the root directory for the purpose of locating headers and libraries.
+
+* If a target and sysroot are provided, the output will always be stored in a folder with the target name (e.g. an `x86_64-linux-gnu` target will have the output strored in a folder called `x86_64-linux-gnu`)
+* `--sysroot` parameters have to always match target parameters, there can be no `sysroot` without a target.

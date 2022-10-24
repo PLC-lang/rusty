@@ -8,6 +8,7 @@ use std::convert::TryInto;
 /// - Alias types
 /// - sized Strings
 use crate::ast::SourceRange;
+use crate::codegen::debug::Debug;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AstAnnotations;
 use crate::typesystem::{Dimension, StringEncoding, StructSource};
@@ -15,6 +16,7 @@ use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
+        debug::DebugBuilderEnum,
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{get_llvm_float_type, get_llvm_int_type},
     },
@@ -30,6 +32,7 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 
 pub struct DataTypeGenerator<'ink, 'b> {
     llvm: &'b Llvm<'ink>,
+    debug: &'b mut DebugBuilderEnum<'ink>,
     index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: LlvmTypedIndex<'ink>,
@@ -44,11 +47,13 @@ pub struct DataTypeGenerator<'ink, 'b> {
 /// - array type for sized Strings
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
+    debug: &mut DebugBuilderEnum<'ink>,
     index: &Index,
     annotations: &AstAnnotations,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut generator = DataTypeGenerator {
         llvm,
+        debug,
         index,
         annotations,
         types_index: LlvmTypedIndex::default(),
@@ -98,6 +103,7 @@ pub fn generate_data_types<'ink>(
     for (name, user_type) in &types {
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
+        //Get and associate debug type
     }
 
     for (name, user_type) in &pou_types {
@@ -159,10 +165,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// Generates only an opaque type for structs.
     /// Eagerly generates but does not associate nested array and referenced aliased types
     fn create_type(
-        &self,
+        &mut self,
         name: &str,
         data_type: &DataType,
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
+        self.debug
+            .register_debug_type(name, data_type, self.index)?;
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, .. } => match source {
@@ -179,7 +187,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 ..
             } => self
                 .index
-                .get_effective_type(inner_type_name)
+                .get_effective_type_by_name(inner_type_name)
                 .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
                 .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
                 .map(|it| it.as_basic_type_enum()),
@@ -193,13 +201,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             } => {
                 let effective_type = self
                     .index
-                    .get_effective_type_by_name(referenced_type)
-                    .get_type_information();
-                if let DataTypeInformation::Integer {
-                    size: enum_size, ..
-                } = effective_type
-                {
-                    get_llvm_int_type(self.llvm.context, *enum_size, name).map(|it| it.into())
+                    .get_effective_type_or_void_by_name(referenced_type);
+                if let DataTypeInformation::Integer { .. } = effective_type.get_type_information() {
+                    self.create_type(name, effective_type)
                 } else {
                     Err(Diagnostic::invalid_type_nature(
                         effective_type.get_name(),
@@ -230,7 +234,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 referenced_type, ..
             } => self
                 .index
-                .get_effective_type(referenced_type)
+                .get_effective_type_by_name(referenced_type)
                 .and_then(|data_type| self.create_type(name, data_type)),
             DataTypeInformation::Void => {
                 get_llvm_int_type(self.llvm.context, 32, "Void").map(Into::into)

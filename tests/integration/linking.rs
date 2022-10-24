@@ -37,6 +37,7 @@ fn link_as_shared_object() {
             format: FormatOption::Shared,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
         },
         vec![TARGET.unwrap().into()],
         None,
@@ -55,6 +56,7 @@ fn link_as_shared_object() {
             format: FormatOption::Shared,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
         },
         vec![TARGET.unwrap().into()],
         None,
@@ -99,6 +101,7 @@ fn link_as_pic_object() {
             format: FormatOption::PIC,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
         },
         vec![TARGET.unwrap().into()],
         None,
@@ -117,6 +120,7 @@ fn link_as_pic_object() {
             format: FormatOption::PIC,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
         },
         vec![TARGET.unwrap().into()],
         None,
@@ -160,6 +164,7 @@ fn link_as_static_object() {
             format: FormatOption::Object,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
         },
         vec![TARGET.unwrap().into()],
         None,
@@ -178,6 +183,7 @@ fn link_as_static_object() {
             format: FormatOption::Static,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
         },
         vec![TARGET.unwrap().into()],
         None,
@@ -222,6 +228,7 @@ fn link_as_relocatable_object() {
             format: FormatOption::Object,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
         },
         vec![TARGET.unwrap().into()],
         None,
@@ -240,6 +247,7 @@ fn link_as_relocatable_object() {
             format: FormatOption::Relocatable,
             optimization: rusty::OptimizationLevel::Default,
             error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
         },
         vec![TARGET.unwrap().into()],
         None,
@@ -268,7 +276,16 @@ fn link_missing_file() {
     //Compile file1 as shared object with file2 as param
     let context = Context::create();
     let diagnostician = Diagnostician::default();
-    let (_, codegen) = compile_module(&context, vec![file1], vec![], None, diagnostician).unwrap();
+    let (_, codegen) = compile_module(
+        &context,
+        vec![file1],
+        vec![],
+        None,
+        diagnostician,
+        rusty::OptimizationLevel::None,
+        rusty::DebugLevel::None,
+    )
+    .unwrap();
     let object = persist(
         &codegen,
         &out,
@@ -297,4 +314,44 @@ fn link_missing_file() {
 
     //Delete it
     fs::remove_file(&out).unwrap();
+}
+
+#[test]
+#[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
+//This is a regression, see #548
+fn link_to_a_relative_location_with_no_parent() {
+    let file1 = FilePath {
+        path: get_test_file("linking/relative.st"),
+    };
+
+    //Compile file1 as shared object with file2 as param
+    build_and_link(
+        vec![file1],
+        vec![],
+        None,
+        &CompileOptions {
+            build_location: None,
+            output: "output.o".into(),
+            format: FormatOption::Static,
+            optimization: rusty::OptimizationLevel::Default,
+            error_format: ErrorFormat::Rich,
+            debug_level: rusty::DebugLevel::None,
+        },
+        vec![],
+        None,
+        Some(LinkOptions {
+            libraries: vec![],
+            library_pathes: vec![],
+            format: FormatOption::Static,
+            linker: None,
+        }),
+    )
+    .unwrap();
+
+    //Make sure the file exists in the test location
+    let res = std::path::Path::new("output.o");
+    assert!(res.exists());
+
+    //Delete it
+    fs::remove_file(&res).unwrap();
 }

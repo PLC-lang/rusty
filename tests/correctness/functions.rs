@@ -270,6 +270,47 @@ fn function_block_instances_save_state_per_instance() {
     assert_eq!(interface.f.i, 2);
     assert_eq!(interface.j.i, 7);
 }
+
+#[test]
+fn function_block_instances_save_outputs() {
+    #[repr(C)]
+    struct MainType {
+        var: i32,
+    }
+
+    let function = r#"
+        FUNCTION_BLOCK fb1
+            VAR_INPUT
+                a : BOOL;
+            END_VAR
+            VAR_OUTPUT
+                b : BOOL;
+            END_VAR
+            b := a OR b;
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+            END_VAR
+            VAR_TEMP
+                t : BOOL;
+                k : BOOL;
+                j : fb1;
+            END_VAR
+
+            j(a := TRUE, b => t);
+            j(a := FALSE, b => k);
+            var1 := k;
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(1, interface.var);
+}
+
 #[test]
 fn program_instances_save_state_per() {
     #[allow(dead_code)]
@@ -527,6 +568,37 @@ fn var_output_assignment() {
 }
 
 #[test]
+fn var_output_unassigned() {
+    #[repr(C)]
+    struct MainType {
+        var: i32,
+    }
+
+    let function = r#"
+        PROGRAM foo
+            VAR_OUTPUT
+                output1 : DINT;
+                output2 : DINT;
+            END_VAR
+            output1 := 42;
+            output2 := output1;
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+            END_VAR
+            foo(output2 => var1);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(42, interface.var);
+}
+
+#[test]
 fn var_output_assignment_in_functions() {
     struct MainType {
         var1: i32,
@@ -560,39 +632,6 @@ fn var_output_assignment_in_functions() {
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!((7 + 2, 8 + 3), (interface.var1, interface.var2));
-}
-
-#[test]
-fn optional_output_assignment() {
-    struct MainType {
-        var1: i32,
-        var2: i32,
-    }
-
-    let function = r#"
-		PROGRAM foo 
-            VAR_OUTPUT
-            	output1 : DINT;
-				output2 : DINT;
-            END_VAR
-			output1 := 1;
-			output2 := 2;
-        END_PROGRAM
-
-        PROGRAM main
-            VAR
-                var1 : DINT;
-				var2 : DINT;
-            END_VAR
-            foo(output1 =>, output2 => var2);
-        END_PROGRAM
-    "#;
-
-    let mut interface = MainType { var1: 0, var2: 0 };
-    let _: i32 = compile_and_run(function.to_string(), &mut interface);
-
-    assert_eq!(0, interface.var1);
-    assert_eq!(2, interface.var2);
 }
 
 #[test]

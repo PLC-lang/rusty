@@ -224,7 +224,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
 
-        exp_gen.generate_store(left_type, right_statement, left)?;
+        exp_gen.generate_store(left, left_type, right_statement)?;
         Ok(())
     }
 
@@ -547,7 +547,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let exp_gen = self.create_expr_generator();
-        let selector_statement = exp_gen.generate_expression(&*selector)?;
+        let selector_statement = exp_gen.generate_expression(selector)?;
 
         let mut cases = Vec::new();
         let else_block = context.append_basic_block(current_function, "else");

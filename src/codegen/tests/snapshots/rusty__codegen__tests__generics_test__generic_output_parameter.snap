@@ -5,9 +5,9 @@ expression: codegen(src)
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i16, i16, i8, i8, i64 }
+%prg = type { i16, i16, i8, i8, i64 }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
 define i16 @foo__INT(i64 %0, i16* %1) {
 entry:
@@ -33,13 +33,13 @@ entry:
   ret i8 %foo__BYTE_ret
 }
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %theInt = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %iResult = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %theByte = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %bResult = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
-  %data = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 4
+  %theInt = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %iResult = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %theByte = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
+  %bResult = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
+  %data = getelementptr inbounds %prg, %prg* %0, i32 0, i32 4
   %load_data = load i64, i64* %data, align 4
   %call = call i16 @foo__INT(i64 %load_data, i16* %theInt)
   store i16 %call, i16* %iResult, align 2

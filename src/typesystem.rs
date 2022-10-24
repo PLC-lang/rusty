@@ -6,6 +6,7 @@ use std::{
 
 use crate::{
     ast::{AstStatement, Operator, PouType, TypeNature},
+    datalayout::{Bytes, MemoryLocation},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -59,15 +60,19 @@ pub const LINT_TYPE: &str = "LINT";
 pub const DATE_TYPE: &str = "DATE";
 pub const SHORT_DATE_TYPE: &str = "D";
 pub const LONG_DATE_TYPE: &str = "LDATE";
+pub const LONG_DATE_TYPE_SHORTENED: &str = "LD";
 pub const TIME_TYPE: &str = "TIME";
 pub const SHORT_TIME_TYPE: &str = "T";
 pub const LONG_TIME_TYPE: &str = "LTIME";
+pub const LONG_TIME_TYPE_SHORTENED: &str = "LT";
 pub const DATE_AND_TIME_TYPE: &str = "DATE_AND_TIME";
 pub const SHORT_DATE_AND_TIME_TYPE: &str = "DT";
-pub const LONG_DATE_AND_TIME_TYPE: &str = "LDT";
+pub const LONG_DATE_AND_TIME_TYPE: &str = "LDATE_AND_TIME";
+pub const LONG_DATE_AND_TIME_TYPE_SHORTENED: &str = "LDT";
 pub const TIME_OF_DAY_TYPE: &str = "TIME_OF_DAY";
 pub const SHORT_TIME_OF_DAY_TYPE: &str = "TOD";
-pub const LONG_TIME_OF_DAY_TYPE: &str = "LTOD";
+pub const LONG_TIME_OF_DAY_TYPE: &str = "LTIME_OF_DAY";
+pub const LONG_TIME_OF_DAY_TYPE_SHORTENED: &str = "LTOD";
 pub const ULINT_TYPE: &str = "ULINT";
 pub const REAL_TYPE: &str = "REAL";
 pub const LREAL_TYPE: &str = "LREAL";
@@ -106,9 +111,24 @@ impl DataType {
         let type_nature = index.get_intrinsic_type_by_name(self.get_name()).nature;
         type_nature.derives(nature)
     }
+
+    pub fn is_numerical(&self) -> bool {
+        matches!(
+            self.nature,
+            TypeNature::Num { .. }
+                | TypeNature::Real { .. }
+                | TypeNature::Int { .. }
+                | TypeNature::Unsigned { .. }
+                | TypeNature::Signed { .. }
+        )
+    }
+
+    pub fn is_real(&self) -> bool {
+        matches!(self.nature, TypeNature::Real { .. })
+    }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VarArgs {
     Sized(Option<String>),
     Unsized(Option<String>),
@@ -128,7 +148,7 @@ impl VarArgs {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StringEncoding {
     Utf8,
     Utf16,
@@ -143,7 +163,7 @@ impl StringEncoding {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
@@ -182,7 +202,7 @@ impl TypeSize {
 }
 
 /// indicates where this Struct origins from.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StructSource {
     OriginalDeclaration,
     Pou(PouType),
@@ -343,7 +363,7 @@ impl DataTypeInformation {
                 referenced_type: inner_type_name,
                 ..
             } => index
-                .find_effective_type(inner_type_name)
+                .find_effective_type_by_name(inner_type_name)
                 .map(|dt| dt.get_type_information().is_generic(index))
                 .unwrap_or(false),
             DataTypeInformation::Generic { .. } => true,
@@ -351,7 +371,7 @@ impl DataTypeInformation {
         }
     }
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
-    pub fn get_semantic_size(&self) -> u32 {
+    pub fn get_semantic_size(&self, index: &Index) -> u32 {
         if let DataTypeInformation::Integer {
             semantic_size: Some(s),
             ..
@@ -359,36 +379,143 @@ impl DataTypeInformation {
         {
             return *s;
         }
-        self.get_size()
+        self.get_size_in_bits(index)
     }
 
     /// returns the number of bits used to store this type
-    pub fn get_size(&self) -> u32 {
+    pub fn get_size_in_bits(&self, index: &Index) -> u32 {
+        self.get_size(index).bits()
+    }
+
+    pub fn get_size(&self, index: &Index) -> Bytes {
         match self {
-            DataTypeInformation::Integer { size, .. } => *size,
-            DataTypeInformation::Float { size, .. } => *size,
-            DataTypeInformation::String { .. } => unimplemented!("string"),
-            DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
-            DataTypeInformation::Array { .. } => unimplemented!("array"), //Propably length * inner type size
-            DataTypeInformation::Pointer { .. } => unimplemented!("pointer"),
-            DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
-            DataTypeInformation::Alias { .. } => unimplemented!("alias"),
-            DataTypeInformation::Void => 0,
-            DataTypeInformation::Enum { .. } => DINT_SIZE,
-            DataTypeInformation::Generic { .. } => unimplemented!("generics"),
+            DataTypeInformation::Integer { size, .. } => Bytes::from_bits(*size),
+            DataTypeInformation::Float { size, .. } => Bytes::from_bits(*size),
+            DataTypeInformation::String { size, encoding } => size
+                .as_int_value(index)
+                .map(|size| encoding.get_bytes_per_char() * size as u32)
+                .map(Bytes::from_bits)
+                .unwrap(),
+            DataTypeInformation::Struct { member_names, .. } => member_names
+                .iter()
+                .filter_map(|it| index.find_member(self.get_name(), it))
+                .map(|it| it.get_type_name())
+                .fold(MemoryLocation::new(0), |prev, it| {
+                    let type_info = index.get_type_information_or_void(it);
+                    let size = type_info.get_size(index).value();
+                    let after_align = prev.align_to(type_info.get_alignment(index)).value();
+                    let res = after_align + size;
+                    MemoryLocation::new(res)
+                })
+                .into(),
+            DataTypeInformation::Array {
+                inner_type_name,
+                dimensions,
+                ..
+            } => {
+                let inner_type = index.get_type_information_or_void(inner_type_name);
+                let inner_size = inner_type.get_size_in_bits(index);
+                let element_count: u32 = dimensions
+                    .iter()
+                    .map(|dim| dim.get_length(index).unwrap())
+                    .product();
+                Bytes::from_bits(inner_size * element_count)
+            }
+            DataTypeInformation::Pointer { .. } => Bytes::from_bits(POINTER_SIZE),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            }
+            | DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => {
+                let inner_type = index.get_type_information_or_void(referenced_type);
+                inner_type.get_size(index)
+            }
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => index
+                .find_effective_type_info(referenced_type)
+                .map(|it| it.get_size(index))
+                .unwrap_or_else(|| Bytes::from_bits(DINT_SIZE)),
+            DataTypeInformation::Generic { .. } | DataTypeInformation::Void => Bytes::from_bits(0),
         }
     }
 
-    pub fn get_alignment(&self) -> u32 {
+    /// Returns the String encoding's alignment (character)
+    pub fn get_string_character_width(&self, index: &Index) -> Bytes {
+        let type_layout = index.get_type_layout();
         match self {
-            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf8 => 1,
-            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => 2,
-            _ => unimplemented!("Alignment for {}", self.get_name()),
+            DataTypeInformation::String {
+                encoding: StringEncoding::Utf8,
+                ..
+            } => type_layout.i8,
+            DataTypeInformation::String {
+                encoding: StringEncoding::Utf16,
+                ..
+            } => type_layout.i16,
+            _ => unreachable!("Expected string found {}", self.get_name()),
+        }
+    }
+
+    pub fn get_alignment(&self, index: &Index) -> Bytes {
+        let type_layout = index.get_type_layout();
+        match self {
+            DataTypeInformation::Array {
+                inner_type_name, ..
+            } => {
+                let inner_type = index.get_type_information_or_void(inner_type_name);
+                if inner_type.get_alignment(index) > type_layout.i64 {
+                    type_layout.v128
+                } else {
+                    type_layout.v64
+                }
+            }
+            DataTypeInformation::Struct { .. } => type_layout.aggregate,
+            DataTypeInformation::String { .. } => type_layout.v64, //Strings are arrays
+            DataTypeInformation::Pointer { .. } => type_layout.p64,
+            DataTypeInformation::Integer {
+                size,
+                semantic_size,
+                ..
+            } => {
+                if let Some(1) = semantic_size {
+                    type_layout.i1
+                } else {
+                    match size {
+                        8 => type_layout.i8,
+                        16 => type_layout.i16,
+                        32 => type_layout.i32,
+                        64 => type_layout.i64,
+                        _ => type_layout.p64,
+                    }
+                }
+            }
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => index
+                .get_type_information_or_void(referenced_type)
+                .get_alignment(index),
+            DataTypeInformation::Float { size, .. } => match size {
+                32 => type_layout.f32,
+                64 => type_layout.f64,
+                _ => type_layout.p64,
+            },
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => index
+                .get_type_information_or_void(referenced_type)
+                .get_alignment(index),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            } => index
+                .get_type_information_or_void(referenced_type)
+                .get_alignment(index),
+            _ => type_layout.i8,
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Dimension {
     pub start_offset: TypeSize,
     pub end_offset: TypeSize,
@@ -401,9 +528,9 @@ impl Dimension {
         Ok((end - start + 1) as u32)
     }
 
-    pub fn get_range(&self, index: &Index) -> Result<Range<i128>, String> {
-        let start = self.start_offset.as_int_value(index)? as i128;
-        let end = self.end_offset.as_int_value(index)? as i128;
+    pub fn get_range(&self, index: &Index) -> Result<Range<i64>, String> {
+        let start = self.start_offset.as_int_value(index)?;
+        let end = self.end_offset.as_int_value(index)?;
         Ok(start..end)
     }
 
@@ -688,6 +815,15 @@ pub fn get_builtin_types() -> Vec<DataType> {
             nature: TypeNature::Date,
         },
         DataType {
+            name: LONG_DATE_AND_TIME_TYPE_SHORTENED.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: LONG_DATE_AND_TIME_TYPE_SHORTENED.into(),
+                referenced_type: DATE_AND_TIME_TYPE.into(),
+            },
+            nature: TypeNature::Date,
+        },
+        DataType {
             name: LONG_DATE_AND_TIME_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Alias {
@@ -715,6 +851,15 @@ pub fn get_builtin_types() -> Vec<DataType> {
             nature: TypeNature::Date,
         },
         DataType {
+            name: LONG_DATE_TYPE_SHORTENED.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: LONG_DATE_TYPE_SHORTENED.into(),
+                referenced_type: DATE_TYPE.into(),
+            },
+            nature: TypeNature::Date,
+        },
+        DataType {
             name: SHORT_TIME_OF_DAY_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Alias {
@@ -733,6 +878,15 @@ pub fn get_builtin_types() -> Vec<DataType> {
             nature: TypeNature::Date,
         },
         DataType {
+            name: LONG_TIME_OF_DAY_TYPE_SHORTENED.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: LONG_TIME_OF_DAY_TYPE_SHORTENED.into(),
+                referenced_type: TIME_OF_DAY_TYPE.into(),
+            },
+            nature: TypeNature::Date,
+        },
+        DataType {
             name: SHORT_TIME_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Alias {
@@ -746,6 +900,15 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Alias {
                 name: LONG_TIME_TYPE.into(),
+                referenced_type: TIME_TYPE.into(),
+            },
+            nature: TypeNature::Duration,
+        },
+        DataType {
+            name: LONG_TIME_TYPE_SHORTENED.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: LONG_TIME_TYPE_SHORTENED.into(),
                 referenced_type: TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,
@@ -795,7 +958,15 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
             .find_effective_type_info(referenced_type)
             .map(|it| get_rank(it, index))
             .unwrap_or(DINT_SIZE),
-        _ => todo!("{:?}", type_information),
+        DataTypeInformation::SubRange { name, .. } | DataTypeInformation::Alias { name, .. } => {
+            get_rank(
+                index
+                    .get_intrinsic_type_by_name(name)
+                    .get_type_information(),
+                index,
+            )
+        }
+        _ => type_information.get_size_in_bits(index),
     }
 }
 
@@ -829,24 +1000,29 @@ pub fn get_bigger_type<
 ) -> T {
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
+
+    let ldt = index.get_type(lt.get_name());
+    let rdt = index.get_type(rt.get_name());
+
+    // if left and right have the same type, check which ranks higher
     if is_same_type_class(lt, rt, index) {
         if get_rank(lt, index) < get_rank(rt, index) {
-            right_type
-        } else {
-            left_type
+            return right_type;
         }
-    } else if lt.is_numerical() && rt.is_numerical() {
-        let real_type = index.get_type_or_panic(REAL_TYPE);
-        let real_size = real_type.get_type_information().get_size();
-        if lt.get_size() > real_size || rt.get_size() > real_size {
-            index.get_type_or_panic(LREAL_TYPE).into()
-        } else {
-            real_type.into()
+    } else if let (Ok(ldt), Ok(rdt)) = (ldt, rdt) {
+        // check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical
+        if (ldt.is_numerical() && rdt.is_numerical()) && (ldt.is_real() || rdt.is_real()) {
+            let real_type = index.get_type_or_panic(REAL_TYPE);
+            let real_size = real_type.get_type_information().get_size_in_bits(index);
+            if lt.get_size_in_bits(index) > real_size || rt.get_size_in_bits(index) > real_size {
+                return index.get_type_or_panic(LREAL_TYPE).into();
+            } else {
+                return real_type.into();
+            }
         }
-    } else {
-        //Return the first
-        left_type
     }
+
+    left_type
 }
 
 /// returns the signed version of the given data_type if its a signed int-type

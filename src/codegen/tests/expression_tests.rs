@@ -59,212 +59,6 @@ fn type_mix_in_call() {
 }
 
 #[test]
-fn string_comparison_test() {
-    let result = codegen(
-        r#"
-        FUNCTION STRING_EQUAL : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-
-        END_FUNCTION
-
-        FUNCTION baz : INT
-            VAR a,b : STRING; END_VAR
-            VAR result : BOOL; END_VAR
-
-            result := 'a' = 'b';
-            result := a = b;
-        END_FUNCTION
-    "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn string_equal_with_constant_test() {
-    let result = codegen(
-        r#"
-        FUNCTION STRING_EQUAL : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-        END_FUNCTION
-
-        FUNCTION baz : INT
-            VAR a,b : STRING; END_VAR
-            VAR result : BOOL; END_VAR
-
-            result := a = 'b';
-            result := 'a' = b;
-        END_FUNCTION
-    "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn string_less_with_constant_test() {
-    let result = codegen(
-        r#"
-        FUNCTION STRING_LESS : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-        END_FUNCTION
-
-        FUNCTION baz : INT
-            VAR a : STRING; END_VAR
-            VAR result : BOOL; END_VAR
-
-            result := a < 'b';
-        END_FUNCTION
-    "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn string_greater_with_constant_test() {
-    let result = codegen(
-        r#"
-        FUNCTION STRING_GREATER : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-        END_FUNCTION
-
-        FUNCTION baz : INT
-            VAR a : STRING; END_VAR
-            VAR result : BOOL; END_VAR
-
-            result := a > 'b';
-        END_FUNCTION
-    "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn string_not_equal_with_constant_test() {
-    let result = codegen(
-        r#"
-        FUNCTION STRING_EQUAL : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-        END_FUNCTION
-
-        FUNCTION baz : INT
-            VAR a : STRING; END_VAR
-            VAR result : BOOL; END_VAR
-
-            result := a <> 'b';
-        END_FUNCTION
-    "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn string_smaller_or_equal_with_constant_test() {
-    let result = codegen(
-        r#"
-        FUNCTION STRING_LESS : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-        END_FUNCTION
-        FUNCTION STRING_EQUAL : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-        END_FUNCTION
-
-        FUNCTION baz : INT
-            VAR a,b : STRING; END_VAR
-            VAR result : BOOL; END_VAR
-
-            result := a <= 'b';
-        END_FUNCTION
-    "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn string_greater_or_equal_with_constant_test() {
-    let result = codegen(
-        r#"
-        FUNCTION STRING_GREATER : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-        END_FUNCTION
-        FUNCTION STRING_EQUAL : BOOL
-            VAR_INPUT op1, op2: STRING[1024] END_VAR
-        END_FUNCTION
-
-        FUNCTION baz : INT
-            VAR a,b : STRING; END_VAR
-            VAR result : BOOL; END_VAR
-
-            result := a >= 'b';
-        END_FUNCTION
-    "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn ranged_number_type_comparing_test() {
-    let result = codegen(
-        r#"
-        FUNCTION baz : INT
-            VAR x,y : INT(0..500); END_VAR;
-
-            x = 3;
-            x < y;
-            y <= 0;
-        END_FUNCTION
-    "#,
-    );
-
-    //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn aliased_ranged_number_type_comparing_test() {
-    let result = codegen(
-        r#"
-        TYPE MyInt: INT(0..500); END_TYPE
-        FUNCTION baz : INT
-            VAR x,y : MyInt; END_VAR;
-
-            x = 3;
-            x < y;
-            y <= 0;
-        END_FUNCTION
-    "#,
-    );
-
-    //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn aliased_number_type_comparing_test() {
-    let result = codegen(
-        r#"
-        TYPE MyInt: INT; END_TYPE
-
-        FUNCTION baz : INT
-            VAR x,y : MyInt; END_VAR;
-
-            x = 3;
-            x < y;
-            y <= 0;
-        END_FUNCTION
-    "#,
-    );
-
-    //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
-}
-
-#[test]
 fn cast_pointer_to_lword() {
     let result = codegen(
         r#"
@@ -379,7 +173,6 @@ fn pointer_arithmetics() {
 			x : INT := 10;
 			y : INT := 20;
 			pt : REF_TO INT;
-			comp : BOOL;
 		END_VAR
 		pt := &(x);
 
@@ -393,14 +186,6 @@ fn pointer_arithmetics() {
 		pt := 1 + 1 + pt ;
 		pt := y + pt - y ;
 		pt := y + y + pt ;
-
-		(* compare pointer-pointer / pointer-int *)
-		comp := pt = pt;
-		comp := pt <> y;
-		comp := pt < pt;
-		comp := pt > y;
-		comp := pt <= pt;
-		comp := y >= pt;
 		END_PROGRAM
 		",
     );
@@ -419,20 +204,11 @@ fn pointer_arithmetics_function_call() {
 		VAR
 			pt : REF_TO INT;
             x : INT;
-			comp : BOOL;
 		END_VAR
 		pt := &(x);
 
 		(* +/- *)
 		pt := pt + foo();
-
-		(* compare pointer-pointer / pointer-int *)
-		comp := pt = pt;
-		comp := pt <> foo();
-		comp := pt < pt;
-		comp := pt > foo();
-		comp := pt <= pt;
-		comp := foo() >= pt;
 		END_PROGRAM
 		",
     );
@@ -730,6 +506,32 @@ fn lreal_to_lreal_expt() {
     FUNCTION main : LREAL
         main := LREAL#3**LREAL#0.2;
     END_FUNCTION
+    ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn compare_date_time_literals() {
+    let result = codegen(
+        "
+    PROGRAM main
+    VAR_TEMP
+        cmp1, cmp2, cmp3, cmp4, cmp5, cmp6, cmp7, cmp8 : BOOL;
+    END_VAR
+		cmp1 := TIME#2d4h6m8s10ms11us300ns < TIME#1d8h43m23s55ms;
+		cmp2 := LTIME#2d4h6m8s10ms11us300ns > LTIME#1d8h43m23s55ms;
+
+		cmp3 := TOD#23:59:59.999 < TOD#10:32:59;
+		cmp4 := LTOD#23:59:59.999 > LTOD#10:32:59;
+
+		cmp5 := DATE#2022-10-20 < DATE#1999-01-01;
+		cmp6 := LDATE#2022-10-20 > LDATE#1999-01-01;
+
+		cmp7 := DT#2022-10-20-23:59:59.999 < DT#1999-01-01-10:32;
+		cmp8 := LDT#2022-10-20-23:59:59.999 > LDT#1999-01-01-10:32;
+    END_PROGRAM
     ",
     );
 

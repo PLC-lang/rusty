@@ -4,9 +4,10 @@ use indexmap::IndexMap;
 use crate::{
     ast::{
         AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, PouType, SourceRange, TypeNature,
+        LinkageType, NewLines, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
+    datalayout::DataLayout,
     diagnostics::Diagnostic,
     typesystem::{self, *},
 };
@@ -22,7 +23,40 @@ mod instance_iterator;
 mod tests;
 pub mod visitor;
 
-#[derive(Debug, PartialEq, Clone)]
+/// a factory to create SymbolLocations from SourceRanges, that automatically resolves
+/// the line-nr attribute
+pub struct SymbolLocationFactory<'a> {
+    new_lines: &'a NewLines,
+}
+
+impl<'a> SymbolLocationFactory<'a> {
+    /// creates a new SymbolLocationFactory with the given NewLines
+    pub fn new(new_lines: &'a NewLines) -> SymbolLocationFactory<'a> {
+        SymbolLocationFactory { new_lines }
+    }
+
+    /// creats a new SymbolLocation for the given source_range and automatically calculates
+    /// the resulting line-number usign the source_range's start and the factory's
+    /// NewLines
+    pub fn create_symbol_location(&self, source_range: &SourceRange) -> SymbolLocation {
+        SymbolLocation {
+            source_range: source_range.clone(),
+            line_number: self.new_lines.get_line_nr(source_range.get_start()),
+        }
+    }
+}
+
+/// Location information of a Symbol in the index consisting of the line_number
+/// and the detailled SourceRange information consisting the file and the range inside the source-string
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct SymbolLocation {
+    /// the line-number of this symbol in the source-file
+    pub line_number: usize,
+    /// the exact location of the symbol and the file_name
+    pub source_range: SourceRange,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableIndexEntry {
     /// the name of this variable (e.g. 'x' for 'PLC_PRG.x')
     name: String,
@@ -43,12 +77,12 @@ pub struct VariableIndexEntry {
     /// A binding to a hardware or external location
     binding: Option<HardwareBinding>,
     /// the location in the original source-file
-    pub source_location: SourceRange,
+    pub source_location: SymbolLocation,
     /// Variadic information placeholder for the variable, if any
     varargs: Option<VarArgs>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HardwareBinding {
     /// Specifies if the binding is an In/Out or Memory binding
     pub direction: HardwareAccessType,
@@ -109,7 +143,7 @@ impl VariableIndexEntry {
         data_type_name: &str,
         variable_type: ArgumentType,
         location_in_parent: u32,
-        source_location: SourceRange,
+        source_location: SymbolLocation,
     ) -> Self {
         VariableIndexEntry {
             name: name.to_string(),
@@ -130,7 +164,7 @@ impl VariableIndexEntry {
         name: &str,
         qualified_name: &str,
         data_type_name: &str,
-        source_location: SourceRange,
+        source_location: SymbolLocation,
     ) -> Self {
         VariableIndexEntry {
             name: name.to_string(),
@@ -261,7 +295,7 @@ impl VariableIndexEntry {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ArgumentType {
     ByVal(VariableType),
     ByRef(VariableType),
@@ -280,7 +314,7 @@ impl ArgumentType {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum VariableType {
     Local, // functions have no locals; others: VAR-block
     Temp,  // for functions: VAR & VAR_TEMP; others: VAR_TEMP
@@ -292,7 +326,7 @@ pub enum VariableType {
 }
 
 /// information regarding a variable
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableInformation {
     /// the type of variable
     variable_type: VariableType,
@@ -314,7 +348,7 @@ pub enum DataTypeType {
     AliasType,     // a Custom-Alias-dataType
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ImplementationType {
     Program,
     Function,
@@ -324,7 +358,7 @@ pub enum ImplementationType {
     Method,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ImplementationIndexEntry {
     pub(crate) call_name: String,
     pub(crate) type_name: String,
@@ -378,7 +412,7 @@ impl From<&PouType> for ImplementationType {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum PouIndexEntry {
     Program {
         name: String,
@@ -635,6 +669,11 @@ impl PouIndexEntry {
     pub fn is_action(&self) -> bool {
         matches!(self, PouIndexEntry::Action { .. })
     }
+
+    /// return true if this pou is a function
+    pub fn is_function(&self) -> bool {
+        matches!(self, PouIndexEntry::Function { .. })
+    }
 }
 
 /// the TypeIndex carries all types.
@@ -738,6 +777,9 @@ pub struct Index {
     type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
+
+    /// Type layout for the target
+    data_layout: DataLayout,
 }
 
 impl Index {
@@ -965,20 +1007,26 @@ impl Index {
         if segments.is_empty() {
             return None;
         }
-        let first_var = segments[0];
-        let mut result = match context {
+        //For the first element, if the context does not contain that element, it is possible that the element is also a global variable
+        let init = match context {
             Some(context) => self
-                .find_member(context, first_var)
-                .or_else(|| self.find_global_variable(first_var)),
-            None => self.find_global_variable(first_var),
+                .find_member(context, segments[0])
+                .or_else(|| self.find_global_variable(segments[0])),
+            None => self.find_global_variable(segments[0]),
         };
-        for segment in segments.iter().skip(1) {
-            result = match result {
-                Some(context) => self.find_member(&context.data_type_name, segment),
-                None => None,
-            };
-        }
-        result
+        segments
+            .iter()
+            .skip(1)
+            .fold(Some((segments[0], init)), |accum, current| match accum {
+                Some((_, Some(context))) => Some((
+                    *current,
+                    self.find_member(&context.data_type_name, *current),
+                )),
+                // The variable could be in a block that has no global variable (Function block)
+                Some((name, None)) => Some((*current, self.find_member(name, *current))),
+                None => Some((*current, self.find_global_variable(*current))),
+            })
+            .and_then(|(_, it)| it)
     }
 
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
@@ -1018,10 +1066,14 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
-    /// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
-    /// In other words it returns whether the member variable at `index` of the given container is a possible parameter in
-    /// call to it
-    pub fn is_declared_parameter(&self, container_name: &str, index: u32) -> bool {
+    /// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
+    /// In other words it returns some if the member variable at `index` of the given container is a possible parameter in
+    /// the call to it
+    pub fn get_declared_parameter(
+        &self,
+        container_name: &str,
+        index: u32,
+    ) -> Option<&VariableIndexEntry> {
         self.member_variables
             .get(&container_name.to_lowercase())
             .and_then(|map| {
@@ -1029,7 +1081,6 @@ impl Index {
                     .filter(|item| item.is_parameter() && !item.is_variadic())
                     .find(|item| item.location_in_parent == index)
             })
-            .is_some()
     }
 
     pub fn get_variadic_member(&self, container_name: &str) -> Option<&VariableIndexEntry> {
@@ -1048,13 +1099,27 @@ impl Index {
             })
     }
 
+    pub fn find_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.member_variables
+            .get(&pou_name.to_lowercase())
+            .and_then(|map| map.values().find(|item| item.location_in_parent == index))
+    }
+
     /// returns the effective DataType of the type with the given name if it exists
-    pub fn find_effective_type(&self, type_name: &str) -> Option<&DataType> {
+    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
     }
 
+    /// returns the effective DataType of the given type if it exists
+    pub fn find_effective_type<'ret>(
+        &'ret self,
+        data_type: &'ret DataType,
+    ) -> Option<&'ret DataType> {
+        self.type_index.find_effective_type(data_type)
+    }
+
     /// returns the effective DataType of the type with the given name or an Error
-    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
+    pub fn get_effective_type_by_name(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
             .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
@@ -1062,13 +1127,13 @@ impl Index {
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
     pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
-        self.find_effective_type(type_name)
+        self.find_effective_type_by_name(type_name)
             .map(DataType::get_type_information)
     }
 
     /// returns the effective type of the type with the with the given name or the
     /// void-type if the given name does not exist
-    pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
+    pub fn get_effective_type_or_void_by_name(&self, type_name: &str) -> &DataType {
         self.type_index.get_effective_type_by_name(type_name)
     }
 
@@ -1101,6 +1166,17 @@ impl Index {
             .unwrap_or_else(|_| panic!("{} not found", type_name))
     }
 
+    pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+        self.get_const_expressions()
+            .maybe_get_constant_statement(id)
+    }
+
+    pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstStatement> {
+        self.type_index
+            .find_type(type_name)
+            .and_then(|t| self.get_initial_value(&t.initial_value))
+    }
+
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
         let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||Diagnostic::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
@@ -1119,7 +1195,7 @@ impl Index {
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
-        self.find_effective_type(type_name)
+        self.find_effective_type_by_name(type_name)
             .map(|it| it.get_type_information())
             .unwrap_or_else(|| self.get_void_type().get_type_information())
     }
@@ -1192,14 +1268,10 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
-    pub fn register_program(&mut self, name: &str, location: &SourceRange, linkage: LinkageType) {
-        let instance_variable = VariableIndexEntry::create_global(
-            &format!("{}_instance", &name),
-            name,
-            name,
-            location.clone(),
-        )
-        .set_linkage(linkage);
+    pub fn register_program(&mut self, name: &str, location: SymbolLocation, linkage: LinkageType) {
+        let instance_variable =
+            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location)
+                .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
         let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage);
         self.pous.insert(entry.get_name().to_lowercase(), entry);
@@ -1235,7 +1307,7 @@ impl Index {
         &mut self,
         member_info: MemberInfo,
         initial_value: Option<ConstId>,
-        source_location: SourceRange,
+        source_location: SymbolLocation,
         location: u32,
     ) {
         let container_name = member_info.container_name;
@@ -1273,7 +1345,7 @@ impl Index {
         element_name: &str,
         enum_type_name: &str,
         initial_value: Option<ConstId>,
-        source_location: SourceRange,
+        source_location: SymbolLocation,
     ) {
         let qualified_name = format!("{}.{}", enum_type_name, element_name);
         let entry = VariableIndexEntry::create_global(
@@ -1392,6 +1464,10 @@ impl Index {
             None
         }
     }
+
+    pub fn get_type_layout(&self) -> &DataLayout {
+        &self.data_layout
+    }
 }
 
 /// Returns a default initialization name for a variable or type
@@ -1400,6 +1476,6 @@ pub fn get_initializer_name(name: &str) -> String {
 }
 impl VariableType {
     pub(crate) fn is_private(&self) -> bool {
-        return matches!(self, VariableType::Temp | VariableType::Local);
+        matches!(self, VariableType::Temp | VariableType::Local)
     }
 }

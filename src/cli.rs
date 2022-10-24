@@ -3,7 +3,7 @@ use clap::{ArgGroup, CommandFactory, ErrorKind, Parser, Subcommand};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
-use crate::{ConfigFormat, ErrorFormat, FormatOption};
+use crate::{ConfigFormat, DebugLevel, ErrorFormat, FormatOption};
 
 pub type ParameterError = clap::Error;
 
@@ -169,6 +169,25 @@ pub struct CompileParameters {
     )]
     pub linker: Option<String>,
 
+    #[clap(
+        name = "debug",
+        long,
+        short = 'g',
+        help = "Generate source-level debug information",
+        global = true,
+        group = "dbg"
+    )]
+    pub generate_debug: bool,
+
+    #[clap(
+        name = "debug-variables",
+        long,
+        help = "Generate debug information for global variables",
+        global = true,
+        group = "dbg"
+    )]
+    pub generate_varinfo: bool,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -237,6 +256,16 @@ impl CompileParameters {
         })
     }
 
+    pub fn debug_level(&self) -> DebugLevel {
+        if self.generate_debug {
+            DebugLevel::Full
+        } else if self.generate_varinfo {
+            DebugLevel::VariablesOnly
+        } else {
+            DebugLevel::None
+        }
+    }
+
     // convert the scattered bools from structopt into an enum
     pub fn output_format(&self) -> Option<FormatOption> {
         if self.output_bit_code {
@@ -253,8 +282,11 @@ impl CompileParameters {
             Some(FormatOption::Static)
         } else if self.output_reloc_code {
             Some(FormatOption::Relocatable)
-        } else {
+        } else if self.check_only {
             None
+        } else {
+            //Keep the paramete default as static
+            Some(FormatOption::Static)
         }
     }
 
@@ -486,10 +518,7 @@ mod cli_tests {
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
-        assert_eq!(
-            parameters.output_format_or_default(),
-            FormatOption::default()
-        );
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
     }
 
     #[test]

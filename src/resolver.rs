@@ -57,6 +57,8 @@ pub struct VisitorContext<'s> {
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
     call: Option<&'s str>,
+    /// true if visiting a call statement
+    is_call: bool,
 
     /// true if the expression passed a constant-variable on the way
     /// e.g. true for `x` if x is declared in a constant block
@@ -74,6 +76,7 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: Some(qualifier),
             call: self.call,
+            is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
         }
@@ -85,6 +88,7 @@ impl<'s> VisitorContext<'s> {
             pou: Some(pou),
             qualifier: self.qualifier.clone(),
             call: self.call,
+            is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
         }
@@ -96,6 +100,19 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
             call: Some(lhs_pou),
+            is_call: self.is_call,
+            constant: false,
+            in_body: self.in_body,
+        }
+    }
+
+    /// returns a copy of the current context and changes the `is_call` to true
+    fn set_is_call(&self) -> VisitorContext<'s> {
+        VisitorContext {
+            pou: self.pou,
+            qualifier: self.qualifier.clone(),
+            call: self.call,
+            is_call: true,
             constant: false,
             in_body: self.in_body,
         }
@@ -107,6 +124,7 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
             call: self.call,
+            is_call: self.is_call,
             constant: self.constant,
             in_body: true,
         }
@@ -123,7 +141,7 @@ pub struct TypeAnnotator<'i> {
     string_literals: StringLiterals,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StatementAnnotation {
     /// an expression that resolves to a certain type (e.g. `a + b` --> `INT`)
     Value { resulting_type: String },
@@ -443,6 +461,7 @@ impl<'i> TypeAnnotator<'i> {
             pou: None,
             qualifier: None,
             call: None,
+            is_call: false,
             constant: false,
             in_body: false,
         };
@@ -500,7 +519,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, initializer);
 
                 //update the type-hint for the initializer
-                if let Some(right_type) = self.index.find_effective_type(name) {
+                if let Some(right_type) = self.index.find_effective_type_by_name(name) {
                     self.update_expected_types(right_type, initializer);
                 }
             }
@@ -573,7 +592,9 @@ impl<'i> TypeAnnotator<'i> {
                     inner_type_name, ..
                 } = expected_type.get_type_information()
                 {
-                    if let Some(inner_type) = self.index.find_effective_type(inner_type_name) {
+                    if let Some(inner_type) =
+                        self.index.find_effective_type_by_name(inner_type_name)
+                    {
                         self.update_expected_types(inner_type, elements);
                     }
                 }
@@ -592,7 +613,8 @@ impl<'i> TypeAnnotator<'i> {
                 ) = (expected_type.get_type_information(), left.as_ref())
                 {
                     if let Some(v) = self.index.find_member(qualifier, variable_name) {
-                        if let Some(target_type) = self.index.find_effective_type(v.get_type_name())
+                        if let Some(target_type) =
+                            self.index.find_effective_type_by_name(v.get_type_name())
                         {
                             self.annotation_map.annotate(
                                 left.as_ref(),
@@ -678,18 +700,21 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_variable(&mut self, ctx: &VisitorContext, variable: &Variable) {
         self.visit_data_type_declaration(ctx, &variable.data_type);
         if let Some(initializer) = variable.initializer.as_ref() {
-            self.visit_statement(ctx, initializer);
-
             // annotate a type-hint for the initializer, it should be the same type as the variable
-            // e.g. x : BYTE := 7 + 3;  --> 7+3 should be casted into a byte
+            // e.g. x : BYTE := 7 + 3;  --> 7+3 should be cast into a byte
             if let Some(expected_type) = self
                 .index
                 .find_variable(
                     ctx.qualifier.as_deref().or(ctx.pou),
                     &[variable.name.as_str()],
                 )
-                .and_then(|ve| self.index.find_effective_type(ve.get_type_name()))
+                .and_then(|ve| self.index.find_effective_type_by_name(ve.get_type_name()))
             {
+                //Create a new context with the left operator being the target variable type, and the
+                //right side being the local context
+                let ctx = ctx.with_call(expected_type.get_name());
+                self.visit_statement(&ctx, initializer);
+
                 self.annotation_map.annotate_type_hint(
                     initializer,
                     StatementAnnotation::value(expected_type.get_name()),
@@ -733,7 +758,8 @@ impl<'i> TypeAnnotator<'i> {
                 bounds: Some(bounds),
                 ..
             } => {
-                if let Some(expected_type) = self.index.find_effective_type(referenced_type) {
+                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type)
+                {
                     self.visit_statement(ctx, bounds);
                     self.update_expected_types(expected_type, bounds);
                 }
@@ -836,6 +862,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(
                     &VisitorContext {
                         call: None,
+                        is_call: false,
                         constant: false,
                         pou: ctx.pou,
                         qualifier: None,
@@ -853,7 +880,7 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     Some(
                         self.index
-                            .get_effective_type_by_name(inner_type_name)
+                            .get_effective_type_or_void_by_name(inner_type_name)
                             .get_name()
                             .to_string(),
                     )
@@ -878,7 +905,7 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     let t = self
                         .index
-                        .get_effective_type_by_name(inner_type_name)
+                        .get_effective_type_or_void_by_name(inner_type_name)
                         .get_name();
                     self.annotation_map
                         .annotate(statement, StatementAnnotation::value(t));
@@ -931,27 +958,38 @@ impl<'i> TypeAnnotator<'i> {
                     let left_type = self
                         .annotation_map
                         .get_type_hint(left, self.index)
-                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(left, self.index));
+                        .or_else(|| self.annotation_map.get_type(left, self.index))
+                        .and_then(|it| self.index.find_effective_type(it))
+                        .unwrap_or_else(|| self.index.get_void_type());
+                    // do not use for is_pointer() check
+                    let l_intrinsic_type = self
+                        .index
+                        .get_intrinsic_type_by_name(left_type.get_name())
+                        .get_type_information();
                     let right_type = self
                         .annotation_map
                         .get_type_hint(right, self.index)
-                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(right, self.index));
+                        .or_else(|| self.annotation_map.get_type(right, self.index))
+                        .and_then(|it| self.index.find_effective_type(it))
+                        .unwrap_or_else(|| self.index.get_void_type());
+                    // do not use for is_pointer() check
+                    let r_intrinsic_type = self
+                        .index
+                        .get_intrinsic_type_by_name(right_type.get_name())
+                        .get_type_information();
 
-                    if left_type.get_type_information().is_numerical()
-                        && right_type.get_type_information().is_numerical()
-                    {
-                        let bigger_type = if left_type.get_type_information().is_bool()
-                            && right_type.get_type_information().is_bool()
-                        {
-                            left_type
-                        } else {
-                            let dint = self.index.get_type_or_panic(DINT_TYPE);
-                            get_bigger_type(
-                                get_bigger_type(left_type, right_type, self.index),
-                                dint,
-                                self.index,
-                            )
-                        };
+                    if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
+                        let bigger_type =
+                            if l_intrinsic_type.is_bool() && r_intrinsic_type.is_bool() {
+                                left_type
+                            } else {
+                                let dint = self.index.get_type_or_panic(DINT_TYPE);
+                                get_bigger_type(
+                                    get_bigger_type(left_type, right_type, self.index),
+                                    dint,
+                                    self.index,
+                                )
+                            };
 
                         let target_name = if operator.is_bool_type() {
                             BOOL_TYPE.to_string()
@@ -974,17 +1012,30 @@ impl<'i> TypeAnnotator<'i> {
                         }
 
                         Some(target_name)
-                    } else if operator.is_bool_type() {
-                        Some(BOOL_TYPE.to_string())
                     } else if left_type.get_type_information().is_pointer()
                         || right_type.get_type_information().is_pointer()
                     {
-                        let target_name = if left_type.get_type_information().is_pointer() {
+                        // get the target type of the binary expression
+                        let target_type = if operator.is_comparison_operator() {
+                            // compare instructions result in BOOL
+                            // to generate valid IR code if a pointer is beeing compared to an integer
+                            // we need to cast the int to the pointers size
+                            if !left_type.get_type_information().is_pointer() {
+                                let left_type = left_type.clone(); // clone here, so we release the borrow on self
+                                self.annotate_to_pointer_size_if_necessary(&left_type, left);
+                            } else if !right_type.get_type_information().is_pointer() {
+                                let right_type = right_type.clone(); // clone here, so we release the borrow on self
+                                self.annotate_to_pointer_size_if_necessary(&right_type, right);
+                            }
+                            BOOL_TYPE
+                        } else if left_type.get_type_information().is_pointer() {
                             left_type.get_name()
                         } else {
                             right_type.get_name()
                         };
-                        Some(target_name.to_string())
+                        Some(target_type.to_string())
+                    } else if operator.is_bool_type() {
+                        Some(BOOL_TYPE.to_string())
                     } else {
                         None
                     }
@@ -1057,6 +1108,18 @@ impl<'i> TypeAnnotator<'i> {
                             // ... first look at POU-local variables
                             self.index
                                 .find_member(qualifier, name)
+                                .and_then(|m| {
+                                    // #604 needed for recursive function calls
+                                    // if we are in a call statement and the member name equals the pou name
+                                    // we are in a recursive function call -> FUNCTION foo : INT foo(); END_FUNCTION
+                                    if ctx.is_call & (m.get_name() == qualifier) {
+                                        // return `None` because this would be foo.foo pointing to the function return
+                                        // we need the POU
+                                        None
+                                    } else {
+                                        Some(m)
+                                    }
+                                })
                                 .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
                                     // ... then check if we're in a method and we're referencing
@@ -1223,7 +1286,9 @@ impl<'i> TypeAnnotator<'i> {
         } else {
             unreachable!("Always a call statement");
         };
-        self.visit_statement(ctx, operator);
+        // #604 needed for recursive function calls
+        let ctx = ctx.set_is_call();
+        self.visit_statement(&ctx, operator);
         let operator_qualifier = self.get_call_name(operator);
         let ctx = ctx.with_call(operator_qualifier.as_str());
         let parameters = if let Some(parameters) = parameters_stmt {
@@ -1306,7 +1371,7 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(StatementAnnotation::Function { return_type, .. }) =
             self.annotation_map.get(operator)
         {
-            if let Some(return_type) = self.index.find_effective_type(return_type) {
+            if let Some(return_type) = self.index.find_effective_type_by_name(return_type) {
                 self.annotation_map.annotate(
                     statement,
                     StatementAnnotation::value(return_type.get_name()),
@@ -1352,7 +1417,7 @@ impl<'i> TypeAnnotator<'i> {
 
     pub(crate) fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
         if !matches!(p, AstStatement::Assignment { .. }) {
-            if let Some(effective_member_type) = self.index.find_effective_type(type_name) {
+            if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
                 //update the type hint
                 self.annotation_map.annotate_type_hint(
                     p,
@@ -1426,6 +1491,24 @@ impl<'i> TypeAnnotator<'i> {
             _ => {}
         }
     }
+
+    fn annotate_to_pointer_size_if_necessary(
+        &mut self,
+        value_type: &typesystem::DataType,
+        statement: &AstStatement,
+    ) {
+        // pointer size is 64Bits matching LINT
+        // therefore get the bigger type of current and LINT to check if cast is necessary
+        let bigger_type = get_bigger_type(
+            value_type,
+            self.index.get_type_or_panic(LINT_TYPE),
+            self.index,
+        );
+        if bigger_type != value_type {
+            let bigger_type = bigger_type.clone();
+            self.update_expected_types(&bigger_type, statement);
+        }
+    }
 }
 
 /// adds a string-type to the given index and returns it's name
@@ -1436,7 +1519,10 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
         format!("__STRING_{}", len)
     };
 
-    if index.find_effective_type(new_type_name.as_str()).is_none() {
+    if index
+        .find_effective_type_by_name(new_type_name.as_str())
+        .is_none()
+    {
         index.register_type(crate::typesystem::DataType {
             name: new_type_name.clone(),
             initial_value: None,
@@ -1475,7 +1561,7 @@ fn to_variable_annotation(
     index: &Index,
     constant_override: bool,
 ) -> StatementAnnotation {
-    let v_type = index.get_effective_type_by_name(v.get_type_name());
+    let v_type = index.get_effective_type_or_void_by_name(v.get_type_name());
 
     //see if this is an auto-deref variable
     let (effective_type_name, is_auto_deref) = if let DataTypeInformation::Pointer {

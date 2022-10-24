@@ -366,14 +366,14 @@ x : LDATE;
 y : LDT;
 z : LTOD;
 END_VAR
-w := LTIME#100s12ms;
-w := LTIME#100s12ms;
+w := LTIME#100s12ms6us3ns;
+w := LTIME#100s12ms6us3ns;
 x := LDATE#1984-10-01;
 x := LDATE#1970-01-01;
 y := LDT#1984-10-01-20:15:14;
-y := LDT#1970-01-01-16:20:04.123;
-z := LTOD#15:36:30.123;
-z := LTOD#15:36:30.123;
+y := LDT#1970-01-01-16:20:04.123456789;
+z := LTOD#15:36:30.999999999;
+z := LTOD#15:36:30.123456;
 END_PROGRAM
 "#,
     );
@@ -1308,7 +1308,7 @@ END_VAR
 TYPE Direction: (
     FORWARD := BASE,
     UP,
-    DOWN := BASE * 2);
+    DOWN := BASE * 4);
 END_TYPE
 
 FUNCTION drive : DINT
@@ -1319,12 +1319,12 @@ FUNCTION drive : DINT
 
 	CASE input OF
 		FORWARD : 
-			horiz := horiz + 1;
-        FORWARD*2:
+        horiz := horiz + 1;
+    FORWARD*2:
             horiz := horiz + 2;
-		UP :
-			depth := depth - 1;
-		DOWN : 
+    UP : 
+        depth := depth - 1;
+    DOWN : 
 			depth := depth + 1;
 
 	END_CASE
@@ -1334,7 +1334,7 @@ END_FUNCTION
     );
 
     // WHEN we compile, we want to see propagated constant in the switch statement
-    // -> so no references to variables, but int-values (7, 14, 8 and 15)
+    // -> so no references to variables, but int-values (7, 14, 8 and 28)
     insta::assert_snapshot!(result);
 }
 
@@ -2875,33 +2875,6 @@ fn order_var_and_var_temp_block() {
 }
 
 #[test]
-fn optional_output_assignment() {
-    // GIVEN a program calling a function and only assigning one output
-    let result = codegen(
-        "
-		PROGRAM foo 
-			VAR_OUTPUT
-				output1 : DINT;
-				output2 : DINT;
-			END_VAR
-			output1 := 1;
-			output2 := 2;
-		END_PROGRAM
-
-		PROGRAM main
-			VAR
-				var1 : DINT;
-				var2 : DINT;
-			END_VAR
-			foo(output1 =>, output2 => var2);
-		END_PROGRAM
-		",
-    );
-    // codegen should be successful
-    insta::assert_snapshot!(result);
-}
-
-#[test]
 fn constant_expressions_in_ranged_type_declaration_are_propagated() {
     //GIVEN a ranged type from 0 .. MIN+1 where MIN is a global constant
     //WHEN the code is generated
@@ -2932,5 +2905,115 @@ fn constant_expressions_in_ranged_type_declaration_are_propagated() {
     // in a call to CheckRangedSigned where the upper bound is a literal i16 8 - NOT an
     // add-expression that really calculates the upper bound at runtime
 
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn constant_expression_in_function_blocks_are_propagated() {
+    //GIVEN a constant in a function block
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        FUNCTION_BLOCK fbWithConstant 
+        VAR
+            x : INT;
+        END_VAR
+        VAR CONSTANT
+            const : INT := 2;
+        END_VAR
+          x := const;
+        END_FUNCTION
+        ",
+    );
+
+    // THEN we expect that the assignment to the variable (x := const) will be replaced
+    // With x := 2
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn date_and_time_addition_in_var_output() {
+    //GIVEN a date and time and a time addition on output variables
+    //WHEN the code is generated
+    let result = codegen(
+        "        
+        FUNCTION func : DINT
+        VAR_OUTPUT
+            d_and_t : DT;
+            time_var : TIME;
+        END_VAR
+            d_and_t := d_and_t + time_var;
+        END_FUNCTION
+        ",
+    );
+
+    //Then the time variable is added to the date time variable
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn date_and_time_global_constants_initialize() {
+    //GIVEN date time constants with each possible prefix
+    let src = r#"
+    VAR_GLOBAL CONSTANT
+        cT          : TIME              := TIME#1s;
+        cT_SHORT    : TIME              := T#1s;
+        cLT         : LTIME             := LTIME#1000s;
+        cLT_SHORT   : LTIME             := LT#1000s;
+        cD          : DATE              := DATE#1970-01-01;
+        cD_SHORT    : DATE              := D#1975-02-11;
+        cLD         : LDATE             := LDATE#1975-02-11;
+        cLD_SHORT   : LDATE             := LD#1975-02-11;
+        cTOD        : TIME_OF_DAY       := TIME_OF_DAY#00:00:00;
+        cTOD_SHORT  : TOD               := TOD#00:00:00;
+        cLTOD       : LTOD              := LTIME_OF_DAY#23:59:59.999999999;
+        cLTOD_SHORT : LTOD              := LTOD#23:59:59.999999999;
+        cDT         : DATE_AND_TIME     := DATE_AND_TIME#1970-01-02-23:59:59;
+        cDT_SHORT   : DT                := DT#1970-01-02-23:59:59;
+        cLDT        : LDT               := LDATE_AND_TIME#1970-01-02-23:59:59.123;
+        cLDT_SHORT  : LDT               := LDT#1970-01-02-23:59:59.123;
+    END_VAR
+
+    PROGRAM main
+    VAR_TEMP
+        t1      : TIME;         
+        t2      : TIME;         
+        lt1     : LTIME;        
+        lt2     : LTIME;        
+        d1      : DATE;         
+        d2      : DATE;         
+        ld1     : LDATE;        
+        ld2     : LDATE;        
+        tod1    : TIME_OF_DAY;  
+        tod2    : TOD;          
+        ltod1   : LTOD;         
+        ltod2   : LTOD;        
+        dt1     : DATE_AND_TIME;
+        dt2     : DT;
+        ldt1    : LDT;
+        ldt2    : LDT;
+    END_VAR
+
+        t1      := cT;
+        t2      := cT_SHORT;
+        lt1     := cLT;
+        lt2     := cLT_SHORT;
+        d1      := cD; 
+        d2      := cD_SHORT; 
+        ld1     := cLD;
+        ld2     := cLD_SHORT;
+        tod1    := cTOD;
+        tod2    := cTOD_SHORT;
+        ltod1   := cLTOD; 
+        ltod2   := cLTOD_SHORT; 
+        dt1     := cDT; 
+        dt2     := cDT_SHORT; 
+        ldt1    := cLDT;
+        ldt2    := cLDT_SHORT;
+    END_PROGRAM"#;
+
+    let result = codegen(src);
+    // THEN the variables are initialized correctly
     insta::assert_snapshot!(result);
 }

@@ -365,3 +365,275 @@ fn wstring_compare_function_cause_no_error_if_functions_exist() {
     // THEN everything but VAR and VAR_GLOBALS are reported
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn switch_case() {
+    // GIVEN switch case statement
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		VAR_GLOBAL CONSTANT
+			BASE : DINT := 1;
+		END_VAR
+
+		TYPE myType: ( MYTYPE_A := BASE+1 ); END_TYPE
+
+        PROGRAM
+		VAR
+			input, res : DINT;
+		END_VAR
+
+			CASE input OF
+				BASE:
+					res := 1;
+				MYTYPE_A:
+					res := 2;
+				MYTYPE_A+1:
+					res := 3;
+				4:
+					res := 4;
+				2*2+1:
+					res := 5;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN no errors should occure
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn switch_case_duplicate_integer_non_const_var_reference() {
+    // GIVEN switch case with non constant variables
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		VAR_GLOBAL CONSTANT
+			CONST : DINT := 8;
+		END_VAR
+
+        PROGRAM
+		VAR
+			input, res, x, y : DINT;
+		END_VAR
+			x := 2;
+			y := x;
+
+			CASE input OF
+				x: // x is no constant => error
+					res := 1;
+				y: // y is no constant => error
+					res := 2;
+				2+x: // x is no constant => error
+					res := 3;
+				CONST:
+					res := 4;
+				CONST+x: // x is no constant => error
+					res := 5;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN the non constant variables are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::non_constant_case_condition("'x' is no const reference", (160..161).into()),
+            Diagnostic::non_constant_case_condition("'y' is no const reference", (211..212).into()),
+            Diagnostic::non_constant_case_condition("'x' is no const reference", (262..265).into()),
+            Diagnostic::non_constant_case_condition("'x' is no const reference", (341..348).into())
+        ]
+    );
+}
+
+#[test]
+fn switch_case_duplicate_integer() {
+    // GIVEN switch case with duplicate constant conditions
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		VAR_GLOBAL CONSTANT
+			BASE : DINT := 2;
+			GLOB : DINT := 2;
+		END_VAR
+
+		TYPE myType: ( MYTYPE_A := BASE*2 ); END_TYPE
+
+        PROGRAM
+		VAR
+			input, res : DINT;
+		END_VAR
+			CASE input OF
+				4:
+					res := 1;
+				BASE*2:
+					res := 2;
+				BASE+GLOB:
+					res := 3;
+				MYTYPE_A:
+					res := 4;
+				2+2:
+					res := 5;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN the non constant variables are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::duplicate_case_condition(&4, (222..228).into()),
+            Diagnostic::duplicate_case_condition(&4, (249..258).into()),
+            Diagnostic::duplicate_case_condition(&4, (279..287).into()),
+            Diagnostic::duplicate_case_condition(&4, (308..311).into()),
+        ]
+    );
+}
+
+#[test]
+fn switch_case_invalid_case_conditions() {
+    // GIVEN switch case statement
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		FUNCTION foo : DINT
+		END_FUNCTION
+
+        PROGRAM main
+		VAR
+			input, res : DINT;
+		END_VAR
+
+			CASE input OF
+				foo():
+					res := 1;
+				res := 2:
+					res := 2;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_case_condition((120..126).into()),
+            Diagnostic::non_constant_case_condition("Cannot resolve constant: CallStatement {\n    operator: Reference {\n        name: \"foo\",\n    },\n    parameters: None,\n}", (120..126).into()),
+            Diagnostic::invalid_case_condition((146..154).into()),
+        ]
+    );
+}
+
+#[test]
+fn case_condition_used_outside_case_statement() {
+    // GIVEN switch case statement
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		PROGRAM main
+		VAR
+			var1 : TOD;
+		END_VAR
+			var1 := TOD#20:15:30:123;
+			23:
+			var1 := TOD#20:15:30;
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::case_condition_used_outside_case_statement((50..70).into()),
+            Diagnostic::case_condition_used_outside_case_statement((79..81).into()),
+        ]
+    );
+}
+
+#[test]
+fn subrange_compare_function_causes_no_error() {
+    // GIVEN comparison of subranges
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM main
+        VAR 
+            a, b, c, d, e, f : BOOL;
+        END_VAR      
+        VAR_TEMP
+            x,y : INT(0..500);
+        END_VAR
+            a := x < y;
+            b := x = y;
+            c := x = 3;
+            d := y = 500;
+            e := x >= 0 AND x <= 500;
+            f := x < 0 OR x > 500;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN the validator does not throw an error
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn aliased_subrange_compare_function_causes_no_error() {
+    // GIVEN comparison of aliased subranges
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        TYPE MyInt: INT(0..500); END_TYPE
+        PROGRAM main
+        VAR 
+            a, b, c, d, e, f : BOOL;
+        END_VAR      
+        VAR_TEMP
+            x,y : MyInt;
+        END_VAR
+            a := x < y;
+            b := x = y;
+            c := x = 3;
+            d := y = 500;
+            e := x >= 0 AND x <= 500;
+            f := x < 0 OR x > 500;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN the validator does not throw an error
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn aliased_int_compare_function_causes_no_error() {
+    // GIVEN comparison of aliased integers
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        TYPE MyInt: INT; END_TYPE
+        PROGRAM main
+        VAR 
+            a, b, c, d, e, f : BOOL;
+        END_VAR      
+        VAR_TEMP
+            x,y : MyInt;
+        END_VAR
+            a := x < y;
+            b := x = y;
+            c := x = 3;
+            d := y = 500;
+            e := x >= 0 AND x <= 500;
+            f := x < 0 OR x > 500;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN the validator does not throw an error
+    assert_eq!(diagnostics, vec![]);
+}

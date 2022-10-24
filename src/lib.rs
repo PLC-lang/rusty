@@ -33,7 +33,7 @@ use regex::{Captures, Regex};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-use ast::{LinkageType, PouType, SourceRange};
+use ast::{LinkageType, PouType, SourceRange, SourceRangeFactory};
 use cli::{CompileParameters, SubCommands};
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
@@ -56,6 +56,7 @@ pub mod build;
 mod builtins;
 pub mod cli;
 mod codegen;
+mod datalayout;
 pub mod diagnostics;
 pub mod expression_path;
 mod hardware_binding;
@@ -122,7 +123,7 @@ where
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum FormatOption {
     /// Indicates that the result will be an object file (e.g. No Linking)
     Object,
@@ -160,7 +161,7 @@ impl FormatOption {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum)]
 pub enum ConfigFormat {
     JSON,
     TOML,
@@ -178,16 +179,17 @@ impl FromStr for ConfigFormat {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CompileOptions {
     pub format: FormatOption,
     pub build_location: Option<PathBuf>,
     pub output: String,
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
+    pub debug_level: DebugLevel,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct LinkOptions {
     pub libraries: Vec<String>,
     pub library_pathes: Vec<String>,
@@ -221,6 +223,19 @@ pub enum OptimizationLevel {
     Aggressive,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DebugLevel {
+    None,
+    VariablesOnly,
+    Full,
+}
+
+impl Default for DebugLevel {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 impl From<OptimizationLevel> for inkwell::OptimizationLevel {
     fn from(val: OptimizationLevel) -> Self {
         match val {
@@ -240,6 +255,10 @@ impl OptimizationLevel {
             OptimizationLevel::Default => "default<O2>",
             OptimizationLevel::Aggressive => "default<O3>",
         }
+    }
+
+    fn is_optimized(&self) -> bool {
+        !matches!(self, OptimizationLevel::None)
     }
 }
 
@@ -603,12 +622,14 @@ pub fn compile_module<'c, T: SourceContainer>(
     includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     diagnostician: Diagnostician,
+    optimization: OptimizationLevel,
+    debug_level: DebugLevel,
 ) -> Result<(Index, CodeGen<'c>), Diagnostic> {
     let (full_index, mut index) = index_module(sources, includes, encoding, diagnostician)?;
 
     // ### PHASE 3 ###
     // - codegen
-    let code_generator = codegen::CodeGen::new(context, "main");
+    let mut code_generator = codegen::CodeGen::new(context, "main", optimization, debug_level);
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
@@ -617,6 +638,8 @@ pub fn compile_module<'c, T: SourceContainer>(
     for unit in index.annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
+
+    code_generator.finalize()?;
 
     Ok((full_index, code_generator))
 }
@@ -638,14 +661,19 @@ fn parse_and_index<T: SourceContainer>(
     index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
     for container in source {
-        let location: String = container.get_location().into();
+        let location = static_str(container.get_location().to_string());
         let e = container
             .load_source(encoding)
-            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
+            .map_err(|err| Diagnostic::io_read_error(location, err.as_str()))?;
 
         let (mut parse_result, diagnostics) = parser::parse(
-            lexer::lex_with_ids(e.source.as_str(), id_provider.clone()),
+            lexer::lex_with_ids(
+                e.source.as_str(),
+                id_provider.clone(),
+                SourceRangeFactory::for_file(location),
+            ),
             linkage,
+            location,
         );
 
         //pre-process the ast (create inlined types)
@@ -654,7 +682,7 @@ fn parse_and_index<T: SourceContainer>(
         index.import(index::visitor::visit(&parse_result, id_provider.clone()));
 
         //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
-        let file_id = diagnostician.register_file(location.clone(), e.source);
+        let file_id = diagnostician.register_file(location.to_string(), e.source);
         units.push((file_id, diagnostics, parse_result));
     }
     Ok((index, units))
@@ -762,6 +790,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             },
             optimization: parameters.optimization,
             error_format: parameters.error_format,
+            debug_level: parameters.debug_level(),
         };
 
         let targets = parameters
@@ -819,6 +848,10 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         }
     }
     Ok(())
+}
+
+fn static_str(s: String) -> &'static str {
+    Box::leak(s.into_boxed_str())
 }
 
 // fn make_absolute(location: &Path, root: &Path) -> PathBuf {
@@ -921,6 +954,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         },
         optimization: parameters.optimization,
         error_format: parameters.error_format,
+        debug_level: parameters.debug_level(),
     };
 
     let files = create_file_paths(
@@ -1000,7 +1034,15 @@ pub fn build_and_link(
         ErrorFormat::Rich => Diagnostician::default(),
         ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
     };
-    let (index, codegen) = compile_module(&context, sources, includes, encoding, diagnostician)?;
+    let (index, codegen) = compile_module(
+        &context,
+        sources,
+        includes,
+        encoding,
+        diagnostician,
+        compile_options.optimization,
+        compile_options.debug_level,
+    )?;
 
     if compile_options.format != FormatOption::None {
         let targets = if targets.is_empty() {
@@ -1128,7 +1170,10 @@ pub fn link(
             .and_then(|triple| linker::Linker::new(triple, linker).map_err(|e| e.into()))?;
         linker.add_lib_path(".");
         if let Some(parent) = output.parent() {
-            linker.add_lib_path(&parent.to_string_lossy());
+            let parent = parent.to_string_lossy();
+            if !parent.is_empty() {
+                linker.add_lib_path(&parent);
+            }
         }
 
         for path in objects {

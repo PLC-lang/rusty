@@ -1,7 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
+    index::Index,
     lexer::IdProvider,
-    typesystem::{DataTypeInformation, VOID_TYPE},
+    typesystem::{DataTypeInformation, REAL_TYPE, VOID_TYPE},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -14,7 +15,7 @@ mod pre_processor;
 
 pub type AstId = usize;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GenericBinding {
     pub name: String,
     pub nature: TypeNature,
@@ -35,14 +36,14 @@ pub struct Pou {
     pub linkage: LinkageType,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum PolymorphismMode {
     None,
     Abstract,
     Final,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "direction")]
 pub enum HardwareAccessType {
     Input,
@@ -50,7 +51,7 @@ pub enum HardwareAccessType {
     Memory,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type")]
 pub enum DirectAccessType {
     Bit,
@@ -60,7 +61,7 @@ pub enum DirectAccessType {
     Template,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TypeNature {
     Any,
     Derived,
@@ -80,6 +81,13 @@ pub enum TypeNature {
 }
 
 impl TypeNature {
+    pub fn get_smallest_possible_type(&self) -> &str {
+        match self {
+            TypeNature::Real => REAL_TYPE,
+            _ => "",
+        }
+    }
+
     pub fn derives(self, other: TypeNature) -> bool {
         if other == self {
             true
@@ -125,15 +133,9 @@ impl TypeNature {
                 ),
                 TypeNature::Duration => matches!(
                     other,
-                    TypeNature::Num
-                        | TypeNature::Magnitude
-                        | TypeNature::Elementary
-                        | TypeNature::Any
-                ),
-                TypeNature::Bit => matches!(
-                    other,
                     TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
                 ),
+                TypeNature::Bit => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::Chars => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::String => matches!(
                     other,
@@ -151,18 +153,23 @@ impl TypeNature {
 
 impl DirectAccessType {
     /// Returns true if the current index is in the range for the given type
-    pub fn is_in_range(&self, index: u64, data_type: &DataTypeInformation) -> bool {
-        (self.get_bit_width() * index) < data_type.get_size() as u64
+    pub fn is_in_range(
+        &self,
+        access_index: u64,
+        data_type: &DataTypeInformation,
+        index: &Index,
+    ) -> bool {
+        (self.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
     }
 
     /// Returns the range from 0 for the given data type
-    pub fn get_range(&self, data_type: &DataTypeInformation) -> Range<u64> {
-        0..((data_type.get_size() as u64 / self.get_bit_width()) - 1)
+    pub fn get_range(&self, data_type: &DataTypeInformation, index: &Index) -> Range<u64> {
+        0..((data_type.get_size_in_bits(index) as u64 / self.get_bit_width()) - 1)
     }
 
     /// Returns true if the direct access can be used for the given type
-    pub fn is_compatible(&self, data_type: &DataTypeInformation) -> bool {
-        data_type.get_semantic_size() as u64 > self.get_bit_width()
+    pub fn is_compatible(&self, data_type: &DataTypeInformation, index: &Index) -> bool {
+        data_type.get_semantic_size(index) as u64 > self.get_bit_width()
     }
 
     /// Returns the size of the bitaccess result
@@ -214,14 +221,14 @@ pub struct Implementation {
     pub access: Option<AccessModifier>,
 }
 
-#[derive(Debug, Copy, PartialEq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone)]
 pub enum LinkageType {
     Internal,
     External,
     BuiltIn,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum AccessModifier {
     Private,
     Public,
@@ -229,7 +236,7 @@ pub enum AccessModifier {
     Internal,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum PouType {
     Program,
     Function,
@@ -249,16 +256,59 @@ impl PouType {
         }
     }
 }
+/**
+ * A datastructure that stores the location of newline characters of a string.
+ * It also offers some useful methods to determine the line-number of an offset-location.
+ */
+#[derive(Debug, PartialEq)]
+pub struct NewLines {
+    line_breaks: Vec<usize>,
+}
 
-#[derive(Debug, PartialEq, Default)]
+impl NewLines {
+    pub fn build(str: &str) -> NewLines {
+        let mut line_breaks = Vec::new();
+        let mut total_offset: usize = 0;
+        for l in str.lines() {
+            total_offset += l.len() + 1;
+            line_breaks.push(total_offset);
+        }
+        NewLines { line_breaks }
+    }
+
+    /**
+     * returns the 0 based line-nr of the given offset-location
+     */
+    pub fn get_line_nr(&self, offset: usize) -> usize {
+        match self.line_breaks.binary_search(&offset) {
+            Ok(line) => line,
+            Err(line) => line,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<Pou>,
     pub implementations: Vec<Implementation>,
     pub types: Vec<UserTypeDeclaration>,
+    pub file_name: String,
+    pub new_lines: NewLines,
 }
 
 impl CompilationUnit {
+    pub fn new(file_name: &str, new_lines: NewLines) -> Self {
+        CompilationUnit {
+            global_vars: Vec::new(),
+            units: Vec::new(),
+            implementations: Vec::new(),
+            types: Vec::new(),
+            file_name: file_name.to_string(),
+            new_lines,
+        }
+    }
+
     /// imports all elements of the other CompilationUnit into this CompilationUnit
     ///
     /// this will import all global_vars, units, implementations and types. The imported
@@ -273,7 +323,7 @@ impl CompilationUnit {
     }
 }
 
-#[derive(Debug, Copy, PartialEq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone)]
 pub enum VariableBlockType {
     Local,
     Temp,
@@ -283,7 +333,7 @@ pub enum VariableBlockType {
     InOut,
 }
 
-#[derive(Debug, Copy, PartialEq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone)]
 pub enum ArgumentProperty {
     ByVal,
     ByRef,
@@ -361,40 +411,107 @@ impl DiagnosticInfo for AstStatement {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+pub struct SourceRangeFactory {
+    file: Option<&'static str>,
+}
+
+impl SourceRangeFactory {
+    /// constructs a SourceRangeFactory used for internally generated code (e.g. builtins)
+    pub fn internal() -> Self {
+        SourceRangeFactory { file: None }
+    }
+
+    /// constructs a SourceRangeFactory used to construct SourceRanes that point into the given file_name
+    pub fn for_file(file_name: &'static str) -> Self {
+        SourceRangeFactory {
+            file: Some(file_name),
+        }
+    }
+
+    /// creates a new SourceRange using the factory's file_name
+    pub fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
+        SourceRange {
+            range,
+            file: self.file,
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
 pub struct SourceRange {
+    /// the start and end offset in the source-file
     range: core::ops::Range<usize>,
+    /// the name of the file if available. if there is no file available
+    /// the source is probably internally generated by the compiler. (e.g.
+    /// a automatically generated data_type)
+    file: Option<&'static str>,
+}
+
+impl Debug for SourceRange {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let mut f = f.debug_struct("SourceRange");
+        f.field("range", &self.range);
+        if self.file.is_some() {
+            f.field("file", &self.file);
+        }
+        f.finish()
+    }
 }
 
 impl SourceRange {
-    pub fn new(range: core::ops::Range<usize>) -> SourceRange {
-        SourceRange { range }
+    /// Constructs a new SourceRange with the given range and filename
+    pub fn in_file(range: core::ops::Range<usize>, file_name: &'static str) -> SourceRange {
+        SourceRange {
+            range,
+            file: Some(file_name),
+        }
     }
 
+    /// Constructs a new SourceRange without the file_name attribute
+    pub fn without_file(range: core::ops::Range<usize>) -> SourceRange {
+        SourceRange { range, file: None }
+    }
+
+    /// Constructs an undefined SourceRange with a 0..0 range and no filename
     pub fn undefined() -> SourceRange {
-        SourceRange { range: 0..0 }
+        SourceRange {
+            range: 0..0,
+            file: None,
+        }
     }
 
+    /// returns the start-offset of this source-range
     pub fn get_start(&self) -> usize {
         self.range.start
     }
 
+    /// returns the end-offset of this source-range
     pub fn get_end(&self) -> usize {
         self.range.end
     }
 
-    pub fn sub_range(&self, start: usize, len: usize) -> SourceRange {
-        SourceRange::new((self.get_start() + start)..(self.get_start() + len))
+    /// returns a new SourceRange that spans `this` and the `other` range.
+    /// In other words this results in `self.start .. other.end`
+    pub fn span(&self, other: &SourceRange) -> SourceRange {
+        SourceRange {
+            range: self.get_start()..other.get_end(),
+            file: self.get_file_name(),
+        }
     }
 
+    /// converts this SourceRange into a Range
     pub fn to_range(&self) -> Range<usize> {
         self.range.clone()
+    }
+
+    pub fn get_file_name(&self) -> Option<&'static str> {
+        self.file
     }
 }
 
 impl From<std::ops::Range<usize>> for SourceRange {
     fn from(range: std::ops::Range<usize>) -> SourceRange {
-        SourceRange::new(range)
+        SourceRange::without_file(range)
     }
 }
 
@@ -613,7 +730,7 @@ pub enum AstStatement {
         hour: u32,
         min: u32,
         sec: u32,
-        milli: u32,
+        nano: u32,
         location: SourceRange,
         id: AstId,
     },
@@ -621,7 +738,7 @@ pub enum AstStatement {
         hour: u32,
         min: u32,
         sec: u32,
-        milli: u32,
+        nano: u32,
         location: SourceRange,
         id: AstId,
     },
@@ -823,7 +940,7 @@ impl Debug for AstStatement {
                 hour,
                 min,
                 sec,
-                milli,
+                nano,
                 ..
             } => f
                 .debug_struct("LiteralDateAndTime")
@@ -833,20 +950,20 @@ impl Debug for AstStatement {
                 .field("hour", hour)
                 .field("min", min)
                 .field("sec", sec)
-                .field("milli", milli)
+                .field("nano", nano)
                 .finish(),
             AstStatement::LiteralTimeOfDay {
                 hour,
                 min,
                 sec,
-                milli,
+                nano,
                 ..
             } => f
                 .debug_struct("LiteralTimeOfDay")
                 .field("hour", hour)
                 .field("min", min)
                 .field("sec", sec)
-                .field("milli", milli)
+                .field("nano", nano)
                 .finish(),
             AstStatement::LiteralTime {
                 day,
@@ -1070,12 +1187,12 @@ impl AstStatement {
                 let last = elements
                     .last()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
-                SourceRange::new(first.get_start()..last.get_end())
+                first.span(&last)
             }
             AstStatement::BinaryExpression { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end)
+                left_loc.span(&right_loc)
             }
             AstStatement::UnaryExpression { location, .. } => location.clone(),
             AstStatement::ExpressionList { expressions, .. } => {
@@ -1085,22 +1202,22 @@ impl AstStatement {
                 let last = expressions
                     .last()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
-                SourceRange::new(first.get_start()..last.get_end())
+                first.span(&last)
             }
             AstStatement::RangeStatement { start, end, .. } => {
                 let start_loc = start.get_location();
                 let end_loc = end.get_location();
-                SourceRange::new(start_loc.range.start..end_loc.range.end)
+                start_loc.span(&end_loc)
             }
             AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end)
+                left_loc.span(&right_loc)
             }
             AstStatement::OutputAssignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(left_loc.range.start..right_loc.range.end)
+                left_loc.span(&right_loc)
             }
             AstStatement::CallStatement { location, .. } => location.clone(),
             AstStatement::IfStatement { location, .. } => location.clone(),
@@ -1113,7 +1230,7 @@ impl AstStatement {
             } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
-                SourceRange::new(reference_loc.range.start..access_loc.range.end)
+                reference_loc.span(&access_loc)
             }
             AstStatement::PointerAccess { reference, .. } => reference.get_location(),
             AstStatement::DirectAccess { location, .. } => location.clone(),
@@ -1176,7 +1293,7 @@ impl AstStatement {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Operator {
     Plus,
     Minus,

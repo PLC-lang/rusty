@@ -87,7 +87,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
     AstStatement::IfStatement {
         blocks: conditional_blocks,
         else_block,
-        location: SourceRange::new(start..end),
+        location: lexer.source_range_factory.create_range(start..end),
         id: lexer.next_id(),
     }
 }
@@ -134,7 +134,9 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
         end: Box::new(end_expression),
         by_step: step,
         body: parse_body_in_region(lexer, vec![KeywordEndFor]),
-        location: SourceRange::new(start..lexer.last_range.end),
+        location: lexer
+            .source_range_factory
+            .create_range(start..lexer.last_range.end),
         id: lexer.next_id(),
     }
 }
@@ -149,7 +151,9 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstStatement {
     AstStatement::WhileLoopStatement {
         condition: Box::new(condition),
         body: parse_body_in_region(lexer, vec![KeywordEndWhile]),
-        location: SourceRange::new(start..lexer.last_range.end),
+        location: lexer
+            .source_range_factory
+            .create_range(start..lexer.last_range.end),
         id: lexer.next_id(),
     }
 }
@@ -173,7 +177,9 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
     AstStatement::RepeatLoopStatement {
         condition: Box::new(condition),
         body,
-        location: SourceRange::new(start..lexer.range().end),
+        location: lexer
+            .source_range_factory
+            .create_range(start..lexer.range().end),
         id: lexer.next_id(),
     }
 }
@@ -247,7 +253,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
         selector,
         case_blocks,
         else_block,
-        location: SourceRange::new(start..end),
+        location: lexer.source_range_factory.create_range(start..end),
         id: lexer.next_id(),
     }
 }

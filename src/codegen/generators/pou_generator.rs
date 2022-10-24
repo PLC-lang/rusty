@@ -84,7 +84,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
             .filter(|it| it.is_local() || it.is_temp())
             .filter(|it| {
                 let var_type = index
-                    .get_effective_type_by_name(it.get_type_name())
+                    .get_effective_type_or_void_by_name(it.get_type_name())
                     .get_type_information();
                 var_type.is_struct() || var_type.is_array() || var_type.is_string()
             });
@@ -100,7 +100,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                         .ok_or_else(|| {
                             Diagnostic::cannot_generate_initializer(
                                 variable.get_qualified_name(),
-                                variable.source_location.clone(),
+                                variable.source_location.source_range.clone(),
                             )
                         })?,
                 ),
@@ -376,9 +376,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.llvm.create_local_variable(type_name, &return_type),
                 )
             } else if m.is_parameter() {
-                let ptr_value = current_function
-                    .get_nth_param(var_count)
-                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
+                let ptr_value = current_function.get_nth_param(var_count).ok_or_else(|| {
+                    Diagnostic::missing_function(m.source_location.source_range.clone())
+                })?;
 
                 let ptr = self.llvm.create_local_variable(
                     m.get_name(),
@@ -429,7 +429,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let ptr_value = current_function
                     .get_nth_param(arg_index)
                     .map(BasicValueEnum::into_pointer_value)
-                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
+                    .ok_or_else(|| {
+                        Diagnostic::missing_function(m.source_location.source_range.clone())
+                    })?;
 
                 let ptr = self
                     .llvm
@@ -480,7 +482,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             .ok_or_else(|| {
                                 Diagnostic::cannot_generate_initializer(
                                     variable.get_qualified_name(),
-                                    variable.source_location.clone(),
+                                    variable.source_location.source_range.clone(),
                                 )
                             })?,
                     ),
@@ -490,7 +492,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
-                    variable.source_location.clone(),
+                    variable.source_location.source_range.clone(),
                 ));
             }
         }
@@ -510,12 +512,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let variable_type = self
             .llvm_index
             .get_associated_type(variable.get_type_name())
-            .map_err(|err| Diagnostic::relocate(err, variable.source_location.clone()))?;
+            .map_err(|err| {
+                Diagnostic::relocate(err, variable.source_location.source_range.clone())
+            })?;
 
         let type_size = variable_type.size_of().ok_or_else(|| {
             Diagnostic::codegen_error(
                 "Couldn't determine type size",
-                variable.source_location.clone(),
+                variable.source_location.source_range.clone(),
             )
         });
 
@@ -572,8 +576,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 unreachable!("initializing an array should be memcpy-able or memset-able");
             };
-            init_result
-                .map_err(|msg| Diagnostic::codegen_error(msg, variable.source_location.clone()))?;
+            init_result.map_err(|msg| {
+                Diagnostic::codegen_error(msg, variable.source_location.source_range.clone())
+            })?;
         } else {
             self.llvm.builder.build_store(variable_to_initialize, value);
         }
