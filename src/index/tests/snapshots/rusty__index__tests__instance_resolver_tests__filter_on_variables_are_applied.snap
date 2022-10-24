@@ -23,8 +23,11 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SourceRange {
-                range: 194..197,
+            source_location: SymbolLocation {
+                line_number: 12,
+                source_range: SourceRange {
+                    range: 194..197,
+                },
             },
             varargs: None,
         },
@@ -49,8 +52,11 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SourceRange {
-                range: 91..161,
+            source_location: SymbolLocation {
+                line_number: 6,
+                source_range: SourceRange {
+                    range: 99..107,
+                },
             },
             varargs: None,
         },
@@ -78,8 +84,11 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SourceRange {
-                range: 124..127,
+            source_location: SymbolLocation {
+                line_number: 8,
+                source_range: SourceRange {
+                    range: 124..127,
+                },
             },
             varargs: None,
         },
@@ -110,8 +119,11 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 0,
             linkage: Internal,
             binding: None,
-            source_location: SourceRange {
-                range: 40..41,
+            source_location: SymbolLocation {
+                line_number: 3,
+                source_range: SourceRange {
+                    range: 40..41,
+                },
             },
             varargs: None,
         },
@@ -142,8 +154,11 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
             location_in_parent: 1,
             linkage: Internal,
             binding: None,
-            source_location: SourceRange {
-                range: 42..43,
+            source_location: SymbolLocation {
+                line_number: 3,
+                source_range: SourceRange {
+                    range: 42..43,
+                },
             },
             varargs: None,
         },
