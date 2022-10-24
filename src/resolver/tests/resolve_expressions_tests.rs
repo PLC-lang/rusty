@@ -1,10 +1,7 @@
 use core::panic;
 
 use crate::{
-    ast::{
-        self, flatten_expression_list, AstStatement, DataType, DataTypeDeclaration, Pou,
-        UserTypeDeclaration,
-    },
+    ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
     index::{Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
@@ -1977,7 +1974,6 @@ fn enum_element_initialization_is_annotated_correctly() {
     let data_type = &unit.types[0].data_type;
     if let DataType::EnumType { elements, .. } = data_type {
         if let AstStatement::Assignment { right, .. } = flatten_expression_list(&elements)[2] {
-            let hint = annotations.get_hint(right).unwrap();
             assert_type_and_hint!(&annotations, &index, &*right, "DINT", Some("MyEnum"));
         } else {
             unreachable!()
