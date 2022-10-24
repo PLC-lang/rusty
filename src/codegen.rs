@@ -168,7 +168,6 @@ impl<'ink> CodeGen<'ink> {
                 }
             }
         }
-        self.module.print_to_stderr();
 
         #[cfg(feature = "verify")]
         {
