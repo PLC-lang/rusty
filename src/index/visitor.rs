@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
+use super::{
+    HardwareBinding, PouIndexEntry, SymbolLocationFactory, VariableIndexEntry, VariableType,
+};
 use crate::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
     Implementation, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
@@ -14,23 +16,30 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     let mut index = Index::default();
     //Create the typesystem
     let builtins = get_builtin_types();
+    let symbol_location_factory = SymbolLocationFactory::new(&unit.new_lines);
+
     for data_type in builtins {
         index.register_type(data_type);
     }
 
     //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(&mut index, &mut id_provider, user_type);
+        visit_data_type(
+            &mut index,
+            &mut id_provider,
+            user_type,
+            &symbol_location_factory,
+        );
     }
 
     //Create defined global variables
     for global_vars in &unit.global_vars {
-        visit_global_var_block(&mut index, global_vars);
+        visit_global_var_block(&mut index, global_vars, &symbol_location_factory);
     }
 
     //Create types and variables for POUs
     for pou in &unit.units {
-        visit_pou(&mut index, pou);
+        visit_pou(&mut index, pou, &symbol_location_factory);
     }
 
     for implementation in &unit.implementations {
@@ -39,7 +48,7 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     index
 }
 
-pub fn visit_pou(index: &mut Index, pou: &Pou) {
+pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolLocationFactory) {
     let mut member_names = vec![];
 
     //register the pou's member variables
@@ -107,7 +116,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                         varargs,
                     },
                     initial_value,
-                    var.location.clone(),
+                    symbol_location_factory.create_symbol_location(&var.location),
                     count,
                 );
                 count += 1;
@@ -123,7 +132,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         .unwrap_or(VOID_TYPE);
     if pou.return_type.is_some() {
         member_names.push(pou.get_return_name().into());
-        let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
         index.register_member_variable(
             MemberInfo {
                 container_name: &pou.name,
@@ -135,7 +143,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 varargs: None,
             },
             None,
-            source_location,
+            symbol_location_factory.create_symbol_location(&pou.location),
             count,
         )
     }
@@ -154,7 +162,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 
     match &pou.pou_type {
         PouType::Program => {
-            index.register_program(&pou.name, &pou.location, pou.linkage);
+            index.register_program(
+                &pou.name,
+                symbol_location_factory.create_symbol_location(&pou.name_location),
+                pou.linkage,
+            );
             index.register_pou_type(datatype);
         }
         PouType::FunctionBlock => {
@@ -163,7 +175,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 &global_struct_name,
                 &global_struct_name,
                 &pou.name,
-                pou.location.clone(),
+                symbol_location_factory.create_symbol_location(&pou.name_location),
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
@@ -179,7 +191,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 &global_struct_name,
                 &global_struct_name,
                 &pou.name,
-                pou.location.clone(),
+                symbol_location_factory.create_symbol_location(&pou.location),
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
@@ -276,7 +288,11 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
     type_name
 }
 
-fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
+fn visit_global_var_block(
+    index: &mut Index,
+    block: &VariableBlock,
+    symbol_location_factory: &SymbolLocationFactory,
+) {
     let linkage = block.linkage;
     for var in &block.variables {
         let target_type = var.data_type.get_name().unwrap_or_default();
@@ -287,7 +303,7 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
             &var.name,
             &var.name,
             var.data_type.get_name().expect("named variable datatype"),
-            var.location.clone(),
+            symbol_location_factory.create_symbol_location(&var.location),
         )
         .set_initial_value(initializer)
         .set_constant(block.constant)
@@ -316,6 +332,7 @@ fn visit_data_type(
     index: &mut Index,
     id_provider: &mut IdProvider,
     type_declaration: &UserTypeDeclaration,
+    symbol_location_factory: &SymbolLocationFactory,
 ) {
     let data_type = &type_declaration.data_type;
     let scope = &type_declaration.scope;
@@ -356,7 +373,7 @@ fn visit_data_type(
                 &global_struct_name,
                 &global_struct_name,
                 type_name.as_str(),
-                type_declaration.location.clone(),
+                symbol_location_factory.create_symbol_location(&type_declaration.location),
             )
             .set_initial_value(init)
             .set_constant(true);
@@ -376,6 +393,7 @@ fn visit_data_type(
                             location: SourceRange::undefined(),
                             scope: scope.clone(),
                         },
+                        symbol_location_factory,
                     )
                 }
 
@@ -404,7 +422,7 @@ fn visit_data_type(
                         varargs: None,
                     },
                     init,
-                    var.location.clone(),
+                    symbol_location_factory.create_symbol_location(&var.location),
                     count as u32,
                 );
             }
@@ -436,7 +454,7 @@ fn visit_data_type(
                         &element_name,
                         enum_name,
                         Some(init),
-                        ele.get_location(),
+                        symbol_location_factory.create_symbol_location(&ele.get_location()),
                     )
                 } else {
                     unreachable!("the preprocessor should have provided explicit assignments for enum values")
@@ -563,7 +581,7 @@ fn visit_data_type(
                     global_init_name.as_str(),
                     global_init_name.as_str(),
                     name,
-                    type_declaration.location.clone(),
+                    symbol_location_factory.create_symbol_location(&type_declaration.location),
                 )
                 .set_constant(true)
                 .set_initial_value(init2);
@@ -658,7 +676,7 @@ fn visit_data_type(
                     global_init_name.as_str(),
                     global_init_name.as_str(),
                     name,
-                    type_declaration.location.clone(),
+                    symbol_location_factory.create_symbol_location(&type_declaration.location),
                 )
                 .set_constant(true)
                 .set_initial_value(init);

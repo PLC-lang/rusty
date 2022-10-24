@@ -1,4 +1,4 @@
-use crate::{test_utils::tests::parse, Diagnostic, SourceRange};
+use crate::{test_utils::tests::parse, Diagnostic};
 
 #[test]
 fn simple_class_without_name() {
@@ -7,7 +7,7 @@ fn simple_class_without_name() {
 
     assert_eq!(
         diagnostics.first().unwrap(),
-        &Diagnostic::unexpected_token_found("Identifier", "END_CLASS", SourceRange::new(6..15))
+        &Diagnostic::unexpected_token_found("Identifier", "END_CLASS", (6..15).into())
     );
 }
 
@@ -21,7 +21,7 @@ fn method_with_invalid_return_type() {
         &Diagnostic::unexpected_token_found(
             "DataTypeDefinition",
             "KeywordAbstract",
-            SourceRange::new(29..37),
+            (29..37).into()
         )
     );
 }

@@ -1,6 +1,5 @@
 ---
 source: src/index/tests/index_tests.rs
-assertion_line: 2016
 expression: members
 ---
 [
@@ -16,8 +15,11 @@ expression: members
         location_in_parent: 0,
         linkage: Internal,
         binding: None,
-        source_location: SourceRange {
-            range: 37..43,
+        source_location: SymbolLocation {
+            line_number: 3,
+            source_range: SourceRange {
+                range: 37..43,
+            },
         },
         varargs: None,
     },
@@ -33,8 +35,11 @@ expression: members
         location_in_parent: 1,
         linkage: Internal,
         binding: None,
-        source_location: SourceRange {
-            range: 77..84,
+        source_location: SymbolLocation {
+            line_number: 6,
+            source_range: SourceRange {
+                range: 77..84,
+            },
         },
         varargs: None,
     },
@@ -50,8 +55,11 @@ expression: members
         location_in_parent: 2,
         linkage: Internal,
         binding: None,
-        source_location: SourceRange {
-            range: 118..124,
+        source_location: SymbolLocation {
+            line_number: 9,
+            source_range: SourceRange {
+                range: 118..124,
+            },
         },
         varargs: None,
     },
@@ -67,8 +75,11 @@ expression: members
         location_in_parent: 3,
         linkage: Internal,
         binding: None,
-        source_location: SourceRange {
-            range: 156..156,
+        source_location: SymbolLocation {
+            line_number: 1,
+            source_range: SourceRange {
+                range: 3..156,
+            },
         },
         varargs: None,
     },
