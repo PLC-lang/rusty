@@ -4,10 +4,12 @@ A `POU` (`PROGRAM`, `FUNCTION`, `FUNCTION_BLOCK`) can be marked as external,
 which will cause the compiler to ignore its implementation
 
 ```iecst
-@EXTERNAL
+{external}
 FUNCTION log : DINT
-VAR_INPUT
+VAR_IN_OUT
   message : STRING[1024];
+END_VAR
+VAR_INPUT
   type : (Err,Warn,Info) := Info;
 END_VAR
 END_PROGRAM
@@ -24,7 +26,9 @@ and can be called from `ST` code.
 To achive this, the called function must be defined in a `C` compatible API
 e.g. `extern "C"` blocks
 
-The interface of the function has to be declared in `ST` using the `@EXTERNAL` keyword.
+The interface of the function has to:
+- either be included in with the `-i` flag
+- or be declared in `ST` using the `{external}` keyword.
 
 ### Example
 
@@ -39,7 +43,7 @@ int min(int a, int b) {
 An interface of that function in `ST` can be defined as
 
 ```iecst
-@EXTERNAL
+{external}
 FUNCTION min : DINT
 VAR_INPUT
   a : DINT;
@@ -71,10 +75,12 @@ int printf( const char *restrict format, ... );
 The `ST` interface can be defined as
 
 ```iecst
-@EXTERNAL
+{external}
 FUNCTION printf : DINT
-VAR_INPUT
+VAR_IN_OUT
   format : STRING;
+END_VAR
+VAR_INPUT
   args : ...;
 END_VAR
 END_FUNCTION
@@ -88,9 +94,12 @@ the C function
 Declare an `ST` program called `ExternalFunctions.st` with the following code:
 
 ```iecst
-@EXTERNAL FUNCTION printf : DINT
-VAR_INPUT
+{external}
+FUNCTION printf : DINT
+VAR_IN_OUT
     format : STRING;
+END_VAR
+VAR_INPUT
     args: ...;
 END_VAR
 END_FUNCTION
