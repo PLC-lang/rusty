@@ -511,3 +511,29 @@ fn lreal_to_lreal_expt() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn compare_date_time_literals() {
+    let result = codegen(
+        "
+    PROGRAM main
+    VAR_TEMP
+        cmp1, cmp2, cmp3, cmp4, cmp5, cmp6, cmp7, cmp8 : BOOL;
+    END_VAR
+		cmp1 := TIME#2d4h6m8s10ms11us300ns < TIME#1d8h43m23s55ms;
+		cmp2 := LTIME#2d4h6m8s10ms11us300ns > LTIME#1d8h43m23s55ms;
+
+		cmp3 := TOD#23:59:59.999 < TOD#10:32:59;
+		cmp4 := LTOD#23:59:59.999 > LTOD#10:32:59;
+
+		cmp5 := DATE#2022-10-20 < DATE#1999-01-01;
+		cmp6 := LDATE#2022-10-20 > LDATE#1999-01-01;
+
+		cmp7 := DT#2022-10-20-23:59:59.999 < DT#1999-01-01-10:32;
+		cmp8 := LDT#2022-10-20-23:59:59.999 > LDT#1999-01-01-10:32;
+    END_PROGRAM
+    ",
+    );
+
+    insta::assert_snapshot!(result);
+}
