@@ -42,10 +42,7 @@ fn exports_env_variable() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert_eq!(
-        std::env::var("ARCH").unwrap(),
-        "x86_64-linux-gnu" 
-    );
+    assert_eq!(std::env::var("ARCH").unwrap(), "x86_64-linux-gnu");
 
     let parameters = CompileParameters::parse(&[
         "rustyc",
@@ -59,10 +56,7 @@ fn exports_env_variable() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert_eq!(
-        std::env::var("ARCH").unwrap(),
-        "aarch64-unknown-linux-gnu" 
-    );
+    assert_eq!(std::env::var("ARCH").unwrap(), "aarch64-unknown-linux-gnu");
 }
 
 #[test]
