@@ -1852,18 +1852,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let type_hint = self.get_type_hint_for(stmt)?;
         let actual_type = self.annotations.get_type_or_void(stmt, self.index);
-        let literal_type = if is_same_type_class(
+        let literal_type_name = if is_same_type_class(
             type_hint.get_type_information(),
             actual_type.get_type_information(),
             self.index,
         ) {
-            type_hint
+            match type_hint.get_type_information() {
+                DataTypeInformation::Pointer {
+                    auto_deref: true,
+                    inner_type_name,
+                    ..
+                } => inner_type_name.as_str(),
+                _ => type_hint.get_name(),
+            }
         } else {
-            actual_type
+            actual_type.get_name()
         };
-        let literal_type = self
-            .llvm_index
-            .get_associated_type(literal_type.get_name())?;
+        let literal_type = self.llvm_index.get_associated_type(literal_type_name)?;
         self.llvm
             .create_const_numeric(&literal_type, number, stmt.get_location())
     }

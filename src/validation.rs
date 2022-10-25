@@ -8,6 +8,7 @@ use crate::{
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    typesystem::{self, DataTypeInformation},
     Diagnostic,
 };
 
@@ -256,11 +257,8 @@ impl Validator {
                 // visit called pou
                 self.visit_statement(operator, context);
 
-                // for PROGRAM/FB we need special inout validation
-                if let Some(PouIndexEntry::FunctionBlock { name, .. })
-                | Some(PouIndexEntry::Program { name, .. }) = context.find_pou(operator)
-                {
-                    let declared_parameters = context.index.get_declared_parameters(name);
+                if let Some(pou) = context.find_pou(operator) {
+                    let declared_parameters = context.index.get_declared_parameters(pou.get_name());
                     let passed_parameters = parameters
                         .as_ref()
                         .as_ref()
@@ -269,36 +267,60 @@ impl Validator {
 
                     let mut passed_params_idx = Vec::new();
                     for (i, p) in passed_parameters.iter().enumerate() {
-                        // safe index of passed parameter
-                        if let Ok((idx, _)) =
+                        if let Ok((index, right)) =
                             get_implicit_call_parameter(p, &declared_parameters, i)
                         {
-                            passed_params_idx.push(idx);
-                        }
-                    }
+                            // safe index of passed parameter
+                            passed_params_idx.push(index);
+                            // validate parameter
+                            let left_type = declared_parameters.get(index).map(|param| {
+                                context
+                                    .index
+                                    .get_effective_type_or_void_by_name(param.get_type_name())
+                            });
+                            let right_type = context.ast_annotation.get_type(right, context.index);
 
-                    let inouts: Vec<&&VariableIndexEntry> = declared_parameters
-                        .iter()
-                        .filter(|p| VariableType::InOut == p.get_variable_type())
-                        .collect();
-                    // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
-                    if !inouts.is_empty() {
-                        // check if all inouts were passed to the pou call
-                        inouts.into_iter().for_each(|p| {
-                            if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
-                                self.stmt_validator.diagnostics.push(
-                                    Diagnostic::missing_inout_parameter(
-                                        p.get_name(),
-                                        operator.get_location(),
-                                    ),
+                            if let (Some(left_type), Some(right_type)) = (left_type, right_type) {
+                                self.validate_assignment(
+                                    left_type,
+                                    right_type,
+                                    p.get_location(),
+                                    context.index,
                                 );
                             }
-                        });
+                        }
+                        self.visit_statement(p, context);
                     }
-                }
-                // validate the passed parameters
-                if let Some(s) = parameters.as_ref() {
-                    self.visit_statement(s, context);
+
+                    // for PROGRAM/FB we need special inout validation
+                    if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou
+                    {
+                        let inouts: Vec<&&VariableIndexEntry> = declared_parameters
+                            .iter()
+                            .filter(|p| VariableType::InOut == p.get_variable_type())
+                            .collect();
+                        // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
+                        if !inouts.is_empty() {
+                            // check if all inouts were passed to the pou call
+                            inouts.into_iter().for_each(|p| {
+                                if !passed_params_idx
+                                    .contains(&(p.get_location_in_parent() as usize))
+                                {
+                                    self.stmt_validator.diagnostics.push(
+                                        Diagnostic::missing_inout_parameter(
+                                            p.get_name(),
+                                            operator.get_location(),
+                                        ),
+                                    );
+                                }
+                            });
+                        }
+                    }
+                } else {
+                    // Pou could not be found, we can still partially validate the passed parameters
+                    if let Some(s) = parameters.as_ref() {
+                        self.visit_statement(s, context);
+                    }
                 }
             }
             AstStatement::IfStatement {
@@ -410,5 +432,37 @@ impl Validator {
         }
 
         self.stmt_validator.validate_statement(statement, context);
+    }
+
+    fn validate_assignment(
+        &mut self,
+        left_type: &typesystem::DataType,
+        right_type: &typesystem::DataType,
+        location: SourceRange,
+        index: &Index,
+    ) {
+        let left_type_info = index.find_intrinsic_type(left_type.get_type_information());
+        if let DataTypeInformation::Generic { .. } = left_type_info {
+            if !left_type.nature.derives(right_type.nature) {
+                self.stmt_validator
+                    .diagnostics
+                    .push(Diagnostic::invalid_assignment(
+                        right_type.get_name(),
+                        left_type.get_name(),
+                        location,
+                    ))
+            }
+        } else {
+            let right_type_info = index.find_intrinsic_type(right_type.get_type_information());
+            if !typesystem::is_same_type_class(left_type_info, right_type_info, index) {
+                self.stmt_validator
+                    .diagnostics
+                    .push(Diagnostic::invalid_assignment(
+                        right_type_info.get_name(),
+                        left_type_info.get_name(),
+                        location,
+                    ))
+            }
+        }
     }
 }

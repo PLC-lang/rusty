@@ -1408,17 +1408,22 @@ impl Index {
     }
 
     /// returns the intrinsic (built-in) type represented by the given type-information
-    /// this will return the built-in type behind alias and range-types
+    /// this will return the built-in type behind alias / range-types / pointer-types
     pub fn find_intrinsic_type<'idx>(
         &'idx self,
         initial_type: &'idx DataTypeInformation,
     ) -> &'idx DataTypeInformation {
         match initial_type {
-            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } => {
+            DataTypeInformation::SubRange { .. }
+            | DataTypeInformation::Alias { .. }
+            | DataTypeInformation::Pointer { .. } => {
                 let inner_type_name = match initial_type {
                     DataTypeInformation::SubRange {
                         referenced_type, ..
                     } => referenced_type,
+                    DataTypeInformation::Pointer {
+                        inner_type_name, ..
+                    } => inner_type_name,
                     _ => initial_type.get_name(),
                 };
                 if let Some(inner_type) = self.find_effective_type_info(inner_type_name) {

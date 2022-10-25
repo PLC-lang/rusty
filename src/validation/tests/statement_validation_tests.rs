@@ -679,7 +679,7 @@ fn program_missing_inout_assignment() {
 }
 
 #[test]
-fn call_statement_parameter_validation() {
+fn function_call_parameter_validation() {
     // GIVEN
     // WHEN
     let diagnostics = parse_and_validate(
@@ -703,7 +703,7 @@ fn call_statement_parameter_validation() {
 		END_VAR
 			foo(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			foo(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit
+			// foo(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit, validation not yet implemented
 
 			foo(input1 := var2, inout1 := var2, output1 => var2); // invalid types assigned
 			foo(var2, var2, var2); // invalid types assigned
@@ -711,9 +711,63 @@ fn call_statement_parameter_validation() {
         "#,
     );
 
-    // THEN the validator does not throw an error
-    assert_eq!(diagnostics, vec![]);
-    if diagnostics.is_empty() {
-        panic!("should have errors");
-    }
+    // THEN
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_assignment("STRING", "DINT", (418..432).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (434..448).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (450..465).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (501..505).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (507..511).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (513..517).into()),
+        ]
+    );
+}
+
+#[test]
+fn program_call_parameter_validation() {
+    // GIVEN
+    // WHEN
+    let diagnostics = parse_and_validate(
+        r#"
+		PROGRAM prog
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		END_PROGRAM
+
+		PROGRAM main
+		VAR
+			var1 : DINT;
+			var2 : STRING;
+		END_VAR
+			prog(input1 := var1, inout1 := var1, output1 => var1); // valid
+
+			// prog(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit, validation not yet implemented
+
+			prog(input1 := var2, inout1 := var2, output1 => var2); // invalid types assigned
+			prog(var2, var2, var2); // invalid types assigned
+		END_PROGRAM
+        "#,
+    );
+
+    // THEN
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_assignment("STRING", "DINT", (413..427).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (429..443).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (445..460).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (497..501).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (503..507).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (509..513).into()),
+        ]
+    );
 }
