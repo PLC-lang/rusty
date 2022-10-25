@@ -613,3 +613,40 @@ fn wstring_as_function_parameters_cast() {
     let res = String::from_utf16_lossy(&main_type.res[..5]);
     assert_eq!(res, "hello");
 }
+
+#[test]
+fn program_string_output() {
+    let src = r#"
+		PROGRAM prog
+		VAR_OUTPUT
+			output1 : STRING;
+			output2 : WSTRING;
+		END_VAR
+			output1 := 'string';
+			output2 := "wstring";
+		END_PROGRAM
+
+        PROGRAM main
+		VAR 
+			x : STRING[6]; 
+			y : WSTRING[7]; 
+		END_VAR
+			prog(x, y);
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 7],
+        y: [u16; 8],
+    }
+    let mut main_type = MainType {
+        x: [0; 7],
+        y: [0; 8],
+    };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("string\0".as_bytes(), &main_type.x);
+    assert_eq!("wstring", String::from_utf16_lossy(&main_type.y[..7]));
+}

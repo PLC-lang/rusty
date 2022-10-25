@@ -5,9 +5,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prog_interface = type { i64 }
+%prog = type { i64 }
 
-@prog_instance = global %prog_interface zeroinitializer
+@prog_instance = global %prog zeroinitializer
 
 define i64 @func() {
 entry:
@@ -19,9 +19,9 @@ entry:
   ret i64 %func_ret
 }
 
-define void @prog(%prog_interface* %0) {
+define void @prog(%prog* %0) {
 entry:
-  %TIME = getelementptr inbounds %prog_interface, %prog_interface* %0, i32 0, i32 0
+  %TIME = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   ret void
 }
 

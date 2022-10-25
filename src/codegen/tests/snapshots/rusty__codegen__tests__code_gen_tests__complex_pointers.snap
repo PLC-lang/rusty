@@ -1,21 +1,20 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i16, [10 x i16], [10 x i16*], [10 x i16]* }
+%prg = type { i16, [10 x i16], [10 x i16*], [10 x i16]* }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %X = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %arrX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %arrrX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %rarrX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  %X = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %arrX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %arrrX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
+  %rarrX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
   %tmpVar = getelementptr inbounds [10 x i16], [10 x i16]* %arrX, i32 0, i32 0
   %load_X = load i16, i16* %X, align 2
   store i16 %load_X, i16* %tmpVar, align 2

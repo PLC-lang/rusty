@@ -12,6 +12,7 @@ use crate::ast::AstId;
 use crate::ast::DirectAccessType;
 use crate::ast::HardwareAccessType;
 use crate::ast::SourceRange;
+use crate::ast::SourceRangeFactory;
 use crate::Diagnostic;
 
 #[cfg(test)]
@@ -29,6 +30,7 @@ pub struct ParseSession<'a> {
     pub last_range: Range<usize>,
     pub parse_progress: usize,
     id_provider: IdProvider,
+    pub source_range_factory: SourceRangeFactory,
     pub scope: Option<String>,
 }
 
@@ -47,7 +49,11 @@ macro_rules! expect_token {
 }
 
 impl<'a> ParseSession<'a> {
-    pub fn new(l: Lexer<'a, Token>, id_provider: IdProvider) -> ParseSession<'a> {
+    pub fn new(
+        l: Lexer<'a, Token>,
+        id_provider: IdProvider,
+        source_range_factory: SourceRangeFactory,
+    ) -> ParseSession<'a> {
         let mut lexer = ParseSession {
             lexer: l,
             token: Token::KeywordBy,
@@ -58,9 +64,14 @@ impl<'a> ParseSession<'a> {
             parse_progress: 0,
             id_provider,
             scope: None,
+            source_range_factory,
         };
         lexer.advance();
         lexer
+    }
+
+    pub fn get_src(&self) -> &str {
+        self.lexer.source()
     }
 
     pub fn next_id(&mut self) -> AstId {
@@ -160,11 +171,12 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn location(&self) -> SourceRange {
-        SourceRange::new(self.range())
+        self.source_range_factory.create_range(self.range())
     }
 
     pub fn last_location(&self) -> SourceRange {
-        SourceRange::new(self.last_range.clone())
+        self.source_range_factory
+            .create_range(self.last_range.clone())
     }
 
     pub fn range(&self) -> Range<usize> {
@@ -232,7 +244,7 @@ impl<'a> ParseSession<'a> {
                 )
                 .as_str(),
                 format!("'{}'", self.slice_region(range.clone())).as_str(),
-                SourceRange::new(range),
+                self.source_range_factory.create_range(range),
             ));
         }
 
@@ -375,11 +387,19 @@ impl Default for IdProvider {
 
 #[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(Token::lexer(source), IdProvider::default())
+    ParseSession::new(
+        Token::lexer(source),
+        IdProvider::default(),
+        SourceRangeFactory::internal(),
+    )
 }
 
-pub fn lex_with_ids(source: &str, id_provider: IdProvider) -> ParseSession {
-    ParseSession::new(Token::lexer(source), id_provider)
+pub fn lex_with_ids(
+    source: &str,
+    id_provider: IdProvider,
+    location_factory: SourceRangeFactory,
+) -> ParseSession {
+    ParseSession::new(Token::lexer(source), id_provider, location_factory)
 }
 
 #[cfg(test)]

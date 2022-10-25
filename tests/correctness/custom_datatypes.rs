@@ -253,7 +253,6 @@ fn using_duplicate_enums_with_casts() {
         tf1 := MyEnum#red;
         tf2 := MyEnum2#yellow;
         tf3 := MyEnum3#green;
-        
     END_PROGRAM
     "#;
 

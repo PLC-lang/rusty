@@ -1,14 +1,13 @@
 ---
 source: src/codegen/tests/expression_tests.rs
-assertion_line: 215
 expression: result
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { i16*, i16 }
+%main = type { i16*, i16 }
 
-@main_instance = global %main_interface zeroinitializer
+@main_instance = global %main zeroinitializer
 
 define i64 @foo() {
 entry:
@@ -18,10 +17,10 @@ entry:
   ret i64 %foo_ret
 }
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %pt = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %pt = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   store i16* %x, i16** %pt, align 8
   %load_pt = load i16*, i16** %pt, align 8
   %call = call i64 @foo()

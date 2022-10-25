@@ -5,14 +5,14 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { [81 x i8], [81 x i16] }
+%prg = type { [81 x i8], [81 x i16] }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg_interface* %0) {
+define void @prg(%prg* %0) {
 entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %1 = alloca [12 x i8], align 1
   store [12 x i8] c"im a genius\00", [12 x i8]* %1, align 1
   %2 = bitcast [81 x i8]* %y to i8*
