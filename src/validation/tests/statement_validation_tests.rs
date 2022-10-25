@@ -700,13 +700,15 @@ fn function_call_parameter_validation() {
 		VAR
 			var1 : DINT;
 			var2 : STRING;
+			var3 : REF_TO WSTRING;
+			var4 : REAL;
 		END_VAR
 			foo(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			// foo(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit, validation not yet implemented
+			foo(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit
 
-			foo(input1 := var2, inout1 := var2, output1 => var2); // invalid types assigned
-			foo(var2, var2, var2); // invalid types assigned
+			foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+			foo(var2, var3, var4); // invalid types assigned
 		END_PROGRAM
         "#,
     );
@@ -715,12 +717,15 @@ fn function_call_parameter_validation() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_assignment("STRING", "DINT", (418..432).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (434..448).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (450..465).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (501..505).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (507..511).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (513..517).into()),
+            Diagnostic::invalid_parameter_type((360..364).into()),
+            Diagnostic::invalid_parameter_type((366..370).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (425..439).into()),
+            Diagnostic::invalid_assignment("WSTRING", "DINT", (441..455).into()),
+            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (441..455).into()),
+            Diagnostic::invalid_assignment("REAL", "DINT", (457..472).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (508..512).into()),
+            Diagnostic::invalid_assignment("WSTRING", "DINT", (514..518).into()),
+            Diagnostic::invalid_assignment("REAL", "DINT", (520..524).into()),
         ]
     );
 }
@@ -747,13 +752,15 @@ fn program_call_parameter_validation() {
 		VAR
 			var1 : DINT;
 			var2 : STRING;
+			var3 : REF_TO WSTRING;
+			var4 : REAL;
 		END_VAR
 			prog(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			// prog(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit, validation not yet implemented
+			prog(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit
 
-			prog(input1 := var2, inout1 := var2, output1 => var2); // invalid types assigned
-			prog(var2, var2, var2); // invalid types assigned
+			prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+			prog(var2, var3, var4); // invalid types assigned
 		END_PROGRAM
         "#,
     );
@@ -762,12 +769,15 @@ fn program_call_parameter_validation() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::invalid_assignment("STRING", "DINT", (413..427).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (429..443).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (445..460).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (497..501).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (503..507).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (509..513).into()),
+            Diagnostic::invalid_parameter_type((354..358).into()),
+            Diagnostic::invalid_parameter_type((360..364).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (420..434).into()),
+            Diagnostic::invalid_assignment("WSTRING", "DINT", (436..450).into()),
+            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (436..450).into()),
+            Diagnostic::invalid_assignment("REAL", "DINT", (452..467).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (504..508).into()),
+            Diagnostic::invalid_assignment("WSTRING", "DINT", (510..514).into()),
+            Diagnostic::invalid_assignment("REAL", "DINT", (516..520).into()),
         ]
     );
 }

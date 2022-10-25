@@ -746,7 +746,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let mut passed_args = Vec::new();
         for (idx, param_statement) in arguments.iter().enumerate() {
-            let (location, param_statement) =
+            let (location, param_statement, _) =
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
 
             //None -> possibly variadic
@@ -2631,13 +2631,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 /// If the parameter is already implicit, it does nothing.
 /// if the parameter is explicit ´param := value´,
 /// it returns the location of the parameter in the function declaration
-///  as well as the parameter value (right side) ´param := value´ => ´value´
+/// as well as the parameter value (right side) ´param := value´ => ´value´
+/// and `true` for implicit / `false` for explicit parameters
 pub fn get_implicit_call_parameter<'a>(
     param_statement: &'a AstStatement,
     declared_parameters: &[&VariableIndexEntry],
     idx: usize,
-) -> Result<(usize, &'a AstStatement), Diagnostic> {
-    let (location, param_statement) = match param_statement {
+) -> Result<(usize, &'a AstStatement, bool), Diagnostic> {
+    let (location, param_statement, is_implicit) = match param_statement {
         AstStatement::Assignment { left, right, .. }
         | AstStatement::OutputAssignment { left, right, .. } => {
             //explicit
@@ -2654,14 +2655,14 @@ pub fn get_implicit_call_parameter<'a>(
                 unreachable!("left of an assignment must be a reference");
             }?;
 
-            (loc, right.as_ref())
+            (loc, right.as_ref(), false)
         }
         _ => {
             //implicit
-            (idx, param_statement)
+            (idx, param_statement, true)
         }
     };
-    Ok((location, param_statement))
+    Ok((location, param_statement, is_implicit))
 }
 
 /// turns the given intValue into an i1 by comparing it to 0 (of the same size)

@@ -266,13 +266,14 @@ impl Validator {
                         .unwrap_or_default();
 
                     let mut passed_params_idx = Vec::new();
+                    let mut are_implicit_parameters = true;
+                    // validate parameters
                     for (i, p) in passed_parameters.iter().enumerate() {
-                        if let Ok((index, right)) =
+                        if let Ok((index, right, is_implicit)) =
                             get_implicit_call_parameter(p, &declared_parameters, i)
                         {
                             // safe index of passed parameter
                             passed_params_idx.push(index);
-                            // validate parameter
                             let left_type = declared_parameters.get(index).map(|param| {
                                 context
                                     .index
@@ -288,7 +289,18 @@ impl Validator {
                                     context.index,
                                 );
                             }
+
+                            // mixing implicit and explicit parameters is not allowed
+                            // allways compare to the first passed parameter
+                            if i == 0 {
+                                are_implicit_parameters = is_implicit;
+                            } else if are_implicit_parameters != is_implicit {
+                                self.stmt_validator
+                                    .diagnostics
+                                    .push(Diagnostic::invalid_parameter_type(p.get_location()));
+                            }
                         }
+
                         self.visit_statement(p, context);
                     }
 
@@ -442,27 +454,18 @@ impl Validator {
         index: &Index,
     ) {
         let left_type_info = index.find_intrinsic_type(left_type.get_type_information());
-        if let DataTypeInformation::Generic { .. } = left_type_info {
-            if !left_type.nature.derives(right_type.nature) {
-                self.stmt_validator
-                    .diagnostics
-                    .push(Diagnostic::invalid_assignment(
-                        right_type.get_name(),
-                        left_type.get_name(),
-                        location,
-                    ))
-            }
-        } else {
-            let right_type_info = index.find_intrinsic_type(right_type.get_type_information());
-            if !typesystem::is_same_type_class(left_type_info, right_type_info, index) {
-                self.stmt_validator
-                    .diagnostics
-                    .push(Diagnostic::invalid_assignment(
-                        right_type_info.get_name(),
-                        left_type_info.get_name(),
-                        location,
-                    ))
-            }
+        let right_type_info = index.find_intrinsic_type(right_type.get_type_information());
+        // stmt_validator `validate_type_nature()` should report any error see `generic_validation_tests` ignore generics here and safe work
+        if !matches!(left_type_info, DataTypeInformation::Generic { .. })
+            & !typesystem::is_same_type_class(left_type_info, right_type_info, index)
+        {
+            self.stmt_validator
+                .diagnostics
+                .push(Diagnostic::invalid_assignment(
+                    right_type_info.get_name(),
+                    left_type_info.get_name(),
+                    location,
+                ))
         }
     }
 }
