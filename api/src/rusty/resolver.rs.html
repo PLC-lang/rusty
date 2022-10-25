@@ -1614,6 +1614,10 @@
 <span id="1609">1609</span>
 <span id="1610">1610</span>
 <span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2113,6 +2117,10 @@
                 } <span class="kw">else</span> {
                     <span class="ident">visitor</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">statement</span>);
                 }
+                <span class="kw">let</span> <span class="ident">enum_type</span> <span class="op">=</span> <span class="ident">enum_element</span>.<span class="ident">get_type_name</span>();
+                <span class="ident">visitor</span>
+                    .<span class="ident">annotation_map</span>
+                    .<span class="ident">annotate_type_hint</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">enum_type</span>))
             }
         }
 
