@@ -80,8 +80,7 @@ Examples
 | DATE            | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
 | DATE\_AND\_TIME | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
 
-Note that the internal representation and sizes of these types are specific
-to RuSTy and not defined by the IEC61131 standard.
+Note that rusty already treats `TIME`, `TIME_OF_DAY`, `DATE` and `DATE_AND_TIME` as 64 bit numbers. Therefore the long pendants `LTIME`, `LTOD`, `LDATE` and `LDT` are mere aliases to the original types.
 
 ### DATE
 The `DATE` datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
@@ -152,6 +151,9 @@ empty type and has an undefined size.
 |-------------|-----------|------------|
 | BOOL        | 8 bit     | signed     |
 | \_\_VOID    | undefined |            |
+
+
+Bit datatypes are defined as follows:
 
 | Type name | Size   | Properties |
 |-----------|--------|------------|
