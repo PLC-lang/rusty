@@ -213,8 +213,7 @@ declaring a <code>WSTRING</code>, the length-attribute is optional. The default 
 <tr><td>DATE</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 <tr><td>DATE_AND_TIME</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 </tbody></table>
-<p>Note that the internal representation and sizes of these types are specific
-to RuSTy and not defined by the IEC61131 standard.</p>
+<p>Note that rusty already treats <code>TIME</code>, <code>TIME_OF_DAY</code>, <code>DATE</code> and <code>DATE_AND_TIME</code> as 64 bit numbers. Therefore the long pendants <code>LTIME</code>, <code>LTOD</code>, <code>LDATE</code> and <code>LDT</code> are mere aliases to the original types.</p>
 <h3 id="date"><a class="header" href="#date">DATE</a></h3>
 <p>The <code>DATE</code> datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
 stored as an i64 with a precision in nanoseconds and denotes the number of nanoseconds 
@@ -280,6 +279,7 @@ empty type and has an undefined size.</p>
 <tr><td>BOOL</td><td>8 bit</td><td>signed</td></tr>
 <tr><td>__VOID</td><td>undefined</td><td></td></tr>
 </tbody></table>
+<p>Bit datatypes are defined as follows:</p>
 <table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
 <tr><td>BYTE</td><td>8 bit</td><td>unsigned</td></tr>
 <tr><td>WORD</td><td>16 bit</td><td>unsigned</td></tr>
