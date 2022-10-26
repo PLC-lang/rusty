@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     ast::{self, AstStatement, GenericBinding, LinkageType, TypeNature},
     builtins,
-    index::{Index, PouIndexEntry, VariableIndexEntry, SymbolLocation},
+    index::{Index, PouIndexEntry, SymbolLocation, VariableIndexEntry},
     resolver::AnnotationMap,
     typesystem::{self, DataType, DataTypeInformation},
 };
@@ -207,7 +207,7 @@ impl<'i> TypeAnnotator<'i> {
                     initial_value: None,
                     name: name.clone(),
                     nature: TypeNature::Any,
-                    location: SymbolLocation::internal()
+                    location: SymbolLocation::internal(),
                 });
 
                 name

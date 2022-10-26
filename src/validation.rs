@@ -1,4 +1,4 @@
-use std::{collections::HashSet};
+use std::collections::HashSet;
 
 use crate::{
     ast::{
@@ -12,14 +12,14 @@ use crate::{
 };
 
 use self::{
-    pou_validator::PouValidator, stmt_validator::StatementValidator,
-    variable_validator::VariableValidator, global_validator::GlobalValidator,
+    global_validator::GlobalValidator, pou_validator::PouValidator,
+    stmt_validator::StatementValidator, variable_validator::VariableValidator,
 };
 
+mod global_validator;
 mod pou_validator;
 mod stmt_validator;
 mod variable_validator;
-mod global_validator;
 
 #[cfg(test)]
 mod tests;

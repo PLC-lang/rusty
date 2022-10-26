@@ -31,8 +31,8 @@ use glob::glob;
 use inkwell::passes::PassBuilderOptions;
 use regex::{Captures, Regex};
 use serde::{Deserialize, Serialize};
-use typesystem::get_builtin_types;
 use std::path::{Path, PathBuf};
+use typesystem::get_builtin_types;
 
 use ast::{LinkageType, PouType, SourceRange, SourceRangeFactory};
 use cli::{CompileParameters, SubCommands};
@@ -564,6 +564,9 @@ fn index_module<T: SourceContainer>(
     for data_type in get_builtin_types() {
         full_index.register_type(data_type);
     }
+    // import builtin functions
+    let builtins = builtins::parse_built_ins(id_provider.clone());
+    full_index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
     all_units.append(&mut units);
 
@@ -587,21 +590,22 @@ fn index_module<T: SourceContainer>(
         validator.perform_global_validation(&full_index);
         validator.diagnostics()
     };
-    diagnostician.handle_global(global_diagnostics);
+    diagnostician.handle(global_diagnostics);
 
     // ### PHASE 2 ###
     // annotation & validation everything
     let mut annotated_units: Vec<CompilationUnit> = Vec::new();
     let mut all_annotations = AnnotationMapImpl::default();
     let mut all_literals = StringLiterals::default();
-    for (file_id, syntax_errors, unit) in all_units.into_iter() {
+    //todo get rid of the file_id
+    for (_, syntax_errors, unit) in all_units.into_iter() {
         let (annotations, string_literals) = TypeAnnotator::visit_unit(&full_index, &unit);
 
         let mut validator = Validator::new();
         validator.visit_unit(&annotations, &full_index, &unit);
         //log errors
-        diagnostician.handle(syntax_errors, file_id);
-        diagnostician.handle(validator.diagnostics(), file_id);
+        diagnostician.handle(syntax_errors);
+        diagnostician.handle(validator.diagnostics());
 
         annotated_units.push(unit);
         all_annotations.import(annotations);
@@ -669,10 +673,6 @@ fn parse_and_index<T: SourceContainer>(
     let mut index = Index::default();
 
     let mut units = Vec::new();
-
-    //parse the builtins into the index
-    let builtins = builtins::parse_built_ins(id_provider.clone());
-    index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
     for container in source {
         let location = static_str(container.get_location().to_string());

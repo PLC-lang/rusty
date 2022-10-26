@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::hash::Hash;
 use indexmap::IndexMap;
+use std::hash::Hash;
 
 use crate::{
     ast::{
@@ -817,7 +817,7 @@ impl Default for TypeIndex {
                 initial_value: None,
                 information: DataTypeInformation::Void,
                 nature: TypeNature::Any,
-                location: SymbolLocation::internal()
+                location: SymbolLocation::internal(),
             },
         }
     }
@@ -1515,7 +1515,7 @@ impl Index {
     pub fn register_type(&mut self, datatype: DataType) {
         self.type_index
             .types
-            .insert(dbg!(datatype.get_name().to_lowercase()) , datatype);
+            .insert(datatype.get_name().to_lowercase(), datatype);
     }
 
     pub fn register_pou_type(&mut self, datatype: DataType) {

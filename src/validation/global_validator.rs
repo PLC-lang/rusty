@@ -8,7 +8,6 @@ pub struct GlobalValidator {
 }
 
 impl GlobalValidator {
-
     pub fn new() -> GlobalValidator {
         GlobalValidator {
             diagnostics: Vec::new(),
@@ -16,8 +15,11 @@ impl GlobalValidator {
     }
 
     pub fn validate_unique_symbols(&mut self, index: &Index) {
-        let affected_names = index.get_types().elements()
-            .chain(index.get_pou_types().elements()).map(|(k, _)| k);
+        let affected_names = index
+            .get_types()
+            .elements()
+            .chain(index.get_pou_types().elements())
+            .map(|(k, _)| k);
 
         let mut collisions = HashSet::new();
         let mut unique_names = HashSet::new();
@@ -42,17 +44,21 @@ impl GlobalValidator {
                 .into_iter()
                 .flatten();
 
-            let collision_locations = pou_locations.chain(type_locations).map(|it| {
-                format!(
-                    "{}:{}",
-                    it.source_range.get_file_name().unwrap_or("<internal>"),
-                    it.line_number
-                )
-            });
-            self.diagnostics.push(Diagnostic::global_name_conflict(
-                collision,
-                collision_locations.collect::<Vec<_>>(),
-            ));
+            let collision_locations = pou_locations.chain(type_locations).collect::<Vec<_>>();
+            //create an issue on every conflict that points to the other occurences
+            for (idx, cl) in collision_locations.iter().enumerate() {
+                let others = collision_locations
+                    .iter()
+                    .enumerate()
+                    .filter(|(j, _)| idx != (*j))
+                    .map(|(_, it)| it.source_range.clone())
+                    .collect::<Vec<_>>();
+                self.diagnostics.push(Diagnostic::global_name_conflict(
+                    collision,
+                    cl.source_range.clone(),
+                    others,
+                ));
+            }
         }
     }
 }

@@ -1,13 +1,13 @@
 use crate::{
     ast::{CompilationUnit, NewLines, Operator, TypeNature},
-    index::{visitor::visit, Index, SymbolLocation},
-    lexer::IdProvider,
+    index::{Index, SymbolLocation},
+    test_utils::tests::index,
     typesystem::{
         self, get_equals_function_name_for, get_signed_type, Dimension, BOOL_TYPE, BYTE_TYPE,
         CHAR_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
         LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
         UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WCHAR_TYPE, WORD_TYPE, WSTRING_TYPE,
-    }, test_utils::tests::index,
+    },
 };
 
 use super::TypeSize;
@@ -645,7 +645,7 @@ fn array_size_single_dim_tests() {
             }],
         },
         nature: TypeNature::Any,
-            location: SymbolLocation::internal()
+        location: SymbolLocation::internal(),
     };
     //the size of the array is 20*size(int)
     assert_eq!(
@@ -676,7 +676,7 @@ fn array_size_multi_dim_tests() {
             ],
         },
         nature: TypeNature::Any,
-            location: SymbolLocation::internal()
+        location: SymbolLocation::internal(),
     };
     //the size of the array is 20*size(int)
     assert_eq!(
@@ -701,7 +701,7 @@ fn array_size_nested_tests() {
             }],
         },
         nature: TypeNature::Any,
-            location: SymbolLocation::internal()
+        location: SymbolLocation::internal(),
     };
     index.register_type(array_20);
     let nested_array = typesystem::DataType {
@@ -716,7 +716,7 @@ fn array_size_nested_tests() {
             }],
         },
         nature: TypeNature::Any,
-            location: SymbolLocation::internal()
+        location: SymbolLocation::internal(),
     };
 
     //the size of the array is 20*size(int)

@@ -73,7 +73,7 @@ fn programs_state_is_stored_in_a_struct() {
             location: SymbolLocation {
                 line_number: 1,
                 source_range: SourceRange {
-                    range: 5..238,
+                    range: 13..21,
                 },
             },
         },

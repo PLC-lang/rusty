@@ -14,7 +14,8 @@ pub mod tests {
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator,
         },
-        DebugLevel, SourceContainer, Validator, typesystem::get_builtin_types,
+        typesystem::get_builtin_types,
+        DebugLevel, SourceContainer, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {

@@ -1916,7 +1916,7 @@ fn a_program_pou_is_indexed() {
             return_type: "INT".into(),
             is_variadic: false,
             location: SymbolLocation {
-                source_range: (56..114).into(),
+                source_range: (65..75).into(),
                 line_number: 4
             },
         }),
@@ -1942,7 +1942,7 @@ fn a_program_pou_is_indexed() {
             linkage: LinkageType::Internal,
             instance_struct_name: "myClass".into(),
             location: SymbolLocation {
-                source_range: (191..222).into(),
+                source_range: (197..204).into(),
                 line_number: 10
             },
         }),

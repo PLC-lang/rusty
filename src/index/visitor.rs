@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
-    HardwareBinding, PouIndexEntry, SymbolLocationFactory, VariableIndexEntry, VariableType, SymbolLocation,
+    HardwareBinding, PouIndexEntry, SymbolLocation, SymbolLocationFactory, VariableIndexEntry,
+    VariableType,
 };
 use crate::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
@@ -16,7 +17,7 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     let mut index = Index::default();
     //Create the typesystem
     let symbol_location_factory = SymbolLocationFactory::new(&unit.new_lines);
-    
+
     //Create user defined datatypes
     for user_type in &unit.types {
         visit_data_type(
@@ -138,7 +139,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 varargs: None,
             },
             None,
-            symbol_location_factory.create_symbol_location(&pou.location),
+            symbol_location_factory.create_symbol_location(&pou.name_location),
             count,
         )
     }
@@ -153,7 +154,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             source: StructSource::Pou(pou.pou_type.clone()),
         },
         nature: TypeNature::Any,
-        location: symbol_location_factory.create_symbol_location(&pou.location)
+        location: symbol_location_factory.create_symbol_location(&pou.name_location),
     };
 
     match &pou.pou_type {
@@ -188,14 +189,14 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &global_struct_name,
                 &global_struct_name,
                 &pou.name,
-                symbol_location_factory.create_symbol_location(&pou.location),
+                symbol_location_factory.create_symbol_location(&pou.name_location),
             )
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
             index.register_pou(PouIndexEntry::create_class_entry(
                 &pou.name,
                 pou.linkage,
-                symbol_location_factory.create_symbol_location(&pou.location),
+                symbol_location_factory.create_symbol_location(&pou.name_location),
             ));
             index.register_pou_type(datatype);
         }
@@ -206,7 +207,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 &pou.generics,
                 pou.linkage,
                 has_varargs,
-                symbol_location_factory.create_symbol_location(&pou.location),
+                symbol_location_factory.create_symbol_location(&pou.name_location),
             ));
             index.register_pou_type(datatype);
         }
@@ -216,7 +217,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 return_type_name,
                 owner_class,
                 pou.linkage,
-                symbol_location_factory.create_symbol_location(&pou.location),
+                symbol_location_factory.create_symbol_location(&pou.name_location),
             ));
             index.register_pou_type(datatype);
         }
@@ -292,7 +293,7 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
             auto_deref: true,
         },
         nature: TypeNature::Any,
-        location: SymbolLocation::internal()
+        location: SymbolLocation::internal(),
     });
 
     type_name
@@ -376,7 +377,8 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Derived,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory
+                    .create_symbol_location(&type_declaration.location),
             });
             //Generate an initializer for the struct
             let global_struct_name = crate::index::get_initializer_name(name);
@@ -484,7 +486,8 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory
+                    .create_symbol_location(&type_declaration.location),
             });
         }
 
@@ -519,7 +522,8 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory
+                    .create_symbol_location(&type_declaration.location),
             });
         }
         DataType::ArrayType {
@@ -587,7 +591,8 @@ fn visit_data_type(
                 initial_value: init1,
                 information,
                 nature: TypeNature::Any,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory
+                    .create_symbol_location(&type_declaration.location),
             });
             let global_init_name = crate::index::get_initializer_name(name);
             if init2.is_some() {
@@ -626,7 +631,8 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::Any,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory
+                    .create_symbol_location(&type_declaration.location),
             });
         }
         DataType::StringType {
@@ -682,7 +688,8 @@ fn visit_data_type(
                 initial_value: init,
                 information,
                 nature: TypeNature::String,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory
+                    .create_symbol_location(&type_declaration.location),
             });
 
             if init.is_some() {
@@ -715,7 +722,8 @@ fn visit_data_type(
                 initial_value: None,
                 information,
                 nature: TypeNature::Any,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory
+                    .create_symbol_location(&type_declaration.location),
             });
         }
 
