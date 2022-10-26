@@ -134,15 +134,15 @@ fn string_with_round_parens_can_be_parsed() {
             Diagnostic::ImprovementSuggestion {
                 message: "Unusual type of parentheses around string size expression, consider using square parentheses '[]'"
                     .into(),
-                range: (37..41).into(),
+                range: vec![(37..41).into()],
             },
             Diagnostic::ImprovementSuggestion {
                 message: "Mismatched types of parentheses around string size expression".into(),
-                range: (88..92).into(),
+                range: vec![(88..92).into()],
             },
             Diagnostic::ImprovementSuggestion {
                 message: "Mismatched types of parentheses around string size expression".into(),
-                range: (148..152).into(),
+                range: vec![(148..152).into()],
             }
         ]
     );

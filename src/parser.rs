@@ -556,8 +556,8 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
     parse_any_in_region(lexer, vec![KeywordEndType], |lexer| {
         let mut declarations = vec![];
         while !lexer.closes_open_region(&lexer.token) {
-            let start = lexer.location().get_start();
             let name = lexer.slice_and_advance();
+            let name_location = lexer.last_location();
             lexer.consume_or_report(KeywordColon);
 
             let result = parse_full_data_type_definition(lexer, Some(name));
@@ -565,11 +565,10 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
             if let Some((DataTypeDeclaration::DataTypeDefinition { data_type, .. }, initializer)) =
                 result
             {
-                let end = lexer.last_range.end;
                 declarations.push(UserTypeDeclaration {
                     data_type,
                     initializer,
-                    location: (start..end).into(),
+                    location: name_location,
                     scope: lexer.scope.clone(),
                 });
             }

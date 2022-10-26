@@ -34,10 +34,10 @@ pub enum Diagnostic {
 }
 
 impl Diagnostic {
-    pub fn get_affected_ranges(&self) -> &[&SourceRange] {
+    pub fn get_affected_ranges(&self) -> &[SourceRange] {
         match self {
-            Diagnostic::SyntaxError {  range, .. } |
-            Diagnostic::ImprovementSuggestion {  range, .. } => range.slice(),
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
             Diagnostic::GeneralError { .. } => &[],
         }
     }
@@ -592,20 +592,22 @@ impl Diagnostic {
     pub fn get_location(&self) -> SourceRange {
         match self {
             Diagnostic::SyntaxError { range, .. }
-            | Diagnostic::ImprovementSuggestion { range, .. } => range
-                .get(0)
-                .cloned()
-                .unwrap_or_else(|| SourceRange::undefined()),
+            | Diagnostic::ImprovementSuggestion { range, .. } => {
+                range.get(0).cloned().unwrap_or_else(SourceRange::undefined)
+            }
             Diagnostic::GeneralError { .. } => SourceRange::undefined(),
         }
     }
 
-
-    pub fn get_secondary_locations(&self) -> &[SourceRange] {
+    pub fn get_secondary_locations(&self) -> Option<&[SourceRange]> {
         match self {
             Diagnostic::SyntaxError { range, .. }
-            | Diagnostic::ImprovementSuggestion { range, .. } if range.len() > 1 => &range[1..],
-            _ => &[] 
+            | Diagnostic::ImprovementSuggestion { range, .. }
+                if range.len() > 1 =>
+            {
+                Some(&range[1..])
+            }
+            _ => None,
         }
     }
 
@@ -673,7 +675,7 @@ impl Diagnostic {
         Diagnostic::SyntaxError {
             message: "Case condition used outside of case statement! Did you mean to use ';'?"
                 .into(),
-            range,
+            range: vec![range],
             err_no: ErrNo::case__case_condition_outside_case_statement,
         }
     }
@@ -681,7 +683,7 @@ impl Diagnostic {
     pub fn invalid_case_condition(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Invalid case condition!".into(),
-            range,
+            range: vec![range],
             err_no: ErrNo::case__case_condition_outside_case_statement,
         }
     }
@@ -702,20 +704,19 @@ impl Diagnostic {
         }
     }
 
-    pub(crate) fn global_name_conflict(name: &str, vec: Vec<String>) -> Diagnostic {
-        Diagnostic::GeneralError {
-            message: format!(
-                "Naming conflict for symbol {}: \n{}",
-                name,
-                vec.iter()
-                    .map(|it| format!("   - {}", it))
-                    .collect::<Vec<_>>()
-                    .join("\n")
-            ),
+    pub(crate) fn global_name_conflict(
+        name: &str,
+        location: SourceRange,
+        conflicts: Vec<SourceRange>,
+    ) -> Diagnostic {
+        let mut locations = vec![location];
+        locations.extend(conflicts.into_iter());
+        Diagnostic::SyntaxError {
+            message: format!("Naming conflict for Symbol: {}", name),
+            range: locations,
             err_no: ErrNo::duplicate_symbol,
         }
     }
-
 }
 
 /// a diagnostics severity
@@ -741,10 +742,7 @@ impl Display for Severity {
 /// (e.g. default, compiler-settings, tests)
 pub trait DiagnosticAssessor {
     /// determines the severity of the given diagnostic
-    fn assess(&self, d: Diagnostic) -> AssessedDiagnostic;
-    fn assess_all(&self, d: Vec<Diagnostic>) -> Vec<AssessedDiagnostic> {
-        d.into_iter().map(|it| self.assess(it)).collect()
-    }
+    fn assess(&self, d: &Diagnostic) -> Severity;
 }
 
 /// the default assessor will treat ImprovementSuggestions as warnings
@@ -752,23 +750,25 @@ pub trait DiagnosticAssessor {
 #[derive(Default)]
 pub struct DefaultDiagnosticAssessor {}
 
-pub struct AssessedDiagnostic {
-    pub diagnostic: Diagnostic,
+pub struct ResolvedLocation {
+    pub file_handle: usize,
+    pub range: Range<usize>,
+}
+
+pub struct ResolvedDiagnostics {
+    pub message: String,
     pub severity: Severity,
+    pub main_location: ResolvedLocation,
+    pub additional_locations: Option<Vec<ResolvedLocation>>,
 }
 
 impl DiagnosticAssessor for DefaultDiagnosticAssessor {
-    fn assess(&self, d: Diagnostic) -> AssessedDiagnostic {
-        let severity = match d {
+    fn assess(&self, d: &Diagnostic) -> Severity {
+        match d {
             // improvements become warnings
             Diagnostic::ImprovementSuggestion { .. } => Severity::Warning,
             // everything else becomes an error
             _ => Severity::Error,
-        };
-
-        AssessedDiagnostic {
-            diagnostic: d,
-            severity,
         }
     }
 }
@@ -777,7 +777,7 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
 /// possible implementations could print to either std-out, std-err or a file, etc.
 pub trait DiagnosticReporter {
     /// reports the given diagnostic
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize);
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]);
     /// register the given path & src and returns an ID to indicate
     /// a relationship the given src (diagnostics for this src need
     /// to use this id)
@@ -820,35 +820,38 @@ impl Default for CodeSpanDiagnosticReporter {
 }
 
 impl DiagnosticReporter for CodeSpanDiagnosticReporter {
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
-        for ad in diagnostics {
-            let d = &ad.diagnostic;
-            let location = d.get_location();
-
-            let diagnostic_factory = match ad.severity {
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+        for d in diagnostics {
+            let diagnostic_factory = match d.severity {
                 Severity::Error => codespan_reporting::diagnostic::Diagnostic::error(),
                 Severity::Warning => codespan_reporting::diagnostic::Diagnostic::warning(),
                 Severity::_Info => codespan_reporting::diagnostic::Diagnostic::note(),
             };
 
-            let mut labels = vec![Label::primary(
-                    file_id,
-                    location.get_start()..location.get_end(),
-                )];
-            
-            labels.extend(d.get_secondary_locations().iter().map(|it|Label::secondary(, range)))
+            let mut labels =
+                vec![
+                    Label::primary(d.main_location.file_handle, d.main_location.range.clone())
+                        .with_message(d.message.as_str()),
+                ];
+
+            if let Some(additional_locations) = &d.additional_locations {
+                labels.extend(additional_locations.iter().map(|it| {
+                    Label::secondary(it.file_handle, it.range.clone()).with_message("see also")
+                }));
+            }
 
             let diag = diagnostic_factory
-                .with_message(d.get_message())
-                .with_labels(labels);
+                .with_labels(labels)
+                .with_message(d.message.as_str());
+
             let result = codespan_reporting::term::emit(
                 &mut self.writer.lock(),
                 &self.config,
                 &self.files,
                 &diag,
             );
-            if let Err(err) = result {
-                eprintln!("Unable to report diagnostics: {}", err);
+            if result.is_err() {
+                eprintln!("<internal>: {}", d.message);
             }
         }
     }
@@ -878,23 +881,21 @@ impl Default for ClangFormatDiagnosticReporter {
 }
 
 impl DiagnosticReporter for ClangFormatDiagnosticReporter {
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
-        for ad in diagnostics {
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+        for diagnostic in diagnostics {
+            let file_id = diagnostic.main_location.file_handle;
+            let location = &diagnostic.main_location;
+
             let file = self.files.get(file_id).ok();
-
-            let diagnostic = &ad.diagnostic;
-            let location = &diagnostic.get_location();
-            let start = self.files.location(file_id, location.get_start());
-            let end = self.files.location(file_id, location.get_end());
-
-
+            let start = self.files.location(file_id, location.range.start).ok();
+            let end = self.files.location(file_id, location.range.end).ok();
 
             let res = self.build_diagnostic_msg(
                 file,
-                start.as_ref().ok(),
-                end.as_ref().ok(),
-                &ad.severity,
-                diagnostic.get_message(),
+                start.as_ref(),
+                end.as_ref(),
+                &diagnostic.severity,
+                &diagnostic.message,
             );
 
             eprintln!("{}", res);
@@ -962,7 +963,7 @@ pub struct NullDiagnosticReporter {
 }
 
 impl DiagnosticReporter for NullDiagnosticReporter {
-    fn report(&self, _diagnostics: &[AssessedDiagnostic], _file_id: usize) {
+    fn report(&self, _diagnostics: &[ResolvedDiagnostics]) {
         //ignore
     }
 
@@ -978,7 +979,7 @@ impl DiagnosticReporter for NullDiagnosticReporter {
 pub struct Diagnostician {
     pub reporter: Box<dyn DiagnosticReporter>,
     pub assessor: Box<dyn DiagnosticAssessor>,
-    filename_fileid_mapping: HashMap<String, usize> XXX ,    // --> move to reporter
+    filename_fileid_mapping: HashMap<String, usize>,
 }
 
 impl Diagnostician {
@@ -1010,20 +1011,40 @@ impl Diagnostician {
     }
 
     /// assess and reports the given diagnostics
-    pub fn handle(&self, diagnostics: Vec<Diagnostic>, file_id: usize) {
-        self.report(&self.assess_all(diagnostics), file_id);
+    pub fn handle(&self, diagnostics: Vec<Diagnostic>) {
+        let resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
+            message: d.get_message().to_string(),
+            severity: self.assess(d),
+            main_location: ResolvedLocation {
+                file_handle: self
+                    .get_file_handle(d.get_location().get_file_name())
+                    .unwrap_or(usize::max_value()),
+                range: d.get_location().to_range(),
+            },
+            additional_locations: d.get_secondary_locations().map(|it| {
+                it.iter()
+                    .map(|l| ResolvedLocation {
+                        file_handle: self
+                            .get_file_handle(l.get_file_name())
+                            .unwrap_or(usize::max_value()),
+                        range: l.to_range(),
+                    })
+                    .collect()
+            }),
+        });
+
+        self.report(resolved_diagnostics.collect::<Vec<_>>().as_slice());
     }
 
-    /// assess and reports the given diagnostics which are not related to a single file
-    pub fn handle_global(&self, diagnostics: Vec<Diagnostic>) {
-        self.report(&self.assess_all(diagnostics), usize::max_value())
+    fn get_file_handle(&self, file_name: Option<&str>) -> Option<usize> {
+        file_name.and_then(|it| self.filename_fileid_mapping.get(it).cloned())
     }
 }
 
 impl DiagnosticReporter for Diagnostician {
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
         //delegate to reporter
-        self.reporter.report(diagnostics, file_id);
+        self.reporter.report(diagnostics);
     }
 
     fn register(&mut self, path: String, src: String) -> usize {
@@ -1033,7 +1054,7 @@ impl DiagnosticReporter for Diagnostician {
 }
 
 impl DiagnosticAssessor for Diagnostician {
-    fn assess(&self, d: Diagnostic) -> AssessedDiagnostic {
+    fn assess(&self, d: &Diagnostic) -> Severity {
         //delegate to assesor
         self.assessor.assess(d)
     }
