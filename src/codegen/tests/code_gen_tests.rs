@@ -3017,3 +3017,29 @@ fn date_and_time_global_constants_initialize() {
     // THEN the variables are initialized correctly
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn contants_in_case_statements_resolved() {
+    let result = codegen(
+        " 
+        PROGRAM main
+            VAR
+                DAYS_IN_MONTH : DINT;
+            END_VAR
+            VAR CONSTANT
+                SIXTY : DINT := 60;
+            END_VAR
+            CASE DAYS_IN_MONTH OF
+              32..SIXTY	:	DAYS_IN_MONTH := 29;
+              (SIXTY	+ 2)..70 :	DAYS_IN_MONTH := 30;
+            ELSE
+              DAYS_IN_MONTH := 31;
+            END_CASE;
+        END_PROGRAM 
+        ",
+    );
+
+    // THEN the first case should be 32..60
+    // AND the second case should be 62..70
+    insta::assert_snapshot!(result);
+}
