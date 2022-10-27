@@ -1420,10 +1420,11 @@ impl Index {
                 let inner_type_name = match initial_type {
                     DataTypeInformation::SubRange {
                         referenced_type, ..
+                    }
+                    | DataTypeInformation::Pointer {
+                        inner_type_name: referenced_type,
+                        ..
                     } => referenced_type,
-                    DataTypeInformation::Pointer {
-                        inner_type_name, ..
-                    } => inner_type_name,
                     _ => initial_type.get_name(),
                 };
                 if let Some(inner_type) = self.find_effective_type_info(inner_type_name) {
