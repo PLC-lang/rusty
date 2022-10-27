@@ -1053,6 +1053,7 @@ pub fn build_and_link(
         for target in targets {
             let triple = target.get_target_triple();
             let output = if let Some(target_name) = target.try_get_name() {
+                env::set_var("ARCH", target_name);
                 let target_path = PathBuf::from(&target_name);
                 target_path.join(&compile_options.output)
             } else {
