@@ -56,4 +56,14 @@ CompilationUnit {
         },
     ],
     types: [],
+    file_name: "test.st",
+    new_lines: NewLines {
+        line_breaks: [
+            1,
+            24,
+            44,
+            61,
+            66,
+        ],
+    },
 }
