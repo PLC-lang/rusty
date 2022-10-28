@@ -284,7 +284,7 @@ fn numerical_promotion_for_variadic_functions_without_declaration() {
 }
 
 #[test]
-fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type_when() {
+fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type() {
     let src = r#"
     {external} 
     FUNCTION printf : DINT
