@@ -76,6 +76,7 @@ The `package_commands` keyword is optional.
 > TODO
 
 ### Example
+
 ```json
 {
     "files" : [
@@ -146,5 +147,20 @@ The target architecture currently being built, for a multi architecture build. T
 
 `LIB_LOCATION` is the folder where the lib will be saved. This is the value of either the [`--lib-location`](#lib-location) parameter or the [build location](#build-location).
 
-> TODO : Example
+### Usage
+
+To reference an environment variable in the description file, reference the variables with a preceding `$`
+
+**Example:**
+```json
+{
+	"name" : "mylib",
+	"path" : "$ARCH/lib",
+	"package" : "System",
+	"include_path" : [
+		"examples/hello_world.st"
+	]
+}
+```
+
 

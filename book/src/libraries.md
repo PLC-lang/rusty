@@ -12,8 +12,19 @@ System functions can also be added using [External Function](libraries/external_
 
 A library is defined by : 
 - A set of `st` interfaces, each interface represents a function that has been precompiled.
-    - Example: 
-        > TODO
+	> In a POU, the interface is the definition and variable section e.g:
+	> ```iecst
+	>	(*Interaface for program example *)
+	>	PROGRAM example
+	>	VAR_INPUT
+	>		a,b,c : DINT
+	>	END_VAR 
+	>	VAR END_VAR
+	> (* End of interface *)
+	>
+	>	(* Implementation *)
+	>	END_PROGRAM
+	> ```
 - A binary file for each architecture the library has been built for (`x86_64-linux-gnu`, `aarch64-linux-gnu`, ..)
 
 
@@ -46,11 +57,16 @@ To link the library, two options are then available:
 
 ### Command line example
 
->TODO
+To compile a file called `input.st` including a header and linking a library called `libiec.so` from `/lib` : 
+
+```sh
+rustyc input.st -i iec/header.st -L/lib/ -liec
+```
+
 
 ## Linking libraries using the Build Description File `plc.json`
 
-Libraries can be added to a project managed with a [Build Description File](build_description_file.md). </br>
+Libraries can be added to a project managed with a [Build Description File](using_rusty/build_description_file.md#build-description-file-plcjson). </br>
 To add a library to the project, the `"libraries"` section can be used.
 A library entry requires a `name`, a `path`, the `package` behaviour, and a set of files to include (`include_path`).
 
@@ -78,7 +94,7 @@ POUs and Global variables included in the list are marked as external, the imple
 
 ### Library Location
 
-Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](../build_description_file.md#lib-location). By default this is the same as the [Build Location](../build_description_file.md#build-location) unless overridden by the `--lib-location` parameter.
+Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](using_rusty/build_description_file.md#--lib-location). By default this is the same as the [Build Location](using_rusty/build_description_file.md#--build-location) unless overridden by the `--lib-location` parameter.
 
 ### Using environment variables
 
