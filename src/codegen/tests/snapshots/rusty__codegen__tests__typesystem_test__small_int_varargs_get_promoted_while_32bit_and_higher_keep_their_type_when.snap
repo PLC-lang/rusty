@@ -1,0 +1,39 @@
+---
+source: src/codegen/tests/typesystem_test.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@utf08_literal_0 = unnamed_addr constant [26 x i8] c"(d) result : %d %d %d %u\0A\00"
+@utf08_literal_1 = unnamed_addr constant [27 x i8] c"(hd) result : %hd %hd %hd\0A\00"
+
+declare i32 @printf([81 x i8]*, ...)
+
+define i32 @main() {
+entry:
+  %out1 = alloca i16, align 2
+  %out2 = alloca i32, align 4
+  %out3 = alloca i64, align 8
+  %out4 = alloca i32, align 4
+  %main = alloca i32, align 4
+  store i16 -1, i16* %out1, align 2
+  store i32 -1, i32* %out2, align 4
+  store i64 -1, i64* %out3, align 4
+  store i32 -1, i32* %out4, align 4
+  store i32 0, i32* %main, align 4
+  %load_out1 = load i16, i16* %out1, align 2
+  %0 = sext i16 %load_out1 to i32
+  %load_out2 = load i32, i32* %out2, align 4
+  %load_out3 = load i64, i64* %out3, align 4
+  %load_out4 = load i32, i32* %out4, align 4
+  %call = call i32 ([81 x i8]*, ...) @printf([26 x i8]* @utf08_literal_0, i32 %0, i32 %load_out2, i64 %load_out3, i32 %load_out4)
+  %load_out11 = load i16, i16* %out1, align 2
+  %1 = sext i16 %load_out11 to i32
+  %load_out22 = load i32, i32* %out2, align 4
+  %load_out33 = load i64, i64* %out3, align 4
+  %call4 = call i32 ([81 x i8]*, ...) @printf([27 x i8]* @utf08_literal_1, i32 %1, i32 %load_out22, i64 %load_out33)
+  %main_ret = load i32, i32* %main, align 4
+  ret i32 %main_ret
+}
+

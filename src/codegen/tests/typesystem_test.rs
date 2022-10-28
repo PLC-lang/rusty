@@ -254,3 +254,60 @@ fn int_bigger_than_byte_promoted_on_compare_statement() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn numerical_promotion_for_variadic_functions_without_declaration() {
+    let src = r#"
+    {external} 
+    FUNCTION printf : DINT
+    VAR_IN_OUT
+        format: STRING;
+    END_VAR
+    VAR_INPUT
+        args: ...;
+    END_VAR
+    END_FUNCTION
+
+    PROGRAM main 
+    VAR_TEMP
+        s: STRING := '$N numbers: %f %f %f %d $N $N';
+        float: REAL := 3.0;
+        double: LREAL := 3.0;
+        integer: INT := 3;
+    END_VAR
+        printf(s, REAL#3.0, float, double, integer);
+    END_PROGRAM
+    "#;
+
+    let result = codegen(src);
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type_when() {
+    let src = r#"
+    {external} 
+    FUNCTION printf : DINT
+    VAR_IN_OUT
+        format: STRING;
+    END_VAR
+    VAR_INPUT
+        args: ...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION main : DINT
+    VAR
+        out1 : INT :=  -1;
+        out2 : DINT := -1;
+        out3 : LINT := -1;
+        out4 : UDINT := 4_294_967_295;
+    END_VAR
+        printf('(d) result : %d %d %d %u$N', out1, out2, out3, out4);
+        printf('(hd) result : %hd %hd %hd$N', out1, out2, out3);
+    END_FUNCTION
+    "#;
+
+    let result = codegen(src);
+    insta::assert_snapshot!(result);
+}
