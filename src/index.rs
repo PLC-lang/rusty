@@ -1374,6 +1374,12 @@ impl Index {
         self.member_variables.get(&name.to_lowercase())
     }
 
+    pub fn get_all_members_by_container(
+        &self,
+    ) -> &IndexMap<String, SymbolMap<String, VariableIndexEntry>> {
+        &self.member_variables
+    }
+
     pub fn get_global_qualified_enums(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.enum_qualified_variables
     }

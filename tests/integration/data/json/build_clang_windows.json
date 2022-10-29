@@ -12,7 +12,7 @@
             "path" : "$DIRPATH",
             "package" : "System",
             "include_path" : [
-                "simple_program.st"
+                "program_with_expressions.st"
             ]
         }
     ]
