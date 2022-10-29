@@ -1,10 +1,14 @@
 use crate::{
     ast::SourceRange,
     diagnostics::Diagnostic,
-    index::{Index, SymbolMap},
+    index::{symbol::SymbolMap, Index},
 };
 
-/// validator for the whole project using the index
+/// Validator that does not check a dedicated file but rather
+/// uses the index to validate the project as a whole.
+/// It performs validations including:
+///  - naming-conflicts
+///  - <tbc>
 pub struct GlobalValidator {
     pub diagnostics: Vec<Diagnostic>,
 }
@@ -16,7 +20,10 @@ impl GlobalValidator {
         }
     }
 
-    fn report(&mut self, name: &str, locations: &Vec<&SourceRange>) {
+    /// reports a name-conflict for the given name. the locations indicate the
+    /// locations of the declared symbols that make up the conflict. this method will
+    /// create a diagnostic per location where it attaches the other locations as additional information.
+    fn report_name_conflict(&mut self, name: &str, locations: &Vec<&SourceRange>) {
         for (idx, v) in locations.iter().enumerate() {
             let others = locations
                 .iter()
@@ -30,8 +37,11 @@ impl GlobalValidator {
         }
     }
 
+    /// checks all symbols of the given index for naming conflicts.
+    /// all problems will be reported to self.diagnostics
     pub fn validate_unique_symbols(&mut self, index: &Index) {
-        // check uniqueness of POUs and DataTypes
+        // 1) check uniqueness of POUs and DataTypes
+        // collect all POUs and DataTypes into a SymbolMap
         let mut duplicates: SymbolMap<&str, &SourceRange> = SymbolMap::default();
         for (name, dt) in index.get_pou_types().elements() {
             duplicates.insert(name.as_str(), &dt.location.source_range);
@@ -39,12 +49,13 @@ impl GlobalValidator {
         for (name, dt) in index.get_types().elements() {
             duplicates.insert(name.as_str(), &dt.location.source_range);
         }
-
+        // every key with more than 1 location associated is a problem
         for (name, locations) in duplicates.entries().filter(|(_, v)| v.len() > 1) {
-            self.report(*name, locations);
+            self.report_name_conflict(*name, locations);
         }
 
-        // check uniqueness of global variables
+        // 2) check uniqueness of global variables
+        // every entry in index.get_globals with more than 1 association indicates a problem
         let duplicate_variables = index
             .get_globals()
             .entries()
@@ -59,10 +70,11 @@ impl GlobalValidator {
             });
 
         for (name, locations) in duplicate_variables {
-            self.report(name, &locations.collect());
+            self.report_name_conflict(name, &locations.collect());
         }
 
-        // check uniqueness of member_variables
+        // 3) check uniqueness of member_variables
+        // all index.member_variables with more than 1 associations indicate a problem
         let duplication_members = index
             .get_all_members_by_container()
             .values()
@@ -73,7 +85,7 @@ impl GlobalValidator {
                 .get(0)
                 .map(|it| it.get_qualified_name())
                 .unwrap_or(name.as_str());
-            self.report(
+            self.report_name_conflict(
                 full_name,
                 &variables
                     .iter()
@@ -82,13 +94,14 @@ impl GlobalValidator {
             )
         }
 
-        // check enum elements
+        // 4) check enum elements
+        // all index.global_qualified_enums with more than 1 association indicates a problem
         for (name, variables) in index
             .get_global_qualified_enums()
             .entries()
             .filter(|(_, elements)| elements.len() > 1)
         {
-            self.report(
+            self.report_name_conflict(
                 name,
                 &variables
                     .iter()

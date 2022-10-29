@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     ast::{self, AstStatement, GenericBinding, LinkageType, TypeNature},
     builtins,
-    index::{Index, PouIndexEntry, SymbolLocation, VariableIndexEntry},
+    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry},
     resolver::AnnotationMap,
     typesystem::{self, DataType, DataTypeInformation},
 };

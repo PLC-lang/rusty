@@ -7,7 +7,7 @@ use std::{
 use crate::{
     ast::{AstStatement, Operator, PouType, TypeNature},
     datalayout::{Bytes, MemoryLocation},
-    index::{const_expressions::ConstId, Index, SymbolLocation},
+    index::{const_expressions::ConstId, symbol::SymbolLocation, Index},
 };
 
 pub const DEFAULT_STRING_LEN: u32 = 80;

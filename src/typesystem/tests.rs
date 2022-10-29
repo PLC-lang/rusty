@@ -1,6 +1,6 @@
 use crate::{
     ast::{CompilationUnit, NewLines, Operator, TypeNature},
-    index::{Index, SymbolLocation},
+    index::{symbol::SymbolLocation, Index},
     test_utils::tests::index,
     typesystem::{
         self, get_equals_function_name_for, get_signed_type, Dimension, BOOL_TYPE, BYTE_TYPE,

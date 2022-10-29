@@ -1,8 +1,6 @@
+use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{
-    HardwareBinding, PouIndexEntry, SymbolLocation, SymbolLocationFactory, VariableIndexEntry,
-    VariableType,
-};
+use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
     Implementation, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,

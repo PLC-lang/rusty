@@ -1,144 +1,29 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use indexmap::IndexMap;
-use std::hash::Hash;
-
 use crate::{
     ast::{
         AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, NewLines, PouType, SourceRange, TypeNature,
+        LinkageType, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
     diagnostics::Diagnostic,
     typesystem::{self, *},
 };
+use indexmap::IndexMap;
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
     instance_iterator::InstanceIterator,
+    symbol::{SymbolLocation, SymbolMap},
 };
 
 pub mod const_expressions;
 mod instance_iterator;
+pub mod symbol;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
-
-/// a factory to create SymbolLocations from SourceRanges, that automatically resolves
-/// the line-nr attribute
-pub struct SymbolLocationFactory<'a> {
-    new_lines: &'a NewLines,
-}
-
-impl<'a> SymbolLocationFactory<'a> {
-    /// creates a new SymbolLocationFactory with the given NewLines
-    pub fn new(new_lines: &'a NewLines) -> SymbolLocationFactory<'a> {
-        SymbolLocationFactory { new_lines }
-    }
-
-    /// creats a new SymbolLocation for the given source_range and automatically calculates
-    /// the resulting line-number usign the source_range's start and the factory's
-    /// NewLines
-    pub fn create_symbol_location(&self, source_range: &SourceRange) -> SymbolLocation {
-        SymbolLocation {
-            source_range: source_range.clone(),
-            line_number: self.new_lines.get_line_nr(source_range.get_start()),
-        }
-    }
-}
-
-/// Location information of a Symbol in the index consisting of the line_number
-/// and the detailled SourceRange information consisting the file and the range inside the source-string
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct SymbolLocation {
-    /// the line-number of this symbol in the source-file
-    pub line_number: usize,
-    /// the exact location of the symbol and the file_name
-    pub source_range: SourceRange,
-}
-
-#[derive(Debug)]
-pub struct SymbolMap<K, V> {
-    inner_map: IndexMap<K, Vec<V>>,
-}
-
-impl<K, V> Default for SymbolMap<K, V> {
-    fn default() -> Self {
-        Self {
-            inner_map: Default::default(),
-        }
-    }
-}
-
-impl<K, V> SymbolMap<K, V>
-where
-    K: Hash + Eq,
-{
-    pub fn get(&self, key: &K) -> Option<&V> {
-        self.get_all(key).and_then(|it| it.get(0))
-    }
-
-    pub fn get_all(&self, key: &K) -> Option<&Vec<V>> {
-        self.inner_map.get(key)
-    }
-
-    pub fn get_or_default(&mut self, key: K) -> &mut Vec<V> {
-        self.inner_map.entry(key).or_default()
-    }
-
-    pub fn insert(&mut self, key: K, value: V) {
-        self.inner_map.entry(key).or_default().push(value);
-    }
-
-    pub fn drain(
-        &mut self,
-        range: std::ops::RangeFull,
-    ) -> indexmap::map::Drain<'_, K, std::vec::Vec<V>> {
-        self.inner_map.drain(range)
-    }
-
-    pub fn insert_many<T: IntoIterator<Item = V>>(&mut self, key: K, values: T) {
-        self.inner_map.entry(key).or_default().extend(values);
-    }
-
-    pub fn elements(&self) -> impl Iterator<Item = (&'_ K, &'_ V)> {
-        self.inner_map
-            .iter()
-            .flat_map(|(k, v)| v.iter().map(move |v| (k, v)))
-    }
-
-    pub fn keys(&self) -> impl Iterator<Item = &'_ K> {
-        self.inner_map.keys()
-    }
-
-    pub fn entries(&self) -> impl Iterator<Item = (&'_ K, &'_ Vec<V>)> {
-        self.inner_map.iter()
-    }
-
-    pub fn values(&self) -> impl Iterator<Item = &'_ V> {
-        self.inner_map.iter().flat_map(|(_, v)| v.iter())
-    }
-
-    pub fn extend(&mut self, other: SymbolMap<K, V>) {
-        for (k, v) in other.inner_map.into_iter() {
-            self.insert_many(k, v)
-        }
-    }
-
-    pub fn contains_key(&self, key: &K) -> bool {
-        self.inner_map.contains_key(key)
-    }
-}
-
-impl SymbolLocation {
-    pub fn internal() -> SymbolLocation {
-        SymbolLocation {
-            line_number: 0,
-            source_range: SourceRange::undefined(),
-        }
-    }
-}
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableIndexEntry {
@@ -911,7 +796,7 @@ impl Index {
     /// into the current one
     pub fn import(&mut self, mut other: Index) {
         //global variables
-        for (name, e) in other.global_variables.inner_map.drain(..) {
+        for (name, e) in other.global_variables.drain(..) {
             let entries = e
                 .into_iter()
                 .map(|it| self.transfer_constants(it, &mut other.constant_expressions))
@@ -1338,14 +1223,17 @@ impl Index {
             .unwrap_or_else(|| self.get_void_type().get_type_information())
     }
 
-    /// Returns a list of types, should not be used to search for types, just to react on them
+    /// Returns the map of types, should not be used to search for types --> see find_type
     pub fn get_types(&self) -> &SymbolMap<String, DataType> {
         &self.type_index.types
     }
+
+    /// Returns the map of pou_types, should not be used to search for pou_types -->  see find_pou_type
     pub fn get_pou_types(&self) -> &SymbolMap<String, DataType> {
         &self.type_index.pou_types
     }
 
+    /// Returns the map of globals, should not be used to search for globals -->  see find_global_variable
     pub fn get_globals(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.global_variables
     }
@@ -1362,6 +1250,7 @@ impl Index {
             .collect()
     }
 
+    /// Returns the map of pous, should not be used to search for pous -->  see find_pou
     pub fn get_pous(&self) -> &SymbolMap<String, PouIndexEntry> {
         &self.pous
     }

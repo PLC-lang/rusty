@@ -18,7 +18,7 @@ use crate::{
         DataTypeDeclaration, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
-    index::{Index, PouIndexEntry, SymbolLocation, VariableIndexEntry, VariableType},
+    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
