@@ -122,7 +122,7 @@ VAR
     tmp : DINT;
 END_VAR
   tmp := 1;
-  printf('Value %d, %d, %d', tmp, tmp * 10, tmp * 100);
+  printf('Value %d, %d, %d$N', tmp, tmp * 10, tmp * 100);
   main := tmp;
 END_FUNCTION
 ```
