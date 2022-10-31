@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_description_file.html"><strong aria-hidden="true">3.1.</strong> Build descrpition File</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -327,26 +327,32 @@ the current directory.</li>
 <li>If a target and sysroot are provided, the output will always be stored in a folder with the target name (e.g. an <code>x86_64-linux-gnu</code> target will have the output strored in a folder called <code>x86_64-linux-gnu</code>)</li>
 <li><code>--sysroot</code> parameters have to always match target parameters, there can be no <code>sysroot</code> without a target.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="build-description-file"><a class="header" href="#build-description-file">Build description File</a></h1>
-<p>In addition to the comprehensive help, <code>rustyc</code> offers a build description file, that simplifies the build process. Instead of having numerous inline arguments, using the build description file makes passing the arguments easier and neater. The build description file needs to be safed as a <a href="https://en.wikipedia.org/wiki/JSON">json</a> format.</p>
-<p><code>rustyc build [Config]</code></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="build-configuration"><a class="header" href="#build-configuration">Build Configuration</a></h1>
+<p>In addition to the comprehensive help, <code>rustyc</code> offers a build subcommand that simplifies the build process. </br>
+Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
+The build description file needs to be saved in the <a href="https://en.wikipedia.org/wiki/JSON">json</a> format.</p>
+<p>Usage: </p>
+<p><code>rustyc build</code></p>
 <p>Note that if <code>rustyc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path. The default location for the build file is the current directory. The command for building with an additional path looks like this:</p>
 <p><code>rustyc build src/plc.json</code></p>
-<h1 id="plcjson"><a class="header" href="#plcjson">Plc.json</a></h1>
-<p>For the build description file to work, the build description file must be the <a href="https://en.wikipedia.org/wiki/JavaScript_Object_Notation">json</a> format. All the keys used in the build description file are described in the following sections. </p>
-<h2 id="files"><a class="header" href="#files">files</a></h2>
-<p>The key <code>files</code> is the equivalent to the <code>input</code> parameter, which adds all the <code>.st</code> files that needs to be compiled. The value of <code>files</code> is an array of strings, definied as followed:</p>
+<h2 id="build-description-file-plcjson"><a class="header" href="#build-description-file-plcjson">Build description file (plc.json)</a></h2>
+<p>For the build description file to work, it must be written in the <a href="https://en.wikipedia.org/wiki/JavaScript_Object_Notation">json</a> format. All the keys used in the build description file are described in the following sections. </p>
+<h3 id="files"><a class="header" href="#files">files</a></h3>
+<p>The keyword <code>files</code> is the equivalent to the <code>input</code> parameter, which adds all the <code>ST</code> files that need to be compiled. The value of <code>files</code> is an array of strings, definied as follows:</p>
 <pre><code class="language-json">&quot;files&quot; : [
     &quot;examples/hello_world.st&quot;,
     &quot;examples/hw.st&quot;
+    &quot;examples/*.gvl&quot;
 ]
 </code></pre>
-<h2 id="libraries"><a class="header" href="#libraries">libraries</a></h2>
-<p>To link several executables <code>rustyc</code> has the option to add libraries and automatically build and like them together. if no compile type has been selected <code>rustyc</code> will link the files on default.</p>
+<h3 id="libraries"><a class="header" href="#libraries">libraries</a></h3>
+<p>To link several objects into one executable <code>rustyc</code> has the option to add libraries and automatically build and link them together.</br>
+The <code>libraries</code> keyword is optional.</p>
 <pre><code class="language-json">&quot;libraries&quot; : [
     {
         &quot;name&quot; : &quot;iec61131std&quot;,
         &quot;path&quot; : &quot;path/to/lib/&quot;,
+        &quot;package&quot; : &quot;Copy&quot;,
         &quot;include_path&quot; : [
             &quot;examples/hw.st&quot;,
             &quot;examples/hello_world.st&quot;
@@ -354,27 +360,32 @@ the current directory.</li>
     }
 ]
 </code></pre>
-<h2 id="output"><a class="header" href="#output">output</a></h2>
-<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option, in the build file we use <code>&quot;output&quot; : &quot;output.so&quot;</code> to define the output file. The default location is likewise to the location for the build file, namely the current directory. </p>
-<h2 id="optional-keys"><a class="header" href="#optional-keys">Optional Keys</a></h2>
+<h3 id="output"><a class="header" href="#output">output</a></h3>
+<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>&quot;output&quot; : &quot;output.so&quot;</code> to define the output file. The default location is the current build directory. (see <a href="using_rusty/build_configuration.html#build-location">Build Location</a>) </p>
 <h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
-<p>There are six options for choosing the <code>compile_type</code>. The valid options are:</p>
-<!-- TODO we should probably describe what each of those options do -->
+<p>The following options can be used for the <code>compile_type</code>:</p>
 <ul>
-<li><code>Static</code> bindings have to be done at compile time</li>
-<li><code>PIC</code> Position Independent Code</li>
-<li><code>Shared</code> (dynamic) binginds will be done dynamically</li>
-<li><code>Relocatable</code> generates Relocatable </li>
+<li><code>Static</code> specifies that linking/binding must be done at compile time</li>
+<li><code>Shared</code> (dynamic) specifies that linking/bingind must be done dynamically (at runtime)</li>
+<li><code>PIC</code> Position Independent Code (Choosing this option implies that the linking will be done dynamically)</li>
+<li><code>Relocatable</code> generates relocatable object code (for combining with other object code)</li>
 <li><code>Bitcode</code> adds bitcode alongside machine code in executable file</li>
-<li><code>IR</code> Intermediate Representation</li>
+<li><code>IR</code> intermediate <code>llvm</code> representation</li>
 </ul>
-<p>To specify which of the above mentioned compile formats is wanted, it needs to be added to the build description file as followed: <code>&quot;compile_type&quot; : &quot;Shared&quot;</code>.</p>
-<h1 id="example"><a class="header" href="#example">Example</a></h1>
+<p>The compile format is specified in the build description file as follows:  <code>&quot;compile_type&quot; : &quot;Shared&quot;</code>.
+The <code>compile_type</code> keyword is optional.</p>
+<h3 id="package_commands"><a class="header" href="#package_commands">package_commands</a></h3>
+<p>The <code>package_commands</code> keyword is optional.</p>
+<blockquote>
+<p>TODO</p>
+</blockquote>
+<h3 id="example"><a class="header" href="#example">Example</a></h3>
 <pre><code class="language-json">{
     &quot;files&quot; : [
         &quot;examples/hw.st&quot;,
         &quot;examples/hello_world.st&quot;,
-        &quot;examples/ExternalFunctions.st&quot;
+        &quot;examples/ExternalFunctions.st&quot;,
+        &quot;examples/*.dt&quot;
     ],
     &quot;compile_type&quot; : &quot;Shared&quot;,
     &quot;output&quot; : &quot;proj.so&quot;,
@@ -382,13 +393,15 @@ the current directory.</li>
         {
             &quot;name&quot; : &quot;iec61131std&quot;,
             &quot;path&quot; : &quot;path/to/lib&quot;,
+            &quot;package&quot; : &quot;Copy&quot;,
             &quot;include_path&quot; : [
-                &quot;examples/hw.st&quot;
+                &quot;examples/lib.st&quot;
             ]
         },
         {
             &quot;name&quot; : &quot;other_lib&quot;,
             &quot;path&quot; : &quot;path/to/lib&quot;,
+            &quot;package&quot; : &quot;System&quot;,
             &quot;include_path&quot; : [
                 &quot;examples/hello_world.st&quot;
             ]
@@ -396,74 +409,221 @@ the current directory.</li>
     ]
 }
 </code></pre>
+<h2 id="build-parameters"><a class="header" href="#build-parameters">Build Parameters</a></h2>
+<p>The <code>build</code> subcommand exposes the following optional parameters: </p>
+<h3 id="--build-location"><a class="header" href="#--build-location"><code>--build-location</code></a></h3>
+<p>The build location is the location all build files will be copied to. </br>
+By default the build location is the <code>build</code> folder in the root of the project (the location of the <code>plc.json</code>).</br>
+This can be overriden with the <code>--build-location</code> command line parameter.</p>
+<h3 id="--lib-location"><a class="header" href="#--lib-location"><code>--lib-location</code></a></h3>
+<p>The lib location is where all libraries marked with <code>Copy</code> will be copied. </br>
+By default it is the same as the <code>build-location</code>.</br>
+This can be overriden with the <code>--lib-location</code> command line parameter.</p>
+<h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
+<p>Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.</p>
+<p>In addition to externally defined variables, the build exports variables that can be referenced in the description file:</p>
+<h3 id="project_root"><a class="header" href="#project_root"><code>PROJECT_ROOT</code></a></h3>
+<p>The folder containing the <code>plc.json</code> file, i.e. the root of the project.</p>
+<h3 id="arch"><a class="header" href="#arch"><code>ARCH</code></a></h3>
+<p>The target architecture currently being built, for a multi architecture build. The value for <code>ARCH</code> will be updated for every target.
+Example targets are: <code>x86_64-pc-linux-gnu</code>, <code>x86_64-pc-windows-msvc</code>, <code>aarch64-pc-linux-musl</code></p>
+<h3 id="build_location"><a class="header" href="#build_location"><code>BUILD_LOCATION</code></a></h3>
+<p><code>BUILD_LOCATION</code> is the folder where the build will be saved. This is the value of either the <a href="using_rusty/build_configuration.html#build-location"><code>--build-location</code></a> parameter or the default build location.</p>
+<h3 id="lib_location"><a class="header" href="#lib_location"><code>LIB_LOCATION</code></a></h3>
+<p><code>LIB_LOCATION</code> is the folder where the lib will be saved. This is the value of either the <a href="using_rusty/build_configuration.html#lib-location"><code>--lib-location</code></a> parameter or the <a href="using_rusty/build_configuration.html#build-location">build location</a>.</p>
+<h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
+<p>To reference an environment variable in the description file, reference the variables with a preceding <code>$</code></p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-json">{
+	&quot;name&quot; : &quot;mylib&quot;,
+	&quot;path&quot; : &quot;$ARCH/lib&quot;,
+	&quot;package&quot; : &quot;System&quot;,
+	&quot;include_path&quot; : [
+		&quot;examples/hello_world.st&quot;
+	]
+}
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
-<p>RuSTy does not currently have support for separate libraries.
-Libraries can be compiled together with the application as a normal files.</p>
-<p>Precompiled libraries or system functions can be called by declaring an
-<a href="libraries/external_functions.html">External Function</a> for each POU in that library.</p>
+<p>RuSTy does not currently have support for importing <em>source based libraries</em>.</p>
+<p>Source based libraries can, however, be compiled together with the application as normal files.</p>
+<p>Precompiled libraries or system functions can be added using compilation flags or an entry in the <code>plc.json</code> file.</p>
+<p>System functions can also be added using <a href="libraries/external_functions.html">External Function</a> for each POU in that library.</p>
+<h2 id="library-structure"><a class="header" href="#library-structure">Library Structure</a></h2>
+<p>A library is defined by : </p>
+<ul>
+<li>A set of <code>st</code> interfaces, each interface represents a function that has been precompiled.
+<blockquote>
+<p>In a POU, the interface is the definition and variable section e.g:</p>
+<pre><code class="language-iecst">  (*Interface for program example *)
+  PROGRAM example
+  VAR_INPUT
+  	a,b,c : DINT
+  END_VAR 
+(* End of interface *)
+
+  (* Implementation *)
+  END_PROGRAM
+</code></pre>
+</blockquote>
+</li>
+<li>A binary file for each architecture the library has been built for (<code>x86_64-linux-gnu</code>, <code>aarch64-linux-gnu</code>, ..)</li>
+</ul>
+<h2 id="linking-libraries-using-the-rustyc-command-line"><a class="header" href="#linking-libraries-using-the-rustyc-command-line">Linking libraries using the <code>rustyc</code> command line</a></h2>
+<p>To include a library when using the <code>rustyc</code> command line interface, the include files can be added using the <code>-i</code> flag.</p>
+<p>Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
+POUs and Global variables included with the <code>-i</code> are marked as external, the implementation part of a POU is ignored.</p>
+<p>To link the library, two options are then available: <a href="libraries.html#shared-libraries">Shared</a> and <a href="libraries.html#static-libraries">Static</a> libraries.</p>
+<h3 id="shared-libraries"><a class="header" href="#shared-libraries">Shared Libraries</a></h3>
+<p>A shared library (i.e. extension <code>.so</code>) can be linked using the <code>-l</code> flag. </br>
+For a library called <code>mylib</code>, when the flag <code>-lmylib</code> is passed, the linker will search for a file called <code>libmylib.so</code>.</p>
+<blockquote>
+<p>Note that the <code>lib&lt;LibName&gt;.so</code> format is required by the linker for unix like systems.</p>
+</blockquote>
+<p>The library locations used by the linker are the default search locations of the linker (i.e. <code>/usr/lib</code>, <code>/lib</code>), additional paths can be provided using the <code>-L</code> flag (e.g <code>-L/opt/lib</code> will make the linker also search for files in /opt/lib).</br>
+Additional library locations can be provided by supplying additional <code>-L</code> entries.</br>
+Additionally, the environment variable <code>LD_LIBRARY_PATH</code> can be defined to append entries to the linker's search location. More information can be found <a href="https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html">here</a>.</p>
+<h3 id="static-libraries"><a class="header" href="#static-libraries">Static Libraries</a></h3>
+<p>Static libraries compiled as object files can be linked by simply passing the object file (i.e. extension <code>.o</code>) as an input (simlar to other <code>.st</code> files).</p>
+<p>Archive files (i.e. extension <code>.a</code>) can be linked similarly to <a href="libraries.html#shared-libraries">Shared Libraries</a> using the <code>-l</code> flag. 
+If the application is being compiled with the <code>--static</code> flag (or no shared library (<code>.so</code>) is found), the linker will use the archive file.</br></p>
+<blockquote>
+<p>If neither a shared object (<code>.so</code>) or an archive file (<code>.a</code>) is found, compilation will fail.</p>
+</blockquote>
+<h3 id="command-line-example"><a class="header" href="#command-line-example">Command line example</a></h3>
+<p>To compile a file called <code>input.st</code> including a header and linking a library called <code>libiec.so</code> from <code>/lib</code> : </p>
+<pre><code class="language-sh">rustyc input.st -i iec/header.st -L/lib/ -liec
+</code></pre>
+<h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
+<p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. </br>
+To add a library to the project, the <code>&quot;libraries&quot;</code> section can be used.
+A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).</p>
+<h3 id="name"><a class="header" href="#name"><code>name</code></a></h3>
+<p>The name of the library to be linked. This will be used by the linker to find the library. </br>
+A library with the name <code>mylib</code> must have an equivalant compiled file called <code>libmylib.so</code>.</p>
+<blockquote>
+<p>Note, archive files (ending with <code>.a</code>) are currently not supported.</p>
+</blockquote>
+<h3 id="path"><a class="header" href="#path"><code>path</code></a></h3>
+<p>The location of the library to be linked. The path can be either absolute or relative to the project. </br></p>
+<h3 id="package"><a class="header" href="#package"><code>package</code></a></h3>
+<p>The packaging option for the library, i.e wether the library should be copied or is already available on the system.</br>
+The value <a name="copy"><code>&quot;Copy&quot;</code></a> indicates that the given library should be copied to the <a href="libraries.html#library-location">Library Location</a>. </br>
+The value <a name="system"><code>&quot;System&quot;</code></a> indicates that the given library exists on the system and does not need to be copied.</p>
+<h3 id="include_path"><a class="header" href="#include_path"><code>include_path</code></a></h3>
+<p>A list of files (can include globs) that should be included with the project.</br>
+Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
+POUs and Global variables included in the list are marked as external, the implementation part of a POU is ignored.</p>
+<h3 id="library-location"><a class="header" href="#library-location">Library Location</a></h3>
+<p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="using_rusty/build_description_file.html#--lib-location">Library Location</a>. By default this is the same as the <a href="using_rusty/build_description_file.html#--build-location">Build Location</a> unless overridden by the <code>--lib-location</code> parameter.</p>
+<h3 id="using-environment-variables"><a class="header" href="#using-environment-variables">Using environment variables</a></h3>
+<p>Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location. 
+<code>$ARCH</code> can be used as placeholder in the path to indicate the the currently compiled target.
+</br></br></br></p>
+<blockquote>
+<p>During linking, if no <code>.so</code> file with name <a href="libraries.html#name"><code>lib&lt;name&gt;.so</code></a> is found, the compilation will fail.</p>
+</blockquote>
+<h3 id="configuration-example-plcjson"><a class="header" href="#configuration-example-plcjson">Configuration Example (<code>plc.json</code>)</a></h3>
+<p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em></p>
+<pre><code class="language-json">&quot;libraries&quot; : [
+    {
+        &quot;name&quot; : &quot;mylib&quot;,
+        &quot;path&quot; : &quot;libs/$ARCH/&quot;,
+        &quot;package&quot; : &quot;Copy&quot;,
+        &quot;include_path&quot; : [
+            &quot;simple_program.st&quot;
+        ]
+    },
+    {
+        &quot;name&quot; : &quot;std&quot;,
+        &quot;path&quot; : &quot;libs/$ARCH/&quot;,
+        &quot;package&quot; : &quot;System&quot;,
+        &quot;include_path&quot; : [
+            &quot;include/*.st&quot;
+        ]
+    }
+]
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="external-functions"><a class="header" href="#external-functions">External Functions</a></h1>
 <p>A <code>POU</code> (<code>PROGRAM</code>, <code>FUNCTION</code>, <code>FUNCTION_BLOCK</code>) can be marked as external,
-which will cause the compiler to ignore its implementation</p>
-<pre><code class="language-iecst">@EXTERNAL
+which will cause the compiler to ignore its implementation.</p>
+<pre><code class="language-iecst">{external}
 FUNCTION log : DINT
-VAR_INPUT
+VAR_IN_OUT
   message : STRING[1024];
+END_VAR
+VAR_INPUT
   type : (Err,Warn,Info) := Info;
 END_VAR
-END_PROGRAM
+END_FUNCTION
 </code></pre>
-<p>At compilation time, the function <code>log</code> will be defined,
+<p>At compilation time, the function <code>log</code> will be defined as an externally available function,
 and can be called from <code>ST</code> code.</p>
 <blockquote>
-<p>Note : At linking time, a <code>log</code> function with a compatible signature must be found.</p>
+<p>Note : At linking time, a <code>log</code> function with a compatible signature must be available on the system.</p>
 </blockquote>
 <h2 id="calling-c-functions"><a class="header" href="#calling-c-functions">Calling C functions</a></h2>
 <p><code>ST</code> code can call into foreign functions natively.
-To achive this, the called function must be defined in a <code>C</code> compatible API
-e.g. <code>extern &quot;C&quot;</code> blocks</p>
-<p>The interface of the function has to be declared in <code>ST</code> using the <code>@EXTERNAL</code> keyword.</p>
+To achieve this, the called function must be defined in a <code>C</code> compatible API,
+e.g. <code>extern &quot;C&quot;</code> blocks.</p>
+<p>The interface of the function has to:</p>
+<ul>
+<li>either be included with the <code>-i</code> flag</li>
+<li>or be declared in <code>ST</code> using the <code>{external}</code> keyword</li>
+</ul>
 <h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
 <p>Given a <code>min</code> function defined in <code>C</code> as follows</p>
 <pre><code class="language-C">int min(int a, int b) {
 //...
 }
 </code></pre>
-<p>An interface of that function in <code>ST</code> can be defined as</p>
-<pre><code class="language-iecst">@EXTERNAL
+<p>an interface of that function in <code>ST</code> can be defined as</p>
+<pre><code class="language-iecst">{external}
 FUNCTION min : DINT
 VAR_INPUT
   a : DINT;
   b : DINT;
 END_VAR
+END_FUNCTION
 </code></pre>
 <h3 id="variadic-arguments"><a class="header" href="#variadic-arguments">Variadic arguments</a></h3>
 <p>Some foreign functions, especially ones defined in <code>C</code>,
 could be <a href="https://en.cppreference.com/w/c/variadic">variadic functions</a>.</p>
 <p>These functions are usually defined with the last parameter <code>...</code>, and signify
 that a function can be called with unlimited parameters.</p>
-<p>An example of a variadic function is printf.</p>
+<p>An example of a variadic function is <code>printf</code>.</p>
 <p>Calling a variadic function is supported in <code>ST</code>. To mark an external function
-as variadic, you can add a parameter of type <code>...</code> to the <code>VAR_INPUT</code> block</p>
-<h4 id="variadic-function-example"><a class="header" href="#variadic-function-example">Variadic Function Example</a></h4>
+as variadic, you can add a parameter of type <code>...</code> to the <code>VAR_INPUT</code> block.</p>
+<h4 id="variadic-function-example"><a class="header" href="#variadic-function-example">Variadic function example</a></h4>
 <p>Given the <code>printf</code> function defined as</p>
 <pre><code class="language-C">int printf( const char *restrict format, ... );
 </code></pre>
-<p>The <code>ST</code> interface can be defined as</p>
-<pre><code class="language-iecst">@EXTERNAL
+<p>the <code>ST</code> interface can be defined as</p>
+<pre><code class="language-iecst">{external}
 FUNCTION printf : DINT
-VAR_INPUT
+VAR_IN_OUT
   format : STRING;
+END_VAR
+VAR_INPUT
   args : ...;
 END_VAR
 END_FUNCTION
 </code></pre>
-<h4 id="full-example"><a class="header" href="#full-example">Full Example</a></h4>
-<p>With the printf function available on the system, there is no need to declare
-the C function</p>
-<p>Declare an <code>ST</code> program called <code>ExternalFunctions.st</code> with the following code:</p>
-<pre><code class="language-iecst">@EXTERNAL FUNCTION printf : DINT
-VAR_INPUT
+<h4 id="runnable-example"><a class="header" href="#runnable-example">Runnable example</a></h4>
+<p>With the <code>printf</code> function available on the system, there is no need to declare
+the C function.</p>
+<p>An <code>ST</code> program called <code>ExternalFunctions.st</code> with the following code can be declared:</p>
+<pre><code class="language-iecst">(*ExternalFunctions.st*)
+
+(**
+ * The printf function's interface, marked as external since 
+ * it is defined directly along other ST functions
+ *)
+{external}
+FUNCTION printf : DINT
+VAR_IN_OUT
     format : STRING;
+END_VAR
+VAR_INPUT
     args: ...;
 END_VAR
 END_FUNCTION
@@ -471,20 +631,27 @@ END_FUNCTION
 
 (**
 * The main function of the program prints a demo to the standard out
+* The function main is implemented at this location and thus not marked
+* as {external}
 *)
 FUNCTION main : DINT
-  main := 1;
-  printf('Value %d, %d, %d', main, main * 10, main * 100);
+VAR
+    tmp : DINT;
+END_VAR
+  tmp := 1;
+  printf('Value %d, %d, %d$N', tmp, tmp * 10, tmp * 100);
+  main := tmp;
 END_FUNCTION
 </code></pre>
-<p>Compile the previous code with the following command</p>
-<pre><code class="language-sh">rustyc ExternalFunctions.st -o ExternalFunctions.o  --static \
-  &amp;&amp; clang ExternalFunctions.o -o ExternalFunctions
+<p>Compiling the previous code with the following command: </p>
+<pre><code class="language-sh">rustyc ExternalFunctions.st -o ExternalFunctions --linker=clang
 </code></pre>
+<p>will yield an executable called <code>ExternalFunctions</code>.</p>
 <blockquote>
-<p>Note: that we use clang to link the generated object file and generate an executable</p>
+<p>We use clang to link the generated object file and generate an executable
+since the embedded linker cannot generate executable files.</p>
 </blockquote>
-<p>You can then run the demo with <code>./ExternalFunctions</code></p>
+<p>The executable can then be started with <code>./ExternalFunctions</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="program-organization-unit-pou"><a class="header" href="#program-organization-unit-pou">Program Organization Unit (POU)</a></h1>
 <h2 id="definition"><a class="header" href="#definition">Definition</a></h2>
 <p>A POU is a executable unit available in an IEC61131-3 application.

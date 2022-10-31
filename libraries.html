@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_description_file.html"><strong aria-hidden="true">3.1.</strong> Build descrpition File</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html" class="active"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html" class="active"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -143,16 +143,111 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="libraries"><a class="header" href="#libraries">Libraries</a></h1>
-<p>RuSTy does not currently have support for separate libraries.
-Libraries can be compiled together with the application as a normal files.</p>
-<p>Precompiled libraries or system functions can be called by declaring an
-<a href="libraries/external_functions.html">External Function</a> for each POU in that library.</p>
+<p>RuSTy does not currently have support for importing <em>source based libraries</em>.</p>
+<p>Source based libraries can, however, be compiled together with the application as normal files.</p>
+<p>Precompiled libraries or system functions can be added using compilation flags or an entry in the <code>plc.json</code> file.</p>
+<p>System functions can also be added using <a href="libraries/external_functions.html">External Function</a> for each POU in that library.</p>
+<h2 id="library-structure"><a class="header" href="#library-structure">Library Structure</a></h2>
+<p>A library is defined by : </p>
+<ul>
+<li>A set of <code>st</code> interfaces, each interface represents a function that has been precompiled.
+<blockquote>
+<p>In a POU, the interface is the definition and variable section e.g:</p>
+<pre><code class="language-iecst">  (*Interface for program example *)
+  PROGRAM example
+  VAR_INPUT
+  	a,b,c : DINT
+  END_VAR 
+(* End of interface *)
+
+  (* Implementation *)
+  END_PROGRAM
+</code></pre>
+</blockquote>
+</li>
+<li>A binary file for each architecture the library has been built for (<code>x86_64-linux-gnu</code>, <code>aarch64-linux-gnu</code>, ..)</li>
+</ul>
+<h2 id="linking-libraries-using-the-rustyc-command-line"><a class="header" href="#linking-libraries-using-the-rustyc-command-line">Linking libraries using the <code>rustyc</code> command line</a></h2>
+<p>To include a library when using the <code>rustyc</code> command line interface, the include files can be added using the <code>-i</code> flag.</p>
+<p>Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
+POUs and Global variables included with the <code>-i</code> are marked as external, the implementation part of a POU is ignored.</p>
+<p>To link the library, two options are then available: <a href="#shared-libraries">Shared</a> and <a href="#static-libraries">Static</a> libraries.</p>
+<h3 id="shared-libraries"><a class="header" href="#shared-libraries">Shared Libraries</a></h3>
+<p>A shared library (i.e. extension <code>.so</code>) can be linked using the <code>-l</code> flag. </br>
+For a library called <code>mylib</code>, when the flag <code>-lmylib</code> is passed, the linker will search for a file called <code>libmylib.so</code>.</p>
+<blockquote>
+<p>Note that the <code>lib&lt;LibName&gt;.so</code> format is required by the linker for unix like systems.</p>
+</blockquote>
+<p>The library locations used by the linker are the default search locations of the linker (i.e. <code>/usr/lib</code>, <code>/lib</code>), additional paths can be provided using the <code>-L</code> flag (e.g <code>-L/opt/lib</code> will make the linker also search for files in /opt/lib).</br>
+Additional library locations can be provided by supplying additional <code>-L</code> entries.</br>
+Additionally, the environment variable <code>LD_LIBRARY_PATH</code> can be defined to append entries to the linker's search location. More information can be found <a href="https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html">here</a>.</p>
+<h3 id="static-libraries"><a class="header" href="#static-libraries">Static Libraries</a></h3>
+<p>Static libraries compiled as object files can be linked by simply passing the object file (i.e. extension <code>.o</code>) as an input (simlar to other <code>.st</code> files).</p>
+<p>Archive files (i.e. extension <code>.a</code>) can be linked similarly to <a href="#shared-libraries">Shared Libraries</a> using the <code>-l</code> flag. 
+If the application is being compiled with the <code>--static</code> flag (or no shared library (<code>.so</code>) is found), the linker will use the archive file.</br></p>
+<blockquote>
+<p>If neither a shared object (<code>.so</code>) or an archive file (<code>.a</code>) is found, compilation will fail.</p>
+</blockquote>
+<h3 id="command-line-example"><a class="header" href="#command-line-example">Command line example</a></h3>
+<p>To compile a file called <code>input.st</code> including a header and linking a library called <code>libiec.so</code> from <code>/lib</code> : </p>
+<pre><code class="language-sh">rustyc input.st -i iec/header.st -L/lib/ -liec
+</code></pre>
+<h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
+<p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. </br>
+To add a library to the project, the <code>&quot;libraries&quot;</code> section can be used.
+A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).</p>
+<h3 id="name"><a class="header" href="#name"><code>name</code></a></h3>
+<p>The name of the library to be linked. This will be used by the linker to find the library. </br>
+A library with the name <code>mylib</code> must have an equivalant compiled file called <code>libmylib.so</code>.</p>
+<blockquote>
+<p>Note, archive files (ending with <code>.a</code>) are currently not supported.</p>
+</blockquote>
+<h3 id="path"><a class="header" href="#path"><code>path</code></a></h3>
+<p>The location of the library to be linked. The path can be either absolute or relative to the project. </br></p>
+<h3 id="package"><a class="header" href="#package"><code>package</code></a></h3>
+<p>The packaging option for the library, i.e wether the library should be copied or is already available on the system.</br>
+The value <a name="copy"><code>&quot;Copy&quot;</code></a> indicates that the given library should be copied to the <a href="#library-location">Library Location</a>. </br>
+The value <a name="system"><code>&quot;System&quot;</code></a> indicates that the given library exists on the system and does not need to be copied.</p>
+<h3 id="include_path"><a class="header" href="#include_path"><code>include_path</code></a></h3>
+<p>A list of files (can include globs) that should be included with the project.</br>
+Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
+POUs and Global variables included in the list are marked as external, the implementation part of a POU is ignored.</p>
+<h3 id="library-location"><a class="header" href="#library-location">Library Location</a></h3>
+<p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="using_rusty/build_description_file.html#--lib-location">Library Location</a>. By default this is the same as the <a href="using_rusty/build_description_file.html#--build-location">Build Location</a> unless overridden by the <code>--lib-location</code> parameter.</p>
+<h3 id="using-environment-variables"><a class="header" href="#using-environment-variables">Using environment variables</a></h3>
+<p>Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location. 
+<code>$ARCH</code> can be used as placeholder in the path to indicate the the currently compiled target.
+</br></br></br></p>
+<blockquote>
+<p>During linking, if no <code>.so</code> file with name <a href="#name"><code>lib&lt;name&gt;.so</code></a> is found, the compilation will fail.</p>
+</blockquote>
+<h3 id="configuration-example-plcjson"><a class="header" href="#configuration-example-plcjson">Configuration Example (<code>plc.json</code>)</a></h3>
+<p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em></p>
+<pre><code class="language-json">&quot;libraries&quot; : [
+    {
+        &quot;name&quot; : &quot;mylib&quot;,
+        &quot;path&quot; : &quot;libs/$ARCH/&quot;,
+        &quot;package&quot; : &quot;Copy&quot;,
+        &quot;include_path&quot; : [
+            &quot;simple_program.st&quot;
+        ]
+    },
+    {
+        &quot;name&quot; : &quot;std&quot;,
+        &quot;path&quot; : &quot;libs/$ARCH/&quot;,
+        &quot;package&quot; : &quot;System&quot;,
+        &quot;include_path&quot; : [
+            &quot;include/*.st&quot;
+        ]
+    }
+]
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="using_rusty/build_description_file.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="using_rusty/build_configuration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -166,7 +261,7 @@ Libraries can be compiled together with the application as a normal files.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="using_rusty/build_description_file.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="using_rusty/build_configuration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
