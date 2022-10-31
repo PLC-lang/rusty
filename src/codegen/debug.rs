@@ -299,7 +299,6 @@ impl<'ink> DebugBuilder<'ink> {
         self.types
             .get(&dt_name)
             .ok_or_else(|| {
-                dbg!(&dt_name);
                 Diagnostic::debug_error(format!("Cannot find debug information for type {dt_name}"))
             })
             .map(|it| it.to_owned())
@@ -424,10 +423,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                     ..
                 } => self.create_typedef_type(name, referenced_type, index),
                 // Other types are just derived basic types
-                _ => {
-                    dbg!(&type_info);
-                    Ok(())
-                }
+                _ => Ok(()),
             }
         } else {
             Ok(())
