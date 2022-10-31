@@ -14,12 +14,11 @@ A library is defined by :
 - A set of `st` interfaces, each interface represents a function that has been precompiled.
 	> In a POU, the interface is the definition and variable section e.g:
 	> ```iecst
-	>	(*Interaface for program example *)
+	>	(*Interface for program example *)
 	>	PROGRAM example
 	>	VAR_INPUT
 	>		a,b,c : DINT
 	>	END_VAR 
-	>	VAR END_VAR
 	> (* End of interface *)
 	>
 	>	(* Implementation *)
@@ -35,25 +34,27 @@ To include a library when using the `rustyc` command line interface, the include
 Each [POU](pous.md), [Global Variable](variables.md), or [Datatype](datatypes.md) defined in the included files will be added to the project.
 POUs and Global variables included with the `-i` are marked as external, the implementation part of a POU is ignored.
 
-To link the library, two options are then available:
+To link the library, two options are then available: [Shared](#shared-libraries) and [Static](#static-libraries) libraries.
 
-- <a name="shared-libraries">**Shared Libraries** </a>
+### Shared Libraries
 
-    A shared library (i.e. extension `.so`) can be linked using the `-l` flag. </br>
-    For a library called `mylib`, when the flag `-lmylib` is passed, the linker will search for a file called `libmylib.so`.
-    > **Note that the `lib<LibName>.so` format is required by the linker for unix like systems**
+A shared library (i.e. extension `.so`) can be linked using the `-l` flag. </br>
+For a library called `mylib`, when the flag `-lmylib` is passed, the linker will search for a file called `libmylib.so`.
 
-    The library locations used by the linker are the default search locations of the linker (i.e. `/usr/lib`, `/lib`), additional pathes can be provided using the `-L` flag (e.g `-L/opt/lib` will make the linker also search for files in /opt/lib).</br>
-    Additionally, the environment variable `LD_LIBRARY_PATH` can be defined to append entries to the linker's search location.
+> Note that the `lib<LibName>.so` format is required by the linker for unix like systems.
 
-- <a name="static-libraries">**Static Libraries**</a>
+The library locations used by the linker are the default search locations of the linker (i.e. `/usr/lib`, `/lib`), additional paths can be provided using the `-L` flag (e.g `-L/opt/lib` will make the linker also search for files in /opt/lib).</br>
+Additional library locations can be provided by supplying additional `-L` entries.</br>
+Additionally, the environment variable `LD_LIBRARY_PATH` can be defined to append entries to the linker's search location. More information can be found [here](https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html).
 
-    Static libraries compiled as object files can be linked by simply passing the object file (i.e. extension `.o`) as an input (simlar to other `.st` files).
+### Static Libraries
 
-    Archive files (i.e. extension `.a`) can be linked similarly to [Shared Libraries](#shared-libraries) using the `-l` flag. 
-    If the application is being compiled with the `--static` flag (or no shared library (`.so`) is found), the linker will use the archive file.</br>
+Static libraries compiled as object files can be linked by simply passing the object file (i.e. extension `.o`) as an input (simlar to other `.st` files).
 
-    > If neither a shared object (`.so`) or an archive file (`.a`) is found, compilation will fail.
+Archive files (i.e. extension `.a`) can be linked similarly to [Shared Libraries](#shared-libraries) using the `-l` flag. 
+If the application is being compiled with the `--static` flag (or no shared library (`.so`) is found), the linker will use the archive file.</br>
+
+> If neither a shared object (`.so`) or an archive file (`.a`) is found, compilation will fail.
 
 ### Command line example
 

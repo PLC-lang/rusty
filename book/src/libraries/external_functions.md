@@ -118,8 +118,12 @@ END_FUNCTION
 * as {external}
 *)
 FUNCTION main : DINT
-  main := 1;
-  printf('Value %d, %d, %d', main, main * 10, main * 100);
+VAR
+    tmp : DINT;
+END_VAR
+  tmp := 1;
+  printf('Value %d, %d, %d', tmp, tmp * 10, tmp * 100);
+  main := tmp;
 END_FUNCTION
 ```
 

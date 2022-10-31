@@ -1,4 +1,4 @@
-# Build Command 
+# Build Configuration 
 
 In addition to the comprehensive help, `rustyc` offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
@@ -32,7 +32,7 @@ The keyword `files` is the equivalent to the `input` parameter, which adds all t
 
 ### libraries
 
-To link several executables `rustyc` has the option to add libraries and automatically build and link them together.</br>
+To link several objects into one executable `rustyc` has the option to add libraries and automatically build and link them together.</br>
 The `libraries` keyword is optional.
 
 ```json
@@ -58,7 +58,6 @@ Similarly to specifying an output file via the `-o` or `--output` option using t
 ### compile_type
 
 The following options can be used for the `compile_type`:
-<!-- TODO we should probably describe what each of those options do -->
 - `Static` specifies that linking/binding must be done at compile time
 - `Shared` (dynamic) specifies that linking/bingind must be done dynamically (at runtime)
 - `PIC` Position Independent Code (Choosing this option implies that the linking will be done dynamically)
@@ -115,7 +114,7 @@ The `build` subcommand exposes the following optional parameters:
 ### `--build-location`
 
 The build location is the location all build files will be copied to. </br>
-By default the build location is the `build` folder in the root of the project.</br>
+By default the build location is the `build` folder in the root of the project (the location of the `plc.json`).</br>
 This can be overriden with the `--build-location` command line parameter.
 
 ### `--lib-location`
@@ -138,6 +137,7 @@ The folder containing the `plc.json` file, i.e. the root of the project.
 ### `ARCH`
 
 The target architecture currently being built, for a multi architecture build. The value for `ARCH` will be updated for every target.
+Example targets are: `x86_64-pc-linux-gnu`, `x86_64-pc-windows-msvc`, `aarch64-pc-linux-musl`
 
 ### `BUILD_LOCATION`
 
