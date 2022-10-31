@@ -1,6 +1,6 @@
 {
     "files" : [
-        "simple_program.st"
+        "program_with_variables.st"
     ],
     "compile_type" : "Shared",
     "optimization" : "Default",

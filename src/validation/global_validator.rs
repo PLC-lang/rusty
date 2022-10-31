@@ -23,7 +23,7 @@ impl GlobalValidator {
     /// reports a name-conflict for the given name. the locations indicate the
     /// locations of the declared symbols that make up the conflict. this method will
     /// create a diagnostic per location where it attaches the other locations as additional information.
-    fn report_name_conflict(&mut self, name: &str, locations: &Vec<&SourceRange>) {
+    fn report_name_conflict(&mut self, name: &str, locations: &[&SourceRange]) {
         for (idx, v) in locations.iter().enumerate() {
             let others = locations
                 .iter()
@@ -70,7 +70,7 @@ impl GlobalValidator {
             });
 
         for (name, locations) in duplicate_variables {
-            self.report_name_conflict(name, &locations.collect());
+            self.report_name_conflict(name, &locations.collect::<Vec<_>>());
         }
 
         // 3) check uniqueness of member_variables
@@ -90,7 +90,7 @@ impl GlobalValidator {
                 &variables
                     .iter()
                     .map(|v| &v.source_location.source_range)
-                    .collect(),
+                    .collect::<Vec<_>>(),
             )
         }
 
@@ -106,7 +106,7 @@ impl GlobalValidator {
                 &variables
                     .iter()
                     .map(|v| &v.source_location.source_range)
-                    .collect(),
+                    .collect::<Vec<_>>(),
             )
         }
     }
