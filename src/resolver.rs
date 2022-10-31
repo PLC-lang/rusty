@@ -1357,6 +1357,10 @@ impl<'i> TypeAnnotator<'i> {
                                 // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
                                 // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
                                 // for more about default argument promotion.
+
+                                // varargs without a type declaration will be annotated "VOID", so in order to check if a
+                                // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
+                                // types, we promote if the type is smaller than double/i32 (except for booleans).
                                 let type_name = if let Some(data_type) =
                                     self.annotation_map.get_type(parameter, self.index)
                                 {
@@ -1380,7 +1384,8 @@ impl<'i> TypeAnnotator<'i> {
                                         _ => type_name,
                                     }
                                 } else {
-                                    // might be unreachable? at this point, should always be Some(type)
+                                    // default to original type in case no type could be found
+                                    // and let the validator handle situations that might lead here
                                     type_name
                                 };
 
