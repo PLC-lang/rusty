@@ -3226,7 +3226,6 @@ fn function_block_initialization_test() {
 
 
             PROGRAM main 
-
             VAR
                 timer : TON := (PT := T#0s); 
             END_VAR
@@ -3256,5 +3255,50 @@ fn function_block_initialization_test() {
         )
     } else {
         unreachable!("Should be an assignment")
+    }
+}
+
+#[test]
+fn multiple_pointer_dereferences_annotations() {
+    let (unit, mut index) = index(
+        "
+        PROGRAM PRG
+        VAR 
+            a : BYTE := 255; 
+            b : POINTER_TO BYTE;
+        END_VAR
+            // (&&a)^;
+            b := &a;
+            b^ := 0
+        END_PROGRAM",
+    );
+    dbg!(&unit);
+    let mut annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &statements[0],
+        "POINTER_TO_BYTE",
+        None
+    );
+
+    let _ptr_type = index.get_type_or_panic("POINTER_TO_BYTE");
+
+    if let AstStatement::PointerAccess {
+        reference, ..
+    } = &statements[0]
+    {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference,
+            "POINTER_TO_POINTER_TO_BYTE",
+            None
+        );
+    } else {
+        panic!("Not a pointer")
     }
 }
