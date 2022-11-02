@@ -416,6 +416,11 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 DataTypeInformation::Alias {
                     name,
                     referenced_type,
+                }
+                | DataTypeInformation::Enum {
+                    name,
+                    referenced_type,
+                    ..
                 } => self.create_typedef_type(name, referenced_type, index),
                 // Other types are just derived basic types
                 _ => Ok(()),
