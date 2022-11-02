@@ -3,7 +3,7 @@
 - [RuSTy](./intro_1.md)
 - [Build and Install](./build_and_install.md)
 - [Using RuSTy](./using_rusty.md)
-    - [Build descrpition File](using_rusty/build_description_file.md)
+    - [Build Configuration](using_rusty/build_configuration.md)
 - [Writing ST Programs]()
     - [Libraries](libraries.md)
         - [External Functions](libraries/external_functions.md)
