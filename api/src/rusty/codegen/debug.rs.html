@@ -500,6 +500,11 @@
 <span id="495">495</span>
 <span id="496">496</span>
 <span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">ops::Range</span>};
 
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
@@ -918,6 +923,11 @@
                 <span class="ident">DataTypeInformation::Alias</span> {
                     <span class="ident">name</span>,
                     <span class="ident">referenced_type</span>,
+                }
+                <span class="op">|</span> <span class="ident">DataTypeInformation::Enum</span> {
+                    <span class="ident">name</span>,
+                    <span class="ident">referenced_type</span>,
+                    ..
                 } =&gt; <span class="self">self</span>.<span class="ident">create_typedef_type</span>(<span class="ident">name</span>, <span class="ident">referenced_type</span>, <span class="ident">index</span>),
                 <span class="comment">// Other types are just derived basic types</span>
                 <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(()),
