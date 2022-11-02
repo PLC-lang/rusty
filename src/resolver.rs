@@ -21,7 +21,7 @@ use crate::{
     index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
-        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, REAL_TYPE,
         TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
@@ -1353,7 +1353,43 @@ impl<'i> TypeAnnotator<'i> {
                                     .or_insert_with(std::vec::Vec::new)
                                     .push(candidate.to_string())
                             } else {
-                                params.push((parameter, type_name.to_string()))
+                                // intrinsic type promotion for variadics in order to be compatible with the C standard.
+                                // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
+                                // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
+                                // for more about default argument promotion.
+
+                                // varargs without a type declaration will be annotated "VOID", so in order to check if a
+                                // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
+                                // types, we promote if the type is smaller than double/i32 (except for booleans).
+                                let type_name = if let Some(data_type) =
+                                    self.annotation_map.get_type(parameter, self.index)
+                                {
+                                    match &data_type.information {
+                                        DataTypeInformation::Float { .. } => get_bigger_type(
+                                            data_type,
+                                            self.index.get_type_or_panic(LREAL_TYPE),
+                                            self.index,
+                                        )
+                                        .get_name(),
+                                        DataTypeInformation::Integer { .. }
+                                            if !&data_type.information.is_bool() =>
+                                        {
+                                            get_bigger_type(
+                                                data_type,
+                                                self.index.get_type_or_panic(DINT_TYPE),
+                                                self.index,
+                                            )
+                                            .get_name()
+                                        }
+                                        _ => type_name,
+                                    }
+                                } else {
+                                    // default to original type in case no type could be found
+                                    // and let the validator handle situations that might lead here
+                                    type_name
+                                };
+
+                                params.push((parameter, type_name.to_string()));
                             }
                         }
                     }
