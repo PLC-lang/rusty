@@ -1857,14 +1857,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             actual_type.get_type_information(),
             self.index,
         ) {
-            match type_hint.get_type_information() {
-                DataTypeInformation::Pointer {
-                    auto_deref: true,
-                    inner_type_name,
-                    ..
-                } => inner_type_name.as_str(),
-                _ => type_hint.get_name(),
-            }
+            type_hint.get_name()
         } else {
             actual_type.get_name()
         };

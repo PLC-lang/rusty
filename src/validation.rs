@@ -6,7 +6,7 @@ use crate::{
         SourceRange, UserTypeDeclaration, Variable, VariableBlock,
     },
     codegen::generators::expression_generator::get_implicit_call_parameter,
-    index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     typesystem::{self, DataTypeInformation},
     Diagnostic,
@@ -269,20 +269,25 @@ impl Validator {
                     let mut are_implicit_parameters = true;
                     // validate parameters
                     for (i, p) in passed_parameters.iter().enumerate() {
-                        if let Ok((index, right, is_implicit)) =
+                        if let Ok((location_in_parent, right, is_implicit)) =
                             get_implicit_call_parameter(p, &declared_parameters, i)
                         {
                             // safe index of passed parameter
-                            passed_params_idx.push(index);
-                            let left_type = declared_parameters.get(index).map(|param| {
+                            passed_params_idx.push(location_in_parent);
+
+                            let left = declared_parameters.get(location_in_parent);
+                            let left_type = left.map(|param| {
                                 context
                                     .index
                                     .get_effective_type_or_void_by_name(param.get_type_name())
                             });
                             let right_type = context.ast_annotation.get_type(right, context.index);
 
-                            if let (Some(left_type), Some(right_type)) = (left_type, right_type) {
-                                self.validate_assignment(
+                            if let (Some(left), Some(left_type), Some(right_type)) =
+                                (left, left_type, right_type)
+                            {
+                                self.validate_call_parameter_assignment(
+                                    left,
                                     left_type,
                                     right_type,
                                     p.get_location(),
@@ -446,14 +451,20 @@ impl Validator {
         self.stmt_validator.validate_statement(statement, context);
     }
 
-    fn validate_assignment(
+    fn validate_call_parameter_assignment(
         &mut self,
+        left: &VariableIndexEntry,
         left_type: &typesystem::DataType,
         right_type: &typesystem::DataType,
         location: SourceRange,
         index: &Index,
     ) {
-        let left_type_info = index.find_intrinsic_type(left_type.get_type_information());
+        // for parameters passed `ByRef` we need to check the inner type of the pointer
+        let left_type_info = if matches!(left.variable_type, ArgumentType::ByRef(..)) {
+            index.find_elementary_pointer_type(left_type.get_type_information())
+        } else {
+            index.find_intrinsic_type(left_type.get_type_information())
+        };
         let right_type_info = index.find_intrinsic_type(right_type.get_type_information());
         // stmt_validator `validate_type_nature()` should report any error see `generic_validation_tests` ignore generics here and safe work
         if !matches!(left_type_info, DataTypeInformation::Generic { .. })

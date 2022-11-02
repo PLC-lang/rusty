@@ -707,7 +707,7 @@ fn function_call_parameter_validation() {
 		END_VAR
 			foo(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			foo(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit
+			foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
 			foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
 			foo(var2, var3, var4); // invalid types assigned
@@ -722,11 +722,11 @@ fn function_call_parameter_validation() {
             Diagnostic::invalid_parameter_type((360..364).into()),
             Diagnostic::invalid_parameter_type((366..370).into()),
             Diagnostic::invalid_assignment("STRING", "DINT", (425..439).into()),
-            Diagnostic::invalid_assignment("WSTRING", "DINT", (441..455).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (441..455).into()),
             Diagnostic::incompatible_type_size("DINT", 32, "hold a", (441..455).into()),
             Diagnostic::invalid_assignment("REAL", "DINT", (457..472).into()),
             Diagnostic::invalid_assignment("STRING", "DINT", (508..512).into()),
-            Diagnostic::invalid_assignment("WSTRING", "DINT", (514..518).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (514..518).into()),
             Diagnostic::invalid_assignment("REAL", "DINT", (520..524).into()),
         ]
     );
@@ -759,7 +759,7 @@ fn program_call_parameter_validation() {
 		END_VAR
 			prog(input1 := var1, inout1 := var1, output1 => var1); // valid
 
-			prog(output1 := var1, var1, var1); // invalid cannot mix explicit and implicit
+			prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
 			prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
 			prog(var2, var3, var4); // invalid types assigned
@@ -774,11 +774,11 @@ fn program_call_parameter_validation() {
             Diagnostic::invalid_parameter_type((354..358).into()),
             Diagnostic::invalid_parameter_type((360..364).into()),
             Diagnostic::invalid_assignment("STRING", "DINT", (420..434).into()),
-            Diagnostic::invalid_assignment("WSTRING", "DINT", (436..450).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (436..450).into()),
             Diagnostic::incompatible_type_size("DINT", 32, "hold a", (436..450).into()),
             Diagnostic::invalid_assignment("REAL", "DINT", (452..467).into()),
             Diagnostic::invalid_assignment("STRING", "DINT", (504..508).into()),
-            Diagnostic::invalid_assignment("WSTRING", "DINT", (510..514).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (510..514).into()),
             Diagnostic::invalid_assignment("REAL", "DINT", (516..520).into()),
         ]
     );
