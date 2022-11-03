@@ -22,7 +22,3 @@ vscode:
     - llvm-vs-code-extensions.vscode-clangd
     - vadimcn.vscode-lldb
     - matklad.rust-analyzer
-tasks:
-  - name: Run build and watch
-    init: cargo build --tests
-    command: cargo watch -x 'test'
