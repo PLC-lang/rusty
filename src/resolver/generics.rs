@@ -5,7 +5,7 @@ use crate::{
     builtins,
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::AnnotationMap,
-    typesystem::{self, DataType, DataTypeInformation},
+    typesystem::{self, DataType, DataTypeInformation, StringEncoding, STRING_TYPE, WSTRING_TYPE},
 };
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
@@ -78,7 +78,7 @@ impl<'i> TypeAnnotator<'i> {
                         .map(|it| it.get_generic_name_resolver())
                         .unwrap_or_else(|| generic_name_resolver);
                     //Figure out the new name for the call
-                    let (new_name, annotation) = self.get_generic_function_annotation(
+                    let (new_name, annotation) = self.get_specific_function_annotation(
                         generics,
                         qualified_name,
                         return_type,
@@ -86,12 +86,12 @@ impl<'i> TypeAnnotator<'i> {
                         generic_name_resolver,
                     );
 
-                    //Create a new pou and implementation for the function
+                    // Create a new pou and implementation for the function
                     if let Some(pou) = self.index.find_pou(qualified_name) {
-                        //only register concrete typed function if it was not indexed yet
+                        // only register concrete typed function if it was not indexed yet
                         if self.index.find_pou(new_name.as_str()).is_none() {
                             if let StatementAnnotation::Function { return_type, .. } = &annotation {
-                                //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
+                                // register the pou-entry, implementation and member-variables for the requested (typed) implementation
                                 // e.g. call to generic_foo(aInt)
                                 self.register_generic_pou_entries(
                                     pou,
@@ -331,15 +331,17 @@ impl<'i> TypeAnnotator<'i> {
             }
         }
     }
-    pub fn get_generic_function_annotation(
+
+    // takes the generic signature of a function and resolves it ot its specific types according to generic_map and the generic_name_resolver
+    pub fn get_specific_function_annotation(
         &self,
         generics: &[GenericBinding],
-        qualified_name: &str,
-        return_type: &str,
+        generic_qualified_name: &str,
+        generic_return_type: &str,
         generic_map: &HashMap<String, String>,
         generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
-        let call_name = generic_name_resolver(qualified_name, generics, generic_map);
+        let call_name = generic_name_resolver(generic_qualified_name, generics, generic_map);
         let annotation = self
             .index
             .find_pou(&call_name)
@@ -347,18 +349,18 @@ impl<'i> TypeAnnotator<'i> {
             .map(StatementAnnotation::from)
             .unwrap_or_else(|| {
                 let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
-                    self.index.get_type_information_or_void(return_type)
+                    self.index.get_type_information_or_void(generic_return_type)
                 {
                     generic_map
                         .get(generic_symbol)
                         .map(String::as_str)
-                        .unwrap_or(return_type)
+                        .unwrap_or(generic_return_type)
                 } else {
-                    return_type
+                    generic_return_type
                 }
                 .to_string();
                 StatementAnnotation::Function {
-                    qualified_name: qualified_name.to_string(),
+                    qualified_name: generic_qualified_name.to_string(),
                     return_type,
                     call_name: Some(call_name.clone()),
                 }
@@ -394,7 +396,22 @@ impl<'i> TypeAnnotator<'i> {
                                         .new_index
                                         .find_effective_type_info(current)
                                 })
-                                .map(|it| self.index.find_intrinsic_type(it));
+                                .map(|it| { match it {
+                                    // generic strings are a special case and need to be handled differently
+                                    DataTypeInformation::String {
+                                        encoding: StringEncoding::Utf8,
+                                        ..
+                                    } => self.index
+                                        .find_effective_type_info(STRING_TYPE)
+                                        .unwrap_or(it),
+                                    DataTypeInformation::String {
+                                        encoding: StringEncoding::Utf16,
+                                        ..
+                                    } => self.index
+                                        .find_effective_type_info(WSTRING_TYPE)
+                                        .unwrap_or(it),                
+                                    _ => self.index.find_intrinsic_type(it),
+                                }});
                             //Find bigger
                             if let Some((previous, current)) = previous_type.zip(current_type) {
                                 Some(typesystem::get_bigger_type(current, previous, self.index))

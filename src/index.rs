@@ -1395,18 +1395,6 @@ impl Index {
             } => self
                 .find_effective_type_info(referenced_type)
                 .unwrap_or(initial_type),
-            DataTypeInformation::String {
-                encoding: StringEncoding::Utf8,
-                ..
-            } => self
-                .find_effective_type_info(STRING_TYPE)
-                .unwrap_or(initial_type),
-            DataTypeInformation::String {
-                encoding: StringEncoding::Utf16,
-                ..
-            } => self
-                .find_effective_type_info(WSTRING_TYPE)
-                .unwrap_or(initial_type),
             _ => initial_type,
         }
     }
