@@ -1,20 +1,23 @@
 use crate::{
     assert_type_and_hint,
     ast::AstStatement,
+    lexer::IdProvider,
     resolver::{AnnotationMap, TypeAnnotator},
-    test_utils::tests::{annotate, index},
+    test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
 };
 
 #[test]
 fn bool_literals_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 TRUE;
                 FALSE;
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     assert_eq!(
@@ -34,15 +37,17 @@ fn bool_literals_are_annotated() {
 #[test]
 fn string_literals_are_annotated() {
     //GIVEN some string literals
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"PROGRAM PRG
                 'abc';
                 "xyzxyz";
             END_PROGRAM"#,
+        id_provider.clone(),
     );
 
     //WHEN they are annotated
-    let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     index.import(std::mem::take(&mut annotations.new_index));
 
     // THEN we expect them to be annotated with correctly sized string types
@@ -78,7 +83,8 @@ fn string_literals_are_annotated() {
 
 #[test]
 fn int_literals_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 0;
                 127;
@@ -88,8 +94,9 @@ fn int_literals_are_annotated() {
                 2147483647;
                 2147483648;
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT"];
@@ -104,7 +111,8 @@ fn int_literals_are_annotated() {
 
 #[test]
 fn date_literals_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 T#12.4d;
                 TIME#-12m;
@@ -117,8 +125,9 @@ fn date_literals_are_annotated() {
                 DATE#1984-10-01; 
                 D#2021-04-20; 
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -145,15 +154,17 @@ fn date_literals_are_annotated() {
 
 #[test]
 fn long_date_literals_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 LTIME#12.4d;
 				LDATE#1984-10-01;
 				LDT#1984-10-01-16:40:22;
 				LTOD#00:00:12;
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
@@ -169,13 +180,15 @@ fn long_date_literals_are_annotated() {
 
 #[test]
 fn real_literals_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 3.1415;
                 1.0;
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL"];
@@ -191,7 +204,8 @@ fn real_literals_are_annotated() {
 
 #[test]
 fn casted_literals_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 SINT#7;
                 INT#7;
@@ -202,8 +216,9 @@ fn casted_literals_are_annotated() {
                 BOOL#1;
                 BOOL#FALSE;
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -222,7 +237,8 @@ fn casted_literals_are_annotated() {
 
 #[test]
 fn enum_literals_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
             TYPE Color: (Green, Yellow, Red); END_TYPE
             TYPE Animal: (Dog, Cat, Horse); END_TYPE
@@ -251,8 +267,9 @@ fn enum_literals_are_annotated() {
                 PRG.Cat;        //invalid (VOID)
 
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let actual_resolves: Vec<&str> = statements
@@ -270,15 +287,17 @@ fn enum_literals_are_annotated() {
 
 #[test]
 fn enum_literals_target_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
             TYPE Color: (Green, Yellow, Red); END_TYPE
 
             PROGRAM PRG
                 Color#Red;
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let color_red = &unit.implementations[0].statements[0];
 
     assert_eq!(
@@ -310,7 +329,8 @@ fn enum_literals_target_are_annotated() {
 
 #[test]
 fn casted_inner_literals_are_annotated() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 SINT#7;
                 INT#7;
@@ -321,8 +341,9 @@ fn casted_inner_literals_are_annotated() {
                 BOOL#1;
                 BOOL#FALSE;
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -348,7 +369,8 @@ fn casted_inner_literals_are_annotated() {
 
 #[test]
 fn casted_literals_enums_are_annotated_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
             TYPE Color: (red, green, blue); END_TYPE
             PROGRAM PRG
@@ -356,8 +378,9 @@ fn casted_literals_enums_are_annotated_correctly() {
                 Color#green;
                 Color#blue;
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["Color", "Color", "Color"];
@@ -381,12 +404,14 @@ fn casted_literals_enums_are_annotated_correctly() {
 
 #[test]
 fn expression_list_members_are_annotated() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
                 (1,TRUE,3.1415);
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let exp_list = &unit.implementations[0].statements[0];
 
     let expected_types = vec!["DINT", "BOOL", "REAL"];
@@ -408,7 +433,8 @@ fn expression_list_members_are_annotated() {
 
 #[test]
 fn expression_lists_with_expressions_are_annotated() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
             VAR_GLOBAL CONSTANT
                 a : INT : = 2;
@@ -419,8 +445,9 @@ fn expression_lists_with_expressions_are_annotated() {
             PROGRAM PRG
                 (a + a, b OR b , 2 * c, a + c);
             END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let exp_list = &unit.implementations[0].statements[0];
 
     let expected_types = vec!["DINT", "BOOL", "LREAL", "LREAL"];
@@ -442,15 +469,17 @@ fn expression_lists_with_expressions_are_annotated() {
 
 #[test]
 fn array_initialization_is_annotated_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
             VAR_GLOBAL CONSTANT
                 a : ARRAY[0..2] OF BYTE := [1,2,3];
             END_VAR
             ",
+        id_provider.clone(),
     );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     let a_init = unit.global_vars[0].variables[0]
         .initializer
@@ -466,17 +495,19 @@ fn array_initialization_is_annotated_correctly() {
 #[test]
 fn expression_list_as_array_initilization_is_annotated_correctly() {
     // GIVEN two global variables beeing initialized with expression lists
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
 			VAR_GLOBAL
 				a : ARRAY[0..2] OF INT := 1+1,2;
 				b : ARRAY[0..2] OF STRING[3] := 'ABC','D';
 			END_VAR
 		",
+        id_provider.clone(),
     );
 
     // WHEN annotation is done
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN for the first statement
     let a_init = unit.global_vars[0].variables[0]

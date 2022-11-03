@@ -1,18 +1,23 @@
 use core::panic;
 
-use crate::{assert_type_and_hint, ast::AstStatement, test_utils::tests::index, TypeAnnotator};
+use crate::{
+    assert_type_and_hint, ast::AstStatement, lexer::IdProvider, test_utils::tests::index_with_ids,
+    TypeAnnotator,
+};
 
 #[test]
 fn binary_expressions_resolves_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
                 VAR x : INT; END_VAR
                 FOR x := 3 TO 10 BY 2 DO 
                     x;
                 END_FOR
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::ForLoopStatement {

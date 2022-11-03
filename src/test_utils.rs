@@ -58,17 +58,26 @@ pub mod tests {
         do_index(src, id_provider)
     }
 
-    pub fn annotate(parse_result: &CompilationUnit, index: &mut Index) -> AnnotationMapImpl {
-        let (mut annotations, _) = TypeAnnotator::visit_unit(index, parse_result);
+    pub fn index_with_ids(src: &str, id_provider: IdProvider) -> (CompilationUnit, Index) {
+        do_index(src, id_provider)
+    }
+
+    pub fn annotate_with_ids(
+        parse_result: &CompilationUnit,
+        index: &mut Index,
+        id_provider: IdProvider,
+    ) -> AnnotationMapImpl {
+        let (mut annotations, _) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
-        let (unit, index) = index(src);
+        let id_provider = IdProvider::default();
+        let (unit, index) = index_with_ids(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+        let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new();
@@ -88,7 +97,8 @@ pub mod tests {
         let (unit, index) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, literals) = TypeAnnotator::visit_unit(&index, &unit);
+        let (mut annotations, literals) =
+            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();

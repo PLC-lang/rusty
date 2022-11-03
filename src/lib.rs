@@ -581,7 +581,8 @@ fn index_module<T: SourceContainer>(
     let mut all_annotations = AnnotationMapImpl::default();
     let mut all_literals = StringLiterals::default();
     for (file_id, syntax_errors, unit) in all_units.into_iter() {
-        let (annotations, string_literals) = TypeAnnotator::visit_unit(&full_index, &unit);
+        let (annotations, string_literals) =
+            TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
 
         let mut validator = Validator::new();
         validator.visit_unit(&annotations, &full_index, &unit);

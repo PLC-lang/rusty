@@ -10,11 +10,8 @@ use crate::{
     codegen::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
-    resolver::AstAnnotations,
-    typesystem::{
-        self, DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
-        RANGE_CHECK_U_FN,
-    },
+    resolver::{AnnotationMap, AstAnnotations},
+    typesystem::{self, DataTypeInformation},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -22,7 +19,6 @@ use inkwell::{
     context::Context,
     values::{BasicValueEnum, FunctionValue},
 };
-use std::ops::Range;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'a> {
@@ -203,26 +199,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
-        let range_checked_right_side =
-            if let DataTypeInformation::SubRange { sub_range, .. } = left_type {
-                // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
+        let range_checked_right_side = if let DataTypeInformation::SubRange { .. } = left_type {
+            // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
 
-                //TODO move this to generate_store
-                self.find_range_check_implementation_for(left_type)
-                    .map(|implementation| {
-                        create_call_to_check_function_ast(
-                            left_statement,
-                            implementation.get_call_name().to_string(),
-                            right_statement.clone(),
-                            sub_range.clone(),
-                            &left_statement.get_location(),
-                        )
-                    })
-            } else {
-                None
-            };
+            self.annotations.get_function_annotation(right_statement)
+        } else {
+            None
+        };
 
-        let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
+        let right_statement = range_checked_right_side.unwrap_or(right_statement);
 
         exp_gen.generate_store(left, left_type, right_statement)?;
         Ok(())
@@ -351,38 +336,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         }
 
         Ok(())
-    }
-
-    /// returns the implementation of the sub-range-check-function for a variable of the given dataType
-    fn find_range_check_implementation_for(
-        &self,
-        range_type: &DataTypeInformation,
-    ) -> Option<&ImplementationIndexEntry> {
-        match range_type {
-            DataTypeInformation::Integer { signed, size, .. } if *signed && *size <= 32 => {
-                self.index.find_pou_implementation(RANGE_CHECK_S_FN)
-            }
-            DataTypeInformation::Integer { signed, size, .. } if *signed && *size > 32 => {
-                self.index.find_pou_implementation(RANGE_CHECK_LS_FN)
-            }
-            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size <= 32 => {
-                self.index.find_pou_implementation(RANGE_CHECK_U_FN)
-            }
-            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size > 32 => {
-                self.index.find_pou_implementation(RANGE_CHECK_LU_FN)
-            }
-            DataTypeInformation::Alias { name, .. }
-            | DataTypeInformation::SubRange {
-                referenced_type: name,
-                ..
-            } => {
-                //traverse to the primitive type
-                self.index
-                    .find_effective_type_info(name)
-                    .and_then(|info| self.find_range_check_implementation_for(info))
-            }
-            _ => None,
-        }
     }
 
     /// generates a for-loop statement
@@ -810,22 +763,4 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.llvm.context,
         )
     }
-}
-
-fn create_call_to_check_function_ast(
-    target: &AstStatement,
-    check_function_name: String,
-    parameter: AstStatement,
-    sub_range: Range<AstStatement>,
-    location: &SourceRange,
-) -> AstStatement {
-    let range_type_id = sub_range.start.get_id();
-    let target_id = target.get_id();
-    crate::ast::create_call_to(
-        check_function_name,
-        vec![parameter, sub_range.start, sub_range.end],
-        target_id,
-        range_type_id,
-        location,
-    )
 }
