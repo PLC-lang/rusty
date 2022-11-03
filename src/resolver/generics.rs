@@ -66,18 +66,18 @@ impl<'i> TypeAnnotator<'i> {
         {
             if !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
-                //Annotate the statement with the new function call
+                // Annotate the statement with the new function call
                 if let Some(StatementAnnotation::Function {
                     qualified_name,
                     return_type,
                     ..
                 }) = self.annotation_map.get(operator)
                 {
-                    //Find the generic resolver
+                    // Find the generic resolver
                     let generic_name_resolver = builtins::get_builtin(qualified_name)
                         .map(|it| it.get_generic_name_resolver())
                         .unwrap_or_else(|| generic_name_resolver);
-                    //Figure out the new name for the call
+                    // get information about the generic function name and annotation
                     let (new_name, annotation) = self.get_specific_function_annotation(
                         generics,
                         qualified_name,
@@ -108,10 +108,10 @@ impl<'i> TypeAnnotator<'i> {
                         }
                     }
 
-                    //annotate the call-statement so it points to the new implementation
+                    // annotate the call-statement so it points to the new implementation
                     self.annotation_map.annotate(operator, annotation);
                 }
-                //Adjust annotations on the inner statement
+                // Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
                     self.update_generic_function_parameters(s, implementation_name, generic_map);
