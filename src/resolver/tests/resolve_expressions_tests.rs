@@ -3425,7 +3425,8 @@ fn function_block_initialization_test() {
 #[test]
 fn undeclared_varargs_type_hint_promoted_correctly() {
     // GIVEN a variadic function without type declarations
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
             FUNCTION variadic : BOOL
             VAR_INPUT
@@ -3446,10 +3447,11 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
                 variadic(float, double, u1, u8, short, long, longlong, 'hello');
             END_PROGRAM
             ",
+        id_provider.clone(),
     );
 
     // WHEN called with numerical types
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let call_stmt = &unit.implementations[1].statements[0];
     // THEN types smaller than LREAL/DINT get promoted while booleans and other types stay untouched.
     if let AstStatement::CallStatement { parameters, .. } = call_stmt {
