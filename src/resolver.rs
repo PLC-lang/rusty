@@ -56,7 +56,7 @@ pub struct VisitorContext<'s> {
     /// special context of the left-hand-side of an assignment in call statements
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
-    call: Option<&'s str>,
+    lhs: Option<&'s str>,
     /// true if visiting a call statement
     is_call: bool,
 
@@ -75,7 +75,7 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: Some(qualifier),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
@@ -87,7 +87,7 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: Some(pou),
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
@@ -95,27 +95,33 @@ impl<'s> VisitorContext<'s> {
     }
 
     /// returns a copy of the current context and changes the `lhs_pou` to the given pou
-    fn with_call(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
+    fn with_lhs(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: Some(lhs_pou),
+            lhs: Some(lhs_pou),
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
         }
     }
 
-    /// returns a copy of the current context and changes the `is_call` to true
-    fn set_is_call(&self) -> VisitorContext<'s> {
-        VisitorContext {
+    /// Runs in a temporary context with the "is call" marker
+    /// This helps resolving recursive function calls to differentiate them from references
+    fn run_in_call<T: FnOnce(&mut TypeAnnotator, VisitorContext)>(
+        &self,
+        annotator: &mut TypeAnnotator,
+        action: T,
+    ) {
+        let ctx = VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: true,
-            constant: false,
+            constant: self.constant,
             in_body: self.in_body,
-        }
+        };
+        action(annotator, ctx);
     }
 
     // returns a copy of the current context and sets the in_body field to true
@@ -123,7 +129,7 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: self.constant,
             in_body: true,
@@ -460,7 +466,7 @@ impl<'i> TypeAnnotator<'i> {
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
-            call: None,
+            lhs: None,
             is_call: false,
             constant: false,
             in_body: false,
@@ -716,7 +722,7 @@ impl<'i> TypeAnnotator<'i> {
             {
                 //Create a new context with the left operator being the target variable type, and the
                 //right side being the local context
-                let ctx = ctx.with_call(expected_type.get_name());
+                let ctx = ctx.with_lhs(expected_type.get_name());
                 self.visit_statement(&ctx, initializer);
 
                 self.annotation_map.annotate_type_hint(
@@ -865,7 +871,7 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, reference);
                 self.visit_statement(
                     &VisitorContext {
-                        call: None,
+                        lhs: None,
                         is_call: false,
                         constant: false,
                         pou: ctx.pou,
@@ -1221,7 +1227,7 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::Assignment { left, right, .. } => {
                 self.visit_statement(ctx, right);
-                if let Some(lhs) = ctx.call {
+                if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs), left);
                 } else {
@@ -1232,7 +1238,7 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::OutputAssignment { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
-                if let Some(lhs) = ctx.call {
+                if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs), left);
                 } else {
@@ -1291,10 +1297,12 @@ impl<'i> TypeAnnotator<'i> {
             unreachable!("Always a call statement");
         };
         // #604 needed for recursive function calls
-        let ctx = ctx.set_is_call();
-        self.visit_statement(&ctx, operator);
+        ctx.run_in_call(self, |annotator, operator_context| {
+            annotator.visit_statement(&operator_context, operator)
+        });
         let operator_qualifier = self.get_call_name(operator);
-        let ctx = ctx.with_call(operator_qualifier.as_str());
+        //Use the context without the is_call =true
+        let ctx = ctx.with_lhs(operator_qualifier.as_str());
         let parameters = if let Some(parameters) = parameters_stmt {
             self.visit_statement(&ctx, parameters);
             flatten_expression_list(parameters)

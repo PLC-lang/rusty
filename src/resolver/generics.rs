@@ -396,22 +396,26 @@ impl<'i> TypeAnnotator<'i> {
                                         .new_index
                                         .find_effective_type_info(current)
                                 })
-                                .map(|it| { match it {
-                                    // generic strings are a special case and need to be handled differently
-                                    DataTypeInformation::String {
-                                        encoding: StringEncoding::Utf8,
-                                        ..
-                                    } => self.index
-                                        .find_effective_type_info(STRING_TYPE)
-                                        .unwrap_or(it),
-                                    DataTypeInformation::String {
-                                        encoding: StringEncoding::Utf16,
-                                        ..
-                                    } => self.index
-                                        .find_effective_type_info(WSTRING_TYPE)
-                                        .unwrap_or(it),                
-                                    _ => self.index.find_intrinsic_type(it),
-                                }});
+                                .map(|it| {
+                                    match it {
+                                        // generic strings are a special case and need to be handled differently
+                                        DataTypeInformation::String {
+                                            encoding: StringEncoding::Utf8,
+                                            ..
+                                        } => self
+                                            .index
+                                            .find_effective_type_info(STRING_TYPE)
+                                            .unwrap_or(it),
+                                        DataTypeInformation::String {
+                                            encoding: StringEncoding::Utf16,
+                                            ..
+                                        } => self
+                                            .index
+                                            .find_effective_type_info(WSTRING_TYPE)
+                                            .unwrap_or(it),
+                                        _ => self.index.find_intrinsic_type(it),
+                                    }
+                                });
                             //Find bigger
                             if let Some((previous, current)) = previous_type.zip(current_type) {
                                 Some(typesystem::get_bigger_type(current, previous, self.index))

@@ -3339,3 +3339,56 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
         unreachable!();
     }
 }
+
+#[test]
+fn passing_a_function_as_param_correctly_resolves_as_variable() {
+    // GIVEN a function
+    let (unit, mut index) = index(
+        r#"
+        {external}
+        FUNCTION printf : DINT
+        VAR_IN_OUT
+            format : STRING;
+        END_VAR
+        VAR_INPUT
+            args: ...;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            printf('Value %d, %d, %d', main, main * 10, main * 100);
+        END_FUNCTION
+    "#,
+    );
+
+    // WHEN calling another function with itself as parameter
+    let annotations = annotate(&unit, &mut index);
+    let call_stmt = &unit.implementations[1].statements[0];
+    // THEN the type of the parameter resolves to the original function type
+    if let AstStatement::CallStatement { parameters, .. } = call_stmt {
+        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[1],
+            DINT_TYPE,
+            Some(DINT_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[2],
+            DINT_TYPE,
+            Some(DINT_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[3],
+            DINT_TYPE,
+            Some(DINT_TYPE)
+        );
+    } else {
+        unreachable!()
+    }
+}

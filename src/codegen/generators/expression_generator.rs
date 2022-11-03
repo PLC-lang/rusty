@@ -972,7 +972,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     "",
                 );
 
-                Ok(vec![size_param.into(), arr_storage.into()])
+                Ok(vec![size_param.into(), arr_storage])
             } else {
                 Ok(generated_params)
             }
