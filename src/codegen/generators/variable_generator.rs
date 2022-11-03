@@ -71,7 +71,11 @@ pub fn generate_global_variables<'ctx, 'b>(
         })?;
         index.associate_global(name, global_variable)?;
         //generate debug info
-        debug.create_global_variable(name, &variable.data_type_name, global_variable)?;
+        debug.create_global_variable(
+            variable.get_qualified_name(),
+            &variable.data_type_name,
+            global_variable,
+        )?;
     }
     Ok(index)
 }
@@ -127,7 +131,7 @@ pub fn generate_global_variable<'ctx, 'b>(
             if initial_value.is_none() {
                 return Err(Diagnostic::codegen_error(
                     "Cannot generate uninitialized constant",
-                    global_variable.source_location.clone(),
+                    global_variable.source_location.source_range.clone(),
                 ));
             }
         }

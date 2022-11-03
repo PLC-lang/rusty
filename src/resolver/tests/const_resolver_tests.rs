@@ -34,7 +34,7 @@ fn find_member_value<'a>(index: &'a Index, pou: &str, reference: &str) -> Option
     })
 }
 
-fn find_connstant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstStatement> {
+fn find_constant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstStatement> {
     index.find_global_variable(reference).and_then(|it| {
         index
             .get_const_expressions()
@@ -106,27 +106,27 @@ fn const_references_to_int_compile_time_evaluation() {
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.2),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.0),
-        find_connstant_value(&index, "e").unwrap()
+        find_constant_value(&index, "e").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.0),
-        find_connstant_value(&index, "f").unwrap()
+        find_constant_value(&index, "f").unwrap()
     );
 }
 
@@ -156,11 +156,11 @@ fn local_const_references_to_int_compile_time_evaluation() {
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.2),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
 }
 
@@ -197,12 +197,12 @@ fn local_const_references_to_int_compile_time_evaluation_uses_correct_scopes() {
     // THEN g should resolve its inital value to global 'a'
     debug_assert_eq!(
         &create_int_literal(5),
-        find_connstant_value(&index, "g").unwrap()
+        find_constant_value(&index, "g").unwrap()
     );
     // THEN h should resolve its inital value to 'prg.a'
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "h").unwrap()
+        find_constant_value(&index, "h").unwrap()
     );
     // AND prg.v should resolve its initial value to 'prg.a'
     debug_assert_eq!(
@@ -242,7 +242,7 @@ fn non_const_references_to_int_compile_time_evaluation() {
     // THEN a to f got their correct initial-literals
     debug_assert_eq!(
         &create_int_literal(2),
-        find_connstant_value(&index, "ok").unwrap()
+        find_constant_value(&index, "ok").unwrap()
     );
 
     debug_assert_eq!(
@@ -327,15 +327,15 @@ fn const_references_to_negative_reference() {
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
         &create_int_literal(-4),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(-4.2),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(-5),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
 }
 
@@ -370,27 +370,27 @@ fn const_references_to_int_additions_compile_time_evaluation() {
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(11),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.2),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.0),
-        find_connstant_value(&index, "e").unwrap()
+        find_constant_value(&index, "e").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(11.7),
-        find_connstant_value(&index, "f").unwrap()
+        find_constant_value(&index, "f").unwrap()
     );
 }
 
@@ -425,27 +425,27 @@ fn const_references_to_int_subtractions_compile_time_evaluation() {
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(-3),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.2),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.0),
-        find_connstant_value(&index, "e").unwrap()
+        find_constant_value(&index, "e").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(-3.7),
-        find_connstant_value(&index, "f").unwrap()
+        find_constant_value(&index, "f").unwrap()
     );
 }
 
@@ -480,27 +480,27 @@ fn const_references_to_int_multiplications_compile_time_evaluation() {
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(28),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.2),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(4.0),
-        find_connstant_value(&index, "e").unwrap()
+        find_constant_value(&index, "e").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(30.8),
-        find_connstant_value(&index, "f").unwrap()
+        find_constant_value(&index, "f").unwrap()
     );
 }
 
@@ -535,27 +535,27 @@ fn const_references_to_int_division_compile_time_evaluation() {
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
         &create_int_literal(40),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(40),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(5),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(40.2),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(40.0),
-        find_connstant_value(&index, "e").unwrap()
+        find_constant_value(&index, "e").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(40_f64 / 7.7),
-        find_connstant_value(&index, "f").unwrap()
+        find_constant_value(&index, "f").unwrap()
     );
 }
 
@@ -671,127 +671,127 @@ fn const_references_int_float_type_behavior_evaluation() {
     // INT - INT
     debug_assert_eq!(
         &create_int_literal(4),
-        find_connstant_value(&index, "int_plus_int").unwrap()
+        find_constant_value(&index, "int_plus_int").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(2),
-        find_connstant_value(&index, "int_minus_int").unwrap()
+        find_constant_value(&index, "int_minus_int").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(6),
-        find_connstant_value(&index, "int_mul_int").unwrap()
+        find_constant_value(&index, "int_mul_int").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(2),
-        find_connstant_value(&index, "int_div_int").unwrap()
+        find_constant_value(&index, "int_div_int").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(5 % 2),
-        find_connstant_value(&index, "int_mod_int").unwrap()
+        find_constant_value(&index, "int_mod_int").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(true),
-        find_connstant_value(&index, "int_eq_int").unwrap()
+        find_constant_value(&index, "int_eq_int").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(false),
-        find_connstant_value(&index, "int_neq_int").unwrap()
+        find_constant_value(&index, "int_neq_int").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(false),
-        find_connstant_value(&index, "int_g_int").unwrap()
+        find_constant_value(&index, "int_g_int").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(true),
-        find_connstant_value(&index, "int_ge_int").unwrap()
+        find_constant_value(&index, "int_ge_int").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(false),
-        find_connstant_value(&index, "int_l_int").unwrap()
+        find_constant_value(&index, "int_l_int").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(true),
-        find_connstant_value(&index, "int_le_int").unwrap()
+        find_constant_value(&index, "int_le_int").unwrap()
     );
     // INT - REAL
     debug_assert_eq!(
         &create_real_literal(4.1),
-        find_connstant_value(&index, "int_plus_real").unwrap()
+        find_constant_value(&index, "int_plus_real").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(3.0 - 1.1),
-        find_connstant_value(&index, "int_minus_real").unwrap()
+        find_constant_value(&index, "int_minus_real").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(3.0 * 1.1),
-        find_connstant_value(&index, "int_mul_real").unwrap()
+        find_constant_value(&index, "int_mul_real").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(5.0 / 2.1),
-        find_connstant_value(&index, "int_div_real").unwrap()
+        find_constant_value(&index, "int_div_real").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(5.0 % 2.1),
-        find_connstant_value(&index, "int_mod_real").unwrap()
+        find_constant_value(&index, "int_mod_real").unwrap()
     );
     // REAL - INT
     debug_assert_eq!(
         &create_real_literal(4.3),
-        find_connstant_value(&index, "real_plus_int").unwrap()
+        find_constant_value(&index, "real_plus_int").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(2.3),
-        find_connstant_value(&index, "real_minus_int").unwrap()
+        find_constant_value(&index, "real_minus_int").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(6.6),
-        find_connstant_value(&index, "real_mul_int").unwrap()
+        find_constant_value(&index, "real_mul_int").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(5.2 / 2.0),
-        find_connstant_value(&index, "real_div_int").unwrap()
+        find_constant_value(&index, "real_div_int").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(5.2 % 2.0),
-        find_connstant_value(&index, "real_mod_int").unwrap()
+        find_constant_value(&index, "real_mod_int").unwrap()
     );
     // REAL - REAL
     debug_assert_eq!(
         &create_real_literal(4.4),
-        find_connstant_value(&index, "real_plus_real").unwrap()
+        find_constant_value(&index, "real_plus_real").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(3.3 - 1.1),
-        find_connstant_value(&index, "real_minus_real").unwrap()
+        find_constant_value(&index, "real_minus_real").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(3.3 * 1.1),
-        find_connstant_value(&index, "real_mul_real").unwrap()
+        find_constant_value(&index, "real_mul_real").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(5.3 / 2.1),
-        find_connstant_value(&index, "real_div_real").unwrap()
+        find_constant_value(&index, "real_div_real").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(5.3 % 2.1),
-        find_connstant_value(&index, "real_mod_real").unwrap()
+        find_constant_value(&index, "real_mod_real").unwrap()
     );
     // BOOL - BOOL
     debug_assert_eq!(
         &create_bool_literal(true),
-        find_connstant_value(&index, "bool_and_bool").unwrap()
+        find_constant_value(&index, "bool_and_bool").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(true),
-        find_connstant_value(&index, "bool_or_bool").unwrap()
+        find_constant_value(&index, "bool_or_bool").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(false),
-        find_connstant_value(&index, "bool_xor_bool").unwrap()
+        find_constant_value(&index, "bool_xor_bool").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(false),
-        find_connstant_value(&index, "not_bool").unwrap()
+        find_constant_value(&index, "not_bool").unwrap()
     );
 }
 
@@ -822,23 +822,23 @@ fn const_references_bool_bit_functions_behavior_evaluation() {
     // AND the index should have literal values
     debug_assert_eq!(
         &create_bool_literal(true),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(false),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(true),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(false),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
     debug_assert_eq!(
         &create_bool_literal(false),
-        find_connstant_value(&index, "e").unwrap()
+        find_constant_value(&index, "e").unwrap()
     );
 }
 
@@ -868,23 +868,23 @@ fn const_references_int_bit_functions_behavior_evaluation() {
     // AND the index should have literal values
     debug_assert_eq!(
         &create_int_literal(0xFFAB),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(0x00AB),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(0xFFFF),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(0xFF54),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(0x0054),
-        find_connstant_value(&index, "e").unwrap()
+        find_constant_value(&index, "e").unwrap()
     );
 }
 #[test]
@@ -953,20 +953,20 @@ fn division_by_0_should_fail() {
     // AND the real divisions are inf or nan
     debug_assert_eq!(
         &create_real_literal(f64::INFINITY),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_real_literal(f64::INFINITY),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
 
-    if let AstStatement::LiteralReal { value, .. } = find_connstant_value(&index, "bb").unwrap() {
+    if let AstStatement::LiteralReal { value, .. } = find_constant_value(&index, "bb").unwrap() {
         assert!(value.parse::<f64>().unwrap().is_nan());
     } else {
         unreachable!()
     }
 
-    if let AstStatement::LiteralReal { value, .. } = find_connstant_value(&index, "dd").unwrap() {
+    if let AstStatement::LiteralReal { value, .. } = find_constant_value(&index, "dd").unwrap() {
         assert!(value.parse::<f64>().unwrap().is_nan());
     } else {
         unreachable!()
@@ -1000,27 +1000,27 @@ fn const_references_not_function_with_signed_ints() {
     // AND the index should have literal values
     debug_assert_eq!(
         &create_int_literal(-85),
-        find_connstant_value(&index, "a").unwrap()
+        find_constant_value(&index, "a").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(0x0000_ffab),
-        find_connstant_value(&index, "aa").unwrap()
+        find_constant_value(&index, "aa").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(171),
-        find_connstant_value(&index, "b").unwrap()
+        find_constant_value(&index, "b").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(-1),
-        find_connstant_value(&index, "c").unwrap()
+        find_constant_value(&index, "c").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(-172),
-        find_connstant_value(&index, "d").unwrap()
+        find_constant_value(&index, "d").unwrap()
     );
     debug_assert_eq!(
         &create_int_literal(84),
-        find_connstant_value(&index, "e").unwrap()
+        find_constant_value(&index, "e").unwrap()
     );
 }
 
@@ -1048,15 +1048,15 @@ fn const_references_to_bool_compile_time_evaluation() {
     // THEN a,b,and c got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
-        find_connstant_value(&index, "a"),
+        find_constant_value(&index, "a"),
         Some(&create_bool_literal(true))
     );
     debug_assert_eq!(
-        find_connstant_value(&index, "b"),
+        find_constant_value(&index, "b"),
         Some(&create_bool_literal(true))
     );
     debug_assert_eq!(
-        find_connstant_value(&index, "c"),
+        find_constant_value(&index, "c"),
         Some(&create_bool_literal(false))
     );
 }
@@ -1115,11 +1115,11 @@ fn evaluating_constants_can_handle_recursion() {
     );
     // AND aa and bb where resolved correctly
     debug_assert_eq!(
-        find_connstant_value(&index, "aa"),
+        find_constant_value(&index, "aa"),
         Some(&create_int_literal(4))
     );
     debug_assert_eq!(
-        find_connstant_value(&index, "bb"),
+        find_constant_value(&index, "bb"),
         Some(&create_int_literal(4))
     );
 }
@@ -1149,7 +1149,7 @@ fn const_string_initializers_should_be_converted() {
     // AND the globals should have gotten their values
 
     debug_assert_eq!(
-        find_connstant_value(&index, "aa"),
+        find_constant_value(&index, "aa"),
         Some(AstStatement::LiteralString {
             value: "World".into(),
             is_wide: false,
@@ -1158,7 +1158,7 @@ fn const_string_initializers_should_be_converted() {
         })
     );
     debug_assert_eq!(
-        find_connstant_value(&index, "bb"),
+        find_constant_value(&index, "bb"),
         Some(AstStatement::LiteralString {
             value: "Hello".into(),
             is_wide: true,
@@ -1193,7 +1193,7 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
 
     // AND the globals should have gotten their values
     debug_assert_eq!(
-        find_connstant_value(&index, "tau"),
+        find_constant_value(&index, "tau"),
         Some(AstStatement::LiteralReal {
             value: "6.283".into(),
             id: 0,
@@ -1492,4 +1492,71 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
     } else {
         unreachable!()
     }
+}
+
+#[test]
+fn function_block_initializers_constant_resolved_in_assignment() {
+    // GIVEN a multi-nested Array Type with an initializer
+    let (parse_result, mut index) = index(
+        "FUNCTION_BLOCK TON
+            VAR_OUTPUT
+                a : INT;
+                b : INT;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+        PROGRAM main 
+
+        VAR CONSTANT
+            TEN : INT := 10;
+        END_VAR
+        VAR
+            struct1 : TON := (a := 10, b := TEN + 7);
+            struct2 : TON := (b := 10, a := TEN + 7);
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    annotate(&parse_result, &mut index);
+    let (_, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+}
+
+#[test]
+fn contants_in_case_statements_resolved() {
+    let (parse_result, mut index) = index(
+        " 
+        PROGRAM main
+            VAR
+                DAYS_IN_MONTH : DINT;
+            END_VAR
+            VAR CONSTANT
+                SIXTY : DINT := 60;
+            END_VAR
+            CASE DAYS_IN_MONTH OF
+              32..SIXTY	:	DAYS_IN_MONTH := 29;
+              (SIXTY	+ 2)..70 :	DAYS_IN_MONTH := 30;
+            ELSE
+              DAYS_IN_MONTH := 31;
+            END_CASE;
+        END_PROGRAM 
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    annotate(&parse_result, &mut index);
+    let (_, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    // DONE in Codegen tests:
+    // AND the first case should be 32..60
+    // AND the second case should be 62..70
 }

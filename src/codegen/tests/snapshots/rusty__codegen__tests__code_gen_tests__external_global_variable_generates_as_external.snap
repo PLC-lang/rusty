@@ -5,13 +5,13 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type {}
+%main = type {}
 
 @gX = external global i16
 @gY = external global i8
-@main_instance = global %main_interface zeroinitializer
+@main_instance = global %main zeroinitializer
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
   ret void
 }

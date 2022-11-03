@@ -1,7 +1,7 @@
 use core::panic;
 
 use crate::{
-    ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration},
+    ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
     index::{Index, VariableType},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
@@ -1967,6 +1967,22 @@ fn global_lint_enums_type_resolving() {
 }
 
 #[test]
+fn enum_element_initialization_is_annotated_correctly() {
+    let (unit, mut index) = index(" TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE ");
+
+    let annotations = annotate(&unit, &mut index);
+    let data_type = &unit.types[0].data_type;
+    if let DataType::EnumType { elements, .. } = data_type {
+        if let AstStatement::Assignment { right, .. } = flatten_expression_list(&elements)[2] {
+            assert_type_and_hint!(&annotations, &index, &*right, "DINT", Some("MyEnum"));
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+}
+#[test]
 fn enum_initialization_is_annotated_correctly() {
     let (unit, mut index) = index(
         " TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
@@ -3133,4 +3149,112 @@ fn and_statement_of_dints_results_in_dint() {
         DINT_TYPE,
         None
     );
+}
+
+#[test]
+fn resolve_recursive_function_call() {
+    //GIVEN
+    let (unit, index) = index(
+        "
+        FUNCTION foo : DINT
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			foo(input1 := var1, inout1 := var2, output1 => var3, );
+			foo := var1;
+		END_FUNCTION
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let type_map = annotations.type_map;
+    let annotated_types = format!("{:#?}", type_map);
+
+    insta::assert_snapshot!(annotated_types);
+}
+
+#[test]
+fn resolve_recursive_program_call() {
+    //GIVEN
+    let (unit, index) = index(
+        "
+        PROGRAM mainProg
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			mainProg(input1 := var1, inout1 := var2, output1 => var3, );
+		END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let type_map = annotations.type_map;
+    let annotated_types = format!("{:#?}", type_map);
+
+    insta::assert_snapshot!(annotated_types);
+}
+
+#[test]
+fn function_block_initialization_test() {
+    let (unit, mut index) = index(
+        "
+            FUNCTION_BLOCK TON
+            VAR_INPUT
+              PT: TIME;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+
+            PROGRAM main 
+
+            VAR
+                timer : TON := (PT := T#0s); 
+            END_VAR
+            END_PROGRAM
+            ",
+    );
+
+    let annotations = annotate(&unit, &mut index);
+
+    //PT will be a TIME variable, qualified name will be TON.PT
+    let statement = unit.units[1].variable_blocks[0].variables[0]
+        .initializer
+        .as_ref()
+        .unwrap();
+    if let AstStatement::Assignment { left, .. } = statement {
+        let left = left.as_ref();
+        let annotation = annotations.get(left).unwrap();
+        assert_eq!(
+            annotation,
+            &StatementAnnotation::Variable {
+                resulting_type: "TIME".into(),
+                qualified_name: "TON.PT".into(),
+                constant: false,
+                variable_type: VariableType::Input,
+                is_auto_deref: false
+            }
+        )
+    } else {
+        unreachable!("Should be an assignment")
+    }
 }

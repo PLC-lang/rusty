@@ -1,22 +1,20 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2419
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { i16, i16, i16, [125 x i32] }
+%main = type { i16, i16, i16, [125 x i32] }
 
-@main_instance = global %main_interface zeroinitializer
+@main_instance = global %main zeroinitializer
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %x = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
-  %z = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
-  %cube = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 3
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %z = getelementptr inbounds %main, %main* %0, i32 0, i32 2
+  %cube = getelementptr inbounds %main, %main* %0, i32 0, i32 3
   %load_x = load i16, i16* %x, align 2
   %1 = sext i16 %load_x to i32
   %tmpVar = mul i32 25, %1

@@ -28,7 +28,7 @@ macro_rules! arithmetic_expression {
             (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralInteger{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: loc_left.span(loc_right)
                 })
             },
             (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
@@ -36,7 +36,7 @@ macro_rules! arithmetic_expression {
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: $resulting_id, value: (*lvalue as f64 $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: (*lvalue as f64 $op rvalue).to_string(), location: loc_left.span(loc_right)
                 })
             },
             (   AstStatement::LiteralReal{value: lvalue, location: loc_left, ..},
@@ -44,7 +44,7 @@ macro_rules! arithmetic_expression {
                     let lvalue = lvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: $resulting_id, value: (lvalue $op *rvalue as f64).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: (lvalue $op *rvalue as f64).to_string(), location: loc_left.span(loc_right)
                 })
             },
             (   AstStatement::LiteralReal{value: lvalue, location: loc_left, ..},
@@ -54,7 +54,7 @@ macro_rules! arithmetic_expression {
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: $resulting_id, value: (lvalue $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: (lvalue $op rvalue).to_string(), location: loc_left.span(loc_right)
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -68,13 +68,13 @@ macro_rules! bitwise_expression {
             (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralInteger{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: loc_left.span(loc_right)
                 })
             },
             (   AstStatement::LiteralBool{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralBool{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: loc_left.span(loc_right)
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -88,7 +88,7 @@ macro_rules! compare_expression {
             (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
                 })
             },
             (   AstStatement::LiteralReal{..},
@@ -98,7 +98,7 @@ macro_rules! compare_expression {
             (   AstStatement::LiteralBool{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralBool{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::without_file(loc_left.get_start() .. loc_right.get_start())
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -149,6 +149,7 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
         | AstStatement::LiteralTimeOfDay { .. }
         | AstStatement::LiteralTime { .. }
         | AstStatement::LiteralString { .. } => false,
+        AstStatement::Assignment { right, .. } => needs_evaluation(right.as_ref()),
         &AstStatement::LiteralArray {
             elements: Some(elements),
             ..
@@ -160,6 +161,9 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
         },
         AstStatement::ExpressionList { expressions, .. } => {
             expressions.iter().any(needs_evaluation)
+        }
+        AstStatement::RangeStatement { start, end, .. } => {
+            needs_evaluation(start) || needs_evaluation(end)
         }
         _ => true,
     }
@@ -591,6 +595,28 @@ pub fn evaluate(
                         location: location.clone(),
                     }
                 }
+            })
+        }
+        AstStatement::Assignment { left, right, id } => {
+            //Right needs evaluation
+            if let Some(right) = evaluate(right, scope, index)? {
+                Some(AstStatement::Assignment {
+                    left: left.clone(),
+                    right: Box::new(right),
+                    id: *id,
+                })
+            } else {
+                Some(initial.clone())
+            }
+        }
+        AstStatement::RangeStatement { start, end, id } => {
+            let start =
+                Box::new(evaluate(start, scope, index)?.unwrap_or_else(|| *start.to_owned()));
+            let end = Box::new(evaluate(end, scope, index)?.unwrap_or_else(|| *end.to_owned()));
+            Some(AstStatement::RangeStatement {
+                start,
+                end,
+                id: *id,
             })
         }
         _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),

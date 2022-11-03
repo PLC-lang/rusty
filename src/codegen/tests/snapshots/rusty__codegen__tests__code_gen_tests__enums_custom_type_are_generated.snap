@@ -1,23 +1,21 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2092
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { i32 }
+%main = type { i32 }
 
-@main_instance = global %main_interface zeroinitializer
+@main_instance = global %main zeroinitializer
 @White = unnamed_addr constant i32 0
 @Red = unnamed_addr constant i32 1
 @Yellow = unnamed_addr constant i32 2
 @Green = unnamed_addr constant i32 3
 
-define void @main(%main_interface* %0) {
+define void @main(%main* %0) {
 entry:
-  %tf1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %tf1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   ret void
 }
 

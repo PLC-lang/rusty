@@ -24,7 +24,8 @@ entry:
   store i16 7, i16* %6, align 2
   %7 = getelementptr inbounds [7 x i16], [7 x i16]* %0, i32 0, i32 6
   store i16 -1, i16* %7, align 2
-  %call = call i16 @MAX__INT(i32 7, [7 x i16]* %0)
+  %8 = bitcast [7 x i16]* %0 to i16*
+  %call = call i16 @MAX__INT(i32 7, i16* %8)
   store i16 %call, i16* %main, align 2
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret

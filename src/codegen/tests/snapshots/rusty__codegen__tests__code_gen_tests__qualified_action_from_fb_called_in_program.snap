@@ -1,34 +1,32 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1565
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%bar_interface = type { %fb_interface }
-%fb_interface = type { i32 }
+%bar = type { %fb }
+%fb = type { i32 }
 
-@bar_instance = global %bar_interface zeroinitializer
-@fb__init = unnamed_addr constant %fb_interface zeroinitializer
+@bar_instance = global %bar zeroinitializer
+@fb__init = unnamed_addr constant %fb zeroinitializer
 
-define void @bar(%bar_interface* %0) {
+define void @bar(%bar* %0) {
 entry:
-  %fb_inst = getelementptr inbounds %bar_interface, %bar_interface* %0, i32 0, i32 0
-  call void @fb.foo(%fb_interface* %fb_inst)
+  %fb_inst = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+  call void @fb.foo(%fb* %fb_inst)
   ret void
 }
 
-define void @fb(%fb_interface* %0) {
+define void @fb(%fb* %0) {
 entry:
-  %x = getelementptr inbounds %fb_interface, %fb_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
 }
 
-define void @fb.foo(%fb_interface* %0) {
+define void @fb.foo(%fb* %0) {
 entry:
-  %x = getelementptr inbounds %fb_interface, %fb_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4
   ret void
 }

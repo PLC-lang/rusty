@@ -394,6 +394,8 @@ fn switch_case() {
 					res := 4;
 				2*2+1:
 					res := 5;
+        (BASE*5)..(BASE*10):
+					res := 6;
 			END_CASE
 		END_PROGRAM
       "#,
@@ -489,6 +491,68 @@ fn switch_case_duplicate_integer() {
             Diagnostic::duplicate_case_condition(&4, (249..258).into()),
             Diagnostic::duplicate_case_condition(&4, (279..287).into()),
             Diagnostic::duplicate_case_condition(&4, (308..311).into()),
+        ]
+    );
+}
+
+#[test]
+fn switch_case_invalid_case_conditions() {
+    // GIVEN switch case statement
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		FUNCTION foo : DINT
+		END_FUNCTION
+
+        PROGRAM main
+		VAR
+			input, res : DINT;
+		END_VAR
+
+			CASE input OF
+				foo():
+					res := 1;
+				res := 2:
+					res := 2;
+			END_CASE
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_case_condition((120..126).into()),
+            Diagnostic::non_constant_case_condition("Cannot resolve constant: CallStatement {\n    operator: Reference {\n        name: \"foo\",\n    },\n    parameters: None,\n}", (120..126).into()),
+            Diagnostic::invalid_case_condition((146..154).into()),
+        ]
+    );
+}
+
+#[test]
+fn case_condition_used_outside_case_statement() {
+    // GIVEN switch case statement
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		PROGRAM main
+		VAR
+			var1 : TOD;
+		END_VAR
+			var1 := TOD#20:15:30:123;
+			23:
+			var1 := TOD#20:15:30;
+		END_PROGRAM
+      "#,
+    );
+
+    // THEN
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::case_condition_used_outside_case_statement((50..70).into()),
+            Diagnostic::case_condition_used_outside_case_statement((79..81).into()),
         ]
     );
 }

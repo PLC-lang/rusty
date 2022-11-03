@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use crate::{
     ast::{
         AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, PouType, SourceRange, TypeNature,
+        LinkageType, NewLines, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
@@ -22,6 +22,39 @@ mod instance_iterator;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
+
+/// a factory to create SymbolLocations from SourceRanges, that automatically resolves
+/// the line-nr attribute
+pub struct SymbolLocationFactory<'a> {
+    new_lines: &'a NewLines,
+}
+
+impl<'a> SymbolLocationFactory<'a> {
+    /// creates a new SymbolLocationFactory with the given NewLines
+    pub fn new(new_lines: &'a NewLines) -> SymbolLocationFactory<'a> {
+        SymbolLocationFactory { new_lines }
+    }
+
+    /// creats a new SymbolLocation for the given source_range and automatically calculates
+    /// the resulting line-number usign the source_range's start and the factory's
+    /// NewLines
+    pub fn create_symbol_location(&self, source_range: &SourceRange) -> SymbolLocation {
+        SymbolLocation {
+            source_range: source_range.clone(),
+            line_number: self.new_lines.get_line_nr(source_range.get_start()),
+        }
+    }
+}
+
+/// Location information of a Symbol in the index consisting of the line_number
+/// and the detailled SourceRange information consisting the file and the range inside the source-string
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct SymbolLocation {
+    /// the line-number of this symbol in the source-file
+    pub line_number: usize,
+    /// the exact location of the symbol and the file_name
+    pub source_range: SourceRange,
+}
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableIndexEntry {
@@ -44,7 +77,7 @@ pub struct VariableIndexEntry {
     /// A binding to a hardware or external location
     binding: Option<HardwareBinding>,
     /// the location in the original source-file
-    pub source_location: SourceRange,
+    pub source_location: SymbolLocation,
     /// Variadic information placeholder for the variable, if any
     varargs: Option<VarArgs>,
 }
@@ -110,7 +143,7 @@ impl VariableIndexEntry {
         data_type_name: &str,
         variable_type: ArgumentType,
         location_in_parent: u32,
-        source_location: SourceRange,
+        source_location: SymbolLocation,
     ) -> Self {
         VariableIndexEntry {
             name: name.to_string(),
@@ -131,7 +164,7 @@ impl VariableIndexEntry {
         name: &str,
         qualified_name: &str,
         data_type_name: &str,
-        source_location: SourceRange,
+        source_location: SymbolLocation,
     ) -> Self {
         VariableIndexEntry {
             name: name.to_string(),
@@ -636,6 +669,11 @@ impl PouIndexEntry {
     pub fn is_action(&self) -> bool {
         matches!(self, PouIndexEntry::Action { .. })
     }
+
+    /// return true if this pou is a function
+    pub fn is_function(&self) -> bool {
+        matches!(self, PouIndexEntry::Function { .. })
+    }
 }
 
 /// the TypeIndex carries all types.
@@ -1028,10 +1066,14 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
-    /// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
-    /// In other words it returns whether the member variable at `index` of the given container is a possible parameter in
-    /// call to it
-    pub fn is_declared_parameter(&self, container_name: &str, index: u32) -> bool {
+    /// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
+    /// In other words it returns some if the member variable at `index` of the given container is a possible parameter in
+    /// the call to it
+    pub fn get_declared_parameter(
+        &self,
+        container_name: &str,
+        index: u32,
+    ) -> Option<&VariableIndexEntry> {
         self.member_variables
             .get(&container_name.to_lowercase())
             .and_then(|map| {
@@ -1039,7 +1081,6 @@ impl Index {
                     .filter(|item| item.is_parameter() && !item.is_variadic())
                     .find(|item| item.location_in_parent == index)
             })
-            .is_some()
     }
 
     pub fn get_variadic_member(&self, container_name: &str) -> Option<&VariableIndexEntry> {
@@ -1227,14 +1268,10 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
-    pub fn register_program(&mut self, name: &str, location: &SourceRange, linkage: LinkageType) {
-        let instance_variable = VariableIndexEntry::create_global(
-            &format!("{}_instance", &name),
-            name,
-            name,
-            location.clone(),
-        )
-        .set_linkage(linkage);
+    pub fn register_program(&mut self, name: &str, location: SymbolLocation, linkage: LinkageType) {
+        let instance_variable =
+            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location)
+                .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
         let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage);
         self.pous.insert(entry.get_name().to_lowercase(), entry);
@@ -1270,7 +1307,7 @@ impl Index {
         &mut self,
         member_info: MemberInfo,
         initial_value: Option<ConstId>,
-        source_location: SourceRange,
+        source_location: SymbolLocation,
         location: u32,
     ) {
         let container_name = member_info.container_name;
@@ -1308,7 +1345,7 @@ impl Index {
         element_name: &str,
         enum_type_name: &str,
         initial_value: Option<ConstId>,
-        source_location: SourceRange,
+        source_location: SymbolLocation,
     ) {
         let qualified_name = format!("{}.{}", enum_type_name, element_name);
         let entry = VariableIndexEntry::create_global(
