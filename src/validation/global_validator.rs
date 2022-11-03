@@ -1,7 +1,8 @@
 use crate::{
-    ast::SourceRange,
+    ast::{PouType, SourceRange},
     diagnostics::Diagnostic,
-    index::{symbol::SymbolMap, Index},
+    index::{symbol::SymbolMap, Index, PouIndexEntry},
+    typesystem::{DataTypeInformation, StructSource},
 };
 
 /// Validator that does not check a dedicated file but rather
@@ -23,7 +24,12 @@ impl GlobalValidator {
     /// reports a name-conflict for the given name. the locations indicate the
     /// locations of the declared symbols that make up the conflict. this method will
     /// create a diagnostic per location where it attaches the other locations as additional information.
-    fn report_name_conflict(&mut self, name: &str, locations: &[&SourceRange]) {
+    fn report_name_conflict(
+        &mut self,
+        name: &str,
+        locations: &[&SourceRange],
+        additional_text: Option<&str>,
+    ) {
         for (idx, v) in locations.iter().enumerate() {
             let others = locations
                 .iter()
@@ -32,82 +38,183 @@ impl GlobalValidator {
                 .map(|(_, it)| (*it).clone())
                 .collect::<Vec<_>>();
 
-            self.diagnostics
-                .push(Diagnostic::global_name_conflict(name, (*v).clone(), others));
+            if let Some(additional_text) = additional_text {
+                self.diagnostics
+                    .push(Diagnostic::global_name_conflict_with_text(
+                        name,
+                        (*v).clone(),
+                        others,
+                        additional_text,
+                    ));
+            } else {
+                self.diagnostics
+                    .push(Diagnostic::global_name_conflict(name, (*v).clone(), others));
+            }
         }
     }
 
     /// checks all symbols of the given index for naming conflicts.
     /// all problems will be reported to self.diagnostics
     pub fn validate_unique_symbols(&mut self, index: &Index) {
-        // 1) check uniqueness of POUs and DataTypes
-        // collect all POUs and DataTypes into a SymbolMap
-        let mut duplicates: SymbolMap<&str, &SourceRange> = SymbolMap::default();
-        for (name, dt) in index.get_pou_types().elements() {
-            duplicates.insert(name.as_str(), &dt.location.source_range);
-        }
-        for (name, dt) in index.get_types().elements() {
-            duplicates.insert(name.as_str(), &dt.location.source_range);
-        }
-        // every key with more than 1 location associated is a problem
-        for (name, locations) in duplicates.entries().filter(|(_, v)| v.len() > 1) {
-            self.report_name_conflict(*name, locations);
-        }
+        // everything callable (funks, global FB-instances, programs)
+        self.validate_unique_callables(index);
 
-        // 2) check uniqueness of global variables
-        // every entry in index.get_globals with more than 1 association indicates a problem
-        let duplicate_variables = index
+        // everything that can be a type (DTs, FBs)
+        self.validate_unique_datatypes(index);
+
+        // globals + PRGs
+        self.validate_unique_variables(index);
+
+        // all POUs
+        self.validate_unique_pous(index);
+    }
+
+    /// validates following uniqueness-clusters:
+    /// - globals + programs
+    /// - member-variables
+    /// - enums
+    fn validate_unique_variables(&mut self, index: &Index) {
+        let globals = index
             .get_globals()
-            .entries()
-            .filter(|(_, variables)| variables.len() > 1)
-            .map(|(name, variables)| {
-                (
-                    name,
-                    variables
-                        .iter()
-                        .map(|vie| &vie.source_location.source_range),
-                )
-            });
+            .values()
+            .map(|g| (g.get_name(), &g.source_location.source_range));
+        let prgs = index
+            .get_pous()
+            .values()
+            .filter(|pou| matches!(pou, PouIndexEntry::Program { .. }))
+            .map(|p| (p.get_name(), &p.get_location().source_range));
 
-        for (name, locations) in duplicate_variables {
-            self.report_name_conflict(name, &locations.collect::<Vec<_>>());
-        }
+        self.check_uniqueness_of_cluster(globals.chain(prgs), Some("Ambiguous global variable."));
 
-        // 3) check uniqueness of member_variables
-        // all index.member_variables with more than 1 associations indicate a problem
+        //check pou-member uniqueness
         let duplication_members = index
             .get_all_members_by_container()
             .values()
             .flat_map(|it| it.entries())
-            .filter(|(_, vars)| vars.len() > 1);
-        for (name, variables) in duplication_members {
-            let full_name = variables
-                .get(0)
-                .map(|it| it.get_qualified_name())
-                .unwrap_or(name.as_str());
-            self.report_name_conflict(
-                full_name,
-                &variables
-                    .iter()
-                    .map(|v| &v.source_location.source_range)
-                    .collect::<Vec<_>>(),
-            )
+            .filter(|(_, vars)| vars.len() > 1)
+            .map(|(_, variables)| {
+                (
+                    variables[0].get_qualified_name(),
+                    variables.iter().map(|v| &v.source_location.source_range),
+                )
+            });
+
+        for (name, locations) in duplication_members {
+            self.report_name_conflict(name, &locations.collect::<Vec<_>>(), None);
         }
 
-        // 4) check enum elements
-        // all index.global_qualified_enums with more than 1 association indicates a problem
-        for (name, variables) in index
+        //check enums
+        let duplication_enums = index
             .get_global_qualified_enums()
             .entries()
-            .filter(|(_, elements)| elements.len() > 1)
-        {
-            self.report_name_conflict(
-                name,
-                &variables
-                    .iter()
-                    .map(|v| &v.source_location.source_range)
-                    .collect::<Vec<_>>(),
-            )
+            .filter(|(_, vars)| vars.len() > 1)
+            .map(|(_, variables)| {
+                (
+                    variables[0].get_qualified_name(),
+                    variables.iter().map(|v| &v.source_location.source_range),
+                )
+            });
+
+        for (name, locations) in duplication_enums {
+            self.report_name_conflict(name, &locations.collect::<Vec<_>>(), None);
+        }
+    }
+
+    ///validates uniqueness of datatypes (types + functionblocks + classes)
+    fn validate_unique_datatypes(&mut self, index: &Index) {
+        let all_declared_types = index
+            .get_types()
+            .values()
+            .map(|dt| (dt.get_name(), &dt.location.source_range));
+        let all_function_blocks = index
+            .get_pous()
+            .values()
+            .filter(|p| p.is_function_block() || p.is_class())
+            .map(|p| (p.get_name(), &p.get_location().source_range));
+        self.check_uniqueness_of_cluster(
+            all_declared_types.chain(all_function_blocks),
+            Some("Ambiguous datatype."),
+        );
+    }
+
+    /// validates the uniqueness of everything callable (global fb-instances + programs + functions )
+    fn validate_unique_callables(&mut self, index: &Index) {
+        let all_fb_instances = index
+            .get_globals()
+            .values()
+            .filter(|g| {
+                index
+                    .find_effective_type_by_name(g.get_type_name())
+                    .map(|it| {
+                        matches!(
+                            it.information,
+                            DataTypeInformation::Struct {
+                                source: StructSource::Pou(PouType::FunctionBlock),
+                                ..
+                            }
+                        )
+                    })
+                    .unwrap_or(false)
+            })
+            .map(|it| (it.get_name(), &it.source_location.source_range));
+        let all_prgs_and_funcs = index
+            .get_pous()
+            .values()
+            .filter(|p| {
+                matches!(
+                    p,
+                    PouIndexEntry::Program { .. }
+                        | PouIndexEntry::Function { .. }
+                        | PouIndexEntry::Method { .. }
+                        | PouIndexEntry::Action { .. }
+                )
+            })
+            .map(|it| (it.get_name(), &it.get_location().source_range));
+
+        self.check_uniqueness_of_cluster(
+            all_fb_instances.chain(all_prgs_and_funcs),
+            Some("Ambiguous callable symbol."),
+        );
+    }
+
+    ///validate the uniqueness of POUs (programs, functions, function_blocks, classes)
+
+    fn validate_unique_pous(&mut self, index: &Index) {
+        //inner filter
+        fn only_toplevel_pous(pou: &&PouIndexEntry) -> bool {
+            !pou.is_action() && !pou.is_method()
+        }
+
+        let pou_clusters = index
+            .get_pous()
+            .entries()
+            .filter(|(_, entries_per_name)| {
+                entries_per_name.iter().filter(only_toplevel_pous).count() > 1
+            })
+            .map(|(name, pous)| {
+                (
+                    name.as_str(),
+                    pous.iter()
+                        .filter(only_toplevel_pous)
+                        .map(|p| &p.get_location().source_range),
+                )
+            });
+
+        for (name, cluster) in pou_clusters {
+            self.report_name_conflict(name, &cluster.collect::<Vec<_>>(), None);
+        }
+    }
+
+    fn check_uniqueness_of_cluster<'a, T>(&mut self, cluster: T, additional_text: Option<&str>)
+    where
+        T: Iterator<Item = (&'a str, &'a SourceRange)>,
+    {
+        let mut cluster_map: SymbolMap<&str, &SourceRange> = SymbolMap::default();
+        for (name, loc) in cluster {
+            cluster_map.insert(name, loc);
+        }
+        for (name, locations) in cluster_map.entries().filter(|(_, v)| v.len() > 1) {
+            self.report_name_conflict(*name, locations, additional_text);
         }
     }
 }

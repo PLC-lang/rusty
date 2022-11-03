@@ -709,10 +709,19 @@ impl Diagnostic {
         location: SourceRange,
         conflicts: Vec<SourceRange>,
     ) -> Diagnostic {
+        Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate symbol.")
+    }
+
+    pub(crate) fn global_name_conflict_with_text(
+        name: &str,
+        location: SourceRange,
+        conflicts: Vec<SourceRange>,
+        additional_text: &str,
+    ) -> Diagnostic {
         let mut locations = vec![location];
         locations.extend(conflicts.into_iter());
         Diagnostic::SyntaxError {
-            message: format!("Naming conflict for Symbol: {}", name),
+            message: format!("{}: {}", name, additional_text),
             range: locations,
             err_no: ErrNo::duplicate_symbol,
         }

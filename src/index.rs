@@ -668,6 +668,18 @@ impl PouIndexEntry {
         matches!(self, PouIndexEntry::Function { .. })
     }
 
+    pub fn is_function_block(&self) -> bool {
+        matches!(self, PouIndexEntry::FunctionBlock { .. })
+    }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, PouIndexEntry::Class { .. })
+    }
+
+    pub(crate) fn is_method(&self) -> bool {
+        matches!(self, PouIndexEntry::Method { .. })
+    }
+
     pub fn get_location(&self) -> &SymbolLocation {
         match self {
             PouIndexEntry::Program { location, .. }

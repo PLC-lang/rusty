@@ -597,8 +597,7 @@ fn index_module<T: SourceContainer>(
     let mut annotated_units: Vec<CompilationUnit> = Vec::new();
     let mut all_annotations = AnnotationMapImpl::default();
     let mut all_literals = StringLiterals::default();
-    //todo get rid of the file_id
-    for (_, syntax_errors, unit) in all_units.into_iter() {
+    for (syntax_errors, unit) in all_units.into_iter() {
         let (annotations, string_literals) = TypeAnnotator::visit_unit(&full_index, &unit);
 
         let mut validator = Validator::new();
@@ -662,7 +661,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     Ok((full_index, code_generator))
 }
 
-type Units = Vec<(usize, Vec<Diagnostic>, CompilationUnit)>;
+type Units = Vec<(Vec<Diagnostic>, CompilationUnit)>;
 fn parse_and_index<T: SourceContainer>(
     source: Vec<T>,
     encoding: Option<&'static Encoding>,
@@ -696,8 +695,8 @@ fn parse_and_index<T: SourceContainer>(
         index.import(index::visitor::visit(&parse_result, id_provider.clone()));
 
         //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
-        let file_id = diagnostician.register_file(location.to_string(), e.source);
-        units.push((file_id, diagnostics, parse_result));
+        diagnostician.register_file(location.to_string(), e.source);
+        units.push((diagnostics, parse_result));
     }
     Ok((index, units))
 }

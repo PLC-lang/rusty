@@ -17,12 +17,24 @@ fn duplicate_pous_validation() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::global_name_conflict_with_text(
+                "foo",
+                SourceRange::without_file(25..28),
+                vec![SourceRange::without_file(74..77),],
+                "Ambiguous callable symbol."
+            ),
+            Diagnostic::global_name_conflict_with_text(
+                "foo",
+                SourceRange::without_file(74..77),
+                vec![SourceRange::without_file(25..28),],
+                "Ambiguous callable symbol."
+            ),
             Diagnostic::global_name_conflict(
                 "foo",
                 SourceRange::without_file(25..28),
                 vec![
                     SourceRange::without_file(74..77),
-                    SourceRange::without_file(116..119)
+                    SourceRange::without_file(116..119),
                 ]
             ),
             Diagnostic::global_name_conflict(
@@ -30,7 +42,7 @@ fn duplicate_pous_validation() {
                 SourceRange::without_file(74..77),
                 vec![
                     SourceRange::without_file(25..28),
-                    SourceRange::without_file(116..119)
+                    SourceRange::without_file(116..119),
                 ]
             ),
             Diagnostic::global_name_conflict(
@@ -59,21 +71,22 @@ fn duplicate_pous_and_types_validation() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::global_name_conflict(
-                "foo",
-                SourceRange::without_file(25..28),
-                vec![SourceRange::without_file(62..65),]
-            ),
-            Diagnostic::global_name_conflict(
+            Diagnostic::global_name_conflict_with_text(
                 "foo",
                 SourceRange::without_file(62..65),
-                vec![SourceRange::without_file(25..28),]
+                vec![SourceRange::without_file(25..28),],
+                "Ambiguous datatype."
+            ),
+            Diagnostic::global_name_conflict_with_text(
+                "foo",
+                SourceRange::without_file(25..28),
+                vec![SourceRange::without_file(62..65),],
+                "Ambiguous datatype."
             ),
         ]
     );
 }
 
-#[ignore = "technically this works, practically this adds sooo much complexity :-("]
 #[test]
 fn duplicate_function_and_type_is_no_issue() {
     // GIVEN a Function and a Type with the same name
@@ -110,15 +123,17 @@ fn duplicate_global_variables() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::global_name_conflict(
+            Diagnostic::global_name_conflict_with_text(
                 "a",
                 SourceRange::without_file(32..33),
-                vec![SourceRange::without_file(128..129),]
+                vec![SourceRange::without_file(128..129),],
+                "Ambiguous global variable."
             ),
-            Diagnostic::global_name_conflict(
+            Diagnostic::global_name_conflict_with_text(
                 "a",
                 SourceRange::without_file(128..129),
-                vec![SourceRange::without_file(32..33),]
+                vec![SourceRange::without_file(32..33),],
+                "Ambiguous global variable."
             ),
         ]
     );
@@ -175,6 +190,47 @@ fn duplicate_enum_members_in_different_types_is_no_issue() {
 }
 
 #[test]
+fn duplicate_fb_inst_and_function() {
+    // GIVEN a global fb-instance called foo and a function called foo
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            FUNCTION_BLOCK FooFB
+                VAR x : INT END_VAR
+            END_FUNCTION_BLOCK
+
+            VAR_GLOBAL
+                foo: FooFB;
+            END_VAR
+
+            FUNCTION foo: INT
+                VAR_INPUT
+                    x: INT;
+                END_VAR
+            END_FUNCTION
+        "#,
+    );
+    // THEN there should be 2 duplication diagnostics
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::global_name_conflict_with_text(
+                "foo",
+                SourceRange::without_file(141..144),
+                vec![SourceRange::without_file(195..198),],
+                "Ambiguous callable symbol."
+            ),
+            Diagnostic::global_name_conflict_with_text(
+                "foo",
+                SourceRange::without_file(195..198),
+                vec![SourceRange::without_file(141..144),],
+                "Ambiguous callable symbol."
+            ),
+        ]
+    );
+}
+
+#[test]
 fn duplicate_enum_variables() {
     // GIVEN an enum with two identical elements
     // WHEN parse_and_validate is done
@@ -199,4 +255,118 @@ fn duplicate_enum_variables() {
             ),
         ]
     );
+}
+
+#[test]
+fn duplicate_global_and_program() {
+    // GIVEN a global variable `prg` and a Program `prg`
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            VAR_GLOBAL
+                a: INT;
+                prg: INT;
+                b: INT;
+            END_VAR
+
+            PROGRAM prg
+                VAR_INPUT
+                    x: INT;
+                END_VAR
+            END_PROGRAM
+        "#,
+    );
+    // THEN there should be 2 duplication diagnostics
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::global_name_conflict_with_text(
+                "prg",
+                SourceRange::without_file(64..67),
+                vec![SourceRange::without_file(139..142),],
+                "Ambiguous global variable."
+            ),
+            Diagnostic::global_name_conflict_with_text(
+                "prg",
+                SourceRange::without_file(139..142),
+                vec![SourceRange::without_file(64..67),],
+                "Ambiguous global variable."
+            ),
+        ]
+    );
+}
+
+#[test]
+fn duplicate_action_should_be_a_problem() {
+    // GIVEN a program with two actions with the same name
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            PROGRAM prg
+                VAR_INPUT
+                    x: INT;
+                END_VAR
+            END_PROGRAM
+
+            ACTIONS 
+            ACTION foo
+                x := 2;
+            END_ACTION
+
+            ACTION baz
+                x := 2;
+            END_ACTION
+
+            ACTION foo
+                x := 2;
+            END_ACTION
+
+            END_ACTIONS
+        "#,
+    );
+
+    // THEN there should be 2 duplication diagnostics
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::global_name_conflict_with_text(
+                "prg.foo",
+                SourceRange::without_file(168..171),
+                vec![SourceRange::without_file(310..313),],
+                "Ambiguous callable symbol."
+            ),
+            Diagnostic::global_name_conflict_with_text(
+                "prg.foo",
+                SourceRange::without_file(310..313),
+                vec![SourceRange::without_file(168..171),],
+                "Ambiguous callable symbol."
+            ),
+        ]
+    );
+}
+
+#[test]
+fn duplicate_actions_in_different_pous_are_no_issue() {
+    // GIVEN two POUs with actions with the same name
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            PROGRAM prg
+            END_PROGRAM
+
+            ACTIONS 
+                ACTION foo END_ACTION
+            END_ACTIONS
+
+            PROGRAM prg2
+            END_PROGRAM
+
+            ACTIONS 
+                ACTION foo END_ACTION
+            END_ACTIONS
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
 }
