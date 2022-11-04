@@ -1,6 +1,7 @@
 use crate::{
     assert_type_and_hint,
     ast::AstStatement,
+    index::symbol::SymbolLocation,
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::{annotate, index},
     typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
@@ -59,7 +60,8 @@ fn string_literals_are_annotated() {
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf8,
                 size: crate::typesystem::TypeSize::LiteralInteger(4)
-            }
+            },
+            location: SymbolLocation::internal()
         }
     );
     assert_eq!(
@@ -71,7 +73,8 @@ fn string_literals_are_annotated() {
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf16,
                 size: crate::typesystem::TypeSize::LiteralInteger(7)
-            }
+            },
+            location: SymbolLocation::internal()
         }
     );
 }

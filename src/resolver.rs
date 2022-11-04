@@ -18,7 +18,7 @@ use crate::{
         DataTypeDeclaration, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
-    index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, REAL_TYPE,
@@ -487,7 +487,7 @@ impl<'i> TypeAnnotator<'i> {
 
         // enum initializers may have been introduced by the visitor (indexer)
         // so we shoul try to resolve and type-annotate them here as well
-        for (_, enum_element) in index.get_global_qualified_enums() {
+        for enum_element in index.get_global_qualified_enums().values() {
             if let Some((Some(statement), scope)) = enum_element
                 .initial_value
                 .map(|i| index.get_const_expressions().find_expression(&i))
@@ -1575,6 +1575,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
+            location: SymbolLocation::internal(),
         });
     }
     new_type_name
@@ -1592,6 +1593,7 @@ fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
             inner_type_name,
             name: new_type_name.clone(),
         },
+        location: SymbolLocation::internal(),
     });
     new_type_name
 }

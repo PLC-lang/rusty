@@ -78,7 +78,7 @@ expression: members
         source_location: SymbolLocation {
             line_number: 1,
             source_range: SourceRange {
-                range: 3..156,
+                range: 12..15,
             },
         },
         varargs: None,
