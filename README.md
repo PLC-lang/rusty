@@ -1,6 +1,6 @@
 # RuSTy
 
-[![example workflow](https://github.com/PLC-lang/rusty/actions/workflows/rust.yml/badge.svg)](https://github.com/PLC-lang/ruSTy/actions)
+[![Rust Build](https://github.com/PLC-lang/rusty/actions/workflows/rust.yml/badge.svg)](https://github.com/PLC-lang/ruSTy/actions)
 [![codecov](https://codecov.io/gh/PLC-lang/rusty/branch/master/graph/badge.svg?token=7ZZ5XZYE9V)](https://codecov.io/gh/PLC-lang/rusty)
 [![Lines of Code](https://tokei.rs/b1/github/PLC-lang/rusty)](https://github.com/XAMPPRocky/tokei)
 
