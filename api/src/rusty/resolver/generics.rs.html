@@ -431,12 +431,17 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">AstStatement</span>, <span class="ident">GenericBinding</span>, <span class="ident">LinkageType</span>, <span class="ident">TypeNature</span>},
     <span class="ident">builtins</span>,
-    <span class="ident">index</span>::{<span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>},
+    <span class="ident">index</span>::{<span class="ident">symbol::SymbolLocation</span>, <span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>},
     <span class="ident">resolver::AnnotationMap</span>,
     <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>},
 };
@@ -524,7 +529,10 @@
                     <span class="comment">//Create a new pou and implementation for the function</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pou</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">qualified_name</span>) {
                         <span class="comment">//only register concrete typed function if it was not indexed yet</span>
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">new_name</span>.<span class="ident">as_str</span>()).<span class="ident">is_none</span>() {
+                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">new_name</span>.<span class="ident">as_str</span>()).<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span>
+                            <span class="comment">//only register typed function if we did not register it yet</span>
+                            <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">new_index</span>.<span class="ident">find_pou</span>(<span class="ident">new_name</span>.<span class="ident">as_str</span>()).<span class="ident">is_none</span>()
+                        {
                             <span class="comment">//register the pou-entry, implementation and member-variables for the requested (typed) implemmentation</span>
                             <span class="comment">// e.g. call to generic_foo(aInt)</span>
                             <span class="self">self</span>.<span class="ident">register_generic_pou_entries</span>(
@@ -577,6 +585,7 @@
                     <span class="kw-2">&amp;</span>[],
                     <span class="ident">LinkageType::External</span>, <span class="comment">//it has to be external, we should have already found this in the global index if it was internal</span>
                     <span class="ident">generic_function</span>.<span class="ident">is_variadic</span>(),
+                    <span class="ident">generic_function</span>.<span class="ident">get_location</span>().<span class="ident">clone</span>(),
                 ));
 
             <span class="comment">// register the member-variables (interface) of the new function</span>
@@ -585,7 +594,7 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">generic_function_members</span>) <span class="op">=</span>
                 <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_members</span>(<span class="ident">generic_function</span>.<span class="ident">get_name</span>())
             {
-                <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">member</span>) <span class="kw">in</span> <span class="ident">generic_function_members</span> {
+                <span class="kw">for</span> <span class="ident">member</span> <span class="kw">in</span> <span class="ident">generic_function_members</span>.<span class="ident">values</span>() {
                     <span class="kw">let</span> <span class="ident">new_type_name</span> <span class="op">=</span>
                         <span class="self">self</span>.<span class="ident">find_or_create_datatype</span>(<span class="ident">member</span>.<span class="ident">get_type_name</span>(), <span class="ident">generics</span>);
 
@@ -636,6 +645,7 @@
                     <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
                     <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
                     <span class="ident">nature</span>: <span class="ident">TypeNature::Any</span>,
+                    <span class="ident">location</span>: <span class="ident">SymbolLocation::internal</span>(),
                 });
 
                 <span class="ident">name</span>

@@ -1509,6 +1509,7 @@
 <span id="1504">1504</span>
 <span id="1505">1505</span>
 <span id="1506">1506</span>
+<span id="1507">1507</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">index::Index</span>,
@@ -1727,6 +1728,7 @@
     <span class="kw">pub</span> <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
     <span class="kw">pub</span> <span class="ident">statements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+    <span class="kw">pub</span> <span class="ident">name_location</span>: <span class="ident">SourceRange</span>,
     <span class="kw">pub</span> <span class="ident">overriding</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">generic</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">access</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccessModifier</span><span class="op">&gt;</span>,

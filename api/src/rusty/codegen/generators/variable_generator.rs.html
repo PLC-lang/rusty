@@ -143,6 +143,12 @@
 <span id="138">138</span>
 <span id="139">139</span>
 <span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">/// offers operations to generate global variables</span>
@@ -181,11 +187,17 @@
     }
 
     <span class="comment">//all declared global variables</span>
-    <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_globals</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">to_k_v</span>);
+    <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_globals</span>().<span class="ident">elements</span>().<span class="ident">map</span>(<span class="ident">to_k_v</span>);
     <span class="comment">//all initializers</span>
-    <span class="kw">let</span> <span class="ident">initializers</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_global_initializers</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">to_k_v</span>);
+    <span class="kw">let</span> <span class="ident">initializers</span> <span class="op">=</span> <span class="ident">global_index</span>
+        .<span class="ident">get_global_initializers</span>()
+        .<span class="ident">elements</span>()
+        .<span class="ident">map</span>(<span class="ident">to_k_v</span>);
     <span class="comment">//all enum-elements</span>
-    <span class="kw">let</span> <span class="ident">enums</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_global_qualified_enums</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">to_k_v</span>);
+    <span class="kw">let</span> <span class="ident">enums</span> <span class="op">=</span> <span class="ident">global_index</span>
+        .<span class="ident">get_global_qualified_enums</span>()
+        .<span class="ident">elements</span>()
+        .<span class="ident">map</span>(<span class="ident">to_k_v</span>);
     <span class="comment">//all program instances</span>
     <span class="kw">let</span> <span class="ident">programs</span> <span class="op">=</span> <span class="ident">global_index</span>
         .<span class="ident">get_pous</span>()
