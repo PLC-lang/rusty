@@ -370,3 +370,107 @@ fn duplicate_actions_in_different_pous_are_no_issue() {
     // THEN there should be no duplication diagnostics
     assert_eq!(diagnostics, vec![]);
 }
+
+
+#[test]
+fn automatically_generated_ptr_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a pointer type
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            PROGRAM prg
+            VAR
+                a: LINT;
+                x : INT;
+            END_VAR
+
+            a := &x;  //generates ptr_to_INT type
+            a := &x;  //also? generates ptr to INT type
+            END_PROGRAM
+            "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+
+#[test]
+fn automatically_generated_string_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a pointer type
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            PROGRAM prg
+            VAR
+                a: STRING;
+            END_VAR
+
+            a := 'abc';  //implicitely creates STRING[4] type
+            a := 'xyz';  //implicityly creates STRING[4] type again
+            END_PROGRAM
+            "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+
+#[test]
+fn automatically_generated_byref_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a ref-types
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            FUNCTION foo : INT
+                VAR_INPUT {ref}
+                    x : INT; //creates autoderef-ptr type to INT
+                    y : INT; //creatse autoderef-ptr type to INT
+                END_VAR
+            END_FUNCTION
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn automatically_generated_inout_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a ptr-types
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            FUNCTION foo : INT
+                VAR_IN_OUT
+                    x : INT; //creates autoderef-ptr type to INT
+                    y : INT; //creatse autoderef-ptr type to INT
+                END_VAR
+            END_FUNCTION
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+
+#[test]
+fn automatically_generated_output_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a ptr-types
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            FUNCTION foo : INT
+                VAR_OUTPUT
+                    x : INT; //creates autoderef-ptr type to INT
+                    y : INT; //creatse autoderef-ptr type to INT
+                END_VAR
+            END_FUNCTION
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
