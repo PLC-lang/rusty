@@ -277,22 +277,29 @@ fn visit_implementation(
     }
 }
 
+/// registers an auto-deref pointer type for the inner_type_name if it does not already exist
 fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
     let type_name = format!("auto_pointer_to_{}", inner_type_name);
 
-    //generate a pointertype for the variable
-    index.register_type(typesystem::DataType {
-        name: type_name.clone(),
-        initial_value: None,
-        information: DataTypeInformation::Pointer {
+    //check if type was already created
+    if index
+        .find_effective_type_by_name(type_name.as_str())
+        .is_none()
+    {
+        //generate a pointertype for the variable
+        index.register_type(typesystem::DataType {
             name: type_name.clone(),
-            inner_type_name: inner_type_name.to_string(),
-            auto_deref: true,
-        },
-        nature: TypeNature::Any,
-        location: SymbolLocation::internal(),
-    });
+            initial_value: None,
+            information: DataTypeInformation::Pointer {
+                name: type_name.clone(),
+                inner_type_name: inner_type_name.to_string(),
+                auto_deref: true,
+            },
+            nature: TypeNature::Any,
+            location: SymbolLocation::internal(),
+        });
+    }
 
     type_name
 }

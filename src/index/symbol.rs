@@ -108,13 +108,18 @@ where
 }
 
 impl SymbolLocation {
+    const INTERNAL_LINE: usize = usize::max_value();
     /// creates a SymbolLocation with undefined source_range used for
     /// symbols that are created by the compiler on-the-fly.
     pub fn internal() -> SymbolLocation {
         SymbolLocation {
-            line_number: 0,
+            line_number: SymbolLocation::INTERNAL_LINE,
             source_range: SourceRange::undefined(),
         }
+    }
+
+    pub fn is_internal(&self) -> bool {
+        self.line_number == SymbolLocation::INTERNAL_LINE && self.source_range.is_undefined()
     }
 }
 

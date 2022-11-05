@@ -508,6 +508,12 @@ impl SourceRange {
     pub fn get_file_name(&self) -> Option<&'static str> {
         self.file
     }
+
+    /// returns true if this SourceRange points to an undefined location.
+    /// see `SourceRange::undefined()`
+    pub fn is_undefined(&self) -> bool {
+        self.range == (0..0) && self.file.is_none()
+    }
 }
 
 impl From<std::ops::Range<usize>> for SourceRange {

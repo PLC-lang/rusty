@@ -127,6 +127,11 @@ impl DataType {
     pub fn is_real(&self) -> bool {
         matches!(self.nature, TypeNature::Real { .. })
     }
+
+    /// returns true if this type is an internal, auto-generated type
+    pub fn is_internal(&self) -> bool {
+        self.location.is_internal()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
