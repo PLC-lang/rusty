@@ -1108,3 +1108,9 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
 
     suffix.map(|suffix| format!("{}_{}", type_name, suffix))
 }
+
+/// returns a name for internally created types using the given prefix and original type name
+/// the return name starts with "__"
+pub fn create_internal_type_name(prefix: &str, original_type_name: &str) -> String {
+    format!("__{}{}", prefix, original_type_name)
+}

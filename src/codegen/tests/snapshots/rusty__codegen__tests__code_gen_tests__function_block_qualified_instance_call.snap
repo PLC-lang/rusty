@@ -10,8 +10,8 @@ source_filename = "main"
 %bar = type {}
 
 @prg_instance = global %prg zeroinitializer
-@foo__init = unnamed_addr constant %foo zeroinitializer
-@bar__init = unnamed_addr constant %bar zeroinitializer
+@__foo__init = unnamed_addr constant %foo zeroinitializer
+@__bar__init = unnamed_addr constant %bar zeroinitializer
 
 define void @foo(%foo* %0) {
 entry:

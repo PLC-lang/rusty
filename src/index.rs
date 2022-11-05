@@ -1533,7 +1533,7 @@ impl Index {
 
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
-    format!("{}__init", name)
+    format!("__{}__init", name)
 }
 impl VariableType {
     pub(crate) fn is_private(&self) -> bool {
