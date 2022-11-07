@@ -50,7 +50,7 @@ pub enum HardwareAccessType {
     Output,
     Memory,
 }
-
+///XXX
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type")]
 pub enum DirectAccessType {
