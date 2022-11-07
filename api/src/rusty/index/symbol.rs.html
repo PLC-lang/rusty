@@ -264,6 +264,11 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2022 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">NewLines</span>, <span class="ident">SourceRange</span>};
@@ -374,13 +379,18 @@
 }
 
 <span class="kw">impl</span> <span class="ident">SymbolLocation</span> {
+    <span class="kw">const</span> <span class="ident">INTERNAL_LINE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">usize::max_value</span>();
     <span class="doccomment">/// creates a SymbolLocation with undefined source_range used for</span>
     <span class="doccomment">/// symbols that are created by the compiler on-the-fly.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal</span>() -&gt; <span class="ident">SymbolLocation</span> {
         <span class="ident">SymbolLocation</span> {
-            <span class="ident">line_number</span>: <span class="number">0</span>,
+            <span class="ident">line_number</span>: <span class="ident">SymbolLocation::INTERNAL_LINE</span>,
             <span class="ident">source_range</span>: <span class="ident">SourceRange::undefined</span>(),
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_internal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">line_number</span> <span class="op">==</span> <span class="ident">SymbolLocation::INTERNAL_LINE</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">source_range</span>.<span class="ident">is_undefined</span>()
     }
 }
 

@@ -1656,6 +1656,13 @@
 <span id="1651">1651</span>
 <span id="1652">1652</span>
 <span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -3212,9 +3219,9 @@
 <span class="doccomment">/// adds a string-type to the given index and returns it&#39;s name</span>
 <span class="kw">fn</span> <span class="ident">register_string_type</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">is_wide</span>: <span class="ident">bool</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="ident">new_type_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_wide</span> {
-        <span class="macro">format!</span>(<span class="string">&quot;__WSTRING_{}&quot;</span>, <span class="ident">len</span>)
+        <span class="ident">typesystem::create_internal_type_name</span>(<span class="string">&quot;WSTRING_&quot;</span>, <span class="ident">len</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>())
     } <span class="kw">else</span> {
-        <span class="macro">format!</span>(<span class="string">&quot;__STRING_{}&quot;</span>, <span class="ident">len</span>)
+        <span class="ident">typesystem::create_internal_type_name</span>(<span class="string">&quot;STRING_&quot;</span>, <span class="ident">len</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>())
     };
 
     <span class="kw">if</span> <span class="ident">index</span>
@@ -3241,18 +3248,25 @@
 
 <span class="doccomment">/// adds a pointer to the given inner_type to the given index and return&#39;s its name</span>
 <span class="kw">fn</span> <span class="ident">add_pointer_type</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">inner_type_name</span>: <span class="ident">String</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="ident">new_type_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;POINTER_TO_{}&quot;</span>, <span class="ident">inner_type_name</span>.<span class="ident">as_str</span>());
-    <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident"><span class="kw">crate</span>::typesystem::DataType</span> {
-        <span class="ident">name</span>: <span class="ident">new_type_name</span>.<span class="ident">clone</span>(),
-        <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-        <span class="ident">nature</span>: <span class="ident">TypeNature::Any</span>,
-        <span class="ident">information</span>: <span class="ident"><span class="kw">crate</span>::typesystem::DataTypeInformation::Pointer</span> {
-            <span class="ident">auto_deref</span>: <span class="bool-val">false</span>,
-            <span class="ident">inner_type_name</span>,
+    <span class="kw">let</span> <span class="ident">new_type_name</span> <span class="op">=</span>
+        <span class="ident">typesystem::create_internal_type_name</span>(<span class="string">&quot;POINTER_TO_&quot;</span>, <span class="ident">inner_type_name</span>.<span class="ident">as_str</span>());
+
+    <span class="kw">if</span> <span class="ident">index</span>
+        .<span class="ident">find_effective_type_by_name</span>(<span class="ident">new_type_name</span>.<span class="ident">as_str</span>())
+        .<span class="ident">is_none</span>()
+    {
+        <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident"><span class="kw">crate</span>::typesystem::DataType</span> {
             <span class="ident">name</span>: <span class="ident">new_type_name</span>.<span class="ident">clone</span>(),
-        },
-        <span class="ident">location</span>: <span class="ident">SymbolLocation::internal</span>(),
-    });
+            <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
+            <span class="ident">nature</span>: <span class="ident">TypeNature::Any</span>,
+            <span class="ident">information</span>: <span class="ident"><span class="kw">crate</span>::typesystem::DataTypeInformation::Pointer</span> {
+                <span class="ident">auto_deref</span>: <span class="bool-val">false</span>,
+                <span class="ident">inner_type_name</span>,
+                <span class="ident">name</span>: <span class="ident">new_type_name</span>.<span class="ident">clone</span>(),
+            },
+            <span class="ident">location</span>: <span class="ident">SymbolLocation::internal</span>(),
+        });
+    }
     <span class="ident">new_type_name</span>
 }
 
