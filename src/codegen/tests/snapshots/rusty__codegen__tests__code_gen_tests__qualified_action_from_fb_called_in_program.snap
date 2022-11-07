@@ -9,7 +9,7 @@ source_filename = "main"
 %fb = type { i32 }
 
 @bar_instance = global %bar zeroinitializer
-@fb__init = unnamed_addr constant %fb zeroinitializer
+@__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @bar(%bar* %0) {
 entry:

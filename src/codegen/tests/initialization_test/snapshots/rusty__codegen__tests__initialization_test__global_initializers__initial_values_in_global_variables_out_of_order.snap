@@ -10,7 +10,7 @@ source_filename = "main"
 
 @x = global %MyFB { i16 77 }
 @prg_instance = global %prg { %MyFB { i16 77 } }
-@MyFB__init = unnamed_addr constant %MyFB { i16 77 }
+@__MyFB__init = unnamed_addr constant %MyFB { i16 77 }
 
 define void @prg(%prg* %0) {
 entry:

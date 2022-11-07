@@ -1,4 +1,12 @@
-use crate::{ast::SourceRange, diagnostics::Diagnostic, test_utils::tests::parse_and_validate};
+use crate::{
+    ast::{self, SourceRange, SourceRangeFactory},
+    diagnostics::Diagnostic,
+    index::{visitor, Index},
+    lexer::{self, IdProvider},
+    parser,
+    test_utils::tests::parse_and_validate,
+    validation::Validator,
+};
 
 #[test]
 fn duplicate_pous_validation() {
@@ -368,5 +376,160 @@ fn duplicate_actions_in_different_pous_are_no_issue() {
     );
 
     // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn automatically_generated_ptr_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a pointer type
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            PROGRAM prg
+            VAR
+                a: LINT;
+                x : INT;
+            END_VAR
+
+            a := &x;  //generates ptr_to_INT type
+            a := &x;  //also? generates ptr to INT type
+            END_PROGRAM
+            "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn automatically_generated_string_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a pointer type
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            PROGRAM prg
+            VAR
+                a: STRING;
+            END_VAR
+
+            a := 'abc';  //implicitely creates STRING[4] type
+            a := 'xyz';  //implicityly creates STRING[4] type again
+            END_PROGRAM
+            "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn automatically_generated_byref_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a ref-types
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            FUNCTION foo : INT
+                VAR_INPUT {ref}
+                    x : INT; //creates autoderef-ptr type to INT
+                    y : INT; //creatse autoderef-ptr type to INT
+                END_VAR
+            END_FUNCTION
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn automatically_generated_inout_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a ptr-types
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            FUNCTION foo : INT
+                VAR_IN_OUT
+                    x : INT; //creates autoderef-ptr type to INT
+                    y : INT; //creatse autoderef-ptr type to INT
+                END_VAR
+            END_FUNCTION
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn automatically_generated_output_types_dont_cause_duplication_issues() {
+    // GIVEN some code that automatically generates a ptr-types
+    // WHEN parse_and_validate is done
+    let diagnostics = parse_and_validate(
+        r#"
+            FUNCTION foo : INT
+                VAR_OUTPUT
+                    x : INT; //creates autoderef-ptr type to INT
+                    y : INT; //creatse autoderef-ptr type to INT
+                END_VAR
+            END_FUNCTION
+        "#,
+    );
+
+    // THEN there should be no duplication diagnostics
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn automatically_generated_output_types_in_different_files_dont_cause_duplication_issues() {
+    // a version of the test-util function that does not import the built-in and std-types
+    // (or they will cause a duplication issue)
+    fn do_index(src: &str, id_provider: IdProvider) -> Index {
+        let mut index = Index::default();
+        let (mut unit, ..) = parser::parse(
+            lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
+            ast::LinkageType::Internal,
+            "test.st",
+        );
+        ast::pre_process(&mut unit, id_provider.clone());
+        index.import(visitor::visit(&unit, id_provider));
+        index
+    }
+
+    // GIVEN some code that automatically generates a ptr-types
+    let ids = IdProvider::default();
+    let index1 = do_index(
+        r#"
+            FUNCTION foo : INT
+                VAR_OUTPUT
+                    x : INT; //creates autoderef-ptr type to INT
+                    y : INT; //creatse autoderef-ptr type to INT
+                END_VAR
+            END_FUNCTION
+        "#,
+        ids.clone(),
+    );
+
+    //AND another file with also OUTPUT-INTS
+    let index2 = do_index(
+        r#"
+            FUNCTION foo2 : INT
+                VAR_OUTPUT
+                    x : INT; //creates autoderef-ptr type to INT
+                    y : INT; //creatse autoderef-ptr type to INT
+                END_VAR
+            END_FUNCTION
+        "#,
+        ids,
+    );
+
+    // WHEN the index is combined
+    let mut global_index = Index::default();
+    global_index.import(index1); //import file 1
+    global_index.import(index2); //import file 2
+
+    // THEN there should be no duplication diagnostics
+    let mut validator = Validator::new();
+    validator.perform_global_validation(&global_index);
+    let diagnostics = validator.diagnostics();
     assert_eq!(diagnostics, vec![]);
 }

@@ -857,27 +857,41 @@ impl Index {
 
         //types
         for (name, mut elements) in other.type_index.types.drain(..) {
-            for e in elements.iter_mut() {
-                e.initial_value =
-                    self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-                match &mut e.information {
-                    //import constant expressions in array-type-definitions
-                    DataTypeInformation::Array { dimensions, .. } => {
-                        for d in dimensions.iter_mut() {
-                            d.start_offset = self
-                                .import_type_size(&mut other.constant_expressions, &d.start_offset);
-                            d.end_offset = self
-                                .import_type_size(&mut other.constant_expressions, &d.end_offset);
+            for mut e in elements.drain(..) {
+                //avoid re-importing internally auto-generated types that we already know
+                if !e.is_internal()
+                    || self
+                        .type_index
+                        .find_effective_type_by_name(name.as_str())
+                        .is_none()
+                {
+                    e.initial_value = self
+                        .maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+
+                    match &mut e.information {
+                        //import constant expressions in array-type-definitions
+                        DataTypeInformation::Array { dimensions, .. } => {
+                            for d in dimensions.iter_mut() {
+                                d.start_offset = self.import_type_size(
+                                    &mut other.constant_expressions,
+                                    &d.start_offset,
+                                );
+                                d.end_offset = self.import_type_size(
+                                    &mut other.constant_expressions,
+                                    &d.end_offset,
+                                );
+                            }
                         }
+                        // import constant expressions in String-size defintions
+                        DataTypeInformation::String { size, .. } => {
+                            *size = self.import_type_size(&mut other.constant_expressions, size);
+                        }
+                        _ => {}
                     }
-                    // import constant expressions in String-size defintions
-                    DataTypeInformation::String { size, .. } => {
-                        *size = self.import_type_size(&mut other.constant_expressions, size);
-                    }
-                    _ => {}
+
+                    self.type_index.types.insert(name.clone(), e)
                 }
             }
-            self.type_index.types.insert_many(name, elements);
         }
 
         //pou_types
@@ -1519,7 +1533,7 @@ impl Index {
 
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
-    format!("{}__init", name)
+    format!("__{}__init", name)
 }
 impl VariableType {
     pub(crate) fn is_private(&self) -> bool {
