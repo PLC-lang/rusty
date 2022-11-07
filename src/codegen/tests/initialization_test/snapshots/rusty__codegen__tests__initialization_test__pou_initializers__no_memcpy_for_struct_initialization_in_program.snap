@@ -9,7 +9,7 @@ source_filename = "main"
 %__prog_a = type { i16 }
 
 @prog_instance = global %prog zeroinitializer
-@__prog_a__init = unnamed_addr constant %__prog_a zeroinitializer
+@____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer
 
 define void @prog(%prog* %0) {
 entry:

@@ -51,7 +51,7 @@ expression: members
             InOut,
         ),
         is_constant: false,
-        data_type_name: "auto_pointer_to_INT",
+        data_type_name: "__auto_pointer_to_INT",
         location_in_parent: 2,
         linkage: Internal,
         binding: None,

@@ -1554,9 +1554,9 @@ impl<'i> TypeAnnotator<'i> {
 /// adds a string-type to the given index and returns it's name
 fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
     let new_type_name = if is_wide {
-        format!("__WSTRING_{}", len)
+        typesystem::create_internal_type_name("WSTRING_", len.to_string().as_str())
     } else {
-        format!("__STRING_{}", len)
+        typesystem::create_internal_type_name("STRING_", len.to_string().as_str())
     };
 
     if index
@@ -1583,8 +1583,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
 
 /// adds a pointer to the given inner_type to the given index and return's its name
 fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
-    let new_type_name = format!("POINTER_TO_{}", inner_type_name.as_str());
-
+        typesystem::create_internal_type_name("POINTER_TO_", inner_type_name.as_str());
     if index
         .find_effective_type_by_name(new_type_name.as_str())
         .is_none()

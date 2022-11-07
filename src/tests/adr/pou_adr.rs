@@ -197,7 +197,7 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
 
     %main_fb = type { i16, i16*, i16, i16 }
 
-    @main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
 
     define void @main_fb(%main_fb* %0) {
     entry:
@@ -238,7 +238,7 @@ fn calling_a_function_block() {
     %main_fb = type { i16, i16*, i16, i16 }
 
     @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }
-    @main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
 
     define void @foo(%foo* %0) {
     entry:
