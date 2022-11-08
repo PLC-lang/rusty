@@ -1514,6 +1514,37 @@ fn assignment_to_null() {
 }
 
 #[test]
+fn assignment_to_number_with_implicit_and_explicit_plus_sign() {
+    let src = "
+        PROGRAM exp
+        x : DINT := 1;
+        y : DINT := +1;
+        END_PROGRAM
+    ";
+
+    let result = parse(src).0;
+    let statements = &result.implementations[0].statements;
+
+    println!("{statements:#?}");
+    let ast_string_implicit = format!("{:#?}", statements[1]);
+    let ast_string_explicit = format!("{:#?}", statements[3]);
+
+    let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "DINT",
+    },
+    right: LiteralInteger {
+        value: 1,
+    },
+}"#;
+
+    // Both the implicit and explicit assignment should yield the same output 
+    // which in turn should be `expected_ast`
+    assert_eq!(ast_string_implicit, ast_string_explicit);
+    assert_eq!(ast_string_implicit, expected_ast);
+}
+
+#[test]
 fn pointer_address_test() {
     let src = "
         PROGRAM exp 
