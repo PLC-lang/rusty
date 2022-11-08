@@ -543,7 +543,7 @@ fn index_module<T: SourceContainer>(
     sources: Vec<T>,
     includes: Vec<T>,
     encoding: Option<&'static Encoding>,
-    mut diagnostician: Diagnostician,
+    diagnostician: &mut Diagnostician,
 ) -> Result<(Index, IndexComponents), Diagnostic> {
     let mut full_index = Index::default();
     let id_provider = IdProvider::default();
@@ -556,7 +556,7 @@ fn index_module<T: SourceContainer>(
         sources,
         encoding,
         &id_provider,
-        &mut diagnostician,
+        diagnostician,
         LinkageType::Internal,
     )?;
     full_index.import(index);
@@ -574,7 +574,7 @@ fn index_module<T: SourceContainer>(
         includes,
         encoding,
         &id_provider,
-        &mut diagnostician,
+        diagnostician,
         LinkageType::External,
     )?;
     full_index.import(includes_index);
@@ -638,11 +638,11 @@ pub fn compile_module<'c, T: SourceContainer>(
     sources: Vec<T>,
     includes: Vec<T>,
     encoding: Option<&'static Encoding>,
-    diagnostician: Diagnostician,
+    mut diagnostician: Diagnostician,
     optimization: OptimizationLevel,
     debug_level: DebugLevel,
 ) -> Result<(Index, CodeGen<'c>), Diagnostic> {
-    let (full_index, mut index) = index_module(sources, includes, encoding, diagnostician)?;
+    let (full_index, mut index) = index_module(sources, includes, encoding, &mut diagnostician)?;
 
     // ### PHASE 3 ###
     // - codegen
@@ -650,8 +650,12 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
-    let llvm_index =
-        code_generator.generate_llvm_index(&annotations, index.all_literals, &full_index)?;
+    let llvm_index = code_generator.generate_llvm_index(
+        &annotations,
+        index.all_literals,
+        &full_index,
+        &diagnostician,
+    )?;
     for unit in index.annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }

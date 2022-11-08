@@ -5,6 +5,9 @@ use std::{
     ops::Range,
 };
 
+#[cfg(test)]
+use std::cell::RefCell;
+
 use codespan_reporting::{
     diagnostic::Label,
     files::{Files, Location, SimpleFile, SimpleFiles},
@@ -729,6 +732,7 @@ impl Diagnostic {
 }
 
 /// a diagnostics severity
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Severity {
     Error,
     Warning,
@@ -759,11 +763,13 @@ pub trait DiagnosticAssessor {
 #[derive(Default)]
 pub struct DefaultDiagnosticAssessor {}
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedLocation {
     pub file_handle: usize,
     pub range: Range<usize>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedDiagnostics {
     pub message: String,
     pub severity: Severity,
@@ -983,6 +989,28 @@ impl DiagnosticReporter for NullDiagnosticReporter {
     }
 }
 
+///a Diagnostic reporter that holds all diagnostics in a list
+#[derive(Default)]
+#[cfg(test)]
+pub struct ListBasedDiagnosticReporter {
+    last_id: usize,
+    // RefCell to avoid changing the signature for the report() method
+    diagnostics: RefCell<Vec<ResolvedDiagnostics>>,
+}
+
+#[cfg(test)]
+impl DiagnosticReporter for ListBasedDiagnosticReporter {
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+        self.diagnostics.borrow_mut().extend_from_slice(diagnostics)
+    }
+
+    fn register(&mut self, _path: String, _src: String) -> usize {
+        // at least provide some unique ids
+        self.last_id += 1;
+        self.last_id
+    }
+}
+
 /// the Diagnostician handle's Diangostics with the help of a
 /// assessor and a reporter
 pub struct Diagnostician {
@@ -1006,6 +1034,21 @@ impl Diagnostician {
         Diagnostician {
             assessor: Box::new(DefaultDiagnosticAssessor::default()),
             reporter: Box::new(NullDiagnosticReporter::default()),
+            filename_fileid_mapping: HashMap::new(),
+        }
+    }
+
+    /// creates a diagnostician that just saves passed diagnostics, it is mainly used in tests
+    #[cfg(test)]
+    pub fn list_based_diagnostician(
+        diagnostics: RefCell<Vec<ResolvedDiagnostics>>,
+    ) -> Diagnostician {
+        Diagnostician {
+            assessor: Box::new(DefaultDiagnosticAssessor::default()),
+            reporter: Box::new(ListBasedDiagnosticReporter {
+                diagnostics,
+                ..Default::default()
+            }),
             filename_fileid_mapping: HashMap::new(),
         }
     }

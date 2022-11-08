@@ -1,13 +1,15 @@
 #[cfg(test)]
 pub mod tests {
 
+    use std::cell::RefCell;
+
     use encoding_rs::Encoding;
     use inkwell::context::Context;
 
     use crate::{
         ast::{self, CompilationUnit, SourceRangeFactory},
         builtins,
-        diagnostics::{Diagnostic, Diagnostician},
+        diagnostics::{Diagnostic, Diagnostician, ResolvedDiagnostics},
         index::{self, Index},
         lexer::{self, IdProvider},
         parser,
@@ -84,13 +86,17 @@ pub mod tests {
 
     pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
         codegen_debug_without_unwrap(src, DebugLevel::None)
+            .map(|(it, _)| it)
+            .map_err(|(_, err)| err)
     }
 
     pub fn codegen_debug_without_unwrap(
         src: &str,
         debug_level: DebugLevel,
-    ) -> Result<String, Diagnostic> {
+    ) -> Result<(String, Vec<ResolvedDiagnostics>), (Vec<ResolvedDiagnostics>, Diagnostic)> {
         let mut id_provider = IdProvider::default();
+        let diagnostics = RefCell::new(vec![]);
+        let diagnostician = Diagnostician::list_based_diagnostician(diagnostics.clone());
         let (unit, index) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
@@ -105,16 +111,26 @@ pub mod tests {
             debug_level,
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index = code_generator.generate_llvm_index(&annotations, literals, &index)?;
+        let llvm_index = code_generator
+            .generate_llvm_index(&annotations, literals, &index, &diagnostician)
+            .map_err(|err| (diagnostics.take(), err))?;
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)
             .map(|_| {
                 code_generator.finalize().unwrap();
-                code_generator.module.print_to_string().to_string()
+                (
+                    code_generator.module.print_to_string().to_string(),
+                    diagnostics.take(),
+                )
             })
+            .map_err(|err| (diagnostics.take(), err))
     }
 
-    pub fn codegen_with_debug(src: &str) -> String {
+    pub fn codegen_with_diagnostics(src: &str) -> (String, Vec<ResolvedDiagnostics>) {
+        codegen_debug_without_unwrap(src, DebugLevel::None).unwrap()
+    }
+
+    pub fn codegen_with_debug(src: &str) -> (String, Vec<ResolvedDiagnostics>) {
         codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
     }
 
