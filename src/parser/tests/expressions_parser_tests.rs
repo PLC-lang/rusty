@@ -1525,7 +1525,6 @@ fn assignment_to_number_with_implicit_and_explicit_plus_sign() {
     let result = parse(src).0;
     let statements = &result.implementations[0].statements;
 
-    println!("{statements:#?}");
     let ast_string_implicit = format!("{:#?}", statements[1]);
     let ast_string_explicit = format!("{:#?}", statements[3]);
 
