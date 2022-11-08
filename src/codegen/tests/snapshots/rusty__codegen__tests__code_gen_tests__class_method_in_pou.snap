@@ -10,7 +10,7 @@ source_filename = "main"
 %MyClass.testMethod = type { i16, i16 }
 
 @prg_instance = global %prg zeroinitializer
-@MyClass__init = unnamed_addr constant %MyClass zeroinitializer
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
 define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:

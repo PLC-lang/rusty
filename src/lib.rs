@@ -32,6 +32,7 @@ use inkwell::passes::PassBuilderOptions;
 use regex::{Captures, Regex};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
+use typesystem::get_builtin_types;
 
 use ast::{LinkageType, PouType, SourceRange, SourceRangeFactory};
 use cli::{CompileParameters, SubCommands};
@@ -559,6 +560,14 @@ fn index_module<T: SourceContainer>(
         LinkageType::Internal,
     )?;
     full_index.import(index);
+    // import built-in types like INT, BOOL, etc.
+    for data_type in get_builtin_types() {
+        full_index.register_type(data_type);
+    }
+    // import builtin functions
+    let builtins = builtins::parse_built_ins(id_provider.clone());
+    full_index.import(index::visitor::visit(&builtins, id_provider.clone()));
+
     all_units.append(&mut units);
 
     let (includes_index, mut includes_units) = parse_and_index(
@@ -575,19 +584,27 @@ fn index_module<T: SourceContainer>(
     let (mut full_index, _unresolvables) =
         resolver::const_evaluator::evaluate_constants(full_index);
 
+    // perform global validation
+    let global_diagnostics = {
+        let mut validator = Validator::new();
+        validator.perform_global_validation(&full_index);
+        validator.diagnostics()
+    };
+    diagnostician.handle(global_diagnostics);
+
     // ### PHASE 2 ###
     // annotation & validation everything
     let mut annotated_units: Vec<CompilationUnit> = Vec::new();
     let mut all_annotations = AnnotationMapImpl::default();
     let mut all_literals = StringLiterals::default();
-    for (file_id, syntax_errors, unit) in all_units.into_iter() {
+    for (syntax_errors, unit) in all_units.into_iter() {
         let (annotations, string_literals) = TypeAnnotator::visit_unit(&full_index, &unit);
 
         let mut validator = Validator::new();
         validator.visit_unit(&annotations, &full_index, &unit);
         //log errors
-        diagnostician.handle(syntax_errors, file_id);
-        diagnostician.handle(validator.diagnostics(), file_id);
+        diagnostician.handle(syntax_errors);
+        diagnostician.handle(validator.diagnostics());
 
         annotated_units.push(unit);
         all_annotations.import(annotations);
@@ -644,7 +661,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     Ok((full_index, code_generator))
 }
 
-type Units = Vec<(usize, Vec<Diagnostic>, CompilationUnit)>;
+type Units = Vec<(Vec<Diagnostic>, CompilationUnit)>;
 fn parse_and_index<T: SourceContainer>(
     source: Vec<T>,
     encoding: Option<&'static Encoding>,
@@ -655,10 +672,6 @@ fn parse_and_index<T: SourceContainer>(
     let mut index = Index::default();
 
     let mut units = Vec::new();
-
-    //parse the builtins into the index
-    let builtins = builtins::parse_built_ins(id_provider.clone());
-    index.import(index::visitor::visit(&builtins, id_provider.clone()));
 
     for container in source {
         let location = static_str(container.get_location().to_string());
@@ -682,8 +695,8 @@ fn parse_and_index<T: SourceContainer>(
         index.import(index::visitor::visit(&parse_result, id_provider.clone()));
 
         //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
-        let file_id = diagnostician.register_file(location.to_string(), e.source);
-        units.push((file_id, diagnostics, parse_result));
+        diagnostician.register_file(location.to_string(), e.source);
+        units.push((diagnostics, parse_result));
     }
     Ok((index, units))
 }

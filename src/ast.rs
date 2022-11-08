@@ -216,6 +216,7 @@ pub struct Implementation {
     pub pou_type: PouType,
     pub statements: Vec<AstStatement>,
     pub location: SourceRange,
+    pub name_location: SourceRange,
     pub overriding: bool,
     pub generic: bool,
     pub access: Option<AccessModifier>,
@@ -506,6 +507,12 @@ impl SourceRange {
 
     pub fn get_file_name(&self) -> Option<&'static str> {
         self.file
+    }
+
+    /// returns true if this SourceRange points to an undefined location.
+    /// see `SourceRange::undefined()`
+    pub fn is_undefined(&self) -> bool {
+        self.range == (0..0) && self.file.is_none()
     }
 }
 

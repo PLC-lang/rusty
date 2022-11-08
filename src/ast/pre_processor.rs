@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::{ast::DataTypeDeclaration, lexer::IdProvider};
+use crate::{ast::DataTypeDeclaration, lexer::IdProvider, typesystem};
 
 use super::{
     super::ast::{CompilationUnit, UserTypeDeclaration, Variable},
@@ -67,7 +67,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                 } if should_generate_implicit(referenced_type) => {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
 
-                    let type_name = format!("__{}", name);
+                    let type_name = typesystem::create_internal_type_name("", name);
                     let type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
                         location: SourceRange::undefined(), //return_type.get_location(),
@@ -265,7 +265,10 @@ fn pre_process_variable_data_type(
     variable: &mut Variable,
     types: &mut Vec<UserTypeDeclaration>,
 ) {
-    let new_type_name = format!("__{}_{}", container_name, variable.name);
+    let new_type_name = typesystem::create_internal_type_name(
+        format!("{}_", container_name).as_str(),
+        variable.name.as_str(),
+    );
     if let DataTypeDeclaration::DataTypeDefinition {
         mut data_type,
         location,

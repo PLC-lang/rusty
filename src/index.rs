@@ -1,60 +1,29 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use indexmap::IndexMap;
 
 use crate::{
     ast::{
         AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, NewLines, PouType, SourceRange, TypeNature,
+        LinkageType, PouType, SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
     diagnostics::Diagnostic,
     typesystem::{self, *},
 };
+use indexmap::IndexMap;
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
     instance_iterator::InstanceIterator,
+    symbol::{SymbolLocation, SymbolMap},
 };
 
 pub mod const_expressions;
 mod instance_iterator;
+pub mod symbol;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
-
-/// a factory to create SymbolLocations from SourceRanges, that automatically resolves
-/// the line-nr attribute
-pub struct SymbolLocationFactory<'a> {
-    new_lines: &'a NewLines,
-}
-
-impl<'a> SymbolLocationFactory<'a> {
-    /// creates a new SymbolLocationFactory with the given NewLines
-    pub fn new(new_lines: &'a NewLines) -> SymbolLocationFactory<'a> {
-        SymbolLocationFactory { new_lines }
-    }
-
-    /// creats a new SymbolLocation for the given source_range and automatically calculates
-    /// the resulting line-number usign the source_range's start and the factory's
-    /// NewLines
-    pub fn create_symbol_location(&self, source_range: &SourceRange) -> SymbolLocation {
-        SymbolLocation {
-            source_range: source_range.clone(),
-            line_number: self.new_lines.get_line_nr(source_range.get_start()),
-        }
-    }
-}
-
-/// Location information of a Symbol in the index consisting of the line_number
-/// and the detailled SourceRange information consisting the file and the range inside the source-string
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct SymbolLocation {
-    /// the line-number of this symbol in the source-file
-    pub line_number: usize,
-    /// the exact location of the symbol and the file_name
-    pub source_range: SourceRange,
-}
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableIndexEntry {
@@ -419,11 +388,13 @@ pub enum PouIndexEntry {
         instance_struct_name: String,
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
     FunctionBlock {
         name: String,
         instance_struct_name: String,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
     Function {
         name: String,
@@ -432,11 +403,13 @@ pub enum PouIndexEntry {
         generics: Vec<GenericBinding>,
         linkage: LinkageType,
         is_variadic: bool,
+        location: SymbolLocation,
     },
     Class {
         name: String,
         instance_struct_name: String,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
     Method {
         name: String,
@@ -444,12 +417,14 @@ pub enum PouIndexEntry {
         return_type: String,
         instance_struct_name: String,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
     Action {
         name: String,
         parent_pou_name: String,
         instance_struct_name: String,
         linkage: LinkageType,
+        location: SymbolLocation,
     },
 }
 
@@ -462,12 +437,14 @@ impl PouIndexEntry {
         pou_name: &str,
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
+        location: SymbolLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             instance_variable,
             linkage,
+            location,
         }
     }
 
@@ -475,11 +452,16 @@ impl PouIndexEntry {
     /// # Arguments
     /// - `name` the name of the FunctionBlock
     /// - `linkage` the linkage type of the pou
-    pub fn create_function_block_entry(pou_name: &str, linkage: LinkageType) -> PouIndexEntry {
+    pub fn create_function_block_entry(
+        pou_name: &str,
+        linkage: LinkageType,
+        location: SymbolLocation,
+    ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
+            location,
         }
     }
 
@@ -493,6 +475,7 @@ impl PouIndexEntry {
         generic_names: &[GenericBinding],
         linkage: LinkageType,
         is_variadic: bool,
+        location: SymbolLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Function {
             name: name.into(),
@@ -501,6 +484,7 @@ impl PouIndexEntry {
             instance_struct_name: name.into(),
             linkage,
             is_variadic,
+            location,
         }
     }
 
@@ -512,23 +496,30 @@ impl PouIndexEntry {
         qualified_name: &str,
         pou_name: &str,
         linkage: LinkageType,
+        location: SymbolLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Action {
             name: qualified_name.into(),
             parent_pou_name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
+            location,
         }
     }
 
     /// creates a new Class-PouIndexEntry
     /// # Arguments
     /// - `name` the name of the Class
-    pub fn create_class_entry(pou_name: &str, linkage: LinkageType) -> PouIndexEntry {
+    pub fn create_class_entry(
+        pou_name: &str,
+        linkage: LinkageType,
+        location: SymbolLocation,
+    ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
             instance_struct_name: pou_name.into(),
             linkage,
+            location,
         }
     }
 
@@ -542,6 +533,7 @@ impl PouIndexEntry {
         return_type: &str,
         owner_class: &str,
         linkage: LinkageType,
+        location: SymbolLocation,
     ) -> PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
@@ -549,6 +541,7 @@ impl PouIndexEntry {
             instance_struct_name: name.into(),
             return_type: return_type.into(),
             linkage,
+            location,
         }
     }
 
@@ -674,16 +667,39 @@ impl PouIndexEntry {
     pub fn is_function(&self) -> bool {
         matches!(self, PouIndexEntry::Function { .. })
     }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self, PouIndexEntry::FunctionBlock { .. })
+    }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, PouIndexEntry::Class { .. })
+    }
+
+    pub(crate) fn is_method(&self) -> bool {
+        matches!(self, PouIndexEntry::Method { .. })
+    }
+
+    pub fn get_location(&self) -> &SymbolLocation {
+        match self {
+            PouIndexEntry::Program { location, .. }
+            | PouIndexEntry::FunctionBlock { location, .. }
+            | PouIndexEntry::Function { location, .. }
+            | PouIndexEntry::Method { location, .. }
+            | PouIndexEntry::Action { location, .. }
+            | PouIndexEntry::Class { location, .. } => location,
+        }
+    }
 }
 
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
-    types: IndexMap<String, DataType>,
-    pou_types: IndexMap<String, DataType>,
+    types: SymbolMap<String, DataType>,
+    pou_types: SymbolMap<String, DataType>,
 
     void_type: DataType,
 }
@@ -691,13 +707,14 @@ pub struct TypeIndex {
 impl Default for TypeIndex {
     fn default() -> Self {
         TypeIndex {
-            types: IndexMap::new(),
-            pou_types: IndexMap::new(),
+            types: SymbolMap::default(),
+            pou_types: SymbolMap::default(),
             void_type: DataType {
                 name: VOID_TYPE.into(),
                 initial_value: None,
                 information: DataTypeInformation::Void,
                 nature: TypeNature::Any,
+                location: SymbolLocation::internal(),
             },
         }
     }
@@ -753,25 +770,25 @@ impl TypeIndex {
 #[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
-    global_variables: IndexMap<String, VariableIndexEntry>,
+    global_variables: SymbolMap<String, VariableIndexEntry>, // IndexMap<String, Vec<VariableIndexEntry>>,
 
     /// all struct initializers
-    global_initializers: IndexMap<String, VariableIndexEntry>,
+    global_initializers: SymbolMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
-    enum_global_variables: IndexMap<String, VariableIndexEntry>,
+    enum_global_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all enum-members with their qualified names <enum-type>.<element-name>
-    enum_qualified_variables: IndexMap<String, VariableIndexEntry>,
+    enum_qualified_variables: SymbolMap<String, VariableIndexEntry>,
 
     /// all local variables, grouped by the POU's name
-    member_variables: IndexMap<String, IndexMap<String, VariableIndexEntry>>,
+    member_variables: IndexMap<String, SymbolMap<String, VariableIndexEntry>>,
 
     // all pous,
-    pous: IndexMap<String, PouIndexEntry>,
+    pous: SymbolMap<String, PouIndexEntry>,
 
     /// all implementations
-    implementations: IndexMap<String, ImplementationIndexEntry>,
+    implementations: SymbolMap<String, ImplementationIndexEntry>,
 
     /// an index with all type-information
     type_index: TypeIndex,
@@ -792,63 +809,97 @@ impl Index {
     pub fn import(&mut self, mut other: Index) {
         //global variables
         for (name, e) in other.global_variables.drain(..) {
-            let e = self.transfer_constants(e, &mut other.constant_expressions);
-            self.global_variables.insert(name, e);
+            let entries = e
+                .into_iter()
+                .map(|it| self.transfer_constants(it, &mut other.constant_expressions))
+                .collect::<Vec<_>>();
+            self.global_variables.insert_many(name, entries);
         }
 
         //enmu_variables use the qualified variables since name conflicts will be overriden in the enum_global
-        for (qualified_name, e) in other.enum_qualified_variables.drain(..) {
-            let e = self.transfer_constants(e, &mut other.constant_expressions);
-            self.enum_global_variables
-                .insert(e.get_name().to_lowercase(), e.clone());
-            self.enum_qualified_variables.insert(qualified_name, e);
+        for (qualified_name, elements) in other.enum_qualified_variables.drain(..) {
+            let elements = elements
+                .into_iter()
+                .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
+                .collect::<Vec<_>>();
+
+            for e in elements.iter() {
+                self.enum_global_variables
+                    .insert(e.get_name().to_lowercase(), e.clone());
+            }
+
+            self.enum_qualified_variables
+                .insert_many(qualified_name, elements);
         }
 
         //initializers
-        for (name, e) in other.global_initializers.drain(..) {
-            let e = self.transfer_constants(e, &mut other.constant_expressions);
-            self.global_initializers.insert(name, e);
+        for (name, elements) in other.global_initializers.drain(..) {
+            let elements = elements
+                .into_iter()
+                .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
+                .collect::<Vec<_>>();
+            self.global_initializers.insert_many(name, elements);
         }
 
         //member variables
         for (name, mut members) in other.member_variables.drain(..) {
             //enum qualified variables
-            let mut new_members = IndexMap::default();
-            for (name, e) in members.drain(..) {
-                let e = self.transfer_constants(e, &mut other.constant_expressions);
-                new_members.insert(name, e);
+            let mut new_members = SymbolMap::default();
+            for (name, entries) in members.drain(..) {
+                let entries = entries
+                    .into_iter()
+                    .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
+                    .collect::<Vec<_>>();
+                new_members.insert_many(name, entries);
             }
             self.member_variables.insert(name, new_members);
         }
 
         //types
-        for (name, mut e) in other.type_index.types.drain(..) {
-            e.initial_value =
-                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-            match &mut e.information {
-                //import constant expressions in array-type-definitions
-                DataTypeInformation::Array { dimensions, .. } => {
-                    for d in dimensions.iter_mut() {
-                        d.start_offset =
-                            self.import_type_size(&mut other.constant_expressions, &d.start_offset);
-                        d.end_offset =
-                            self.import_type_size(&mut other.constant_expressions, &d.end_offset);
+        for (name, mut elements) in other.type_index.types.drain(..) {
+            for mut e in elements.drain(..) {
+                //avoid re-importing internally auto-generated types that we already know
+                if !e.is_internal()
+                    || self
+                        .type_index
+                        .find_effective_type_by_name(name.as_str())
+                        .is_none()
+                {
+                    e.initial_value = self
+                        .maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+
+                    match &mut e.information {
+                        //import constant expressions in array-type-definitions
+                        DataTypeInformation::Array { dimensions, .. } => {
+                            for d in dimensions.iter_mut() {
+                                d.start_offset = self.import_type_size(
+                                    &mut other.constant_expressions,
+                                    &d.start_offset,
+                                );
+                                d.end_offset = self.import_type_size(
+                                    &mut other.constant_expressions,
+                                    &d.end_offset,
+                                );
+                            }
+                        }
+                        // import constant expressions in String-size defintions
+                        DataTypeInformation::String { size, .. } => {
+                            *size = self.import_type_size(&mut other.constant_expressions, size);
+                        }
+                        _ => {}
                     }
+
+                    self.type_index.types.insert(name.clone(), e)
                 }
-                // import constant expressions in String-size defintions
-                DataTypeInformation::String { size, .. } => {
-                    *size = self.import_type_size(&mut other.constant_expressions, size);
-                }
-                _ => {}
             }
-            self.type_index.types.insert(name, e);
         }
 
         //pou_types
-        for (name, mut e) in other.type_index.pou_types.drain(..) {
-            e.initial_value =
+        for (name, elements) in other.type_index.pou_types.drain(..) {
+            elements.iter().for_each(|e| {
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-            self.type_index.pou_types.insert(name, e);
+            });
+            self.type_index.pou_types.insert_many(name, elements)
         }
 
         //implementations
@@ -1178,15 +1229,13 @@ impl Index {
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
-        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||Diagnostic::unknown_type(pou_name, 0..0))?;
-        if let Some(members) = members {
-            for (_, variable) in members {
-                if variable.get_variable_type() == VariableType::Return {
-                    return Some(variable);
-                }
-            }
-        }
-        None
+        let members = self.member_variables.get(&pou_name.to_lowercase());
+
+        members.and_then(|members| {
+            members
+                .values()
+                .find(|it| it.get_variable_type() == VariableType::Return)
+        })
     }
 
     pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
@@ -1200,15 +1249,18 @@ impl Index {
             .unwrap_or_else(|| self.get_void_type().get_type_information())
     }
 
-    /// Returns a list of types, should not be used to search for types, just to react on them
-    pub fn get_types(&self) -> &IndexMap<String, DataType> {
+    /// Returns the map of types, should not be used to search for types --> see find_type
+    pub fn get_types(&self) -> &SymbolMap<String, DataType> {
         &self.type_index.types
     }
-    pub fn get_pou_types(&self) -> &IndexMap<String, DataType> {
+
+    /// Returns the map of pou_types, should not be used to search for pou_types -->  see find_pou_type
+    pub fn get_pou_types(&self) -> &SymbolMap<String, DataType> {
         &self.type_index.pou_types
     }
 
-    pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
+    /// Returns the map of globals, should not be used to search for globals -->  see find_global_variable
+    pub fn get_globals(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.global_variables
     }
 
@@ -1224,23 +1276,30 @@ impl Index {
             .collect()
     }
 
-    pub fn get_pous(&self) -> &IndexMap<String, PouIndexEntry> {
+    /// Returns the map of pous, should not be used to search for pous -->  see find_pou
+    pub fn get_pous(&self) -> &SymbolMap<String, PouIndexEntry> {
         &self.pous
     }
 
-    pub fn get_global_initializers(&self) -> &IndexMap<String, VariableIndexEntry> {
+    pub fn get_global_initializers(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.global_initializers
     }
 
-    pub fn get_members(&self, name: &str) -> Option<&IndexMap<String, VariableIndexEntry>> {
-        self.member_variables.get(name.to_lowercase().as_str())
+    pub fn get_members(&self, name: &str) -> Option<&SymbolMap<String, VariableIndexEntry>> {
+        self.member_variables.get(&name.to_lowercase())
     }
 
-    pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
+    pub fn get_all_members_by_container(
+        &self,
+    ) -> &IndexMap<String, SymbolMap<String, VariableIndexEntry>> {
+        &self.member_variables
+    }
+
+    pub fn get_global_qualified_enums(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.enum_qualified_variables
     }
 
-    pub fn get_implementations(&self) -> &IndexMap<String, ImplementationIndexEntry> {
+    pub fn get_implementations(&self) -> &SymbolMap<String, ImplementationIndexEntry> {
         &self.implementations
     }
 
@@ -1269,11 +1328,15 @@ impl Index {
     }
 
     pub fn register_program(&mut self, name: &str, location: SymbolLocation, linkage: LinkageType) {
-        let instance_variable =
-            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location)
-                .set_linkage(linkage);
+        let instance_variable = VariableIndexEntry::create_global(
+            &format!("{}_instance", &name),
+            name,
+            name,
+            location.clone(),
+        )
+        .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
-        let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage);
+        let entry = PouIndexEntry::create_program_entry(name, instance_variable, linkage, location);
         self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
@@ -1281,7 +1344,7 @@ impl Index {
         self.pous.insert(entry.get_name().to_lowercase(), entry);
     }
 
-    pub(self) fn find_implementation_by_name(
+    pub fn find_implementation_by_name(
         &self,
         call_name: &str,
     ) -> Option<&ImplementationIndexEntry> {
@@ -1333,10 +1396,8 @@ impl Index {
         self.register_member_entry(container_name, entry);
     }
     pub fn register_member_entry(&mut self, container_name: &str, entry: VariableIndexEntry) {
-        let members = self
-            .member_variables
-            .entry(container_name.to_lowercase())
-            .or_insert_with(IndexMap::new);
+        let key = container_name.to_lowercase();
+        let members = self.member_variables.entry(key).or_default();
         members.insert(entry.name.to_lowercase(), entry);
     }
 
@@ -1472,7 +1533,7 @@ impl Index {
 
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
-    format!("{}__init", name)
+    format!("__{}__init", name)
 }
 impl VariableType {
     pub(crate) fn is_private(&self) -> bool {

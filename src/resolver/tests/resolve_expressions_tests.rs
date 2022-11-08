@@ -6,8 +6,8 @@ use crate::{
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LREAL_TYPE,
-        REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
+        LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -215,7 +215,7 @@ fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
             &annotations,
             &index,
             addition,
-            "POINTER_TO_BYTE",
+            "__POINTER_TO_BYTE",
             Some("__PRG_a")
         );
     }
@@ -236,7 +236,7 @@ fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
             &annotations,
             &index,
             addition,
-            "POINTER_TO_BYTE",
+            "__POINTER_TO_BYTE",
             Some("__PRG_a")
         );
     }
@@ -790,6 +790,7 @@ fn array_expressions_resolve_types() {
                 y : ARRAY[0..10] OF MyInt;
                 a : MyIntArray;
                 b : MyAliasArray;
+                z : ARRAY[0..10] OF ARRAY[0..5] OF BYTE;
             END_VAR
 
             i;
@@ -803,6 +804,9 @@ fn array_expressions_resolve_types() {
 
             b;
             b[2];
+
+            z;
+            z[2];
         END_PROGRAM
         
         TYPE MyInt: INT := 7; END_TYPE 
@@ -823,6 +827,8 @@ fn array_expressions_resolve_types() {
         "INT",
         "MyAliasArray",
         "INT",
+        "__PRG_z",
+        "__PRG_z_",
     ];
     let type_names: Vec<&str> = statements
         .iter()
@@ -3019,7 +3025,7 @@ fn address_of_is_annotated_correctly() {
             Some(&DataTypeInformation::Pointer {
                 auto_deref: false,
                 inner_type_name: "INT".to_string(),
-                name: "POINTER_TO_INT".to_string(),
+                name: "__POINTER_TO_INT".to_string(),
             }),
             index.find_effective_type_info(resulting_type),
         );
@@ -3049,7 +3055,7 @@ fn pointer_assignment_with_incompatible_types_hints_correctly() {
             &annotations,
             &index,
             right,
-            "POINTER_TO_INT",
+            "__POINTER_TO_INT",
             Some("__PRG_pt")
         );
     }
@@ -3256,5 +3262,86 @@ fn function_block_initialization_test() {
         )
     } else {
         unreachable!("Should be an assignment")
+    }
+}
+
+#[test]
+fn undeclared_varargs_type_hint_promoted_correctly() {
+    // GIVEN a variadic function without type declarations
+    let (unit, mut index) = index(
+        "
+            FUNCTION variadic : BOOL
+            VAR_INPUT
+                args: ...;
+            END_VAR
+            END_FUNCTION
+
+            PROGRAM main 
+            VAR
+                float: REAL := 3.0;
+                double: LREAL := 4.0;
+                u1: BOOL;
+                u8: USINT := 255;
+                short: INT := -3;
+                long: DINT := 2_000_000_000;
+                longlong: LINT := 16_000_000_000;
+            END_VAR
+                variadic(float, double, u1, u8, short, long, longlong, 'hello');
+            END_PROGRAM
+            ",
+    );
+
+    // WHEN called with numerical types
+    let annotations = annotate(&unit, &mut index);
+    let call_stmt = &unit.implementations[1].statements[0];
+    // THEN types smaller than LREAL/DINT get promoted while booleans and other types stay untouched.
+    if let AstStatement::CallStatement { parameters, .. } = call_stmt {
+        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            REAL_TYPE,
+            Some(LREAL_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[1],
+            LREAL_TYPE,
+            Some(LREAL_TYPE)
+        );
+        assert_type_and_hint!(&annotations, &index, parameters[2], BOOL_TYPE, None);
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[3],
+            USINT_TYPE,
+            Some(DINT_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[4],
+            INT_TYPE,
+            Some(DINT_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[5],
+            DINT_TYPE,
+            Some(DINT_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[6],
+            LINT_TYPE,
+            Some(LINT_TYPE)
+        );
+        assert_type_and_hint!(&annotations, &index, parameters[7], "__STRING_5", None);
+    } else {
+        unreachable!();
     }
 }

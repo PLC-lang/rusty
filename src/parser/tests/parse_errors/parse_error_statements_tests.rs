@@ -1037,7 +1037,7 @@ fn pointer_type_without_to_test() {
         vec![
             Diagnostic::ImprovementSuggestion {
                 message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-                range: (42..49).into()
+                range: vec![(42..49).into()]
             },
             Diagnostic::unexpected_token_found("KeywordTo", "INT", (50..53).into())
         ],
@@ -1074,7 +1074,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         vec![
             Diagnostic::ImprovementSuggestion {
                 message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-                range: (42..49).into()
+                range: vec![(42..49).into()]
             },
             Diagnostic::unexpected_token_found("KeywordTo", "tu", (50..52).into()),
             Diagnostic::unexpected_token_found("KeywordSemicolon", "'INT'", (53..56).into())

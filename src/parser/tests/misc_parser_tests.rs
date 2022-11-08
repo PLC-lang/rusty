@@ -89,6 +89,7 @@ fn exponent_literals_parsed_as_variables() {
         overriding: false,
         generic: false,
         location: (105..142).into(),
+        name_location: (22..24).into(),
     };
     assert_eq!(
         format!("{:#?}", expected),

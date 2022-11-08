@@ -408,7 +408,7 @@ fn pointer_type_test() {
     assert_eq!(diagnostics.len(), 1);
     let diagnostic = Diagnostic::ImprovementSuggestion {
         message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-        range: (42..49).into(),
+        range: vec![(42..49).into()],
     };
     assert_eq!(diagnostics[0], diagnostic);
 }
@@ -499,7 +499,7 @@ fn global_pointer_declaration() {
     assert_eq!(diagnostics.len(), 1);
     let diagnostic = Diagnostic::ImprovementSuggestion {
         message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-        range: (91..98).into(),
+        range: vec![(91..98).into()],
     };
     assert_eq!(diagnostics[0], diagnostic);
 }
