@@ -1516,31 +1516,60 @@ fn assignment_to_null() {
 #[test]
 fn assignment_to_number_with_implicit_and_explicit_plus_sign() {
     let src = "
-        PROGRAM exp
-        x : DINT := 1;
-        y : DINT := +1;
+        PROGRAM exp 
+            VAR 
+                x : INT; 
+            END_VAR 
+            x := 1; 
+            x := +1; 
         END_PROGRAM
     ";
 
     let result = parse(src).0;
     let statements = &result.implementations[0].statements;
 
-    let ast_string_implicit = format!("{:#?}", statements[1]);
-    let ast_string_explicit = format!("{:#?}", statements[3]);
-
+    let ast_string_implicit = format!("{:#?}", statements[0]);
+    let ast_string_explicit = format!("{:#?}", statements[1]);
     let expected_ast = r#"Assignment {
     left: Reference {
-        name: "DINT",
+        name: "x",
     },
     right: LiteralInteger {
         value: 1,
     },
 }"#;
 
-    // Both the implicit and explicit assignment should yield the same output 
-    // which in turn should be `expected_ast`
+    // Both the implicit and explicit assignment should yield the same output, namely `expected_ast`
     assert_eq!(ast_string_implicit, ast_string_explicit);
     assert_eq!(ast_string_implicit, expected_ast);
+}
+
+#[test]
+fn assignment_to_number_reference_with_explicit_plus_sign() {
+    let src = "
+        PROGRAM exp 
+            VAR 
+                x : INT; 
+            END_VAR 
+            x := 1; 
+            x := +x; 
+        END_PROGRAM
+    ";
+
+    let result = parse(src).0;
+    let statements = &result.implementations[0].statements;
+
+    let ast_string_explicit = format!("{:#?}", statements[1]);
+    let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: Reference {
+        name: "x",
+    },
+}"#;
+
+    assert_eq!(ast_string_explicit, expected_ast);
 }
 
 #[test]

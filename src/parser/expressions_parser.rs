@@ -171,6 +171,7 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
 fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
     let operator = match lexer.token {
         OperatorNot => Some(Operator::Not),
+        OperatorPlus => Some(Operator::Plus),
         OperatorMinus => Some(Operator::Minus),
         OperatorAmp => Some(Operator::Address),
         _ => None,
@@ -185,23 +186,36 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
             .source_range_factory
             .create_range(start..expression_location.get_end());
 
-        if let (AstStatement::LiteralInteger { value, .. }, Operator::Minus) =
-            (&expression, &operator)
-        {
-            //if this turns out to be a negative number, we want to have a negative literal integer
-            //instead of a Unary-Not-Expression
-            AstStatement::LiteralInteger {
-                value: -value,
+        match (&operator, &expression) {
+            (Operator::Minus, AstStatement::LiteralInteger { value, .. }) => {
+                AstStatement::LiteralInteger {
+                    value: -value,
+                    location,
+                    id: lexer.next_id(),
+                }
+            }
+
+            (Operator::Plus, AstStatement::LiteralInteger { value, .. }) => {
+                AstStatement::LiteralInteger {
+                    value: *value,
+                    location,
+                    id: lexer.next_id(),
+                }
+            }
+
+            // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
+            (Operator::Plus, AstStatement::Reference { name, .. }) => AstStatement::Reference {
+                name: name.to_owned(),
                 location,
                 id: lexer.next_id(),
-            }
-        } else {
-            AstStatement::UnaryExpression {
+            },
+
+            _ => AstStatement::UnaryExpression {
                 operator,
                 value: Box::new(expression),
                 location,
                 id: lexer.next_id(),
-            }
+            },
         }
     } else {
         parse_parenthesized_expression(lexer)
