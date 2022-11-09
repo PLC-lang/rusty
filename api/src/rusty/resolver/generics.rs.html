@@ -577,16 +577,16 @@
             );
 
             <span class="comment">//register a copy of the pou under the new name</span>
-            <span class="self">self</span>.<span class="ident">annotation_map</span>
-                .<span class="ident">new_index</span>
-                .<span class="ident">register_pou</span>(<span class="ident">PouIndexEntry::create_function_entry</span>(
+            <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">new_index</span>.<span class="ident">register_pou</span>(
+                <span class="ident">PouIndexEntry::create_generated_function_entry</span>(
                     <span class="ident">new_name</span>,
                     <span class="ident">return_type</span>,
                     <span class="kw-2">&amp;</span>[],
                     <span class="ident">LinkageType::External</span>, <span class="comment">//it has to be external, we should have already found this in the global index if it was internal</span>
                     <span class="ident">generic_function</span>.<span class="ident">is_variadic</span>(),
                     <span class="ident">generic_function</span>.<span class="ident">get_location</span>().<span class="ident">clone</span>(),
-                ));
+                ),
+            );
 
             <span class="comment">// register the member-variables (interface) of the new function</span>
             <span class="comment">// copy each member-index-entry and make sure to turn the generic (e.g. T)</span>
