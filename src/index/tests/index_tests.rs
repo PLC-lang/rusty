@@ -1919,6 +1919,7 @@ fn a_program_pou_is_indexed() {
                 source_range: (65..75).into(),
                 line_number: 4
             },
+            is_generated: false,
         }),
         index.find_pou("myFunction"),
     );
