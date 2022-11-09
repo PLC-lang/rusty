@@ -34,9 +34,9 @@ fn resolved_generic_call_added_to_index() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     // The implementations are added to the index
     let implementations = annotations.new_index.get_implementations();
-    assert!(implementations.contains_key(&"myfunc__int".into()));
-    assert!(implementations.contains_key(&"myfunc__dint".into()));
-    assert!(implementations.contains_key(&"myfunc__real".into()));
+    assert!(implementations.contains_key("myfunc__int"));
+    assert!(implementations.contains_key("myfunc__dint"));
+    assert!(implementations.contains_key("myfunc__real"));
     assert_eq!(3, implementations.values().count()); //make sure BYTE-implementation was not added by the annotator
 
     //The pous are added to the index
@@ -500,12 +500,12 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     //The implementations are not added to the index
     let implementations = annotations.new_index.get_implementations();
-    assert!(!implementations.contains_key(&"adr__int".into()));
-    assert!(!implementations.contains_key(&"adr__dint".into()));
-    assert!(!implementations.contains_key(&"adr__real".into()));
-    assert!(!implementations.contains_key(&"ref__int".into()));
-    assert!(!implementations.contains_key(&"ref__dint".into()));
-    assert!(!implementations.contains_key(&"ref__real".into()));
+    assert!(!implementations.contains_key("adr__int"));
+    assert!(!implementations.contains_key("adr__dint"));
+    assert!(!implementations.contains_key("adr__real"));
+    assert!(!implementations.contains_key("ref__int"));
+    assert!(!implementations.contains_key("ref__dint"));
+    assert!(!implementations.contains_key("ref__real"));
 
     //The pous are not added to the index
     let pous = annotations.new_index.get_pou_types();
@@ -855,7 +855,7 @@ fn resolved_generic_any_real_call_with_ints_added_to_index() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     // The implementations are added to the index
     let implementations = annotations.new_index.get_implementations();
-    assert!(implementations.contains_key(&"myfunc__lreal".into()));
+    assert!(implementations.contains_key("myfunc__lreal"));
     assert_eq!(1, implementations.values().count()); //make sure REAL-implementation was not added by the annotator
 
     //The pous are added to the index

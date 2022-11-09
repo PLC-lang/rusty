@@ -139,16 +139,16 @@ impl<'i> TypeAnnotator<'i> {
             );
 
             //register a copy of the pou under the new name
-            self.annotation_map
-                .new_index
-                .register_pou(PouIndexEntry::create_function_entry(
+            self.annotation_map.new_index.register_pou(
+                PouIndexEntry::create_generated_function_entry(
                     new_name,
                     return_type,
                     &[],
                     LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
                     generic_function.is_variadic(),
                     generic_function.get_location().clone(),
-                ));
+                ),
+            );
 
             // register the member-variables (interface) of the new function
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
