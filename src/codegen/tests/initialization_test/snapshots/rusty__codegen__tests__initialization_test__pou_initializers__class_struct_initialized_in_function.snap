@@ -9,7 +9,7 @@ source_filename = "main"
 %fb = type { i16 }
 
 @main_instance = global %main { %fb { i16 9 } }
-@fb__init = unnamed_addr constant %fb { i16 9 }
+@__fb__init = unnamed_addr constant %fb { i16 9 }
 
 define i32 @func(%fb %0) {
 entry:
@@ -18,7 +18,7 @@ entry:
   %x = alloca %fb, align 8
   %func = alloca i32, align 4
   %1 = bitcast %fb* %x to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb* @fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb* @__fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
   store i32 0, i32* %func, align 4
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret

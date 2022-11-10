@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     error::Error,
     fmt::{self, Display},
     ops::Range,
@@ -19,7 +20,7 @@ pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 pub enum Diagnostic {
     SyntaxError {
         message: String,
-        range: SourceRange,
+        range: Vec<SourceRange>,
         err_no: ErrNo,
     },
     GeneralError {
@@ -28,8 +29,18 @@ pub enum Diagnostic {
     },
     ImprovementSuggestion {
         message: String,
-        range: SourceRange,
+        range: Vec<SourceRange>,
     },
+}
+
+impl Diagnostic {
+    pub fn get_affected_ranges(&self) -> &[SourceRange] {
+        match self {
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
+            Diagnostic::GeneralError { .. } => &[],
+        }
+    }
 }
 
 #[allow(non_camel_case_types)]
@@ -40,6 +51,7 @@ pub enum ErrNo {
     //general
     general__io_err,
     general__param_err,
+    duplicate_symbol,
 
     //syntax
     syntax__generic_error,
@@ -53,8 +65,9 @@ pub enum ErrNo {
     pou__unsupported_return_type,
     pou__empty_variable_block,
     pou__missing_action_container,
-    // pou call
-    pou__missing_inout_parameter,
+
+    // call
+    call__invalid_parameter_type,
 
     //variable related
     var__unresolved_constant,
@@ -115,7 +128,7 @@ impl Diagnostic {
     pub fn syntax_error(message: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.to_string(),
-            range,
+            range: vec![range],
             err_no: ErrNo::syntax__generic_error,
         }
     }
@@ -126,7 +139,7 @@ impl Diagnostic {
                 "Unexpected token: expected {} but found {}",
                 expected, found
             ),
-            range,
+            range: vec![range],
             err_no: ErrNo::syntax__unexpected_token,
         }
     }
@@ -134,7 +147,7 @@ impl Diagnostic {
     pub fn unexpected_initializer_on_function_return(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Return types cannot have a default value".into(),
-            range,
+            range: vec![range],
             err_no: ErrNo::syntax__unexpected_token,
         }
     }
@@ -145,7 +158,7 @@ impl Diagnostic {
                 "POU Type {:?} does not support a return type. Did you mean Function?",
                 pou_type
             ),
-            range,
+            range: vec![range],
             err_no: ErrNo::pou__unexpected_return_type,
         }
     }
@@ -156,7 +169,7 @@ impl Diagnostic {
                 "Data Type {:?} not supported as a function return type!",
                 data_type
             ),
-            range: data_type.get_location(),
+            range: vec![data_type.get_location()],
             err_no: ErrNo::pou__unsupported_return_type,
         }
     }
@@ -164,7 +177,7 @@ impl Diagnostic {
     pub fn function_return_missing(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Function Return type missing".into(),
-            range,
+            range: vec![range],
             err_no: ErrNo::pou__missing_return_type,
         }
     }
@@ -172,7 +185,7 @@ impl Diagnostic {
     pub fn missing_function(location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Cannot generate code outside of function context.".into(),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::codegen__missing_function,
         }
     }
@@ -187,7 +200,7 @@ impl Diagnostic {
                 "Missing compare function 'FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...'.",
                 function_name, data_type
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::codegen__missing_compare_function,
         }
     }
@@ -195,7 +208,7 @@ impl Diagnostic {
     pub fn missing_token(epxected_token: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Missing expected Token {}", epxected_token),
-            range,
+            range: vec![range],
             err_no: ErrNo::syntax__missing_token,
         }
     }
@@ -203,14 +216,14 @@ impl Diagnostic {
     pub fn missing_action_container(range: SourceRange) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: "Missing Actions Container Name".to_string(),
-            range,
+            range: vec![range],
         }
     }
 
     pub fn unresolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Could not resolve reference to {:}", reference),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::reference__unresolved,
         }
     }
@@ -218,7 +231,7 @@ impl Diagnostic {
     pub fn illegal_access(reference: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Illegal access to private member {:}", reference),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::reference__illegal_access,
         }
     }
@@ -233,7 +246,7 @@ impl Diagnostic {
                 "Could not resolve generic type {} with nature {}",
                 symbol, nature
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__unresolved_generic,
         }
     }
@@ -241,7 +254,7 @@ impl Diagnostic {
     pub fn unknown_type(type_name: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Unknown type: {:}", type_name),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__unknown_type,
         }
     }
@@ -249,7 +262,7 @@ impl Diagnostic {
     pub fn casting_error(type_name: &str, target_type: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Cannot cast from {:} to {:}", type_name, target_type),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__cast_error,
         }
     }
@@ -264,7 +277,7 @@ impl Diagnostic {
                 "{}-Wise access requires a Numerical type larger than {} bits",
                 access_type, access_size
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__incompatible_directaccess,
         }
     }
@@ -280,7 +293,7 @@ impl Diagnostic {
                 "{}-Wise access for type {} must be in the range {}..{}",
                 access_type, target_type, access_range.start, access_range.end
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__incompatible_directaccess_range,
         }
     }
@@ -294,7 +307,7 @@ impl Diagnostic {
                 "Invalid type {} for direct variable access. Only variables of Integer types are allowed",
                 access_type
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__incompatible_directaccess_variable,
         }
     }
@@ -305,7 +318,7 @@ impl Diagnostic {
                 "Array access must be in the range {}..{}",
                 range.start, range.end
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__incompatible_arrayaccess_range,
         }
     }
@@ -319,7 +332,7 @@ impl Diagnostic {
                 "Invalid type {} for array access. Only variables of Array types are allowed",
                 access_type
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__incompatible_arrayaccess_variable,
         }
     }
@@ -330,7 +343,7 @@ impl Diagnostic {
                 "Invalid type {} for array access. Only variables of Integer types are allowed to access an array",
                 access_type
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__incompatible_arrayaccess_variable,
         }
     }
@@ -345,7 +358,7 @@ impl Diagnostic {
                 "Literal {:} is not campatible to {:}",
                 literal_type, cast_type
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__incompatible_literal_cast,
         }
     }
@@ -353,7 +366,7 @@ impl Diagnostic {
     pub fn literal_expected(location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Expected literal".into(),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__expected_literal,
         }
     }
@@ -365,7 +378,7 @@ impl Diagnostic {
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Literal {:} out of range ({})", literal, range_hint),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__literal_out_of_range,
         }
     }
@@ -373,7 +386,7 @@ impl Diagnostic {
     pub fn empty_variable_block(location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Variable block is empty".into(),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::pou__empty_variable_block,
         }
     }
@@ -391,7 +404,7 @@ impl Diagnostic {
                     .map(|it| format!(": {:}", it))
                     .unwrap_or_else(|| "".into()),
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::pou__empty_variable_block,
         }
     }
@@ -399,7 +412,7 @@ impl Diagnostic {
     pub fn invalid_constant_block(location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "This variable block does not support the CONSTANT modifier".to_string(),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::var__invalid_constant_block,
         }
     }
@@ -407,7 +420,7 @@ impl Diagnostic {
     pub fn invalid_constant(constant_name: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Invalid constant {:} - Functionblock- and Class-instances cannot be delcared constant", constant_name),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::var__invalid_constant,
         }
     }
@@ -415,7 +428,7 @@ impl Diagnostic {
     pub fn cannot_assign_to_constant(qualified_name: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Cannot assign to CONSTANT '{:}'", qualified_name),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::var__cannot_assign_to_const,
         }
     }
@@ -433,15 +446,14 @@ impl Diagnostic {
     pub fn codegen_error(message: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.into(),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::codegen__general,
         }
     }
 
     pub fn debug_error<T: Into<String>>(message: T) -> Diagnostic {
-        Diagnostic::SyntaxError {
+        Diagnostic::GeneralError {
             message: message.into(),
-            range: SourceRange::undefined(),
             err_no: ErrNo::debug_general,
         }
     }
@@ -515,7 +527,7 @@ impl Diagnostic {
                 "Invalid assignment: cannot assign '{:}' to '{:}'",
                 right_type, left_type
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::var__invalid_assignment,
         }
     }
@@ -526,7 +538,7 @@ impl Diagnostic {
                 "Invalid type nature for generic argument. {} is no {}.",
                 type_name, nature
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__invalid_nature,
         }
     }
@@ -534,7 +546,7 @@ impl Diagnostic {
     pub fn unknown_type_nature(nature: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Unknown type nature {}.", nature),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__unknown_nature,
         }
     }
@@ -542,7 +554,7 @@ impl Diagnostic {
     pub fn missing_datatype(reason: Option<&str>, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Missing datatype {}", reason.unwrap_or("")),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::var__missing_type,
         }
     }
@@ -558,7 +570,7 @@ impl Diagnostic {
                 "The type {} {} is too small to {} Pointer",
                 nature, size, error
             ),
-            range: location,
+            range: vec![location],
             err_no: ErrNo::type__incompatible_size,
         }
     }
@@ -581,8 +593,22 @@ impl Diagnostic {
     pub fn get_location(&self) -> SourceRange {
         match self {
             Diagnostic::SyntaxError { range, .. }
-            | Diagnostic::ImprovementSuggestion { range, .. } => range.clone(),
+            | Diagnostic::ImprovementSuggestion { range, .. } => {
+                range.get(0).cloned().unwrap_or_else(SourceRange::undefined)
+            }
             Diagnostic::GeneralError { .. } => SourceRange::undefined(),
+        }
+    }
+
+    pub fn get_secondary_locations(&self) -> Option<&[SourceRange]> {
+        match self {
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. }
+                if range.len() > 1 =>
+            {
+                Some(&range[1..])
+            }
+            _ => None,
         }
     }
 
@@ -604,13 +630,13 @@ impl Diagnostic {
                 message, err_no, ..
             } => Diagnostic::SyntaxError {
                 message,
-                range: new_location,
+                range: vec![new_location],
                 err_no,
             },
             Diagnostic::ImprovementSuggestion { message, .. } => {
                 Diagnostic::ImprovementSuggestion {
                     message,
-                    range: new_location,
+                    range: vec![new_location],
                 }
             }
             _ => it,
@@ -620,7 +646,7 @@ impl Diagnostic {
     pub fn invalid_pragma_location(message: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: format!("Invalid pragma location: {}", message),
-            range,
+            range: vec![range],
         }
     }
 
@@ -630,7 +656,7 @@ impl Diagnostic {
                 "{}. Non constant variables are not supported in case conditions",
                 case
             ),
-            range,
+            range: vec![range],
             err_no: ErrNo::type__invalid_type,
         }
     }
@@ -641,7 +667,7 @@ impl Diagnostic {
                 "Duplicate condition value: {}. Occurred more than once!",
                 value
             ),
-            range,
+            range: vec![range],
             err_no: ErrNo::case__duplicate_condition,
         }
     }
@@ -650,7 +676,7 @@ impl Diagnostic {
         Diagnostic::SyntaxError {
             message: "Case condition used outside of case statement! Did you mean to use ';'?"
                 .into(),
-            range,
+            range: vec![range],
             err_no: ErrNo::case__case_condition_outside_case_statement,
         }
     }
@@ -658,7 +684,7 @@ impl Diagnostic {
     pub fn invalid_case_condition(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Invalid case condition!".into(),
-            range,
+            range: vec![range],
             err_no: ErrNo::case__case_condition_outside_case_statement,
         }
     }
@@ -666,8 +692,47 @@ impl Diagnostic {
     pub fn missing_inout_parameter(parameter: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Missing inout parameter: {}", parameter),
-            range,
+            range: vec![range],
             err_no: ErrNo::pou__missing_action_container,
+        }
+    }
+
+    pub fn invalid_parameter_type(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Cannot mix implicit and explicit call parameters!".into(),
+            range: vec![range],
+            err_no: ErrNo::call__invalid_parameter_type,
+        }
+    }
+
+    pub fn duplicate_pou(name: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Duplicate POU {}", name),
+            range: vec![range],
+            err_no: ErrNo::duplicate_symbol,
+        }
+    }
+
+    pub(crate) fn global_name_conflict(
+        name: &str,
+        location: SourceRange,
+        conflicts: Vec<SourceRange>,
+    ) -> Diagnostic {
+        Diagnostic::global_name_conflict_with_text(name, location, conflicts, "Duplicate symbol.")
+    }
+
+    pub(crate) fn global_name_conflict_with_text(
+        name: &str,
+        location: SourceRange,
+        conflicts: Vec<SourceRange>,
+        additional_text: &str,
+    ) -> Diagnostic {
+        let mut locations = vec![location];
+        locations.extend(conflicts.into_iter());
+        Diagnostic::SyntaxError {
+            message: format!("{}: {}", name, additional_text),
+            range: locations,
+            err_no: ErrNo::duplicate_symbol,
         }
     }
 }
@@ -695,10 +760,7 @@ impl Display for Severity {
 /// (e.g. default, compiler-settings, tests)
 pub trait DiagnosticAssessor {
     /// determines the severity of the given diagnostic
-    fn assess(&self, d: Diagnostic) -> AssessedDiagnostic;
-    fn assess_all(&self, d: Vec<Diagnostic>) -> Vec<AssessedDiagnostic> {
-        d.into_iter().map(|it| self.assess(it)).collect()
-    }
+    fn assess(&self, d: &Diagnostic) -> Severity;
 }
 
 /// the default assessor will treat ImprovementSuggestions as warnings
@@ -706,23 +768,25 @@ pub trait DiagnosticAssessor {
 #[derive(Default)]
 pub struct DefaultDiagnosticAssessor {}
 
-pub struct AssessedDiagnostic {
-    pub diagnostic: Diagnostic,
+pub struct ResolvedLocation {
+    pub file_handle: usize,
+    pub range: Range<usize>,
+}
+
+pub struct ResolvedDiagnostics {
+    pub message: String,
     pub severity: Severity,
+    pub main_location: ResolvedLocation,
+    pub additional_locations: Option<Vec<ResolvedLocation>>,
 }
 
 impl DiagnosticAssessor for DefaultDiagnosticAssessor {
-    fn assess(&self, d: Diagnostic) -> AssessedDiagnostic {
-        let severity = match d {
+    fn assess(&self, d: &Diagnostic) -> Severity {
+        match d {
             // improvements become warnings
             Diagnostic::ImprovementSuggestion { .. } => Severity::Warning,
             // everything else becomes an error
             _ => Severity::Error,
-        };
-
-        AssessedDiagnostic {
-            diagnostic: d,
-            severity,
         }
     }
 }
@@ -731,7 +795,7 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
 /// possible implementations could print to either std-out, std-err or a file, etc.
 pub trait DiagnosticReporter {
     /// reports the given diagnostic
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize);
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]);
     /// register the given path & src and returns an ID to indicate
     /// a relationship the given src (diagnostics for this src need
     /// to use this id)
@@ -774,31 +838,38 @@ impl Default for CodeSpanDiagnosticReporter {
 }
 
 impl DiagnosticReporter for CodeSpanDiagnosticReporter {
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
-        for ad in diagnostics {
-            let d = &ad.diagnostic;
-            let location = d.get_location();
-
-            let diagnostic_factory = match ad.severity {
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+        for d in diagnostics {
+            let diagnostic_factory = match d.severity {
                 Severity::Error => codespan_reporting::diagnostic::Diagnostic::error(),
                 Severity::Warning => codespan_reporting::diagnostic::Diagnostic::warning(),
                 Severity::_Info => codespan_reporting::diagnostic::Diagnostic::note(),
             };
 
+            let mut labels =
+                vec![
+                    Label::primary(d.main_location.file_handle, d.main_location.range.clone())
+                        .with_message(d.message.as_str()),
+                ];
+
+            if let Some(additional_locations) = &d.additional_locations {
+                labels.extend(additional_locations.iter().map(|it| {
+                    Label::secondary(it.file_handle, it.range.clone()).with_message("see also")
+                }));
+            }
+
             let diag = diagnostic_factory
-                .with_message(d.get_message())
-                .with_labels(vec![Label::primary(
-                    file_id,
-                    location.get_start()..location.get_end(),
-                )]);
+                .with_labels(labels)
+                .with_message(d.message.as_str());
+
             let result = codespan_reporting::term::emit(
                 &mut self.writer.lock(),
                 &self.config,
                 &self.files,
                 &diag,
             );
-            if let Err(err) = result {
-                eprintln!("Unable to report diagnostics: {}", err);
+            if result.is_err() {
+                eprintln!("<internal>: {}", d.message);
             }
         }
     }
@@ -828,21 +899,21 @@ impl Default for ClangFormatDiagnosticReporter {
 }
 
 impl DiagnosticReporter for ClangFormatDiagnosticReporter {
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
-        for ad in diagnostics {
-            let file = self.files.get(file_id).ok();
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
+        for diagnostic in diagnostics {
+            let file_id = diagnostic.main_location.file_handle;
+            let location = &diagnostic.main_location;
 
-            let diagnostic = &ad.diagnostic;
-            let location = &diagnostic.get_location();
-            let start = self.files.location(file_id, location.get_start());
-            let end = self.files.location(file_id, location.get_end());
+            let file = self.files.get(file_id).ok();
+            let start = self.files.location(file_id, location.range.start).ok();
+            let end = self.files.location(file_id, location.range.end).ok();
 
             let res = self.build_diagnostic_msg(
                 file,
-                start.as_ref().ok(),
-                end.as_ref().ok(),
-                &ad.severity,
-                diagnostic.get_message(),
+                start.as_ref(),
+                end.as_ref(),
+                &diagnostic.severity,
+                &diagnostic.message,
             );
 
             eprintln!("{}", res);
@@ -910,7 +981,7 @@ pub struct NullDiagnosticReporter {
 }
 
 impl DiagnosticReporter for NullDiagnosticReporter {
-    fn report(&self, _diagnostics: &[AssessedDiagnostic], _file_id: usize) {
+    fn report(&self, _diagnostics: &[ResolvedDiagnostics]) {
         //ignore
     }
 
@@ -926,6 +997,7 @@ impl DiagnosticReporter for NullDiagnosticReporter {
 pub struct Diagnostician {
     pub reporter: Box<dyn DiagnosticReporter>,
     pub assessor: Box<dyn DiagnosticAssessor>,
+    filename_fileid_mapping: HashMap<String, usize>,
 }
 
 impl Diagnostician {
@@ -933,7 +1005,9 @@ impl Diagnostician {
     /// preview errors in the source
     /// returns the id to use to reference the given file
     pub fn register_file(&mut self, id: String, src: String) -> usize {
-        self.reporter.register(id, src)
+        let handle = self.reporter.register(id.clone(), src);
+        self.filename_fileid_mapping.insert(id, handle);
+        handle
     }
 
     /// creates a null-diagnostician that does not report diagnostics
@@ -941,6 +1015,7 @@ impl Diagnostician {
         Diagnostician {
             assessor: Box::new(DefaultDiagnosticAssessor::default()),
             reporter: Box::new(NullDiagnosticReporter::default()),
+            filename_fileid_mapping: HashMap::new(),
         }
     }
 
@@ -949,19 +1024,45 @@ impl Diagnostician {
         Diagnostician {
             reporter: Box::new(ClangFormatDiagnosticReporter::default()),
             assessor: Box::new(DefaultDiagnosticAssessor::default()),
+            filename_fileid_mapping: HashMap::new(),
         }
     }
 
     /// assess and reports the given diagnostics
-    pub fn handle(&self, diagnostics: Vec<Diagnostic>, file_id: usize) {
-        self.report(&self.assess_all(diagnostics), file_id);
+    pub fn handle(&self, diagnostics: Vec<Diagnostic>) {
+        let resolved_diagnostics = diagnostics.iter().map(|d| ResolvedDiagnostics {
+            message: d.get_message().to_string(),
+            severity: self.assess(d),
+            main_location: ResolvedLocation {
+                file_handle: self
+                    .get_file_handle(d.get_location().get_file_name())
+                    .unwrap_or(usize::max_value()),
+                range: d.get_location().to_range(),
+            },
+            additional_locations: d.get_secondary_locations().map(|it| {
+                it.iter()
+                    .map(|l| ResolvedLocation {
+                        file_handle: self
+                            .get_file_handle(l.get_file_name())
+                            .unwrap_or(usize::max_value()),
+                        range: l.to_range(),
+                    })
+                    .collect()
+            }),
+        });
+
+        self.report(resolved_diagnostics.collect::<Vec<_>>().as_slice());
+    }
+
+    fn get_file_handle(&self, file_name: Option<&str>) -> Option<usize> {
+        file_name.and_then(|it| self.filename_fileid_mapping.get(it).cloned())
     }
 }
 
 impl DiagnosticReporter for Diagnostician {
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
+    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
         //delegate to reporter
-        self.reporter.report(diagnostics, file_id);
+        self.reporter.report(diagnostics);
     }
 
     fn register(&mut self, path: String, src: String) -> usize {
@@ -971,7 +1072,7 @@ impl DiagnosticReporter for Diagnostician {
 }
 
 impl DiagnosticAssessor for Diagnostician {
-    fn assess(&self, d: Diagnostic) -> AssessedDiagnostic {
+    fn assess(&self, d: &Diagnostic) -> Severity {
         //delegate to assesor
         self.assessor.assess(d)
     }
@@ -982,6 +1083,7 @@ impl Default for Diagnostician {
         Self {
             reporter: Box::new(CodeSpanDiagnosticReporter::default()),
             assessor: Box::new(DefaultDiagnosticAssessor::default()),
+            filename_fileid_mapping: HashMap::new(),
         }
     }
 }

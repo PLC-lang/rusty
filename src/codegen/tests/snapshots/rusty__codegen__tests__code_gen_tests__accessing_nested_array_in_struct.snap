@@ -9,7 +9,7 @@ source_filename = "main"
 %MyStruct = type { [5 x i16] }
 
 @Main_instance = global %Main zeroinitializer
-@MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
 define void @Main(%Main* %0) {
 entry:

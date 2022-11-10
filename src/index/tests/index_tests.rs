@@ -4,7 +4,7 @@ use pretty_assertions::assert_eq;
 use crate::index::{ArgumentType, PouIndexEntry, SymbolLocation, VariableIndexEntry};
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
-use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
+use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids, parse_and_preprocess};
 use crate::typesystem::{TypeSize, INT_TYPE, VOID_TYPE};
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
@@ -1742,7 +1742,7 @@ fn global_vars_for_structs() {
     );
 
     // THEN there should be a global variable for the struct
-    let global_var = index.find_global_initializer("__main_x__init");
+    let global_var = index.find_global_initializer("____main_x__init");
     assert!(global_var.is_some());
 }
 
@@ -1786,7 +1786,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
     assert_eq!(
         y_type,
         &DataTypeInformation::Pointer {
-            name: "auto_pointer_to_INT".to_string(),
+            name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: true,
         }
@@ -1799,7 +1799,8 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
     // AND a address-of INT operation
 
     // WHEN the program is indexed
-    let (result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (result, mut index) = index_with_ids(
         "
 		PROGRAM main
 		VAR_INPUT
@@ -1812,9 +1813,10 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
         &y; //this will add another pointer_to_int type to the index (autoderef = false)
 		END_PROGRAM
 		",
+        id_provider.clone(),
     );
 
-    annotate(&result, &mut index);
+    annotate_with_ids(&result, &mut index, id_provider);
 
     // THEN x should be a normal pointer
     // AND y should be an auto-deref pointer
@@ -1840,7 +1842,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
     assert_eq!(
         y_type,
         &DataTypeInformation::Pointer {
-            name: "auto_pointer_to_INT".to_string(),
+            name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: true,
         }
@@ -1878,6 +1880,11 @@ fn a_program_pou_is_indexed() {
             name: "myProgram".into(),
             instance_struct_name: "myProgram".into(),
             linkage: LinkageType::Internal,
+            location: SymbolLocation {
+                source_range: (17..26).into(),
+                line_number: 1
+            },
+
             instance_variable: VariableIndexEntry {
                 name: "myProgram_instance".into(),
                 qualified_name: "myProgram".into(),
@@ -1909,7 +1916,12 @@ fn a_program_pou_is_indexed() {
             }]
             .to_vec(),
             return_type: "INT".into(),
-            is_variadic: false
+            is_variadic: false,
+            location: SymbolLocation {
+                source_range: (65..75).into(),
+                line_number: 4
+            },
+            is_generated: false,
         }),
         index.find_pou("myFunction"),
     );
@@ -1918,7 +1930,11 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::FunctionBlock {
             name: "myFunctionBlock".into(),
             linkage: LinkageType::Internal,
-            instance_struct_name: "myFunctionBlock".into()
+            instance_struct_name: "myFunctionBlock".into(),
+            location: SymbolLocation {
+                source_range: (139..154).into(),
+                line_number: 7
+            },
         }),
         index.find_pou("myFunctionBlock"),
     );
@@ -1927,7 +1943,11 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::Class {
             name: "myClass".into(),
             linkage: LinkageType::Internal,
-            instance_struct_name: "myClass".into()
+            instance_struct_name: "myClass".into(),
+            location: SymbolLocation {
+                source_range: (197..204).into(),
+                line_number: 10
+            },
         }),
         index.find_pou("myClass"),
     );
@@ -1937,7 +1957,11 @@ fn a_program_pou_is_indexed() {
             name: "myProgram.act".into(),
             parent_pou_name: "myProgram".into(),
             linkage: LinkageType::Internal,
-            instance_struct_name: "myProgram".into()
+            instance_struct_name: "myProgram".into(),
+            location: SymbolLocation {
+                source_range: (269..272).into(),
+                line_number: 14
+            },
         }),
         index.find_pou("myProgram.act"),
     );
@@ -2032,4 +2056,130 @@ fn function_parameters_variable_type() {
     // OUTPUT => ByRef
     // IN_OUT => ByRef
     insta::assert_debug_snapshot!(members);
+}
+
+#[test]
+fn pou_duplicates_are_indexed() {
+    // GIVEN 2 POUs with the same name
+    // WHEN the code is indexed
+    let (_, index) = index(
+        "
+		PROGRAM foo
+		VAR_INPUT
+			input1 : INT;
+		END_VAR
+		END_PROGRAM
+
+		PROGRAM foo
+		VAR_INPUT
+			input2 : INT;
+		END_VAR
+		END_PROGRAM
+		",
+    );
+
+    //THEN I expect both PouIndexEntries
+    let pous = index
+        .get_pous()
+        .values()
+        .filter(|it| it.get_name().eq("foo"))
+        .collect::<Vec<_>>();
+    let members = index
+        .get_members("foo")
+        .unwrap()
+        .values()
+        .collect::<Vec<_>>();
+
+    let foo1 = pous.get(0).unwrap();
+    assert_eq!(foo1.get_name(), "foo");
+    assert_eq!(members.get(0).unwrap().get_name(), "input1");
+
+    let foo2 = pous.get(1).unwrap();
+    assert_eq!(foo2.get_name(), "foo");
+    assert_eq!(members.get(1).unwrap().get_name(), "input2");
+}
+
+#[test]
+fn type_duplicates_are_indexed() {
+    // GIVEN 3 types with the same name
+    // WHEN the code is indexed
+    let (_, index) = index(
+        "
+		TYPE MyStruct:
+        STRUCT 
+          field1 : INT;
+        END_STRUCT
+        END_TYPE
+        
+		TYPE MyStruct:
+        STRUCT 
+          field2 : INT;
+        END_STRUCT
+        END_TYPE
+
+		TYPE MyStruct:
+        STRUCT 
+          field3 : INT;
+        END_STRUCT
+        END_TYPE
+        ",
+    );
+
+    //THEN I expect all 3 DataTypes
+    let types = index
+        .get_types()
+        .values()
+        .filter(|it| it.get_name().eq("MyStruct"))
+        .collect::<Vec<_>>();
+    let members = index
+        .get_members("MyStruct")
+        .unwrap()
+        .values()
+        .collect::<Vec<_>>();
+
+    let mystruct1 = types.get(0).unwrap();
+    assert_eq!(mystruct1.get_name(), "MyStruct");
+    assert_eq!(members.get(0).unwrap().get_name(), "field1");
+
+    let mystruct2 = types.get(1).unwrap();
+    assert_eq!(mystruct2.get_name(), "MyStruct");
+    assert_eq!(members.get(1).unwrap().get_name(), "field2");
+
+    let mystruct3 = types.get(2).unwrap();
+    assert_eq!(mystruct3.get_name(), "MyStruct");
+    assert_eq!(members.get(2).unwrap().get_name(), "field3");
+}
+
+#[test]
+fn global_variables_duplicates_are_indexed() {
+    // GIVEN 2 global variables with the same name
+    // WHEN the code is indexed
+    let (_, index) = index(
+        "
+            VAR_GLOBAL
+                x : INT;
+            END_VAR
+
+            VAR_GLOBAL
+                x : BOOL;
+            END_VAR
+        ",
+    );
+
+    //THEN I expect both globals
+    let globals = index
+        .get_globals()
+        .values()
+        .filter(|it| it.get_name().eq("x"))
+        .collect::<Vec<_>>();
+
+    dbg!(&globals);
+
+    let x1 = globals.get(0).unwrap();
+    assert_eq!(x1.get_name(), "x");
+    assert_eq!(x1.get_type_name(), "INT");
+
+    let x2 = globals.get(1).unwrap();
+    assert_eq!(x2.get_name(), "x");
+    assert_eq!(x2.get_type_name(), "BOOL");
 }

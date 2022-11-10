@@ -50,6 +50,9 @@ CompilationUnit {
             location: SourceRange {
                 range: 32..60,
             },
+            name_location: SourceRange {
+                range: 14..17,
+            },
             overriding: false,
             generic: false,
             access: None,

@@ -158,7 +158,7 @@ impl<'a> ParseSession<'a> {
                             "the words in {} should be separated by a '_'",
                             self.slice()
                         ),
-                        range: self.location(),
+                        range: vec![self.location()],
                     });
                 }
             }

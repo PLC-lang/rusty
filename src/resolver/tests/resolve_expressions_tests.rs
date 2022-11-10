@@ -3,15 +3,16 @@ use core::panic;
 use crate::{
     ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
     index::{Index, VariableType},
+    lexer::IdProvider,
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
-    test_utils::tests::annotate,
+    test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
         LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
-use crate::{test_utils::tests::index, TypeAnnotator};
+use crate::TypeAnnotator;
 
 #[macro_export]
 macro_rules! assert_type_and_hint {
@@ -30,14 +31,16 @@ macro_rules! assert_type_and_hint {
 }
 #[test]
 fn binary_expressions_resolves_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
             1 + 2;
             1 + 2000;
             2147483648 + 1;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["DINT", "DINT", "LINT"];
@@ -52,13 +55,15 @@ fn binary_expressions_resolves_types() {
 
 #[test]
 fn binary_expressions_resolves_types_for_mixed_signed_ints() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
             VAR a : INT; END_VAR
             a + UINT#7;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
     if let AstStatement::BinaryExpression { left, right, .. } = &statements[0] {
         assert_type_and_hint!(&annotations, &index, left, INT_TYPE, Some(DINT_TYPE));
@@ -83,7 +88,8 @@ fn expt_binary_expression() {
         panic!("could not deconstruct call")
     }
 
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         PROGRAM PRG
             VAR 
@@ -106,8 +112,9 @@ fn expt_binary_expression() {
             e ** d; //LREAL * REAL -> hint : LREAL * LREAL result LREAL
             e ** f; //LREAL * LREAL -> hint : LREAL * LREAL result LREAL
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
     //DINT
     let (left, right) = get_params(&statements[0]);
@@ -154,14 +161,16 @@ fn expt_binary_expression() {
 
 #[test]
 fn binary_expressions_resolves_types_for_literals_directly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
             VAR a : BYTE; END_VAR
             a := a + 7;
             a := 7;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::Assignment {
@@ -196,15 +205,17 @@ fn binary_expressions_resolves_types_for_literals_directly() {
 
 #[test]
 fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
             VAR a : REF_TO BYTE; b : BYTE; END_VAR
             a := &b + 7;
             a := a + 7 + 1;
             a := 7 + &b;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::Assignment {
@@ -215,7 +226,7 @@ fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
             &annotations,
             &index,
             addition,
-            "POINTER_TO_BYTE",
+            "__POINTER_TO_BYTE",
             Some("__PRG_a")
         );
     }
@@ -236,7 +247,7 @@ fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
             &annotations,
             &index,
             addition,
-            "POINTER_TO_BYTE",
+            "__POINTER_TO_BYTE",
             Some("__PRG_a")
         );
     }
@@ -244,14 +255,16 @@ fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
 
 #[test]
 fn equality_with_pointers_is_bool() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
             VAR a : REF_TO BYTE; b : BOOL; END_VAR
             b := a > 7;
             b := 0 = a;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::Assignment {
@@ -270,7 +283,8 @@ fn equality_with_pointers_is_bool() {
 
 #[test]
 fn complex_expressions_resolves_types_for_literals_directly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
             VAR 
                 a : BYTE; 
@@ -279,8 +293,9 @@ fn complex_expressions_resolves_types_for_literals_directly() {
             END_VAR
             a := ((b + USINT#7) - c);
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::Assignment { right, .. } = &statements[0] {
@@ -316,14 +331,16 @@ fn complex_expressions_resolves_types_for_literals_directly() {
 
 #[test]
 fn unary_expressions_resolves_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
             NOT TRUE;
             -(2+3);
             -0.2;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["BOOL", "DINT", "REAL"];
@@ -338,14 +355,16 @@ fn unary_expressions_resolves_types() {
 
 #[test]
 fn binary_expressions_resolves_types_with_floats() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
             1 + 2.2;
             1.1 + 2000;
             2000.0 + 1.0;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL", "REAL"];
@@ -362,17 +381,19 @@ fn binary_expressions_resolves_types_with_floats() {
 #[test]
 fn binary_expressions_resolves_types_with_float_comparisons() {
     //GIVEN some comparison expressions with floats
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
             VAR a, b : REAL END_VAR
                 a < b;
                 a = b;
                 a >= b;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
     //WHEN I annotate the code
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     //I want the expressions to be of type BOOL, the left and right of type REAL
@@ -391,15 +412,17 @@ fn binary_expressions_resolves_types_with_float_comparisons() {
 #[test]
 fn binary_expressions_resolves_types_of_literals_with_float_comparisons() {
     //GIVEN some comparison expressions with floats
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
             VAR a : REAL END_VAR
                 a < 1;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
     //WHEN I annotate the code
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     //I want the '1' to be treated as a real right away (no casting involved)
@@ -417,7 +440,8 @@ fn binary_expressions_resolves_types_of_literals_with_float_comparisons() {
 
 #[test]
 fn local_variables_resolves_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
             VAR
                 b : BYTE;
@@ -447,8 +471,9 @@ fn local_variables_resolves_types() {
             li;
             uli;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -465,7 +490,8 @@ fn local_variables_resolves_types() {
 
 #[test]
 fn global_resolves_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         VAR_GLOBAL
             b : BYTE;
@@ -496,8 +522,9 @@ fn global_resolves_types() {
             li;
             uli;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -514,7 +541,8 @@ fn global_resolves_types() {
 
 #[test]
 fn global_initializers_resolves_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         VAR_GLOBAL
             b : BYTE := 0;
@@ -531,8 +559,9 @@ fn global_initializers_resolves_types() {
             uli : ULINT := 0;
         END_VAR
         ",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements: Vec<&AstStatement> = unit.global_vars[0]
         .variables
         .iter()
@@ -553,7 +582,8 @@ fn global_initializers_resolves_types() {
 
 #[test]
 fn resolve_binary_expressions() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         VAR_GLOBAL
             b : BYTE;
@@ -584,8 +614,9 @@ fn resolve_binary_expressions() {
             b + li;
             b + uli;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -603,7 +634,8 @@ fn resolve_binary_expressions() {
 #[test]
 fn necessary_promotions_should_be_type_hinted() {
     // GIVEN  BYTE + DINT, BYTE < DINT
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         VAR_GLOBAL
             b : BYTE;
@@ -614,10 +646,11 @@ fn necessary_promotions_should_be_type_hinted() {
             b + di;
             b < di;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
     //WHEN it gets annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     // THEN we want a hint to promote b to DINT, BYTE + DINT should be treated as DINT
@@ -664,7 +697,8 @@ fn necessary_promotions_should_be_type_hinted() {
 #[test]
 fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
     // GIVEN  REAL > DINT
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         VAR_GLOBAL
             f : REAL;
@@ -673,10 +707,11 @@ fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
         PROGRAM PRG
             f > 0;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
     //WHEN it gets annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements;
 
     // THEN we want '0' to be treated as a REAL right away, the result of f > 0 should be type bool
@@ -695,7 +730,8 @@ fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
 
 #[test]
 fn complex_expressions_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
             VAR
                 b : BYTE;
@@ -717,8 +753,9 @@ fn complex_expressions_resolve_types() {
             b + w + di;
             b + w * di + r;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["LINT", "DINT", "REAL"];
@@ -732,7 +769,8 @@ fn complex_expressions_resolve_types() {
 
 #[test]
 fn pointer_expressions_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
             VAR
                 i : REF_TO INT;
@@ -759,8 +797,9 @@ fn pointer_expressions_resolve_types() {
         TYPE MyAliasRef: REF_TO MyInt; END_TYPE 
 
         ",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -783,13 +822,15 @@ fn pointer_expressions_resolve_types() {
 
 #[test]
 fn array_expressions_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "PROGRAM PRG
             VAR
                 i : ARRAY[0..10] OF INT;
                 y : ARRAY[0..10] OF MyInt;
                 a : MyIntArray;
                 b : MyAliasArray;
+                z : ARRAY[0..10] OF ARRAY[0..5] OF BYTE;
             END_VAR
 
             i;
@@ -803,6 +844,9 @@ fn array_expressions_resolve_types() {
 
             b;
             b[2];
+
+            z;
+            z[2];
         END_PROGRAM
         
         TYPE MyInt: INT := 7; END_TYPE 
@@ -810,8 +854,9 @@ fn array_expressions_resolve_types() {
         TYPE MyAliasArray: ARRAY[0..10] OF MyInt := 7; END_TYPE 
 
         ",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -823,6 +868,8 @@ fn array_expressions_resolve_types() {
         "INT",
         "MyAliasArray",
         "INT",
+        "__PRG_z",
+        "__PRG_z_",
     ];
     let type_names: Vec<&str> = statements
         .iter()
@@ -834,7 +881,8 @@ fn array_expressions_resolve_types() {
 
 #[test]
 fn qualified_expressions_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
          PROGRAM Other
             VAR_INPUT
@@ -854,8 +902,9 @@ fn qualified_expressions_resolve_types() {
             Other.b + Other.w + Other.dw;
             Other.b + Other.w + Other.dw + Other.lw;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "DINT", "DINT", "LWORD"];
@@ -869,7 +918,8 @@ fn qualified_expressions_resolve_types() {
 
 #[test]
 fn pou_expressions_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         PROGRAM OtherPrg
         END_PROGRAM   
@@ -885,8 +935,9 @@ fn pou_expressions_resolve_types() {
             OtherFunc;
             OtherFuncBlock;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[3].statements;
 
     //none of these pou's should really resolve to a type
@@ -921,7 +972,8 @@ fn pou_expressions_resolve_types() {
 
 #[test]
 fn assignment_expressions_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         PROGRAM PRG
             VAR
@@ -933,8 +985,9 @@ fn assignment_expressions_resolve_types() {
             x := y;
             z := x;
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![VOID_TYPE, VOID_TYPE];
@@ -970,7 +1023,8 @@ fn assignment_expressions_resolve_types() {
 
 #[test]
 fn qualified_expressions_to_structs_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         TYPE NextStruct: STRUCT
             b : BYTE;
@@ -1004,9 +1058,10 @@ fn qualified_expressions_to_structs_resolve_types() {
             mys.next.dw;
             mys.next.lw;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -1031,7 +1086,8 @@ fn qualified_expressions_to_structs_resolve_types() {
 
 #[test]
 fn qualified_expressions_to_inlined_structs_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         PROGRAM PRG
             VAR 
@@ -1048,9 +1104,10 @@ fn qualified_expressions_to_inlined_structs_resolve_types() {
             mys.dw;
             mys.lw;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["__PRG_mys", "BYTE", "WORD", "DWORD", "LWORD"];
@@ -1065,7 +1122,8 @@ fn qualified_expressions_to_inlined_structs_resolve_types() {
 #[test]
 fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     //GIVEN a reference to a function
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION foo : INT
         foo;
@@ -1075,10 +1133,11 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
             foo;
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
@@ -1112,7 +1171,8 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
 #[test]
 fn function_call_expression_resolves_to_the_function_itself_not_its_return_type() {
     //GIVEN a reference to a function
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION foo : INT
         END_FUNCTION
@@ -1121,10 +1181,11 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
             foo();
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
@@ -1143,7 +1204,8 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
 
 #[test]
 fn shadowed_function_is_annotated_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         FUNCTION foo : DINT
         END_FUNCTION
@@ -1152,9 +1214,10 @@ fn shadowed_function_is_annotated_correctly() {
         foo();
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
     //WHEN the AST is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
@@ -1163,7 +1226,8 @@ fn shadowed_function_is_annotated_correctly() {
 
 #[test]
 fn qualified_expressions_to_aliased_structs_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         TYPE NextStruct: STRUCT
             b : BYTE;
@@ -1200,9 +1264,10 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
             mys.next.dw;
             mys.next.lw;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -1227,7 +1292,8 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
 
 #[test]
 fn qualified_expressions_to_fbs_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION_BLOCK MyFb
             VAR_INPUT
@@ -1246,9 +1312,10 @@ fn qualified_expressions_to_fbs_resolve_types() {
             fb.fb_i;
             fb.fb_d;
        END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     let expected_types = vec!["MyFb", "SINT", "INT", "DINT"];
@@ -1262,7 +1329,8 @@ fn qualified_expressions_to_fbs_resolve_types() {
 
 #[test]
 fn qualified_expressions_dont_fallback_to_globals() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         VAR_GLOBAL
             x : DINT;
@@ -1278,9 +1346,10 @@ fn qualified_expressions_dont_fallback_to_globals() {
             P.x;
             P.y;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     assert_eq!(None, annotations.get(&statements[0]));
@@ -1298,7 +1367,8 @@ fn qualified_expressions_dont_fallback_to_globals() {
 
 #[test]
 fn function_parameter_assignments_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION foo : MyType
             VAR_INPUT
@@ -1315,9 +1385,10 @@ fn function_parameter_assignments_resolve_types() {
         
         TYPE MyType: INT; END_TYPE
         ",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     assert_eq!(
@@ -1382,7 +1453,8 @@ fn function_parameter_assignments_resolve_types() {
 
 #[test]
 fn nested_function_parameter_assignments_resolve_types() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION foo : INT
             VAR_INPUT
@@ -1403,9 +1475,10 @@ fn nested_function_parameter_assignments_resolve_types() {
             VAR r: REAL; END_VAR
             foo(x := baz(x := 200, y := FALSE), y := baz(x := 200, y := TRUE) + r);
         END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[2].statements;
     if let AstStatement::CallStatement { parameters, .. } = &statements[0] {
         //check the two parameters
@@ -1430,7 +1503,8 @@ fn nested_function_parameter_assignments_resolve_types() {
 
 #[test]
 fn type_initial_values_are_resolved() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         TYPE MyStruct : STRUCT
             x : INT := 20;
@@ -1439,9 +1513,10 @@ fn type_initial_values_are_resolved() {
         END_STRUCT
         END_TYPE
         ",
+        id_provider.clone(),
     );
 
-    let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     index.import(std::mem::take(&mut annotations.new_index));
 
     let UserTypeDeclaration { data_type, .. } = &unit.types[0];
@@ -1473,7 +1548,8 @@ fn type_initial_values_are_resolved() {
 
 #[test]
 fn actions_are_resolved() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         PROGRAM prg
             foo;
@@ -1489,9 +1565,10 @@ fn actions_are_resolved() {
         prg.foo;
         END_FUNCTION
         ",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let foo_reference = &unit.implementations[0].statements[0];
     let annotation = annotations.get(foo_reference);
     assert_eq!(
@@ -1523,7 +1600,8 @@ fn actions_are_resolved() {
 }
 #[test]
 fn method_references_are_resolved() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         CLASS cls
         METHOD foo : INT
@@ -1536,9 +1614,10 @@ fn method_references_are_resolved() {
         cl.foo();
         END_FUNCTION
         ",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let foo_reference = &unit.implementations[0].statements[0];
     let annotation = annotations.get(foo_reference);
     assert_eq!(
@@ -1572,7 +1651,8 @@ fn method_references_are_resolved() {
 
 #[test]
 fn bitaccess_is_resolved() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         r"
     PROGRAM prg
         VAR
@@ -1585,8 +1665,9 @@ fn bitaccess_is_resolved() {
         e.%D4;
     END_PROGRAM
     ",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["BOOL", "BOOL", "BYTE", "WORD", "DWORD"];
@@ -1600,7 +1681,8 @@ fn bitaccess_is_resolved() {
 
 #[test]
 fn variable_direct_access_type_resolved() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         r"
     PROGRAM prg
         VAR
@@ -1613,8 +1695,9 @@ fn variable_direct_access_type_resolved() {
         a.%Xc;
     END_PROGRAM
     ",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["INT", "REAL", "LREAL"];
@@ -1670,7 +1753,8 @@ fn assert_parameter_assignment(
 
 #[test]
 fn const_flag_is_calculated_when_resolving_simple_references() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         VAR_GLOBAL CONSTANT
             cg : INT := 1;
@@ -1694,9 +1778,10 @@ fn const_flag_is_calculated_when_resolving_simple_references() {
             cl;
             l;
        END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, false, true, false];
@@ -1719,7 +1804,8 @@ fn const_flag_is_calculated_when_resolving_simple_references() {
 
 #[test]
 fn const_flag_is_calculated_when_resolving_qualified_variables() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         TYPE NextStruct: STRUCT
             b : BYTE;
@@ -1745,9 +1831,10 @@ fn const_flag_is_calculated_when_resolving_qualified_variables() {
             cmys.next.b;
             mys.next.b;
         END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, false, true, false];
@@ -1770,7 +1857,8 @@ fn const_flag_is_calculated_when_resolving_qualified_variables() {
 
 #[test]
 fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         TYPE NextStruct: STRUCT
             b : BYTE;
@@ -1798,9 +1886,10 @@ fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
 
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![false, true];
@@ -1823,7 +1912,8 @@ fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
 
 #[test]
 fn const_flag_is_calculated_when_resolving_enum_literals() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
     TYPE Color: (red, green, yellow);
     END_TYPE
@@ -1838,9 +1928,10 @@ fn const_flag_is_calculated_when_resolving_enum_literals() {
         state;
     END_PROGRAM
     ",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, true, true, false];
@@ -1863,12 +1954,14 @@ fn const_flag_is_calculated_when_resolving_enum_literals() {
 
 #[test]
 fn global_enums_type_resolving() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "VAR_GLOBAL
             x : (a,b,c);
         END_VAR",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     //check the type-annotation of a,b,c's implicit initializers
 
@@ -1894,8 +1987,12 @@ fn global_enums_type_resolving() {
 
 #[test]
 fn global_enums_type_resolving2() {
-    let (unit, mut index) = index(" TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE");
-    let annotations = annotate(&unit, &mut index);
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        " TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     //check the type-annotation of a,b,c's implicit initializers
 
@@ -1931,8 +2028,12 @@ fn global_enums_type_resolving2() {
 
 #[test]
 fn global_lint_enums_type_resolving() {
-    let (unit, mut index) = index(" TYPE MyEnum : LINT (zero, aa, bb := 7, cc); END_TYPE");
-    let annotations = annotate(&unit, &mut index);
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        " TYPE MyEnum : LINT (zero, aa, bb := 7, cc); END_TYPE",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     //check the type-annotation of a,b,c's implicit initializers
 
@@ -1968,9 +2069,13 @@ fn global_lint_enums_type_resolving() {
 
 #[test]
 fn enum_element_initialization_is_annotated_correctly() {
-    let (unit, mut index) = index(" TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE ");
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        " TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE ",
+        id_provider.clone(),
+    );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let data_type = &unit.types[0].data_type;
     if let DataType::EnumType { elements, .. } = data_type {
         if let AstStatement::Assignment { right, .. } = flatten_expression_list(&elements)[2] {
@@ -1984,7 +2089,8 @@ fn enum_element_initialization_is_annotated_correctly() {
 }
 #[test]
 fn enum_initialization_is_annotated_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         " TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
         
         PROGRAM PRG
@@ -2000,8 +2106,9 @@ fn enum_initialization_is_annotated_correctly() {
             x := cc;
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     let variables = &unit.units[0].variable_blocks[0].variables;
 
@@ -2066,7 +2173,8 @@ fn enum_initialization_is_annotated_correctly() {
 #[test]
 fn struct_members_initializers_type_hint_test() {
     //GIVEN a struct with some initialization
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         TYPE MyStruct:
         STRUCT
@@ -2078,10 +2186,11 @@ fn struct_members_initializers_type_hint_test() {
         END_STRUCT
         END_TYPE
        ",
+        id_provider.clone(),
     );
 
     // WHEN this type is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the members's initializers have correct type-hints
     if let DataType::StructType { variables, .. } = &unit.types[0].data_type {
@@ -2104,7 +2213,8 @@ fn struct_members_initializers_type_hint_test() {
 #[test]
 fn program_members_initializers_type_hint_test() {
     //GIVEN a pou with some initialization
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         PROGRAM prg
       	  VAR_INPUT
@@ -2116,10 +2226,11 @@ fn program_members_initializers_type_hint_test() {
           END_VAR
         END_PROGRAM
       ",
+        id_provider.clone(),
     );
 
     // WHEN it is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the members's initializers have correct type-hints
     let Pou {
@@ -2143,14 +2254,16 @@ fn program_members_initializers_type_hint_test() {
 #[test]
 fn data_type_initializers_type_hint_test() {
     //GIVEN a struct with some initialization
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         TYPE MyArray : ARRAY[0..2] OF INT := [1, 2, 3]; END_TYPE
        ",
+        id_provider.clone(),
     );
 
     // WHEN this type is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the members's initializers have correct type-hints
     if let Some(initializer) = &unit.types[0].initializer {
@@ -2193,15 +2306,17 @@ fn data_type_initializers_type_hint_test() {
 #[test]
 fn data_type_initializers_multiplied_statement_type_hint_test() {
     //GIVEN a struct with some initialization
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         TYPE MyArray : ARRAY[0..2] OF BYTE := [3(7)]; END_TYPE
         VAR_GLOBAL a : ARRAY[0..2] OF BYTE := [3(7)]; END_VAR
        ",
+        id_provider.clone(),
     );
 
     // WHEN this type is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the members's initializers have correct type-hints
     if let Some(my_array_initializer) = &unit.types[0].initializer {
@@ -2275,7 +2390,8 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
 #[test]
 fn case_conditions_type_hint_test() {
     //GIVEN a Switch-Case statement
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         PROGRAM prg 
         VAR
@@ -2291,10 +2407,11 @@ fn case_conditions_type_hint_test() {
         END_CASE
         END_PROGRAM
        ",
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN we want the case-bocks (1:, 2: , 3:) to have the type hint of the case-selector (x) - in this case BYTE
 
@@ -2323,14 +2440,16 @@ fn case_conditions_type_hint_test() {
 #[test]
 fn range_type_min_max_type_hint_test() {
     //GIVEN a Switch-Case statement
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
             TYPE MyInt: SINT(0..100); END_TYPE
         ",
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN we want the range-limits (0 and 100) to have proper type-associations
     if let DataType::SubRangeType {
@@ -2363,7 +2482,8 @@ fn range_type_min_max_type_hint_test() {
 #[test]
 fn struct_variable_initialization_annotates_initializer() {
     //GIVEN a STRUCT type and global variables of this type
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         TYPE MyStruct: STRUCT
           a: DINT; b: DINT;
@@ -2374,10 +2494,11 @@ fn struct_variable_initialization_annotates_initializer() {
            b : MyStruct  := (a:=3); 
          END_VAR
          ",
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN we want the whole initializer to have a type-hint of 'MyStruct'
     {
@@ -2411,7 +2532,8 @@ fn struct_variable_initialization_annotates_initializer() {
 #[test]
 fn deep_struct_variable_initialization_annotates_initializer() {
     //GIVEN a 2 lvl-STRUCT type and global variables of this type
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         TYPE Point: STRUCT
           a: BYTE; b: SINT;
@@ -2427,10 +2549,11 @@ fn deep_struct_variable_initialization_annotates_initializer() {
                q := (b := 3)); 
          END_VAR
          ",
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN we want the whole initializer to have a type-hint of 'MyStruct'
     let initializer = index
@@ -2501,7 +2624,8 @@ fn deep_struct_variable_initialization_annotates_initializer() {
 #[test]
 fn inouts_should_be_annotated_according_to_auto_deref() {
     //a program with in-out variables that get auto-deref'd
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         PROGRAM foo 
             VAR_IN_OUT
@@ -2511,10 +2635,11 @@ fn inouts_should_be_annotated_according_to_auto_deref() {
             inout;
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let inout_ref = &unit.implementations[0].statements[0];
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
@@ -2524,7 +2649,8 @@ fn inouts_should_be_annotated_according_to_auto_deref() {
 #[test]
 fn action_call_should_be_annotated() {
     //a program with in-out variables that get auto-deref'd
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         PROGRAM prg 
         VAR
@@ -2537,10 +2663,11 @@ fn action_call_should_be_annotated() {
             x := 2;
         END_ACTION
         ",
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let action_call = &unit.implementations[0].statements[0];
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
@@ -2558,7 +2685,8 @@ fn action_call_should_be_annotated() {
 #[test]
 fn action_body_gets_resolved() {
     //a program with an action in it
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         PROGRAM prg 
             VAR
@@ -2572,10 +2700,11 @@ fn action_body_gets_resolved() {
             END_ACTION
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let x_assignment = &unit.implementations[1].statements[0];
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
@@ -2600,7 +2729,8 @@ fn action_body_gets_resolved() {
 #[test]
 fn class_method_gets_annotated() {
     //a class with a method with class-variables and method-variables
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
     CLASS MyClass
         VAR
@@ -2618,10 +2748,11 @@ fn class_method_gets_annotated() {
         END_METHOD
     END_CLASS
         ",
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let body = &unit.implementations[0].statements;
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
@@ -2633,7 +2764,8 @@ fn class_method_gets_annotated() {
 
 #[test]
 fn nested_bitwise_access_resolves_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"PROGRAM prg
         VAR
         a : BOOL;
@@ -2643,10 +2775,11 @@ fn nested_bitwise_access_resolves_correctly() {
         a := x.%D1.%W1.%B1.%X1;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let assignment = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { right, .. } = assignment {
@@ -2676,7 +2809,8 @@ fn nested_bitwise_access_resolves_correctly() {
 
 #[test]
 fn literals_passed_to_function_get_annotated() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         FUNCTION foo : STRING
             VAR_INPUT b : BYTE; in : STRING END_VAR
@@ -2688,10 +2822,11 @@ fn literals_passed_to_function_get_annotated() {
             foo(77, 'abc');
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let call_stmt = &unit.implementations[1].statements[0];
 
     if let AstStatement::CallStatement { parameters, .. } = call_stmt {
@@ -2717,7 +2852,8 @@ fn literals_passed_to_function_get_annotated() {
 
 #[test]
 fn array_accessor_in_struct_array_is_annotated() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         TYPE MyStruct:
         STRUCT
@@ -2735,10 +2871,11 @@ fn array_accessor_in_struct_array_is_annotated() {
 
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let qr = &unit.implementations[0].statements[0];
 
     if let AstStatement::QualifiedReference { elements, .. } = qr {
@@ -2755,7 +2892,8 @@ fn array_accessor_in_struct_array_is_annotated() {
 #[test]
 fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
     //GIVEN a aliased type to INT and a variable declared as myInt
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         TYPE MyInt: INT(0..100); END_TYPE
 
@@ -2766,12 +2904,13 @@ fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
         x := 7;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     //WHEN we assign to this variable (x := 7)
 
     // THEN we want the hint for '7' to be MyInt, not INT
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { left, right, .. } = stmt {
@@ -2785,7 +2924,8 @@ fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
 #[test]
 fn null_statement_should_get_a_valid_type_hint() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         PROGRAM Main
         VAR
@@ -2794,10 +2934,11 @@ fn null_statement_should_get_a_valid_type_hint() {
         x := NULL;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
     let var_x_type = &unit.units[0].variable_blocks[0].variables[0]
@@ -2815,7 +2956,8 @@ fn null_statement_should_get_a_valid_type_hint() {
 #[test]
 fn resolve_function_with_same_name_as_return_type() {
     //GIVEN a reference to a function with the same name as the return type
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION TIME : TIME
         END_FUNCTION
@@ -2824,10 +2966,11 @@ fn resolve_function_with_same_name_as_return_type() {
             TIME();
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
@@ -2853,16 +2996,18 @@ fn resolve_function_with_same_name_as_return_type() {
 #[test]
 fn int_compare_should_resolve_to_bool() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         PROGRAM Main
         3 = 5;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
     assert_eq!(
         Some(&StatementAnnotation::Value {
@@ -2875,7 +3020,8 @@ fn int_compare_should_resolve_to_bool() {
 #[test]
 fn string_compare_should_resolve_to_bool() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         FUNCTION STRING_EQUAL: BOOL 
         VAR a,b : STRING; END_VAR
@@ -2889,10 +3035,11 @@ fn string_compare_should_resolve_to_bool() {
         a = b;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[1].statements[0];
     assert_eq!(
         Some(&StatementAnnotation::value("BOOL")),
@@ -2903,7 +3050,8 @@ fn string_compare_should_resolve_to_bool() {
 #[test]
 fn assigning_lword_to_ptr_will_annotate_correctly() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         PROGRAM Main
         VAR
@@ -2913,10 +3061,11 @@ fn assigning_lword_to_ptr_will_annotate_correctly() {
         b := a;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
     let ptr_type = unit.units[0].variable_blocks[0].variables[0]
@@ -2933,7 +3082,8 @@ fn assigning_lword_to_ptr_will_annotate_correctly() {
 #[test]
 fn assigning_ptr_to_lword_will_annotate_correctly() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         PROGRAM Main
         VAR
@@ -2943,10 +3093,11 @@ fn assigning_ptr_to_lword_will_annotate_correctly() {
         a := b;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
     let ptr_type = unit.units[0].variable_blocks[0].variables[0]
@@ -2963,7 +3114,8 @@ fn assigning_ptr_to_lword_will_annotate_correctly() {
 #[test]
 fn assigning_ptr_to_lword_will_annotate_correctly2() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         PROGRAM Main
         VAR
@@ -2973,10 +3125,11 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
         b := a^;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
     let ptr_type = unit.units[0].variable_blocks[0].variables[0]
@@ -2999,7 +3152,8 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
 #[test]
 fn address_of_is_annotated_correctly() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         PROGRAM Main
         VAR
@@ -3008,10 +3162,11 @@ fn address_of_is_annotated_correctly() {
         &b;
         END_PROGRAM
         "#,
+        id_provider.clone(),
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     let s = &unit.implementations[0].statements[0];
     if let Some(&StatementAnnotation::Value { resulting_type }) = annotations.get(s).as_ref() {
@@ -3019,7 +3174,7 @@ fn address_of_is_annotated_correctly() {
             Some(&DataTypeInformation::Pointer {
                 auto_deref: false,
                 inner_type_name: "INT".to_string(),
-                name: "POINTER_TO_INT".to_string(),
+                name: "__POINTER_TO_INT".to_string(),
             }),
             index.find_effective_type_info(resulting_type),
         );
@@ -3030,7 +3185,8 @@ fn address_of_is_annotated_correctly() {
 
 #[test]
 fn pointer_assignment_with_incompatible_types_hints_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
                 VAR
                     x : INT;
@@ -3038,9 +3194,10 @@ fn pointer_assignment_with_incompatible_types_hints_correctly() {
                 END_VAR
                 pt := &x;
             END_PROGRAM",
+        id_provider.clone(),
     );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let assignment = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { left, right, .. } = assignment {
@@ -3049,7 +3206,7 @@ fn pointer_assignment_with_incompatible_types_hints_correctly() {
             &annotations,
             &index,
             right,
-            "POINTER_TO_INT",
+            "__POINTER_TO_INT",
             Some("__PRG_pt")
         );
     }
@@ -3058,7 +3215,8 @@ fn pointer_assignment_with_incompatible_types_hints_correctly() {
 #[test]
 fn call_on_function_block_array() {
     //GIVEN
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION_BLOCK fb
         END_FUNCTION_BLOCK
@@ -3070,10 +3228,11 @@ fn call_on_function_block_array() {
             fbs[1]();
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     // should be the call statement
     let statements = &unit.implementations[1].statements[0];
     // should contain array access as operator
@@ -3095,7 +3254,8 @@ fn call_on_function_block_array() {
 #[test]
 fn and_statement_of_bools_results_in_bool() {
     //GIVEN
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         PROGRAM PRG
 		VAR
@@ -3105,10 +3265,11 @@ fn and_statement_of_bools_results_in_bool() {
             a AND b;
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let a_and_b = &unit.implementations[0].statements[0];
     // a AND b should be treated as i1
     assert_type_and_hint!(&annotations, &index, a_and_b, BOOL_TYPE, None);
@@ -3117,7 +3278,8 @@ fn and_statement_of_bools_results_in_bool() {
 #[test]
 fn and_statement_of_dints_results_in_dint() {
     //GIVEN
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         PROGRAM PRG
 		VAR
@@ -3129,10 +3291,11 @@ fn and_statement_of_dints_results_in_dint() {
             c AND d;
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     // a AND b should be treated as DINT
     assert_type_and_hint!(
         &annotations,
@@ -3154,7 +3317,8 @@ fn and_statement_of_dints_results_in_dint() {
 #[test]
 fn resolve_recursive_function_call() {
     //GIVEN
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION foo : DINT
 		VAR_INPUT
@@ -3173,10 +3337,11 @@ fn resolve_recursive_function_call() {
 			foo := var1;
 		END_FUNCTION
         ",
+        id_provider.clone(),
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let type_map = annotations.type_map;
     let annotated_types = format!("{:#?}", type_map);
 
@@ -3186,7 +3351,8 @@ fn resolve_recursive_function_call() {
 #[test]
 fn resolve_recursive_program_call() {
     //GIVEN
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         PROGRAM mainProg
 		VAR_INPUT
@@ -3204,10 +3370,11 @@ fn resolve_recursive_program_call() {
 			mainProg(input1 := var1, inout1 := var2, output1 => var3, );
 		END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     //WHEN the AST is annotated
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let type_map = annotations.type_map;
     let annotated_types = format!("{:#?}", type_map);
 
@@ -3216,7 +3383,8 @@ fn resolve_recursive_program_call() {
 
 #[test]
 fn function_block_initialization_test() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
             FUNCTION_BLOCK TON
             VAR_INPUT
@@ -3231,9 +3399,10 @@ fn function_block_initialization_test() {
             END_VAR
             END_PROGRAM
             ",
+        id_provider.clone(),
     );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     //PT will be a TIME variable, qualified name will be TON.PT
     let statement = unit.units[1].variable_blocks[0].variables[0]
@@ -3261,7 +3430,8 @@ fn function_block_initialization_test() {
 #[test]
 fn undeclared_varargs_type_hint_promoted_correctly() {
     // GIVEN a variadic function without type declarations
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
             FUNCTION variadic : BOOL
             VAR_INPUT
@@ -3282,10 +3452,11 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
                 variadic(float, double, u1, u8, short, long, longlong, 'hello');
             END_PROGRAM
             ",
+        id_provider.clone(),
     );
 
     // WHEN called with numerical types
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let call_stmt = &unit.implementations[1].statements[0];
     // THEN types smaller than LREAL/DINT get promoted while booleans and other types stay untouched.
     if let AstStatement::CallStatement { parameters, .. } = call_stmt {

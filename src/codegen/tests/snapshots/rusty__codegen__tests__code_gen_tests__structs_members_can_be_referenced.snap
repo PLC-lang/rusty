@@ -9,7 +9,7 @@ source_filename = "main"
 %MyStruct = type { i32, i32 }
 
 @MainProg_instance = global %MainProg zeroinitializer
-@MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
 define void @MainProg(%MainProg* %0) {
 entry:

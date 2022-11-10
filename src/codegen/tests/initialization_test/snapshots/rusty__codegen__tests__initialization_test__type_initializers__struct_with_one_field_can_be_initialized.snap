@@ -1,8 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
-assertion_line: 268
 expression: result
-
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -10,5 +8,5 @@ source_filename = "main"
 %MyPoint = type { i32 }
 
 @a = global %MyPoint { i32 7 }
-@MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer
+@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer
 

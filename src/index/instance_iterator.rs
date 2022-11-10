@@ -35,8 +35,7 @@ impl<'idx> InstanceIterator<'idx> {
             iterator: (Box::new(
                 index
                     .get_globals()
-                    .iter()
-                    .map(|(_, it)| it)
+                    .values()
                     .chain(index.get_program_instances().into_iter())
                     .map(|it| {
                         (
@@ -64,8 +63,7 @@ impl<'idx> InstanceIterator<'idx> {
             iterator: (Box::new(
                 index
                     .get_globals()
-                    .iter()
-                    .map(|(_, it)| it)
+                    .values()
                     .chain(index.get_program_instances().into_iter())
                     .map(|it| {
                         (
@@ -108,7 +106,7 @@ impl<'idx> InstanceIterator<'idx> {
         index
             .get_members(container)
             .map(|it| {
-                it.iter().map(|(_, it)| {
+                it.values().map(|it| {
                     (
                         it.get_qualified_name()
                             .split('.')

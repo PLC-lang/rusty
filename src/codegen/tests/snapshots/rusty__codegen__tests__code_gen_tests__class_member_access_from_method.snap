@@ -8,7 +8,7 @@ source_filename = "main"
 %MyClass = type { i16, i16 }
 %MyClass.testMethod = type { i16, i16 }
 
-@MyClass__init = unnamed_addr constant %MyClass zeroinitializer
+@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
 define void @MyClass.testMethod(%MyClass* %0, %MyClass.testMethod* %1) {
 entry:
