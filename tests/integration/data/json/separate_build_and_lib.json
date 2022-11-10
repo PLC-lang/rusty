@@ -10,7 +10,7 @@
             "path" : "libs/",
             "package" : "Copy",
             "include_path" : [
-                "simple_program.st"
+                "program_with_expressions.st"
             ]
         },
         {
@@ -18,7 +18,7 @@
             "path" : "libs/",
             "package" : "System",
             "include_path" : [
-                "simple_program.st"
+                "program_with_variables.st"
             ]
         }
     ]

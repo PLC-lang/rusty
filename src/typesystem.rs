@@ -7,7 +7,7 @@ use std::{
 use crate::{
     ast::{AstStatement, Operator, PouType, TypeNature},
     datalayout::{Bytes, MemoryLocation},
-    index::{const_expressions::ConstId, Index},
+    index::{const_expressions::ConstId, symbol::SymbolLocation, Index},
 };
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
@@ -92,6 +92,7 @@ pub struct DataType {
     pub initial_value: Option<ConstId>,
     pub information: DataTypeInformation,
     pub nature: TypeNature,
+    pub location: SymbolLocation,
 }
 
 impl DataType {
@@ -125,6 +126,11 @@ impl DataType {
 
     pub fn is_real(&self) -> bool {
         matches!(self.nature, TypeNature::Real { .. })
+    }
+
+    /// returns true if this type is an internal, auto-generated type
+    pub fn is_internal(&self) -> bool {
+        self.location.is_internal()
     }
 }
 
@@ -570,6 +576,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: U1_TYPE.into(),
@@ -581,6 +588,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Any,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: BOOL_TYPE.into(),
@@ -592,6 +600,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: Some(1),
             },
             nature: TypeNature::Bit,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: BYTE_TYPE.into(),
@@ -603,6 +612,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Bit,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: SINT_TYPE.into(),
@@ -614,6 +624,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Signed,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: USINT_TYPE.into(),
@@ -625,6 +636,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Unsigned,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: WORD_TYPE.into(),
@@ -636,6 +648,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Bit,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: INT_TYPE.into(),
@@ -647,6 +660,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Signed,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: UINT_TYPE.into(),
@@ -658,6 +672,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Unsigned,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: DWORD_TYPE.into(),
@@ -669,6 +684,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Bit,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: DINT_TYPE.into(),
@@ -680,6 +696,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Signed,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: UDINT_TYPE.into(),
@@ -691,6 +708,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Unsigned,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LWORD_TYPE.into(),
@@ -702,6 +720,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Bit,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LINT_TYPE.into(),
@@ -713,6 +732,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Signed,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: DATE_TYPE.into(),
@@ -724,6 +744,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: TIME_TYPE.into(),
@@ -735,6 +756,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Duration,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: DATE_AND_TIME_TYPE.into(),
@@ -746,6 +768,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: TIME_OF_DAY_TYPE.into(),
@@ -757,6 +780,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: ULINT_TYPE.into(),
@@ -768,6 +792,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Unsigned,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: REAL_TYPE.into(),
@@ -777,6 +802,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: REAL_SIZE,
             },
             nature: TypeNature::Real,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LREAL_TYPE.into(),
@@ -786,6 +812,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: LREAL_SIZE,
             },
             nature: TypeNature::Real,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: STRING_TYPE.into(),
@@ -795,6 +822,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 encoding: StringEncoding::Utf8,
             },
             nature: TypeNature::String,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: WSTRING_TYPE.into(),
@@ -804,6 +832,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 encoding: StringEncoding::Utf16,
             },
             nature: TypeNature::String,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: SHORT_DATE_AND_TIME_TYPE.into(),
@@ -813,6 +842,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: DATE_AND_TIME_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LONG_DATE_AND_TIME_TYPE_SHORTENED.into(),
@@ -822,6 +852,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: DATE_AND_TIME_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LONG_DATE_AND_TIME_TYPE.into(),
@@ -831,6 +862,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: DATE_AND_TIME_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: SHORT_DATE_TYPE.into(),
@@ -840,6 +872,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: DATE_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LONG_DATE_TYPE.into(),
@@ -849,6 +882,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: DATE_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LONG_DATE_TYPE_SHORTENED.into(),
@@ -858,6 +892,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: DATE_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: SHORT_TIME_OF_DAY_TYPE.into(),
@@ -867,6 +902,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: TIME_OF_DAY_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LONG_TIME_OF_DAY_TYPE.into(),
@@ -876,6 +912,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: TIME_OF_DAY_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LONG_TIME_OF_DAY_TYPE_SHORTENED.into(),
@@ -885,6 +922,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: TIME_OF_DAY_TYPE.into(),
             },
             nature: TypeNature::Date,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: SHORT_TIME_TYPE.into(),
@@ -894,6 +932,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LONG_TIME_TYPE.into(),
@@ -903,6 +942,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: LONG_TIME_TYPE_SHORTENED.into(),
@@ -912,6 +952,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: CHAR_TYPE.into(),
@@ -923,6 +964,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Char,
+            location: SymbolLocation::internal(),
         },
         DataType {
             name: WCHAR_TYPE.into(),
@@ -934,6 +976,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 semantic_size: None,
             },
             nature: TypeNature::Char,
+            location: SymbolLocation::internal(),
         },
     ]
 }
@@ -1064,4 +1107,10 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
     };
 
     suffix.map(|suffix| format!("{}_{}", type_name, suffix))
+}
+
+/// returns a name for internally created types using the given prefix and original type name
+/// the return name starts with "__"
+pub fn create_internal_type_name(prefix: &str, original_type_name: &str) -> String {
+    format!("__{}{}", prefix, original_type_name)
 }

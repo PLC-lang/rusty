@@ -11,7 +11,7 @@ source_filename = "main"
 
 @foo_instance = global %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
-@fb__init = unnamed_addr constant %fb zeroinitializer
+@__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @fb(%fb* %0) {
 entry:

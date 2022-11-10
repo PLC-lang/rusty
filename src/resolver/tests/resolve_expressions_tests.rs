@@ -226,7 +226,7 @@ fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
             &annotations,
             &index,
             addition,
-            "POINTER_TO_BYTE",
+            "__POINTER_TO_BYTE",
             Some("__PRG_a")
         );
     }
@@ -247,7 +247,7 @@ fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
             &annotations,
             &index,
             addition,
-            "POINTER_TO_BYTE",
+            "__POINTER_TO_BYTE",
             Some("__PRG_a")
         );
     }
@@ -830,6 +830,7 @@ fn array_expressions_resolve_types() {
                 y : ARRAY[0..10] OF MyInt;
                 a : MyIntArray;
                 b : MyAliasArray;
+                z : ARRAY[0..10] OF ARRAY[0..5] OF BYTE;
             END_VAR
 
             i;
@@ -843,6 +844,9 @@ fn array_expressions_resolve_types() {
 
             b;
             b[2];
+
+            z;
+            z[2];
         END_PROGRAM
         
         TYPE MyInt: INT := 7; END_TYPE 
@@ -864,6 +868,8 @@ fn array_expressions_resolve_types() {
         "INT",
         "MyAliasArray",
         "INT",
+        "__PRG_z",
+        "__PRG_z_",
     ];
     let type_names: Vec<&str> = statements
         .iter()
@@ -3168,7 +3174,7 @@ fn address_of_is_annotated_correctly() {
             Some(&DataTypeInformation::Pointer {
                 auto_deref: false,
                 inner_type_name: "INT".to_string(),
-                name: "POINTER_TO_INT".to_string(),
+                name: "__POINTER_TO_INT".to_string(),
             }),
             index.find_effective_type_info(resulting_type),
         );
@@ -3200,7 +3206,7 @@ fn pointer_assignment_with_incompatible_types_hints_correctly() {
             &annotations,
             &index,
             right,
-            "POINTER_TO_INT",
+            "__POINTER_TO_INT",
             Some("__PRG_pt")
         );
     }

@@ -8,7 +8,7 @@ source_filename = "main"
 %main = type {}
 
 @main_instance = global %main zeroinitializer
-@main.s__init = unnamed_addr constant [81 x i8] c"\0A numbers: %f %f %f %d \0A \0A\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+@__main.s__init = unnamed_addr constant [81 x i8] c"\0A numbers: %f %f %f %d \0A \0A\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
 declare i32 @printf([81 x i8]*, ...)
 
@@ -19,7 +19,7 @@ entry:
   %double = alloca double, align 8
   %integer = alloca i16, align 2
   %1 = bitcast [81 x i8]* %s to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds ([81 x i8], [81 x i8]* @main.s__init, i32 0, i32 0), i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds ([81 x i8], [81 x i8]* @__main.s__init, i32 0, i32 0), i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
   store float 3.000000e+00, float* %float, align 4
   store double 3.000000e+00, double* %double, align 8
   store i16 3, i16* %integer, align 2
