@@ -106,22 +106,16 @@ impl<'s> VisitorContext<'s> {
         }
     }
 
-    /// Runs in a temporary context with the "is call" marker
-    /// This helps resolving recursive function calls to differentiate them from references
-    fn run_in_call<T: FnOnce(&mut TypeAnnotator, VisitorContext)>(
-        &self,
-        annotator: &mut TypeAnnotator,
-        action: T,
-    ) {
-        let ctx = VisitorContext {
+    /// returns a copy of the current context and changes the `is_call` to true
+    fn set_is_call(&self) -> VisitorContext<'s> {
+        VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
             lhs: self.lhs,
             is_call: true,
             constant: self.constant,
             in_body: self.in_body,
-        };
-        action(annotator, ctx);
+        }
     }
 
     // returns a copy of the current context and sets the in_body field to true
@@ -1297,9 +1291,7 @@ impl<'i> TypeAnnotator<'i> {
             unreachable!("Always a call statement");
         };
         // #604 needed for recursive function calls
-        ctx.run_in_call(self, |annotator, operator_context| {
-            annotator.visit_statement(&operator_context, operator)
-        });
+        self.visit_statement(&ctx.set_is_call(), operator);
         let operator_qualifier = self.get_call_name(operator);
         //Use the context without the is_call =true
         let ctx = ctx.with_lhs(operator_qualifier.as_str());
