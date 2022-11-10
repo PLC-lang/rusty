@@ -13,10 +13,11 @@ use crate::{
 };
 
 use self::{
-    pou_validator::PouValidator, stmt_validator::StatementValidator,
-    variable_validator::VariableValidator,
+    global_validator::GlobalValidator, pou_validator::PouValidator,
+    stmt_validator::StatementValidator, variable_validator::VariableValidator,
 };
 
+mod global_validator;
 mod pou_validator;
 mod stmt_validator;
 mod variable_validator;
@@ -70,6 +71,7 @@ pub struct Validator {
     pou_validator: PouValidator,
     variable_validator: VariableValidator,
     stmt_validator: StatementValidator,
+    global_validator: GlobalValidator,
 }
 
 impl Validator {
@@ -78,6 +80,7 @@ impl Validator {
             pou_validator: PouValidator::new(),
             variable_validator: VariableValidator::new(),
             stmt_validator: StatementValidator::new(),
+            global_validator: GlobalValidator::new(),
         }
     }
 
@@ -86,7 +89,12 @@ impl Validator {
         all_diagnostics.append(&mut self.pou_validator.diagnostics);
         all_diagnostics.append(&mut self.variable_validator.diagnostics);
         all_diagnostics.append(&mut self.stmt_validator.diagnostics);
+        all_diagnostics.append(&mut self.global_validator.diagnostics);
         all_diagnostics
+    }
+
+    pub fn perform_global_validation(&mut self, index: &Index) {
+        self.global_validator.validate_unique_symbols(index);
     }
 
     pub fn visit_unit(

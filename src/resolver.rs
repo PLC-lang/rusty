@@ -18,7 +18,7 @@ use crate::{
         DataTypeDeclaration, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
-    index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, REAL_TYPE,
@@ -487,7 +487,7 @@ impl<'i> TypeAnnotator<'i> {
 
         // enum initializers may have been introduced by the visitor (indexer)
         // so we shoul try to resolve and type-annotate them here as well
-        for (_, enum_element) in index.get_global_qualified_enums() {
+        for enum_element in index.get_global_qualified_enums().values() {
             if let Some((Some(statement), scope)) = enum_element
                 .initial_value
                 .map(|i| index.get_const_expressions().find_expression(&i))
@@ -1554,9 +1554,9 @@ impl<'i> TypeAnnotator<'i> {
 /// adds a string-type to the given index and returns it's name
 fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
     let new_type_name = if is_wide {
-        format!("__WSTRING_{}", len)
+        typesystem::create_internal_type_name("WSTRING_", len.to_string().as_str())
     } else {
-        format!("__STRING_{}", len)
+        typesystem::create_internal_type_name("STRING_", len.to_string().as_str())
     };
 
     if index
@@ -1575,6 +1575,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
+            location: SymbolLocation::internal(),
         });
     }
     new_type_name
@@ -1582,17 +1583,25 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
 
 /// adds a pointer to the given inner_type to the given index and return's its name
 fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
-    let new_type_name = format!("POINTER_TO_{}", inner_type_name.as_str());
-    index.register_type(crate::typesystem::DataType {
-        name: new_type_name.clone(),
-        initial_value: None,
-        nature: TypeNature::Any,
-        information: crate::typesystem::DataTypeInformation::Pointer {
-            auto_deref: false,
-            inner_type_name,
+    let new_type_name =
+        typesystem::create_internal_type_name("POINTER_TO_", inner_type_name.as_str());
+
+    if index
+        .find_effective_type_by_name(new_type_name.as_str())
+        .is_none()
+    {
+        index.register_type(crate::typesystem::DataType {
             name: new_type_name.clone(),
-        },
-    });
+            initial_value: None,
+            nature: TypeNature::Any,
+            information: crate::typesystem::DataTypeInformation::Pointer {
+                auto_deref: false,
+                inner_type_name,
+                name: new_type_name.clone(),
+            },
+            location: SymbolLocation::internal(),
+        });
+    }
     new_type_name
 }
 

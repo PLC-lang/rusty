@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     ast::{self, AstStatement, GenericBinding, LinkageType, TypeNature},
     builtins,
-    index::{Index, PouIndexEntry, VariableIndexEntry},
+    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry},
     resolver::AnnotationMap,
     typesystem::{self, DataType, DataTypeInformation},
 };
@@ -91,7 +91,10 @@ impl<'i> TypeAnnotator<'i> {
                     //Create a new pou and implementation for the function
                     if let Some(pou) = self.index.find_pou(qualified_name) {
                         //only register concrete typed function if it was not indexed yet
-                        if self.index.find_pou(new_name.as_str()).is_none() {
+                        if self.index.find_pou(new_name.as_str()).is_none() &&
+                            //only register typed function if we did not register it yet
+                            self.annotation_map.new_index.find_pou(new_name.as_str()).is_none()
+                        {
                             //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
                             // e.g. call to generic_foo(aInt)
                             self.register_generic_pou_entries(
@@ -136,15 +139,16 @@ impl<'i> TypeAnnotator<'i> {
             );
 
             //register a copy of the pou under the new name
-            self.annotation_map
-                .new_index
-                .register_pou(PouIndexEntry::create_function_entry(
+            self.annotation_map.new_index.register_pou(
+                PouIndexEntry::create_generated_function_entry(
                     new_name,
                     return_type,
                     &[],
                     LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
                     generic_function.is_variadic(),
-                ));
+                    generic_function.get_location().clone(),
+                ),
+            );
 
             // register the member-variables (interface) of the new function
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
@@ -152,7 +156,7 @@ impl<'i> TypeAnnotator<'i> {
             if let Some(generic_function_members) =
                 self.index.get_members(generic_function.get_name())
             {
-                for (_, member) in generic_function_members {
+                for member in generic_function_members.values() {
                     let new_type_name =
                         self.find_or_create_datatype(member.get_type_name(), generics);
 
@@ -203,6 +207,7 @@ impl<'i> TypeAnnotator<'i> {
                     initial_value: None,
                     name: name.clone(),
                     nature: TypeNature::Any,
+                    location: SymbolLocation::internal(),
                 });
 
                 name

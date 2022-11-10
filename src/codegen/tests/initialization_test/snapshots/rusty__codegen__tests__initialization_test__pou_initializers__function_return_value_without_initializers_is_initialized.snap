@@ -7,7 +7,7 @@ source_filename = "main"
 
 %MyStrct = type { i32, i32, i32 }
 
-@MyStrct__init = unnamed_addr constant %MyStrct zeroinitializer
+@__MyStrct__init = unnamed_addr constant %MyStrct zeroinitializer
 
 define i16 @foo_int() {
 entry:
@@ -39,7 +39,7 @@ define %MyStrct @foo_strct() {
 entry:
   %foo_strct = alloca %MyStrct, align 8
   %0 = bitcast %MyStrct* %foo_strct to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%MyStrct* @MyStrct__init to i8*), i64 ptrtoint (%MyStrct* getelementptr (%MyStrct, %MyStrct* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%MyStrct* @__MyStrct__init to i8*), i64 ptrtoint (%MyStrct* getelementptr (%MyStrct, %MyStrct* null, i32 1) to i64), i1 false)
   %foo_strct_ret = load %MyStrct, %MyStrct* %foo_strct, align 4
   ret %MyStrct %foo_strct_ret
 }

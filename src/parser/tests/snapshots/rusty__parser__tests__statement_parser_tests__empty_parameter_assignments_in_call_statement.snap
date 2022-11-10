@@ -92,6 +92,9 @@ CompilationUnit {
             location: SourceRange {
                 range: 150..162,
             },
+            name_location: SourceRange {
+                range: 18..21,
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -134,6 +137,9 @@ CompilationUnit {
             ],
             location: SourceRange {
                 range: 215..270,
+            },
+            name_location: SourceRange {
+                range: 174..178,
             },
             overriding: false,
             generic: false,
