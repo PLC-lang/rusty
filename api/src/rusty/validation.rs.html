@@ -431,16 +431,79 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Pou</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>,
-        <span class="ident">UserTypeDeclaration</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>,
+        <span class="self">self</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Pou</span>, <span class="ident">PouType</span>,
+        <span class="ident">SourceRange</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>,
     },
     <span class="ident">codegen::generators::expression_generator::get_implicit_call_parameter</span>,
-    <span class="ident">index</span>::{<span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>},
+    <span class="ident">index</span>::{<span class="ident">ArgumentType</span>, <span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>},
     <span class="ident">resolver</span>::{<span class="ident">const_evaluator</span>, <span class="ident">AnnotationMap</span>, <span class="ident">AnnotationMapImpl</span>, <span class="ident">StatementAnnotation</span>},
+    <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="ident">DataTypeInformation</span>},
     <span class="ident">Diagnostic</span>,
 };
 
@@ -697,55 +760,87 @@
                 <span class="comment">// visit called pou</span>
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">operator</span>, <span class="ident">context</span>);
 
-                <span class="comment">// for PROGRAM/FB we need special inout validation</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">PouIndexEntry::FunctionBlock</span> { <span class="ident">name</span>, .. })
-                <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">PouIndexEntry::Program</span> { <span class="ident">name</span>, .. }) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">find_pou</span>(<span class="ident">operator</span>)
-                {
-                    <span class="kw">let</span> <span class="ident">declared_parameters</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">index</span>.<span class="ident">get_declared_parameters</span>(<span class="ident">name</span>);
-                    <span class="kw">let</span> <span class="ident">inouts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&amp;&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">declared_parameters</span>
-                        .<span class="ident">iter</span>()
-                        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">VariableType::InOut</span> <span class="op">==</span> <span class="ident">p</span>.<span class="ident">get_variable_type</span>())
-                        .<span class="ident">collect</span>();
-                    <span class="comment">// if the called pou has declared inouts, we need to make sure that these were passed to the pou call</span>
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">inouts</span>.<span class="ident">is_empty</span>() {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">passed_params_idx</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
-                            <span class="kw">match</span> <span class="ident">s</span> {
-                                <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } =&gt; {
-                                    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">e</span>) <span class="kw">in</span> <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                                        <span class="comment">// safe index of passed parameter</span>
-                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">idx</span>, <span class="kw">_</span>)) <span class="op">=</span>
-                                            <span class="ident">get_implicit_call_parameter</span>(<span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="ident">declared_parameters</span>, <span class="ident">i</span>)
-                                        {
-                                            <span class="ident">passed_params_idx</span>.<span class="ident">push</span>(<span class="ident">idx</span>);
-                                        }
-                                    }
-                                }
-                                <span class="kw">_</span> =&gt; {
-                                    <span class="comment">// safe index of passed parameter</span>
-                                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">idx</span>, <span class="kw">_</span>)) <span class="op">=</span>
-                                        <span class="ident">get_implicit_call_parameter</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="ident">declared_parameters</span>, <span class="number">0</span>)
-                                    {
-                                        <span class="ident">passed_params_idx</span>.<span class="ident">push</span>(<span class="ident">idx</span>);
-                                    }
-                                }
-                            }
-                        }
-                        <span class="comment">// check if all inouts were passed to the pou call</span>
-                        <span class="ident">inouts</span>.<span class="ident">into_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                            <span class="kw">if</span> <span class="op">!</span><span class="ident">passed_params_idx</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="ident">p</span>.<span class="ident">get_location_in_parent</span>() <span class="kw">as</span> <span class="ident">usize</span>)) {
-                                <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(
-                                    <span class="ident">Diagnostic::missing_inout_parameter</span>(
-                                        <span class="ident">p</span>.<span class="ident">get_name</span>(),
-                                        <span class="ident">operator</span>.<span class="ident">get_location</span>(),
-                                    ),
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pou</span>) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">find_pou</span>(<span class="ident">operator</span>) {
+                    <span class="kw">let</span> <span class="ident">declared_parameters</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">index</span>.<span class="ident">get_declared_parameters</span>(<span class="ident">pou</span>.<span class="ident">get_name</span>());
+                    <span class="kw">let</span> <span class="ident">passed_parameters</span> <span class="op">=</span> <span class="ident">parameters</span>
+                        .<span class="ident">as_ref</span>()
+                        .<span class="ident">as_ref</span>()
+                        .<span class="ident">map</span>(<span class="ident">ast::flatten_expression_list</span>)
+                        .<span class="ident">unwrap_or_default</span>();
+
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">passed_params_idx</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">are_implicit_parameters</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <span class="comment">// validate parameters</span>
+                    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">p</span>) <span class="kw">in</span> <span class="ident">passed_parameters</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">location_in_parent</span>, <span class="ident">right</span>, <span class="ident">is_implicit</span>)) <span class="op">=</span>
+                            <span class="ident">get_implicit_call_parameter</span>(<span class="ident">p</span>, <span class="kw-2">&amp;</span><span class="ident">declared_parameters</span>, <span class="ident">i</span>)
+                        {
+                            <span class="comment">// safe index of passed parameter</span>
+                            <span class="ident">passed_params_idx</span>.<span class="ident">push</span>(<span class="ident">location_in_parent</span>);
+
+                            <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">declared_parameters</span>.<span class="ident">get</span>(<span class="ident">location_in_parent</span>);
+                            <span class="kw">let</span> <span class="ident">left_type</span> <span class="op">=</span> <span class="ident">left</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> {
+                                <span class="ident">context</span>
+                                    .<span class="ident">index</span>
+                                    .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">param</span>.<span class="ident">get_type_name</span>())
+                            });
+                            <span class="kw">let</span> <span class="ident">right_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get_type</span>(<span class="ident">right</span>, <span class="ident">context</span>.<span class="ident">index</span>);
+
+                            <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">left</span>), <span class="prelude-val">Some</span>(<span class="ident">left_type</span>), <span class="prelude-val">Some</span>(<span class="ident">right_type</span>)) <span class="op">=</span>
+                                (<span class="ident">left</span>, <span class="ident">left_type</span>, <span class="ident">right_type</span>)
+                            {
+                                <span class="self">self</span>.<span class="ident">validate_call_parameter_assignment</span>(
+                                    <span class="ident">left</span>,
+                                    <span class="ident">left_type</span>,
+                                    <span class="ident">right_type</span>,
+                                    <span class="ident">p</span>.<span class="ident">get_location</span>(),
+                                    <span class="ident">context</span>.<span class="ident">index</span>,
                                 );
                             }
-                        });
+
+                            <span class="comment">// mixing implicit and explicit parameters is not allowed</span>
+                            <span class="comment">// allways compare to the first passed parameter</span>
+                            <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
+                                <span class="ident">are_implicit_parameters</span> <span class="op">=</span> <span class="ident">is_implicit</span>;
+                            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">are_implicit_parameters</span> <span class="op">!</span><span class="op">=</span> <span class="ident">is_implicit</span> {
+                                <span class="self">self</span>.<span class="ident">stmt_validator</span>
+                                    .<span class="ident">diagnostics</span>
+                                    .<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_parameter_type</span>(<span class="ident">p</span>.<span class="ident">get_location</span>()));
+                            }
+                        }
+
+                        <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">p</span>, <span class="ident">context</span>);
                     }
-                }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
-                    <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>);
+
+                    <span class="comment">// for PROGRAM/FB we need special inout validation</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PouIndexEntry::FunctionBlock</span> { .. } <span class="op">|</span> <span class="ident">PouIndexEntry::Program</span> { .. } <span class="op">=</span> <span class="ident">pou</span>
+                    {
+                        <span class="kw">let</span> <span class="ident">inouts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&amp;&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">declared_parameters</span>
+                            .<span class="ident">iter</span>()
+                            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">VariableType::InOut</span> <span class="op">==</span> <span class="ident">p</span>.<span class="ident">get_variable_type</span>())
+                            .<span class="ident">collect</span>();
+                        <span class="comment">// if the called pou has declared inouts, we need to make sure that these were passed to the pou call</span>
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">inouts</span>.<span class="ident">is_empty</span>() {
+                            <span class="comment">// check if all inouts were passed to the pou call</span>
+                            <span class="ident">inouts</span>.<span class="ident">into_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
+                                <span class="kw">if</span> <span class="op">!</span><span class="ident">passed_params_idx</span>
+                                    .<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="ident">p</span>.<span class="ident">get_location_in_parent</span>() <span class="kw">as</span> <span class="ident">usize</span>))
+                                {
+                                    <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(
+                                        <span class="ident">Diagnostic::missing_inout_parameter</span>(
+                                            <span class="ident">p</span>.<span class="ident">get_name</span>(),
+                                            <span class="ident">operator</span>.<span class="ident">get_location</span>(),
+                                        ),
+                                    );
+                                }
+                            });
+                        }
+                    }
+                } <span class="kw">else</span> {
+                    <span class="comment">// Pou could not be found, we can still partially validate the passed parameters</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
+                        <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>);
+                    }
                 }
             }
             <span class="ident">AstStatement::IfStatement</span> {
@@ -857,6 +952,35 @@
         }
 
         <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">validate_statement</span>(<span class="ident">statement</span>, <span class="ident">context</span>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">validate_call_parameter_assignment</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>,
+        <span class="ident">left_type</span>: <span class="kw-2">&amp;</span><span class="ident">typesystem::DataType</span>,
+        <span class="ident">right_type</span>: <span class="kw-2">&amp;</span><span class="ident">typesystem::DataType</span>,
+        <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
+    ) {
+        <span class="comment">// for parameters passed `ByRef` we need to check the inner type of the pointer</span>
+        <span class="kw">let</span> <span class="ident">left_type_info</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">left</span>.<span class="ident">variable_type</span>, <span class="ident">ArgumentType::ByRef</span>(..)) {
+            <span class="ident">index</span>.<span class="ident">find_elementary_pointer_type</span>(<span class="ident">left_type</span>.<span class="ident">get_type_information</span>())
+        } <span class="kw">else</span> {
+            <span class="ident">index</span>.<span class="ident">find_intrinsic_type</span>(<span class="ident">left_type</span>.<span class="ident">get_type_information</span>())
+        };
+        <span class="kw">let</span> <span class="ident">right_type_info</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_intrinsic_type</span>(<span class="ident">right_type</span>.<span class="ident">get_type_information</span>());
+        <span class="comment">// stmt_validator `validate_type_nature()` should report any error see `generic_validation_tests` ignore generics here and safe work</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">left_type_info</span>, <span class="ident">DataTypeInformation::Generic</span> { .. })
+            <span class="op">&amp;</span> <span class="op">!</span><span class="ident">typesystem::is_same_type_class</span>(<span class="ident">left_type_info</span>, <span class="ident">right_type_info</span>, <span class="ident">index</span>)
+        {
+            <span class="self">self</span>.<span class="ident">stmt_validator</span>
+                .<span class="ident">diagnostics</span>
+                .<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_assignment</span>(
+                    <span class="ident">right_type_info</span>.<span class="ident">get_name</span>(),
+                    <span class="ident">left_type_info</span>.<span class="ident">get_name</span>(),
+                    <span class="ident">location</span>,
+                ))
+        }
     }
 }
 </code></pre></div>

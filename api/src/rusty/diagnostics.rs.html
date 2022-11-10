@@ -1187,6 +1187,15 @@
 <span id="1182">1182</span>
 <span id="1183">1183</span>
 <span id="1184">1184</span>
+<span id="1185">1185</span>
+<span id="1186">1186</span>
+<span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections::HashMap</span>,
     <span class="ident">error::Error</span>,
@@ -1254,8 +1263,9 @@
     <span class="ident">pou__unsupported_return_type</span>,
     <span class="ident">pou__empty_variable_block</span>,
     <span class="ident">pou__missing_action_container</span>,
-    <span class="comment">// pou call</span>
-    <span class="ident">pou__missing_inout_parameter</span>,
+
+    <span class="comment">// call</span>
+    <span class="ident">call__invalid_parameter_type</span>,
 
     <span class="comment">//variable related</span>
     <span class="ident">var__unresolved_constant</span>,
@@ -1882,6 +1892,14 @@
             <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Missing inout parameter: {}&quot;</span>, <span class="ident">parameter</span>),
             <span class="ident">range</span>: <span class="macro">vec!</span>[<span class="ident">range</span>],
             <span class="ident">err_no</span>: <span class="ident">ErrNo::pou__missing_action_container</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalid_parameter_type</span>(<span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="string">&quot;Cannot mix implicit and explicit call parameters!&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">range</span>: <span class="macro">vec!</span>[<span class="ident">range</span>],
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::call__invalid_parameter_type</span>,
         }
     }
 

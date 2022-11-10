@@ -1585,6 +1585,24 @@
 <span id="1580">1580</span>
 <span id="1581">1581</span>
 <span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -3096,7 +3114,7 @@
     }
 
     <span class="doccomment">/// returns the intrinsic (built-in) type represented by the given type-information</span>
-    <span class="doccomment">/// this will return the built-in type behind alias and range-types</span>
+    <span class="doccomment">/// this will return the built-in type behind alias / range-types</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_intrinsic_type</span><span class="op">&lt;</span><span class="lifetime">&#39;idx</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx</span> <span class="self">self</span>,
         <span class="ident">initial_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx</span> <span class="ident">DataTypeInformation</span>,
@@ -3120,6 +3138,24 @@
             } =&gt; <span class="self">self</span>
                 .<span class="ident">find_effective_type_info</span>(<span class="ident">referenced_type</span>)
                 .<span class="ident">unwrap_or</span>(<span class="ident">initial_type</span>),
+            <span class="kw">_</span> =&gt; <span class="ident">initial_type</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_elementary_pointer_type</span><span class="op">&lt;</span><span class="lifetime">&#39;idx</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx</span> <span class="self">self</span>,
+        <span class="ident">initial_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx</span> <span class="ident">DataTypeInformation</span>,
+    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx</span> <span class="ident">DataTypeInformation</span> {
+        <span class="kw">match</span> <span class="ident">initial_type</span> {
+            <span class="ident">DataTypeInformation::Pointer</span> {
+                <span class="ident">inner_type_name</span>, ..
+            } =&gt; {
+                <span class="kw">let</span> <span class="ident">inner_type</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">find_effective_type_info</span>(<span class="ident">inner_type_name</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_intrinsic_type</span>(<span class="ident">t</span>))
+                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">initial_type</span>);
+                <span class="self">self</span>.<span class="ident">find_elementary_pointer_type</span>(<span class="ident">inner_type</span>)
+            }
             <span class="kw">_</span> =&gt; <span class="ident">initial_type</span>,
         }
     }
