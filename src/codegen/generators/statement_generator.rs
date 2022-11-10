@@ -201,8 +201,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // e.g. x := y,  ==> x := CheckSignedInt(y);
         let range_checked_right_side = if let DataTypeInformation::SubRange { .. } = left_type {
             // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
-
-            self.annotations.get_function_annotation(right_statement)
+            self.annotations.get_hidden_function_call(right_statement)
         } else {
             None
         };

@@ -1419,7 +1419,6 @@ pub fn create_call_to(
 pub fn create_call_to_with_ids(
     function_name: String,
     parameters: Vec<AstStatement>,
-    parameter_list_id: usize,
     location: &SourceRange,
     mut id_provider: IdProvider,
 ) -> AstStatement {
@@ -1431,7 +1430,7 @@ pub fn create_call_to_with_ids(
         }),
         parameters: Box::new(Some(AstStatement::ExpressionList {
             expressions: parameters,
-            id: parameter_list_id,
+            id: id_provider.next_id(),
         })),
         location: location.clone(),
         id: id_provider.next_id(),
@@ -1541,11 +1540,9 @@ pub fn create_call_to_check_function_ast(
     location: &SourceRange,
     id_provider: IdProvider,
 ) -> AstStatement {
-    let range_type_id = sub_range.start.get_id();
     create_call_to_with_ids(
         check_function_name,
         vec![parameter, sub_range.start, sub_range.end],
-        range_type_id,
         location,
         id_provider,
     )

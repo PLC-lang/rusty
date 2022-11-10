@@ -248,7 +248,7 @@ pub trait AnnotationMap {
 
     fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation>;
 
-    fn get_function_annotation(&self, s: &AstStatement) -> Option<&AstStatement>;
+    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement>;
 
     fn get_type_or_void<'i>(
         &'i self,
@@ -342,8 +342,8 @@ impl AnnotationMap for AstAnnotations {
         }
     }
 
-    fn get_function_annotation(&self, s: &AstStatement) -> Option<&AstStatement> {
-        self.annotation_map.get_function_annotation(s)
+    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement> {
+        self.annotation_map.get_hidden_function_call(s)
     }
 }
 
@@ -387,7 +387,7 @@ pub struct AnnotationMapImpl {
     /// ...
     /// x : BYTE(0..100);
     /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
-    function_annotation_map: IndexMap<AstId, AstStatement>,
+    hidden_function_calls: IndexMap<AstId, AstStatement>,
 
     //An index of newly created types
     pub new_index: Index,
@@ -402,8 +402,8 @@ impl AnnotationMapImpl {
     pub fn import(&mut self, other: AnnotationMapImpl) {
         self.type_map.extend(other.type_map);
         self.type_hint_map.extend(other.type_hint_map);
-        self.function_annotation_map
-            .extend(other.function_annotation_map);
+        self.hidden_function_calls
+            .extend(other.hidden_function_calls);
         self.new_index.import(other.new_index);
     }
 
@@ -416,8 +416,10 @@ impl AnnotationMapImpl {
         self.type_hint_map.insert(s.get_id(), annotation);
     }
 
-    pub fn annotate_function(&mut self, s: &AstStatement, f: AstStatement) {
-        self.function_annotation_map.insert(s.get_id(), f);
+    /// annotates the given statement s with the call-statement f so codegen can generate
+    /// a hidden call f instead of generating s
+    pub fn annotate_hidden_function_call(&mut self, s: &AstStatement, f: AstStatement) {
+        self.hidden_function_calls.insert(s.get_id(), f);
     }
 
     /// Annotates the ast statement with its original generic nature
@@ -443,8 +445,9 @@ impl AnnotationMap for AnnotationMapImpl {
         self.type_hint_map.get(&s.get_id())
     }
 
-    fn get_function_annotation(&self, s: &AstStatement) -> Option<&AstStatement> {
-        self.function_annotation_map.get(&s.get_id())
+    /// returns the function call previously annoted on s via annotate_hidden_function_call(...)
+    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement> {
+        self.hidden_function_calls.get(&s.get_id())
     }
 
     fn get_type<'i>(
@@ -611,7 +614,8 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     self.visit_call_statement(&statement, ctx);
                     self.update_right_hand_side(&expected_type, &statement);
-                    self.annotation_map.annotate_function(right_side, statement);
+                    self.annotation_map
+                        .annotate_hidden_function_call(right_side, statement);
                 } else {
                     self.update_right_hand_side(&expected_type, right_side);
                 }
