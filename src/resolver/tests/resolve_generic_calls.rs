@@ -1,8 +1,9 @@
 use crate::{
     assert_type_and_hint,
     ast::{self, flatten_expression_list, AstStatement},
+    lexer::IdProvider,
     resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
-    test_utils::tests::{annotate, index},
+    test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE,
         SINT_TYPE, STRING_TYPE,
@@ -11,7 +12,8 @@ use crate::{
 
 #[test]
 fn resolved_generic_call_added_to_index() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION myFunc<G: ANY_NUM> : G
         VAR_INPUT   x : G;  END_VAR
@@ -30,21 +32,22 @@ fn resolved_generic_call_added_to_index() {
             myFunc(1.0);
             myFunc(BYTE#1);
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     // The implementations are added to the index
     let implementations = annotations.new_index.get_implementations();
     assert!(implementations.contains_key("myfunc__int"));
     assert!(implementations.contains_key("myfunc__dint"));
     assert!(implementations.contains_key("myfunc__real"));
-    assert_eq!(3, implementations.len()); //make sure BYTE-implementation was not added by the annotator
+    assert_eq!(3, implementations.values().count()); //make sure BYTE-implementation was not added by the annotator
 
     //The pous are added to the index
     let pous = annotations.new_index.get_pous();
-    assert!(pous.contains_key("myfunc__int"));
-    assert!(pous.contains_key("myfunc__dint"));
-    assert!(pous.contains_key("myfunc__real"));
-    assert_eq!(3, pous.len()); //make sure BYTE-implementation was not added by the annotator
+    assert!(pous.contains_key(&"myfunc__int".into()));
+    assert!(pous.contains_key(&"myfunc__dint".into()));
+    assert!(pous.contains_key(&"myfunc__real".into()));
+    assert_eq!(3, pous.values().count()); //make sure BYTE-implementation was not added by the annotator
 
     //Each POU has members
     assert_eq!(
@@ -99,7 +102,8 @@ fn resolved_generic_call_added_to_index() {
 
 #[test]
 fn generic_call_annotated_with_correct_type() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION myFunc<G: ANY_NUM> : G
         VAR_INPUT
@@ -115,8 +119,9 @@ fn generic_call_annotated_with_correct_type() {
             myFunc(6);
             myFunc(1.0);
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let call = &unit.implementations[1].statements[0];
 
     //The return type should have the correct type
@@ -190,7 +195,8 @@ fn generic_call_annotated_with_correct_type() {
 
 #[test]
 fn generic_call_multi_params_annotated_with_correct_type() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION myFunc<G: ANY_NUM, F : ANY_INT> : G
         VAR_INPUT
@@ -209,8 +215,9 @@ fn generic_call_multi_params_annotated_with_correct_type() {
             myFunc(a,b,c);
             myFunc(1.0, 2, BYTE#2);
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     let call = &unit.implementations[1].statements[0];
 
@@ -321,7 +328,8 @@ fn generic_call_multi_params_annotated_with_correct_type() {
 
 #[test]
 fn call_order_of_parameters_does_not_change_annotations() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION myFunc : INT
         VAR_INPUT
@@ -340,8 +348,9 @@ fn call_order_of_parameters_does_not_change_annotations() {
             myFunc(y := b, x := a, z := c);
             myFunc(z := c, y := b, x := a);
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     fn get_parameter_with_name<'a>(
         parameters_list: &[&'a AstStatement],
@@ -398,7 +407,8 @@ fn call_order_of_parameters_does_not_change_annotations() {
 
 #[test]
 fn call_order_of_generic_parameters_does_not_change_annotations() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION myFunc<G: ANY_NUM, F : ANY_INT> : G
         VAR_INPUT
@@ -417,8 +427,9 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
             myFunc(y := b, x := a, z := c);
             myFunc(z := c, y := b, x := a);
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     fn get_parameter_with_name<'a>(
         parameters_list: &[&'a AstStatement],
@@ -483,7 +494,8 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
 
 #[test]
 fn builtin_generic_functions_do_not_get_specialized_calls() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         PROGRAM PRG
             VAR
@@ -496,8 +508,9 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
             REF(6);
             REF(1.0);
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     //The implementations are not added to the index
     let implementations = annotations.new_index.get_implementations();
     assert!(!implementations.contains_key("adr__int"));
@@ -509,12 +522,12 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
 
     //The pous are not added to the index
     let pous = annotations.new_index.get_pou_types();
-    assert!(!pous.contains_key("adr__int"));
-    assert!(!pous.contains_key("adr__dint"));
-    assert!(!pous.contains_key("adr__real"));
-    assert!(!pous.contains_key("ref__int"));
-    assert!(!pous.contains_key("ref__dint"));
-    assert!(!pous.contains_key("ref__real"));
+    assert!(!pous.contains_key(&"adr__int".into()));
+    assert!(!pous.contains_key(&"adr__dint".into()));
+    assert!(!pous.contains_key(&"adr__real".into()));
+    assert!(!pous.contains_key(&"ref__int".into()));
+    assert!(!pous.contains_key(&"ref__dint".into()));
+    assert!(!pous.contains_key(&"ref__real".into()));
 
     let call = &unit.implementations[0].statements[0];
 
@@ -544,7 +557,8 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
 
 #[test]
 fn builtin_sel_param_type_is_not_changed() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
     FUNCTION test : DINT
     VAR
@@ -553,9 +567,10 @@ fn builtin_sel_param_type_is_not_changed() {
         SEL(FALSE,a,b);
     END_FUNCTION
     ",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     //get the type/hints for a and b in the call, they should be unchanged (DINT, None)
     let call = &unit.implementations[0].statements[0];
     if let AstStatement::CallStatement { parameters, .. } = call {
@@ -569,7 +584,8 @@ fn builtin_sel_param_type_is_not_changed() {
 
 #[test]
 fn resolve_variadic_generics() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
     FUNCTION ex<U: ANY> : U 
     VAR_INPUT
@@ -584,9 +600,10 @@ fn resolve_variadic_generics() {
         ex(a,b);
     END_FUNCTION
     ",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     //ex should resolve to ex__dint
     //a and b have the type dint
     let call = &unit.implementations[1].statements[0];
@@ -609,7 +626,8 @@ fn resolve_variadic_generics() {
 
 #[test]
 fn generic_call_gets_cast_to_biggest_type() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         r"
  
     {external}
@@ -622,10 +640,11 @@ fn generic_call_gets_cast_to_biggest_type() {
     FUNCTION main : LREAL
         MAX(SINT#5,DINT#1,LREAL#1.5,1.2);
     END_FUNCTION",
+        id_provider.clone(),
     );
 
     //Expecting all values to be LREAL
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let call = &unit.implementations[1].statements[0];
     assert_type_and_hint!(&annotations, &index, call, LREAL_TYPE, None);
     //Call returns LREAL
@@ -648,16 +667,18 @@ fn generic_call_gets_cast_to_biggest_type() {
 
 #[test]
 fn sel_return_type_follows_params() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
     FUNCTION main
         SEL(TRUE,1,2);
         SEL(TRUE,1,2) + 10;
         15 + SEL(TRUE,1,2);
     END_FUNCTION",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     assert_type_and_hint!(
         &annotations,
         &index,
@@ -685,16 +706,18 @@ fn sel_return_type_follows_params() {
 
 #[test]
 fn mux_return_type_follows_params() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
     FUNCTION main
         MUX(0,1,2);
         MUX(0,1,2) + 10;
         15 + MUX(0,1,2);
     END_FUNCTION",
+        id_provider.clone(),
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     assert_type_and_hint!(
         &annotations,
         &index,
@@ -722,7 +745,8 @@ fn mux_return_type_follows_params() {
 
 #[test]
 fn auto_pointer_of_generic_resolved() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         " FUNCTION LEFT<T : ANY> : T
         VAR_IN_OUT
             IN : T;
@@ -742,9 +766,10 @@ fn auto_pointer_of_generic_resolved() {
             LEFT_EXT(IN);
         END_FUNCTION
         ",
+        id_provider.clone(),
     );
 
-    annotate(&unit, &mut index);
+    annotate_with_ids(&unit, &mut index, id_provider);
 
     let member = index.find_member("LEFT_EXT__DINT", "IN").unwrap();
     let dt = index
@@ -764,7 +789,8 @@ fn auto_pointer_of_generic_resolved() {
 
 #[test]
 fn string_ref_as_generic_resolved() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         " FUNCTION LEFT<T: ANY_STRING> : T
         VAR_INPUT {ref}
             IN : T;
@@ -784,9 +810,10 @@ fn string_ref_as_generic_resolved() {
             LEFT_EXT(IN);
         END_FUNCTION
         ",
+        id_provider.clone(),
     );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     let call_statement = &unit.implementations[2].statements[0];
 
@@ -819,7 +846,8 @@ fn string_ref_as_generic_resolved() {
 #[test]
 fn resolved_generic_any_real_call_with_ints_added_to_index() {
     // Make sure INTs implementations were not added to index
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION myFunc<T: ANY_REAL> : T
         VAR_INPUT   x : T;  END_VAR
@@ -845,17 +873,18 @@ fn resolved_generic_any_real_call_with_ints_added_to_index() {
             myFunc(UDINT#1);
 			myFunc(ULINT#1);
         END_PROGRAM",
+        id_provider.clone(),
     );
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     // The implementations are added to the index
     let implementations = annotations.new_index.get_implementations();
     assert!(implementations.contains_key("myfunc__lreal"));
-    assert_eq!(1, implementations.len()); //make sure REAL-implementation was not added by the annotator
+    assert_eq!(1, implementations.values().count()); //make sure REAL-implementation was not added by the annotator
 
     //The pous are added to the index
     let pous = annotations.new_index.get_pous();
-    assert!(pous.contains_key("myfunc__lreal"));
-    assert_eq!(1, pous.len()); //make sure REAL-implementation was not added by the annotator
+    assert!(pous.contains_key(&"myfunc__lreal".into()));
+    assert_eq!(1, pous.values().count()); //make sure REAL-implementation was not added by the annotator
 
     //Each POU has members
     assert_eq!(
@@ -878,7 +907,8 @@ fn resolved_generic_any_real_call_with_ints_added_to_index() {
 
 #[test]
 fn generic_string_functions_are_annotated_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
@@ -900,9 +930,10 @@ fn generic_string_functions_are_annotated_correctly() {
             foo(s1);
         END_PROGRAM
         ",
+        id_provider.clone()
     );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     let mut functions = vec![];
     let mut values = vec![];
@@ -932,7 +963,8 @@ fn generic_string_functions_are_annotated_correctly() {
 
 #[test]
 fn generic_string_functions_without_specific_implementation_are_annotated_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"         
         FUNCTION LEN <T: ANY_STRING> : DINT
         VAR_INPUT {ref}
@@ -947,9 +979,10 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
             res := LEN('abc');
         END_FUNCTION
         "#,
+        id_provider.clone(),
     );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let assignment = &unit.implementations[1].statements[0];
 
     if let AstStatement::Assignment { right, .. } = assignment {
@@ -986,7 +1019,7 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
     }
 
     let function = index.get_members("LEN__STRING").unwrap();
-    let param = function.get("in").unwrap();
+    let param = function.get(&"in".to_string()).unwrap();
 
     let datatype = index.get_type_information_or_void(param.get_type_name());
     if let DataTypeInformation::Pointer {
@@ -1001,7 +1034,8 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
 
 #[test]
 fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
-    let (unit, index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
         "
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
@@ -1031,9 +1065,10 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
             s2 := foo(s1);
         END_PROGRAM
         ",
+        id_provider.clone()
     );
 
-    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
 
     let mut functions = vec![];
     let mut values = vec![];
@@ -1063,7 +1098,8 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
 
 #[test]
 fn generic_return_type_name_resolved_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         "
     FUNCTION foo<T: ANY_INT> : T
     VAR_INPUT
@@ -1074,9 +1110,10 @@ fn generic_return_type_name_resolved_correctly() {
     FUNCTION main
         foo(3);
     END_FUNCTION",
+        id_provider.clone(),
     );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     let mut functions = vec![];
     let mut values = vec![];
@@ -1106,7 +1143,8 @@ fn generic_return_type_name_resolved_correctly() {
 
 #[test]
 fn literal_string_as_parameter_resolves_correctly() {
-    let (unit, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
         r#"
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT
@@ -1118,9 +1156,10 @@ fn literal_string_as_parameter_resolves_correctly() {
             foo('     this is   a  very   long          sentence   with');
         END_FUNCTION
     "#,
+        id_provider.clone(),
     );
 
-    let annotations = annotate(&unit, &mut index);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[1].statements[0];
 
     if let AstStatement::CallStatement {

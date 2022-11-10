@@ -41,10 +41,10 @@ fn sub_range_chooses_right_implementation() {
         
         PROGRAM main
         VAR
-            a   : BYTE(-100 .. 100);
+            a   : BYTE(0 .. 100);
             b   : SINT(-100 .. 100);
             c   : USINT(0 .. 100);
-            d   : WORD(-100 .. 100);
+            d   : WORD(0 .. 100);
             e   : INT(-100 .. 100);
             f   : UINT(0 .. 100);
             g   : DINT(-100 .. 100);

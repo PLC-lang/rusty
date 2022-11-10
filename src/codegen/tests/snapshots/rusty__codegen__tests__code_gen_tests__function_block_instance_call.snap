@@ -9,7 +9,7 @@ source_filename = "main"
 %foo = type { i16, i16 }
 
 @prg_instance = global %prg zeroinitializer
-@foo__init = unnamed_addr constant %foo zeroinitializer
+@__foo__init = unnamed_addr constant %foo zeroinitializer
 
 define void @foo(%foo* %0) {
 entry:

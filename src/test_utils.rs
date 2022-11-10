@@ -14,6 +14,7 @@ pub mod tests {
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator,
         },
+        typesystem::get_builtin_types,
         DebugLevel, SourceContainer, Validator,
     };
 
@@ -42,6 +43,10 @@ pub mod tests {
         let builtins = builtins::parse_built_ins(id_provider.clone());
 
         index.import(index::visitor::visit(&builtins, id_provider.clone()));
+        // import built-in types like INT, BOOL, etc.
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
+        }
 
         let (mut unit, ..) = parser::parse(
             lexer::lex_with_ids(src, id_provider.clone(), SourceRangeFactory::internal()),
@@ -58,20 +63,30 @@ pub mod tests {
         do_index(src, id_provider)
     }
 
-    pub fn annotate(parse_result: &CompilationUnit, index: &mut Index) -> AnnotationMapImpl {
-        let (mut annotations, _) = TypeAnnotator::visit_unit(index, parse_result);
+    pub fn index_with_ids(src: &str, id_provider: IdProvider) -> (CompilationUnit, Index) {
+        do_index(src, id_provider)
+    }
+
+    pub fn annotate_with_ids(
+        parse_result: &CompilationUnit,
+        index: &mut Index,
+        id_provider: IdProvider,
+    ) -> AnnotationMapImpl {
+        let (mut annotations, _) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
-        let (unit, index) = index(src);
+        let id_provider = IdProvider::default();
+        let (unit, index) = index_with_ids(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+        let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
         index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new();
+        validator.perform_global_validation(&index);
         validator.visit_unit(&annotations, &index, &unit);
         validator.diagnostics()
     }
@@ -88,7 +103,8 @@ pub mod tests {
         let (unit, index) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, literals) = TypeAnnotator::visit_unit(&index, &unit);
+        let (mut annotations, literals) =
+            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();

@@ -216,6 +216,7 @@ pub struct Implementation {
     pub pou_type: PouType,
     pub statements: Vec<AstStatement>,
     pub location: SourceRange,
+    pub name_location: SourceRange,
     pub overriding: bool,
     pub generic: bool,
     pub access: Option<AccessModifier>,
@@ -506,6 +507,12 @@ impl SourceRange {
 
     pub fn get_file_name(&self) -> Option<&'static str> {
         self.file
+    }
+
+    /// returns true if this SourceRange points to an undefined location.
+    /// see `SourceRange::undefined()`
+    pub fn is_undefined(&self) -> bool {
+        self.range == (0..0) && self.file.is_none()
     }
 }
 
@@ -1409,6 +1416,27 @@ pub fn create_call_to(
     }
 }
 
+pub fn create_call_to_with_ids(
+    function_name: String,
+    parameters: Vec<AstStatement>,
+    location: &SourceRange,
+    mut id_provider: IdProvider,
+) -> AstStatement {
+    AstStatement::CallStatement {
+        operator: Box::new(AstStatement::Reference {
+            name: function_name,
+            location: location.clone(),
+            id: id_provider.next_id(),
+        }),
+        parameters: Box::new(Some(AstStatement::ExpressionList {
+            expressions: parameters,
+            id: id_provider.next_id(),
+        })),
+        location: location.clone(),
+        id: id_provider.next_id(),
+    }
+}
+
 /// helper function that creates an or-expression
 pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
     AstStatement::BinaryExpression {
@@ -1503,4 +1531,19 @@ impl Operator {
                 | Operator::GreaterOrEqual
         )
     }
+}
+
+pub fn create_call_to_check_function_ast(
+    check_function_name: String,
+    parameter: AstStatement,
+    sub_range: Range<AstStatement>,
+    location: &SourceRange,
+    id_provider: IdProvider,
+) -> AstStatement {
+    create_call_to_with_ids(
+        check_function_name,
+        vec![parameter, sub_range.start, sub_range.end],
+        location,
+        id_provider,
+    )
 }

@@ -9,9 +9,9 @@ source_filename = "main"
 %TON = type { i16, i16 }
 
 @main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }
-@TON__init = unnamed_addr constant %TON zeroinitializer
-@main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
-@main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
+@__TON__init = unnamed_addr constant %TON zeroinitializer
+@__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
+@__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
 
 define void @TON(%TON* %0) {
 entry:

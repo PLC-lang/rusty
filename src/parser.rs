@@ -211,6 +211,7 @@ fn parse_pou(
                     &name,
                     &name,
                     !generics.is_empty(),
+                    name_location.clone(),
                 ));
             }
             let mut pous = vec![Pou {
@@ -407,6 +408,7 @@ fn parse_method(
             &call_name,
             &call_name,
             !generics.is_empty(),
+            name_location.clone(),
         );
 
         // parse_implementation() will default-initialize the fields it
@@ -475,6 +477,7 @@ fn parse_implementation(
     call_name: &str,
     type_name: &str,
     generic: bool,
+    name_location: SourceRange,
 ) -> Implementation {
     let start = lexer.range().start;
     let statements = parse_body_standalone(lexer);
@@ -487,6 +490,7 @@ fn parse_implementation(
         location: lexer
             .source_range_factory
             .create_range(start..lexer.range().end),
+        name_location,
         overriding: false,
         generic,
         access: None,
@@ -509,9 +513,10 @@ fn parse_action(
     parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
         let name_or_container = lexer.slice_and_advance();
 
-        let (container, name) = if let Some(container) = container {
-            (container.into(), name_or_container)
+        let (container, name, name_location) = if let Some(container) = container {
+            (container.into(), name_or_container, lexer.last_location())
         } else {
+            let loc = lexer.last_location();
             expect_token!(lexer, KeywordDot, None);
 
             lexer.advance();
@@ -519,7 +524,7 @@ fn parse_action(
             expect_token!(lexer, Identifier, None);
 
             let name = lexer.slice_and_advance();
-            (name_or_container, name)
+            (name_or_container, name, loc.span(&lexer.last_location()))
         };
         let call_name = format!("{}.{}", &container, &name);
 
@@ -530,6 +535,7 @@ fn parse_action(
             &call_name,
             &container,
             false,
+            name_location,
         );
         //lets see if we ended on the right END_ keyword
         if closing_tokens.contains(&lexer.last_token) && lexer.last_token != KeywordEndAction {
@@ -550,8 +556,8 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
     parse_any_in_region(lexer, vec![KeywordEndType], |lexer| {
         let mut declarations = vec![];
         while !lexer.closes_open_region(&lexer.token) {
-            let start = lexer.location().get_start();
             let name = lexer.slice_and_advance();
+            let name_location = lexer.last_location();
             lexer.consume_or_report(KeywordColon);
 
             let result = parse_full_data_type_definition(lexer, Some(name));
@@ -559,11 +565,10 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
             if let Some((DataTypeDeclaration::DataTypeDefinition { data_type, .. }, initializer)) =
                 result
             {
-                let end = lexer.last_range.end;
                 declarations.push(UserTypeDeclaration {
                     data_type,
                     initializer,
-                    location: (start..end).into(),
+                    location: name_location,
                     scope: lexer.scope.clone(),
                 });
             }
@@ -643,7 +648,7 @@ fn parse_data_type_definition(
         //Report wrong keyword
         lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
             message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-            range: lexer.last_location(),
+            range: vec![lexer.last_location()],
         });
         if let Err(diag) = lexer.expect(KeywordTo) {
             lexer.accept_diagnostic(diag);
@@ -781,13 +786,13 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstStatement
             {
                 lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
                     message: "Mismatched types of parentheses around string size expression".into(),
-                    range: error_range,
+                    range: vec![error_range],
                 });
             } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
                 lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
                     message: "Unusual type of parentheses around string size expression, consider using square parentheses '[]'"
                         .into(),
-                    range: error_range,
+                    range: vec![error_range],
                 });
             }
 
