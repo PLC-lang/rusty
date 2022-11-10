@@ -1416,6 +1416,27 @@ pub fn create_call_to(
     }
 }
 
+pub fn create_call_to_with_ids(
+    function_name: String,
+    parameters: Vec<AstStatement>,
+    location: &SourceRange,
+    mut id_provider: IdProvider,
+) -> AstStatement {
+    AstStatement::CallStatement {
+        operator: Box::new(AstStatement::Reference {
+            name: function_name,
+            location: location.clone(),
+            id: id_provider.next_id(),
+        }),
+        parameters: Box::new(Some(AstStatement::ExpressionList {
+            expressions: parameters,
+            id: id_provider.next_id(),
+        })),
+        location: location.clone(),
+        id: id_provider.next_id(),
+    }
+}
+
 /// helper function that creates an or-expression
 pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
     AstStatement::BinaryExpression {
@@ -1510,4 +1531,19 @@ impl Operator {
                 | Operator::GreaterOrEqual
         )
     }
+}
+
+pub fn create_call_to_check_function_ast(
+    check_function_name: String,
+    parameter: AstStatement,
+    sub_range: Range<AstStatement>,
+    location: &SourceRange,
+    id_provider: IdProvider,
+) -> AstStatement {
+    create_call_to_with_ids(
+        check_function_name,
+        vec![parameter, sub_range.start, sub_range.end],
+        location,
+        id_provider,
+    )
 }

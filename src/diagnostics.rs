@@ -68,8 +68,9 @@ pub enum ErrNo {
     pou__unsupported_return_type,
     pou__empty_variable_block,
     pou__missing_action_container,
-    // pou call
-    pou__missing_inout_parameter,
+
+    // call
+    call__invalid_parameter_type,
 
     //variable related
     var__unresolved_constant,
@@ -696,6 +697,14 @@ impl Diagnostic {
             message: format!("Missing inout parameter: {}", parameter),
             range: vec![range],
             err_no: ErrNo::pou__missing_action_container,
+        }
+    }
+
+    pub fn invalid_parameter_type(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Cannot mix implicit and explicit call parameters!".into(),
+            range: vec![range],
+            err_no: ErrNo::call__invalid_parameter_type,
         }
     }
 

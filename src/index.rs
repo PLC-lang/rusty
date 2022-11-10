@@ -1509,7 +1509,7 @@ impl Index {
     }
 
     /// returns the intrinsic (built-in) type represented by the given type-information
-    /// this will return the built-in type behind alias and range-types
+    /// this will return the built-in type behind alias / range-types
     pub fn find_intrinsic_type<'idx>(
         &'idx self,
         initial_type: &'idx DataTypeInformation,
@@ -1533,6 +1533,24 @@ impl Index {
             } => self
                 .find_effective_type_info(referenced_type)
                 .unwrap_or(initial_type),
+            _ => initial_type,
+        }
+    }
+
+    pub fn find_elementary_pointer_type<'idx>(
+        &'idx self,
+        initial_type: &'idx DataTypeInformation,
+    ) -> &'idx DataTypeInformation {
+        match initial_type {
+            DataTypeInformation::Pointer {
+                inner_type_name, ..
+            } => {
+                let inner_type = self
+                    .find_effective_type_info(inner_type_name)
+                    .map(|t| self.find_intrinsic_type(t))
+                    .unwrap_or_else(|| initial_type);
+                self.find_elementary_pointer_type(inner_type)
+            }
             _ => initial_type,
         }
     }
@@ -1568,6 +1586,37 @@ impl Index {
 
     pub fn get_type_layout(&self) -> &DataLayout {
         &self.data_layout
+    }
+
+    /// returns the implementation of the sub-range-check-function for a variable of the given dataType
+    pub fn find_range_check_implementation_for(
+        &self,
+        range_type: &DataTypeInformation,
+    ) -> Option<&ImplementationIndexEntry> {
+        match range_type {
+            DataTypeInformation::Integer { signed, size, .. } if *signed && *size <= 32 => {
+                self.find_pou_implementation(RANGE_CHECK_S_FN)
+            }
+            DataTypeInformation::Integer { signed, size, .. } if *signed && *size > 32 => {
+                self.find_pou_implementation(RANGE_CHECK_LS_FN)
+            }
+            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size <= 32 => {
+                self.find_pou_implementation(RANGE_CHECK_U_FN)
+            }
+            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size > 32 => {
+                self.find_pou_implementation(RANGE_CHECK_LU_FN)
+            }
+            DataTypeInformation::Alias { name, .. }
+            | DataTypeInformation::SubRange {
+                referenced_type: name,
+                ..
+            } => {
+                //traverse to the primitive type
+                self.find_effective_type_info(name)
+                    .and_then(|info| self.find_range_check_implementation_for(info))
+            }
+            _ => None,
+        }
     }
 }
 

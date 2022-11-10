@@ -1,6 +1,6 @@
 use crate::{
     diagnostics::Diagnostic,
-    test_utils::tests::{codegen, codegen_without_unwrap, parse_and_validate},
+    test_utils::tests::{codegen, codegen_without_unwrap},
 };
 
 #[test]
@@ -559,44 +559,4 @@ fn program_missing_output_assignment() {
     );
     // THEN
     insta::assert_snapshot!(result);
-}
-
-#[test]
-fn program_missing_inout_assignment() {
-    // GIVEN
-    let result = parse_and_validate(
-        "
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		END_PROGRAM
-
-		PROGRAM main
-		VAR
-			var1, var2, var3 : DINT;
-		END_VAR
-			prog(input1 := var1, output1 => var2);
-			prog(var1, var2);
-			prog(var1);
-			prog();
-		END_PROGRAM
-		",
-    );
-    // THEN
-    assert_eq!(
-        vec![
-            Diagnostic::missing_inout_parameter("inout1", (216..220).into(),),
-            Diagnostic::missing_inout_parameter("inout1", (258..262).into(),),
-            Diagnostic::missing_inout_parameter("inout1", (279..283).into(),),
-            Diagnostic::missing_inout_parameter("inout1", (294..298).into(),)
-        ],
-        result
-    )
 }

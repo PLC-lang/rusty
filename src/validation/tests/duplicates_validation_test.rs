@@ -598,7 +598,7 @@ fn duplicate_with_generic() {
             foo(INT#1, SINT#2, SINT#3);
         END_PROGRAM
         "#,
-        ids,
+        ids.clone(),
         "file3.st",
     );
     // WHEN the index is combined
@@ -611,9 +611,9 @@ fn duplicate_with_generic() {
     global_index.import(index3); //import file 3
 
     // AND the resolvers does its job
-    let (mut annotations1, _) = TypeAnnotator::visit_unit(&global_index, &unit1);
-    let (mut annotations2, _) = TypeAnnotator::visit_unit(&global_index, &unit2);
-    let (mut annotations3, _) = TypeAnnotator::visit_unit(&global_index, &unit3);
+    let (mut annotations1, _) = TypeAnnotator::visit_unit(&global_index, &unit1, ids.clone());
+    let (mut annotations2, _) = TypeAnnotator::visit_unit(&global_index, &unit2, ids.clone());
+    let (mut annotations3, _) = TypeAnnotator::visit_unit(&global_index, &unit3, ids.clone());
     global_index.import(std::mem::take(&mut annotations1.new_index));
     global_index.import(std::mem::take(&mut annotations2.new_index));
     global_index.import(std::mem::take(&mut annotations3.new_index));
