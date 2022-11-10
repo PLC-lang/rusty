@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::convert::TryInto;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
@@ -126,27 +126,30 @@ pub fn generate_data_types<'ink>(
     }
 
     let mut tries = 0;
+    let mut errors = HashMap::new();
     // If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     while tries < types_to_init.len() {
         //Take the current element,
         if let Some((name, user_type)) = types_to_init.pop_front() {
+            errors.remove(name);
             //try to resolve it
             match generator.generate_initial_value(user_type) {
-                Err(_) => {
+                Err(err) => {
                     tries += 1;
-                    types_to_init.push_back((name, user_type))
+                    types_to_init.push_back((name, user_type));
+                    errors.insert(name, err);
                 }
                 Ok(init_value) => {
                     if let Some(init_value) = init_value {
-                        if generator
+                        if let Err(err) = generator
                             .types_index
                             .associate_initial_value(name, init_value)
-                            .is_err()
                         {
                             //If it fails, push it back into the list
                             tries += 1;
                             types_to_init.push_back((name, user_type));
+                            errors.insert(name, err);
                         } else {
                             tries = 0;
                         }
@@ -158,11 +161,19 @@ pub fn generate_data_types<'ink>(
     //If we didn't resolve anything this cycle, report the remaining issues and exit
     if !types_to_init.is_empty() {
         //Report each error a s a new diagnostic
-        for (_, ty) in types_to_init {
-            let diag = Diagnostic::cannot_generate_initializer(
-                ty.get_name(),
+        for (name, ty) in types_to_init {
+            let err = format!("Cannot generate initializer for {}", name);
+            let diag = Diagnostic::codegen_error(
+                errors
+                    .get(name)
+                    .map(|err| err.get_message())
+                    .unwrap_or(&err),
                 ty.location.source_range.clone(),
             );
+            // let diag = Diagnostic::cannot_generate_initializer(
+            //     ty.get_name(),
+            //     ty.location.source_range.clone(),
+            // );
             diagnostician.handle(vec![diag]);
         }
 
