@@ -639,3 +639,147 @@ fn aliased_int_compare_function_causes_no_error() {
     // THEN the validator does not throw an error
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn program_missing_inout_assignment() {
+    // GIVEN
+    let result = parse_and_validate(
+        "
+		PROGRAM prog
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		END_PROGRAM
+
+		PROGRAM main
+		VAR
+			var1, var2, var3 : DINT;
+		END_VAR
+			prog(input1 := var1, output1 => var2);
+			prog(var1, var2);
+			prog(var1);
+			prog();
+		END_PROGRAM
+		",
+    );
+    // THEN
+    assert_eq!(
+        vec![
+            Diagnostic::missing_inout_parameter("inout1", (216..220).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (258..262).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (279..283).into(),),
+            Diagnostic::missing_inout_parameter("inout1", (294..298).into(),)
+        ],
+        result
+    )
+}
+
+#[test]
+fn function_call_parameter_validation() {
+    // GIVEN
+    // WHEN
+    let diagnostics = parse_and_validate(
+        r#"
+		FUNCTION foo : DINT
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+		VAR
+			var1 : DINT;
+			var2 : STRING;
+			var3 : REF_TO WSTRING;
+			var4 : REAL;
+		END_VAR
+			foo(input1 := var1, inout1 := var1, output1 => var1); // valid
+
+			foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+
+			foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+			foo(var2, var3, var4); // invalid types assigned
+		END_PROGRAM
+        "#,
+    );
+
+    // THEN
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_parameter_type((360..364).into()),
+            Diagnostic::invalid_parameter_type((366..370).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (425..439).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (441..455).into()),
+            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (441..455).into()),
+            Diagnostic::invalid_assignment("REAL", "DINT", (457..472).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (508..512).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (514..518).into()),
+            Diagnostic::invalid_assignment("REAL", "DINT", (520..524).into()),
+        ]
+    );
+}
+
+#[test]
+fn program_call_parameter_validation() {
+    // GIVEN
+    // WHEN
+    let diagnostics = parse_and_validate(
+        r#"
+		PROGRAM prog
+		VAR_INPUT
+			input1 : DINT;
+		END_VAR
+		VAR_IN_OUT
+			inout1 : DINT;
+		END_VAR
+		VAR_OUTPUT
+			output1 : DINT;
+		END_VAR
+		END_PROGRAM
+
+		PROGRAM main
+		VAR
+			var1 : DINT;
+			var2 : STRING;
+			var3 : REF_TO WSTRING;
+			var4 : REAL;
+		END_VAR
+			prog(input1 := var1, inout1 := var1, output1 => var1); // valid
+
+			prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
+
+			prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+			prog(var2, var3, var4); // invalid types assigned
+		END_PROGRAM
+        "#,
+    );
+
+    // THEN
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_parameter_type((354..358).into()),
+            Diagnostic::invalid_parameter_type((360..364).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (420..434).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (436..450).into()),
+            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (436..450).into()),
+            Diagnostic::invalid_assignment("REAL", "DINT", (452..467).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (504..508).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (510..514).into()),
+            Diagnostic::invalid_assignment("REAL", "DINT", (516..520).into()),
+        ]
+    );
+}
