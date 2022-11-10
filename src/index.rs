@@ -1587,6 +1587,37 @@ impl Index {
     pub fn get_type_layout(&self) -> &DataLayout {
         &self.data_layout
     }
+
+    /// returns the implementation of the sub-range-check-function for a variable of the given dataType
+    pub fn find_range_check_implementation_for(
+        &self,
+        range_type: &DataTypeInformation,
+    ) -> Option<&ImplementationIndexEntry> {
+        match range_type {
+            DataTypeInformation::Integer { signed, size, .. } if *signed && *size <= 32 => {
+                self.find_pou_implementation(RANGE_CHECK_S_FN)
+            }
+            DataTypeInformation::Integer { signed, size, .. } if *signed && *size > 32 => {
+                self.find_pou_implementation(RANGE_CHECK_LS_FN)
+            }
+            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size <= 32 => {
+                self.find_pou_implementation(RANGE_CHECK_U_FN)
+            }
+            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size > 32 => {
+                self.find_pou_implementation(RANGE_CHECK_LU_FN)
+            }
+            DataTypeInformation::Alias { name, .. }
+            | DataTypeInformation::SubRange {
+                referenced_type: name,
+                ..
+            } => {
+                //traverse to the primitive type
+                self.find_effective_type_info(name)
+                    .and_then(|info| self.find_range_check_implementation_for(info))
+            }
+            _ => None,
+        }
+    }
 }
 
 /// Returns a default initialization name for a variable or type

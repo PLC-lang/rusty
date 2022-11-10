@@ -112,7 +112,12 @@ impl<'i> TypeAnnotator<'i> {
                 //Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
-                    self.update_generic_function_parameters(s, implementation_name, generic_map);
+                    self.update_generic_function_parameters(
+                        &ctx,
+                        s,
+                        implementation_name,
+                        generic_map,
+                    );
                 }
             }
         }
@@ -221,6 +226,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn update_generic_function_parameters(
         &mut self,
+        ctx: &VisitorContext,
         s: &AstStatement,
         function_name: &str,
         generic_map: &HashMap<String, String>,
@@ -280,7 +286,7 @@ impl<'i> TypeAnnotator<'i> {
                                     left,
                                     StatementAnnotation::value(datatype.get_name()),
                                 );
-                                self.update_right_hand_side_expected_type(left, right);
+                                self.update_right_hand_side_expected_type(ctx, left, right);
                             }
                         }
                     }
