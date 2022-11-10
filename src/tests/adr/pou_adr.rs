@@ -1,4 +1,7 @@
-use crate::test_utils::tests::{annotate, codegen, index};
+use crate::{
+    lexer::IdProvider,
+    test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
+};
 
 /// # Architecture Design Record: POUs
 ///
@@ -43,9 +46,10 @@ const DEFAULT_PRG: &str = r#"
 #[test]
 fn programs_state_is_stored_in_a_struct() {
     // parse and index
-    let (pr, mut index) = index(DEFAULT_PRG);
+    let id_provider = IdProvider::default();
+    let (pr, mut index) = index_with_ids(DEFAULT_PRG, id_provider.clone());
     // process pou and types
-    annotate(&pr, &mut index);
+    annotate_with_ids(&pr, &mut index, id_provider);
 
     let pou_struct = index
         .find_pou("main_prg")

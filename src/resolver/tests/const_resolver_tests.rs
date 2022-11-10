@@ -2,9 +2,10 @@ use crate::ast::{AstStatement, SourceRange};
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
 
+use crate::lexer::IdProvider;
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
 use crate::resolver::AnnotationMap;
-use crate::test_utils::tests::{annotate, index};
+use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids};
 use crate::typesystem::DataTypeInformation;
 
 const EMPTY: Vec<UnresolvableConstant> = vec![];
@@ -1171,7 +1172,8 @@ fn const_string_initializers_should_be_converted() {
 #[test]
 fn const_lreal_initializers_should_be_resolved_correctly() {
     // GIVEN some STRING constants used as initializers
-    let (parse_result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (parse_result, mut index) = index_with_ids(
         r#"
         VAR_GLOBAL CONSTANT
             clreal : LREAL := 3.1415;
@@ -1181,11 +1183,12 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
             tau : LREAL := 2 * clreal;
         END_VAR
         "#,
+        id_provider.clone(),
     );
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    let annotations = annotate(&parse_result, &mut index);
+    let annotations = annotate_with_ids(&parse_result, &mut index, id_provider);
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
@@ -1230,7 +1233,8 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
 #[test]
 fn array_size_from_constant() {
     // GIVEN some an array with const-expr -dimensions
-    let (parse_result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (parse_result, mut index) = index_with_ids(
         r#"
         PROGRAM aaa
             VAR CONSTANT
@@ -1243,11 +1247,12 @@ fn array_size_from_constant() {
             END_VAR
         END_PROGRAM
        "#,
+        id_provider.clone(),
     );
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    annotate(&parse_result, &mut index);
+    annotate_with_ids(&parse_result, &mut index, id_provider);
     let (_, unresolvable) = evaluate_constants(index);
 
     debug_assert_eq!(EMPTY, unresolvable);
@@ -1256,17 +1261,19 @@ fn array_size_from_constant() {
 #[test]
 fn array_literals_type_resolving() {
     // GIVEN some STRING constants used as initializers
-    let (parse_result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (parse_result, mut index) = index_with_ids(
         r#"
         VAR_GLOBAL CONSTANT
             a : ARRAY[0..5] OF BYTE := [1,2,3,4];
         END_VAR
        "#,
+        id_provider.clone(),
     );
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    let annotations = annotate(&parse_result, &mut index);
+    let annotations = annotate_with_ids(&parse_result, &mut index, id_provider);
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
@@ -1319,17 +1326,19 @@ fn array_literals_type_resolving() {
 #[test]
 fn nested_array_literals_type_resolving() {
     // GIVEN a multi-nested Array Type with an initializer
-    let (parse_result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (parse_result, mut index) = index_with_ids(
         r#"
         VAR_GLOBAL CONSTANT
             a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
         END_VAR
        "#,
+        id_provider.clone(),
     );
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    let annotations = annotate(&parse_result, &mut index);
+    let annotations = annotate_with_ids(&parse_result, &mut index, id_provider);
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
@@ -1392,17 +1401,19 @@ fn nested_array_literals_type_resolving() {
 #[test]
 fn nested_array_literals_multiplied_statement_type_resolving() {
     // GIVEN a multi-nested Array Type with an initializer
-    let (parse_result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (parse_result, mut index) = index_with_ids(
         r#"
         VAR_GLOBAL CONSTANT
             a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[2(2)],[2(3)]]; 
         END_VAR
        "#,
+        id_provider.clone(),
     );
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    let annotations = annotate(&parse_result, &mut index);
+    let annotations = annotate_with_ids(&parse_result, &mut index, id_provider);
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
@@ -1497,7 +1508,8 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
 #[test]
 fn function_block_initializers_constant_resolved_in_assignment() {
     // GIVEN a multi-nested Array Type with an initializer
-    let (parse_result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (parse_result, mut index) = index_with_ids(
         "FUNCTION_BLOCK TON
             VAR_OUTPUT
                 a : INT;
@@ -1516,11 +1528,12 @@ fn function_block_initializers_constant_resolved_in_assignment() {
         END_VAR
         END_PROGRAM
         ",
+        id_provider.clone(),
     );
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    annotate(&parse_result, &mut index);
+    annotate_with_ids(&parse_result, &mut index, id_provider);
     let (_, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
@@ -1529,7 +1542,8 @@ fn function_block_initializers_constant_resolved_in_assignment() {
 
 #[test]
 fn contants_in_case_statements_resolved() {
-    let (parse_result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (parse_result, mut index) = index_with_ids(
         " 
         PROGRAM main
             VAR
@@ -1546,11 +1560,12 @@ fn contants_in_case_statements_resolved() {
             END_CASE;
         END_PROGRAM 
         ",
+        id_provider.clone(),
     );
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    annotate(&parse_result, &mut index);
+    annotate_with_ids(&parse_result, &mut index, id_provider);
     let (_, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved

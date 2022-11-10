@@ -1,0 +1,35 @@
+---
+source: src/validation/tests/duplicates_validation_test.rs
+expression: ir
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg1 = type {}
+%prg2 = type {}
+
+@prg1_instance = global %prg1 zeroinitializer
+@prg2_instance = global %prg2 zeroinitializer
+
+define void @prg1(%prg1* %0) {
+entry:
+  %call = call i64 @foo__INT(i16 1, i16 2, i16 3)
+  %call1 = call i64 @foo__DINT(i32 1, i32 2, i32 3)
+  %call2 = call i64 @foo__INT(i16 1, i16 2, i16 3)
+  %call3 = call i64 @foo__INT(i16 1, i16 2, i16 3)
+  ret void
+}
+
+define void @prg2(%prg2* %0) {
+entry:
+  %call = call i64 @foo__INT(i16 1, i16 2, i16 3)
+  %call1 = call i64 @foo__DINT(i32 1, i32 2, i32 3)
+  %call2 = call i64 @foo__INT(i16 1, i16 2, i16 3)
+  %call3 = call i64 @foo__INT(i16 1, i16 2, i16 3)
+  ret void
+}
+
+declare i64 @foo__INT(i16, i16, i16)
+
+declare i64 @foo__DINT(i32, i32, i32)
+

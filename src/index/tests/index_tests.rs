@@ -4,7 +4,7 @@ use pretty_assertions::assert_eq;
 use crate::index::{ArgumentType, PouIndexEntry, SymbolLocation, VariableIndexEntry};
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
-use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
+use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids, parse_and_preprocess};
 use crate::typesystem::{TypeSize, INT_TYPE, VOID_TYPE};
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
@@ -1799,7 +1799,8 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
     // AND a address-of INT operation
 
     // WHEN the program is indexed
-    let (result, mut index) = index(
+    let id_provider = IdProvider::default();
+    let (result, mut index) = index_with_ids(
         "
 		PROGRAM main
 		VAR_INPUT
@@ -1812,9 +1813,10 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
         &y; //this will add another pointer_to_int type to the index (autoderef = false)
 		END_PROGRAM
 		",
+        id_provider.clone(),
     );
 
-    annotate(&result, &mut index);
+    annotate_with_ids(&result, &mut index, id_provider);
 
     // THEN x should be a normal pointer
     // AND y should be an auto-deref pointer
@@ -1919,6 +1921,7 @@ fn a_program_pou_is_indexed() {
                 source_range: (65..75).into(),
                 line_number: 4
             },
+            is_generated: false,
         }),
         index.find_pou("myFunction"),
     );
