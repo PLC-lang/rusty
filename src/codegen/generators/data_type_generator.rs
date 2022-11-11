@@ -160,23 +160,22 @@ pub fn generate_data_types<'ink>(
     }
     //If we didn't resolve anything this cycle, report the remaining issues and exit
     if !types_to_init.is_empty() {
-        //Report each error a s a new diagnostic
-        for (name, ty) in types_to_init {
-            let err = format!("Cannot generate initializer for {}", name);
-            let diag = Diagnostic::codegen_error(
+        //Report each error as a new diagnostic, add the type's location as related to the error
+        let diags = types_to_init
+            .into_iter()
+            .map(|(name, ty)| {
                 errors
                     .get(name)
-                    .map(|err| err.get_message())
-                    .unwrap_or(&err),
-                ty.location.source_range.clone(),
-            );
-            // let diag = Diagnostic::cannot_generate_initializer(
-            //     ty.get_name(),
-            //     ty.location.source_range.clone(),
-            // );
-            diagnostician.handle(vec![diag]);
-        }
-
+                    .map(|diag| diag.with_extra_ranges(&[ty.location.source_range.clone()]))
+                    .unwrap_or_else(|| {
+                        Diagnostic::cannot_generate_initializer(
+                            name,
+                            ty.location.source_range.clone(),
+                        )
+                    })
+            })
+            .collect::<Vec<_>>();
+        diagnostician.handle(diags);
         //Report the operation failure
         return Err(Diagnostic::codegen_error(
             "Some initial values were not generated",

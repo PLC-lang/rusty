@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::cell::RefCell;
+    use std::{cell::RefCell, rc::Rc};
 
     use encoding_rs::Encoding;
     use inkwell::context::Context;
@@ -104,7 +104,7 @@ pub mod tests {
         debug_level: DebugLevel,
     ) -> Result<(String, Vec<ResolvedDiagnostics>), (Vec<ResolvedDiagnostics>, Diagnostic)> {
         let mut id_provider = IdProvider::default();
-        let diagnostics = RefCell::new(vec![]);
+        let diagnostics = Rc::new(RefCell::new(vec![]));
         let diagnostician = Diagnostician::list_based_diagnostician(diagnostics.clone());
         let (unit, index) = do_index(src, id_provider.clone());
 

@@ -242,7 +242,11 @@ fn invalid_initial_constant_values_in_pou_variables() {
             ),
             msg
         );
-        assert_eq!(diagnostics, []);
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(
+            &diagnostics[0].message,
+            "Cannot generate literal initializer for 'prg.my_len': Value can not be derived"
+        );
     } else {
         panic!("expected code-gen error but got none")
     }

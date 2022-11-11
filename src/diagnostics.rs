@@ -6,7 +6,7 @@ use std::{
 };
 
 #[cfg(test)]
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use codespan_reporting::{
     diagnostic::Label,
@@ -36,18 +36,8 @@ pub enum Diagnostic {
     },
 }
 
-impl Diagnostic {
-    pub fn get_affected_ranges(&self) -> &[SourceRange] {
-        match self {
-            Diagnostic::SyntaxError { range, .. }
-            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
-            Diagnostic::GeneralError { .. } => &[],
-        }
-    }
-}
-
 #[allow(non_camel_case_types)]
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum ErrNo {
     undefined,
 
@@ -128,6 +118,42 @@ impl<T: Error> From<T> for Diagnostic {
 }
 
 impl Diagnostic {
+    /// Creates a new diagnostic with additional ranges
+    pub fn with_extra_ranges(&self, ranges: &[SourceRange]) -> Diagnostic {
+        match self {
+            Diagnostic::SyntaxError {
+                message,
+                range,
+                err_no,
+            } => {
+                let mut range = range.to_vec();
+                range.extend_from_slice(ranges);
+                Diagnostic::SyntaxError {
+                    message: message.to_string(),
+                    range,
+                    err_no: *err_no,
+                }
+            }
+            Diagnostic::ImprovementSuggestion { message, range } => {
+                let mut range = range.to_vec();
+                range.extend_from_slice(ranges);
+                Diagnostic::ImprovementSuggestion {
+                    message: message.to_string(),
+                    range,
+                }
+            }
+            Diagnostic::GeneralError { .. } => self.clone(),
+        }
+    }
+
+    pub fn get_affected_ranges(&self) -> &[SourceRange] {
+        match self {
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
+            Diagnostic::GeneralError { .. } => &[],
+        }
+    }
+
     pub fn syntax_error(message: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.to_string(),
@@ -1003,14 +1029,14 @@ impl DiagnosticReporter for NullDiagnosticReporter {
 #[cfg(test)]
 pub struct ListBasedDiagnosticReporter {
     last_id: usize,
-    // RefCell to avoid changing the signature for the report() method
-    diagnostics: RefCell<Vec<ResolvedDiagnostics>>,
+    // RC to access from tests, RefCell to avoid changing the signature for the report() method
+    diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>,
 }
 
 #[cfg(test)]
 impl DiagnosticReporter for ListBasedDiagnosticReporter {
     fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
-        self.diagnostics.borrow_mut().extend_from_slice(diagnostics)
+        self.diagnostics.borrow_mut().extend_from_slice(diagnostics);
     }
 
     fn register(&mut self, _path: String, _src: String) -> usize {
@@ -1050,7 +1076,7 @@ impl Diagnostician {
     /// creates a diagnostician that just saves passed diagnostics, it is mainly used in tests
     #[cfg(test)]
     pub fn list_based_diagnostician(
-        diagnostics: RefCell<Vec<ResolvedDiagnostics>>,
+        diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>,
     ) -> Diagnostician {
         Diagnostician {
             assessor: Box::new(DefaultDiagnosticAssessor::default()),

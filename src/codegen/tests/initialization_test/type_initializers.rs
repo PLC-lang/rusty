@@ -1,6 +1,10 @@
 use crate::{
+    ast::SourceRange,
     diagnostics::Diagnostic,
-    test_utils::tests::{codegen_with_diagnostics as codegen, codegen_without_unwrap},
+    test_utils::tests::{
+        codegen_debug_without_unwrap, codegen_with_diagnostics as codegen, codegen_without_unwrap,
+    },
+    DebugLevel,
 };
 
 #[test]
@@ -253,6 +257,46 @@ fn initial_values_in_struct_variable_missing_init() {
 
     insta::assert_snapshot!(result);
     assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn unresolvable_types_validation() {
+    let (diagnostics, error) = codegen_debug_without_unwrap(
+        "
+        VAR_GLOBAL 
+            a : MyStruct2  := (a := (c:=5, b:= 7), b := (a:=3, b:=2)); 
+            b : MyStruct2  := (b := (a:= 9)); 
+        END_VAR
+
+        TYPE MyStruct2: STRUCT
+            a : MyStruct  := (a:=5, b:=3); 
+            b : MyStruct  := (c:=7); 
+        END_STRUCT
+        END_TYPE
+
+        TYPE MyStruct: STRUCT
+          a: DINT;
+          b: DINT;
+        END_STRUCT
+        END_TYPE
+     ",
+        DebugLevel::None,
+    )
+    .expect_err("should fail");
+
+    assert_eq!(diagnostics.len(), 1);
+    assert_eq!(
+        diagnostics[0].message,
+        "Cannot generate literal initializer for 'MyStruct2.b': Value can not be derived"
+    );
+
+    assert_eq!(
+        error,
+        Diagnostic::codegen_error(
+            "Some initial values were not generated",
+            SourceRange::undefined(),
+        )
+    );
 }
 
 #[test]
