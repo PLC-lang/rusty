@@ -171,6 +171,7 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
 fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
     let operator = match lexer.token {
         OperatorNot => Some(Operator::Not),
+        OperatorPlus => Some(Operator::Plus),
         OperatorMinus => Some(Operator::Minus),
         OperatorAmp => Some(Operator::Address),
         _ => None,
@@ -185,23 +186,36 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
             .source_range_factory
             .create_range(start..expression_location.get_end());
 
-        if let (AstStatement::LiteralInteger { value, .. }, Operator::Minus) =
-            (&expression, &operator)
-        {
-            //if this turns out to be a negative number, we want to have a negative literal integer
-            //instead of a Unary-Not-Expression
-            AstStatement::LiteralInteger {
-                value: -value,
+        match (&operator, &expression) {
+            (Operator::Minus, AstStatement::LiteralInteger { value, .. }) => {
+                AstStatement::LiteralInteger {
+                    value: -value,
+                    location,
+                    id: lexer.next_id(),
+                }
+            }
+
+            (Operator::Plus, AstStatement::LiteralInteger { value, .. }) => {
+                AstStatement::LiteralInteger {
+                    value: *value,
+                    location,
+                    id: lexer.next_id(),
+                }
+            }
+
+            // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
+            (Operator::Plus, AstStatement::Reference { name, .. }) => AstStatement::Reference {
+                name: name.to_owned(),
                 location,
                 id: lexer.next_id(),
-            }
-        } else {
-            AstStatement::UnaryExpression {
+            },
+
+            _ => AstStatement::UnaryExpression {
                 operator,
                 value: Box::new(expression),
                 location,
                 id: lexer.next_id(),
-            }
+            },
         }
     } else {
         parse_parenthesized_expression(lexer)
@@ -255,22 +269,27 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
         None
     };
 
-    let literal_parse_result = if lexer.allow(&OperatorMinus) {
-        //so we've seen a Minus '-', this has to be a number
-        match lexer.token {
-            LiteralInteger => parse_literal_number(lexer, true),
-            LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, true),
-            LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, true),
-            LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16, true),
-            _ => Err(Diagnostic::unexpected_token_found(
-                "Numeric Literal",
-                lexer.slice(),
-                lexer.location(),
-            )),
+    let literal_parse_result = match lexer.token {
+        // Check if we're dealing with a number that has an explicit '+' or '-' sign...
+        OperatorPlus | OperatorMinus => {
+            let is_negative = lexer.token == OperatorMinus;
+            lexer.advance();
+
+            match lexer.token {
+                LiteralInteger => parse_literal_number(lexer, is_negative),
+                LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, is_negative),
+                LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, is_negative),
+                LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16, is_negative),
+                _ => Err(Diagnostic::unexpected_token_found(
+                    "Numeric Literal",
+                    lexer.slice(),
+                    lexer.location(),
+                )),
+            }
         }
-    } else {
-        // no minus ... so this may be anything
-        match lexer.token {
+
+        // ...and if not then this token may be anything
+        _ => match lexer.token {
             Identifier => parse_qualified_reference(lexer),
             LiteralInteger => parse_literal_number(lexer, false),
             LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),
@@ -308,8 +327,9 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
                     ))
                 }
             }
-        }
+        },
     };
+
     let literal_parse_result = literal_parse_result.and_then(|statement| {
         if let Some((cast, location)) = literal_cast {
             //check if there is something between the literal-type and the literal itself
