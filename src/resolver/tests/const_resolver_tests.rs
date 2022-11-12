@@ -1075,15 +1075,10 @@ fn not_evaluatable_consts_are_reported() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (index, unresolvable) = evaluate_constants(index);
+    let (_, unresolvable) = evaluate_constants(index);
 
-    // THEN d cannot be evaluated, c was not attempted, there is no const-expression
-    debug_assert_eq!(
-        vec![UnresolvableConstant::incomplete_initialzation(&global!(
-            index, "d"
-        )),],
-        unresolvable
-    );
+    // THEN d can still be evaluated, c = 0
+    debug_assert_eq!(unresolvable, vec![] as Vec<UnresolvableConstant>);
 }
 
 #[test]

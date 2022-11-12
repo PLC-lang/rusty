@@ -717,6 +717,11 @@ pub enum AstStatement {
         location: SourceRange,
         id: AstId,
     },
+    // a placeholder that indicates a default value of a datatype
+    DefaultValue {
+        location: SourceRange,
+        id: AstId,
+    },
     // Literals
     LiteralInteger {
         value: i128,
@@ -927,6 +932,7 @@ impl Debug for AstStatement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
+            AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
             AstStatement::LiteralNull { .. } => f.debug_struct("LiteralNull").finish(),
             AstStatement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
@@ -1176,6 +1182,7 @@ impl AstStatement {
     pub fn get_location(&self) -> SourceRange {
         match self {
             AstStatement::EmptyStatement { location, .. } => location.clone(),
+            AstStatement::DefaultValue { location, .. } => location.clone(),
             AstStatement::LiteralNull { location, .. } => location.clone(),
             AstStatement::LiteralInteger { location, .. } => location.clone(),
             AstStatement::LiteralDate { location, .. } => location.clone(),
@@ -1254,6 +1261,7 @@ impl AstStatement {
     pub fn get_id(&self) -> AstId {
         match self {
             AstStatement::EmptyStatement { id, .. } => *id,
+            AstStatement::DefaultValue { id, .. } => *id,
             AstStatement::LiteralNull { id, .. } => *id,
             AstStatement::LiteralInteger { id, .. } => *id,
             AstStatement::LiteralDate { id, .. } => *id,

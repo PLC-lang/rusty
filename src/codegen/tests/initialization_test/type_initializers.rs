@@ -1,6 +1,6 @@
 use crate::{
     diagnostics::Diagnostic,
-    test_utils::tests::{codegen, codegen_without_unwrap},
+    test_utils::tests::{codegen, codegen_without_unwrap, parse_and_validate},
 };
 
 #[test]
@@ -347,18 +347,93 @@ fn struct_initialization_uses_types_default_if_not_provided() {
 #[test]
 fn struct_initializer_uses_fallback_to_field_default() {
     let source = "
+            TYPE MyOtherDINT : DINT := 2 ; END_TYPE
+            TYPE MyDINT      : MyOtherDINT; END_TYPE
+
             TYPE Point: STRUCT
               x: DINT;
-              y: DINT;
+              y: MyDINT;
               z: DINT := 3;
             END_STRUCT
             END_TYPE
  
             VAR_GLOBAL
-                x : Point := (x := 1, y := 2);
+                x : Point := (x := 1);
             END_VAR
            ";
     let result = codegen(source);
 
     insta::assert_snapshot!(result);
+}
+
+#[test]
+fn type_defaults_are_used_for_uninitialized_constants() {
+    let result = codegen_without_unwrap(
+        r#"
+        TYPE MyOtherDINT : DINT := 2 ; END_TYPE
+        TYPE MyDINT      : MyOtherDINT; END_TYPE
+
+        TYPE MyInt : INT := 7; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            a : MyInt;
+            b : INT := a + 2*a;
+            c : MyDINT;
+            d : MyDINT := a + b + c;
+        END_VAR
+        "#,
+    );
+    // we expect some initial values:
+    // a := default(MyInt) = 7;
+    // b := 7 + 14 = 21;
+    // c := default(MyDINT) = Default(MyOtherDINT) = 2;
+    // d := 7 + 21 + 2 = 30
+    insta::assert_snapshot!(result.unwrap());
+}
+
+#[test]
+fn partly_uninitialized_const_struct_will_get_default_values() {
+    let result = codegen_without_unwrap(
+        r#"
+            TYPE MyOtherDINT : DINT := 2 ; END_TYPE
+            TYPE MyDINT      : MyOtherDINT; END_TYPE
+
+            TYPE Point: STRUCT
+              x: DINT;
+              y: MyDINT;
+              z: DINT := 3;
+            END_STRUCT
+            END_TYPE
+ 
+            VAR_GLOBAL CONSTANT
+                x : Point := (x := 1);
+                empty: Point;
+            END_VAR
+        "#,
+    );
+
+    insta::assert_snapshot!(result.unwrap());
+}
+
+#[test]
+fn partly_uninitialized_const_struct_will_not_report_errors() {
+    let diagnostics = parse_and_validate(
+        r#"
+            TYPE MyOtherDINT : DINT := 2 ; END_TYPE
+            TYPE MyDINT      : MyOtherDINT; END_TYPE
+
+            TYPE Point: STRUCT
+              x: DINT;
+              y: MyDINT;
+              z: DINT := 3;
+            END_STRUCT
+            END_TYPE
+ 
+            VAR_GLOBAL CONSTANT
+                x : Point := (x := 1);
+                empty: Point;
+            END_VAR
+        "#,
+    );
+    assert_eq!(diagnostics, vec![]);
 }
