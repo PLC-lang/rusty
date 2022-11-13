@@ -329,14 +329,16 @@ fn get_default_initializer(
                 location: location.clone(),
                 id,
             }),
-            DataTypeInformation::Enum { .. } => {
-                //TODO
-                Some(AstStatement::LiteralInteger {
-                    value: 0,
-                    location: location.clone(),
-                    id,
+            DataTypeInformation::Enum { name, elements, .. } => elements
+                .get(0)
+                .and_then(|default_enum| index.find_enum_element(name, default_enum))
+                .and_then(|enum_element| enum_element.initial_value)
+                .and_then(|initial_val| {
+                    index
+                        .get_const_expressions()
+                        .get_resolved_constant_statement(&initial_val)
                 })
-            }
+                .cloned(),
             DataTypeInformation::Float { .. } => Some(AstStatement::LiteralReal {
                 value: "0.0".to_string(),
                 location: location.clone(),
