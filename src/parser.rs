@@ -1058,41 +1058,14 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
 
     //See if there's an AT keyword
     let address = if lexer.allow(&KeywordAt) {
-        let start_location = lexer.last_range.start;
         //Look for a hardware address
         if let HardwareAccess((direction, access_type)) = lexer.token {
-            lexer.advance();
-            //Folowed by an integer
-            if access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
-                let mut address = vec![];
-                if lexer.token == LiteralInteger {
-                    loop {
-                        let int = expressions_parser::parse_strict_literal_integer(lexer);
-                        match int {
-                            Ok(statement) => address.push(statement),
-                            Err(err) => {
-                                lexer.accept_diagnostic(err);
-                                break;
-                            }
-                        }
-                        if !lexer.allow(&KeywordDot) {
-                            break;
-                        }
-                    }
+            match parse_hardware_access(lexer, direction, access_type) {
+                Ok(it) => Some(it),
+                Err(err) => {
+                    lexer.accept_diagnostic(err);
+                    None
                 }
-                Some(AstStatement::HardwareAccess {
-                    access: access_type,
-                    direction,
-                    address,
-                    location: (start_location..lexer.last_range.end).into(),
-                    id: lexer.next_id(),
-                })
-            } else {
-                lexer.accept_diagnostic(Diagnostic::missing_token(
-                    "LiteralInteger",
-                    lexer.location(),
-                ));
-                None
             }
         } else {
             lexer.accept_diagnostic(Diagnostic::missing_token(
@@ -1127,4 +1100,38 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         }
     }
     variables
+}
+
+fn parse_hardware_access(
+    lexer: &mut ParseSession,
+    hardware_access_type: HardwareAccessType,
+    access_type: DirectAccessType,
+) -> Result<AstStatement, Diagnostic> {
+    let start_location = lexer.last_range.start;
+    lexer.advance();
+    //Folowed by an integer
+    if access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
+        let mut address = vec![];
+        if lexer.token == LiteralInteger {
+            loop {
+                let int = expressions_parser::parse_strict_literal_integer(lexer)?;
+                address.push(int);
+                if !lexer.allow(&KeywordDot) {
+                    break;
+                }
+            }
+        }
+        Ok(AstStatement::HardwareAccess {
+            access: access_type,
+            direction: hardware_access_type,
+            address,
+            location: (start_location..lexer.last_range.end).into(),
+            id: lexer.next_id(),
+        })
+    } else {
+        Err(Diagnostic::missing_token(
+            "LiteralInteger",
+            lexer.location(),
+        ))
+    }
 }

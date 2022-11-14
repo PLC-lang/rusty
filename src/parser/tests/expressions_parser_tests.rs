@@ -3003,3 +3003,21 @@ fn mul_div_mod_parse_tree_priority_test() {
     );
     assert_eq!(diagnostics.is_empty(), true);
 }
+
+#[test]
+fn direct_access_as_expression_parsed() {
+    // GIVEN a program with several types of direct access
+    let src = "
+    PROGRAM prg
+        x := 5 + %IX2.1;
+        y := %MB200;
+        z := %GD5 * 2;
+    END_PROGRAM
+    ";
+
+    // WHEN The program is parsed
+    let (result, _) = parse(src);
+
+    //THEN the AST contains direct address nodes at the access location
+    assert_snapshot!(format!("{:?}", result));
+}
