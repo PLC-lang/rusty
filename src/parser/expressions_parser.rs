@@ -236,7 +236,17 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
         _ => parse_leaf_expression(lexer),
     };
     // we might deal with a deref after a paren-expr
-    parse_access_modifiers(lexer, result).unwrap()
+    match parse_access_modifiers(lexer, result) {
+        Ok(statement) => statement,
+        Err(diagnostic) => {
+            let statement = AstStatement::EmptyStatement {
+                location: diagnostic.get_location(),
+                id: lexer.next_id(),
+            };
+            lexer.accept_diagnostic(diagnostic);
+            statement
+        },
+    }
 }
 
 fn to_operator(token: &Token) -> Option<Operator> {
