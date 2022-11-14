@@ -3657,5 +3657,4 @@ fn hardware_access_types_annotated() {
     } else {
         unreachable!("Must be assignment")
     }
-    // assert_type_and_hint!()
 }
