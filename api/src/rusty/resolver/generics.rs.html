@@ -442,6 +442,42 @@
 <span id="437">437</span>
 <span id="438">438</span>
 <span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -449,7 +485,7 @@
     <span class="ident">builtins</span>,
     <span class="ident">index</span>::{<span class="ident">symbol::SymbolLocation</span>, <span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>},
     <span class="ident">resolver::AnnotationMap</span>,
-    <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>},
+    <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">StringEncoding</span>, <span class="ident">STRING_TYPE</span>, <span class="ident">WSTRING_TYPE</span>},
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">AnnotationMapImpl</span>, <span class="ident">StatementAnnotation</span>, <span class="ident">TypeAnnotator</span>, <span class="ident">VisitorContext</span>};
@@ -510,21 +546,19 @@
         {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">generics</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">let</span> <span class="ident">generic_map</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">derive_generic_types</span>(<span class="ident">generics</span>, <span class="ident">generics_candidates</span>);
-                <span class="comment">//Annotate the statement with the new function call</span>
+                <span class="comment">// Annotate the statement with the new function call</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> {
                     <span class="ident">qualified_name</span>,
                     <span class="ident">return_type</span>,
                     ..
                 }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">operator</span>)
                 {
-                    <span class="kw">let</span> <span class="ident">cloned_return_type</span> <span class="op">=</span> <span class="ident">return_type</span>.<span class="ident">clone</span>(); <span class="comment">//borrow checker will not allow to use return_type below :-(</span>
-
-                    <span class="comment">//Find the generic resolver</span>
+                    <span class="comment">// Find the generic resolver</span>
                     <span class="kw">let</span> <span class="ident">generic_name_resolver</span> <span class="op">=</span> <span class="ident">builtins::get_builtin</span>(<span class="ident">qualified_name</span>)
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_generic_name_resolver</span>())
                         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">generic_name_resolver</span>);
-                    <span class="comment">//Figure out the new name for the call</span>
-                    <span class="kw">let</span> (<span class="ident">new_name</span>, <span class="ident">annotation</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_generic_function_annotation</span>(
+                    <span class="comment">// get information about the generic function name and annotation</span>
+                    <span class="kw">let</span> (<span class="ident">new_name</span>, <span class="ident">annotation</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_specific_function_annotation</span>(
                         <span class="ident">generics</span>,
                         <span class="ident">qualified_name</span>,
                         <span class="ident">return_type</span>,
@@ -532,28 +566,34 @@
                         <span class="ident">generic_name_resolver</span>,
                     );
 
-                    <span class="comment">//Create a new pou and implementation for the function</span>
+                    <span class="comment">// Create a new pou and implementation for the function</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pou</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">qualified_name</span>) {
-                        <span class="comment">//only register concrete typed function if it was not indexed yet</span>
+                        <span class="comment">// only register concrete typed function if it was not indexed yet</span>
                         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">new_name</span>.<span class="ident">as_str</span>()).<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span>
                             <span class="comment">//only register typed function if we did not register it yet</span>
                             <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">new_index</span>.<span class="ident">find_pou</span>(<span class="ident">new_name</span>.<span class="ident">as_str</span>()).<span class="ident">is_none</span>()
                         {
-                            <span class="comment">//register the pou-entry, implementation and member-variables for the requested (typed) implemmentation</span>
-                            <span class="comment">// e.g. call to generic_foo(aInt)</span>
-                            <span class="self">self</span>.<span class="ident">register_generic_pou_entries</span>(
-                                <span class="ident">pou</span>,
-                                <span class="ident">cloned_return_type</span>.<span class="ident">as_str</span>(),
-                                <span class="ident">new_name</span>.<span class="ident">as_str</span>(),
-                                <span class="ident">generic_map</span>,
-                            );
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">StatementAnnotation::Function</span> { <span class="ident">return_type</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">annotation</span> {
+                                <span class="comment">// register the pou-entry, implementation and member-variables for the requested (typed) implementation</span>
+                                <span class="comment">// e.g. call to generic_foo(aInt)</span>
+                                <span class="self">self</span>.<span class="ident">register_generic_pou_entries</span>(
+                                    <span class="ident">pou</span>,
+                                    <span class="ident">return_type</span>.<span class="ident">as_str</span>(),
+                                    <span class="ident">new_name</span>.<span class="ident">as_str</span>(),
+                                    <span class="ident">generic_map</span>,
+                                );
+                            } <span class="kw">else</span> {
+                                <span class="macro">unreachable!</span>(
+                                    <span class="string">&quot;Annotation must be a function but was {:?}&quot;</span>,
+                                    <span class="kw-2">&amp;</span><span class="ident">annotation</span>
+                                )
+                            }
                         }
                     }
-
-                    <span class="comment">//annotate the call-statement so it points to the new implementation</span>
+                    <span class="comment">// annotate the call-statement so it points to the new implementation</span>
                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(<span class="ident">operator</span>, <span class="ident">annotation</span>);
                 }
-                <span class="comment">//Adjust annotations on the inner statement</span>
+                <span class="comment">// Adjust annotations on the inner statement</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">s</span>);
                     <span class="self">self</span>.<span class="ident">update_generic_function_parameters</span>(
@@ -781,34 +821,41 @@
             }
         }
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_generic_function_annotation</span>(
+
+    <span class="comment">// takes the generic signature of a function and resolves it ot its specific types according to generic_map and the generic_name_resolver</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_specific_function_annotation</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">generics</span>: <span class="kw-2">&amp;</span>[<span class="ident">GenericBinding</span>],
-        <span class="ident">qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">return_type</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">generic_qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">generic_return_type</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">generic_map</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">generic_name_resolver</span>: <span class="ident">GenericNameResolver</span>,
     ) -&gt; (<span class="ident">String</span>, <span class="ident">StatementAnnotation</span>) {
-        <span class="kw">let</span> <span class="ident">call_name</span> <span class="op">=</span> <span class="ident">generic_name_resolver</span>(<span class="ident">qualified_name</span>, <span class="ident">generics</span>, <span class="ident">generic_map</span>);
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Generic</span> { <span class="ident">generic_symbol</span>, .. } <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_information_or_void</span>(<span class="ident">return_type</span>)
-        {
-            <span class="ident">generic_map</span>
-                .<span class="ident">get</span>(<span class="ident">generic_symbol</span>)
-                .<span class="ident">map</span>(<span class="ident">String::as_str</span>)
-                .<span class="ident">unwrap_or</span>(<span class="ident">return_type</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">return_type</span>
-        }
-        .<span class="ident">to_string</span>();
-        (
-            <span class="ident">call_name</span>.<span class="ident">clone</span>(),
-            <span class="ident">StatementAnnotation::Function</span> {
-                <span class="ident">qualified_name</span>: <span class="ident">qualified_name</span>.<span class="ident">to_string</span>(),
-                <span class="ident">return_type</span>,
-                <span class="ident">call_name</span>: <span class="prelude-val">Some</span>(<span class="ident">call_name</span>),
-            },
-        )
+        <span class="kw">let</span> <span class="ident">call_name</span> <span class="op">=</span> <span class="ident">generic_name_resolver</span>(<span class="ident">generic_qualified_name</span>, <span class="ident">generics</span>, <span class="ident">generic_map</span>);
+        <span class="kw">let</span> <span class="ident">annotation</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">index</span>
+            .<span class="ident">find_pou</span>(<span class="kw-2">&amp;</span><span class="ident">call_name</span>)
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="op">!</span><span class="ident">it</span>.<span class="ident">is_generic</span>())
+            .<span class="ident">map</span>(<span class="ident">StatementAnnotation::from</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Generic</span> { <span class="ident">generic_symbol</span>, .. } <span class="op">=</span>
+                    <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_information_or_void</span>(<span class="ident">generic_return_type</span>)
+                {
+                    <span class="ident">generic_map</span>
+                        .<span class="ident">get</span>(<span class="ident">generic_symbol</span>)
+                        .<span class="ident">map</span>(<span class="ident">String::as_str</span>)
+                        .<span class="ident">unwrap_or</span>(<span class="ident">generic_return_type</span>)
+                } <span class="kw">else</span> {
+                    <span class="ident">generic_return_type</span>
+                }
+                .<span class="ident">to_string</span>();
+                <span class="ident">StatementAnnotation::Function</span> {
+                    <span class="ident">qualified_name</span>: <span class="ident">generic_qualified_name</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">return_type</span>,
+                    <span class="ident">call_name</span>: <span class="prelude-val">Some</span>(<span class="ident">call_name</span>.<span class="ident">clone</span>()),
+                }
+            });
+        (<span class="ident">call_name</span>, <span class="ident">annotation</span>)
     }
 
     <span class="doccomment">/// Derives the correct type for the generic call from the list of parameters</span>
@@ -833,7 +880,32 @@
                             <span class="kw">let</span> <span class="ident">current_type</span> <span class="op">=</span> <span class="self">self</span>
                                 .<span class="ident">index</span>
                                 .<span class="ident">find_effective_type_info</span>(<span class="ident">current</span>)
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_intrinsic_type</span>(<span class="ident">it</span>));
+                                <span class="comment">// if type is not found, look for it in new index, because the type could have been created recently</span>
+                                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                    <span class="self">self</span>.<span class="ident">annotation_map</span>
+                                        .<span class="ident">new_index</span>
+                                        .<span class="ident">find_effective_type_info</span>(<span class="ident">current</span>)
+                                })
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
+                                    <span class="kw">match</span> <span class="ident">it</span> {
+                                        <span class="comment">// generic strings are a special case and need to be handled differently</span>
+                                        <span class="ident">DataTypeInformation::String</span> {
+                                            <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf8</span>,
+                                            ..
+                                        } =&gt; <span class="self">self</span>
+                                            .<span class="ident">index</span>
+                                            .<span class="ident">find_effective_type_info</span>(<span class="ident">STRING_TYPE</span>)
+                                            .<span class="ident">unwrap_or</span>(<span class="ident">it</span>),
+                                        <span class="ident">DataTypeInformation::String</span> {
+                                            <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf16</span>,
+                                            ..
+                                        } =&gt; <span class="self">self</span>
+                                            .<span class="ident">index</span>
+                                            .<span class="ident">find_effective_type_info</span>(<span class="ident">WSTRING_TYPE</span>)
+                                            .<span class="ident">unwrap_or</span>(<span class="ident">it</span>),
+                                        <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_intrinsic_type</span>(<span class="ident">it</span>),
+                                    }
+                                });
                             <span class="comment">//Find bigger</span>
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">previous</span>, <span class="ident">current</span>)) <span class="op">=</span> <span class="ident">previous_type</span>.<span class="ident">zip</span>(<span class="ident">current_type</span>) {
                                 <span class="prelude-val">Some</span>(<span class="ident">typesystem::get_bigger_type</span>(<span class="ident">current</span>, <span class="ident">previous</span>, <span class="self">self</span>.<span class="ident">index</span>))

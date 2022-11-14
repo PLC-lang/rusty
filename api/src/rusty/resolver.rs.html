@@ -1800,7 +1800,7 @@
     <span class="doccomment">/// special context of the left-hand-side of an assignment in call statements</span>
     <span class="doccomment">/// Inside the left hand side of an assignment is in the context of the call&#39;s POU</span>
     <span class="doccomment">/// `foo(a := a)` actually means: `foo(foo.a := POU.a)`</span>
-    <span class="ident">call</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="ident">lhs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// true if visiting a call statement</span>
     <span class="ident">is_call</span>: <span class="ident">bool</span>,
 
@@ -1821,7 +1821,7 @@
         <span class="ident">VisitorContext</span> {
             <span class="ident">pou</span>: <span class="self">self</span>.<span class="ident">pou</span>,
             <span class="ident">qualifier</span>: <span class="prelude-val">Some</span>(<span class="ident">qualifier</span>),
-            <span class="ident">call</span>: <span class="self">self</span>.<span class="ident">call</span>,
+            <span class="ident">lhs</span>: <span class="self">self</span>.<span class="ident">lhs</span>,
             <span class="ident">is_call</span>: <span class="self">self</span>.<span class="ident">is_call</span>,
             <span class="ident">constant</span>: <span class="bool-val">false</span>,
             <span class="ident">in_body</span>: <span class="self">self</span>.<span class="ident">in_body</span>,
@@ -1834,7 +1834,7 @@
         <span class="ident">VisitorContext</span> {
             <span class="ident">pou</span>: <span class="prelude-val">Some</span>(<span class="ident">pou</span>),
             <span class="ident">qualifier</span>: <span class="self">self</span>.<span class="ident">qualifier</span>.<span class="ident">clone</span>(),
-            <span class="ident">call</span>: <span class="self">self</span>.<span class="ident">call</span>,
+            <span class="ident">lhs</span>: <span class="self">self</span>.<span class="ident">lhs</span>,
             <span class="ident">is_call</span>: <span class="self">self</span>.<span class="ident">is_call</span>,
             <span class="ident">constant</span>: <span class="bool-val">false</span>,
             <span class="ident">in_body</span>: <span class="self">self</span>.<span class="ident">in_body</span>,
@@ -1843,11 +1843,11 @@
     }
 
     <span class="doccomment">/// returns a copy of the current context and changes the `lhs_pou` to the given pou</span>
-    <span class="kw">fn</span> <span class="ident">with_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lhs_pou</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">str</span>) -&gt; <span class="ident">VisitorContext</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_lhs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lhs_pou</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">str</span>) -&gt; <span class="ident">VisitorContext</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> {
         <span class="ident">VisitorContext</span> {
             <span class="ident">pou</span>: <span class="self">self</span>.<span class="ident">pou</span>,
             <span class="ident">qualifier</span>: <span class="self">self</span>.<span class="ident">qualifier</span>.<span class="ident">clone</span>(),
-            <span class="ident">call</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs_pou</span>),
+            <span class="ident">lhs</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs_pou</span>),
             <span class="ident">is_call</span>: <span class="self">self</span>.<span class="ident">is_call</span>,
             <span class="ident">constant</span>: <span class="bool-val">false</span>,
             <span class="ident">in_body</span>: <span class="self">self</span>.<span class="ident">in_body</span>,
@@ -1860,9 +1860,9 @@
         <span class="ident">VisitorContext</span> {
             <span class="ident">pou</span>: <span class="self">self</span>.<span class="ident">pou</span>,
             <span class="ident">qualifier</span>: <span class="self">self</span>.<span class="ident">qualifier</span>.<span class="ident">clone</span>(),
-            <span class="ident">call</span>: <span class="self">self</span>.<span class="ident">call</span>,
+            <span class="ident">lhs</span>: <span class="self">self</span>.<span class="ident">lhs</span>,
             <span class="ident">is_call</span>: <span class="bool-val">true</span>,
-            <span class="ident">constant</span>: <span class="bool-val">false</span>,
+            <span class="ident">constant</span>: <span class="self">self</span>.<span class="ident">constant</span>,
             <span class="ident">in_body</span>: <span class="self">self</span>.<span class="ident">in_body</span>,
             <span class="ident">id_provider</span>: <span class="self">self</span>.<span class="ident">id_provider</span>.<span class="ident">clone</span>(),
         }
@@ -1873,7 +1873,7 @@
         <span class="ident">VisitorContext</span> {
             <span class="ident">pou</span>: <span class="self">self</span>.<span class="ident">pou</span>,
             <span class="ident">qualifier</span>: <span class="self">self</span>.<span class="ident">qualifier</span>.<span class="ident">clone</span>(),
-            <span class="ident">call</span>: <span class="self">self</span>.<span class="ident">call</span>,
+            <span class="ident">lhs</span>: <span class="self">self</span>.<span class="ident">lhs</span>,
             <span class="ident">is_call</span>: <span class="self">self</span>.<span class="ident">is_call</span>,
             <span class="ident">constant</span>: <span class="self">self</span>.<span class="ident">constant</span>,
             <span class="ident">in_body</span>: <span class="bool-val">true</span>,
@@ -2242,7 +2242,7 @@
         <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span> {
             <span class="ident">pou</span>: <span class="prelude-val">None</span>,
             <span class="ident">qualifier</span>: <span class="prelude-val">None</span>,
-            <span class="ident">call</span>: <span class="prelude-val">None</span>,
+            <span class="ident">lhs</span>: <span class="prelude-val">None</span>,
             <span class="ident">is_call</span>: <span class="bool-val">false</span>,
             <span class="ident">constant</span>: <span class="bool-val">false</span>,
             <span class="ident">in_body</span>: <span class="bool-val">false</span>,
@@ -2536,7 +2536,7 @@
             {
                 <span class="comment">//Create a new context with the left operator being the target variable type, and the</span>
                 <span class="comment">//right side being the local context</span>
-                <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_call</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>());
+                <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_lhs</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>());
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">initializer</span>);
 
                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(
@@ -2685,7 +2685,7 @@
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">reference</span>);
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(
                     <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span> {
-                        <span class="ident">call</span>: <span class="prelude-val">None</span>,
+                        <span class="ident">lhs</span>: <span class="prelude-val">None</span>,
                         <span class="ident">is_call</span>: <span class="bool-val">false</span>,
                         <span class="ident">constant</span>: <span class="bool-val">false</span>,
                         <span class="ident">pou</span>: <span class="ident">ctx</span>.<span class="ident">pou</span>,
@@ -3042,7 +3042,7 @@
             }
             <span class="ident">AstStatement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">right</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lhs</span>) <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lhs</span>) <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">lhs</span> {
                     <span class="comment">//special context for left hand side</span>
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">with_pou</span>(<span class="ident">lhs</span>), <span class="ident">left</span>);
                 } <span class="kw">else</span> {
@@ -3053,7 +3053,7 @@
             }
             <span class="ident">AstStatement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">left</span>, <span class="ident">right</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lhs</span>) <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lhs</span>) <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">lhs</span> {
                     <span class="comment">//special context for left hand side</span>
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">with_pou</span>(<span class="ident">lhs</span>), <span class="ident">left</span>);
                 } <span class="kw">else</span> {
@@ -3112,10 +3112,10 @@
             <span class="macro">unreachable!</span>(<span class="string">&quot;Always a call statement&quot;</span>);
         };
         <span class="comment">// #604 needed for recursive function calls</span>
-        <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">set_is_call</span>();
-        <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">operator</span>);
+        <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">set_is_call</span>(), <span class="ident">operator</span>);
         <span class="kw">let</span> <span class="ident">operator_qualifier</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_call_name</span>(<span class="ident">operator</span>);
-        <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_call</span>(<span class="ident">operator_qualifier</span>.<span class="ident">as_str</span>());
+        <span class="comment">//Use the context without the is_call =true</span>
+        <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_lhs</span>(<span class="ident">operator_qualifier</span>.<span class="ident">as_str</span>());
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parameters</span>) <span class="op">=</span> <span class="ident">parameters_stmt</span> {
             <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">parameters</span>);
             <span class="ident">flatten_expression_list</span>(<span class="ident">parameters</span>)
