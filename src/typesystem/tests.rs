@@ -53,6 +53,7 @@ pub fn signed_types_tests() {
     );
 }
 
+#[allow(dead_code)]
 fn get_empty_compilation_unit() -> CompilationUnit {
     CompilationUnit::new("test_file", NewLines::build(""))
 }

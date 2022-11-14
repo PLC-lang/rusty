@@ -807,23 +807,28 @@ fn parse_string_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<AstStatement>)> {
+    let text = lexer.slice().to_string();
     let start = lexer.location().get_start();
     let is_wide = lexer.token == KeywordWideString;
     lexer.advance();
 
     let size = parse_string_size_expression(lexer);
     let end = lexer.last_range.end;
-
-    Some((
-        DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::StringType {
-                name,
-                is_wide,
-                size,
-            },
-            location: (start..end).into(),
-            scope: lexer.scope.clone(),
+    let location: SourceRange = (start..end).into();
+    size.map(|size| DataTypeDeclaration::DataTypeDefinition {
+        data_type: DataType::StringType {
+            name,
+            is_wide,
+            size: Some(size),
         },
+        location: location.clone(),
+        scope: lexer.scope.clone(),
+    })
+    .or(Some(DataTypeDeclaration::DataTypeReference {
+        referenced_type: text,
+        location,
+    }))
+    .zip(Some(
         lexer
             .allow(&KeywordAssignment)
             .then(|| parse_expression(lexer)),
