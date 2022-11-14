@@ -3396,7 +3396,6 @@ fn function_block_initialization_test() {
 
 
             PROGRAM main 
-
             VAR
                 timer : TON := (PT := T#0s); 
             END_VAR
@@ -3632,7 +3631,7 @@ fn hardware_access_types_annotated() {
           x2 := %QW1.2;
           y1 := %MD1.2;
           y2 := %GX1.2;
-        END_PROGRAM",
+        ",
         id_provider.clone(),
     );
 
@@ -3656,5 +3655,122 @@ fn hardware_access_types_annotated() {
         assert_type_and_hint!(&annotations, &index, &*right, BOOL_TYPE, Some(INT_TYPE));
     } else {
         unreachable!("Must be assignment")
+    }
+}
+
+#[test]
+fn multiple_pointer_referencing_annotates_correctly() {
+    let id_provider = IdProvider::default();
+    // GIVEN a variable which is referenced multiple times with consecutive address operators
+    let (unit, mut index) = index_with_ids(
+        "
+        PROGRAM PRG
+        VAR 
+            a : BYTE; 
+        END_VAR
+            &&a;
+            &&&a;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    // THEN it is correctly annotated with nested pointers
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &statements[0],
+        "__POINTER_TO___POINTER_TO_BYTE",
+        None
+    );
+
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &statements[1],
+        "__POINTER_TO___POINTER_TO___POINTER_TO_BYTE",
+        None
+    );
+}
+
+#[test]
+fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
+    let id_provider = IdProvider::default();
+    // GIVEN a parenthesized, double-pointer
+    let (unit, mut index) = index_with_ids(
+        "
+        PROGRAM PRG
+        VAR 
+            a : BYTE;
+        END_VAR
+            (&&a)^;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    // WHEN it is dereferenced once
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[0].statements[0];
+    index.import(std::mem::take(&mut annotations.new_index));
+    // THEN the expressions are nested and annotated correctly
+    if let AstStatement::PointerAccess { reference, .. } = &statement {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference,
+            "__POINTER_TO___POINTER_TO_BYTE",
+            None
+        );
+
+        if let AstStatement::UnaryExpression { value, .. } = &reference.as_ref() {
+            assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO_BYTE", None);
+
+            if let AstStatement::UnaryExpression { value, .. } = &value.as_ref() {
+                assert_type_and_hint!(&annotations, &index, value, "BYTE", None);
+            }
+        }
+    } else {
+        panic!("Not a pointer")
+    }
+    // AND the overall type of the statement is annotated correctly
+    assert_type_and_hint!(&annotations, &index, statement, "__POINTER_TO_BYTE", None);
+}
+
+#[test]
+fn multiple_negative_annotates_correctly() {
+    let id_provider = IdProvider::default();
+    // GIVEN a variable which is prefixed with two minus signs
+    let (unit, mut index) = index_with_ids(
+        "
+        PROGRAM PRG
+        VAR 
+            a : DINT; 
+        END_VAR
+            --a;
+            -(-a);
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    // THEN it is correctly annotated
+    if let AstStatement::UnaryExpression { value, .. } = &statements[0] {
+        assert_type_and_hint!(&annotations, &index, value, DINT_TYPE, None);
+
+        if let AstStatement::UnaryExpression { value, .. } = &value.as_ref() {
+            assert_type_and_hint!(&annotations, &index, value, DINT_TYPE, None);
+        }
+    }
+
+    if let AstStatement::UnaryExpression { value, .. } = &statements[1] {
+        assert_type_and_hint!(&annotations, &index, value, DINT_TYPE, None);
+
+        if let AstStatement::UnaryExpression { value, .. } = &value.as_ref() {
+            assert_type_and_hint!(&annotations, &index, value, DINT_TYPE, None);
+        }
     }
 }

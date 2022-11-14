@@ -171,18 +171,22 @@ fn parse_exponent_expression(lexer: &mut ParseSession) -> AstStatement {
 
 // UNARY -x, NOT x
 fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
-    let operator = match lexer.token {
+    // collect all consecutive operators
+    let start = lexer.range().start;
+    let mut operators = vec![];
+    while let Some(operator) = match lexer.token {
         OperatorNot => Some(Operator::Not),
         OperatorPlus => Some(Operator::Plus),
         OperatorMinus => Some(Operator::Minus),
         OperatorAmp => Some(Operator::Address),
         _ => None,
-    };
-
-    let start = lexer.range().start;
-    if let Some(operator) = operator {
+    } {
+        operators.push(operator);
         lexer.advance();
-        let expression = parse_parenthesized_expression(lexer);
+    }
+    // created nested statements if necessary (e.g. &&)
+    let init = parse_parenthesized_expression(lexer);
+    operators.iter().rev().fold(init, |expression, operator| {
         let expression_location = expression.get_location();
         let location = lexer
             .source_range_factory
@@ -213,20 +217,18 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
             },
 
             _ => AstStatement::UnaryExpression {
-                operator,
+                operator: *operator,
                 value: Box::new(expression),
                 location,
                 id: lexer.next_id(),
             },
         }
-    } else {
-        parse_parenthesized_expression(lexer)
-    }
+    })
 }
 
 // PARENTHESIZED (...)
 fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
-    match lexer.token {
+    let result = match lexer.token {
         KeywordParensOpen => {
             lexer.advance();
             super::parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
@@ -234,6 +236,18 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
             })
         }
         _ => parse_leaf_expression(lexer),
+    };
+    // we might deal with a deref after a paren-expr
+    match parse_access_modifiers(lexer, result) {
+        Ok(statement) => statement,
+        Err(diagnostic) => {
+            let statement = AstStatement::EmptyStatement {
+                location: diagnostic.get_location(),
+                id: lexer.next_id(),
+            };
+            lexer.accept_diagnostic(diagnostic);
+            statement
+        }
     }
 }
 

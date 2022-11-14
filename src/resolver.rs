@@ -987,10 +987,17 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     let t = self
                         .index
-                        .get_effective_type_or_void_by_name(inner_type_name)
+                        .get_effective_type_by_name(inner_type_name)
+                        .unwrap_or_else(|_| {
+                            self.annotation_map
+                                .new_index
+                                .get_effective_type_or_void_by_name(inner_type_name)
+                        })
                         .get_name();
+                    // borrow-checker won't allow using t in annotate() without claiming ownership first due to immutable borrow
+                    let t = t.to_owned();
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(t));
+                        .annotate(statement, StatementAnnotation::value(t.as_str()));
                 }
             }
             AstStatement::DirectAccess { access, index, .. } => {
