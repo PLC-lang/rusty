@@ -5,7 +5,7 @@ use crate::{
     builtins,
     index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry},
     resolver::AnnotationMap,
-    typesystem::{self, DataType, DataTypeInformation},
+    typesystem::{self, DataType, DataTypeInformation, StringEncoding, STRING_TYPE, WSTRING_TYPE},
 };
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
@@ -66,21 +66,19 @@ impl<'i> TypeAnnotator<'i> {
         {
             if !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
-                //Annotate the statement with the new function call
+                // Annotate the statement with the new function call
                 if let Some(StatementAnnotation::Function {
                     qualified_name,
                     return_type,
                     ..
                 }) = self.annotation_map.get(operator)
                 {
-                    let cloned_return_type = return_type.clone(); //borrow checker will not allow to use return_type below :-(
-
-                    //Find the generic resolver
+                    // Find the generic resolver
                     let generic_name_resolver = builtins::get_builtin(qualified_name)
                         .map(|it| it.get_generic_name_resolver())
                         .unwrap_or_else(|| generic_name_resolver);
-                    //Figure out the new name for the call
-                    let (new_name, annotation) = self.get_generic_function_annotation(
+                    // get information about the generic function name and annotation
+                    let (new_name, annotation) = self.get_specific_function_annotation(
                         generics,
                         qualified_name,
                         return_type,
@@ -88,28 +86,34 @@ impl<'i> TypeAnnotator<'i> {
                         generic_name_resolver,
                     );
 
-                    //Create a new pou and implementation for the function
+                    // Create a new pou and implementation for the function
                     if let Some(pou) = self.index.find_pou(qualified_name) {
-                        //only register concrete typed function if it was not indexed yet
+                        // only register concrete typed function if it was not indexed yet
                         if self.index.find_pou(new_name.as_str()).is_none() &&
                             //only register typed function if we did not register it yet
                             self.annotation_map.new_index.find_pou(new_name.as_str()).is_none()
                         {
-                            //register the pou-entry, implementation and member-variables for the requested (typed) implemmentation
-                            // e.g. call to generic_foo(aInt)
-                            self.register_generic_pou_entries(
-                                pou,
-                                cloned_return_type.as_str(),
-                                new_name.as_str(),
-                                generic_map,
-                            );
+                            if let StatementAnnotation::Function { return_type, .. } = &annotation {
+                                // register the pou-entry, implementation and member-variables for the requested (typed) implementation
+                                // e.g. call to generic_foo(aInt)
+                                self.register_generic_pou_entries(
+                                    pou,
+                                    return_type.as_str(),
+                                    new_name.as_str(),
+                                    generic_map,
+                                );
+                            } else {
+                                unreachable!(
+                                    "Annotation must be a function but was {:?}",
+                                    &annotation
+                                )
+                            }
                         }
                     }
-
-                    //annotate the call-statement so it points to the new implementation
+                    // annotate the call-statement so it points to the new implementation
                     self.annotation_map.annotate(operator, annotation);
                 }
-                //Adjust annotations on the inner statement
+                // Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
                     self.update_generic_function_parameters(
@@ -337,34 +341,41 @@ impl<'i> TypeAnnotator<'i> {
             }
         }
     }
-    pub fn get_generic_function_annotation(
+
+    // takes the generic signature of a function and resolves it ot its specific types according to generic_map and the generic_name_resolver
+    pub fn get_specific_function_annotation(
         &self,
         generics: &[GenericBinding],
-        qualified_name: &str,
-        return_type: &str,
+        generic_qualified_name: &str,
+        generic_return_type: &str,
         generic_map: &HashMap<String, String>,
         generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
-        let call_name = generic_name_resolver(qualified_name, generics, generic_map);
-        let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
-            self.index.get_type_information_or_void(return_type)
-        {
-            generic_map
-                .get(generic_symbol)
-                .map(String::as_str)
-                .unwrap_or(return_type)
-        } else {
-            return_type
-        }
-        .to_string();
-        (
-            call_name.clone(),
-            StatementAnnotation::Function {
-                qualified_name: qualified_name.to_string(),
-                return_type,
-                call_name: Some(call_name),
-            },
-        )
+        let call_name = generic_name_resolver(generic_qualified_name, generics, generic_map);
+        let annotation = self
+            .index
+            .find_pou(&call_name)
+            .filter(|it| !it.is_generic())
+            .map(StatementAnnotation::from)
+            .unwrap_or_else(|| {
+                let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
+                    self.index.get_type_information_or_void(generic_return_type)
+                {
+                    generic_map
+                        .get(generic_symbol)
+                        .map(String::as_str)
+                        .unwrap_or(generic_return_type)
+                } else {
+                    generic_return_type
+                }
+                .to_string();
+                StatementAnnotation::Function {
+                    qualified_name: generic_qualified_name.to_string(),
+                    return_type,
+                    call_name: Some(call_name.clone()),
+                }
+            });
+        (call_name, annotation)
     }
 
     /// Derives the correct type for the generic call from the list of parameters
@@ -389,7 +400,32 @@ impl<'i> TypeAnnotator<'i> {
                             let current_type = self
                                 .index
                                 .find_effective_type_info(current)
-                                .map(|it| self.index.find_intrinsic_type(it));
+                                // if type is not found, look for it in new index, because the type could have been created recently
+                                .or_else(|| {
+                                    self.annotation_map
+                                        .new_index
+                                        .find_effective_type_info(current)
+                                })
+                                .map(|it| {
+                                    match it {
+                                        // generic strings are a special case and need to be handled differently
+                                        DataTypeInformation::String {
+                                            encoding: StringEncoding::Utf8,
+                                            ..
+                                        } => self
+                                            .index
+                                            .find_effective_type_info(STRING_TYPE)
+                                            .unwrap_or(it),
+                                        DataTypeInformation::String {
+                                            encoding: StringEncoding::Utf16,
+                                            ..
+                                        } => self
+                                            .index
+                                            .find_effective_type_info(WSTRING_TYPE)
+                                            .unwrap_or(it),
+                                        _ => self.index.find_intrinsic_type(it),
+                                    }
+                                });
                             //Find bigger
                             if let Some((previous, current)) = previous_type.zip(current_type) {
                                 Some(typesystem::get_bigger_type(current, previous, self.index))

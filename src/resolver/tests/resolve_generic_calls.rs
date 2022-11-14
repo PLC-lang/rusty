@@ -2,7 +2,7 @@ use crate::{
     assert_type_and_hint,
     ast::{self, flatten_expression_list, AstStatement},
     lexer::IdProvider,
-    resolver::{AnnotationMap, TypeAnnotator},
+    resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE,
@@ -820,13 +820,7 @@ fn string_ref_as_generic_resolved() {
     if let AstStatement::CallStatement { parameters, .. } = call_statement {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
 
-        assert_type_and_hint!(
-            &annotations,
-            &index,
-            parameters[0],
-            "__LEFT__STRING_IN",
-            None
-        );
+        assert_type_and_hint!(&annotations, &index, parameters[0], "STRING", None);
     } else {
         unreachable!("Should be a call statement")
     }
@@ -909,4 +903,288 @@ fn resolved_generic_any_real_call_with_ints_added_to_index() {
             .unwrap()
             .get_type_name()
     );
+}
+
+#[test]
+fn generic_string_functions_are_annotated_correctly() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION foo<T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR        
+        END_FUNCTION
+
+        FUNCTION foo__STRING : STRING
+        VAR_INPUT {ref}
+            param : STRING;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            s1 : STRING;
+        END_VAR
+            s1 := '     this is   a  very   long          sentence   with plenty  of    characters.';
+            foo(s1);
+        END_PROGRAM
+        ",
+        id_provider.clone()
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    let mut functions = vec![];
+    let mut values = vec![];
+    annotations
+        .type_map
+        .iter()
+        .map(|(_, v)| v)
+        .for_each(|v| match v {
+            StatementAnnotation::Function { .. } => functions.push(v),
+            StatementAnnotation::Value {
+                resulting_type: res_type,
+            } => values.push(res_type),
+            _ => (),
+        });
+
+    assert_eq!(
+        functions[0],
+        &StatementAnnotation::Function {
+            return_type: "STRING".to_string(),
+            qualified_name: "foo__STRING".to_string(),
+            call_name: None,
+        }
+    );
+
+    assert_eq!(values[0], &String::from("__STRING_80"),)
+}
+
+#[test]
+fn generic_string_functions_without_specific_implementation_are_annotated_correctly() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        r#"         
+        FUNCTION LEN <T: ANY_STRING> : DINT
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main
+        VAR
+            res : DINT;
+        END_VAR
+            res := LEN('abc');
+        END_FUNCTION
+        "#,
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let assignment = &unit.implementations[1].statements[0];
+
+    if let AstStatement::Assignment { right, .. } = assignment {
+        assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, Some(DINT_TYPE));
+        if let AstStatement::CallStatement {
+            operator,
+            parameters,
+            ..
+        } = &**right
+        {
+            let function_annotation = annotations.get(operator).unwrap();
+            assert_eq!(
+                function_annotation,
+                &StatementAnnotation::Function {
+                    return_type: "DINT".to_string(),
+                    qualified_name: "LEN".to_string(),
+                    call_name: Some("LEN__STRING".to_owned(),),
+                }
+            );
+
+            let parameters = flatten_expression_list(&parameters.as_ref().as_ref().unwrap());
+            assert_type_and_hint!(
+                &annotations,
+                &index,
+                dbg!(parameters[0]),
+                "__STRING_3",
+                None
+            );
+        } else {
+            unreachable!("Not a call statement.")
+        }
+    } else {
+        unreachable!("Not an assignment.")
+    }
+
+    let function = index.get_members("LEN__STRING").unwrap();
+    let param = function.get(&"in".to_string()).unwrap();
+
+    let datatype = index.get_type_information_or_void(param.get_type_name());
+    if let DataTypeInformation::Pointer {
+        inner_type_name, ..
+    } = datatype
+    {
+        assert_eq!(inner_type_name, STRING_TYPE);
+    } else {
+        unreachable!("Not a pointer.")
+    }
+}
+
+#[test]
+fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        FUNCTION foo<T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR      
+        VAR_OUTPUT {ref}
+            out : T;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION foo__STRING : STRING[100]
+        VAR_INPUT {ref}
+            param : STRING[100];
+        END_VAR
+        VAR_OUTPUT
+            s : STRING[100];
+        END_VAR
+            s := param;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            s1 : STRING;
+            s2 : STRING[100];
+        END_VAR
+            s1 := '     this is   a  very   long          sentence   with plenty  of      characters and weird spacing.';
+            s2 := foo(s1);
+        END_PROGRAM
+        ",
+        id_provider.clone()
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let mut functions = vec![];
+    let mut values = vec![];
+    annotations
+        .type_map
+        .iter()
+        .map(|(_, v)| v)
+        .for_each(|v| match v {
+            StatementAnnotation::Function { .. } => functions.push(v),
+            StatementAnnotation::Value {
+                resulting_type: res_type,
+            } => values.push(res_type),
+            _ => (),
+        });
+
+    assert_eq!(
+        functions[0],
+        &StatementAnnotation::Function {
+            return_type: "__foo__STRING_return".to_string(),
+            qualified_name: "foo__STRING".to_string(),
+            call_name: None,
+        }
+    );
+
+    assert_eq!(values[0], &String::from("__STRING_100"),)
+}
+
+#[test]
+fn generic_return_type_name_resolved_correctly() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+    FUNCTION foo<T: ANY_INT> : T
+    VAR_INPUT
+        param: T;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION main
+        foo(3);
+    END_FUNCTION",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    let mut functions = vec![];
+    let mut values = vec![];
+    annotations
+        .type_map
+        .iter()
+        .map(|(_, v)| v)
+        .for_each(|v| match v {
+            StatementAnnotation::Function { .. } => functions.push(v),
+            StatementAnnotation::Value {
+                resulting_type: res_type,
+            } => values.push(res_type),
+            _ => (),
+        });
+
+    assert_eq!(
+        functions[0],
+        &StatementAnnotation::Function {
+            return_type: "DINT".to_string(),
+            qualified_name: "foo".to_string(),
+            call_name: Some("foo__DINT".to_string()),
+        }
+    );
+
+    assert_eq!(values[0], &String::from("DINT"),)
+}
+
+#[test]
+fn literal_string_as_parameter_resolves_correctly() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        r#"
+        FUNCTION foo<T: ANY_STRING> : T
+        VAR_INPUT
+            x : T;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            foo('     this is   a  very   long          sentence   with');
+        END_FUNCTION
+    "#,
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[1].statements[0];
+
+    if let AstStatement::CallStatement {
+        operator,
+        parameters,
+        ..
+    } = statement
+    {
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            "__STRING_54",
+            Some(STRING_TYPE)
+        );
+        assert_eq!(
+            annotations.get(operator).unwrap(),
+            &StatementAnnotation::Function {
+                return_type: "STRING".to_string(),
+                qualified_name: "foo".to_string(),
+                call_name: Some("foo__STRING".to_string()),
+            }
+        );
+    } else {
+        unreachable!("This should always be a call statement.")
+    }
 }

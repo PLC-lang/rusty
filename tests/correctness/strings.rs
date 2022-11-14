@@ -615,6 +615,238 @@ fn wstring_as_function_parameters_cast() {
 }
 
 #[test]
+fn string_as_function_return_type_does_not_truncate() {
+    let src = "
+        FUNCTION foo : STRING[100]
+        VAR_INPUT 
+            str_param : STRING[100];
+        END_VAR
+            foo := str_param;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR 
+            x : STRING[100]
+        END_VAR
+            x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.')
+        END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 101],
+    }
+    let mut main_type = MainType { x: [0; 101] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    // long string passed to short function and returned
+    assert_eq!(
+        format!("{:?}", "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()),
+        format!("{:?}", &main_type.x)
+    );
+}
+
+#[test]
+fn string_ref_returned_from_wrapper_function_does_not_truncate() {
+    let src = "
+        FUNCTION foo : STRING[100]
+        VAR_INPUT 
+            str_param : STRING[100];
+        END_VAR
+            bar(str_param, foo);
+        END_FUNCTION
+
+        FUNCTION bar : DINT
+        VAR_INPUT {ref}
+            in : STRING[100];
+        END_VAR
+        VAR_IN_OUT
+            out: STRING[100];
+        END_VAR
+            out := in;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR 
+            x : STRING[100]
+        END_VAR
+            x := foo('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.')
+        END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 101],
+    }
+    let mut main_type = MainType { x: [0; 101] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    // long string passed to short function and returned
+    assert_eq!(
+        format!("{:?}", "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()),
+        format!("{:?}", &main_type.x)
+    );
+}
+
+#[test]
+fn string_returned_from_generic_wrapper_function_does_not_truncate() {
+    let src = "
+        FUNCTION foo<T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR        
+        END_FUNCTION
+
+        FUNCTION foo__STRING : STRING[100]
+        VAR_INPUT {ref}
+            param : STRING[100];
+        END_VAR
+            bar(param, foo__STRING);
+        END_FUNCTION
+
+        FUNCTION bar : DINT
+        VAR_INPUT {ref}
+            in : STRING[100];
+        END_VAR
+        VAR_IN_OUT
+            out: STRING[100];
+        END_VAR
+            out := in;
+        END_FUNCTION
+
+        PROGRAM main 
+        VAR 
+            param : STRING[100];
+            x : STRING[100];
+        END_VAR
+            param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
+            x := foo(param);
+        END_PROGRAM
+    ";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 101],
+    }
+    let mut main_type = MainType { x: [0; 101] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!(
+        format!("{:?}", "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()),
+        format!("{:?}", &main_type.x)
+    );
+}
+
+#[test]
+fn string_returned_from_main_does_not_truncate() {
+    let src = "
+        PROGRAM main : STRING[100]
+        VAR 
+            param : STRING[100];
+        END_VAR
+            param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
+            main := param;
+        END_PROGRAM
+    ";
+    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
+
+    assert_eq!(
+        format!("{:?}",res), 
+        format!(
+            "{:?}", 
+            "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()
+        )
+    )
+}
+
+#[test]
+fn when_function_returns_value_from_generic_function_call_then_string_does_not_truncate() {
+    let src = "
+        FUNCTION foo<T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            in : T;
+        END_VAR        
+        END_FUNCTION
+
+        FUNCTION foo__STRING : STRING[100]
+        VAR_INPUT {ref}
+            param : STRING[100];
+        END_VAR
+            bar(param, foo__STRING);
+        END_FUNCTION
+
+        FUNCTION bar : DINT
+        VAR_INPUT {ref}
+            in : STRING[100];
+        END_VAR
+        VAR_IN_OUT
+            out: STRING[100];
+        END_VAR
+            out := in;
+        END_FUNCTION
+
+        FUNCTION main : STRING[100]
+        VAR 
+            param : STRING[100];
+        END_VAR
+            param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
+            main := foo(param);           
+        END_FUNCTION
+    ";
+    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
+
+    assert_eq!(
+        format!("{:?}",res), 
+        format!(
+            "{:?}", 
+            "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()
+        )
+    )
+}
+
+#[test]
+fn when_function_returns_value_from_function_call_string_does_not_truncate() {
+    let src = "
+        FUNCTION foo : STRING[100]
+        VAR_INPUT {ref}
+            param : STRING[100];
+        END_VAR
+            bar(param, foo);
+        END_FUNCTION
+
+        FUNCTION bar : DINT
+        VAR_INPUT {ref}
+            in : STRING[100];
+        END_VAR
+        VAR_IN_OUT
+            out: STRING[100];
+        END_VAR
+            out := in;
+        END_FUNCTION
+
+        FUNCTION main : STRING[100]
+        VAR 
+            param : STRING[100];
+        END_VAR
+            param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
+            main := foo(param);            
+        END_FUNCTION
+    ";
+    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
+
+    assert_eq!(
+        format!("{:?}",res), 
+        format!(
+            "{:?}", 
+            "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()
+        )
+    )
+}
+
+#[test]
 fn program_string_output() {
     let src = r#"
 		PROGRAM prog
