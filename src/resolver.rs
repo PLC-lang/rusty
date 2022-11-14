@@ -989,8 +989,7 @@ impl<'i> TypeAnnotator<'i> {
                         .index
                         .get_effective_type_by_name(inner_type_name)
                         .unwrap_or_else(|_| {
-                            self
-                                .annotation_map
+                            self.annotation_map
                                 .new_index
                                 .get_effective_type_or_void_by_name(inner_type_name)
                         })

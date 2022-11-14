@@ -219,7 +219,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
                 value: Box::new(expression),
                 location,
                 id: lexer.next_id(),
-            }
+            },
         }
     })
 }
