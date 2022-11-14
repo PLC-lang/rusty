@@ -5,9 +5,6 @@ use std::{
     ops::Range,
 };
 
-#[cfg(test)]
-use std::{cell::RefCell, rc::Rc};
-
 use codespan_reporting::{
     diagnostic::Label,
     files::{Files, Location, SimpleFile, SimpleFiles},
@@ -465,7 +462,7 @@ impl Diagnostic {
     pub fn cannot_generate_initializer(variable_name: &str, location: SourceRange) -> Diagnostic {
         Self::codegen_error(
             &format!(
-                "Cannot generate literal initializer for '{:}': Value can not be derived",
+                "Cannot generate literal initializer for '{:}': Value cannot be derived",
                 variable_name
             ),
             location,
@@ -1024,34 +1021,12 @@ impl DiagnosticReporter for NullDiagnosticReporter {
     }
 }
 
-///a Diagnostic reporter that holds all diagnostics in a list
-#[derive(Default)]
-#[cfg(test)]
-pub struct ListBasedDiagnosticReporter {
-    last_id: usize,
-    // RC to access from tests, RefCell to avoid changing the signature for the report() method
-    diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>,
-}
-
-#[cfg(test)]
-impl DiagnosticReporter for ListBasedDiagnosticReporter {
-    fn report(&self, diagnostics: &[ResolvedDiagnostics]) {
-        self.diagnostics.borrow_mut().extend_from_slice(diagnostics);
-    }
-
-    fn register(&mut self, _path: String, _src: String) -> usize {
-        // at least provide some unique ids
-        self.last_id += 1;
-        self.last_id
-    }
-}
-
 /// the Diagnostician handle's Diangostics with the help of a
 /// assessor and a reporter
 pub struct Diagnostician {
     pub reporter: Box<dyn DiagnosticReporter>,
     pub assessor: Box<dyn DiagnosticAssessor>,
-    filename_fileid_mapping: HashMap<String, usize>,
+    pub(crate) filename_fileid_mapping: HashMap<String, usize>,
 }
 
 impl Diagnostician {
@@ -1069,21 +1044,6 @@ impl Diagnostician {
         Diagnostician {
             assessor: Box::new(DefaultDiagnosticAssessor::default()),
             reporter: Box::new(NullDiagnosticReporter::default()),
-            filename_fileid_mapping: HashMap::new(),
-        }
-    }
-
-    /// creates a diagnostician that just saves passed diagnostics, it is mainly used in tests
-    #[cfg(test)]
-    pub fn list_based_diagnostician(
-        diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>,
-    ) -> Diagnostician {
-        Diagnostician {
-            assessor: Box::new(DefaultDiagnosticAssessor::default()),
-            reporter: Box::new(ListBasedDiagnosticReporter {
-                diagnostics,
-                ..Default::default()
-            }),
             filename_fileid_mapping: HashMap::new(),
         }
     }

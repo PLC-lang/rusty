@@ -287,7 +287,7 @@ fn unresolvable_types_validation() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0].message,
-        "Cannot generate literal initializer for 'MyStruct2.b': Value can not be derived"
+        "Cannot generate literal initializer for 'MyStruct2.b': Value cannot be derived"
     );
 
     assert_eq!(
@@ -324,6 +324,45 @@ fn initial_nested_struct_delayed_init() {
 
     insta::assert_snapshot!(result);
     assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn struct_init_with_wrong_types_does_not_trigger_codegen_validation() {
+    let (diagnostics, error) = codegen_debug_without_unwrap(
+        "
+        VAR_GLOBAL
+            a : MyType;
+            b : MyStruct;
+        END_VAR
+
+        TYPE MyType : INT := 'hello'; END_TYPE
+
+        TYPE MyStruct: STRUCT
+          a: DINT := 'hello';
+          b: DINT := 8;
+        END_STRUCT
+        END_TYPE
+     ",
+        DebugLevel::None,
+    )
+    .expect_err("Should fail");
+
+    assert_eq!(
+        error,
+        Diagnostic::codegen_error(
+            "Some initial values were not generated",
+            SourceRange::undefined()
+        )
+    );
+    assert_eq!(diagnostics.len(), 2);
+    assert_eq!(
+        diagnostics[0].message,
+        "Cannot generate literal initializer for 'MyType': Value cannot be derived"
+    );
+    assert_eq!(
+        diagnostics[1].message,
+        "Cannot generate literal initializer for 'MyStruct.a': Value cannot be derived"
+    );
 }
 
 #[test]
