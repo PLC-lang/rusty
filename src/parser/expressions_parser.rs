@@ -245,7 +245,7 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
             };
             lexer.accept_diagnostic(diagnostic);
             statement
-        },
+        }
     }
 }
 
