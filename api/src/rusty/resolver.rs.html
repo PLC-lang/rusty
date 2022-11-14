@@ -1741,6 +1741,13 @@
 <span id="1736">1736</span>
 <span id="1737">1737</span>
 <span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2730,10 +2737,17 @@
                 {
                     <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">index</span>
-                        .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">inner_type_name</span>)
+                        .<span class="ident">get_effective_type_by_name</span>(<span class="ident">inner_type_name</span>)
+                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                            <span class="self">self</span>.<span class="ident">annotation_map</span>
+                                .<span class="ident">new_index</span>
+                                .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">inner_type_name</span>)
+                        })
                         .<span class="ident">get_name</span>();
+                    <span class="comment">// borrow-checker won&#39;t allow using t in annotate() without claiming ownership first due to immutable borrow</span>
+                    <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">to_owned</span>();
                     <span class="self">self</span>.<span class="ident">annotation_map</span>
-                        .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">t</span>));
+                        .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">t</span>.<span class="ident">as_str</span>()));
                 }
             }
             <span class="ident">AstStatement::DirectAccess</span> { <span class="ident">access</span>, <span class="ident">index</span>, .. } =&gt; {
