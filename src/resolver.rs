@@ -999,35 +999,22 @@ impl<'i> TypeAnnotator<'i> {
                     ..ctx.clone()
                 };
                 visit_all_statements!(self, &ctx, index);
-                match access {
-                    crate::ast::DirectAccessType::Bit => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: BOOL_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Byte => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: BYTE_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Word => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: WORD_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::DWord => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: DWORD_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Template => {
-                        unreachable!("Templates cannot occur in direct access")
-                    }
-                }
+                let access_type = get_direct_access_type(access);
+                self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: access_type.into(),
+                    },
+                );
+            }
+            AstStatement::HardwareAccess { access, .. } => {
+                let access_type = get_direct_access_type(access);
+                self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: access_type.into(),
+                    },
+                );
             }
             AstStatement::BinaryExpression {
                 left,
@@ -1626,6 +1613,16 @@ impl<'i> TypeAnnotator<'i> {
             let bigger_type = bigger_type.clone();
             self.update_expected_types(&bigger_type, statement);
         }
+    }
+}
+
+fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str {
+    match access {
+        crate::ast::DirectAccessType::Bit => BOOL_TYPE,
+        crate::ast::DirectAccessType::Byte => BYTE_TYPE,
+        crate::ast::DirectAccessType::Word => WORD_TYPE,
+        crate::ast::DirectAccessType::DWord => DWORD_TYPE,
+        crate::ast::DirectAccessType::Template => VOID_TYPE,
     }
 }
 

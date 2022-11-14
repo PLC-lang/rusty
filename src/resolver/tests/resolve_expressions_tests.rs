@@ -10,7 +10,7 @@ use crate::{
     test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
     typesystem::{
         DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
-        LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -3617,4 +3617,45 @@ fn resolve_return_variable_in_nested_call() {
 
     // AND we want a call passing the return-variable as apointer (actually the adress as a LWORD)
     assert_snapshot!(codegen(src));
+}
+
+#[test]
+fn hardware_access_types_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM prg
+        VAR
+          x1,x2 : BYTE;
+          y1,y2 : INT;
+        END_VAR
+          x1 := %IB1.2;
+          x2 := %QW1.2;
+          y1 := %MD1.2;
+          y2 := %GX1.2;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[0] {
+        assert_type_and_hint!(&annotations, &index, &*right, BYTE_TYPE, Some(BYTE_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[1] {
+        assert_type_and_hint!(&annotations, &index, &*right, WORD_TYPE, Some(BYTE_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[2] {
+        assert_type_and_hint!(&annotations, &index, &*right, DWORD_TYPE, Some(INT_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[3] {
+        assert_type_and_hint!(&annotations, &index, &*right, BOOL_TYPE, Some(INT_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+    // assert_type_and_hint!()
 }
