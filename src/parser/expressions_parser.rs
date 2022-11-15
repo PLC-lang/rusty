@@ -11,6 +11,8 @@ use core::str::Split;
 use regex::{Captures, Regex};
 use std::str::FromStr;
 
+use super::parse_hardware_access;
+
 macro_rules! parse_left_associative_expression {
     ($lexer: expr, $action : expr,
         $( $pattern:pat_param )|+,
@@ -305,6 +307,9 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
         // ...and if not then this token may be anything
         _ => match lexer.token {
             Identifier => parse_qualified_reference(lexer),
+            HardwareAccess((hw_type, access_type)) => {
+                parse_hardware_access(lexer, hw_type, access_type)
+            }
             LiteralInteger => parse_literal_number(lexer, false),
             LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),
             LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, false),
