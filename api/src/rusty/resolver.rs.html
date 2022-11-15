@@ -1745,9 +1745,6 @@
 <span id="1740">1740</span>
 <span id="1741">1741</span>
 <span id="1742">1742</span>
-<span id="1743">1743</span>
-<span id="1744">1744</span>
-<span id="1745">1745</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2756,35 +2753,22 @@
                     ..<span class="ident">ctx</span>.<span class="ident">clone</span>()
                 };
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">index</span>);
-                <span class="kw">match</span> <span class="ident">access</span> {
-                    <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Bit</span> =&gt; <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
-                        <span class="ident">statement</span>,
-                        <span class="ident">StatementAnnotation::Value</span> {
-                            <span class="ident">resulting_type</span>: <span class="ident">BOOL_TYPE</span>.<span class="ident">into</span>(),
-                        },
-                    ),
-                    <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span> =&gt; <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
-                        <span class="ident">statement</span>,
-                        <span class="ident">StatementAnnotation::Value</span> {
-                            <span class="ident">resulting_type</span>: <span class="ident">BYTE_TYPE</span>.<span class="ident">into</span>(),
-                        },
-                    ),
-                    <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span> =&gt; <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
-                        <span class="ident">statement</span>,
-                        <span class="ident">StatementAnnotation::Value</span> {
-                            <span class="ident">resulting_type</span>: <span class="ident">WORD_TYPE</span>.<span class="ident">into</span>(),
-                        },
-                    ),
-                    <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span> =&gt; <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
-                        <span class="ident">statement</span>,
-                        <span class="ident">StatementAnnotation::Value</span> {
-                            <span class="ident">resulting_type</span>: <span class="ident">DWORD_TYPE</span>.<span class="ident">into</span>(),
-                        },
-                    ),
-                    <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Template</span> =&gt; {
-                        <span class="macro">unreachable!</span>(<span class="string">&quot;Templates cannot occur in direct access&quot;</span>)
-                    }
-                }
+                <span class="kw">let</span> <span class="ident">access_type</span> <span class="op">=</span> <span class="ident">get_direct_access_type</span>(<span class="ident">access</span>);
+                <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                    <span class="ident">statement</span>,
+                    <span class="ident">StatementAnnotation::Value</span> {
+                        <span class="ident">resulting_type</span>: <span class="ident">access_type</span>.<span class="ident">into</span>(),
+                    },
+                );
+            }
+            <span class="ident">AstStatement::HardwareAccess</span> { <span class="ident">access</span>, .. } =&gt; {
+                <span class="kw">let</span> <span class="ident">access_type</span> <span class="op">=</span> <span class="ident">get_direct_access_type</span>(<span class="ident">access</span>);
+                <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                    <span class="ident">statement</span>,
+                    <span class="ident">StatementAnnotation::Value</span> {
+                        <span class="ident">resulting_type</span>: <span class="ident">access_type</span>.<span class="ident">into</span>(),
+                    },
+                );
             }
             <span class="ident">AstStatement::BinaryExpression</span> {
                 <span class="ident">left</span>,
@@ -3383,6 +3367,16 @@
             <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span> <span class="ident">bigger_type</span>.<span class="ident">clone</span>();
             <span class="self">self</span>.<span class="ident">update_expected_types</span>(<span class="kw-2">&amp;</span><span class="ident">bigger_type</span>, <span class="ident">statement</span>);
         }
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">get_direct_access_type</span>(<span class="ident">access</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::ast::DirectAccessType</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">match</span> <span class="ident">access</span> {
+        <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Bit</span> =&gt; <span class="ident">BOOL_TYPE</span>,
+        <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span> =&gt; <span class="ident">BYTE_TYPE</span>,
+        <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span> =&gt; <span class="ident">WORD_TYPE</span>,
+        <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span> =&gt; <span class="ident">DWORD_TYPE</span>,
+        <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Template</span> =&gt; <span class="ident">VOID_TYPE</span>,
     }
 }
 

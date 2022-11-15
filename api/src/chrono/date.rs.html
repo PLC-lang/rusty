@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.22/src/date.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.23/src/date.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../chrono/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -636,10 +636,23 @@
 <span id="631">631</span>
 <span id="632">632</span>
 <span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
 </pre><pre class="rust"><code><span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
 
 <span class="doccomment">//! ISO 8601 calendar date with time zone.</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">use</span> <span class="ident">core::borrow::Borrow</span>;
@@ -686,11 +699,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// - Once constructed as a full `DateTime`, [`DateTime::date`] and other associated</span>
 <span class="doccomment">///   methods should return those for the original `Date`. For example, if `dt =</span>
-<span class="doccomment">///   tz.ymd(y,m,d).hms(h,n,s)` were valid, `dt.date() == tz.ymd(y,m,d)`.</span>
+<span class="doccomment">///   tz.ymd_opt(y,m,d).unwrap().hms(h,n,s)` were valid, `dt.date() == tz.ymd_opt(y,m,d).unwrap()`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// - The date is timezone-agnostic up to one day (i.e. practically always),</span>
 <span class="doccomment">///   so the local date and UTC date should be equal for most cases</span>
 <span class="doccomment">///   even though the raw calculation between `NaiveDate` and `Duration` may not.</span>
+<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.23&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use `NaiveDate` or `DateTime&lt;Tz&gt;` instead&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rkyv&quot;</span>, <span class="ident">derive</span>(<span class="ident">Archive</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Tz</span>: <span class="ident">TimeZone</span><span class="op">&gt;</span> {
@@ -731,6 +745,7 @@
     <span class="doccomment">/// The offset in the current date is preserved.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics on invalid hour, minute and/or second.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.23&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use and_hms_opt() instead&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">and_hms_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid time&quot;</span>)
@@ -750,6 +765,7 @@
     <span class="doccomment">/// The offset in the current date is preserved.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics on invalid hour, minute, second and/or millisecond.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.23&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use and_hms_milli_opt() instead&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_milli</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">milli</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">and_hms_milli_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">milli</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid time&quot;</span>)
@@ -776,6 +792,7 @@
     <span class="doccomment">/// The offset in the current date is preserved.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics on invalid hour, minute, second and/or microsecond.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.23&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use and_hms_micro_opt() instead&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_micro</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">micro</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">and_hms_micro_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">micro</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid time&quot;</span>)
@@ -802,6 +819,7 @@
     <span class="doccomment">/// The offset in the current date is preserved.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics on invalid hour, minute, second and/or nanosecond.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.23&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use and_hms_nano_opt() instead&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_hms_nano</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hour</span>: <span class="ident">u32</span>, <span class="ident">min</span>: <span class="ident">u32</span>, <span class="ident">sec</span>: <span class="ident">u32</span>, <span class="ident">nano</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">and_hms_nano_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">nano</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid time&quot;</span>)
@@ -826,6 +844,7 @@
     <span class="doccomment">/// Makes a new `Date` for the next date.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics when `self` is the last representable date.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.23&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use succ_opt() instead&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">succ_opt</span>().<span class="ident">expect</span>(<span class="string">&quot;out of bound&quot;</span>)
@@ -842,6 +861,7 @@
     <span class="doccomment">/// Makes a new `Date` for the prior date.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics when `self` is the first representable date.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.23&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use pred_opt() instead&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pred</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">pred_opt</span>().<span class="ident">expect</span>(<span class="string">&quot;out of bound&quot;</span>)
@@ -920,15 +940,7 @@
 
     <span class="doccomment">/// Returns the number of whole years from the given `base` until `self`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">years_since</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">base</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">years</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">year</span>() <span class="op">-</span> <span class="ident">base</span>.<span class="ident">year</span>();
-        <span class="kw">if</span> (<span class="self">self</span>.<span class="ident">month</span>(), <span class="self">self</span>.<span class="ident">day</span>()) <span class="op">&lt;</span> (<span class="ident">base</span>.<span class="ident">month</span>(), <span class="ident">base</span>.<span class="ident">day</span>()) {
-            <span class="ident">years</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-        }
-
-        <span class="kw">match</span> <span class="ident">years</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="bool-val">true</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">years</span> <span class="kw">as</span> <span class="ident">u32</span>),
-            <span class="bool-val">false</span> =&gt; <span class="prelude-val">None</span>,
-        }
+        <span class="self">self</span>.<span class="ident">date</span>.<span class="ident">years_since</span>(<span class="ident">base</span>.<span class="ident">date</span>)
     }
 
     <span class="doccomment">/// The minimum possible `Date`.</span>
@@ -951,6 +963,7 @@
 {
     <span class="doccomment">/// Formats the date with the specified formatting items.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_with_items</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">items</span>: <span class="ident">I</span>) -&gt; <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -963,16 +976,8 @@
     <span class="doccomment">/// Formats the date with the specified format string.</span>
     <span class="doccomment">/// See the [`crate::format::strftime`] module</span>
     <span class="doccomment">/// on the supported escape sequences.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use chrono::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let date_time: Date&lt;Utc&gt; = Utc.ymd(2017, 04, 02);</span>
-    <span class="doccomment">/// let formatted = format!(&quot;{}&quot;, date_time.format(&quot;%d/%m/%Y&quot;));</span>
-    <span class="doccomment">/// assert_eq!(formatted, &quot;02/04/2017&quot;);</span>
-    <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">StrftimeItems</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">format_with_items</span>(<span class="ident">StrftimeItems::new</span>(<span class="ident">fmt</span>))
@@ -980,6 +985,7 @@
 
     <span class="doccomment">/// Formats the date with the specified formatting items and locale.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_localized_with_items</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>, <span class="ident">B</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1000,9 +1006,10 @@
     }
 
     <span class="doccomment">/// Formats the date with the specified format string and locale.</span>
-    <span class="doccomment">/// See the [`::format::strftime`] module</span>
+    <span class="doccomment">/// See the [`crate::format::strftime`] module</span>
     <span class="doccomment">/// on the supported escape sequences.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-locales&quot;</span>)))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_localized</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1160,7 +1167,8 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Tz</span>: <span class="ident">TimeZone</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">naive_local</span>(), <span class="self">self</span>.<span class="ident">offset</span>)
+        <span class="self">self</span>.<span class="ident">naive_local</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">offset</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
@@ -1169,7 +1177,23 @@
     <span class="ident">Tz::Offset</span>: <span class="ident">fmt::Display</span>,
 {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}{}&quot;</span>, <span class="self">self</span>.<span class="ident">naive_local</span>(), <span class="self">self</span>.<span class="ident">offset</span>)
+        <span class="self">self</span>.<span class="ident">naive_local</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">offset</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+    }
+}
+
+<span class="comment">// Note that implementation of Arbitrary cannot be automatically derived for Date&lt;Tz&gt;, due to</span>
+<span class="comment">// the nontrivial bound &lt;Tz as TimeZone&gt;::Offset: Arbitrary.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Tz</span><span class="op">&gt;</span> <span class="ident">arbitrary::Arbitrary</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Tz</span>: <span class="ident">TimeZone</span>,
+    <span class="op">&lt;</span><span class="ident">Tz</span> <span class="kw">as</span> <span class="ident">TimeZone</span><span class="op">&gt;</span><span class="ident">::Offset</span>: <span class="ident">arbitrary::Arbitrary</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">arbitrary</span>(<span class="ident">u</span>: <span class="kw-2">&amp;mut</span> <span class="ident">arbitrary::Unstructured</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">arbitrary::Result</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">NaiveDate::arbitrary</span>(<span class="ident">u</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Tz</span> <span class="kw">as</span> <span class="ident">TimeZone</span><span class="op">&gt;</span><span class="ident">::Offset::arbitrary</span>(<span class="ident">u</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">Date::from_utc</span>(<span class="ident">date</span>, <span class="ident">offset</span>))
     }
 }
 
@@ -1203,20 +1227,20 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_date_add_assign</span>() {
-        <span class="kw">let</span> <span class="ident">naivedate</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">naivedate</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Date</span>::<span class="op">&lt;</span><span class="ident">Utc</span><span class="op">&gt;</span><span class="ident">::from_utc</span>(<span class="ident">naivedate</span>, <span class="ident">Utc</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">date_add</span> <span class="op">=</span> <span class="ident">date</span>;
 
         <span class="ident">date_add</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Duration::days</span>(<span class="number">5</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">date_add</span>, <span class="ident">date</span> <span class="op">+</span> <span class="ident">Duration::days</span>(<span class="number">5</span>));
 
-        <span class="kw">let</span> <span class="ident">timezone</span> <span class="op">=</span> <span class="ident">FixedOffset::east</span>(<span class="number">60</span> <span class="op">*</span> <span class="number">60</span>);
+        <span class="kw">let</span> <span class="ident">timezone</span> <span class="op">=</span> <span class="ident">FixedOffset::east_opt</span>(<span class="number">60</span> <span class="op">*</span> <span class="number">60</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">date</span>.<span class="ident">with_timezone</span>(<span class="kw-2">&amp;</span><span class="ident">timezone</span>);
         <span class="kw">let</span> <span class="ident">date_add</span> <span class="op">=</span> <span class="ident">date_add</span>.<span class="ident">with_timezone</span>(<span class="kw-2">&amp;</span><span class="ident">timezone</span>);
 
         <span class="macro">assert_eq!</span>(<span class="ident">date_add</span>, <span class="ident">date</span> <span class="op">+</span> <span class="ident">Duration::days</span>(<span class="number">5</span>));
 
-        <span class="kw">let</span> <span class="ident">timezone</span> <span class="op">=</span> <span class="ident">FixedOffset::west</span>(<span class="number">2</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>);
+        <span class="kw">let</span> <span class="ident">timezone</span> <span class="op">=</span> <span class="ident">FixedOffset::west_opt</span>(<span class="number">2</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">date</span>.<span class="ident">with_timezone</span>(<span class="kw-2">&amp;</span><span class="ident">timezone</span>);
         <span class="kw">let</span> <span class="ident">date_add</span> <span class="op">=</span> <span class="ident">date_add</span>.<span class="ident">with_timezone</span>(<span class="kw-2">&amp;</span><span class="ident">timezone</span>);
 
@@ -1226,7 +1250,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_date_add_assign_local</span>() {
-        <span class="kw">let</span> <span class="ident">naivedate</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">naivedate</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Local</span>.<span class="ident">from_utc_date</span>(<span class="kw-2">&amp;</span><span class="ident">naivedate</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">date_add</span> <span class="op">=</span> <span class="ident">date</span>;
@@ -1237,20 +1261,20 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_date_sub_assign</span>() {
-        <span class="kw">let</span> <span class="ident">naivedate</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">naivedate</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Date</span>::<span class="op">&lt;</span><span class="ident">Utc</span><span class="op">&gt;</span><span class="ident">::from_utc</span>(<span class="ident">naivedate</span>, <span class="ident">Utc</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">date_sub</span> <span class="op">=</span> <span class="ident">date</span>;
 
         <span class="ident">date_sub</span> <span class="op">-</span><span class="op">=</span> <span class="ident">Duration::days</span>(<span class="number">5</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">date_sub</span>, <span class="ident">date</span> <span class="op">-</span> <span class="ident">Duration::days</span>(<span class="number">5</span>));
 
-        <span class="kw">let</span> <span class="ident">timezone</span> <span class="op">=</span> <span class="ident">FixedOffset::east</span>(<span class="number">60</span> <span class="op">*</span> <span class="number">60</span>);
+        <span class="kw">let</span> <span class="ident">timezone</span> <span class="op">=</span> <span class="ident">FixedOffset::east_opt</span>(<span class="number">60</span> <span class="op">*</span> <span class="number">60</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">date</span>.<span class="ident">with_timezone</span>(<span class="kw-2">&amp;</span><span class="ident">timezone</span>);
         <span class="kw">let</span> <span class="ident">date_sub</span> <span class="op">=</span> <span class="ident">date_sub</span>.<span class="ident">with_timezone</span>(<span class="kw-2">&amp;</span><span class="ident">timezone</span>);
 
         <span class="macro">assert_eq!</span>(<span class="ident">date_sub</span>, <span class="ident">date</span> <span class="op">-</span> <span class="ident">Duration::days</span>(<span class="number">5</span>));
 
-        <span class="kw">let</span> <span class="ident">timezone</span> <span class="op">=</span> <span class="ident">FixedOffset::west</span>(<span class="number">2</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>);
+        <span class="kw">let</span> <span class="ident">timezone</span> <span class="op">=</span> <span class="ident">FixedOffset::west_opt</span>(<span class="number">2</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">date</span>.<span class="ident">with_timezone</span>(<span class="kw-2">&amp;</span><span class="ident">timezone</span>);
         <span class="kw">let</span> <span class="ident">date_sub</span> <span class="op">=</span> <span class="ident">date_sub</span>.<span class="ident">with_timezone</span>(<span class="kw-2">&amp;</span><span class="ident">timezone</span>);
 
@@ -1260,7 +1284,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_date_sub_assign_local</span>() {
-        <span class="kw">let</span> <span class="ident">naivedate</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">naivedate</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Local</span>.<span class="ident">from_utc_date</span>(<span class="kw-2">&amp;</span><span class="ident">naivedate</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">date_sub</span> <span class="op">=</span> <span class="ident">date</span>;

@@ -1023,6 +1023,11 @@
 <span id="1018">1018</span>
 <span id="1019">1019</span>
 <span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1035,6 +1040,8 @@
 <span class="kw">use</span> <span class="ident">core::str::Split</span>;
 <span class="kw">use</span> <span class="ident">regex</span>::{<span class="ident">Captures</span>, <span class="ident">Regex</span>};
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::parse_hardware_access</span>;
 
 <span class="macro">macro_rules!</span> <span class="ident">parse_left_associative_expression</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">action</span> : <span class="ident">expr</span>,
@@ -1330,6 +1337,9 @@
         <span class="comment">// ...and if not then this token may be anything</span>
         <span class="kw">_</span> =&gt; <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
             <span class="ident">Identifier</span> =&gt; <span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>),
+            <span class="ident">HardwareAccess</span>((<span class="ident">hw_type</span>, <span class="ident">access_type</span>)) =&gt; {
+                <span class="ident">parse_hardware_access</span>(<span class="ident">lexer</span>, <span class="ident">hw_type</span>, <span class="ident">access_type</span>)
+            }
             <span class="ident">LiteralInteger</span> =&gt; <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>),
             <span class="ident">LiteralIntegerBin</span> =&gt; <span class="ident">parse_literal_number_with_modifier</span>(<span class="ident">lexer</span>, <span class="number">2</span>, <span class="bool-val">false</span>),
             <span class="ident">LiteralIntegerOct</span> =&gt; <span class="ident">parse_literal_number_with_modifier</span>(<span class="ident">lexer</span>, <span class="number">8</span>, <span class="bool-val">false</span>),

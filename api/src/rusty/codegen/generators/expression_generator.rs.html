@@ -2714,6 +2714,8 @@
 <span id="2709">2709</span>
 <span id="2710">2710</span>
 <span id="2711">2711</span>
+<span id="2712">2712</span>
+<span id="2713">2713</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -2933,6 +2935,8 @@
             <span class="ident">AstStatement::UnaryExpression</span> {
                 <span class="ident">operator</span>, <span class="ident">value</span>, ..
             } =&gt; <span class="self">self</span>.<span class="ident">generate_unary_expression</span>(<span class="ident">operator</span>, <span class="ident">value</span>),
+            <span class="comment">// TODO: Hardware access needs to be evaluated, see #648</span>
+            <span class="ident">AstStatement::HardwareAccess</span> { .. } =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i32_type</span>().<span class="ident">const_zero</span>().<span class="ident">into</span>()),
             <span class="comment">//fallback</span>
             <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">generate_literal</span>(<span class="ident">expression</span>),
         }

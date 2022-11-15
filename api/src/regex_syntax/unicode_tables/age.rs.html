@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/unicode_tables/age.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>age.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.28/src/unicode_tables/age.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>age.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1758,13 +1758,49 @@
 <span id="1753">1753</span>
 <span id="1754">1754</span>
 <span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
 </pre><pre class="rust"><code><span class="comment">// DO NOT EDIT THIS FILE. IT WAS AUTOMATICALLY GENERATED BY:</span>
 <span class="comment">//</span>
-<span class="comment">//   ucd-generate age /tmp/ucd --chars</span>
+<span class="comment">//   ucd-generate age ucd-15.0.0 --chars</span>
 <span class="comment">//</span>
-<span class="comment">// Unicode version: 14.0.0.</span>
+<span class="comment">// Unicode version: 15.0.0.</span>
 <span class="comment">//</span>
-<span class="comment">// ucd-generate 0.2.11 is available on crates.io.</span>
+<span class="comment">// ucd-generate 0.2.14 is available on crates.io.</span>
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BY_NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)])] <span class="op">=</span> <span class="kw-2">&amp;</span>[
     (<span class="string">&quot;V10_0&quot;</span>, <span class="ident">V10_0</span>),
@@ -1773,6 +1809,7 @@
     (<span class="string">&quot;V12_1&quot;</span>, <span class="ident">V12_1</span>),
     (<span class="string">&quot;V13_0&quot;</span>, <span class="ident">V13_0</span>),
     (<span class="string">&quot;V14_0&quot;</span>, <span class="ident">V14_0</span>),
+    (<span class="string">&quot;V15_0&quot;</span>, <span class="ident">V15_0</span>),
     (<span class="string">&quot;V1_1&quot;</span>, <span class="ident">V1_1</span>),
     (<span class="string">&quot;V2_0&quot;</span>, <span class="ident">V2_0</span>),
     (<span class="string">&quot;V2_1&quot;</span>, <span class="ident">V2_1</span>),
@@ -2104,6 +2141,41 @@
     (<span class="string">&#39;🫰&#39;</span>, <span class="string">&#39;🫶&#39;</span>),
     (<span class="string">&#39;𪛞&#39;</span>, <span class="string">&#39;𪛟&#39;</span>),
     (<span class="string">&#39;𫜵&#39;</span>, <span class="string">&#39;𫜸&#39;</span>),
+];
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">V15_0</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    (<span class="string">&#39;ೳ&#39;</span>, <span class="string">&#39;ೳ&#39;</span>),
+    (<span class="string">&#39;\u{ece}&#39;</span>, <span class="string">&#39;\u{ece}&#39;</span>),
+    (<span class="string">&#39;\u{10efd}&#39;</span>, <span class="string">&#39;\u{10eff}&#39;</span>),
+    (<span class="string">&#39;𑈿&#39;</span>, <span class="string">&#39;\u{11241}&#39;</span>),
+    (<span class="string">&#39;𑬀&#39;</span>, <span class="string">&#39;𑬉&#39;</span>),
+    (<span class="string">&#39;\u{11f00}&#39;</span>, <span class="string">&#39;𑼐&#39;</span>),
+    (<span class="string">&#39;𑼒&#39;</span>, <span class="string">&#39;\u{11f3a}&#39;</span>),
+    (<span class="string">&#39;𑼾&#39;</span>, <span class="string">&#39;𑽙&#39;</span>),
+    (<span class="string">&#39;𓐯&#39;</span>, <span class="string">&#39;𓐯&#39;</span>),
+    (<span class="string">&#39;\u{13439}&#39;</span>, <span class="string">&#39;\u{13455}&#39;</span>),
+    (<span class="string">&#39;𛄲&#39;</span>, <span class="string">&#39;𛄲&#39;</span>),
+    (<span class="string">&#39;𛅕&#39;</span>, <span class="string">&#39;𛅕&#39;</span>),
+    (<span class="string">&#39;𝋀&#39;</span>, <span class="string">&#39;𝋓&#39;</span>),
+    (<span class="string">&#39;𝼥&#39;</span>, <span class="string">&#39;𝼪&#39;</span>),
+    (<span class="string">&#39;𞀰&#39;</span>, <span class="string">&#39;𞁭&#39;</span>),
+    (<span class="string">&#39;\u{1e08f}&#39;</span>, <span class="string">&#39;\u{1e08f}&#39;</span>),
+    (<span class="string">&#39;𞓐&#39;</span>, <span class="string">&#39;𞓹&#39;</span>),
+    (<span class="string">&#39;🛜&#39;</span>, <span class="string">&#39;🛜&#39;</span>),
+    (<span class="string">&#39;🝴&#39;</span>, <span class="string">&#39;🝶&#39;</span>),
+    (<span class="string">&#39;🝻&#39;</span>, <span class="string">&#39;🝿&#39;</span>),
+    (<span class="string">&#39;🟙&#39;</span>, <span class="string">&#39;🟙&#39;</span>),
+    (<span class="string">&#39;🩵&#39;</span>, <span class="string">&#39;🩷&#39;</span>),
+    (<span class="string">&#39;🪇&#39;</span>, <span class="string">&#39;🪈&#39;</span>),
+    (<span class="string">&#39;🪭&#39;</span>, <span class="string">&#39;🪯&#39;</span>),
+    (<span class="string">&#39;🪻&#39;</span>, <span class="string">&#39;🪽&#39;</span>),
+    (<span class="string">&#39;🪿&#39;</span>, <span class="string">&#39;🪿&#39;</span>),
+    (<span class="string">&#39;🫎&#39;</span>, <span class="string">&#39;🫏&#39;</span>),
+    (<span class="string">&#39;🫚&#39;</span>, <span class="string">&#39;🫛&#39;</span>),
+    (<span class="string">&#39;🫨&#39;</span>, <span class="string">&#39;🫨&#39;</span>),
+    (<span class="string">&#39;🫷&#39;</span>, <span class="string">&#39;🫸&#39;</span>),
+    (<span class="string">&#39;𫜹&#39;</span>, <span class="string">&#39;𫜹&#39;</span>),
+    (<span class="string">&#39;𱍐&#39;</span>, <span class="string">&#39;𲎯&#39;</span>),
 ];
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">V1_1</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[

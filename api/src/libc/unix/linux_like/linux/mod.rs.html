@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.135/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.137/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -4383,6 +4383,93 @@
 <span id="4378">4378</span>
 <span id="4379">4379</span>
 <span id="4380">4380</span>
+<span id="4381">4381</span>
+<span id="4382">4382</span>
+<span id="4383">4383</span>
+<span id="4384">4384</span>
+<span id="4385">4385</span>
+<span id="4386">4386</span>
+<span id="4387">4387</span>
+<span id="4388">4388</span>
+<span id="4389">4389</span>
+<span id="4390">4390</span>
+<span id="4391">4391</span>
+<span id="4392">4392</span>
+<span id="4393">4393</span>
+<span id="4394">4394</span>
+<span id="4395">4395</span>
+<span id="4396">4396</span>
+<span id="4397">4397</span>
+<span id="4398">4398</span>
+<span id="4399">4399</span>
+<span id="4400">4400</span>
+<span id="4401">4401</span>
+<span id="4402">4402</span>
+<span id="4403">4403</span>
+<span id="4404">4404</span>
+<span id="4405">4405</span>
+<span id="4406">4406</span>
+<span id="4407">4407</span>
+<span id="4408">4408</span>
+<span id="4409">4409</span>
+<span id="4410">4410</span>
+<span id="4411">4411</span>
+<span id="4412">4412</span>
+<span id="4413">4413</span>
+<span id="4414">4414</span>
+<span id="4415">4415</span>
+<span id="4416">4416</span>
+<span id="4417">4417</span>
+<span id="4418">4418</span>
+<span id="4419">4419</span>
+<span id="4420">4420</span>
+<span id="4421">4421</span>
+<span id="4422">4422</span>
+<span id="4423">4423</span>
+<span id="4424">4424</span>
+<span id="4425">4425</span>
+<span id="4426">4426</span>
+<span id="4427">4427</span>
+<span id="4428">4428</span>
+<span id="4429">4429</span>
+<span id="4430">4430</span>
+<span id="4431">4431</span>
+<span id="4432">4432</span>
+<span id="4433">4433</span>
+<span id="4434">4434</span>
+<span id="4435">4435</span>
+<span id="4436">4436</span>
+<span id="4437">4437</span>
+<span id="4438">4438</span>
+<span id="4439">4439</span>
+<span id="4440">4440</span>
+<span id="4441">4441</span>
+<span id="4442">4442</span>
+<span id="4443">4443</span>
+<span id="4444">4444</span>
+<span id="4445">4445</span>
+<span id="4446">4446</span>
+<span id="4447">4447</span>
+<span id="4448">4448</span>
+<span id="4449">4449</span>
+<span id="4450">4450</span>
+<span id="4451">4451</span>
+<span id="4452">4452</span>
+<span id="4453">4453</span>
+<span id="4454">4454</span>
+<span id="4455">4455</span>
+<span id="4456">4456</span>
+<span id="4457">4457</span>
+<span id="4458">4458</span>
+<span id="4459">4459</span>
+<span id="4460">4460</span>
+<span id="4461">4461</span>
+<span id="4462">4462</span>
+<span id="4463">4463</span>
+<span id="4464">4464</span>
+<span id="4465">4465</span>
+<span id="4466">4466</span>
+<span id="4467">4467</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Linux-specific definitions for linux-like values</span>
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">useconds_t</span> <span class="op">=</span> <span class="ident">u32</span>;
@@ -4988,6 +5075,21 @@
         <span class="kw">pub</span> <span class="ident">src_length</span>: <span class="ident">::__u64</span>,
         <span class="kw">pub</span> <span class="ident">dest_offset</span>: <span class="ident">::__u64</span>,
     }
+
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">__c_anonymous_ifru_map</span> {
+        <span class="kw">pub</span> <span class="ident">mem_start</span>: <span class="ident">::c_ulong</span>,
+        <span class="kw">pub</span> <span class="ident">mem_end</span>: <span class="ident">::c_ulong</span>,
+        <span class="kw">pub</span> <span class="ident">base_addr</span>: <span class="ident">::c_ushort</span>,
+        <span class="kw">pub</span> <span class="ident">irq</span>: <span class="ident">::c_uchar</span>,
+        <span class="kw">pub</span> <span class="ident">dma</span>: <span class="ident">::c_uchar</span>,
+        <span class="kw">pub</span> <span class="ident">port</span>: <span class="ident">::c_uchar</span>,
+    }
+
+   <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">in6_ifreq</span> {
+       <span class="kw">pub</span> <span class="ident">ifr6_addr</span>: <span class="ident">::in6_addr</span>,
+       <span class="kw">pub</span> <span class="ident">ifr6_prefixlen</span>: <span class="ident">u32</span>,
+       <span class="kw">pub</span> <span class="ident">ifr6_ifindex</span>: <span class="ident">::c_int</span>,
+   }
 }
 
 <span class="macro">s_no_extra_traits!</span> {
@@ -5074,6 +5176,32 @@
         <span class="kw">pub</span> <span class="ident">mq_curmsgs</span>: <span class="ident">::c_long</span>,
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)))]</span>
         <span class="ident">pad</span>: [<span class="ident">::c_long</span>; <span class="number">4</span>],
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libc_union</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">union</span> <span class="ident">__c_anonymous_ifr_ifru</span> {
+        <span class="kw">pub</span> <span class="ident">ifru_addr</span>: <span class="ident">::sockaddr</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_dstaddr</span>: <span class="ident">::sockaddr</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_broadaddr</span>: <span class="ident">::sockaddr</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_netmask</span>: <span class="ident">::sockaddr</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_hwaddr</span>: <span class="ident">::sockaddr</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_flags</span>: <span class="ident">::c_short</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_ifindex</span>: <span class="ident">::c_int</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_metric</span>: <span class="ident">::c_int</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_mtu</span>: <span class="ident">::c_int</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_map</span>: <span class="ident">__c_anonymous_ifru_map</span>,
+        <span class="kw">pub</span> <span class="ident">ifru_slave</span>: [<span class="ident">::c_char</span>; <span class="ident">::IFNAMSIZ</span>],
+        <span class="kw">pub</span> <span class="ident">ifru_newname</span>: [<span class="ident">::c_char</span>; <span class="ident">::IFNAMSIZ</span>],
+        <span class="kw">pub</span> <span class="ident">ifru_data</span>: <span class="kw-2">*mut</span> <span class="ident">::c_char</span>,
+    }
+
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ifreq</span> {
+        <span class="doccomment">/// interface name, e.g. &quot;en0&quot;</span>
+        <span class="kw">pub</span> <span class="ident">ifr_name</span>: [<span class="ident">::c_char</span>; <span class="ident">::IFNAMSIZ</span>],
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libc_union</span>)]</span>
+        <span class="kw">pub</span> <span class="ident">ifr_ifru</span>: <span class="ident">__c_anonymous_ifr_ifru</span>,
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">libc_union</span>))]</span>
+        <span class="kw">pub</span> <span class="ident">ifr_ifru</span>: <span class="ident">::sockaddr</span>,
     }
 }
 
@@ -5446,6 +5574,34 @@
                 <span class="self">self</span>.<span class="ident">mq_maxmsg</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
                 <span class="self">self</span>.<span class="ident">mq_msgsize</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
                 <span class="self">self</span>.<span class="ident">mq_curmsgs</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+            }
+        }
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libc_union</span>)]</span>
+        <span class="kw">impl</span> <span class="ident">::fmt::Debug</span> <span class="kw">for</span> <span class="ident">__c_anonymous_ifr_ifru</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">::fmt::Formatter</span>) -&gt; <span class="ident">::fmt::Result</span> {
+                <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ifr_ifru&quot;</span>)
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_addr&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_addr</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_dstaddr&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_dstaddr</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_broadaddr&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_broadaddr</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_netmask&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_netmask</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_hwaddr&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_hwaddr</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_flags&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_flags</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_ifindex&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_ifindex</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_metric&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_metric</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_mtu&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_mtu</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_map&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_map</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_slave&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_slave</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_newname&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_newname</span> })
+                    .<span class="ident">field</span>(<span class="string">&quot;ifru_data&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifru_data</span> })
+                    .<span class="ident">finish</span>()
+            }
+        }
+        <span class="kw">impl</span> <span class="ident">::fmt::Debug</span> <span class="kw">for</span> <span class="ident">ifreq</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">::fmt::Formatter</span>) -&gt; <span class="ident">::fmt::Result</span> {
+                <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ifreq&quot;</span>)
+                    .<span class="ident">field</span>(<span class="string">&quot;ifr_name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifr_name</span>)
+                    .<span class="ident">field</span>(<span class="string">&quot;ifr_ifru&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ifr_ifru</span>)
+                    .<span class="ident">finish</span>()
             }
         }
     }
@@ -6937,6 +7093,24 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCSIFSLAVE</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008930</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCADDMULTI</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008931</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCDELMULTI</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008932</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGIFINDEX</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008933</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOGIFINDEX</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="ident">SIOCGIFINDEX</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCSIFPFLAGS</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008934</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGIFPFLAGS</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008935</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCDIFADDR</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008936</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCSIFHWBROADCAST</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008937</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGIFCOUNT</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008938</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGIFBR</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008940</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCSIFBR</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008941</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGIFTXQLEN</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008942</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCSIFTXQLEN</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008943</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCETHTOOL</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008946</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGMIIPHY</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008947</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGMIIREG</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008948</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCSMIIREG</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008949</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCWANDEV</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x0000894A</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCOUTQNSD</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x0000894B</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGSKNS</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x0000894C</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCDARP</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008953</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCGARP</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008954</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIOCSARP</span>: <span class="ident">::c_ulong</span> <span class="op">=</span> <span class="number">0x00008955</span>;

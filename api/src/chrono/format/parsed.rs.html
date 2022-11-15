@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.22/src/format/parsed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parsed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.23/src/format/parsed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parsed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../chrono/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1263,6 +1263,36 @@
 <span id="1258">1258</span>
 <span id="1259">1259</span>
 <span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
 </pre><pre class="rust"><code><span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
 
@@ -1490,7 +1520,7 @@
     <span class="doccomment">/// (`false` for AM, `true` for PM)</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ampm</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="ident">set_if_consistent</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">hour_div_12</span>, <span class="kw">if</span> <span class="ident">value</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> })
+        <span class="ident">set_if_consistent</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">hour_div_12</span>, <span class="ident">u32::from</span>(<span class="ident">value</span>))
     }
 
     <span class="doccomment">/// Tries to set the [`hour_mod_12`](#structfield.hour_mod_12) field from</span>
@@ -2047,7 +2077,7 @@
             )
         }
 
-        <span class="kw">let</span> <span class="ident">ymd</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>));
+        <span class="kw">let</span> <span class="ident">ymd</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">NaiveDate::from_ymd_opt</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">unwrap</span>());
 
         <span class="comment">// ymd: omission of fields</span>
         <span class="macro">assert_eq!</span>(<span class="macro">parse!</span>(), <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>));
@@ -2234,8 +2264,8 @@
             )
         }
 
-        <span class="kw">let</span> <span class="ident">hms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">h</span>, <span class="ident">m</span>, <span class="ident">s</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">NaiveTime::from_hms</span>(<span class="ident">h</span>, <span class="ident">m</span>, <span class="ident">s</span>));
-        <span class="kw">let</span> <span class="ident">hmsn</span> <span class="op">=</span> <span class="op">|</span><span class="ident">h</span>, <span class="ident">m</span>, <span class="ident">s</span>, <span class="ident">n</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">NaiveTime::from_hms_nano</span>(<span class="ident">h</span>, <span class="ident">m</span>, <span class="ident">s</span>, <span class="ident">n</span>));
+        <span class="kw">let</span> <span class="ident">hms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">h</span>, <span class="ident">m</span>, <span class="ident">s</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">NaiveTime::from_hms_opt</span>(<span class="ident">h</span>, <span class="ident">m</span>, <span class="ident">s</span>).<span class="ident">unwrap</span>());
+        <span class="kw">let</span> <span class="ident">hmsn</span> <span class="op">=</span> <span class="op">|</span><span class="ident">h</span>, <span class="ident">m</span>, <span class="ident">s</span>, <span class="ident">n</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">NaiveTime::from_hms_nano_opt</span>(<span class="ident">h</span>, <span class="ident">m</span>, <span class="ident">s</span>, <span class="ident">n</span>).<span class="ident">unwrap</span>());
 
         <span class="comment">// omission of fields</span>
         <span class="macro">assert_eq!</span>(<span class="macro">parse!</span>(), <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>));
@@ -2290,9 +2320,12 @@
             ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) =&gt; (<span class="macro">parse!</span>(<span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>),<span class="kw-2">*</span>))
         }
 
-        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>));
-        <span class="kw">let</span> <span class="ident">ymdhmsn</span> <span class="op">=</span>
-            <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms_nano</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span>));
+        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">NaiveDate::from_ymd_opt</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">unwrap</span>().<span class="ident">and_hms_opt</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>).<span class="ident">unwrap</span>())
+        };
+        <span class="kw">let</span> <span class="ident">ymdhmsn</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span><span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">NaiveDate::from_ymd_opt</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">unwrap</span>().<span class="ident">and_hms_nano_opt</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span>).<span class="ident">unwrap</span>())
+        };
 
         <span class="comment">// omission of fields</span>
         <span class="macro">assert_eq!</span>(<span class="macro">parse!</span>(), <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>));
@@ -2346,11 +2379,12 @@
 
         <span class="comment">// more timestamps</span>
         <span class="kw">let</span> <span class="ident">max_days_from_year_1970</span> <span class="op">=</span>
-            <span class="ident">NaiveDate::MAX</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>));
-        <span class="kw">let</span> <span class="ident">year_0_from_year_1970</span> <span class="op">=</span>
-            <span class="ident">NaiveDate::from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>));
+            <span class="ident">NaiveDate::MAX</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>());
+        <span class="kw">let</span> <span class="ident">year_0_from_year_1970</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>());
         <span class="kw">let</span> <span class="ident">min_days_from_year_1970</span> <span class="op">=</span>
-            <span class="ident">NaiveDate::MIN</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>));
+            <span class="ident">NaiveDate::MIN</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>());
         <span class="macro">assert_eq!</span>(
             <span class="macro">parse!</span>(<span class="ident">timestamp</span>: <span class="ident">min_days_from_year_1970</span>.<span class="ident">num_seconds</span>()),
             <span class="ident">ymdhms</span>(<span class="ident">NaiveDate::MIN</span>.<span class="ident">year</span>(), <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
@@ -2440,7 +2474,15 @@
         }
 
         <span class="kw">let</span> <span class="ident">ymdhmsn</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span>, <span class="ident">off</span><span class="op">|</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">FixedOffset::east</span>(<span class="ident">off</span>).<span class="ident">ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms_nano</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">FixedOffset::east_opt</span>(<span class="ident">off</span>)
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">from_local_datetime</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">NaiveDate::from_ymd_opt</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>)
+                        .<span class="ident">unwrap</span>()
+                        .<span class="ident">and_hms_nano_opt</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span>)
+                        .<span class="ident">unwrap</span>(),
+                )
+                .<span class="ident">unwrap</span>())
         };
 
         <span class="macro">assert_eq!</span>(<span class="macro">parse!</span>(<span class="ident">offset</span>: <span class="number">0</span>), <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>));
@@ -2484,7 +2526,14 @@
             <span class="macro">parse!</span>(<span class="ident">Utc</span>;
                           <span class="ident">year</span>: <span class="number">2014</span>, <span class="ident">ordinal</span>: <span class="number">365</span>, <span class="ident">hour_div_12</span>: <span class="number">0</span>, <span class="ident">hour_mod_12</span>: <span class="number">4</span>,
                           <span class="ident">minute</span>: <span class="number">26</span>, <span class="ident">second</span>: <span class="number">40</span>, <span class="ident">nanosecond</span>: <span class="number">12_345_678</span>, <span class="ident">offset</span>: <span class="number">0</span>),
-            <span class="prelude-val">Ok</span>(<span class="ident">Utc</span>.<span class="ident">ymd</span>(<span class="number">2014</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms_nano</span>(<span class="number">4</span>, <span class="number">26</span>, <span class="number">40</span>, <span class="number">12_345_678</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Utc</span>
+                .<span class="ident">from_local_datetime</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">2014</span>, <span class="number">12</span>, <span class="number">31</span>)
+                        .<span class="ident">unwrap</span>()
+                        .<span class="ident">and_hms_nano_opt</span>(<span class="number">4</span>, <span class="number">26</span>, <span class="number">40</span>, <span class="number">12_345_678</span>)
+                        .<span class="ident">unwrap</span>()
+                )
+                .<span class="ident">unwrap</span>())
         );
         <span class="macro">assert_eq!</span>(
             <span class="macro">parse!</span>(<span class="ident">Utc</span>;
@@ -2493,31 +2542,42 @@
             <span class="prelude-val">Err</span>(<span class="ident">IMPOSSIBLE</span>)
         );
         <span class="macro">assert_eq!</span>(
-            <span class="macro">parse!</span>(<span class="ident">FixedOffset::east</span>(<span class="number">32400</span>);
+            <span class="macro">parse!</span>(<span class="ident">FixedOffset::east_opt</span>(<span class="number">32400</span>).<span class="ident">unwrap</span>();
                           <span class="ident">year</span>: <span class="number">2014</span>, <span class="ident">ordinal</span>: <span class="number">365</span>, <span class="ident">hour_div_12</span>: <span class="number">0</span>, <span class="ident">hour_mod_12</span>: <span class="number">4</span>,
                           <span class="ident">minute</span>: <span class="number">26</span>, <span class="ident">second</span>: <span class="number">40</span>, <span class="ident">nanosecond</span>: <span class="number">12_345_678</span>, <span class="ident">offset</span>: <span class="number">0</span>),
             <span class="prelude-val">Err</span>(<span class="ident">IMPOSSIBLE</span>)
         );
         <span class="macro">assert_eq!</span>(
-            <span class="macro">parse!</span>(<span class="ident">FixedOffset::east</span>(<span class="number">32400</span>);
+            <span class="macro">parse!</span>(<span class="ident">FixedOffset::east_opt</span>(<span class="number">32400</span>).<span class="ident">unwrap</span>();
                           <span class="ident">year</span>: <span class="number">2014</span>, <span class="ident">ordinal</span>: <span class="number">365</span>, <span class="ident">hour_div_12</span>: <span class="number">1</span>, <span class="ident">hour_mod_12</span>: <span class="number">1</span>,
                           <span class="ident">minute</span>: <span class="number">26</span>, <span class="ident">second</span>: <span class="number">40</span>, <span class="ident">nanosecond</span>: <span class="number">12_345_678</span>, <span class="ident">offset</span>: <span class="number">32400</span>),
-            <span class="prelude-val">Ok</span>(<span class="ident">FixedOffset::east</span>(<span class="number">32400</span>).<span class="ident">ymd</span>(<span class="number">2014</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms_nano</span>(<span class="number">13</span>, <span class="number">26</span>, <span class="number">40</span>, <span class="number">12_345_678</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">FixedOffset::east_opt</span>(<span class="number">32400</span>)
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">from_local_datetime</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">NaiveDate::from_ymd_opt</span>(<span class="number">2014</span>, <span class="number">12</span>, <span class="number">31</span>)
+                        .<span class="ident">unwrap</span>()
+                        .<span class="ident">and_hms_nano_opt</span>(<span class="number">13</span>, <span class="number">26</span>, <span class="number">40</span>, <span class="number">12_345_678</span>)
+                        .<span class="ident">unwrap</span>()
+                )
+                .<span class="ident">unwrap</span>())
         );
 
         <span class="comment">// single result from timestamp</span>
         <span class="macro">assert_eq!</span>(
             <span class="macro">parse!</span>(<span class="ident">Utc</span>; <span class="ident">timestamp</span>: <span class="number">1_420_000_000</span>, <span class="ident">offset</span>: <span class="number">0</span>),
-            <span class="prelude-val">Ok</span>(<span class="ident">Utc</span>.<span class="ident">ymd</span>(<span class="number">2014</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms</span>(<span class="number">4</span>, <span class="number">26</span>, <span class="number">40</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Utc</span>.<span class="ident">with_ymd_and_hms</span>(<span class="number">2014</span>, <span class="number">12</span>, <span class="number">31</span>, <span class="number">4</span>, <span class="number">26</span>, <span class="number">40</span>).<span class="ident">unwrap</span>())
         );
         <span class="macro">assert_eq!</span>(<span class="macro">parse!</span>(<span class="ident">Utc</span>; <span class="ident">timestamp</span>: <span class="number">1_420_000_000</span>, <span class="ident">offset</span>: <span class="number">32400</span>), <span class="prelude-val">Err</span>(<span class="ident">IMPOSSIBLE</span>));
         <span class="macro">assert_eq!</span>(
-            <span class="macro">parse!</span>(<span class="ident">FixedOffset::east</span>(<span class="number">32400</span>); <span class="ident">timestamp</span>: <span class="number">1_420_000_000</span>, <span class="ident">offset</span>: <span class="number">0</span>),
+            <span class="macro">parse!</span>(<span class="ident">FixedOffset::east_opt</span>(<span class="number">32400</span>).<span class="ident">unwrap</span>(); <span class="ident">timestamp</span>: <span class="number">1_420_000_000</span>, <span class="ident">offset</span>: <span class="number">0</span>),
             <span class="prelude-val">Err</span>(<span class="ident">IMPOSSIBLE</span>)
         );
         <span class="macro">assert_eq!</span>(
-            <span class="macro">parse!</span>(<span class="ident">FixedOffset::east</span>(<span class="number">32400</span>); <span class="ident">timestamp</span>: <span class="number">1_420_000_000</span>, <span class="ident">offset</span>: <span class="number">32400</span>),
-            <span class="prelude-val">Ok</span>(<span class="ident">FixedOffset::east</span>(<span class="number">32400</span>).<span class="ident">ymd</span>(<span class="number">2014</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms</span>(<span class="number">13</span>, <span class="number">26</span>, <span class="number">40</span>))
+            <span class="macro">parse!</span>(<span class="ident">FixedOffset::east_opt</span>(<span class="number">32400</span>).<span class="ident">unwrap</span>(); <span class="ident">timestamp</span>: <span class="number">1_420_000_000</span>, <span class="ident">offset</span>: <span class="number">32400</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">FixedOffset::east_opt</span>(<span class="number">32400</span>)
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">with_ymd_and_hms</span>(<span class="number">2014</span>, <span class="number">12</span>, <span class="number">31</span>, <span class="number">13</span>, <span class="number">26</span>, <span class="number">40</span>)
+                .<span class="ident">unwrap</span>())
         );
 
         <span class="comment">// TODO test with a variable time zone (for None and Ambiguous cases)</span>

@@ -425,6 +425,7 @@
 <span id="420">420</span>
 <span id="421">421</span>
 <span id="422">422</span>
+<span id="423">423</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
 <span class="kw">use</span> <span class="ident">logos::Filter</span>;
@@ -772,6 +773,7 @@
             <span class="string">&#39;i&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Input</span>),
             <span class="string">&#39;q&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Output</span>),
             <span class="string">&#39;m&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Memory</span>),
+            <span class="string">&#39;g&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::HardwareAccessType::Global</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })
         .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);

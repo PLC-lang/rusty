@@ -48,8 +48,7 @@
 <span id="43">43</span>
 <span id="44">44</span>
 <span id="45">45</span>
-<span id="46">46</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">LocalResult</span>, <span class="ident">TimeZone</span>, <span class="ident">Utc</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">chrono::NaiveDate</span>;
 
 <span class="doccomment">/// calculates the seconds in the given days, hours minutes and seconds</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calculate_dhm_time_seconds</span>(<span class="ident">day</span>: <span class="ident">f64</span>, <span class="ident">hour</span>: <span class="ident">f64</span>, <span class="ident">min</span>: <span class="ident">f64</span>, <span class="ident">sec</span>: <span class="ident">f64</span>) -&gt; <span class="ident">f64</span> {
@@ -84,9 +83,8 @@
     <span class="ident">sec</span>: <span class="ident">u32</span>,
     <span class="ident">nano</span>: <span class="ident">u32</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i64</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">LocalResult::Single</span>(<span class="ident">date_time</span>) <span class="op">=</span> <span class="ident">Utc</span>
-        .<span class="ident">ymd_opt</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>)
-        .<span class="ident">and_hms_nano_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">nano</span>)
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">date_time</span>) <span class="op">=</span> <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>)
+        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">date</span><span class="op">|</span> <span class="ident">date</span>.<span class="ident">and_hms_nano_opt</span>(<span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">nano</span>))
     {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">date_time</span>.<span class="ident">timestamp_nanos</span>());
     }
