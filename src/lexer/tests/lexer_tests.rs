@@ -871,7 +871,7 @@ fn new_lines_test_empty_string() {
 fn new_lines_test_three_lines_with_crlf() {
     let text = "A\r\nB\r\nC";
     let nl = NewLines::build(text);
-
+	dbg!(&nl);
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
@@ -881,7 +881,7 @@ fn new_lines_test_three_lines_with_crlf() {
 fn new_lines_test_three_lines_with_lf() {
     let text = "A\r\nB\r\nC";
     let nl = NewLines::build(text);
-
+	dbg!(&nl);
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
@@ -898,4 +898,15 @@ fn new_lines_test_three_long_lines_with_lf() {
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 2);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 4);
+}
+
+
+#[test]
+fn new_lines_test_three_lines_with_only_lf() {
+    let text = "A\nB\nC";
+    let nl = NewLines::build(text);
+	dbg!(&nl);
+    assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
+    assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
+    assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
 }
