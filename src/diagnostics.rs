@@ -33,18 +33,8 @@ pub enum Diagnostic {
     },
 }
 
-impl Diagnostic {
-    pub fn get_affected_ranges(&self) -> &[SourceRange] {
-        match self {
-            Diagnostic::SyntaxError { range, .. }
-            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
-            Diagnostic::GeneralError { .. } => &[],
-        }
-    }
-}
-
 #[allow(non_camel_case_types)]
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum ErrNo {
     undefined,
 
@@ -125,6 +115,42 @@ impl<T: Error> From<T> for Diagnostic {
 }
 
 impl Diagnostic {
+    /// Creates a new diagnostic with additional ranges
+    pub fn with_extra_ranges(&self, ranges: &[SourceRange]) -> Diagnostic {
+        match self {
+            Diagnostic::SyntaxError {
+                message,
+                range,
+                err_no,
+            } => {
+                let mut range = range.to_vec();
+                range.extend_from_slice(ranges);
+                Diagnostic::SyntaxError {
+                    message: message.to_string(),
+                    range,
+                    err_no: *err_no,
+                }
+            }
+            Diagnostic::ImprovementSuggestion { message, range } => {
+                let mut range = range.to_vec();
+                range.extend_from_slice(ranges);
+                Diagnostic::ImprovementSuggestion {
+                    message: message.to_string(),
+                    range,
+                }
+            }
+            Diagnostic::GeneralError { .. } => self.clone(),
+        }
+    }
+
+    pub fn get_affected_ranges(&self) -> &[SourceRange] {
+        match self {
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
+            Diagnostic::GeneralError { .. } => &[],
+        }
+    }
+
     pub fn syntax_error(message: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: message.to_string(),
@@ -436,7 +462,7 @@ impl Diagnostic {
     pub fn cannot_generate_initializer(variable_name: &str, location: SourceRange) -> Diagnostic {
         Self::codegen_error(
             &format!(
-                "Cannot generate literal initializer for '{:}': Value can not be derived",
+                "Cannot generate literal initializer for '{:}': Value cannot be derived",
                 variable_name
             ),
             location,
@@ -738,6 +764,7 @@ impl Diagnostic {
 }
 
 /// a diagnostics severity
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Severity {
     Error,
     Warning,
@@ -768,11 +795,13 @@ pub trait DiagnosticAssessor {
 #[derive(Default)]
 pub struct DefaultDiagnosticAssessor {}
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedLocation {
     pub file_handle: usize,
     pub range: Range<usize>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedDiagnostics {
     pub message: String,
     pub severity: Severity,
@@ -997,7 +1026,7 @@ impl DiagnosticReporter for NullDiagnosticReporter {
 pub struct Diagnostician {
     pub reporter: Box<dyn DiagnosticReporter>,
     pub assessor: Box<dyn DiagnosticAssessor>,
-    filename_fileid_mapping: HashMap<String, usize>,
+    pub(crate) filename_fileid_mapping: HashMap<String, usize>,
 }
 
 impl Diagnostician {
