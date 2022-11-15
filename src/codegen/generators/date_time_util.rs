@@ -1,4 +1,4 @@
-use chrono::{LocalResult, TimeZone, Utc};
+use chrono::NaiveDate;
 
 /// calculates the seconds in the given days, hours minutes and seconds
 pub fn calculate_dhm_time_seconds(day: f64, hour: f64, min: f64, sec: f64) -> f64 {
@@ -33,9 +33,8 @@ pub fn calculate_date_time(
     sec: u32,
     nano: u32,
 ) -> Result<i64, String> {
-    if let LocalResult::Single(date_time) = Utc
-        .ymd_opt(year, month, day)
-        .and_hms_nano_opt(hour, min, sec, nano)
+    if let Some(date_time) = NaiveDate::from_ymd_opt(year, month, day)
+        .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
     {
         return Ok(date_time.timestamp_nanos());
     }
