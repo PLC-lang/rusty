@@ -178,6 +178,7 @@ fn global_var_with_address() {
             aa AT %IX7 : INT; 
             bb AT %QB5.5 : INT; 
             cc AT %MD3.3.3 : INT; 
+            dd AT %GD4.3.3 : INT; 
     END_VAR ";
     let (result, diag) = parse(src);
 
@@ -196,6 +197,7 @@ fn pou_var_with_address() {
             aa AT %IX7 : INT; 
             bb AT %QB5.5 : INT; 
             cc AT %MD3.3.3 : INT; 
+            dd AT %GD4.3.3 : INT; 
     END_VAR 
     END_PROGRAM
     ";
@@ -215,6 +217,7 @@ fn struct_with_address() {
             aa AT %IX7 : INT; 
             bb AT %QB5.5 : INT; 
             cc AT %MD3.3.3 : INT; 
+            dd AT %GD4.3.3 : INT; 
     END_STRUCT
     END_TYPE
     ";

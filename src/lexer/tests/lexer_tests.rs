@@ -742,7 +742,7 @@ fn direct_access_test() {
 
 #[test]
 fn hardware_access_test() {
-    let mut lexer = lex("AT %I* %Q* %M* %IX1.1 %IB2.2 %QW5 %MD7");
+    let mut lexer = lex("AT %I* %Q* %M* %IX1.1 %IB2.2 %QW5 %MD7 %GX8");
     assert_eq!(lexer.token, KeywordAt);
     lexer.advance();
     assert_eq!(
@@ -792,6 +792,13 @@ fn hardware_access_test() {
     assert_eq!(
         lexer.token,
         HardwareAccess((HardwareAccessType::Memory, DirectAccessType::DWord))
+    );
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Global, DirectAccessType::Bit))
     );
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);

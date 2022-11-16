@@ -49,6 +49,7 @@ pub enum HardwareAccessType {
     Input,
     Output,
     Memory,
+    Global,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

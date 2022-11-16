@@ -1,5 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{diagnostics::Diagnostic, test_utils::tests::codegen_without_unwrap};
+use crate::{
+    ast::SourceRange,
+    diagnostics::Diagnostic,
+    test_utils::tests::{codegen_debug_without_unwrap, codegen_without_unwrap},
+};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -210,7 +214,7 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
 
 #[test]
 fn invalid_initial_constant_values_in_pou_variables() {
-    let result = codegen_without_unwrap(
+    let result = codegen_debug_without_unwrap(
         r#"
         VAR_GLOBAL CONSTANT
             MAX_LEN : INT := 99;
@@ -227,16 +231,22 @@ fn invalid_initial_constant_values_in_pou_variables() {
         END_PROGRAM
  
         "#,
+        crate::DebugLevel::None,
     );
 
-    if let Err(msg) = result {
+    if let Err((diagnostics, msg)) = result {
         assert_eq!(
             Diagnostic::codegen_error(
-                "Cannot generate literal initializer for 'prg.my_len': Value can not be derived",
-                (214..221).into()
+                "Some initial values were not generated",
+                SourceRange::undefined()
             ),
             msg
-        )
+        );
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(
+            &diagnostics[0].message,
+            "Cannot generate literal initializer for 'prg.my_len': Value cannot be derived"
+        );
     } else {
         panic!("expected code-gen error but got none")
     }

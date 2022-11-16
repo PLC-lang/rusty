@@ -57,7 +57,7 @@ pub struct VisitorContext<'s> {
     /// special context of the left-hand-side of an assignment in call statements
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
-    call: Option<&'s str>,
+    lhs: Option<&'s str>,
     /// true if visiting a call statement
     is_call: bool,
 
@@ -78,7 +78,7 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: Some(qualifier),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
@@ -91,7 +91,7 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: Some(pou),
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
@@ -100,11 +100,11 @@ impl<'s> VisitorContext<'s> {
     }
 
     /// returns a copy of the current context and changes the `lhs_pou` to the given pou
-    fn with_call(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
+    fn with_lhs(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: Some(lhs_pou),
+            lhs: Some(lhs_pou),
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
@@ -117,9 +117,9 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: true,
-            constant: false,
+            constant: self.constant,
             in_body: self.in_body,
             id_provider: self.id_provider.clone(),
         }
@@ -130,7 +130,7 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: self.constant,
             in_body: true,
@@ -499,7 +499,7 @@ impl<'i> TypeAnnotator<'i> {
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
-            call: None,
+            lhs: None,
             is_call: false,
             constant: false,
             in_body: false,
@@ -793,7 +793,7 @@ impl<'i> TypeAnnotator<'i> {
             {
                 //Create a new context with the left operator being the target variable type, and the
                 //right side being the local context
-                let ctx = ctx.with_call(expected_type.get_name());
+                let ctx = ctx.with_lhs(expected_type.get_name());
 
                 if matches!(initializer, AstStatement::DefaultValue { .. }) {
                     // the default-placeholder must be annotated witht he correc type,
@@ -952,7 +952,7 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, reference);
                 self.visit_statement(
                     &VisitorContext {
-                        call: None,
+                        lhs: None,
                         is_call: false,
                         constant: false,
                         pou: ctx.pou,
@@ -997,10 +997,17 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     let t = self
                         .index
-                        .get_effective_type_or_void_by_name(inner_type_name)
+                        .get_effective_type_by_name(inner_type_name)
+                        .unwrap_or_else(|_| {
+                            self.annotation_map
+                                .new_index
+                                .get_effective_type_or_void_by_name(inner_type_name)
+                        })
                         .get_name();
+                    // borrow-checker won't allow using t in annotate() without claiming ownership first due to immutable borrow
+                    let t = t.to_owned();
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(t));
+                        .annotate(statement, StatementAnnotation::value(t.as_str()));
                 }
             }
             AstStatement::DirectAccess { access, index, .. } => {
@@ -1009,35 +1016,22 @@ impl<'i> TypeAnnotator<'i> {
                     ..ctx.clone()
                 };
                 visit_all_statements!(self, &ctx, index);
-                match access {
-                    crate::ast::DirectAccessType::Bit => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: BOOL_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Byte => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: BYTE_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Word => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: WORD_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::DWord => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: DWORD_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Template => {
-                        unreachable!("Templates cannot occur in direct access")
-                    }
-                }
+                let access_type = get_direct_access_type(access);
+                self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: access_type.into(),
+                    },
+                );
+            }
+            AstStatement::HardwareAccess { access, .. } => {
+                let access_type = get_direct_access_type(access);
+                self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: access_type.into(),
+                    },
+                );
             }
             AstStatement::BinaryExpression {
                 left,
@@ -1309,7 +1303,7 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::Assignment { left, right, .. } => {
                 self.visit_statement(ctx, right);
-                if let Some(lhs) = ctx.call {
+                if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs), left);
                 } else {
@@ -1320,7 +1314,7 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::OutputAssignment { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
-                if let Some(lhs) = ctx.call {
+                if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs), left);
                 } else {
@@ -1379,10 +1373,10 @@ impl<'i> TypeAnnotator<'i> {
             unreachable!("Always a call statement");
         };
         // #604 needed for recursive function calls
-        let ctx = ctx.set_is_call();
-        self.visit_statement(&ctx, operator);
+        self.visit_statement(&ctx.set_is_call(), operator);
         let operator_qualifier = self.get_call_name(operator);
-        let ctx = ctx.with_call(operator_qualifier.as_str());
+        //Use the context without the is_call =true
+        let ctx = ctx.with_lhs(operator_qualifier.as_str());
         let parameters = if let Some(parameters) = parameters_stmt {
             self.visit_statement(&ctx, parameters);
             flatten_expression_list(parameters)
@@ -1636,6 +1630,16 @@ impl<'i> TypeAnnotator<'i> {
             let bigger_type = bigger_type.clone();
             self.update_expected_types(&bigger_type, statement);
         }
+    }
+}
+
+fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str {
+    match access {
+        crate::ast::DirectAccessType::Bit => BOOL_TYPE,
+        crate::ast::DirectAccessType::Byte => BYTE_TYPE,
+        crate::ast::DirectAccessType::Word => WORD_TYPE,
+        crate::ast::DirectAccessType::DWord => DWORD_TYPE,
+        crate::ast::DirectAccessType::Template => VOID_TYPE,
     }
 }
 

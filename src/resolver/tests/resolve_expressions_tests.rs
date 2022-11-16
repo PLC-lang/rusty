@@ -1,14 +1,16 @@
 use core::panic;
 
+use insta::assert_snapshot;
+
 use crate::{
     ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
     index::{Index, VariableType},
     lexer::IdProvider,
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
-    test_utils::tests::{annotate_with_ids, index_with_ids},
+    test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
     typesystem::{
         DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
-        LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -2843,7 +2845,7 @@ fn literals_passed_to_function_get_annotated() {
             &index,
             parameters[1],
             "__STRING_3",
-            Some("__foo_in")
+            Some("STRING")
         );
     } else {
         unreachable!();
@@ -3394,7 +3396,6 @@ fn function_block_initialization_test() {
 
 
             PROGRAM main 
-
             VAR
                 timer : TON := (PT := T#0s); 
             END_VAR
@@ -3508,5 +3509,268 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
         assert_type_and_hint!(&annotations, &index, parameters[7], "__STRING_5", None);
     } else {
         unreachable!();
+    }
+}
+
+#[test]
+fn passing_a_function_as_param_correctly_resolves_as_variable() {
+    let id_provider = IdProvider::default();
+    // GIVEN a function
+    let (unit, mut index) = index_with_ids(
+        r#"
+        {external}
+        FUNCTION printf : DINT
+        VAR_IN_OUT
+            format : STRING;
+        END_VAR
+        VAR_INPUT
+            args: ...;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            printf('Value %d, %d, %d', main, main * 10, main * 100);
+        END_FUNCTION
+    "#,
+        id_provider.clone(),
+    );
+
+    // WHEN calling another function with itself as parameter
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let call_stmt = &unit.implementations[1].statements[0];
+    // THEN the type of the parameter resolves to the original function type
+    if let AstStatement::CallStatement { parameters, .. } = call_stmt {
+        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[1],
+            DINT_TYPE,
+            Some(DINT_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[2],
+            DINT_TYPE,
+            Some(DINT_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[3],
+            DINT_TYPE,
+            Some(DINT_TYPE)
+        );
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn resolve_return_variable_in_nested_call() {
+    let id_provider = IdProvider::default();
+    // GIVEN a call statement where we take the adr of the return-variable
+    let src = "
+        FUNCTION main : DINT
+        VAR
+            x1, x2 : DINT;
+        END_VAR
+        x1 := SMC_Read(
+                    ValAddr := ADR(main));
+        END_FUNCTION
+        FUNCTION SMC_Read : DINT
+        VAR_INPUT
+            ValAddr : LWORD;
+        END_VAR
+        END_FUNCTION
+          ";
+    let (unit, mut index) = index_with_ids(src, id_provider.clone());
+
+    // THEN we check if the adr(main) really resolved to the return-variable
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let ass = &unit.implementations[0].statements[0];
+
+    if let AstStatement::Assignment { right, .. } = ass {
+        if let AstStatement::CallStatement { parameters, .. } = right.as_ref() {
+            let inner_ass = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0];
+            if let AstStatement::Assignment { right, .. } = inner_ass {
+                if let AstStatement::CallStatement { parameters, .. } = right.as_ref() {
+                    let main =
+                        ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0];
+                    let a = annotations.get(main).unwrap();
+                    assert_eq!(
+                        a,
+                        &StatementAnnotation::Variable {
+                            resulting_type: "DINT".to_string(),
+                            qualified_name: "main.main".to_string(),
+                            constant: false,
+                            variable_type: VariableType::Return,
+                            is_auto_deref: false
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    // AND we want a call passing the return-variable as apointer (actually the adress as a LWORD)
+    assert_snapshot!(codegen(src));
+}
+
+#[test]
+fn hardware_access_types_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM prg
+        VAR
+          x1,x2 : BYTE;
+          y1,y2 : INT;
+        END_VAR
+          x1 := %IB1.2;
+          x2 := %QW1.2;
+          y1 := %MD1.2;
+          y2 := %GX1.2;
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[0] {
+        assert_type_and_hint!(&annotations, &index, &*right, BYTE_TYPE, Some(BYTE_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[1] {
+        assert_type_and_hint!(&annotations, &index, &*right, WORD_TYPE, Some(BYTE_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[2] {
+        assert_type_and_hint!(&annotations, &index, &*right, DWORD_TYPE, Some(INT_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[3] {
+        assert_type_and_hint!(&annotations, &index, &*right, BOOL_TYPE, Some(INT_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+}
+
+#[test]
+fn multiple_pointer_referencing_annotates_correctly() {
+    let id_provider = IdProvider::default();
+    // GIVEN a variable which is referenced multiple times with consecutive address operators
+    let (unit, mut index) = index_with_ids(
+        "
+        PROGRAM PRG
+        VAR 
+            a : BYTE; 
+        END_VAR
+            &&a;
+            &&&a;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    // THEN it is correctly annotated with nested pointers
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &statements[0],
+        "__POINTER_TO___POINTER_TO_BYTE",
+        None
+    );
+
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &statements[1],
+        "__POINTER_TO___POINTER_TO___POINTER_TO_BYTE",
+        None
+    );
+}
+
+#[test]
+fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
+    let id_provider = IdProvider::default();
+    // GIVEN a parenthesized, double-pointer
+    let (unit, mut index) = index_with_ids(
+        "
+        PROGRAM PRG
+        VAR 
+            a : BYTE;
+        END_VAR
+            (&&a)^;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    // WHEN it is dereferenced once
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[0].statements[0];
+    index.import(std::mem::take(&mut annotations.new_index));
+    // THEN the expressions are nested and annotated correctly
+    if let AstStatement::PointerAccess { reference, .. } = &statement {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference,
+            "__POINTER_TO___POINTER_TO_BYTE",
+            None
+        );
+
+        if let AstStatement::UnaryExpression { value, .. } = &reference.as_ref() {
+            assert_type_and_hint!(&annotations, &index, value, "__POINTER_TO_BYTE", None);
+
+            if let AstStatement::UnaryExpression { value, .. } = &value.as_ref() {
+                assert_type_and_hint!(&annotations, &index, value, "BYTE", None);
+            }
+        }
+    } else {
+        panic!("Not a pointer")
+    }
+    // AND the overall type of the statement is annotated correctly
+    assert_type_and_hint!(&annotations, &index, statement, "__POINTER_TO_BYTE", None);
+}
+
+#[test]
+fn multiple_negative_annotates_correctly() {
+    let id_provider = IdProvider::default();
+    // GIVEN a variable which is prefixed with two minus signs
+    let (unit, mut index) = index_with_ids(
+        "
+        PROGRAM PRG
+        VAR 
+            a : DINT; 
+        END_VAR
+            --a;
+            -(-a);
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    // THEN it is correctly annotated
+    if let AstStatement::UnaryExpression { value, .. } = &statements[0] {
+        assert_type_and_hint!(&annotations, &index, value, DINT_TYPE, None);
+
+        if let AstStatement::UnaryExpression { value, .. } = &value.as_ref() {
+            assert_type_and_hint!(&annotations, &index, value, DINT_TYPE, None);
+        }
+    }
+
+    if let AstStatement::UnaryExpression { value, .. } = &statements[1] {
+        assert_type_and_hint!(&annotations, &index, value, DINT_TYPE, None);
+
+        if let AstStatement::UnaryExpression { value, .. } = &value.as_ref() {
+            assert_type_and_hint!(&annotations, &index, value, DINT_TYPE, None);
+        }
     }
 }

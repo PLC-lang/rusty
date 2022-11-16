@@ -23,7 +23,7 @@ fn sources_accross_multiple_files_compiled() {
 }
 
 fn concat_date(y: i16, m: i16, d: i16) -> i64 {
-    return (y + m + d) as i64;
+    (y + m + d) as i64
 }
 
 #[test]

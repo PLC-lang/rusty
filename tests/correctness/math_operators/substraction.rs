@@ -69,6 +69,30 @@ fn substraction_multiple_vars_lreal_type() {
 }
 
 #[test]
+fn double_negative() {
+    let prog = "
+    FUNCTION main : DINT
+        main := --5;
+    END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(prog.to_string(), &mut MainType::default());
+    assert_eq!(res, 5)
+}
+
+#[test]
+fn double_negative_parenthesized() {
+    let prog = "
+    FUNCTION main : DINT
+        main := -(-15);
+    END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(prog.to_string(), &mut MainType::default());
+    assert_eq!(res, 15)
+}
+
+#[test]
 fn division_lint_type() {
     let prog = "
     FUNCTION main : LINT

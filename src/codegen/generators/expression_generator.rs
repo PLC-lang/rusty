@@ -217,6 +217,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::UnaryExpression {
                 operator, value, ..
             } => self.generate_unary_expression(operator, value),
+            // TODO: Hardware access needs to be evaluated, see #648
+            AstStatement::HardwareAccess { .. } => Ok(self.llvm.i32_type().const_zero().into()),
             //fallback
             _ => self.generate_literal(expression),
         }
@@ -915,48 +917,69 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         pou: &PouIndexEntry,
         variadic_params: &[&AstStatement],
     ) -> Result<Vec<BasicValueEnum<'ink>>, Diagnostic> {
-        let generated_params = variadic_params
-            .iter()
-            .map(|param_statement| {
-                self.get_type_hint_for(param_statement)
-                    .map(|it| it.get_name())
-                    .and_then(|type_name| self.generate_argument_by_val(type_name, param_statement))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
         //get the real varargs from the index
-        if let Some(VarArgs::Sized(Some(type_name))) = self
+        if let Some((var_args, argument_type)) = self
             .index
             .get_variadic_member(pou.get_name())
-            .and_then(|it| it.get_varargs())
+            .and_then(|it| it.get_varargs().zip(Some(it.get_declaration_type())))
         {
-            let llvm_type = generated_params
-                .get(0)
-                .map(|it| Ok(it.get_type()))
-                .unwrap_or_else(|| self.llvm_index.get_associated_type(type_name))?;
-            let size = generated_params.len();
-            let size_param = self.llvm.i32_type().const_int(size as u64, true);
-            let arr = Llvm::get_array_type(llvm_type, size as u32);
-            let arr_storage = self.llvm.builder.build_alloca(arr, "");
-            for (i, ele) in generated_params.iter().enumerate() {
-                let ele_ptr = self.llvm.load_array_element(
+            let generated_params = variadic_params
+                .iter()
+                .map(|param_statement| {
+                    self.get_type_hint_for(param_statement)
+                        .map(|it| it.get_name())
+                        .and_then(|type_name| {
+                            // If the variadic is defined in a by_ref block, we need to pass the argument as reference
+                            if let ArgumentType::ByVal(_) = argument_type {
+                                self.generate_argument_by_val(type_name, param_statement)
+                            } else {
+                                self.generate_argument_by_ref(
+                                    param_statement,
+                                    type_name,
+                                    self.index.get_variadic_member(pou.get_name()),
+                                )
+                            }
+                        })
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            // For sized variadics we create an array and store all the arguments in that array
+            if let VarArgs::Sized(Some(type_name)) = var_args {
+                let llvm_type = self.llvm_index.get_associated_type(type_name)?;
+                // If the variadic argument is ByRef, wrap it in a pointer.
+                let llvm_type = if matches!(argument_type, ArgumentType::ByRef(_)) {
+                    llvm_type.ptr_type(AddressSpace::Generic).into()
+                } else {
+                    llvm_type
+                };
+                let size = generated_params.len();
+                let size_param = self.llvm.i32_type().const_int(size as u64, true);
+                let arr = Llvm::get_array_type(llvm_type, size as u32);
+                let arr_storage = self.llvm.builder.build_alloca(arr, "");
+                for (i, ele) in generated_params.iter().enumerate() {
+                    let ele_ptr = self.llvm.load_array_element(
+                        arr_storage,
+                        &[
+                            self.llvm.context.i32_type().const_zero(),
+                            self.llvm.context.i32_type().const_int(i as u64, true),
+                        ],
+                        "",
+                    )?;
+                    self.llvm.builder.build_store(ele_ptr, *ele);
+                }
+
+                // bitcast the array to pointer so it matches the declared function signature
+                let arr_storage = self.llvm.builder.build_bitcast(
                     arr_storage,
-                    &[
-                        self.llvm.context.i32_type().const_zero(),
-                        self.llvm.context.i32_type().const_int(i as u64, true),
-                    ],
+                    llvm_type.ptr_type(AddressSpace::Generic),
                     "",
-                )?;
-                self.llvm.builder.build_store(ele_ptr, *ele);
+                );
+
+                Ok(vec![size_param.into(), arr_storage])
+            } else {
+                Ok(generated_params)
             }
-            // bitcast the array to pointer so it matches the declared function signature
-            let arr_storage = self.llvm.builder.build_bitcast(
-                arr_storage,
-                llvm_type.ptr_type(AddressSpace::Generic),
-                "",
-            );
-            Ok(vec![size_param.into(), arr_storage])
         } else {
-            Ok(generated_params)
+            unreachable!("Function must be variadic")
         }
     }
 
@@ -1980,12 +2003,21 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         location: &SourceRange,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let expected_type = self.get_type_hint_info_for(literal_statement)?;
+        self.generate_string_literal_for_type(expected_type, value, location)
+    }
+
+    fn generate_string_literal_for_type(
+        &self,
+        expected_type: &DataTypeInformation,
+        value: &str,
+        location: &SourceRange,
+    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         match expected_type {
             DataTypeInformation::String { encoding, size, .. } => {
                 let declared_length = size.as_int_value(self.index).map_err(|msg| {
                     Diagnostic::codegen_error(
                         format!("Unable to generate string-literal: {}", msg).as_str(),
-                        literal_statement.get_location(),
+                        location.clone(),
                     )
                 })? as usize;
 
@@ -2027,6 +2059,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         }
                     }
                 }
+            }
+            DataTypeInformation::Pointer {
+                inner_type_name,
+                auto_deref: true,
+                ..
+            } => {
+                let inner_type = self.index.get_type_information_or_void(inner_type_name);
+                self.generate_string_literal_for_type(inner_type, value, location)
             }
             DataTypeInformation::Integer { size: 8, .. } if expected_type.is_character() => {
                 self.llvm.create_llvm_const_i8_char(value, location)

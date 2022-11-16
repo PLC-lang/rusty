@@ -12,7 +12,7 @@ use self::{
     llvm_index::LlvmTypedIndex,
 };
 use crate::{
-    diagnostics::Diagnostic,
+    diagnostics::{Diagnostic, Diagnostician},
     resolver::{AstAnnotations, StringLiterals},
     DebugLevel, OptimizationLevel,
 };
@@ -62,6 +62,7 @@ impl<'ink> CodeGen<'ink> {
         annotations: &AstAnnotations,
         literals: StringLiterals,
         global_index: &Index,
+        diagnostician: &Diagnostician,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -71,6 +72,7 @@ impl<'ink> CodeGen<'ink> {
             &mut self.debug,
             global_index,
             annotations,
+            diagnostician,
         )?;
         index.merge(llvm_type_index);
 

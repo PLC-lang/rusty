@@ -1,11 +1,16 @@
 use crate::{
+    ast::SourceRange,
     diagnostics::Diagnostic,
-    test_utils::tests::{codegen, codegen_without_unwrap, parse_and_validate},
+    test_utils::tests::{
+        codegen_debug_without_unwrap, codegen_with_diagnostics as codegen, codegen_without_unwrap,
+        parse_and_validate,
+    },
+    DebugLevel,
 };
 
 #[test]
 fn initial_values_in_struct_types() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyStruct:
         STRUCT
@@ -23,11 +28,12 @@ fn initial_values_in_struct_types() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn struct_initial_values_different_data_types() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyStruct:
         STRUCT
@@ -53,11 +59,12 @@ fn struct_initial_values_different_data_types() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn initial_values_in_type_alias() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyInt: INT := 7; END_TYPE 
         VAR_GLOBAL x : MyInt; END_VAR
@@ -65,11 +72,12 @@ fn initial_values_in_type_alias() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn initial_values_in_sub_range_type() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyInt: INT(0..1000) := 7; END_TYPE 
         VAR_GLOBAL x : MyInt; END_VAR
@@ -77,11 +85,12 @@ fn initial_values_in_sub_range_type() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn expression_list_as_array_initilization() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
 		VAR_GLOBAL
 			arr : ARRAY[-1..3] OF INT := 1, 2, 3;
@@ -91,11 +100,12 @@ fn expression_list_as_array_initilization() {
 		",
     );
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn incomplete_array_initialization() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
 		VAR_GLOBAL
 			arr : ARRAY[0..5] OF INT := 0, 1, 2;
@@ -103,11 +113,12 @@ fn incomplete_array_initialization() {
 		",
     );
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn incomplete_array_initialization_with_custom_init_value() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyInt : INT := 7; END_TYPE
 
@@ -117,11 +128,12 @@ fn incomplete_array_initialization_with_custom_init_value() {
 		",
     );
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn alias_chain_with_lots_of_initializers() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyInt: MyOtherInt1; END_TYPE 
         VAR_GLOBAL 
@@ -137,11 +149,12 @@ fn alias_chain_with_lots_of_initializers() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn initial_values_in_single_dimension_array_variable() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         VAR_GLOBAL 
           a : ARRAY[0..2] OF SINT  := [1, 2, 3]; 
@@ -157,11 +170,12 @@ fn initial_values_in_single_dimension_array_variable() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn initial_values_in_single_dimension_array_type() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyArray : ARRAY[0..2] OF INT := [1, 2, 3]; END_TYPE
         VAR_GLOBAL x : MyArray; END_VAR
@@ -169,11 +183,12 @@ fn initial_values_in_single_dimension_array_type() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn initial_values_in_multi_dimension_array_variable() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
          VAR_GLOBAL 
            a : ARRAY[0..1, 0..1] OF BYTE  := [1,2,3,4]; 
@@ -182,11 +197,12 @@ fn initial_values_in_multi_dimension_array_variable() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn initial_values_in_array_variable_using_multiplied_statement() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
          VAR_GLOBAL 
            a : ARRAY[0..3] OF BYTE  := [4(7)]; 
@@ -198,11 +214,12 @@ fn initial_values_in_array_variable_using_multiplied_statement() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn initial_values_in_struct_variable() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyStruct: STRUCT
           a: DINT;
@@ -218,11 +235,140 @@ fn initial_values_in_struct_variable() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn initial_values_in_struct_variable_missing_init() {
+    let (result, diagnostics) = codegen(
+        "
+        TYPE MyStruct: STRUCT
+          a: DINT;
+          b: DINT;
+          c: DINT;
+        END_STRUCT
+        END_TYPE
+
+         VAR_GLOBAL 
+           a : MyStruct  := (a:=5, c := 10); 
+           b : MyStruct  := (b:=3, c := 10); 
+         END_VAR
+         ",
+    );
+
+    insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn unresolvable_types_validation() {
+    let (diagnostics, error) = codegen_debug_without_unwrap(
+        "
+        VAR_GLOBAL 
+            a : MyStruct2  := (a := (c:=5, b:= 7), b := (a:=3, b:=2)); 
+            b : MyStruct2  := (b := (a:= 9)); 
+        END_VAR
+
+        TYPE MyStruct2: STRUCT
+            a : MyStruct  := (a:=5, b:=3); 
+            b : MyStruct  := (c:=7); 
+        END_STRUCT
+        END_TYPE
+
+        TYPE MyStruct: STRUCT
+          a: DINT;
+          b: DINT;
+        END_STRUCT
+        END_TYPE
+     ",
+        DebugLevel::None,
+    )
+    .expect_err("should fail");
+
+    assert_eq!(diagnostics.len(), 1);
+    assert_eq!(
+        diagnostics[0].message,
+        "Cannot generate literal initializer for 'MyStruct2.b': Value cannot be derived"
+    );
+
+    assert_eq!(
+        error,
+        Diagnostic::codegen_error(
+            "Some initial values were not generated",
+            SourceRange::undefined(),
+        )
+    );
+}
+
+#[test]
+fn initial_nested_struct_delayed_init() {
+    let (result, diagnostics) = codegen(
+        "
+        VAR_GLOBAL 
+            a : MyStruct2  := (a := (a:=5, b:= 7), b := (a:=3, b:=2)); 
+            b : MyStruct2  := (b := (a:= 9)); 
+        END_VAR
+
+        TYPE MyStruct2: STRUCT
+            a : MyStruct  := (a:=5, b:=3); 
+            b : MyStruct  := (b:=7); 
+        END_STRUCT
+        END_TYPE
+
+        TYPE MyStruct: STRUCT
+          a: DINT;
+          b: DINT;
+        END_STRUCT
+        END_TYPE
+     ",
+    );
+
+    insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn struct_init_with_wrong_types_does_not_trigger_codegen_validation() {
+    let (diagnostics, error) = codegen_debug_without_unwrap(
+        "
+        VAR_GLOBAL
+            a : MyType;
+            b : MyStruct;
+        END_VAR
+
+        TYPE MyType : INT := 'hello'; END_TYPE
+
+        TYPE MyStruct: STRUCT
+          a: DINT := 'hello';
+          b: DINT := 8;
+        END_STRUCT
+        END_TYPE
+     ",
+        DebugLevel::None,
+    )
+    .expect_err("Should fail");
+
+    assert_eq!(
+        error,
+        Diagnostic::codegen_error(
+            "Some initial values were not generated",
+            SourceRange::undefined()
+        )
+    );
+    assert_eq!(diagnostics.len(), 2);
+    assert_eq!(
+        diagnostics[0].message,
+        "Cannot generate literal initializer for 'MyType': Value cannot be derived"
+    );
+    assert_eq!(
+        diagnostics[1].message,
+        "Cannot generate literal initializer for 'MyStruct.a': Value cannot be derived"
+    );
 }
 
 #[test]
 fn initial_values_in_fb_variable() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "FUNCTION_BLOCK TON
         VAR_INPUT
             a: INT;
@@ -243,11 +389,12 @@ fn initial_values_in_fb_variable() {
         ",
     );
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyPoint: STRUCT
           x: DINT;
@@ -273,11 +420,12 @@ fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
 fn struct_with_one_field_can_be_initialized() {
-    let result = codegen(
+    let (result, diagnostics) = codegen(
         "
         TYPE MyPoint: STRUCT
           x: DINT;
@@ -291,6 +439,7 @@ fn struct_with_one_field_can_be_initialized() {
     );
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -338,10 +487,11 @@ fn struct_initialization_uses_types_default_if_not_provided() {
            ";
 
     //WHEN it is generated
-    let result = codegen(source);
+    let (result, diagnostics) = codegen(source);
 
     //THEN we expect z to be 7
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -361,9 +511,10 @@ fn struct_initializer_uses_fallback_to_field_default() {
                 x : Point := (x := 1);
             END_VAR
            ";
-    let result = codegen(source);
+    let (result, diagnostics) = codegen(source);
 
     insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
