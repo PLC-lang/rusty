@@ -4,20 +4,23 @@ use inkwell::{
     context::Context,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
-        DIFlagsConstants, DIType, DWARFEmissionKind, DebugInfoBuilder,
+        DIFlagsConstants, DILocation, DIScope, DISubprogram, DISubroutineType, DIType,
+        DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
-    values::GlobalValue,
+    values::{FunctionValue, GlobalValue},
 };
 
 use crate::{
     ast::SourceRange,
     datalayout::{Bytes, MemoryLocation},
     diagnostics::Diagnostic,
-    index::Index,
+    index::{Index, PouIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
+
+use super::generators::llvm::Llvm;
 
 #[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -53,6 +56,23 @@ impl From<DebugLevel> for DWARFEmissionKind {
 /// An implementor of this trais will be called during various codegen phases to generate debug
 /// information
 pub trait Debug<'ink> {
+    /// Set the debug info source location of the instruction currently pointed at by the builder
+    fn set_debug_location(
+        &self,
+        llvm: &Llvm,
+        scope: &FunctionValue,
+        line: usize,
+    ) -> Result<(), Diagnostic>;
+
+    /// ...
+    fn register_function<'idx>(
+        &self,
+        func: &FunctionValue,
+        pou: &PouIndexEntry,
+        return_type: Option<&'idx DataType>,
+        parameter_types: &[&'idx DataType],
+    ) -> Result<(), Diagnostic>;
+
     /// Registers a new datatype for debugging
     fn register_debug_type<'idx>(
         &mut self,
@@ -145,7 +165,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                 };
                 match debug_level {
                     DebugLevel::VariablesOnly => DebugBuilderEnum::VariablesOnly(dbg_obj),
-                    DebugLevel::Full => DebugBuilderEnum::VariablesOnly(dbg_obj),
+                    DebugLevel::Full => DebugBuilderEnum::Full(dbg_obj),
                     _ => unreachable!("Only variables or full debug can reach this"),
                 }
             }
@@ -351,9 +371,102 @@ impl<'ink> DebugBuilder<'ink> {
 
         Ok(())
     }
+
+    fn create_debug_location(
+        &self,
+        scope: DIScope<'ink>,
+        line: usize,
+    ) -> Result<DILocation, Diagnostic> {
+        Ok(self.debug_info.create_debug_location(
+            self.context,
+            line as u32, // try_into() error msg on fail
+            0,           // not implemented yet
+            scope,
+            None, // ?
+        ))
+    }
+
+    fn create_subroutine_type(
+        &self,
+        return_type: Option<&DataType>,
+        parameter_types: &[&DataType],
+    ) -> Result<DISubroutineType, Diagnostic> {
+        let return_type = return_type
+            .and_then(|dt| self.types.get(dt.get_name()))
+            .map(|it| it.to_owned())
+            .map(Into::into);
+
+        let parameter_types = parameter_types
+            .iter()
+            .map(|dt| {
+                self.types
+                    .get(dt.get_name().to_lowercase().as_str())
+                    .expect("at this point we should have all types") // TODO: error msg
+                    .to_owned()
+            })
+            .map(Into::into)
+            .collect::<Vec<DIType>>();
+
+        Ok(self.debug_info.create_subroutine_type(
+            self.compile_unit.get_file(),
+            return_type,
+            &parameter_types,
+            DIFlagsConstants::PUBLIC,
+        ))
+    }
+
+    fn create_function(
+        &self,
+        pou: &PouIndexEntry,
+        return_type: Option<&DataType>,
+        parameter_types: &[&DataType],
+    ) -> Result<DISubprogram, Diagnostic> {
+        let ditype = self.create_subroutine_type(return_type, parameter_types)?;
+        Ok(self.debug_info.create_function(
+            self.compile_unit.get_file().as_debug_info_scope(),
+            pou.get_name(),
+            Some(pou.get_name()), // for generics e.g. NAME__TYPE
+            self.compile_unit.get_file(),
+            pou.get_location().line_number as u32, // try_into() error msg on fail
+            ditype,
+            false, // for {external}
+            true,  // for {external}
+            0,     // ?
+            DIFlagsConstants::PUBLIC,
+            false, // get from compile parameters
+        ))
+    }
 }
 
 impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
+    fn set_debug_location(
+        &self,
+        llvm: &Llvm,
+        scope: &FunctionValue,
+        line: usize,
+    ) -> Result<(), Diagnostic> {
+        let scope = scope
+            .get_subprogram()
+            .map(|it| it.as_debug_info_scope())
+            .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
+        let location = self.create_debug_location(scope, line)?;
+        llvm.builder
+            .set_current_debug_location(llvm.context, location);
+        Ok(())
+    }
+
+    fn register_function<'idx>(
+        &self,
+        func: &FunctionValue,
+        pou: &PouIndexEntry,
+        return_type: Option<&'idx DataType>,
+        parameter_types: &[&'idx DataType],
+    ) -> Result<(), Diagnostic> {
+        let subprogram = self.create_function(pou, return_type, parameter_types)?;
+        func.set_subprogram(subprogram);
+        Ok(())
+    }
+
     fn register_debug_type<'idx>(
         &mut self,
         name: &str,
@@ -465,6 +578,31 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
 }
 
 impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
+    fn set_debug_location(
+        &self,
+        llvm: &Llvm,
+        scope: &FunctionValue,
+        line: usize,
+    ) -> Result<(), Diagnostic> {
+        match self {
+            Self::None | Self::VariablesOnly(..) => Ok(()),
+            Self::Full(obj) => obj.set_debug_location(llvm, scope, line),
+        }
+    }
+
+    fn register_function<'idx>(
+        &self,
+        func: &FunctionValue,
+        pou: &PouIndexEntry,
+        return_type: Option<&'idx DataType>,
+        parameter_types: &[&'idx DataType],
+    ) -> Result<(), Diagnostic> {
+        match self {
+            Self::None | Self::VariablesOnly(..) => Ok(()),
+            Self::Full(obj) => obj.register_function(func, pou, return_type, parameter_types),
+        }
+    }
+
     fn register_debug_type<'idx>(
         &mut self,
         name: &str,

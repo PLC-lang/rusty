@@ -3,15 +3,18 @@ use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
-    statement_generator::{FunctionContext, StatementCodeGenerator},
+    statement_generator::{DebugContext, FunctionContext, StatementCodeGenerator},
 };
 use crate::{
-    ast::{AstStatement, Pou},
-    codegen::llvm_index::LlvmTypedIndex,
+    ast::{AstStatement, NewLines, Pou},
+    codegen::{
+        debug::{Debug, DebugBuilderEnum},
+        llvm_index::LlvmTypedIndex,
+    },
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
     resolver::AstAnnotations,
-    typesystem::{self, VarArgs},
+    typesystem::{self, DataType, VarArgs},
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -41,6 +44,7 @@ pub struct PouGenerator<'ink, 'cg> {
     index: &'cg Index,
     annotations: &'cg AstAnnotations,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
+    pub debug: &'cg DebugBuilderEnum<'ink>,
 }
 
 /// Creates opaque implementations for all callable items in the index
@@ -51,9 +55,10 @@ pub fn generate_implementation_stubs<'ink>(
     index: &Index,
     annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
+    debug: &DebugBuilderEnum<'ink>,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut llvm_index = LlvmTypedIndex::default();
-    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
+    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, debug);
     for (name, implementation) in index.get_implementations() {
         if !implementation.is_generic() {
             let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
@@ -139,12 +144,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         index: &'cg Index,
         annotations: &'cg AstAnnotations,
         llvm_index: &'cg LlvmTypedIndex<'ink>,
+        debug: &'cg DebugBuilderEnum<'ink>,
     ) -> PouGenerator<'ink, 'cg> {
         PouGenerator {
             llvm,
             index,
             annotations,
             llvm_index,
+            debug,
         }
     }
 
@@ -160,19 +167,38 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let parameters = self.create_parameters_for_implementation(implementation)?;
 
-        let return_type = match global_index.find_return_type(implementation.get_type_name()) {
-            Some(r_type) => Some(self.llvm_index.get_associated_type(r_type.get_name())?),
-            None => None,
-        };
+        let return_type = global_index.find_return_type(implementation.get_type_name());
 
         let variadic = global_index
             .get_variadic_member(implementation.get_type_name())
             .and_then(VariableIndexEntry::get_varargs);
 
-        let function_declaration =
-            self.create_llvm_function_type(parameters, variadic, return_type)?;
+        let function_declaration = self.create_llvm_function_type(
+            parameters,
+            variadic,
+            return_type
+                .map(|t| self.llvm_index.get_associated_type(t.get_name()))
+                .transpose()?,
+        )?;
 
         let curr_f = module.add_function(pou_name, function_declaration, None);
+
+        // ...
+        self.index.find_pou(pou_name).map(|p| {
+            let parameter_types = self
+                .index
+                .get_declared_parameters(pou_name)
+                .iter()
+                .map(|v| {
+                    self.index
+                        .get_effective_type_or_void_by_name(v.get_type_name())
+                })
+                .collect::<Vec<&DataType>>();
+
+            self.debug
+                .register_function(&curr_f, p, return_type, parameter_types.as_slice())
+        });
+
         Ok(curr_f)
     }
 
@@ -223,6 +249,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     pub fn generate_implementation(
         &self,
         implementation: &Implementation,
+        new_lines: &NewLines,
     ) -> Result<(), Diagnostic> {
         let context = self.llvm.context;
         let mut local_index = LlvmTypedIndex::create_child(self.llvm_index);
@@ -244,7 +271,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         self.llvm.builder.position_at_end(block);
 
         let mut param_index = 0;
-
         if let PouType::Method { .. } = implementation.pou_type {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
             let class_members = self.index.get_container_members(class_name);
@@ -259,7 +285,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         let pou_members = self.index.get_container_members(&implementation.type_name);
-
         // generate local variables
         if implementation.pou_type == PouType::Function {
             self.generate_local_function_arguments_accessors(
@@ -281,6 +306,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let function_context = FunctionContext {
             linking_context: implementation.into(),
             function: current_function,
+        };
+        let debug_context = DebugContext {
+            debug: self.debug,
+            new_lines,
         };
         {
             //if this is a function, we need to initilialize the VAR-variables
@@ -304,6 +333,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 self,
                 &local_index,
                 &function_context,
+                &debug_context,
             );
             statement_gen.generate_body(&implementation.statements)?
         }

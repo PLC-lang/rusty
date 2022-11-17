@@ -5,9 +5,11 @@ use super::{
     pou_generator::PouGenerator,
 };
 use crate::{
-    ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
-    codegen::llvm_typesystem,
-    codegen::LlvmTypedIndex,
+    ast::{
+        flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange,
+    },
+    codegen::{debug::Debug, llvm_typesystem},
+    codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations},
@@ -28,6 +30,12 @@ pub struct FunctionContext<'a> {
     pub function: FunctionValue<'a>,
 }
 
+/// ...
+pub struct DebugContext<'a, 'b> {
+    pub debug: &'b DebugBuilderEnum<'a>,
+    pub new_lines: &'b NewLines,
+}
+
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
 pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
@@ -44,6 +52,8 @@ pub struct StatementCodeGenerator<'a, 'b> {
     pub current_loop_exit: Option<BasicBlock<'a>>,
     /// the block to jump to when you want to continue the loop
     pub current_loop_continue: Option<BasicBlock<'a>>,
+
+    pub debug_context: &'b DebugContext<'a, 'b>,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -55,6 +65,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         pou_generator: &'b PouGenerator<'a, 'b>,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
+        debug_context: &'b DebugContext<'a, 'b>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
@@ -67,6 +78,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             load_suffix: "".to_string(),
             current_loop_exit: None,
             current_loop_continue: None,
+            debug_context,
         }
     }
 
@@ -85,6 +97,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), Diagnostic> {
         for s in statements {
             self.generate_statement(s)?;
+            self.debug_context.debug.set_debug_location(
+                self.llvm,
+                &self.function_context.function,
+                self.debug_context
+                    .new_lines
+                    .get_line_nr(s.get_location().get_start()),
+            )?;
         }
         Ok(())
     }
