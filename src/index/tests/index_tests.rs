@@ -2173,8 +2173,6 @@ fn global_variables_duplicates_are_indexed() {
         .filter(|it| it.get_name().eq("x"))
         .collect::<Vec<_>>();
 
-    dbg!(&globals);
-
     let x1 = globals.get(0).unwrap();
     assert_eq!(x1.get_name(), "x");
     assert_eq!(x1.get_type_name(), "INT");

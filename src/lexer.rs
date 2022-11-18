@@ -345,6 +345,7 @@ fn parse_hardware_access_type(
             'i' => Some(crate::ast::HardwareAccessType::Input),
             'q' => Some(crate::ast::HardwareAccessType::Output),
             'm' => Some(crate::ast::HardwareAccessType::Memory),
+            'g' => Some(crate::ast::HardwareAccessType::Global),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");

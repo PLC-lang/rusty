@@ -217,6 +217,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::UnaryExpression {
                 operator, value, ..
             } => self.generate_unary_expression(operator, value),
+            // TODO: Hardware access needs to be evaluated, see #648
+            AstStatement::HardwareAccess { .. } => Ok(self.llvm.i32_type().const_zero().into()),
             //fallback
             _ => self.generate_literal(expression),
         }
