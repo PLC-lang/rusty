@@ -286,7 +286,7 @@ impl NewLines {
     ///
     pub fn get_line_nr(&self, offset: usize) -> usize {
         match self.line_breaks.binary_search(&offset) {
-            //In case we hit an exact match, we just found the first charachter of a new line, we must add one to the result
+            //In case we hit an exact match, we just found the first character of a new line, we must add one to the result
             Ok(line) => line + 1,
             Err(line) => line,
         }
