@@ -878,7 +878,6 @@ fn new_lines_test_empty_string() {
 fn new_lines_test_three_lines_with_crlf() {
     let text = "A\r\nB\r\nC";
     let nl = NewLines::build(text);
-
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
@@ -886,9 +885,8 @@ fn new_lines_test_three_lines_with_crlf() {
 
 #[test]
 fn new_lines_test_three_lines_with_lf() {
-    let text = "A\r\nB\r\nC";
+    let text = "A\nB\nC";
     let nl = NewLines::build(text);
-
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
@@ -905,4 +903,17 @@ fn new_lines_test_three_long_lines_with_lf() {
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 2);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 4);
+}
+
+#[test]
+fn new_lines_and_columns_test() {
+    let text = "xxxx A xxxx
+
+    xxxx B xxxx
+
+    xxxx C xxxxx";
+    let nl = NewLines::build(text);
+    assert_eq!(nl.get_column(0, text.find('A').unwrap()), 5);
+    assert_eq!(nl.get_column(2, text.find('B').unwrap()), 9);
+    assert_eq!(nl.get_column(4, text.find('C').unwrap()), 9);
 }
