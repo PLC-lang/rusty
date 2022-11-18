@@ -272,7 +272,7 @@ impl NewLines {
         let mut line_breaks = Vec::new();
         let mut total_offset: usize = 0;
         if !str.is_empty() {
-            // Instead of using ´lines()´ we split at \n to preserve the offests if a \r exists
+            // Instead of using ´lines()´ we split at \n to preserve the offsets if a \r exists
             for l in str.split('\n') {
                 total_offset += l.len() + 1;
                 line_breaks.push(total_offset);
@@ -282,7 +282,7 @@ impl NewLines {
     }
 
     ///
-    /// returns the 0 based line-nr of the given offset-location  FF
+    /// returns the 0 based line-nr of the given offset-location
     ///
     pub fn get_line_nr(&self, offset: usize) -> usize {
         match self.line_breaks.binary_search(&offset) {
