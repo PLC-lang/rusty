@@ -1,5 +1,5 @@
 use crate::{
-    ast::{CompilationUnit, NewLines, Operator, TypeNature},
+    ast::{Operator, TypeNature},
     index::{symbol::SymbolLocation, Index},
     test_utils::tests::index,
     typesystem::{
@@ -51,11 +51,6 @@ pub fn signed_types_tests() {
             &index
         )
     );
-}
-
-#[allow(dead_code)]
-fn get_empty_compilation_unit() -> CompilationUnit {
-    CompilationUnit::new("test_file", NewLines::build(""))
 }
 
 #[test]

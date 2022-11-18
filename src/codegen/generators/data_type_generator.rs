@@ -1,3 +1,4 @@
+use std::collections::{HashMap, VecDeque};
 use std::convert::TryInto;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
@@ -9,6 +10,7 @@ use std::convert::TryInto;
 /// - sized Strings
 use crate::ast::SourceRange;
 use crate::codegen::debug::Debug;
+use crate::diagnostics::Diagnostician;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AstAnnotations;
 use crate::typesystem::{Dimension, StringEncoding, StructSource};
@@ -50,6 +52,7 @@ pub fn generate_data_types<'ink>(
     debug: &mut DebugBuilderEnum<'ink>,
     index: &Index,
     annotations: &AstAnnotations,
+    diagnostician: &Diagnostician,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut generator = DataTypeGenerator {
         llvm,
@@ -99,6 +102,7 @@ pub fn generate_data_types<'ink>(
                 .associate_pou_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
+
     // now create all other types (enum's, arrays, etc.)
     for (name, user_type) in &types {
         let gen_type = generator.create_type(name, user_type)?;
@@ -111,25 +115,73 @@ pub fn generate_data_types<'ink>(
         generator.types_index.associate_pou_type(name, gen_type)?
     }
 
+    // Combine the types and pou_types into a single Vector
+    let mut types_to_init = VecDeque::new();
+    types_to_init.extend(types);
+    types_to_init.extend(pou_types);
     // now since all types should be available in the llvm index, we can think about constructing and associating
-    // initial values for the types
-    for (name, user_type) in &types {
+    for (_, user_type) in &types_to_init {
+        //Expand all types
         generator.expand_opaque_types(user_type)?;
-        if let Some(init_value) = generator.generate_initial_value(user_type)? {
-            generator
-                .types_index
-                .associate_initial_value(name, init_value)?;
-        }
-    }
-    for (name, user_type) in &pou_types {
-        generator.expand_opaque_types(user_type)?;
-        if let Some(init_value) = generator.generate_initial_value(user_type)? {
-            generator
-                .types_index
-                .associate_initial_value(name, init_value)?;
-        }
     }
 
+    let mut tries = 0;
+    let mut errors = HashMap::new();
+    // If the tries are equal to the number of types remaining, it means we failed to resolve
+    // anything
+    while tries < types_to_init.len() {
+        //Take the current element,
+        if let Some((name, user_type)) = types_to_init.pop_front() {
+            errors.remove(name);
+            //try to resolve it
+            match generator.generate_initial_value(user_type) {
+                Err(err) => {
+                    tries += 1;
+                    types_to_init.push_back((name, user_type));
+                    errors.insert(name, err);
+                }
+                Ok(init_value) => {
+                    if let Some(init_value) = init_value {
+                        if let Err(err) = generator
+                            .types_index
+                            .associate_initial_value(name, init_value)
+                        {
+                            //If it fails, push it back into the list
+                            tries += 1;
+                            types_to_init.push_back((name, user_type));
+                            errors.insert(name, err);
+                        } else {
+                            tries = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    //If we didn't resolve anything this cycle, report the remaining issues and exit
+    if !types_to_init.is_empty() {
+        //Report each error as a new diagnostic, add the type's location as related to the error
+        let diags = types_to_init
+            .into_iter()
+            .map(|(name, ty)| {
+                errors
+                    .get(name)
+                    .map(|diag| diag.with_extra_ranges(&[ty.location.source_range.clone()]))
+                    .unwrap_or_else(|| {
+                        Diagnostic::cannot_generate_initializer(
+                            name,
+                            ty.location.source_range.clone(),
+                        )
+                    })
+            })
+            .collect::<Vec<_>>();
+        diagnostician.handle(diags);
+        //Report the operation failure
+        return Err(Diagnostic::codegen_error(
+            "Some initial values were not generated",
+            SourceRange::undefined(),
+        ));
+    }
     Ok(generator.types_index)
 }
 
