@@ -282,37 +282,28 @@ impl NewLines {
     }
 
     ///
-    /// returns the 0 based line-nr and column of the given offset-location
+    /// returns the 0 based line-nr of the given offset-location  FF
     ///
-    pub fn get_line_and_column(&self, offset: usize) -> (usize, usize) {
-        let line = match self.line_breaks.binary_search(&offset) {
+    pub fn get_line_nr(&self, offset: usize) -> usize {
+        match self.line_breaks.binary_search(&offset) {
             //In case we hit an exact match, we just found the first charachter of a new line, we must add one to the result
             Ok(line) => line + 1,
             Err(line) => line,
-        };
-        let column = if line > 0 {
+        }
+    }
+
+    ///
+    /// returns the 0 based column of the given offset-location
+    ///
+    pub fn get_column(&self, line: usize, offset: usize) -> usize {
+        if line > 0 {
             self.line_breaks
                 .get(line - 1)
                 .map(|l| offset - *l)
                 .unwrap_or(0)
         } else {
             offset
-        };
-        (line, column)
-    }
-
-    ///
-    /// returns the 0 based line-nr of the given offset-location  FF
-    ///
-    pub fn get_line_nr(&self, offset: usize) -> usize {
-        self.get_line_and_column(offset).0
-    }
-
-    ///
-    /// returns the 0 based column of the given offset-location
-    ///
-    pub fn get_column(&self, offset: usize) -> usize {
-        self.get_line_and_column(offset).1
+        }
     }
 }
 

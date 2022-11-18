@@ -1004,13 +1004,7 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
             );
 
             let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-            assert_type_and_hint!(
-                &annotations,
-                &index,
-                dbg!(parameters[0]),
-                "__STRING_3",
-                None
-            );
+            assert_type_and_hint!(&annotations, &index, parameters[0], "__STRING_3", None);
         } else {
             unreachable!("Not a call statement.")
         }
