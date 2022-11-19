@@ -6,7 +6,7 @@ use super::{
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
 use crate::{
-    ast::{AstStatement, Pou},
+    ast::AstStatement,
     codegen::llvm_index::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{self, ImplementationType},
@@ -154,32 +154,51 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
-        let global_index = self.index;
         //generate a function that takes a instance-struct parameter
-        let pou_name = implementation.get_call_name();
+        let parameters = self.collect_parameters_for_implementation(implementation)?;
+        let return_type = self
+            .index
+            .find_return_type(implementation.get_type_name())
+            .and_then(|dt| self.index.find_effective_type(dt));
 
-        let parameters = self.create_parameters_for_implementation(implementation)?;
-
-        let return_type = match global_index.find_return_type(implementation.get_type_name()) {
-            Some(r_type) => Some(self.llvm_index.get_associated_type(r_type.get_name())?),
-            None => None,
+        // see if we need to adapt the parameters list
+        let (return_type_llvm, parameters) = match return_type {
+            // function with a aggrate-return type
+            Some(r_type) if r_type.is_aggregate_type() => {
+                // add the out pointer as an extra parameter in the beginning
+                let return_llvm_type = self.llvm_index.get_associated_type(r_type.get_name())?;
+                let mut params_with_inout = Vec::with_capacity(parameters.len() + 1);
+                params_with_inout.push(return_llvm_type.ptr_type(AddressSpace::Generic).into()); //TODO: what is the correct address space?
+                params_with_inout.extend(parameters.iter().cloned());
+                // no return, adapted parameters
+                (None, params_with_inout)
+            }
+            // function with an intrinsic return-type
+            Some(r_type) => (
+                Some(self.llvm_index.get_associated_type(r_type.get_name())?),
+                parameters,
+            ),
+            // no return
+            None => (None, parameters),
         };
 
-        let variadic = global_index
+        let variadic = self
+            .index
             .get_variadic_member(implementation.get_type_name())
             .and_then(VariableIndexEntry::get_varargs);
 
         let function_declaration =
-            self.create_llvm_function_type(parameters, variadic, return_type)?;
+            self.create_llvm_function_type(parameters, variadic, return_type_llvm)?;
 
-        let curr_f = module.add_function(pou_name, function_declaration, None);
+        let curr_f =
+            module.add_function(implementation.get_call_name(), function_declaration, None);
         Ok(curr_f)
     }
 
     /// creates and returns all parameters for the given implementation
     /// for functions, this method creates a full list of parameters, for other POUs
     /// this method creates a single state-struct parameter
-    fn create_parameters_for_implementation(
+    fn collect_parameters_for_implementation(
         &self,
         implementation: &ImplementationIndexEntry,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
@@ -363,20 +382,44 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         current_function: FunctionValue<'ink>,
         members: &[&VariableIndexEntry],
     ) -> Result<(), Diagnostic> {
-        //Generate reference to parameter
-        // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
-        let mut var_count = 0;
-        for m in members.iter() {
+        // eagerly handle the return-variable
+        let mut params_iter = current_function.get_param_iter();
+        if let Some(ret_v) = members.iter().find(|it| it.is_return()) {
+            let return_type = index.get_associated_type(ret_v.get_type_name())?;
+            let return_variable = if self
+                .index
+                .find_effective_type_by_name(ret_v.get_type_name())
+                .filter(|it| it.is_aggregate_type())
+                .is_some()
+            {
+                // function return is handled by an out-pointer
+                let parameter = params_iter.next().ok_or_else(|| {
+                    Diagnostic::missing_function(ret_v.source_location.source_range.clone())
+                })?;
+
+                // remove the out-param so the loop below will not see it again
+                // generate special accessor for aggrate function output (out-ptr)
+                let accessor = self.llvm.create_local_variable(
+                    ret_v.get_name(),
+                    &return_type
+                        .ptr_type(AddressSpace::Generic)
+                        .as_basic_type_enum(),
+                );
+                self.llvm.builder.build_store(accessor, parameter);
+                accessor
+            } else {
+                // function return is a real return
+                self.llvm.create_local_variable(type_name, &return_type)
+            };
+            index.associate_loaded_local_variable(type_name, ret_v.get_name(), return_variable)?;
+        }
+
+        // handle all parameters (without return!)
+        for m in members.iter().filter(|it| !it.is_return()) {
             let parameter_name = m.get_name();
 
-            let (name, variable) = if m.is_return() {
-                let return_type = index.get_associated_type(m.get_type_name())?;
-                (
-                    Pou::calc_return_name(type_name),
-                    self.llvm.create_local_variable(type_name, &return_type),
-                )
-            } else if m.is_parameter() {
-                let ptr_value = current_function.get_nth_param(var_count).ok_or_else(|| {
+            let (name, variable) = if m.is_parameter() {
+                let ptr_value = params_iter.next().ok_or_else(|| {
                     Diagnostic::missing_function(m.source_location.source_range.clone())
                 })?;
 
@@ -385,9 +428,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     &index.get_associated_type(m.get_type_name())?,
                 );
                 self.llvm.builder.build_store(ptr, ptr_value);
-
-                var_count += 1;
-
                 (parameter_name, ptr)
             } else {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
@@ -509,19 +549,26 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         initializer_statement: Option<&AstStatement>,
         exp_gen: &ExpressionCodeGenerator,
     ) -> Result<(), Diagnostic> {
-        let variable_type = self
+        let variable_llvm_type = self
             .llvm_index
             .get_associated_type(variable.get_type_name())
             .map_err(|err| {
                 Diagnostic::relocate(err, variable.source_location.source_range.clone())
             })?;
 
-        let type_size = variable_type.size_of().ok_or_else(|| {
+        let type_size = variable_llvm_type.size_of().ok_or_else(|| {
             Diagnostic::codegen_error(
                 "Couldn't determine type size",
                 variable.source_location.source_range.clone(),
             )
         });
+
+        // initialize the variable with the initial_value
+        let variable_data_type = self
+            .index
+            .get_effective_type_or_void_by_name(variable.get_type_name());
+
+        let v_type_info = variable_data_type.get_type_information();
 
         const DEFAULT_ALIGNMENT: u32 = 1;
         let (value, alignment) =
@@ -538,16 +585,26 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         } else if let Some(initial_value) = self.llvm_index.find_associated_initial_value(variable.get_type_name()) {
             (initial_value, DEFAULT_ALIGNMENT)
         // no inital value defined + array type - so we use a 0 byte the memset the array to 0
-        }else if variable_to_initialize.get_type().get_element_type().is_array_type() {
+        }else if v_type_info.is_array() || v_type_info.is_string() {
             (self.llvm.context.i8_type().const_zero().as_basic_value_enum(), DEFAULT_ALIGNMENT)
         // no initial value defined + no-array
         } else {
-            (get_default_for(variable_type), DEFAULT_ALIGNMENT)
+            (get_default_for(variable_llvm_type), DEFAULT_ALIGNMENT)
+        };
+
+        let is_aggregate_type = variable_data_type.is_aggregate_type();
+        let variable_to_initialize = if variable.is_return() && is_aggregate_type {
+            //if this is an out-pointer we need to deref it first
+            self.llvm
+                .builder
+                .build_load(variable_to_initialize, "deref")
+                .into_pointer_value()
+        } else {
+            variable_to_initialize
         };
 
         // initialize the variable with the initial_value
-        let variable_type = variable_to_initialize.get_type().get_element_type();
-        if variable_type.is_array_type() || variable_type.is_struct_type() {
+        if is_aggregate_type {
             // for arrays/structs, we prefere a memcpy, not a store operation
             // we assume that we got a global variable with the initial value that we can copy from
             let init_result: Result<(), &str> = if value.is_pointer_value() {
@@ -597,19 +654,30 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .index
             .find_return_variable(function_context.linking_context.get_type_name())
         {
-            let call_name = function_context.linking_context.get_call_name();
-            let var_name = format!("{}_ret", call_name);
-            let ret_name = ret_v.get_qualified_name();
-            let value_ptr = local_index
-                .find_loaded_associated_variable_value(ret_name)
-                .ok_or_else(|| {
-                    Diagnostic::codegen_error(
-                        &format!("Cannot generate return variable for {:}", call_name),
-                        SourceRange::undefined(),
-                    )
-                })?;
-            let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
-            self.llvm.builder.build_return(Some(&loaded_value));
+            if self
+                .index
+                .find_effective_type_by_name(ret_v.get_type_name())
+                .map(|it| it.is_aggregate_type())
+                .unwrap_or(false)
+            {
+                //generate return void
+                self.llvm.builder.build_return(None);
+            } else {
+                // renerate return statement
+                let call_name = function_context.linking_context.get_call_name();
+                let var_name = format!("{}_ret", call_name);
+                let ret_name = ret_v.get_qualified_name();
+                let value_ptr = local_index
+                    .find_loaded_associated_variable_value(ret_name)
+                    .ok_or_else(|| {
+                        Diagnostic::codegen_error(
+                            &format!("Cannot generate return variable for {:}", call_name),
+                            SourceRange::undefined(),
+                        )
+                    })?;
+                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
+                self.llvm.builder.build_return(Some(&loaded_value));
+            }
         } else {
             self.llvm.builder.build_return(None);
         }

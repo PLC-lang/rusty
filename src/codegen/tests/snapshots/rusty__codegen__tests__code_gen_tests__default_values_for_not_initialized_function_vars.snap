@@ -7,11 +7,11 @@ source_filename = "main"
 
 define i16 @func() {
 entry:
+  %func = alloca i16, align 2
   %int_var = alloca i16, align 2
   %arr_var = alloca [3 x i32], align 4
   %ptr_var = alloca i32*, align 8
   %float_var = alloca float, align 4
-  %func = alloca i16, align 2
   store i16 0, i16* %int_var, align 2
   %0 = bitcast [3 x i32]* %arr_var to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([3 x i32]* getelementptr ([3 x i32], [3 x i32]* null, i32 1) to i64), i1 false)

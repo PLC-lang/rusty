@@ -11,8 +11,8 @@ source_filename = "main"
 
 define i64 @func() {
 entry:
-  %TIME = alloca i64, align 8
   %func = alloca i64, align 8
+  %TIME = alloca i64, align 8
   store i64 0, i64* %TIME, align 4
   store i64 0, i64* %func, align 4
   %func_ret = load i64, i64* %func, align 4

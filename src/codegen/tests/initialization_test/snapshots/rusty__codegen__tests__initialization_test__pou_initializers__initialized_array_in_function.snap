@@ -9,8 +9,8 @@ source_filename = "main"
 
 define i16 @func() {
 entry:
-  %arr_var = alloca [4 x i32], align 4
   %func = alloca i16, align 2
+  %arr_var = alloca [4 x i32], align 4
   %0 = bitcast [4 x i32]* %arr_var to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast ([4 x i32]* @__func.arr_var__init to i8*), i64 ptrtoint ([4 x i32]* getelementptr ([4 x i32], [4 x i32]* null, i32 1) to i64), i1 false)
   store i16 0, i16* %func, align 2

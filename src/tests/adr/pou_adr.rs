@@ -141,9 +141,9 @@ fn calling_a_program() {
 
     define i16 @foo() {
     entry:
+      %foo = alloca i16, align 2
       %x = alloca i16, align 2
       %y = alloca i16, align 2
-      %foo = alloca i16, align 2
       store i16 0, i16* %x, align 2
       store i16 0, i16* %y, align 2
       store i16 0, i16* %foo, align 2
@@ -299,6 +299,7 @@ fn function_get_a_method_with_by_ref_parameters() {
 
     define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
     entry:
+      %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
       store i16 %0, i16* %i, align 2
       %io = alloca i8*, align 8
@@ -307,7 +308,6 @@ fn function_get_a_method_with_by_ref_parameters() {
       store i64* %2, i64** %o, align 8
       %v = alloca i16, align 2
       %vt = alloca i16, align 2
-      %main_fun = alloca i32, align 4
       store i16 1, i16* %v, align 2
       store i16 2, i16* %vt, align 2
       store i32 0, i32* %main_fun, align 4
@@ -355,6 +355,7 @@ fn calling_a_function() {
 
     define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
     entry:
+      %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
       store i16 %0, i16* %i, align 2
       %io = alloca i8*, align 8
@@ -363,7 +364,6 @@ fn calling_a_function() {
       store i64* %2, i64** %o, align 8
       %v = alloca i16, align 2
       %vt = alloca i16, align 2
-      %main_fun = alloca i32, align 4
       store i16 1, i16* %v, align 2
       store i16 2, i16* %vt, align 2
       store i32 0, i32* %main_fun, align 4
