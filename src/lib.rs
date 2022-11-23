@@ -643,7 +643,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     optimization: OptimizationLevel,
     debug_level: DebugLevel,
 ) -> Result<(Index, CodeGen<'c>), Diagnostic> {
-    let module_name = sources
+    let module_location = sources
         .get(0)
         .map(|it| it.get_location())
         .unwrap_or("main")
@@ -653,7 +653,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     // ### PHASE 3 ###
     // - codegen
     let mut code_generator =
-        codegen::CodeGen::new(context, &module_name, optimization, debug_level); // TODO: module_name
+        codegen::CodeGen::new(context, "main", &module_location, optimization, debug_level); 
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types

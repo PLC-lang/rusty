@@ -44,7 +44,7 @@ pub struct PouGenerator<'ink, 'cg> {
     index: &'cg Index,
     annotations: &'cg AstAnnotations,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
-    pub debug: &'cg DebugBuilderEnum<'ink>,
+    debug: &'cg DebugBuilderEnum<'ink>,
 }
 
 /// Creates opaque implementations for all callable items in the index

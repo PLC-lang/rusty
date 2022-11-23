@@ -162,6 +162,7 @@ pub mod tests {
         let mut code_generator = crate::codegen::CodeGen::new(
             &context,
             "main",
+            "main",
             crate::OptimizationLevel::None,
             debug_level,
         );

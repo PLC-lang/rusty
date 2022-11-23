@@ -3,7 +3,7 @@ source: src/tests/multi_files.rs
 expression: res
 ---
 ; ModuleID = 'main'
-source_filename = "main"
+source_filename = "external_file.st"
 
 %mainProg = type {}
 

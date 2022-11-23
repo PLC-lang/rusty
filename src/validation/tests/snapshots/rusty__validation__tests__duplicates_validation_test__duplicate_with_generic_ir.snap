@@ -3,7 +3,7 @@ source: src/validation/tests/duplicates_validation_test.rs
 expression: ir
 ---
 ; ModuleID = 'main'
-source_filename = "main"
+source_filename = "external_file.st"
 
 %prg1 = type {}
 %prg2 = type {}

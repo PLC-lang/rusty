@@ -31,8 +31,8 @@ pub struct FunctionContext<'a> {
 }
 
 /// ...
-pub struct DebugContext<'a, 'b> {
-    pub debug: &'b DebugBuilderEnum<'a>,
+pub struct DebugContext<'ink, 'b> {
+    pub debug: &'b DebugBuilderEnum<'ink>,
     pub new_lines: &'b NewLines,
 }
 
@@ -90,6 +90,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.annotations,
             self.llvm_index,
             self.function_context,
+            self.debug_context,
         )
     }
 
@@ -97,13 +98,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), Diagnostic> {
         for s in statements {
             self.generate_statement(s)?;
-            self.debug_context.debug.set_debug_location(
-                self.llvm,
-                &self.function_context.function,
-                self.debug_context
-                    .new_lines
-                    .get_line_nr(s.get_location().get_start()),
-            )?;
         }
         Ok(())
     }
@@ -227,8 +221,19 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let right_statement = range_checked_right_side.unwrap_or(right_statement);
 
+        //Register any debug info for the store
+        self.register_debug_location(left_statement)?;
         exp_gen.generate_store(left, left_type, right_statement)?;
         Ok(())
+    }
+
+    fn register_debug_location(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
+        let line = self.debug_context.new_lines.get_line_nr(statement.get_location().get_start());
+        let column = self.debug_context.new_lines.get_column(line, statement.get_location().get_start());
+        dbg!(&self.function_context.linking_context);
+        dbg!((line,column));
+        dbg!(statement);
+        self.debug_context.debug.set_debug_location(&self.llvm, &self.function_context.function, line, column)
     }
 
     fn generate_direct_access_assignment(

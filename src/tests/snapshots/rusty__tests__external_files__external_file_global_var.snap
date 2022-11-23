@@ -3,7 +3,7 @@ source: src/tests/external_files.rs
 expression: res
 ---
 ; ModuleID = 'main'
-source_filename = "main"
+source_filename = "external_file.st"
 
 @x = external global i16
 @y = external global i16

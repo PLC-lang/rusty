@@ -45,10 +45,12 @@ impl<'ink> CodeGen<'ink> {
     pub fn new(
         context: &'ink Context,
         module_name: &str,
+        module_location: &str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
+        module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, optimization_level, debug_level);
         CodeGen {
             context,

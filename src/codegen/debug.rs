@@ -1,18 +1,18 @@
-use std::{collections::HashMap, ops::Range};
+use std::{collections::HashMap, ops::Range, path::Path};
 
 use inkwell::{
     context::Context,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
         DIFlagsConstants, DILocation, DIScope, DISubprogram, DISubroutineType, DIType,
-        DWARFEmissionKind, DebugInfoBuilder,
+        DWARFEmissionKind, DebugInfoBuilder, DILexicalBlock,
     },
     module::Module,
     values::{FunctionValue, GlobalValue},
 };
 
 use crate::{
-    ast::SourceRange,
+    ast::{SourceRange, LinkageType},
     datalayout::{Bytes, MemoryLocation},
     diagnostics::Diagnostic,
     index::{Index, PouIndexEntry},
@@ -61,7 +61,9 @@ pub trait Debug<'ink> {
         &self,
         llvm: &Llvm,
         scope: &FunctionValue,
+        //Current line starts with 0
         line: usize,
+        column: usize,
     ) -> Result<(), Diagnostic>;
 
     /// ...
@@ -119,6 +121,9 @@ pub struct DebugBuilder<'ink> {
     debug_info: DebugInfoBuilder<'ink>,
     compile_unit: DICompileUnit<'ink>,
     types: HashMap<String, DebugType<'ink>>,
+    optimization: OptimizationLevel,
+    //A stack of lexical blocks to write locations into
+    scopes: Vec<DILexicalBlock<'ink>>,
 }
 
 /// A wrapper that redirects to correct debug builder implementation based on the debug context.
@@ -140,11 +145,14 @@ impl<'ink> DebugBuilderEnum<'ink> {
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
             DebugLevel::VariablesOnly | DebugLevel::Full => {
+                let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
+                let directory = path.parent().and_then(|it| it.to_str()).unwrap_or("");
+                let filename = path.file_name().and_then(|it| it.to_str()).unwrap_or("");
                 let (debug_info, compile_unit) = module.create_debug_info_builder(
                     true,
-                    inkwell::debug_info::DWARFSourceLanguage::C,
-                    module.get_source_file_name().to_str().unwrap_or(""),
-                    "",
+                    inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
+                    filename,
+                    directory,
                     "RuSTy Structured text Compiler",
                     optimization.is_optimized(),
                     "",
@@ -162,6 +170,8 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     debug_info,
                     compile_unit,
                     types: Default::default(),
+                    optimization,
+                    scopes: Vec::new(),
                 };
                 match debug_level {
                     DebugLevel::VariablesOnly => DebugBuilderEnum::VariablesOnly(dbg_obj),
@@ -376,11 +386,12 @@ impl<'ink> DebugBuilder<'ink> {
         &self,
         scope: DIScope<'ink>,
         line: usize,
+        column: usize,
     ) -> Result<DILocation, Diagnostic> {
         Ok(self.debug_info.create_debug_location(
             self.context,
-            line as u32, // try_into() error msg on fail
-            0,           // not implemented yet
+            line as u32,   // try_into() error msg on fail
+            column as u32, // not implemented yet
             scope,
             None, // ?
         ))
@@ -421,6 +432,7 @@ impl<'ink> DebugBuilder<'ink> {
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
     ) -> Result<DISubprogram, Diagnostic> {
+        let is_external = matches!(pou.get_linkage(), LinkageType::External);
         let ditype = self.create_subroutine_type(return_type, parameter_types)?;
         Ok(self.debug_info.create_function(
             self.compile_unit.get_file().as_debug_info_scope(),
@@ -429,11 +441,11 @@ impl<'ink> DebugBuilder<'ink> {
             self.compile_unit.get_file(),
             pou.get_location().line_number as u32, // try_into() error msg on fail
             ditype,
-            false, // for {external}
-            true,  // for {external}
-            0,     // ?
+            false,                                 // TODO: what is this 
+            !is_external,
+            pou.get_location().line_number as u32, // scope begins at declaration
             DIFlagsConstants::PUBLIC,
-            false, // get from compile parameters
+            self.optimization.is_optimized(),
         ))
     }
 }
@@ -443,13 +455,15 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         &self,
         llvm: &Llvm,
         scope: &FunctionValue,
+        //Current line starts with 0
         line: usize,
+        column: usize,
     ) -> Result<(), Diagnostic> {
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        let location = self.create_debug_location(scope, line)?;
+        let location = self.create_debug_location(scope, line + 1, column)?;
         llvm.builder
             .set_current_debug_location(llvm.context, location);
         Ok(())
@@ -462,7 +476,11 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         return_type: Option<&'idx DataType>,
         parameter_types: &[&'idx DataType],
     ) -> Result<(), Diagnostic> {
-        let subprogram = self.create_function(pou, return_type, parameter_types)?;
+        let subprogram = self.create_function(
+            pou,
+            return_type,
+            parameter_types,
+        )?;
         func.set_subprogram(subprogram);
         Ok(())
     }
@@ -583,10 +601,11 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         llvm: &Llvm,
         scope: &FunctionValue,
         line: usize,
+        column: usize,
     ) -> Result<(), Diagnostic> {
         match self {
             Self::None | Self::VariablesOnly(..) => Ok(()),
-            Self::Full(obj) => obj.set_debug_location(llvm, scope, line),
+            Self::Full(obj) => obj.set_debug_location(llvm, scope, line, column),
         }
     }
 
