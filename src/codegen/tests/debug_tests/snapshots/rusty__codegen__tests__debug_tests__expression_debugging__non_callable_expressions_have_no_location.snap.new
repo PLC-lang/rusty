@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
-assertion_line: 145
+assertion_line: 132
 expression: result
 ---
 ; ModuleID = 'main'
@@ -11,12 +11,9 @@ entry:
   %myFunc = alloca i32, align 4
   call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !6, metadata !DIExpression()), !dbg !8
   store i32 0, i32* %myFunc, align 4
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !9
-  ret i32 %myFunc_ret, !dbg !9
-
-buffer_block:                                     ; No predecessors!
-  %myFunc_ret1 = load i32, i32* %myFunc, align 4, !dbg !9
-  ret i32 %myFunc_ret1, !dbg !9
+  %load_myFunc = load i32, i32* %myFunc, align 4
+  %myFunc_ret = load i32, i32* %myFunc, align 4
+  ret i32 %myFunc_ret
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -35,5 +32,4 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !6 = !DILocalVariable(name: "myFunc", scope: !1, file: !1, line: 1, type: !7, align: 32)
 !7 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !8 = !DILocation(line: 1, column: 17, scope: !3)
-!9 = !DILocation(line: 3, column: 12, scope: !3)
 

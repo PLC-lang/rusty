@@ -1,21 +1,22 @@
 use std::{collections::HashMap, ops::Range, path::Path};
 
 use inkwell::{
+    basic_block::BasicBlock,
     context::Context,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
         DIFlagsConstants, DILocation, DIScope, DISubprogram, DISubroutineType, DIType,
-        DWARFEmissionKind, DebugInfoBuilder, DILexicalBlock,
+        DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
-    values::{FunctionValue, GlobalValue},
+    values::{FunctionValue, GlobalValue, PointerValue},
 };
 
 use crate::{
-    ast::{SourceRange, LinkageType},
+    ast::{LinkageType, NewLines, SourceRange},
     datalayout::{Bytes, MemoryLocation},
     diagnostics::Diagnostic,
-    index::{Index, PouIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
@@ -91,6 +92,27 @@ pub trait Debug<'ink> {
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), Diagnostic>;
 
+    /// Creates a globally accessible variable with the given datatype.
+    fn register_local_variable(
+        &self,
+        variable: &VariableIndexEntry,
+        scope: FunctionValue<'ink>,
+        block: BasicBlock<'ink>,
+        value: PointerValue<'ink>,
+        alignment: u32,
+        line_information: &NewLines,
+    ) -> Result<(), Diagnostic>;
+
+    fn register_parameter(
+        &self,
+        variable: &VariableIndexEntry,
+        scope: FunctionValue<'ink>,
+        block: BasicBlock<'ink>,
+        value: PointerValue<'ink>,
+        arg_no: u32,
+        line_information: &NewLines,
+    ) -> Result<(), Diagnostic>;
+
     /// When code generation is done, this method needs to be called to ensure the inner LLVM state
     /// of the debug builder has been finalized.
     fn finalize(&self) -> Result<(), Diagnostic>;
@@ -122,8 +144,6 @@ pub struct DebugBuilder<'ink> {
     compile_unit: DICompileUnit<'ink>,
     types: HashMap<String, DebugType<'ink>>,
     optimization: OptimizationLevel,
-    //A stack of lexical blocks to write locations into
-    scopes: Vec<DILexicalBlock<'ink>>,
 }
 
 /// A wrapper that redirects to correct debug builder implementation based on the debug context.
@@ -171,7 +191,6 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     compile_unit,
                     types: Default::default(),
                     optimization,
-                    scopes: Vec::new(),
                 };
                 match debug_level {
                     DebugLevel::VariablesOnly => DebugBuilderEnum::VariablesOnly(dbg_obj),
@@ -441,7 +460,7 @@ impl<'ink> DebugBuilder<'ink> {
             self.compile_unit.get_file(),
             pou.get_location().line_number as u32, // try_into() error msg on fail
             ditype,
-            false,                                 // TODO: what is this 
+            false, // TODO: what is this
             !is_external,
             pou.get_location().line_number as u32, // scope begins at declaration
             DIFlagsConstants::PUBLIC,
@@ -476,11 +495,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         return_type: Option<&'idx DataType>,
         parameter_types: &[&'idx DataType],
     ) -> Result<(), Diagnostic> {
-        let subprogram = self.create_function(
-            pou,
-            return_type,
-            parameter_types,
-        )?;
+        let subprogram = self.create_function(pou, return_type, parameter_types)?;
         func.set_subprogram(subprogram);
         Ok(())
     }
@@ -589,6 +604,104 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         Ok(())
     }
 
+    fn register_local_variable(
+        &self,
+        variable: &VariableIndexEntry,
+        scope: FunctionValue<'ink>,
+        block: BasicBlock<'ink>,
+        value: PointerValue<'ink>,
+        alignment: u32,
+        line_information: &NewLines,
+    ) -> Result<(), Diagnostic> {
+        let type_name = variable.get_type_name();
+        let location = &variable.source_location;
+        let line = location.line_number;
+        let column = line_information.get_column(line, location.source_range.get_start());
+
+        if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+            let debug_variable = self.debug_info.create_auto_variable(
+                self.compile_unit.get_file().as_debug_info_scope(),
+                variable.get_name(),
+                self.compile_unit.get_file(),
+                line as u32,
+                (*debug_type).into(),
+                false,
+                DIFlagsConstants::ZERO,
+                alignment as u32,
+            );
+
+            let scope = scope
+                .get_subprogram()
+                .map(|it| it.as_debug_info_scope())
+                .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
+            let location = self.debug_info.create_debug_location(
+                self.context,
+                line as u32,
+                column as u32,
+                scope,
+                None,
+            );
+            self.debug_info.insert_declare_at_end(
+                value,
+                Some(debug_variable),
+                None,
+                location,
+                block,
+            );
+        }
+
+        Ok(())
+    }
+
+    fn register_parameter(
+        &self,
+        variable: &VariableIndexEntry,
+        scope: FunctionValue<'ink>,
+        block: BasicBlock<'ink>,
+        value: PointerValue<'ink>,
+        arg_no: u32,
+        line_information: &NewLines,
+    ) -> Result<(), Diagnostic> {
+        let type_name = variable.get_type_name();
+        let location = &variable.source_location;
+        let line = location.line_number;
+        let column = line_information.get_column(line, location.source_range.get_start());
+
+        if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+            let debug_variable = self.debug_info.create_parameter_variable(
+                self.compile_unit.get_file().as_debug_info_scope(),
+                variable.get_name(),
+                arg_no,
+                self.compile_unit.get_file(),
+                line as u32,
+                (*debug_type).into(),
+                false,
+                DIFlagsConstants::ZERO,
+            );
+
+            let scope = scope
+                .get_subprogram()
+                .map(|it| it.as_debug_info_scope())
+                .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
+            let location = self.debug_info.create_debug_location(
+                self.context,
+                line as u32,
+                column as u32,
+                scope,
+                None,
+            );
+            self.debug_info.insert_declare_at_end(
+                value,
+                Some(debug_variable),
+                None,
+                location,
+                block,
+            );
+        }
+
+        Ok(())
+    }
+
     fn finalize(&self) -> Result<(), Diagnostic> {
         self.debug_info.finalize();
         Ok(())
@@ -647,6 +760,38 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
             Self::VariablesOnly(obj) | Self::Full(obj) => {
                 obj.create_global_variable(name, type_name, global_variable)
             }
+        }
+    }
+
+    fn register_local_variable(
+        &self,
+        variable: &VariableIndexEntry,
+        scope: FunctionValue<'ink>,
+        block: BasicBlock<'ink>,
+        value: PointerValue<'ink>,
+        alignment: u32,
+        line_information: &NewLines,
+    ) -> Result<(), Diagnostic> {
+        match self {
+            Self::None | Self::VariablesOnly(_) => Ok(()),
+            Self::Full(obj) => {
+                obj.register_local_variable(variable, scope, block, value, alignment, line_information)
+            }
+        }
+    }
+
+    fn register_parameter(
+        &self,
+        variable: &VariableIndexEntry,
+        scope: FunctionValue<'ink>,
+        block: BasicBlock<'ink>,
+        value: PointerValue<'ink>,
+        arg_no: u32,
+        line_information: &NewLines,
+    ) -> Result<(), Diagnostic> {
+        match self {
+            Self::None | Self::VariablesOnly(_) => Ok(()),
+            Self::Full(obj) => obj.register_parameter(variable, scope, block, value, arg_no, line_information),
         }
     }
 

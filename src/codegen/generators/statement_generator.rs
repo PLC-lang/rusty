@@ -160,6 +160,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
             AstStatement::ReturnStatement { .. } => {
+                self.register_debug_location(statement)?;
                 self.pou_generator
                     .generate_return_statement(self.function_context, self.llvm_index)?;
                 self.generate_buffer_block();
@@ -230,9 +231,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn register_debug_location(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
         let line = self.debug_context.new_lines.get_line_nr(statement.get_location().get_start());
         let column = self.debug_context.new_lines.get_column(line, statement.get_location().get_start());
-        dbg!(&self.function_context.linking_context);
-        dbg!((line,column));
-        dbg!(statement);
         self.debug_context.debug.set_debug_location(&self.llvm, &self.function_context.function, line, column)
     }
 

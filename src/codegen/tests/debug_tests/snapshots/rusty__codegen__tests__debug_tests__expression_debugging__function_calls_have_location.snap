@@ -9,7 +9,7 @@ define i32 @myFunc() !dbg !3 {
 entry:
   %myFunc = alloca i32, align 4
   store i32 0, i32* %myFunc, align 4
-  store i32 3, i32* %myFunc, align 4, !dbg !6
+  %call = call i32 @myFunc(), !dbg !6
   %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !6
   ret i32 %myFunc_ret, !dbg !6
 }

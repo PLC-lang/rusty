@@ -653,7 +653,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     // ### PHASE 3 ###
     // - codegen
     let mut code_generator =
-        codegen::CodeGen::new(context, "main", &module_location, optimization, debug_level); 
+        codegen::CodeGen::new(context, &module_location, &module_location, optimization, debug_level); 
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
@@ -668,6 +668,15 @@ pub fn compile_module<'c, T: SourceContainer>(
     }
 
     code_generator.finalize()?;
+
+    #[cfg(feature = "verify")]
+    {
+        code_generator.module.verify().map_err(|it| Diagnostic::GeneralError {
+            message: it.to_string(),
+            err_no: crate::diagnostics::ErrNo::codegen__general,
+        })?
+    }
+
 
     Ok((full_index, code_generator))
 }

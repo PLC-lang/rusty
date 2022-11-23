@@ -9,7 +9,8 @@ define i32 @myFunc() !dbg !3 {
 entry:
   %myFunc = alloca i32, align 4
   store i32 0, i32* %myFunc, align 4
-  store i32 3, i32* %myFunc, align 4, !dbg !6
+  %call = call i32 @myFunc(), !dbg !6
+  %tmpVar = add i32 1, %call, !dbg !6
   %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !6
   ret i32 %myFunc_ret, !dbg !6
 }
@@ -22,5 +23,5 @@ entry:
 !3 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !1, file: !1, line: 1, type: !4, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !2)
 !4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
 !5 = !{null}
-!6 = !DILocation(line: 3, column: 12, scope: !3)
+!6 = !DILocation(line: 3, column: 16, scope: !3)
 
