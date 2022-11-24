@@ -847,9 +847,9 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
             "h" | "H" => Some(POS_H),
             "m" | "M" => Some(POS_M),
             "s" | "S" => Some(POS_S),
-            "ms"| "MS" => Some(POS_MS),
-            "us"| "US" => Some(POS_US),
-            "ns"| "NS"=> Some(POS_NS),
+            "ms" | "MS" => Some(POS_MS),
+            "us" | "US" => Some(POS_US),
+            "ns" | "NS" => Some(POS_NS),
             _ => None,
         };
         if let Some(position) = position {
