@@ -1,0 +1,21 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%myStruct = type { i32, i32 }
+%main = type { [2 x %myStruct] }
+
+@str = unnamed_addr constant %myStruct { i32 40, i32 50 }
+@main_instance = global %main { [2 x %myStruct] [%myStruct { i32 20, i32 30 }, %myStruct { i32 40, i32 50 }] }
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+@__main.arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 20, i32 30 }, %myStruct { i32 40, i32 50 }]
+
+define void @main(%main* %0) {
+entry:
+  %arr = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  ret void
+}
+

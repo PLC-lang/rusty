@@ -801,6 +801,29 @@ impl<'i> TypeAnnotator<'i> {
                     StatementAnnotation::value(expected_type.get_name()),
                 );
                 self.update_expected_types(expected_type, initializer);
+
+                // handle annotation for array of struct
+                if let DataTypeInformation::Array {
+                    inner_type_name, ..
+                } = expected_type.get_type_information()
+                {
+                    let struct_type = self
+                        .index
+                        .get_effective_type_or_void_by_name(inner_type_name);
+                    if let DataTypeInformation::Struct { .. } = struct_type.get_type_information() {
+                        if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                            for e in expressions {
+                                // annotate with the arrays inner_type
+                                self.annotation_map.annotate_type_hint(
+                                    e,
+                                    StatementAnnotation::Value {
+                                        resulting_type: struct_type.get_name().to_string(),
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -512,3 +512,27 @@ fn struct_initializer_uses_fallback_to_field_default() {
     insta::assert_snapshot!(result);
     assert!(diagnostics.is_empty());
 }
+
+#[test]
+fn array_of_struct_initialization() {
+    let source = "
+	TYPE myStruct : STRUCT
+			a,b : DINT;
+		END_STRUCT
+	END_TYPE
+
+	VAR_GLOBAL CONSTANT
+		str : myStruct := (a := 40, b := 50);
+	END_VAR
+
+	PROGRAM main
+	VAR
+		arr : ARRAY[0..1] OF myStruct := ((a := 20, b := 30), str);
+	END_VAR
+	END_PROGRAM
+    ";
+    let (result, diagnostics) = codegen(source);
+
+    insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
+}
