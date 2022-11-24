@@ -521,13 +521,17 @@ fn array_of_struct_initialization() {
 		END_STRUCT
 	END_TYPE
 
+    TYPE AliasMyStruct : myStruct; END_TYPE
+
 	VAR_GLOBAL CONSTANT
 		str : myStruct := (a := 40, b := 50);
+		alias_str : AliasMyStruct := (a := 40, b := 50);
 	END_VAR
 
 	PROGRAM main
 	VAR
 		arr : ARRAY[0..1] OF myStruct := ((a := 20, b := 30), str);
+		alias_arr : ARRAY[0..1] OF AliasMyStruct := ((a := 20, b := 30), str);
 	END_VAR
 	END_PROGRAM
     ";
