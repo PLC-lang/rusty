@@ -1140,6 +1140,20 @@
 <span id="1135">1135</span>
 <span id="1136">1136</span>
 <span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
+<span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::<span class="kw-2">*</span>,
@@ -2152,9 +2166,23 @@
 
     <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">parse_access_modifier</span>(<span class="ident">lexer</span>);
 
-    <span class="kw">let</span> <span class="ident">variables</span> <span class="op">=</span> <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndVar</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variables</span> <span class="op">=</span> <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndVar</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
         <span class="ident">parse_variable_list</span>(<span class="ident">lexer</span>)
     });
+
+    <span class="kw">if</span> <span class="ident">constant</span> {
+        <span class="comment">// sneak in the DefaultValue-Statements if no initializers were defined</span>
+        <span class="ident">variables</span>
+            .<span class="ident">iter_mut</span>()
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">initializer</span>.<span class="ident">is_none</span>())
+            .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
+                <span class="ident">it</span>.<span class="ident">initializer</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">AstStatement::DefaultValue</span> {
+                    <span class="ident">location</span>: <span class="ident">it</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                    <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+                });
+            });
+    }
+
     <span class="ident">VariableBlock</span> {
         <span class="ident">access</span>,
         <span class="ident">constant</span>,

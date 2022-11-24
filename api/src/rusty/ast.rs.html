@@ -1571,6 +1571,14 @@
 <span id="1566">1566</span>
 <span id="1567">1567</span>
 <span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">index::Index</span>,
@@ -2309,6 +2317,11 @@
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
         <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
+    <span class="comment">// a placeholder that indicates a default value of a datatype</span>
+    <span class="ident">DefaultValue</span> {
+        <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
+    },
     <span class="comment">// Literals</span>
     <span class="ident">LiteralInteger</span> {
         <span class="ident">value</span>: <span class="ident">i128</span>,
@@ -2519,6 +2532,7 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">AstStatement::EmptyStatement</span> { .. } =&gt; <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;EmptyStatement&quot;</span>).<span class="ident">finish</span>(),
+            <span class="ident">AstStatement::DefaultValue</span> { .. } =&gt; <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;DefaultValue&quot;</span>).<span class="ident">finish</span>(),
             <span class="ident">AstStatement::LiteralNull</span> { .. } =&gt; <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;LiteralNull&quot;</span>).<span class="ident">finish</span>(),
             <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } =&gt; <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;LiteralInteger&quot;</span>)
@@ -2768,6 +2782,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SourceRange</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">AstStatement::EmptyStatement</span> { <span class="ident">location</span>, .. } =&gt; <span class="ident">location</span>.<span class="ident">clone</span>(),
+            <span class="ident">AstStatement::DefaultValue</span> { <span class="ident">location</span>, .. } =&gt; <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">AstStatement::LiteralNull</span> { <span class="ident">location</span>, .. } =&gt; <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">location</span>, .. } =&gt; <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">AstStatement::LiteralDate</span> { <span class="ident">location</span>, .. } =&gt; <span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -2846,6 +2861,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstId</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">AstStatement::EmptyStatement</span> { <span class="ident">id</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">AstStatement::DefaultValue</span> { <span class="ident">id</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::LiteralNull</span> { <span class="ident">id</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">id</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::LiteralDate</span> { <span class="ident">id</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">id</span>,

@@ -727,10 +727,104 @@
 <span id="722">722</span>
 <span id="723">723</span>
 <span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">Operator</span>, <span class="ident">SourceRange</span>},
+    <span class="ident">ast</span>::{<span class="ident">AstId</span>, <span class="ident">AstStatement</span>, <span class="ident">Operator</span>, <span class="ident">SourceRange</span>},
     <span class="ident">index</span>::{
         <span class="ident">const_expressions</span>::{<span class="ident">ConstExpression</span>, <span class="ident">ConstId</span>},
         <span class="ident">Index</span>,
@@ -738,7 +832,7 @@
     <span class="ident">typesystem</span>::{
         <span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">NativeByteType</span>, <span class="ident">NativeDintType</span>, <span class="ident">NativeDwordType</span>,
         <span class="ident">NativeIntType</span>, <span class="ident">NativeLintType</span>, <span class="ident">NativeLwordType</span>, <span class="ident">NativeSintType</span>, <span class="ident">NativeWordType</span>,
-        <span class="ident">StringEncoding</span>, <span class="ident">DINT_SIZE</span>, <span class="ident">INT_SIZE</span>, <span class="ident">LINT_SIZE</span>, <span class="ident">SINT_SIZE</span>,
+        <span class="ident">StringEncoding</span>, <span class="ident">DINT_SIZE</span>, <span class="ident">INT_SIZE</span>, <span class="ident">LINT_SIZE</span>, <span class="ident">SINT_SIZE</span>, <span class="ident">VOID_TYPE</span>,
     },
 };
 
@@ -927,10 +1021,23 @@
                     .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">type_name</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">type_name</span>))
                     .<span class="ident">map</span>(<span class="ident">DataType::get_type_information</span>);
 
-                <span class="kw">let</span> <span class="ident">initial_value_literal</span> <span class="op">=</span> <span class="ident">evaluate</span>(
+                <span class="kw">if</span> <span class="ident">candidates_type</span>
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> (<span class="ident">it</span>.<span class="ident">is_struct</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_array</span>()) <span class="op">&amp;&amp;</span> <span class="ident">const_expr</span>.<span class="ident">is_default</span>())
+                    .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+                {
+                    <span class="comment">// we skip structs and arrays with default-initializers since they cannot be used inside expressions of other consts.</span>
+                    <span class="comment">// we leave generating the default value to the llvm-index later.</span>
+                    <span class="comment">// And we resolve it so we dont get a validation problem</span>
+                    <span class="kw">let</span> <span class="ident">expr_clone</span> <span class="op">=</span> <span class="ident">const_expr</span>.<span class="ident">get_statement</span>().<span class="ident">clone</span>();
+                    <span class="ident">do_resolve_candidate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">index</span>, <span class="ident">candidate</span>, <span class="ident">expr_clone</span>);
+                    <span class="kw">continue</span>;
+                }
+
+                <span class="kw">let</span> <span class="ident">initial_value_literal</span> <span class="op">=</span> <span class="ident">evaluate_with_target_hint</span>(
                     <span class="ident">const_expr</span>.<span class="ident">get_statement</span>(),
                     <span class="ident">const_expr</span>.<span class="ident">get_qualifier</span>(),
                     <span class="kw-2">&amp;</span><span class="ident">index</span>,
+                    <span class="ident">target_type</span>,
                 );
 
                 <span class="kw">match</span> (<span class="ident">initial_value_literal</span>, <span class="ident">candidates_type</span>) {
@@ -975,10 +1082,7 @@
                                 .<span class="ident">find_expression_target_type</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>),
                             <span class="kw-2">&amp;</span><span class="ident">index</span>,
                         );
-                        <span class="ident">index</span>
-                            .<span class="ident">get_mut_const_expressions</span>()
-                            .<span class="ident">mark_resolved</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>, <span class="ident">literal</span>)
-                            .<span class="ident">expect</span>(<span class="string">&quot;unknown id for const-expression&quot;</span>); <span class="comment">//panic if we dont know the id</span>
+                        <span class="ident">do_resolve_candidate</span>(<span class="kw-2">&amp;mut</span> <span class="ident">index</span>, <span class="ident">candidate</span>, <span class="ident">literal</span>);
                         <span class="ident">failed_tries</span> <span class="op">=</span> <span class="number">0</span>;
                     }
 
@@ -1014,6 +1118,71 @@
     );
 
     (<span class="ident">index</span>, <span class="ident">unresolvable</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">do_resolve_candidate</span>(
+    <span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>,
+    <span class="ident">candidate</span>: <span class="ident">generational_arena::Index</span>,
+    <span class="ident">new_statement</span>: <span class="ident">AstStatement</span>,
+) {
+    <span class="ident">index</span>
+        .<span class="ident">get_mut_const_expressions</span>()
+        .<span class="ident">mark_resolved</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>, <span class="ident">new_statement</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;unknown id for const-expression&quot;</span>);
+}
+
+<span class="doccomment">/// generates an ast-statement that initializes the given type with the registered default values</span>
+<span class="kw">fn</span> <span class="ident">get_default_initializer</span>(
+    <span class="ident">id</span>: <span class="ident">AstId</span>,
+    <span class="ident">target_type</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
+    <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_initial_value_for_type</span>(<span class="ident">target_type</span>) {
+        <span class="ident">evaluate</span>(<span class="ident">init</span>, <span class="prelude-val">None</span>, <span class="ident">index</span>) <span class="comment">//TODO do we ave a scope here?</span>
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_type_information_or_void</span>(<span class="ident">target_type</span>);
+        <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dt</span> {
+            <span class="ident">DataTypeInformation::Pointer</span> { .. } =&gt; <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralNull</span> {
+                <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">clone</span>(),
+                <span class="ident">id</span>,
+            }),
+            <span class="ident">DataTypeInformation::Integer</span> { .. } =&gt; <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralInteger</span> {
+                <span class="ident">value</span>: <span class="number">0</span>,
+                <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">clone</span>(),
+                <span class="ident">id</span>,
+            }),
+            <span class="ident">DataTypeInformation::Enum</span> { <span class="ident">name</span>, <span class="ident">elements</span>, .. } =&gt; <span class="ident">elements</span>
+                .<span class="ident">get</span>(<span class="number">0</span>)
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">default_enum</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">find_enum_element</span>(<span class="ident">name</span>, <span class="ident">default_enum</span>))
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">enum_element</span><span class="op">|</span> <span class="ident">enum_element</span>.<span class="ident">initial_value</span>)
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">initial_val</span><span class="op">|</span> {
+                    <span class="ident">index</span>
+                        .<span class="ident">get_const_expressions</span>()
+                        .<span class="ident">get_resolved_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">initial_val</span>)
+                })
+                .<span class="ident">cloned</span>(),
+            <span class="ident">DataTypeInformation::Float</span> { .. } =&gt; <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralReal</span> {
+                <span class="ident">value</span>: <span class="string">&quot;0.0&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">clone</span>(),
+                <span class="ident">id</span>,
+            }),
+            <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } =&gt; <span class="prelude-val">Some</span>(<span class="ident">AstStatement::LiteralString</span> {
+                <span class="ident">value</span>: <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">is_wide</span>: <span class="ident">encoding</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">StringEncoding::Utf16</span>,
+                <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">clone</span>(),
+                <span class="ident">id</span>,
+            }),
+            <span class="ident">DataTypeInformation::SubRange</span> {
+                <span class="ident">referenced_type</span>, ..
+            }
+            <span class="op">|</span> <span class="ident">DataTypeInformation::Alias</span> {
+                <span class="ident">referenced_type</span>, ..
+            } =&gt; <span class="kw">return</span> <span class="ident">get_default_initializer</span>(<span class="ident">id</span>, <span class="ident">referenced_type</span>, <span class="ident">index</span>, <span class="ident">location</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        };
+        <span class="prelude-val">Ok</span>(<span class="ident">init</span>)
+    }
 }
 
 <span class="doccomment">/// transforms the given literal to better fit the datatype of the candidate</span>
@@ -1086,6 +1255,14 @@
     <span class="ident">literal</span>
 }
 
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate</span>(
+    <span class="ident">initial</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+    <span class="ident">scope</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="ident">evaluate_with_target_hint</span>(<span class="ident">initial</span>, <span class="ident">scope</span>, <span class="ident">index</span>, <span class="prelude-val">None</span>)
+}
+
 <span class="doccomment">/// evaluates the given Syntax-Tree `initial` to a `LiteralValue` if possible</span>
 <span class="doccomment">/// ## Arguments</span>
 <span class="doccomment">/// - `initial` the constant expression to resolve</span>
@@ -1094,16 +1271,25 @@
 <span class="doccomment">/// ## Returns</span>
 <span class="doccomment">/// - returns an Err if resolving caused an internal error (e.g. number parsing)</span>
 <span class="doccomment">/// - returns None if the initializer cannot be resolved  (e.g. missing value)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate_with_target_hint</span>(
     <span class="ident">initial</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     <span class="ident">scope</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
+    <span class="ident">target_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="op">!</span><span class="ident">needs_evaluation</span>(<span class="ident">initial</span>) {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">initial</span>.<span class="ident">clone</span>())); <span class="comment">// TODO hmm ...</span>
     }
 
     <span class="kw">let</span> <span class="ident">literal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">initial</span> {
+        <span class="ident">AstStatement::DefaultValue</span> { <span class="ident">location</span>, .. } =&gt; {
+            <span class="kw">return</span> <span class="ident">get_default_initializer</span>(
+                <span class="ident">initial</span>.<span class="ident">get_id</span>(),
+                <span class="ident">target_type</span>.<span class="ident">unwrap_or</span>(<span class="ident">VOID_TYPE</span>),
+                <span class="ident">index</span>,
+                <span class="ident">location</span>,
+            )
+        }
         <span class="ident">AstStatement::CastStatement</span> {
             <span class="ident">target</span>, <span class="ident">type_name</span>, ..
         } =&gt; <span class="kw">match</span> <span class="ident">index</span>.<span class="ident">find_effective_type_info</span>(<span class="ident">type_name</span>) {
@@ -1113,23 +1299,21 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>: <span class="ident">ref_name</span>, .. } <span class="op">=</span> <span class="ident">target</span>.<span class="ident">as_ref</span>() {
                     <span class="kw">return</span> <span class="ident">index</span>
                         .<span class="ident">find_enum_element</span>(<span class="ident">enum_name</span>, <span class="ident">ref_name</span>)
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">resolve_const_reference</span>(<span class="prelude-val">Some</span>(<span class="ident">v</span>), <span class="ident">ref_name</span>, <span class="ident">index</span>))
-                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-                                <span class="string">&quot;Cannot resolve constant enum {}#{}.&quot;</span>,
-                                <span class="ident">enum_name</span>, <span class="ident">ref_name</span>
-                            ))
-                        });
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="macro">format!</span>(<span class="string">&quot;Cannot resolve constant enum {}#{}.&quot;</span>, <span class="ident">enum_name</span>, <span class="ident">ref_name</span>)
+                        })
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">resolve_const_reference</span>(<span class="ident">v</span>, <span class="ident">ref_name</span>, <span class="ident">index</span>));
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Cannot resolve unknown constant.&quot;</span>.<span class="ident">to_string</span>());
                 }
             }
             <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">get_cast_statement_literal</span>(<span class="ident">target</span>, <span class="ident">type_name</span>, <span class="ident">scope</span>, <span class="ident">index</span>)<span class="question-mark">?</span>),
         },
-        <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } =&gt; {
-            <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_variable</span>(<span class="ident">scope</span>, <span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">as_str</span>()));
-            <span class="ident">resolve_const_reference</span>(<span class="ident">variable</span>, <span class="ident">name</span>, <span class="ident">index</span>)<span class="question-mark">?</span>
-        }
+        <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } =&gt; <span class="ident">index</span>
+            .<span class="ident">find_variable</span>(<span class="ident">scope</span>, <span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">as_str</span>()))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">variable</span><span class="op">|</span> <span class="ident">resolve_const_reference</span>(<span class="ident">variable</span>, <span class="ident">name</span>, <span class="ident">index</span>))
+            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
+            .<span class="ident">flatten</span>(),
         <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } =&gt; {
             <span class="comment">// we made sure that there are exactly two references</span>
             <span class="comment">//TODO https://github.com/ghaith/rusty/issues/291 - once we can initialize structs, we need to allow generic qualified references here</span>
@@ -1142,8 +1326,12 @@
                     },
                 ) <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">elements</span>[<span class="number">0</span>], <span class="kw-2">&amp;</span><span class="ident">elements</span>[<span class="number">1</span>])
                 {
-                    <span class="kw">let</span> <span class="ident">variable</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">pou_name</span>, <span class="ident">variable_name</span>);
-                    <span class="kw">return</span> <span class="ident">resolve_const_reference</span>(<span class="ident">variable</span>, <span class="ident">variable_name</span>, <span class="ident">index</span>);
+                    <span class="kw">return</span> <span class="ident">index</span>
+                        .<span class="ident">find_member</span>(<span class="ident">pou_name</span>, <span class="ident">variable_name</span>)
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;Cannot resolve unknown constant.&quot;</span>.<span class="ident">to_string</span>())
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variable</span><span class="op">|</span> {
+                            <span class="ident">resolve_const_reference</span>(<span class="ident">variable</span>, <span class="ident">variable_name</span>, <span class="ident">index</span>)
+                        });
                 }
             }
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Qualified references only allow references to qualified variables in the form of &#39;POU.variable&#39;&quot;</span>.<span class="ident">to_string</span>());
@@ -1357,24 +1545,24 @@
 <span class="doccomment">/// may return Ok(None) if the variable&#39;s initial value can not be</span>
 <span class="doccomment">/// resolved yet</span>
 <span class="kw">fn</span> <span class="ident">resolve_const_reference</span>(
-    <span class="ident">variable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::index::VariableIndexEntry</span><span class="op">&gt;</span>,
+    <span class="ident">variable</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::index::VariableIndexEntry</span>,
     <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">variable</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="op">!</span><span class="ident">it</span>.<span class="ident">is_constant</span>()).<span class="ident">is_some</span>() {
-        <span class="comment">//the referenced variable is no const!</span>
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;&#39;{:}&#39; is no const reference&quot;</span>, <span class="ident">name</span>));
-    }
-    <span class="prelude-val">Ok</span>(
+    <span class="kw">if</span> <span class="ident">variable</span>.<span class="ident">is_constant</span>() {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ConstExpression::Resolved</span>(<span class="ident">statement</span>)) <span class="op">=</span> <span class="ident">variable</span>
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">initial_value</span>.<span class="ident">as_ref</span>())
+            .<span class="ident">initial_value</span>
+            .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_const_expressions</span>().<span class="ident">find_const_expression</span>(<span class="ident">it</span>))
         {
-            <span class="prelude-val">Some</span>(<span class="ident">statement</span>.<span class="ident">clone</span>())
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">statement</span>.<span class="ident">clone</span>()))
         } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        },
-    )
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="comment">//not resolved yet</span>
+        }
+    } <span class="kw">else</span> {
+        <span class="comment">//the referenced variabale is no const!</span>
+        <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;&#39;{:}&#39; is no const reference&quot;</span>, <span class="ident">name</span>))
+    }
 }
 
 <span class="kw">fn</span> <span class="ident">is_zero</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) -&gt; <span class="ident">bool</span> {
