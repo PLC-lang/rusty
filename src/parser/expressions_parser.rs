@@ -843,13 +843,13 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
 
         //now assign the number to the according segment of the value's array
         let position = match unit {
-            "d" => Some(POS_D),
-            "h" => Some(POS_H),
-            "m" => Some(POS_M),
-            "s" => Some(POS_S),
-            "ms" => Some(POS_MS),
-            "us" => Some(POS_US),
-            "ns" => Some(POS_NS),
+            "d" | "D" => Some(POS_D),
+            "h" | "H" => Some(POS_H),
+            "m" | "M" => Some(POS_M),
+            "s" | "S" => Some(POS_S),
+            "ms"| "MS" => Some(POS_MS),
+            "us"| "US" => Some(POS_US),
+            "ns"| "NS"=> Some(POS_NS),
             _ => None,
         };
         if let Some(position) = position {
