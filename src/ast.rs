@@ -9,7 +9,7 @@ use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
     ops::Range,
-    unimplemented,
+    unimplemented, vec,
 };
 mod pre_processor;
 
@@ -271,20 +271,38 @@ impl NewLines {
     pub fn build(str: &str) -> NewLines {
         let mut line_breaks = Vec::new();
         let mut total_offset: usize = 0;
-        for l in str.lines() {
-            total_offset += l.len() + 1;
-            line_breaks.push(total_offset);
+        if !str.is_empty() {
+            // Instead of using ´lines()´ we split at \n to preserve the offsets if a \r exists
+            for l in str.split('\n') {
+                total_offset += l.len() + 1;
+                line_breaks.push(total_offset);
+            }
         }
         NewLines { line_breaks }
     }
 
-    /**
-     * returns the 0 based line-nr of the given offset-location
-     */
+    ///
+    /// returns the 0 based line-nr of the given offset-location
+    ///
     pub fn get_line_nr(&self, offset: usize) -> usize {
         match self.line_breaks.binary_search(&offset) {
-            Ok(line) => line,
+            //In case we hit an exact match, we just found the first character of a new line, we must add one to the result
+            Ok(line) => line + 1,
             Err(line) => line,
+        }
+    }
+
+    ///
+    /// returns the 0 based column of the given offset-location
+    ///
+    pub fn get_column(&self, line: usize, offset: usize) -> usize {
+        if line > 0 {
+            self.line_breaks
+                .get(line - 1)
+                .map(|l| offset - *l)
+                .unwrap_or(0)
+        } else {
+            offset
         }
     }
 }
