@@ -7,7 +7,7 @@ use crate::{
     parser::parse_any_in_region,
     Diagnostic,
 };
-use core::{str::Split, unicode::conversions::to_lower};
+use core::str::Split;
 use regex::{Captures, Regex};
 use std::str::FromStr;
 
@@ -839,10 +839,11 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
             //just eat all the characters
             char = chars.find(|(_, ch)| !ch.is_ascii_alphabetic());
             &slice[start..char.unwrap_or((slice.len(), ' ')).0]
-        }.to_lowercase().as_str();
+        }
+        .to_lowercase();
 
         //now assign the number to the according segment of the value's array
-        let position = match unit {
+        let position = match unit.as_str() {
             "d" => Some(POS_D),
             "h" => Some(POS_H),
             "m" => Some(POS_M),
