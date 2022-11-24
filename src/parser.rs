@@ -1010,9 +1010,23 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
 
     let access = parse_access_modifier(lexer);
 
-    let variables = parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
+    let mut variables = parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
         parse_variable_list(lexer)
     });
+
+    if constant {
+        // sneak in the DefaultValue-Statements if no initializers were defined
+        variables
+            .iter_mut()
+            .filter(|it| it.initializer.is_none())
+            .for_each(|it| {
+                it.initializer = Some(AstStatement::DefaultValue {
+                    location: it.location.clone(),
+                    id: lexer.next_id(),
+                });
+            });
+    }
+
     VariableBlock {
         access,
         constant,

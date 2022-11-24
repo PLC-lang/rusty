@@ -18,11 +18,7 @@ struct ConstWrapper {
 
 impl ConstWrapper {
     pub fn get_statement(&self) -> &AstStatement {
-        match &self.expr {
-            ConstExpression::Unresolved { statement, .. } => statement,
-            ConstExpression::Resolved(statement) => statement,
-            ConstExpression::Unresolvable { statement, .. } => statement,
-        }
+        self.expr.get_statement()
     }
 }
 
@@ -49,9 +45,9 @@ impl ConstExpression {
     /// returns the const-expression represented as an AST-element
     pub fn get_statement(&self) -> &AstStatement {
         match &self {
-            ConstExpression::Unresolved { statement, .. } => statement,
-            ConstExpression::Resolved(statement) => statement,
-            ConstExpression::Unresolvable { statement, .. } => statement,
+            ConstExpression::Unresolved { statement, .. }
+            | ConstExpression::Resolved(statement)
+            | ConstExpression::Unresolvable { statement, .. } => statement,
         }
     }
 
@@ -66,6 +62,10 @@ impl ConstExpression {
 
     pub fn is_resolved(&self) -> bool {
         matches!(self, ConstExpression::Resolved(_))
+    }
+
+    pub(crate) fn is_default(&self) -> bool {
+        matches!(self.get_statement(), AstStatement::DefaultValue { .. })
     }
 }
 
@@ -102,6 +102,7 @@ impl ConstExpressions {
     pub fn find_expression(&self, id: &ConstId) -> (Option<&AstStatement>, Option<&str>) {
         self.expressions
             .get(*id)
+            .filter(|it| !it.expr.is_default())
             .map(|it| (Some(it.expr.get_statement()), it.expr.get_qualifier()))
             .unwrap_or((None, None))
     }
@@ -127,8 +128,7 @@ impl ConstExpressions {
                 it.target_type_name.clone(),
                 scope.clone(),
             ),
-            ConstExpression::Resolved(s) => (s.clone(), it.target_type_name.clone(), None),
-            ConstExpression::Unresolvable { statement: s, .. } => {
+            ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } => {
                 (s.clone(), it.target_type_name.clone(), None)
             }
         })
@@ -184,10 +184,10 @@ impl ConstExpressions {
     pub fn maybe_add_constant_expression(
         &mut self,
         expr: Option<AstStatement>,
-        targe_type_name: &str,
+        target_type_name: &str,
         scope: Option<String>,
     ) -> Option<ConstId> {
-        expr.map(|it| self.add_constant_expression(it, targe_type_name.to_string(), scope))
+        expr.map(|it| self.add_constant_expression(it, target_type_name.to_string(), scope))
     }
 
     /// convinience-method to query for an optional constant expression.
@@ -209,7 +209,7 @@ impl ConstExpressions {
     pub fn get_resolved_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
         self.find_const_expression(id)
             .filter(|it| it.is_resolved())
-            .map(|it| it.get_statement())
+            .map(ConstExpression::get_statement)
     }
 
     /// query the constants arena for an expression that can be evaluated to an i128.

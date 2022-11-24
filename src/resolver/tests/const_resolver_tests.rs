@@ -5,7 +5,7 @@ use crate::index::Index;
 use crate::lexer::IdProvider;
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
 use crate::resolver::AnnotationMap;
-use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids};
+use crate::test_utils::tests::{annotate_with_ids, codegen, index, index_with_ids};
 use crate::typesystem::DataTypeInformation;
 
 const EMPTY: Vec<UnresolvableConstant> = vec![];
@@ -129,6 +129,44 @@ fn const_references_to_int_compile_time_evaluation() {
         &create_real_literal(4.0),
         find_constant_value(&index, "f").unwrap()
     );
+}
+
+#[test]
+fn const_variables_default_value_compile_time_evaluation() {
+    // GIVEN some Iconstants index used as initializers
+    let ir = codegen(
+        "
+        TYPE myEnum : (a,b,c); END_TYPE
+        VAR_GLOBAL CONSTANT
+            false_bool      : BOOL;
+            zero_int        : INT;
+            zero_real       : LREAL;
+            empty_string    : STRING;
+            null_ptr        : POINTER TO INT;
+            zero_enum       : myEnum;
+        END_VAR
+        ",
+    );
+    insta::assert_snapshot!(ir);
+}
+
+#[test]
+fn const_enum_variable_default_value_compile_time_evaluation() {
+    // GIVEN an enum with its first value using a const-initializer
+    let ir = codegen(
+        "
+        
+        VAR_GLOBAL CONSTANT
+            me          : MyEnum;
+            THREE       : INT := 3;
+        END_VAR
+
+        TYPE MyEnum       :       (a := THREE, b, c); END_TYPE
+        ",
+    );
+
+    // me should be three
+    insta::assert_snapshot!(ir);
 }
 
 #[test]
@@ -1075,15 +1113,10 @@ fn not_evaluatable_consts_are_reported() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (index, unresolvable) = evaluate_constants(index);
+    let (_, unresolvable) = evaluate_constants(index);
 
-    // THEN d cannot be evaluated, c was not attempted, there is no const-expression
-    debug_assert_eq!(
-        vec![UnresolvableConstant::incomplete_initialzation(&global!(
-            index, "d"
-        )),],
-        unresolvable
-    );
+    // THEN d can still be evaluated, c = 0
+    debug_assert_eq!(unresolvable, vec![] as Vec<UnresolvableConstant>);
 }
 
 #[test]
@@ -1574,4 +1607,31 @@ fn contants_in_case_statements_resolved() {
     // DONE in Codegen tests:
     // AND the first case should be 32..60
     // AND the second case should be 62..70
+}
+
+#[test]
+fn default_values_are_transitive_for_range_types() {
+    // GIVEN a range type that inherits the default value from its referenced type
+    let src = codegen(
+        " 
+        TYPE MyINT : INT := 7; END_TYPE
+
+        TYPE MyRange : MyINT(1..10); END_TYPE
+
+        VAR_GLOBAL
+            a : MyINT;
+            b : MyRange;
+        END_VAR
+
+        VAR_GLOBAL CONSTANT
+            aa : MyINT;
+            bb : MyRange;
+            cc : INT := bb + aa;
+        END_VAR
+        ",
+    );
+
+    // THEN we expect the default value to be considered transitively
+    // a & b should be 7, cc should be 14
+    insta::assert_snapshot!(src);
 }

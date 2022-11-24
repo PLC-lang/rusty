@@ -794,7 +794,17 @@ impl<'i> TypeAnnotator<'i> {
                 //Create a new context with the left operator being the target variable type, and the
                 //right side being the local context
                 let ctx = ctx.with_lhs(expected_type.get_name());
-                self.visit_statement(&ctx, initializer);
+
+                if matches!(initializer, AstStatement::DefaultValue { .. }) {
+                    // the default-placeholder must be annotated witht he correc type,
+                    // it will be replaced by the appropriate literal later
+                    self.annotation_map.annotate(
+                        initializer,
+                        StatementAnnotation::value(expected_type.get_name()),
+                    );
+                } else {
+                    self.visit_statement(&ctx, initializer);
+                }
 
                 self.annotation_map.annotate_type_hint(
                     initializer,
