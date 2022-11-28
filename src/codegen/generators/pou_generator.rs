@@ -6,7 +6,7 @@ use super::{
     statement_generator::{DebugContext, FunctionContext, StatementCodeGenerator},
 };
 use crate::{
-    ast::{AstStatement, NewLines, Pou},
+    ast::{AstStatement, Pou},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
@@ -44,7 +44,7 @@ pub struct PouGenerator<'ink, 'cg> {
     index: &'cg Index,
     annotations: &'cg AstAnnotations,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
-    debug_context: DebugContext<'ink, 'cg>,
+    debug_context: Option<DebugContext<'ink, 'cg>>,
 }
 
 /// Creates opaque implementations for all callable items in the index
@@ -55,23 +55,14 @@ pub fn generate_implementation_stubs<'ink>(
     index: &Index,
     annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
-    debug: &DebugBuilderEnum<'ink>,
+    debug: &mut DebugBuilderEnum<'ink>,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut llvm_index = LlvmTypedIndex::default();
-    let new_lines = NewLines::empty();
-    let pou_generator = PouGenerator::new(
-        llvm,
-        index,
-        annotations,
-        types_index,
-        DebugContext {
-            debug,
-            new_lines: &new_lines,
-        },
-    );
+    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, None);
     for (name, implementation) in index.get_implementations() {
         if !implementation.is_generic() {
-            let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
+            let curr_f =
+                pou_generator.generate_implementation_stub(implementation, module, debug)?;
             llvm_index.associate_implementation(name, curr_f)?;
         }
     }
@@ -154,7 +145,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         index: &'cg Index,
         annotations: &'cg AstAnnotations,
         llvm_index: &'cg LlvmTypedIndex<'ink>,
-        debug_context: DebugContext<'ink, 'cg>,
+        debug_context: Option<DebugContext<'ink, 'cg>>,
     ) -> PouGenerator<'ink, 'cg> {
         PouGenerator {
             llvm,
@@ -170,12 +161,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
+        debug: &mut DebugBuilderEnum<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         let global_index = self.index;
         //generate a function that takes a instance-struct parameter
         let pou_name = implementation.get_call_name();
 
-        let parameters = self.create_parameters_for_implementation(implementation)?;
+        let parameters = self.create_parameters_for_implementation(implementation, debug)?;
 
         let return_type = global_index.find_return_type(implementation.get_type_name());
 
@@ -194,10 +186,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let curr_f = module.add_function(pou_name, function_declaration, None);
 
         // ...
-        self.index.find_pou(pou_name).map(|p| {
-            let parameter_types = self
-                .index
-                .get_declared_parameters(pou_name)
+        if let Some(pou) = self.index.find_pou(pou_name) {
+            let parameters = self.index.get_declared_parameters(pou_name);
+            let parameter_types = parameters
                 .iter()
                 .map(|v| {
                     self.index
@@ -205,13 +196,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 })
                 .collect::<Vec<&DataType>>();
 
-            self.debug_context.debug.register_function(
+            debug.register_function(
                 &curr_f,
-                p,
+                pou,
                 return_type,
                 parameter_types.as_slice(),
-            )
-        });
+                implementation.get_location().line_number as u32,
+            )?;
+
+            //Register the normal variables for debugging
+        }
 
         Ok(curr_f)
     }
@@ -222,7 +216,23 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn create_parameters_for_implementation(
         &self,
         implementation: &ImplementationIndexEntry,
+        debug: &mut DebugBuilderEnum<'ink>,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
+        //Register the return and local variables for debugging
+        for variable in self
+            .index
+            .get_container_members(implementation.get_call_name())
+            .iter()
+            .filter(|it| it.is_local() || it.is_temp() || it.is_return())
+        {
+            let var_type = self
+                .index
+                .get_type_information_or_void(variable.get_type_name());
+            let alignment = var_type.get_alignment(self.index).bits();
+            debug.register_local_variable(&variable, alignment)?;
+        }
+
+
         if implementation.implementation_type != ImplementationType::Function {
             let mut parameters = vec![];
             if implementation.get_implementation_type() == &ImplementationType::Method {
@@ -244,11 +254,24 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .get_associated_pou_type(implementation.get_type_name())
                 .map(|it| it.into_struct_type())?;
             parameters.push(instance_struct_type.ptr_type(AddressSpace::Generic).into());
+
+            //Register the struct parameter of the POU
+            if let Some(pou) = self.index.find_pou(implementation.get_type_name()) {
+                debug.register_struct_parameter(pou)?;
+            }
+
             Ok(parameters)
         } else {
+            let declared_params = self
+                .index
+                .get_declared_parameters(implementation.get_call_name());
+            //Register all parameters for debugging
+            for (index, variable) in declared_params.iter().enumerate() {
+                debug.register_parameter(variable, index)?;
+            }
+
             //find the function's parameters
-            self.index
-                .get_declared_parameters(implementation.get_call_name())
+            declared_params
                 .iter()
                 .map(|v| {
                     self.llvm_index
@@ -307,7 +330,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &pou_members,
             )?;
         } else {
-            //Generate the debug entry for the struct parameter
+            //Generate POU struct declaration for debug
             self.generate_local_struct_variable_accessors(
                 param_index,
                 &mut local_index,
@@ -318,7 +341,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         let function_context = FunctionContext {
-            linking_context: implementation.into(),
+            linking_context: self
+                .index
+                .find_implementation_by_name(&implementation.name)
+                .ok_or_else(|| {
+                    Diagnostic::codegen_error(
+                        &format!("Could not find implementation for {}", &implementation.name),
+                        implementation.location.clone(),
+                    )
+                })?,
             function: current_function,
         };
         {
@@ -343,7 +374,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 self,
                 &local_index,
                 &function_context,
-                &self.debug_context,
+                self.debug_context.as_ref(),
             );
             statement_gen.generate_body(&implementation.statements)?
         }
@@ -408,29 +439,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let mut var_count = 0;
         for m in members.iter() {
             let parameter_name = m.get_name();
-            let alignment = self
-                .index
-                .get_type_information_or_void(m.get_type_name())
-                .get_alignment(self.index)
-                .bits();
-            let block = self
-                .llvm
-                .builder
-                .get_insert_block()
-                .expect("There is a block at this point");
-            let _location = &m.source_location;
 
             let (name, variable) = if m.is_return() {
                 let return_type = index.get_associated_type(m.get_type_name())?;
                 let value = self.llvm.create_local_variable(type_name, &return_type);
-                // self.debug_context.debug.register_local_variable(
-                //     m,
-                //     current_function,
-                //     block,
-                //     value,
-                //     alignment,
-                //     self.debug_context.new_lines,
-                // )?;
                 (Pou::calc_return_name(type_name), value)
             } else if m.is_parameter() {
                 let ptr_value = current_function.get_nth_param(var_count).ok_or_else(|| {
@@ -443,30 +455,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     &index.get_associated_type(m.get_type_name())?,
                 );
 
-                self.debug_context.debug.register_parameter(
-                    m,
-                    current_function,
-                    block,
-                    ptr,
-                    var_count,
-                    self.debug_context.new_lines,
-                )?;
-
                 self.llvm.builder.build_store(ptr, ptr_value);
-
 
                 (parameter_name, ptr)
             } else {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 let value = self.llvm.create_local_variable(parameter_name, &temp_type);
-                self.debug_context.debug.register_local_variable(
-                    m,
-                    current_function,
-                    block,
-                    value,
-                    alignment,
-                    self.debug_context.new_lines,
-                )?;
                 (parameter_name, value)
             };
 
@@ -531,7 +525,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         variables: &[&VariableIndexEntry],
         local_llvm_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
-        //TODO: Generate debug entry for each variable here
         let variables_with_initializers = variables
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return());
@@ -562,6 +555,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     ),
                     None => None,
                 };
+                // if let Some(debug_context) = self.debug_context {
+                //     debug_context.debug.add_variable_declaration(variable.get_name(), left, todo!(scope), self.llvm.builder.get_insert_block().unwrap(), line, column)
+                // }
+
                 self.generate_variable_initializer(variable, left, right_stmt, &exp_gen)?;
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
@@ -662,10 +659,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// generates the function's return statement only if the given pou_type is a `PouType::Function`
     ///
     /// a function returns the value of the local variable that has the function's name
-    pub fn generate_return_statement(
-        &self,
-        function_context: &FunctionContext<'ink>,
-        local_index: &LlvmTypedIndex<'ink>,
+    pub fn generate_return_statement<'a>(
+        &'a self,
+        function_context: &'a FunctionContext<'ink, 'a>,
+        local_index: &'a LlvmTypedIndex<'ink>,
     ) -> Result<(), Diagnostic> {
         if let Some(ret_v) = self
             .index

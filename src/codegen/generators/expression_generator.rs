@@ -42,7 +42,7 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     pub(crate) annotations: &'b AstAnnotations,
     pub llvm_index: &'b LlvmTypedIndex<'a>,
     /// the current function to create blocks in
-    pub function_context: Option<&'b FunctionContext<'a>>,
+    pub function_context: Option<&'b FunctionContext<'a, 'b>>,
     /// The debug context used to create breakpoint information
     pub debug_context: Option<&'b DebugContext<'a, 'b>>,
 
@@ -79,8 +79,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         index: &'b Index,
         annotations: &'b AstAnnotations,
         llvm_index: &'b LlvmTypedIndex<'ink>,
-        function_context: &'b FunctionContext<'ink>,
-        debug_context: &'b DebugContext<'ink, 'b>, 
+        function_context: &'b FunctionContext<'ink, 'b>,
+        debug_context: Option<&'b DebugContext<'ink, 'b>>, 
     ) -> ExpressionCodeGenerator<'ink, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -88,7 +88,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             llvm_index,
             annotations,
             function_context: Some(function_context),
-            debug_context: Some(debug_context),
+            debug_context,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |_, actual_length| actual_length, //when generating string-literals in a body, use the actual length
@@ -125,7 +125,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn get_function_context(
         &self,
         statement: &AstStatement,
-    ) -> Result<&'b FunctionContext<'ink>, Diagnostic> {
+    ) -> Result<&'b FunctionContext<'ink, 'b>, Diagnostic> {
         self.function_context
             .ok_or_else(|| Diagnostic::missing_function(statement.get_location()))
     }
@@ -700,7 +700,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         parameters: &[&AstStatement],
         implementation: &ImplementationIndexEntry,
         operator: &AstStatement,
-        function_context: &'b FunctionContext<'ink>,
+        function_context: &'b FunctionContext<'ink, 'b>,
         function_name: &str,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {

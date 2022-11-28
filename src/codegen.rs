@@ -97,7 +97,7 @@ impl<'ink> CodeGen<'ink> {
             global_index,
             annotations,
             &index,
-            &self.debug,
+            &mut self.debug,
         )?;
         let llvm = Llvm::new(self.context, self.context.create_builder());
         index.merge(llvm_impl_index);
@@ -167,7 +167,7 @@ impl<'ink> CodeGen<'ink> {
             new_lines: &unit.new_lines,
         };
         let pou_generator =
-            PouGenerator::new(llvm, global_index, annotations, llvm_index, debug_context);
+            PouGenerator::new(llvm, global_index, annotations, llvm_index, Some(debug_context));
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {

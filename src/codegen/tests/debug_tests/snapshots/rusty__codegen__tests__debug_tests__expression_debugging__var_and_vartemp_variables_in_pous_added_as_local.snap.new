@@ -15,13 +15,9 @@ source_filename = "main"
 define i32 @myFunc() !dbg !15 {
 entry:
   %a = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata i32* %a, metadata !18, metadata !DIExpression()), !dbg !19
   %b = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata i32* %b, metadata !20, metadata !DIExpression()), !dbg !21
   %c = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata i32* %c, metadata !22, metadata !DIExpression()), !dbg !23
   %myFunc = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !24, metadata !DIExpression()), !dbg !25
   store i32 0, i32* %a, align 4
   store i32 0, i32* %b, align 4
   store i32 0, i32* %c, align 4
@@ -30,7 +26,7 @@ entry:
   ret i32 %myFunc_ret
 }
 
-define void @myPrg(%myPrg* %0) !dbg !26 {
+define void @myPrg(%myPrg* %0) !dbg !18 {
 entry:
   %a = alloca i32, align 4
   %b = alloca i32, align 4
@@ -41,7 +37,7 @@ entry:
   ret void
 }
 
-define void @myFb(%myFb* %0) !dbg !27 {
+define void @myFb(%myFb* %0) !dbg !19 {
 entry:
   %a = alloca i32, align 4
   %b = alloca i32, align 4
@@ -51,11 +47,6 @@ entry:
   store i32 0, i32* %c, align 4
   ret void
 }
-
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.dbg.cu = !{!12}
 
@@ -74,17 +65,9 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !13, globals: !14, splitDebugInlining: false)
 !13 = !{}
 !14 = !{!0, !9}
-!15 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 1, type: !16, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !13)
+!15 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 1, type: !16, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !13)
 !16 = !DISubroutineType(flags: DIFlagPublic, types: !17)
 !17 = !{null}
-!18 = !DILocalVariable(name: "a", scope: !2, file: !2, line: 2, type: !6, align: 32)
-!19 = !DILocation(line: 2, column: 12, scope: !15)
-!20 = !DILocalVariable(name: "b", scope: !2, file: !2, line: 2, type: !6, align: 32)
-!21 = !DILocation(line: 2, column: 14, scope: !15)
-!22 = !DILocalVariable(name: "c", scope: !2, file: !2, line: 2, type: !6, align: 32)
-!23 = !DILocation(line: 2, column: 16, scope: !15)
-!24 = !DILocalVariable(name: "myFunc", scope: !2, file: !2, line: 1, type: !6, align: 32)
-!25 = !DILocation(line: 1, column: 17, scope: !15)
-!26 = distinct !DISubprogram(name: "myPrg", linkageName: "myPrg", scope: !2, file: !2, line: 4, type: !16, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !13)
-!27 = distinct !DISubprogram(name: "myFb", linkageName: "myFb", scope: !2, file: !2, line: 7, type: !16, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !13)
+!18 = distinct !DISubprogram(name: "myPrg", linkageName: "myPrg", scope: !2, file: !2, line: 4, type: !16, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !13)
+!19 = distinct !DISubprogram(name: "myFb", linkageName: "myFb", scope: !2, file: !2, line: 7, type: !16, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !13)
 

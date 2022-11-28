@@ -23,14 +23,14 @@ use inkwell::{
 };
 
 /// the full context when generating statements inside a POU
-pub struct FunctionContext<'a> {
+pub struct FunctionContext<'ink, 'b> {
     /// the current pou's name. This means that a variable x may refer to "`linking_context`.x"
-    pub linking_context: ImplementationIndexEntry,
+    pub linking_context: &'b ImplementationIndexEntry,
     /// the llvm function to generate statements into
-    pub function: FunctionValue<'a>,
+    pub function: FunctionValue<'ink>,
 }
 
-/// ...
+/// A context information holder for debugging, contains a debug builder and the new lines
 pub struct DebugContext<'ink, 'b> {
     pub debug: &'b DebugBuilderEnum<'ink>,
     pub new_lines: &'b NewLines,
@@ -43,7 +43,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     annotations: &'b AstAnnotations,
     pou_generator: &'b PouGenerator<'a, 'b>,
     llvm_index: &'b LlvmTypedIndex<'a>,
-    function_context: &'b FunctionContext<'a>,
+    function_context: &'b FunctionContext<'a,'b>,
 
     pub load_prefix: String,
     pub load_suffix: String,
@@ -53,7 +53,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     /// the block to jump to when you want to continue the loop
     pub current_loop_continue: Option<BasicBlock<'a>>,
 
-    pub debug_context: &'b DebugContext<'a, 'b>,
+    pub debug_context: Option<&'b DebugContext<'a, 'b>>,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -64,8 +64,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         annotations: &'b AstAnnotations,
         pou_generator: &'b PouGenerator<'a, 'b>,
         llvm_index: &'b LlvmTypedIndex<'a>,
-        linking_context: &'b FunctionContext<'a>,
-        debug_context: &'b DebugContext<'a, 'b>,
+        linking_context: &'b FunctionContext<'a, 'b>,
+        debug_context: Option<&'b DebugContext<'a, 'b>>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
@@ -204,6 +204,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         left_statement: &AstStatement,
         right_statement: &AstStatement,
     ) -> Result<(), Diagnostic> {
+        //Register any debug info for the store
+        self.register_debug_location(left_statement)?;
         //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         if left_statement.has_direct_access() {
             return self.generate_direct_access_assignment(left_statement, right_statement);
@@ -222,16 +224,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let right_statement = range_checked_right_side.unwrap_or(right_statement);
 
-        //Register any debug info for the store
-        self.register_debug_location(left_statement)?;
         exp_gen.generate_store(left, left_type, right_statement)?;
         Ok(())
     }
 
     fn register_debug_location(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
-        let line = self.debug_context.new_lines.get_line_nr(statement.get_location().get_start());
-        let column = self.debug_context.new_lines.get_column(line, statement.get_location().get_start());
-        self.debug_context.debug.set_debug_location(&self.llvm, &self.function_context.function, line, column)
+        if let Some(debug_context) = self.debug_context {
+            let line = debug_context.new_lines.get_line_nr(statement.get_location().get_start());
+            let column = debug_context.new_lines.get_column(line, statement.get_location().get_start());
+            debug_context.debug.set_debug_location(&self.llvm, &self.function_context.function, line, column)
+        } else {
+            Ok(())
+        }
     }
 
     fn generate_direct_access_assignment(
