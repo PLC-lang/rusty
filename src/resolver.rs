@@ -810,7 +810,7 @@ impl<'i> TypeAnnotator<'i> {
                     let struct_type = self
                         .index
                         .get_effective_type_or_void_by_name(inner_type_name);
-                    if let DataTypeInformation::Struct { .. } = struct_type.get_type_information() {
+                    if struct_type.get_type_information().is_struct() {
                         if let AstStatement::ExpressionList { expressions, .. } = initializer {
                             for e in expressions {
                                 // annotate with the arrays inner_type

@@ -2269,7 +2269,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // for arrays of struct we cannot flatten the expression list
         // to generate the passed structs we need an expression list of assignments
         // flatten_expression_list will will return a vec of only assignments
-        let elements = if let DataTypeInformation::Struct { .. } = inner_type.get_type_information()
+        let elements = if self
+            .index
+            .get_effective_type_or_void_by_name(inner_type.get_name())
+            .information
+            .is_struct()
         {
             match elements {
                 AstStatement::ExpressionList { expressions, .. } => expressions.iter().collect(),
