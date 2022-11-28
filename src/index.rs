@@ -1262,10 +1262,38 @@ impl Index {
             .maybe_get_constant_statement(id)
     }
 
+    /// returns type aliased by Alias or SubRange    
+    fn get_aliased_target_type(&self, dt: &DataTypeInformation) -> Option<&DataType> {
+        match dt {
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            }
+            | DataTypeInformation::Alias {
+                referenced_type, ..
+            } => self.type_index.find_type(referenced_type),
+            _ => None,
+        }
+    }
+
+    /// Returns the initioal value registered for the given data_type.
+    /// If the given dataType has no initial value AND it is an Alias or SubRange (referencing another type)
+    /// this method tries to obtain the default value from the referenced type.
     pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstStatement> {
-        self.type_index
-            .find_type(type_name)
-            .and_then(|t| self.get_initial_value(&t.initial_value))
+        let mut dt = self.type_index.find_type(type_name);
+        let mut initial_value = dt.and_then(|it| it.initial_value);
+
+        //check if we have no initial value AND this type is an alias to another type
+        while initial_value.is_none()
+            && matches!(
+                dt.map(|it| &it.information),
+                Some(DataTypeInformation::Alias { .. } | DataTypeInformation::SubRange { .. })
+            )
+        {
+            //try to fetch initial value of the aliased type
+            dt = dt.and_then(|it| self.get_aliased_target_type(&it.information));
+            initial_value = dt.and_then(|it| it.initial_value);
+        }
+        self.get_initial_value(&initial_value)
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {

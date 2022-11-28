@@ -253,27 +253,6 @@ fn invalid_initial_constant_values_in_pou_variables() {
 }
 
 #[test]
-fn constants_without_initialization() {
-    let result = codegen_without_unwrap(
-        r#"
-        VAR_GLOBAL CONSTANT
-            a : INT;
-            b : INT := a;
-        END_VAR
-        "#,
-    );
-
-    if let Err(msg) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Cannot propagate constant value for 'a'", (73..74).into()),
-            msg
-        )
-    } else {
-        panic!("expected code-gen error but got none")
-    }
-}
-
-#[test]
 fn recursive_initial_constant_values() {
     let result = codegen_without_unwrap(
         r#"
