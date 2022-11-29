@@ -1755,6 +1755,29 @@
 <span id="1750">1750</span>
 <span id="1751">1751</span>
 <span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2568,6 +2591,29 @@
                     <span class="ident">StatementAnnotation::value</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>()),
                 );
                 <span class="self">self</span>.<span class="ident">update_expected_types</span>(<span class="ident">expected_type</span>, <span class="ident">initializer</span>);
+
+                <span class="comment">// handle annotation for array of struct</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Array</span> {
+                    <span class="ident">inner_type_name</span>, ..
+                } <span class="op">=</span> <span class="ident">expected_type</span>.<span class="ident">get_type_information</span>()
+                {
+                    <span class="kw">let</span> <span class="ident">struct_type</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">index</span>
+                        .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">inner_type_name</span>);
+                    <span class="kw">if</span> <span class="ident">struct_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_struct</span>() {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span> <span class="ident">initializer</span> {
+                            <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">expressions</span> {
+                                <span class="comment">// annotate with the arrays inner_type</span>
+                                <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(
+                                    <span class="ident">e</span>,
+                                    <span class="ident">StatementAnnotation::Value</span> {
+                                        <span class="ident">resulting_type</span>: <span class="ident">struct_type</span>.<span class="ident">get_name</span>().<span class="ident">to_string</span>(),
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
