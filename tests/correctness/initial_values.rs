@@ -1413,3 +1413,46 @@ fn initial_value_of_function_return_struct() {
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!([11, 22, 33], [maintype.a, maintype.b, maintype.c]);
 }
+
+#[test]
+fn initial_value_in_array_of_struct() {
+    let function = "
+    TYPE myStruct : STRUCT 
+            a,b : DINT; 
+        END_STRUCT
+    END_TYPE
+
+	VAR_GLOBAL CONSTANT
+		str : myStruct := (a := 30, b := 40);
+	END_VAR
+
+    PROGRAM main
+	VAR_TEMP
+		arr : ARRAY[0..1] OF myStruct := ((a:= 10, b:= 20), str);
+	END_VAR
+	VAR
+		a,b,c,d: DINT;
+	END_VAR
+		a := arr[0].a;
+		b := arr[0].b;
+		c := arr[1].a;
+		d := arr[1].b;
+    END_PROGRAM
+	";
+
+    #[allow(dead_code)]
+    #[derive(Default)]
+    struct MainType {
+        a: i32,
+        b: i32,
+        c: i32,
+        d: i32,
+    }
+    let mut maintype = MainType::default();
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(
+        [10, 20, 30, 40],
+        [maintype.a, maintype.b, maintype.c, maintype.d]
+    );
+}

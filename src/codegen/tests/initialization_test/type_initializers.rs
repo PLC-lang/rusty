@@ -518,6 +518,34 @@ fn struct_initializer_uses_fallback_to_field_default() {
 }
 
 #[test]
+fn array_of_struct_initialization() {
+    let source = "
+	TYPE myStruct : STRUCT
+			a,b : DINT;
+		END_STRUCT
+	END_TYPE
+
+    TYPE AliasMyStruct : myStruct; END_TYPE
+
+	VAR_GLOBAL CONSTANT
+		str : myStruct := (a := 40, b := 50);
+		alias_str : AliasMyStruct := (a := 40, b := 50);
+	END_VAR
+
+	PROGRAM main
+	VAR
+		arr : ARRAY[0..1] OF myStruct := ((a := 20, b := 30), str);
+		alias_arr : ARRAY[0..1] OF AliasMyStruct := ((a := 20, b := 30), alias_str);
+	END_VAR
+	END_PROGRAM
+    ";
+    let (result, diagnostics) = codegen(source);
+
+    insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
 fn type_defaults_are_used_for_uninitialized_constants() {
     let result = codegen_without_unwrap(
         r#"

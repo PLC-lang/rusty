@@ -3774,3 +3774,50 @@ fn multiple_negative_annotates_correctly() {
         }
     }
 }
+
+#[test]
+fn array_of_struct_with_inital_values_annotated_correctly() {
+    let id_provider = IdProvider::default();
+    // GIVEN
+    let (unit, mut index) = index_with_ids(
+        "
+        TYPE myStruct : STRUCT 
+            	a,b : DINT; 
+        	END_STRUCT
+		END_TYPE
+
+		PROGRAM main
+		VAR
+			arr : ARRAY[0..1] OF myStruct := ((a:= 10, b:= 20), (a:= 30, b:= 40));
+		END_VAR
+		END_PROGRAM",
+        id_provider.clone(),
+    );
+
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    let container_name = &unit.implementations[0].name; // main
+    let members = index.get_container_members(container_name);
+    // there is only one member => arr
+    assert_eq!(1, members.len());
+
+    if let Some(AstStatement::ExpressionList { expressions, .. }) = index
+        .get_const_expressions()
+        .maybe_get_constant_statement(&members[0].initial_value)
+    {
+        // we initialized the array with 2 structs
+        assert_eq!(2, expressions.len());
+        let target_type = index
+            .find_effective_type_by_name("myStruct")
+            .expect("at this point we should have the type");
+        for e in expressions {
+            let type_hint = annotations
+                .get_type_hint(e, &index)
+                .expect("we should have a type hint");
+            assert_eq!(target_type, type_hint);
+        }
+    } else {
+        panic!("No initial value, initial value should be an expression list")
+    }
+}

@@ -2224,7 +2224,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         initializer: &AstStatement,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         let array_value = self.generate_literal_array_value(
-            flatten_expression_list(initializer),
+            initializer,
             self.get_type_hint_info_for(initializer)?,
             &initializer.get_location(),
         )?;
@@ -2238,7 +2238,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// i16-array-value
     fn generate_literal_array_value(
         &self,
-        elements: Vec<&AstStatement>,
+        elements: &AstStatement,
         data_type: &DataTypeInformation,
         location: &SourceRange,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
@@ -2265,6 +2265,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 location.clone(),
             ))
         }?;
+
+        // for arrays of struct we cannot flatten the expression list
+        // to generate the passed structs we need an expression list of assignments
+        // flatten_expression_list will will return a vec of only assignments
+        let elements = if self
+            .index
+            .get_effective_type_or_void_by_name(inner_type.get_name())
+            .information
+            .is_struct()
+        {
+            match elements {
+                AstStatement::ExpressionList { expressions, .. } => expressions.iter().collect(),
+                _ => unreachable!("This should always be an expression list"),
+            }
+        } else {
+            flatten_expression_list(elements)
+        };
 
         let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
         let mut v = Vec::new();
