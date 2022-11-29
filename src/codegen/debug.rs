@@ -484,7 +484,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         &self,
         llvm: &Llvm,
         scope: &FunctionValue,
-        //Current line starts with 0
         line: usize,
         column: usize,
     ) -> Result<(), Diagnostic> {
@@ -621,7 +620,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         variable: &VariableIndexEntry,
         alignment: u32,
     ) -> Result<(), Diagnostic> {
-        let type_name = dbg!(variable).get_type_name();
+        let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let line = location.line_number;
 
@@ -638,7 +637,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             );
 
             self.variables
-                .insert(variable.get_name().to_string(), debug_variable);
+                .insert(variable.get_qualified_name().to_string(), debug_variable);
         }
 
         Ok(())
@@ -666,7 +665,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             );
 
             self.variables
-                .insert(variable.get_name().to_string(), debug_variable);
+                .insert(variable.get_qualified_name().to_string(), debug_variable);
         }
 
         Ok(())

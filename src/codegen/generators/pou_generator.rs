@@ -232,7 +232,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             debug.register_local_variable(&variable, alignment)?;
         }
 
-
         if implementation.implementation_type != ImplementationType::Function {
             let mut parameters = vec![];
             if implementation.get_implementation_type() == &ImplementationType::Method {
@@ -302,9 +301,23 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 )
             })?;
 
+        if let Some(debug_context) = &self.debug_context {
+            let (line, column) = implementation.statements.first().map(|it| it.get_location().get_start())
+                .or_else(|| Some(implementation.location.get_start()))
+                .map(|offset| 
+                {
+                    let line = debug_context.new_lines.get_line_nr(offset);
+                    let column = debug_context.new_lines.get_column(line, offset);
+                    (line,column)
+                }
+            ).unwrap();
+            debug_context.debug.set_debug_location(&self.llvm, &current_function, line, column)?;
+        }
+
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
         self.llvm.builder.position_at_end(block);
+        //Set debug location
 
         let mut param_index = 0;
         if let PouType::Method { .. } = implementation.pou_type {
@@ -331,6 +344,27 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             )?;
         } else {
             //Generate POU struct declaration for debug
+            if let Some(((debug_context, value), block)) = self
+                .debug_context
+                .as_ref()
+                .zip(current_function.get_first_param())
+                .zip(self.llvm.builder.get_insert_block())
+            {
+                let line = debug_context
+                    .new_lines
+                    .get_line_nr(implementation.location.get_start());
+                let column = debug_context
+                    .new_lines
+                    .get_column(line, implementation.location.get_start());
+                debug_context.debug.add_variable_declaration(
+                    &implementation.type_name,
+                    value.into_pointer_value(),
+                    current_function,
+                    block,
+                    line,
+                    column,
+                )?;
+            }
             self.generate_local_struct_variable_accessors(
                 param_index,
                 &mut local_index,
@@ -358,14 +392,22 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 implementation.pou_type,
                 PouType::Function | PouType::Method { .. }
             ) {
-                self.generate_initialization_of_local_vars(&pou_members, &local_index)?;
+                self.generate_initialization_of_local_vars(
+                    &pou_members,
+                    &local_index,
+                    &function_context,
+                )?;
             } else {
                 //Generate temp variables
                 let members = pou_members
                     .into_iter()
                     .filter(|it| it.is_temp())
                     .collect::<Vec<&VariableIndexEntry>>();
-                self.generate_initialization_of_local_vars(&members, &local_index)?;
+                self.generate_initialization_of_local_vars(
+                    &members,
+                    &local_index,
+                    &function_context,
+                )?;
             }
             let statement_gen = StatementCodeGenerator::new(
                 &self.llvm,
@@ -455,6 +497,23 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     &index.get_associated_type(m.get_type_name())?,
                 );
 
+                if let Some((debug_context, block)) = self
+                    .debug_context
+                    .as_ref()
+                    .zip(self.llvm.builder.get_insert_block())
+                {
+                    debug_context.debug.add_variable_declaration(
+                        m.get_qualified_name(),
+                        ptr,
+                        current_function,
+                        block,
+                        m.source_location.line_number,
+                        debug_context.new_lines.get_column(
+                            m.source_location.line_number,
+                            m.source_location.source_range.get_start(),
+                        ),
+                    )?;
+                }
                 self.llvm.builder.build_store(ptr, ptr_value);
 
                 (parameter_name, ptr)
@@ -524,6 +583,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         variables: &[&VariableIndexEntry],
         local_llvm_index: &LlvmTypedIndex,
+        function_context: &FunctionContext,
     ) -> Result<(), Diagnostic> {
         let variables_with_initializers = variables
             .iter()
@@ -541,6 +601,23 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             if let Some(left) = local_llvm_index
                 .find_loaded_associated_variable_value(variable.get_qualified_name())
             {
+                if let Some((debug_context, block)) = self
+                    .debug_context
+                    .as_ref()
+                    .zip(self.llvm.builder.get_insert_block())
+                {
+                    debug_context.debug.add_variable_declaration(
+                        variable.get_qualified_name(),
+                        left,
+                        function_context.function,
+                        block,
+                        variable.source_location.line_number,
+                        debug_context.new_lines.get_column(
+                            variable.source_location.line_number,
+                            variable.source_location.source_range.get_start(),
+                        ),
+                    )?;
+                }
                 let right_stmt = match variable.initial_value {
                     Some(..) => Some(
                         self.index
@@ -555,9 +632,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     ),
                     None => None,
                 };
-                // if let Some(debug_context) = self.debug_context {
-                //     debug_context.debug.add_variable_declaration(variable.get_name(), left, todo!(scope), self.llvm.builder.get_insert_block().unwrap(), line, column)
-                // }
 
                 self.generate_variable_initializer(variable, left, right_stmt, &exp_gen)?;
             } else {
