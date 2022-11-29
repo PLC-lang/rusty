@@ -3,6 +3,7 @@ use crate::{
     diagnostics::Diagnostic,
     test_utils::tests::{
         codegen_debug_without_unwrap, codegen_with_diagnostics as codegen, codegen_without_unwrap,
+        parse_and_validate,
     },
     DebugLevel,
 };
@@ -496,19 +497,122 @@ fn struct_initialization_uses_types_default_if_not_provided() {
 #[test]
 fn struct_initializer_uses_fallback_to_field_default() {
     let source = "
+            TYPE MyOtherDINT : DINT := 2 ; END_TYPE
+            TYPE MyDINT      : MyOtherDINT; END_TYPE
+
             TYPE Point: STRUCT
               x: DINT;
-              y: DINT;
+              y: MyDINT;
               z: DINT := 3;
             END_STRUCT
             END_TYPE
  
             VAR_GLOBAL
-                x : Point := (x := 1, y := 2);
+                x : Point := (x := 1);
             END_VAR
            ";
     let (result, diagnostics) = codegen(source);
 
     insta::assert_snapshot!(result);
     assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn array_of_struct_initialization() {
+    let source = "
+	TYPE myStruct : STRUCT
+			a,b : DINT;
+		END_STRUCT
+	END_TYPE
+
+    TYPE AliasMyStruct : myStruct; END_TYPE
+
+	VAR_GLOBAL CONSTANT
+		str : myStruct := (a := 40, b := 50);
+		alias_str : AliasMyStruct := (a := 40, b := 50);
+	END_VAR
+
+	PROGRAM main
+	VAR
+		arr : ARRAY[0..1] OF myStruct := ((a := 20, b := 30), str);
+		alias_arr : ARRAY[0..1] OF AliasMyStruct := ((a := 20, b := 30), alias_str);
+	END_VAR
+	END_PROGRAM
+    ";
+    let (result, diagnostics) = codegen(source);
+
+    insta::assert_snapshot!(result);
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn type_defaults_are_used_for_uninitialized_constants() {
+    let result = codegen_without_unwrap(
+        r#"
+        TYPE MyOtherDINT : DINT := 2 ; END_TYPE
+        TYPE MyDINT      : MyOtherDINT; END_TYPE
+
+        TYPE MyInt : INT := 7; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            a : MyInt;
+            b : INT := a + 2*a;
+            c : MyDINT;
+            d : MyDINT := a + b + c;
+        END_VAR
+        "#,
+    );
+    // we expect some initial values:
+    // a := default(MyInt) = 7;
+    // b := 7 + 14 = 21;
+    // c := default(MyDINT) = Default(MyOtherDINT) = 2;
+    // d := 7 + 21 + 2 = 30
+    insta::assert_snapshot!(result.unwrap());
+}
+
+#[test]
+fn partly_uninitialized_const_struct_will_get_default_values() {
+    let result = codegen_without_unwrap(
+        r#"
+            TYPE MyOtherDINT : DINT := 2 ; END_TYPE
+            TYPE MyDINT      : MyOtherDINT; END_TYPE
+
+            TYPE Point: STRUCT
+              x: DINT;
+              y: MyDINT;
+              z: DINT := 3;
+            END_STRUCT
+            END_TYPE
+ 
+            VAR_GLOBAL CONSTANT
+                x : Point := (x := 1);
+                empty: Point;
+            END_VAR
+        "#,
+    );
+
+    insta::assert_snapshot!(result.unwrap());
+}
+
+#[test]
+fn partly_uninitialized_const_struct_will_not_report_errors() {
+    let diagnostics = parse_and_validate(
+        r#"
+            TYPE MyOtherDINT : DINT := 2 ; END_TYPE
+            TYPE MyDINT      : MyOtherDINT; END_TYPE
+
+            TYPE Point: STRUCT
+              x: DINT;
+              y: MyDINT;
+              z: DINT := 3;
+            END_STRUCT
+            END_TYPE
+ 
+            VAR_GLOBAL CONSTANT
+                x : Point := (x := 1);
+                empty: Point;
+            END_VAR
+        "#,
+    );
+    assert_eq!(diagnostics, vec![]);
 }

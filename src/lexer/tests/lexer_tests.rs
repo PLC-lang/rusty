@@ -392,7 +392,7 @@ fn time_literals_test() {
     let mut lexer = lex(r#"
     T#12d T#13h TIME#14m TIME#15s T#16ms
     T#12d10ms T#12h10m TIME#12m4s3ns
-    TIME#4d6h8m7s12ms04us2ns
+    TIME#4d6h8M7s12ms04US2ns
     "#);
     for _ in 1..9 {
         assert_eq!(
@@ -410,7 +410,7 @@ fn time_literals_test() {
 fn ltime_literals_test() {
     let mut lexer = lex(r#"
     LTIME#12d
-	LTIME#10m4s
+	LTIME#10M4S
 	LT#10d
     DINT#10
     "#);

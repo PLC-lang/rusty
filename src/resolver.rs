@@ -794,13 +794,46 @@ impl<'i> TypeAnnotator<'i> {
                 //Create a new context with the left operator being the target variable type, and the
                 //right side being the local context
                 let ctx = ctx.with_lhs(expected_type.get_name());
-                self.visit_statement(&ctx, initializer);
+
+                if matches!(initializer, AstStatement::DefaultValue { .. }) {
+                    // the default-placeholder must be annotated witht he correc type,
+                    // it will be replaced by the appropriate literal later
+                    self.annotation_map.annotate(
+                        initializer,
+                        StatementAnnotation::value(expected_type.get_name()),
+                    );
+                } else {
+                    self.visit_statement(&ctx, initializer);
+                }
 
                 self.annotation_map.annotate_type_hint(
                     initializer,
                     StatementAnnotation::value(expected_type.get_name()),
                 );
                 self.update_expected_types(expected_type, initializer);
+
+                // handle annotation for array of struct
+                if let DataTypeInformation::Array {
+                    inner_type_name, ..
+                } = expected_type.get_type_information()
+                {
+                    let struct_type = self
+                        .index
+                        .get_effective_type_or_void_by_name(inner_type_name);
+                    if struct_type.get_type_information().is_struct() {
+                        if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                            for e in expressions {
+                                // annotate with the arrays inner_type
+                                self.annotation_map.annotate_type_hint(
+                                    e,
+                                    StatementAnnotation::Value {
+                                        resulting_type: struct_type.get_name().to_string(),
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

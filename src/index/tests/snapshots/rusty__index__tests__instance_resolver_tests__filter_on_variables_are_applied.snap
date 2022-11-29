@@ -14,7 +14,12 @@ expression: "index.filter_instances(|it, _|\n            !it.is_constant()).coll
         VariableIndexEntry {
             name: "gFb",
             qualified_name: "gFb",
-            initial_value: None,
+            initial_value: Some(
+                Index {
+                    index: 0,
+                    generation: 0,
+                },
+            ),
             variable_type: ByVal(
                 Global,
             ),
