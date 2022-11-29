@@ -558,11 +558,15 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_type_nature(type_name: &str, nature: &str, location: SourceRange) -> Diagnostic {
+    pub fn invalid_type_nature(
+        actual_nature: &str,
+        expected_nature: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Invalid type nature for generic argument. {} is no {}.",
-                type_name, nature
+                actual_nature, expected_nature
             ),
             range: vec![location],
             err_no: ErrNo::type__invalid_nature,
