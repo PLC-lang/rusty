@@ -36,11 +36,17 @@ pub fn generate_global_variables<'ctx, 'b>(
     }
 
     //all declared global variables
-    let globals = global_index.get_globals().iter().map(to_k_v);
+    let globals = global_index.get_globals().elements().map(to_k_v);
     //all initializers
-    let initializers = global_index.get_global_initializers().iter().map(to_k_v);
+    let initializers = global_index
+        .get_global_initializers()
+        .elements()
+        .map(to_k_v);
     //all enum-elements
-    let enums = global_index.get_global_qualified_enums().iter().map(to_k_v);
+    let enums = global_index
+        .get_global_qualified_enums()
+        .elements()
+        .map(to_k_v);
     //all program instances
     let programs = global_index
         .get_pous()

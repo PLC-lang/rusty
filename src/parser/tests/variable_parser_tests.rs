@@ -178,6 +178,7 @@ fn global_var_with_address() {
             aa AT %IX7 : INT; 
             bb AT %QB5.5 : INT; 
             cc AT %MD3.3.3 : INT; 
+            dd AT %GD4.3.3 : INT; 
     END_VAR ";
     let (result, diag) = parse(src);
 
@@ -196,6 +197,7 @@ fn pou_var_with_address() {
             aa AT %IX7 : INT; 
             bb AT %QB5.5 : INT; 
             cc AT %MD3.3.3 : INT; 
+            dd AT %GD4.3.3 : INT; 
     END_VAR 
     END_PROGRAM
     ";
@@ -215,6 +217,7 @@ fn struct_with_address() {
             aa AT %IX7 : INT; 
             bb AT %QB5.5 : INT; 
             cc AT %MD3.3.3 : INT; 
+            dd AT %GD4.3.3 : INT; 
     END_STRUCT
     END_TYPE
     ";
@@ -247,110 +250,7 @@ fn date_and_time_constants_test() {
     END_VAR"#;
 
     let (result, diag) = parse(src);
-
     let vars = &result.global_vars[0]; //globar_vars
-    let ast_string = format!("{:#?}", vars);
-    let expected_ast = r#"VariableBlock {
-    variables: [
-        Variable {
-            name: "cT",
-            data_type: DataTypeReference {
-                referenced_type: "TIME",
-            },
-        },
-        Variable {
-            name: "cT_SHORT",
-            data_type: DataTypeReference {
-                referenced_type: "TIME",
-            },
-        },
-        Variable {
-            name: "cLT",
-            data_type: DataTypeReference {
-                referenced_type: "LTIME",
-            },
-        },
-        Variable {
-            name: "cLT_SHORT",
-            data_type: DataTypeReference {
-                referenced_type: "LTIME",
-            },
-        },
-        Variable {
-            name: "cD",
-            data_type: DataTypeReference {
-                referenced_type: "DATE",
-            },
-        },
-        Variable {
-            name: "cD_SHORT",
-            data_type: DataTypeReference {
-                referenced_type: "DATE",
-            },
-        },
-        Variable {
-            name: "cLD",
-            data_type: DataTypeReference {
-                referenced_type: "LDATE",
-            },
-        },
-        Variable {
-            name: "cLD_SHORT",
-            data_type: DataTypeReference {
-                referenced_type: "LDATE",
-            },
-        },
-        Variable {
-            name: "cTOD",
-            data_type: DataTypeReference {
-                referenced_type: "TIME_OF_DAY",
-            },
-        },
-        Variable {
-            name: "cTOD_SHORT",
-            data_type: DataTypeReference {
-                referenced_type: "TOD",
-            },
-        },
-        Variable {
-            name: "cLTOD",
-            data_type: DataTypeReference {
-                referenced_type: "LTOD",
-            },
-        },
-        Variable {
-            name: "cLTOD_SHORT",
-            data_type: DataTypeReference {
-                referenced_type: "LTOD",
-            },
-        },
-        Variable {
-            name: "cDT",
-            data_type: DataTypeReference {
-                referenced_type: "DATE_AND_TIME",
-            },
-        },
-        Variable {
-            name: "cDT_SHORT",
-            data_type: DataTypeReference {
-                referenced_type: "DT",
-            },
-        },
-        Variable {
-            name: "cLDT",
-            data_type: DataTypeReference {
-                referenced_type: "LDT",
-            },
-        },
-        Variable {
-            name: "cLDT_SHORT",
-            data_type: DataTypeReference {
-                referenced_type: "LDT",
-            },
-        },
-    ],
-    variable_block_type: Global,
-}"#;
     assert_eq!(diag, vec![]);
-    assert_eq!(ast_string, expected_ast)
+    insta::assert_snapshot!(format!("{:#?}", vars));
 }

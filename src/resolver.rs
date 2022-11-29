@@ -18,10 +18,11 @@ use crate::{
         DataTypeDeclaration, Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     builtins::{self, BuiltIn},
-    index::{Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
+    lexer::IdProvider,
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
-        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, REAL_TYPE,
         TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
@@ -56,7 +57,7 @@ pub struct VisitorContext<'s> {
     /// special context of the left-hand-side of an assignment in call statements
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
-    call: Option<&'s str>,
+    lhs: Option<&'s str>,
     /// true if visiting a call statement
     is_call: bool,
 
@@ -67,6 +68,8 @@ pub struct VisitorContext<'s> {
 
     /// true the visitor entered a body (so no declarations)
     in_body: bool,
+
+    id_provider: IdProvider,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -75,10 +78,11 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: Some(qualifier),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
+            id_provider: self.id_provider.clone(),
         }
     }
 
@@ -87,22 +91,24 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: Some(pou),
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
+            id_provider: self.id_provider.clone(),
         }
     }
 
     /// returns a copy of the current context and changes the `lhs_pou` to the given pou
-    fn with_call(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
+    fn with_lhs(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: Some(lhs_pou),
+            lhs: Some(lhs_pou),
             is_call: self.is_call,
             constant: false,
             in_body: self.in_body,
+            id_provider: self.id_provider.clone(),
         }
     }
 
@@ -111,10 +117,11 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: true,
-            constant: false,
+            constant: self.constant,
             in_body: self.in_body,
+            id_provider: self.id_provider.clone(),
         }
     }
 
@@ -123,10 +130,11 @@ impl<'s> VisitorContext<'s> {
         VisitorContext {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
-            call: self.call,
+            lhs: self.lhs,
             is_call: self.is_call,
             constant: self.constant,
             in_body: true,
+            id_provider: self.id_provider.clone(),
         }
     }
 
@@ -240,6 +248,8 @@ pub trait AnnotationMap {
 
     fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation>;
 
+    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement>;
+
     fn get_type_or_void<'i>(
         &'i self,
         s: &AstStatement,
@@ -331,6 +341,10 @@ impl AnnotationMap for AstAnnotations {
             self.annotation_map.get_hint(s)
         }
     }
+
+    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement> {
+        self.annotation_map.get_hidden_function_call(s)
+    }
 }
 
 impl AstAnnotations {
@@ -364,6 +378,17 @@ pub struct AnnotationMapImpl {
     /// A map from a call to the generic function name of that call
     generic_nature_map: IndexMap<AstId, TypeNature>,
 
+    /// maps a function to a statement
+    ///
+    /// currently used for `SubRange`check functions
+    /// these functions are not called directly and are therefore maped to the corresponding statement here
+    /// example:
+    /// FUNCTION CheckRangeUnsigned : UDINT
+    /// ...
+    /// x : BYTE(0..100);
+    /// x := 10; // a call to `CheckRangeUnsigned` is maped to `10`
+    hidden_function_calls: IndexMap<AstId, AstStatement>,
+
     //An index of newly created types
     pub new_index: Index,
 }
@@ -377,6 +402,8 @@ impl AnnotationMapImpl {
     pub fn import(&mut self, other: AnnotationMapImpl) {
         self.type_map.extend(other.type_map);
         self.type_hint_map.extend(other.type_hint_map);
+        self.hidden_function_calls
+            .extend(other.hidden_function_calls);
         self.new_index.import(other.new_index);
     }
 
@@ -387,6 +414,12 @@ impl AnnotationMapImpl {
 
     pub fn annotate_type_hint(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
         self.type_hint_map.insert(s.get_id(), annotation);
+    }
+
+    /// annotates the given statement s with the call-statement f so codegen can generate
+    /// a hidden call f instead of generating s
+    pub fn annotate_hidden_function_call(&mut self, s: &AstStatement, f: AstStatement) {
+        self.hidden_function_calls.insert(s.get_id(), f);
     }
 
     /// Annotates the ast statement with its original generic nature
@@ -410,6 +443,11 @@ impl AnnotationMap for AnnotationMapImpl {
 
     fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
         self.type_hint_map.get(&s.get_id())
+    }
+
+    /// returns the function call previously annoted on s via annotate_hidden_function_call(...)
+    fn get_hidden_function_call(&self, s: &AstStatement) -> Option<&AstStatement> {
+        self.hidden_function_calls.get(&s.get_id())
     }
 
     fn get_type<'i>(
@@ -455,15 +493,17 @@ impl<'i> TypeAnnotator<'i> {
     pub fn visit_unit(
         index: &Index,
         unit: &'i CompilationUnit,
+        id_provider: IdProvider,
     ) -> (AnnotationMapImpl, StringLiterals) {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
-            call: None,
+            lhs: None,
             is_call: false,
             constant: false,
             in_body: false,
+            id_provider,
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -487,7 +527,7 @@ impl<'i> TypeAnnotator<'i> {
 
         // enum initializers may have been introduced by the visitor (indexer)
         // so we shoul try to resolve and type-annotate them here as well
-        for (_, enum_element) in index.get_global_qualified_enums() {
+        for enum_element in index.get_global_qualified_enums().values() {
             if let Some((Some(statement), scope)) = enum_element
                 .initial_value
                 .map(|i| index.get_const_expressions().find_expression(&i))
@@ -497,6 +537,10 @@ impl<'i> TypeAnnotator<'i> {
                 } else {
                     visitor.visit_statement(ctx, statement);
                 }
+                let enum_type = enum_element.get_type_name();
+                visitor
+                    .annotation_map
+                    .annotate_type_hint(statement, StatementAnnotation::value(enum_type))
             }
         }
 
@@ -542,21 +586,58 @@ impl<'i> TypeAnnotator<'i> {
     /// note that the left side needs to be annotated before this call
     fn update_right_hand_side_expected_type(
         &mut self,
+        ctx: &VisitorContext,
         annotated_left_side: &AstStatement,
         right_side: &AstStatement,
     ) {
-        if let Some(t) = self
+        if let Some(expected_type) = self
             .annotation_map
             .get_type(annotated_left_side, self.index)
             .cloned()
         {
-            //annotate the right-hand side as a whole
-            self.annotation_map
-                .annotate_type_hint(right_side, StatementAnnotation::value(t.get_name()));
-
-            //dive into the right hand side
-            self.update_expected_types(&t, right_side);
+            // for assignments on SubRanges check if there are range type check functions
+            if let DataTypeInformation::SubRange { sub_range, .. } =
+                expected_type.get_type_information()
+            {
+                if let Some(statement) = self
+                    .index
+                    .find_range_check_implementation_for(expected_type.get_type_information())
+                    .map(|f| {
+                        crate::ast::create_call_to_check_function_ast(
+                            f.get_call_name().to_string(),
+                            right_side.clone(),
+                            sub_range.clone(),
+                            &annotated_left_side.get_location(),
+                            ctx.id_provider.clone(),
+                        )
+                    })
+                {
+                    self.visit_call_statement(&statement, ctx);
+                    self.update_right_hand_side(&expected_type, &statement);
+                    self.annotation_map
+                        .annotate_hidden_function_call(right_side, statement);
+                } else {
+                    self.update_right_hand_side(&expected_type, right_side);
+                }
+            } else {
+                self.update_right_hand_side(&expected_type, right_side);
+            }
         }
+    }
+
+    fn update_right_hand_side(
+        &mut self,
+        expected_type: &typesystem::DataType,
+        right_side: &AstStatement,
+    ) {
+        //annotate the right-hand side as a whole
+        self.annotation_map.annotate_type_hint(
+            right_side,
+            StatementAnnotation::value(expected_type.get_name()),
+        );
+
+        //dive into the right hand side
+        self.update_expected_types(expected_type, right_side);
     }
 
     /// updates the expected types of statements on the right side of an assignment
@@ -712,14 +793,47 @@ impl<'i> TypeAnnotator<'i> {
             {
                 //Create a new context with the left operator being the target variable type, and the
                 //right side being the local context
-                let ctx = ctx.with_call(expected_type.get_name());
-                self.visit_statement(&ctx, initializer);
+                let ctx = ctx.with_lhs(expected_type.get_name());
+
+                if matches!(initializer, AstStatement::DefaultValue { .. }) {
+                    // the default-placeholder must be annotated witht he correc type,
+                    // it will be replaced by the appropriate literal later
+                    self.annotation_map.annotate(
+                        initializer,
+                        StatementAnnotation::value(expected_type.get_name()),
+                    );
+                } else {
+                    self.visit_statement(&ctx, initializer);
+                }
 
                 self.annotation_map.annotate_type_hint(
                     initializer,
                     StatementAnnotation::value(expected_type.get_name()),
                 );
                 self.update_expected_types(expected_type, initializer);
+
+                // handle annotation for array of struct
+                if let DataTypeInformation::Array {
+                    inner_type_name, ..
+                } = expected_type.get_type_information()
+                {
+                    let struct_type = self
+                        .index
+                        .get_effective_type_or_void_by_name(inner_type_name);
+                    if struct_type.get_type_information().is_struct() {
+                        if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                            for e in expressions {
+                                // annotate with the arrays inner_type
+                                self.annotation_map.annotate_type_hint(
+                                    e,
+                                    StatementAnnotation::Value {
+                                        resulting_type: struct_type.get_name().to_string(),
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -861,12 +975,13 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, reference);
                 self.visit_statement(
                     &VisitorContext {
-                        call: None,
+                        lhs: None,
                         is_call: false,
                         constant: false,
                         pou: ctx.pou,
                         qualifier: None,
                         in_body: ctx.in_body,
+                        id_provider: ctx.id_provider.clone(),
                     },
                     access,
                 );
@@ -905,10 +1020,17 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     let t = self
                         .index
-                        .get_effective_type_or_void_by_name(inner_type_name)
+                        .get_effective_type_by_name(inner_type_name)
+                        .unwrap_or_else(|_| {
+                            self.annotation_map
+                                .new_index
+                                .get_effective_type_or_void_by_name(inner_type_name)
+                        })
                         .get_name();
+                    // borrow-checker won't allow using t in annotate() without claiming ownership first due to immutable borrow
+                    let t = t.to_owned();
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(t));
+                        .annotate(statement, StatementAnnotation::value(t.as_str()));
                 }
             }
             AstStatement::DirectAccess { access, index, .. } => {
@@ -917,35 +1039,22 @@ impl<'i> TypeAnnotator<'i> {
                     ..ctx.clone()
                 };
                 visit_all_statements!(self, &ctx, index);
-                match access {
-                    crate::ast::DirectAccessType::Bit => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: BOOL_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Byte => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: BYTE_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Word => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: WORD_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::DWord => self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::Value {
-                            resulting_type: DWORD_TYPE.into(),
-                        },
-                    ),
-                    crate::ast::DirectAccessType::Template => {
-                        unreachable!("Templates cannot occur in direct access")
-                    }
-                }
+                let access_type = get_direct_access_type(access);
+                self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: access_type.into(),
+                    },
+                );
+            }
+            AstStatement::HardwareAccess { access, .. } => {
+                let access_type = get_direct_access_type(access);
+                self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: access_type.into(),
+                    },
+                );
             }
             AstStatement::BinaryExpression {
                 left,
@@ -1217,24 +1326,24 @@ impl<'i> TypeAnnotator<'i> {
             }
             AstStatement::Assignment { left, right, .. } => {
                 self.visit_statement(ctx, right);
-                if let Some(lhs) = ctx.call {
+                if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs), left);
                 } else {
                     self.visit_statement(ctx, left);
                 }
                 // give a type hint that we want the right side to be stored in the left's type
-                self.update_right_hand_side_expected_type(left, right);
+                self.update_right_hand_side_expected_type(ctx, left, right);
             }
             AstStatement::OutputAssignment { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
-                if let Some(lhs) = ctx.call {
+                if let Some(lhs) = ctx.lhs {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs), left);
                 } else {
                     self.visit_statement(ctx, left);
                 }
-                self.update_right_hand_side_expected_type(left, right);
+                self.update_right_hand_side_expected_type(ctx, left, right);
             }
             AstStatement::CallStatement { .. } => {
                 self.visit_call_statement(statement, ctx);
@@ -1287,10 +1396,10 @@ impl<'i> TypeAnnotator<'i> {
             unreachable!("Always a call statement");
         };
         // #604 needed for recursive function calls
-        let ctx = ctx.set_is_call();
-        self.visit_statement(&ctx, operator);
+        self.visit_statement(&ctx.set_is_call(), operator);
         let operator_qualifier = self.get_call_name(operator);
-        let ctx = ctx.with_call(operator_qualifier.as_str());
+        //Use the context without the is_call =true
+        let ctx = ctx.with_lhs(operator_qualifier.as_str());
         let parameters = if let Some(parameters) = parameters_stmt {
             self.visit_statement(&ctx, parameters);
             flatten_expression_list(parameters)
@@ -1349,7 +1458,43 @@ impl<'i> TypeAnnotator<'i> {
                                     .or_insert_with(std::vec::Vec::new)
                                     .push(candidate.to_string())
                             } else {
-                                params.push((parameter, type_name.to_string()))
+                                // intrinsic type promotion for variadics in order to be compatible with the C standard.
+                                // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
+                                // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
+                                // for more about default argument promotion.
+
+                                // varargs without a type declaration will be annotated "VOID", so in order to check if a
+                                // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
+                                // types, we promote if the type is smaller than double/i32 (except for booleans).
+                                let type_name = if let Some(data_type) =
+                                    self.annotation_map.get_type(parameter, self.index)
+                                {
+                                    match &data_type.information {
+                                        DataTypeInformation::Float { .. } => get_bigger_type(
+                                            data_type,
+                                            self.index.get_type_or_panic(LREAL_TYPE),
+                                            self.index,
+                                        )
+                                        .get_name(),
+                                        DataTypeInformation::Integer { .. }
+                                            if !&data_type.information.is_bool() =>
+                                        {
+                                            get_bigger_type(
+                                                data_type,
+                                                self.index.get_type_or_panic(DINT_TYPE),
+                                                self.index,
+                                            )
+                                            .get_name()
+                                        }
+                                        _ => type_name,
+                                    }
+                                } else {
+                                    // default to original type in case no type could be found
+                                    // and let the validator handle situations that might lead here
+                                    type_name
+                                };
+
+                                params.push((parameter, type_name.to_string()));
                             }
                         }
                     }
@@ -1511,12 +1656,22 @@ impl<'i> TypeAnnotator<'i> {
     }
 }
 
+fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str {
+    match access {
+        crate::ast::DirectAccessType::Bit => BOOL_TYPE,
+        crate::ast::DirectAccessType::Byte => BYTE_TYPE,
+        crate::ast::DirectAccessType::Word => WORD_TYPE,
+        crate::ast::DirectAccessType::DWord => DWORD_TYPE,
+        crate::ast::DirectAccessType::Template => VOID_TYPE,
+    }
+}
+
 /// adds a string-type to the given index and returns it's name
 fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
     let new_type_name = if is_wide {
-        format!("__WSTRING_{}", len)
+        typesystem::create_internal_type_name("WSTRING_", len.to_string().as_str())
     } else {
-        format!("__STRING_{}", len)
+        typesystem::create_internal_type_name("STRING_", len.to_string().as_str())
     };
 
     if index
@@ -1535,6 +1690,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
+            location: SymbolLocation::internal(),
         });
     }
     new_type_name
@@ -1542,17 +1698,25 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
 
 /// adds a pointer to the given inner_type to the given index and return's its name
 fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
-    let new_type_name = format!("POINTER_TO_{}", inner_type_name.as_str());
-    index.register_type(crate::typesystem::DataType {
-        name: new_type_name.clone(),
-        initial_value: None,
-        nature: TypeNature::Any,
-        information: crate::typesystem::DataTypeInformation::Pointer {
-            auto_deref: false,
-            inner_type_name,
+    let new_type_name =
+        typesystem::create_internal_type_name("POINTER_TO_", inner_type_name.as_str());
+
+    if index
+        .find_effective_type_by_name(new_type_name.as_str())
+        .is_none()
+    {
+        index.register_type(crate::typesystem::DataType {
             name: new_type_name.clone(),
-        },
-    });
+            initial_value: None,
+            nature: TypeNature::Any,
+            information: crate::typesystem::DataTypeInformation::Pointer {
+                auto_deref: false,
+                inner_type_name,
+                name: new_type_name.clone(),
+            },
+            location: SymbolLocation::internal(),
+        });
+    }
     new_type_name
 }
 

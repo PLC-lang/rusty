@@ -392,7 +392,7 @@ fn time_literals_test() {
     let mut lexer = lex(r#"
     T#12d T#13h TIME#14m TIME#15s T#16ms
     T#12d10ms T#12h10m TIME#12m4s3ns
-    TIME#4d6h8m7s12ms04us2ns
+    TIME#4d6h8M7s12ms04US2ns
     "#);
     for _ in 1..9 {
         assert_eq!(
@@ -410,7 +410,7 @@ fn time_literals_test() {
 fn ltime_literals_test() {
     let mut lexer = lex(r#"
     LTIME#12d
-	LTIME#10m4s
+	LTIME#10M4S
 	LT#10d
     DINT#10
     "#);
@@ -742,7 +742,7 @@ fn direct_access_test() {
 
 #[test]
 fn hardware_access_test() {
-    let mut lexer = lex("AT %I* %Q* %M* %IX1.1 %IB2.2 %QW5 %MD7");
+    let mut lexer = lex("AT %I* %Q* %M* %IX1.1 %IB2.2 %QW5 %MD7 %GX8");
     assert_eq!(lexer.token, KeywordAt);
     lexer.advance();
     assert_eq!(
@@ -792,6 +792,13 @@ fn hardware_access_test() {
     assert_eq!(
         lexer.token,
         HardwareAccess((HardwareAccessType::Memory, DirectAccessType::DWord))
+    );
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Global, DirectAccessType::Bit))
     );
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
@@ -871,7 +878,6 @@ fn new_lines_test_empty_string() {
 fn new_lines_test_three_lines_with_crlf() {
     let text = "A\r\nB\r\nC";
     let nl = NewLines::build(text);
-
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
@@ -879,9 +885,8 @@ fn new_lines_test_three_lines_with_crlf() {
 
 #[test]
 fn new_lines_test_three_lines_with_lf() {
-    let text = "A\r\nB\r\nC";
+    let text = "A\nB\nC";
     let nl = NewLines::build(text);
-
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 1);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 2);
@@ -898,4 +903,17 @@ fn new_lines_test_three_long_lines_with_lf() {
     assert_eq!(nl.get_line_nr(text.find('A').unwrap()), 0);
     assert_eq!(nl.get_line_nr(text.find('B').unwrap()), 2);
     assert_eq!(nl.get_line_nr(text.find('C').unwrap()), 4);
+}
+
+#[test]
+fn new_lines_and_columns_test() {
+    let text = "xxxx A xxxx
+
+    xxxx B xxxx
+
+    xxxx C xxxxx";
+    let nl = NewLines::build(text);
+    assert_eq!(nl.get_column(0, text.find('A').unwrap()), 5);
+    assert_eq!(nl.get_column(2, text.find('B').unwrap()), 9);
+    assert_eq!(nl.get_column(4, text.find('C').unwrap()), 9);
 }

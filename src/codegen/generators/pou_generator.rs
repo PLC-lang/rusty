@@ -76,7 +76,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     llvm_index: &LlvmTypedIndex<'ink>,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut local_llvm_index = LlvmTypedIndex::default();
-    for (_, implementation) in index.get_implementations() {
+    for implementation in index.get_implementations().values() {
         let type_name = implementation.get_type_name();
         let pou_members = index.get_container_members(type_name);
         let variables = pou_members

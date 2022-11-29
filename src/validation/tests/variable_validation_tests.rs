@@ -2,7 +2,7 @@ use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
 #[test]
-fn uninitialized_constants_are_reported() {
+fn uninitialized_constants_fall_back_to_the_default() {
     let diagnostics = parse_and_validate(
         "
         VAR_GLOBAL 
@@ -29,13 +29,7 @@ fn uninitialized_constants_are_reported() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unresolved_constant("cx", None, (340..342).into()),
-            Diagnostic::unresolved_constant("cgX", None, (128..131).into()),
-        ]
-    );
+    assert_eq!(diagnostics, vec![]);
 }
 
 #[test]
@@ -43,12 +37,12 @@ fn unresolvable_variables_are_reported() {
     let diagnostics = parse_and_validate(
         "
         VAR_GLOBAL 
-            gX : INT := 7 + cgX; //unresolvable
+            gX : INT := 7 + cgX;
             gXi : INT := 7;
         END_VAR
 
         VAR_GLOBAL CONSTANT
-            cgX : INT;  //unresolved
+            cgX : INT;  //default
             cgXi : INT := 7;
         END_VAR
 
@@ -61,7 +55,7 @@ fn unresolvable_variables_are_reported() {
             VAR CONSTANT
                 cx : INT := cx;  //unresolvable
                 cxi : INT := 7;
-                cai : INT := a;
+                cai : INT := a;  //unresolvable
             END_VAR
         END_PROGRAM
        ",
@@ -70,10 +64,8 @@ fn unresolvable_variables_are_reported() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_constant("cx", None, (392..394).into()),
-            Diagnostic::unresolved_constant("cai", None, (473..474).into()),
-            Diagnostic::unresolved_constant("gX", None, (45..52).into()),
-            Diagnostic::unresolved_constant("cgX", None, (154..157).into()),
+            Diagnostic::unresolved_constant("cx", None, (374..376).into()),
+            Diagnostic::unresolved_constant("cai", None, (455..456).into()),
         ]
     );
 }
@@ -166,9 +158,7 @@ fn constant_fb_instances_are_illegal() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::unresolved_constant("y", None, (320..321).into()),
             Diagnostic::invalid_constant("y", (320..321).into()),
-            Diagnostic::unresolved_constant("z", None, (342..343).into()),
             Diagnostic::invalid_constant("z", (342..343).into()),
         ]
     );

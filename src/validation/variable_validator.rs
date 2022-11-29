@@ -177,7 +177,7 @@ mod variable_validator_tests {
         assert_eq!(
             diagnostics,
             vec![
-                Diagnostic::empty_variable_block((14..44).into()),
+                Diagnostic::empty_variable_block((14..24).into()),
                 Diagnostic::empty_variable_block((131..164).into())
             ]
         );
@@ -200,7 +200,7 @@ mod variable_validator_tests {
         assert_eq!(
             diagnostics,
             vec![
-                Diagnostic::empty_variable_block((14..27).into()),
+                Diagnostic::empty_variable_block((14..21).into()),
                 Diagnostic::empty_variable_block((112..114).into())
             ]
         );

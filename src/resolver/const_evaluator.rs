@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::{
-    ast::{AstStatement, Operator, SourceRange},
+    ast::{AstId, AstStatement, Operator, SourceRange},
     index::{
         const_expressions::{ConstExpression, ConstId},
         Index,
@@ -9,7 +9,7 @@ use crate::{
     typesystem::{
         DataType, DataTypeInformation, NativeByteType, NativeDintType, NativeDwordType,
         NativeIntType, NativeLintType, NativeLwordType, NativeSintType, NativeWordType,
-        StringEncoding, DINT_SIZE, INT_SIZE, LINT_SIZE, SINT_SIZE,
+        StringEncoding, DINT_SIZE, INT_SIZE, LINT_SIZE, SINT_SIZE, VOID_TYPE,
     },
 };
 
@@ -162,6 +162,9 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
         AstStatement::ExpressionList { expressions, .. } => {
             expressions.iter().any(needs_evaluation)
         }
+        AstStatement::RangeStatement { start, end, .. } => {
+            needs_evaluation(start) || needs_evaluation(end)
+        }
         _ => true,
     }
 }
@@ -195,10 +198,23 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     .and_then(|type_name| index.find_effective_type_by_name(type_name))
                     .map(DataType::get_type_information);
 
-                let initial_value_literal = evaluate(
+                if candidates_type
+                    .map(|it| (it.is_struct() || it.is_array()) && const_expr.is_default())
+                    .unwrap_or(false)
+                {
+                    // we skip structs and arrays with default-initializers since they cannot be used inside expressions of other consts.
+                    // we leave generating the default value to the llvm-index later.
+                    // And we resolve it so we dont get a validation problem
+                    let expr_clone = const_expr.get_statement().clone();
+                    do_resolve_candidate(&mut index, candidate, expr_clone);
+                    continue;
+                }
+
+                let initial_value_literal = evaluate_with_target_hint(
                     const_expr.get_statement(),
                     const_expr.get_qualifier(),
                     &index,
+                    target_type,
                 );
 
                 match (initial_value_literal, candidates_type) {
@@ -243,10 +259,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                                 .find_expression_target_type(&candidate),
                             &index,
                         );
-                        index
-                            .get_mut_const_expressions()
-                            .mark_resolved(&candidate, literal)
-                            .expect("unknown id for const-expression"); //panic if we dont know the id
+                        do_resolve_candidate(&mut index, candidate, literal);
                         failed_tries = 0;
                     }
 
@@ -282,6 +295,71 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     );
 
     (index, unresolvable)
+}
+
+fn do_resolve_candidate(
+    index: &mut Index,
+    candidate: generational_arena::Index,
+    new_statement: AstStatement,
+) {
+    index
+        .get_mut_const_expressions()
+        .mark_resolved(&candidate, new_statement)
+        .expect("unknown id for const-expression");
+}
+
+/// generates an ast-statement that initializes the given type with the registered default values
+fn get_default_initializer(
+    id: AstId,
+    target_type: &str,
+    index: &Index,
+    location: &SourceRange,
+) -> Result<Option<AstStatement>, String> {
+    if let Some(init) = index.get_initial_value_for_type(target_type) {
+        evaluate(init, None, index) //TODO do we ave a scope here?
+    } else {
+        let dt = index.get_type_information_or_void(target_type);
+        let init = match dt {
+            DataTypeInformation::Pointer { .. } => Some(AstStatement::LiteralNull {
+                location: location.clone(),
+                id,
+            }),
+            DataTypeInformation::Integer { .. } => Some(AstStatement::LiteralInteger {
+                value: 0,
+                location: location.clone(),
+                id,
+            }),
+            DataTypeInformation::Enum { name, elements, .. } => elements
+                .get(0)
+                .and_then(|default_enum| index.find_enum_element(name, default_enum))
+                .and_then(|enum_element| enum_element.initial_value)
+                .and_then(|initial_val| {
+                    index
+                        .get_const_expressions()
+                        .get_resolved_constant_statement(&initial_val)
+                })
+                .cloned(),
+            DataTypeInformation::Float { .. } => Some(AstStatement::LiteralReal {
+                value: "0.0".to_string(),
+                location: location.clone(),
+                id,
+            }),
+            DataTypeInformation::String { encoding, .. } => Some(AstStatement::LiteralString {
+                value: "".to_string(),
+                is_wide: encoding == &StringEncoding::Utf16,
+                location: location.clone(),
+                id,
+            }),
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            }
+            | DataTypeInformation::Alias {
+                referenced_type, ..
+            } => return get_default_initializer(id, referenced_type, index, location),
+            _ => None,
+        };
+        Ok(init)
+    }
 }
 
 /// transforms the given literal to better fit the datatype of the candidate
@@ -354,6 +432,14 @@ fn cast_if_necessary(
     literal
 }
 
+pub fn evaluate(
+    initial: &AstStatement,
+    scope: Option<&str>,
+    index: &Index,
+) -> Result<Option<AstStatement>, String> {
+    evaluate_with_target_hint(initial, scope, index, None)
+}
+
 /// evaluates the given Syntax-Tree `initial` to a `LiteralValue` if possible
 /// ## Arguments
 /// - `initial` the constant expression to resolve
@@ -362,16 +448,25 @@ fn cast_if_necessary(
 /// ## Returns
 /// - returns an Err if resolving caused an internal error (e.g. number parsing)
 /// - returns None if the initializer cannot be resolved  (e.g. missing value)
-pub fn evaluate(
+pub fn evaluate_with_target_hint(
     initial: &AstStatement,
     scope: Option<&str>,
     index: &Index,
+    target_type: Option<&str>,
 ) -> Result<Option<AstStatement>, String> {
     if !needs_evaluation(initial) {
         return Ok(Some(initial.clone())); // TODO hmm ...
     }
 
     let literal = match initial {
+        AstStatement::DefaultValue { location, .. } => {
+            return get_default_initializer(
+                initial.get_id(),
+                target_type.unwrap_or(VOID_TYPE),
+                index,
+                location,
+            )
+        }
         AstStatement::CastStatement {
             target, type_name, ..
         } => match index.find_effective_type_info(type_name) {
@@ -381,23 +476,21 @@ pub fn evaluate(
                 if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
                     return index
                         .find_enum_element(enum_name, ref_name)
-                        .map(|v| resolve_const_reference(Some(v), ref_name, index))
-                        .unwrap_or_else(|| {
-                            Err(format!(
-                                "Cannot resolve constant enum {}#{}.",
-                                enum_name, ref_name
-                            ))
-                        });
+                        .ok_or_else(|| {
+                            format!("Cannot resolve constant enum {}#{}.", enum_name, ref_name)
+                        })
+                        .and_then(|v| resolve_const_reference(v, ref_name, index));
                 } else {
                     return Err("Cannot resolve unknown constant.".to_string());
                 }
             }
             _ => Some(get_cast_statement_literal(target, type_name, scope, index)?),
         },
-        AstStatement::Reference { name, .. } => {
-            let variable = index.find_variable(scope, std::slice::from_ref(&name.as_str()));
-            resolve_const_reference(variable, name, index)?
-        }
+        AstStatement::Reference { name, .. } => index
+            .find_variable(scope, std::slice::from_ref(&name.as_str()))
+            .map(|variable| resolve_const_reference(variable, name, index))
+            .transpose()?
+            .flatten(),
         AstStatement::QualifiedReference { elements, .. } => {
             // we made sure that there are exactly two references
             //TODO https://github.com/ghaith/rusty/issues/291 - once we can initialize structs, we need to allow generic qualified references here
@@ -410,8 +503,12 @@ pub fn evaluate(
                     },
                 ) = (&elements[0], &elements[1])
                 {
-                    let variable = index.find_member(pou_name, variable_name);
-                    return resolve_const_reference(variable, variable_name, index);
+                    return index
+                        .find_member(pou_name, variable_name)
+                        .ok_or_else(|| "Cannot resolve unknown constant.".to_string())
+                        .and_then(|variable| {
+                            resolve_const_reference(variable, variable_name, index)
+                        });
                 }
             }
             return Err("Qualified references only allow references to qualified variables in the form of 'POU.variable'".to_string());
@@ -606,6 +703,16 @@ pub fn evaluate(
                 Some(initial.clone())
             }
         }
+        AstStatement::RangeStatement { start, end, id } => {
+            let start =
+                Box::new(evaluate(start, scope, index)?.unwrap_or_else(|| *start.to_owned()));
+            let end = Box::new(evaluate(end, scope, index)?.unwrap_or_else(|| *end.to_owned()));
+            Some(AstStatement::RangeStatement {
+                start,
+                end,
+                id: *id,
+            })
+        }
         _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),
     };
     Ok(literal)
@@ -615,24 +722,24 @@ pub fn evaluate(
 /// may return Ok(None) if the variable's initial value can not be
 /// resolved yet
 fn resolve_const_reference(
-    variable: Option<&crate::index::VariableIndexEntry>,
+    variable: &crate::index::VariableIndexEntry,
     name: &str,
     index: &Index,
 ) -> Result<Option<AstStatement>, String> {
-    if variable.filter(|it| !it.is_constant()).is_some() {
-        //the referenced variable is no const!
-        return Err(format!("'{:}' is no const reference", name));
-    }
-    Ok(
+    if variable.is_constant() {
         if let Some(ConstExpression::Resolved(statement)) = variable
-            .and_then(|it| it.initial_value.as_ref())
+            .initial_value
+            .as_ref()
             .and_then(|it| index.get_const_expressions().find_const_expression(it))
         {
-            Some(statement.clone())
+            Ok(Some(statement.clone()))
         } else {
-            None
-        },
-    )
+            Ok(None) //not resolved yet
+        }
+    } else {
+        //the referenced variabale is no const!
+        Err(format!("'{:}' is no const reference", name))
+    }
 }
 
 fn is_zero(v: &AstStatement) -> bool {

@@ -158,7 +158,7 @@ impl<'a> ParseSession<'a> {
                             "the words in {} should be separated by a '_'",
                             self.slice()
                         ),
-                        range: self.location(),
+                        range: vec![self.location()],
                     });
                 }
             }
@@ -345,6 +345,7 @@ fn parse_hardware_access_type(
             'i' => Some(crate::ast::HardwareAccessType::Input),
             'q' => Some(crate::ast::HardwareAccessType::Output),
             'm' => Some(crate::ast::HardwareAccessType::Memory),
+            'g' => Some(crate::ast::HardwareAccessType::Global),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");

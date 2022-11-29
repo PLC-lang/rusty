@@ -1,7 +1,7 @@
 use crate::{
-    ast::{CompilationUnit, NewLines, Operator, TypeNature},
-    index::{visitor::visit, Index},
-    lexer::IdProvider,
+    ast::{Operator, TypeNature},
+    index::{symbol::SymbolLocation, Index},
+    test_utils::tests::index,
     typesystem::{
         self, get_equals_function_name_for, get_signed_type, Dimension, BOOL_TYPE, BYTE_TYPE,
         CHAR_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
@@ -24,7 +24,7 @@ macro_rules! assert_signed_type {
 #[test]
 pub fn signed_types_tests() {
     // Given an initialized index
-    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
+    let index = get_builtin_index();
     assert_signed_type!(SINT_TYPE, BYTE_TYPE, index);
     assert_signed_type!(SINT_TYPE, USINT_TYPE, index);
     assert_signed_type!(INT_TYPE, WORD_TYPE, index);
@@ -51,10 +51,6 @@ pub fn signed_types_tests() {
             &index
         )
     );
-}
-
-fn get_empty_compilation_unit() -> CompilationUnit {
-    CompilationUnit::new("test_file", NewLines::build(""))
 }
 
 #[test]
@@ -88,7 +84,7 @@ pub fn equal_method_function_names() {
 #[test]
 fn get_bigger_size_integers_test() {
     // Given an initialized index
-    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
+    let index = get_builtin_index();
     //Given integer types
     let sint_type = index.get_type_or_panic(SINT_TYPE);
     let int_type = index.get_type_or_panic(INT_TYPE);
@@ -127,10 +123,15 @@ fn get_bigger_size_integers_test() {
     );
 }
 
+fn get_builtin_index() -> Index {
+    let (_, index) = index("");
+    index
+}
+
 #[test]
 fn get_bigger_size_integers_mix_test() {
     // Given an initialized index
-    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
+    let index = get_builtin_index();
     //Given integer types
     let sint_type = index.get_type_or_panic(SINT_TYPE);
     let int_type = index.get_type_or_panic(INT_TYPE);
@@ -184,7 +185,7 @@ fn get_bigger_size_integers_mix_test() {
 #[test]
 fn get_bigger_size_real_test() {
     // Given an initialized index
-    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
+    let index = get_builtin_index();
     //Given two float numbers (REAL/LREAL)
     let real_type = index.get_type_or_panic(REAL_TYPE);
     let lreal_type = index.get_type_or_panic(LREAL_TYPE);
@@ -198,7 +199,7 @@ fn get_bigger_size_real_test() {
 #[test]
 fn get_bigger_size_numeric_test() {
     // Given an initialized index
-    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
+    let index = get_builtin_index();
     //Given a float and an int
     //integer types
     let int_type = index.get_type_or_panic(INT_TYPE);
@@ -228,7 +229,7 @@ fn get_bigger_size_numeric_test() {
 #[test]
 fn get_bigger_size_string_test() {
     // Given an initialized index
-    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
+    let index = get_builtin_index();
     //Given two STRING
     let string_1024 = typesystem::DataType {
         name: "STRING_1024".into(),
@@ -239,6 +240,7 @@ fn get_bigger_size_string_test() {
         },
 
         nature: TypeNature::String,
+        location: SymbolLocation::internal(),
     };
     let string_30 = typesystem::DataType {
         name: "STRING_30".into(),
@@ -248,6 +250,7 @@ fn get_bigger_size_string_test() {
             encoding: typesystem::StringEncoding::Utf8,
         },
         nature: TypeNature::String,
+        location: SymbolLocation::internal(),
     };
     //The string with the bigger length is the bigger string
     assert_eq!(
@@ -265,7 +268,7 @@ fn get_bigger_size_string_test() {
 #[test]
 fn get_bigger_size_array_test_returns_first() {
     // Given an initialized index
-    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
+    let index = get_builtin_index();
     //Given two ARRAY of the same type and dimensions
     let array_1024 = typesystem::DataType {
         name: "ARRAY_1024".into(),
@@ -279,6 +282,7 @@ fn get_bigger_size_array_test_returns_first() {
             }],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
     let array_30 = typesystem::DataType {
         name: "ARRAY_30".into(),
@@ -292,6 +296,7 @@ fn get_bigger_size_array_test_returns_first() {
             }],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
     //The array with the most elements is bigger
     assert_eq!(
@@ -307,7 +312,7 @@ fn get_bigger_size_array_test_returns_first() {
 #[test]
 fn get_bigger_size_mixed_test_no_() {
     // Given an initialized index
-    let index = visit(&get_empty_compilation_unit(), IdProvider::default());
+    let index = get_builtin_index();
     //Int
     let int_type = index.get_type_or_panic(INT_TYPE);
     //String
@@ -319,6 +324,7 @@ fn get_bigger_size_mixed_test_no_() {
             encoding: typesystem::StringEncoding::Utf8,
         },
         nature: TypeNature::String,
+        location: SymbolLocation::internal(),
     };
     let wstring_1024 = typesystem::DataType {
         name: "WSTRING_1024".into(),
@@ -328,6 +334,7 @@ fn get_bigger_size_mixed_test_no_() {
             encoding: typesystem::StringEncoding::Utf16,
         },
         nature: TypeNature::String,
+        location: SymbolLocation::internal(),
     };
     //Array of string
     let array_string_30 = typesystem::DataType {
@@ -342,6 +349,7 @@ fn get_bigger_size_mixed_test_no_() {
             }],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
     //Array of int
     let array_30 = typesystem::DataType {
@@ -356,6 +364,7 @@ fn get_bigger_size_mixed_test_no_() {
             }],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
     //2-dim array of int
     let array_30_30 = typesystem::DataType {
@@ -376,6 +385,7 @@ fn get_bigger_size_mixed_test_no_() {
             ],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
 
     //Given two incompatible types
@@ -631,6 +641,7 @@ fn array_size_single_dim_tests() {
             }],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
     //the size of the array is 20*size(int)
     assert_eq!(
@@ -661,6 +672,7 @@ fn array_size_multi_dim_tests() {
             ],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
     //the size of the array is 20*size(int)
     assert_eq!(
@@ -685,6 +697,7 @@ fn array_size_nested_tests() {
             }],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
     index.register_type(array_20);
     let nested_array = typesystem::DataType {
@@ -699,6 +712,7 @@ fn array_size_nested_tests() {
             }],
         },
         nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
     };
 
     //the size of the array is 20*size(int)

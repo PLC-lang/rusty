@@ -211,6 +211,7 @@ fn parse_pou(
                     &name,
                     &name,
                     !generics.is_empty(),
+                    name_location.clone(),
                 ));
             }
             let mut pous = vec![Pou {
@@ -407,6 +408,7 @@ fn parse_method(
             &call_name,
             &call_name,
             !generics.is_empty(),
+            name_location.clone(),
         );
 
         // parse_implementation() will default-initialize the fields it
@@ -475,6 +477,7 @@ fn parse_implementation(
     call_name: &str,
     type_name: &str,
     generic: bool,
+    name_location: SourceRange,
 ) -> Implementation {
     let start = lexer.range().start;
     let statements = parse_body_standalone(lexer);
@@ -487,6 +490,7 @@ fn parse_implementation(
         location: lexer
             .source_range_factory
             .create_range(start..lexer.range().end),
+        name_location,
         overriding: false,
         generic,
         access: None,
@@ -509,9 +513,10 @@ fn parse_action(
     parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
         let name_or_container = lexer.slice_and_advance();
 
-        let (container, name) = if let Some(container) = container {
-            (container.into(), name_or_container)
+        let (container, name, name_location) = if let Some(container) = container {
+            (container.into(), name_or_container, lexer.last_location())
         } else {
+            let loc = lexer.last_location();
             expect_token!(lexer, KeywordDot, None);
 
             lexer.advance();
@@ -519,7 +524,7 @@ fn parse_action(
             expect_token!(lexer, Identifier, None);
 
             let name = lexer.slice_and_advance();
-            (name_or_container, name)
+            (name_or_container, name, loc.span(&lexer.last_location()))
         };
         let call_name = format!("{}.{}", &container, &name);
 
@@ -530,6 +535,7 @@ fn parse_action(
             &call_name,
             &container,
             false,
+            name_location,
         );
         //lets see if we ended on the right END_ keyword
         if closing_tokens.contains(&lexer.last_token) && lexer.last_token != KeywordEndAction {
@@ -550,8 +556,8 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
     parse_any_in_region(lexer, vec![KeywordEndType], |lexer| {
         let mut declarations = vec![];
         while !lexer.closes_open_region(&lexer.token) {
-            let start = lexer.location().get_start();
             let name = lexer.slice_and_advance();
+            let name_location = lexer.last_location();
             lexer.consume_or_report(KeywordColon);
 
             let result = parse_full_data_type_definition(lexer, Some(name));
@@ -559,11 +565,10 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
             if let Some((DataTypeDeclaration::DataTypeDefinition { data_type, .. }, initializer)) =
                 result
             {
-                let end = lexer.last_range.end;
                 declarations.push(UserTypeDeclaration {
                     data_type,
                     initializer,
-                    location: (start..end).into(),
+                    location: name_location,
                     scope: lexer.scope.clone(),
                 });
             }
@@ -643,7 +648,7 @@ fn parse_data_type_definition(
         //Report wrong keyword
         lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
             message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
-            range: lexer.last_location(),
+            range: vec![lexer.last_location()],
         });
         if let Err(diag) = lexer.expect(KeywordTo) {
             lexer.accept_diagnostic(diag);
@@ -781,13 +786,13 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstStatement
             {
                 lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
                     message: "Mismatched types of parentheses around string size expression".into(),
-                    range: error_range,
+                    range: vec![error_range],
                 });
             } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
                 lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
                     message: "Unusual type of parentheses around string size expression, consider using square parentheses '[]'"
                         .into(),
-                    range: error_range,
+                    range: vec![error_range],
                 });
             }
 
@@ -802,23 +807,28 @@ fn parse_string_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<AstStatement>)> {
+    let text = lexer.slice().to_string();
     let start = lexer.location().get_start();
     let is_wide = lexer.token == KeywordWideString;
     lexer.advance();
 
     let size = parse_string_size_expression(lexer);
     let end = lexer.last_range.end;
-
-    Some((
-        DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::StringType {
-                name,
-                is_wide,
-                size,
-            },
-            location: (start..end).into(),
-            scope: lexer.scope.clone(),
+    let location: SourceRange = (start..end).into();
+    size.map(|size| DataTypeDeclaration::DataTypeDefinition {
+        data_type: DataType::StringType {
+            name,
+            is_wide,
+            size: Some(size),
         },
+        location: location.clone(),
+        scope: lexer.scope.clone(),
+    })
+    .or(Some(DataTypeDeclaration::DataTypeReference {
+        referenced_type: text,
+        location,
+    }))
+    .zip(Some(
         lexer
             .allow(&KeywordAssignment)
             .then(|| parse_expression(lexer)),
@@ -1000,9 +1010,23 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
 
     let access = parse_access_modifier(lexer);
 
-    let variables = parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
+    let mut variables = parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
         parse_variable_list(lexer)
     });
+
+    if constant {
+        // sneak in the DefaultValue-Statements if no initializers were defined
+        variables
+            .iter_mut()
+            .filter(|it| it.initializer.is_none())
+            .for_each(|it| {
+                it.initializer = Some(AstStatement::DefaultValue {
+                    location: it.location.clone(),
+                    id: lexer.next_id(),
+                });
+            });
+    }
+
     VariableBlock {
         access,
         constant,
@@ -1048,41 +1072,14 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
 
     //See if there's an AT keyword
     let address = if lexer.allow(&KeywordAt) {
-        let start_location = lexer.last_range.start;
         //Look for a hardware address
         if let HardwareAccess((direction, access_type)) = lexer.token {
-            lexer.advance();
-            //Folowed by an integer
-            if access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
-                let mut address = vec![];
-                if lexer.token == LiteralInteger {
-                    loop {
-                        let int = expressions_parser::parse_strict_literal_integer(lexer);
-                        match int {
-                            Ok(statement) => address.push(statement),
-                            Err(err) => {
-                                lexer.accept_diagnostic(err);
-                                break;
-                            }
-                        }
-                        if !lexer.allow(&KeywordDot) {
-                            break;
-                        }
-                    }
+            match parse_hardware_access(lexer, direction, access_type) {
+                Ok(it) => Some(it),
+                Err(err) => {
+                    lexer.accept_diagnostic(err);
+                    None
                 }
-                Some(AstStatement::HardwareAccess {
-                    access: access_type,
-                    direction,
-                    address,
-                    location: (start_location..lexer.last_range.end).into(),
-                    id: lexer.next_id(),
-                })
-            } else {
-                lexer.accept_diagnostic(Diagnostic::missing_token(
-                    "LiteralInteger",
-                    lexer.location(),
-                ));
-                None
             }
         } else {
             lexer.accept_diagnostic(Diagnostic::missing_token(
@@ -1117,4 +1114,38 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         }
     }
     variables
+}
+
+fn parse_hardware_access(
+    lexer: &mut ParseSession,
+    hardware_access_type: HardwareAccessType,
+    access_type: DirectAccessType,
+) -> Result<AstStatement, Diagnostic> {
+    let start_location = lexer.last_range.start;
+    lexer.advance();
+    //Folowed by an integer
+    if access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
+        let mut address = vec![];
+        if lexer.token == LiteralInteger {
+            loop {
+                let int = expressions_parser::parse_strict_literal_integer(lexer)?;
+                address.push(int);
+                if !lexer.allow(&KeywordDot) {
+                    break;
+                }
+            }
+        }
+        Ok(AstStatement::HardwareAccess {
+            access: access_type,
+            direction: hardware_access_type,
+            address,
+            location: (start_location..lexer.last_range.end).into(),
+            id: lexer.next_id(),
+        })
+    } else {
+        Err(Diagnostic::missing_token(
+            "LiteralInteger",
+            lexer.location(),
+        ))
+    }
 }

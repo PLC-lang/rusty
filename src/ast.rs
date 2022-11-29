@@ -9,7 +9,7 @@ use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
     ops::Range,
-    unimplemented,
+    unimplemented, vec,
 };
 mod pre_processor;
 
@@ -49,6 +49,7 @@ pub enum HardwareAccessType {
     Input,
     Output,
     Memory,
+    Global,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -216,6 +217,7 @@ pub struct Implementation {
     pub pou_type: PouType,
     pub statements: Vec<AstStatement>,
     pub location: SourceRange,
+    pub name_location: SourceRange,
     pub overriding: bool,
     pub generic: bool,
     pub access: Option<AccessModifier>,
@@ -260,7 +262,7 @@ impl PouType {
  * A datastructure that stores the location of newline characters of a string.
  * It also offers some useful methods to determine the line-number of an offset-location.
  */
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct NewLines {
     line_breaks: Vec<usize>,
 }
@@ -269,20 +271,38 @@ impl NewLines {
     pub fn build(str: &str) -> NewLines {
         let mut line_breaks = Vec::new();
         let mut total_offset: usize = 0;
-        for l in str.lines() {
-            total_offset += l.len() + 1;
-            line_breaks.push(total_offset);
+        if !str.is_empty() {
+            // Instead of using ´lines()´ we split at \n to preserve the offsets if a \r exists
+            for l in str.split('\n') {
+                total_offset += l.len() + 1;
+                line_breaks.push(total_offset);
+            }
         }
         NewLines { line_breaks }
     }
 
-    /**
-     * returns the 0 based line-nr of the given offset-location
-     */
+    ///
+    /// returns the 0 based line-nr of the given offset-location
+    ///
     pub fn get_line_nr(&self, offset: usize) -> usize {
         match self.line_breaks.binary_search(&offset) {
-            Ok(line) => line,
+            //In case we hit an exact match, we just found the first character of a new line, we must add one to the result
+            Ok(line) => line + 1,
             Err(line) => line,
+        }
+    }
+
+    ///
+    /// returns the 0 based column of the given offset-location
+    ///
+    pub fn get_column(&self, line: usize, offset: usize) -> usize {
+        if line > 0 {
+            self.line_breaks
+                .get(line - 1)
+                .map(|l| offset - *l)
+                .unwrap_or(0)
+        } else {
+            offset
         }
     }
 }
@@ -507,6 +527,12 @@ impl SourceRange {
     pub fn get_file_name(&self) -> Option<&'static str> {
         self.file
     }
+
+    /// returns true if this SourceRange points to an undefined location.
+    /// see `SourceRange::undefined()`
+    pub fn is_undefined(&self) -> bool {
+        self.range == (0..0) && self.file.is_none()
+    }
 }
 
 impl From<std::ops::Range<usize>> for SourceRange {
@@ -707,6 +733,11 @@ impl Debug for ConditionalBlock {
 #[derive(Clone, PartialEq)]
 pub enum AstStatement {
     EmptyStatement {
+        location: SourceRange,
+        id: AstId,
+    },
+    // a placeholder that indicates a default value of a datatype
+    DefaultValue {
         location: SourceRange,
         id: AstId,
     },
@@ -920,6 +951,7 @@ impl Debug for AstStatement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
+            AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
             AstStatement::LiteralNull { .. } => f.debug_struct("LiteralNull").finish(),
             AstStatement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
@@ -1169,6 +1201,7 @@ impl AstStatement {
     pub fn get_location(&self) -> SourceRange {
         match self {
             AstStatement::EmptyStatement { location, .. } => location.clone(),
+            AstStatement::DefaultValue { location, .. } => location.clone(),
             AstStatement::LiteralNull { location, .. } => location.clone(),
             AstStatement::LiteralInteger { location, .. } => location.clone(),
             AstStatement::LiteralDate { location, .. } => location.clone(),
@@ -1247,6 +1280,7 @@ impl AstStatement {
     pub fn get_id(&self) -> AstId {
         match self {
             AstStatement::EmptyStatement { id, .. } => *id,
+            AstStatement::DefaultValue { id, .. } => *id,
             AstStatement::LiteralNull { id, .. } => *id,
             AstStatement::LiteralInteger { id, .. } => *id,
             AstStatement::LiteralDate { id, .. } => *id,
@@ -1409,6 +1443,27 @@ pub fn create_call_to(
     }
 }
 
+pub fn create_call_to_with_ids(
+    function_name: String,
+    parameters: Vec<AstStatement>,
+    location: &SourceRange,
+    mut id_provider: IdProvider,
+) -> AstStatement {
+    AstStatement::CallStatement {
+        operator: Box::new(AstStatement::Reference {
+            name: function_name,
+            location: location.clone(),
+            id: id_provider.next_id(),
+        }),
+        parameters: Box::new(Some(AstStatement::ExpressionList {
+            expressions: parameters,
+            id: id_provider.next_id(),
+        })),
+        location: location.clone(),
+        id: id_provider.next_id(),
+    }
+}
+
 /// helper function that creates an or-expression
 pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
     AstStatement::BinaryExpression {
@@ -1503,4 +1558,19 @@ impl Operator {
                 | Operator::GreaterOrEqual
         )
     }
+}
+
+pub fn create_call_to_check_function_ast(
+    check_function_name: String,
+    parameter: AstStatement,
+    sub_range: Range<AstStatement>,
+    location: &SourceRange,
+    id_provider: IdProvider,
+) -> AstStatement {
+    create_call_to_with_ids(
+        check_function_name,
+        vec![parameter, sub_range.start, sub_range.end],
+        location,
+        id_provider,
+    )
 }
