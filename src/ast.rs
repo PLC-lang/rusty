@@ -161,6 +161,21 @@ impl TypeNature {
             }
         }
     }
+
+    pub fn is_numerical(&self) -> bool {
+        matches!(
+            self,
+            TypeNature::Num { .. }
+                | TypeNature::Real { .. }
+                | TypeNature::Int { .. }
+                | TypeNature::Unsigned { .. }
+                | TypeNature::Signed { .. }
+        )
+    }
+
+    pub fn is_real(&self) -> bool {
+        matches!(self, TypeNature::Real { .. })
+    }
 }
 
 impl DirectAccessType {

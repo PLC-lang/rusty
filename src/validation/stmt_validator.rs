@@ -276,7 +276,10 @@ impl StatementValidator {
                     statement.get_location(),
                 ))
             } else if let Some(nature) = context.ast_annotation.get_generic_nature(statement) {
-                if !statement_type.has_nature(*nature, context.index) {
+                if !statement_type.has_nature(*nature, context.index)
+				// INT parameter for REAL is allowed
+                    & !(statement_type.is_real() & nature.is_numerical())
+                {
                     self.diagnostics.push(Diagnostic::invalid_type_nature(
                         format!("{:?}", nature).as_str(),
                         format!("{:?}", statement_type.nature).as_str(),

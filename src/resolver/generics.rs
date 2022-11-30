@@ -408,7 +408,11 @@ impl<'i> TypeAnnotator<'i> {
                                 if self
                                     .index
                                     .find_effective_type_by_name(current.get_name())
-                                    .map(|t| t.has_nature(*nature, self.index))
+                                    .map(|t| {
+                                        t.has_nature(*nature, self.index)
+										// INT parameter for REAL is allowed
+                                            | (nature.is_real() & t.is_numerical())
+                                    })
                                     .unwrap_or_default()
                                 {
                                     // if we got the right nature we can search for the bigger type
