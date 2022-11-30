@@ -167,7 +167,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //generate a function that takes a instance-struct parameter
         let pou_name = implementation.get_call_name();
 
-        let parameters = self.create_parameters_for_implementation(implementation, debug)?;
+        let parameters = self.create_parameters_for_implementation(implementation)?;
 
         let return_type = global_index.find_return_type(implementation.get_type_name());
 
@@ -197,7 +197,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .collect::<Vec<&DataType>>();
 
             debug.register_function(
-                &curr_f,
+                self.index,
+                curr_f,
                 pou,
                 return_type,
                 parameter_types.as_slice(),
@@ -216,22 +217,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn create_parameters_for_implementation(
         &self,
         implementation: &ImplementationIndexEntry,
-        debug: &mut DebugBuilderEnum<'ink>,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
-        //Register the return and local variables for debugging
-        for variable in self
-            .index
-            .get_container_members(implementation.get_call_name())
-            .iter()
-            .filter(|it| it.is_local() || it.is_temp() || it.is_return())
-        {
-            let var_type = self
-                .index
-                .get_type_information_or_void(variable.get_type_name());
-            let alignment = var_type.get_alignment(self.index).bits();
-            debug.register_local_variable(&variable, alignment)?;
-        }
-
         if implementation.implementation_type != ImplementationType::Function {
             let mut parameters = vec![];
             if implementation.get_implementation_type() == &ImplementationType::Method {
@@ -254,20 +240,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .map(|it| it.into_struct_type())?;
             parameters.push(instance_struct_type.ptr_type(AddressSpace::Generic).into());
 
-            //Register the struct parameter of the POU
-            if let Some(pou) = self.index.find_pou(implementation.get_type_name()) {
-                debug.register_struct_parameter(pou)?;
-            }
-
             Ok(parameters)
         } else {
             let declared_params = self
                 .index
                 .get_declared_parameters(implementation.get_call_name());
-            //Register all parameters for debugging
-            for (index, variable) in declared_params.iter().enumerate() {
-                debug.register_parameter(variable, index)?;
-            }
 
             //find the function's parameters
             declared_params
@@ -329,6 +306,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 class_name,
                 current_function,
                 &class_members,
+                &implementation.location,
             )?;
             param_index += 1;
         }
@@ -343,34 +321,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &pou_members,
             )?;
         } else {
-            //Generate POU struct declaration for debug
-            if let Some(((debug_context, value), block)) = self
-                .debug_context
-                .as_ref()
-                .zip(current_function.get_first_param())
-                .zip(self.llvm.builder.get_insert_block())
-            {
-                let line = debug_context
-                    .new_lines
-                    .get_line_nr(implementation.location.get_start());
-                let column = debug_context
-                    .new_lines
-                    .get_column(line, implementation.location.get_start());
-                debug_context.debug.add_variable_declaration(
-                    &implementation.type_name,
-                    value.into_pointer_value(),
-                    current_function,
-                    block,
-                    line,
-                    column,
-                )?;
-            }
             self.generate_local_struct_variable_accessors(
                 param_index,
                 &mut local_index,
                 &implementation.type_name,
                 current_function,
                 &pou_members,
+                &implementation.location
             )?;
         }
 
@@ -538,7 +495,35 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         type_name: &str,
         current_function: FunctionValue<'ink>,
         members: &[&VariableIndexEntry],
+        location: &SourceRange,
     ) -> Result<(), Diagnostic> {
+        let param_pointer = current_function
+            .get_nth_param(arg_index)
+            .map(BasicValueEnum::into_pointer_value)
+            .ok_or_else(|| {
+                Diagnostic::missing_function(location.clone())
+            })?;
+            //Generate POU struct declaration for debug
+            if let Some((debug_context, block)) = self
+                .debug_context
+                .as_ref()
+                .zip(self.llvm.builder.get_insert_block())
+            {
+                let line = debug_context
+                    .new_lines
+                    .get_line_nr(location.get_start());
+                let column = debug_context
+                    .new_lines
+                    .get_column(line, location.get_start());
+                debug_context.debug.add_variable_declaration(
+                    &type_name,
+                    param_pointer,
+                    current_function,
+                    block,
+                    line,
+                    column,
+                )?;
+            }
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         let mut var_count = 0;
@@ -552,17 +537,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.llvm.create_local_variable(parameter_name, &temp_type),
                 )
             } else {
-                let ptr_value = current_function
-                    .get_nth_param(arg_index)
-                    .map(BasicValueEnum::into_pointer_value)
-                    .ok_or_else(|| {
-                        Diagnostic::missing_function(m.source_location.source_range.clone())
-                    })?;
 
                 let ptr = self
                     .llvm
                     .builder
-                    .build_struct_gep(ptr_value, var_count as u32, parameter_name)
+                    .build_struct_gep(param_pointer, var_count as u32, parameter_name)
                     .expect(INTERNAL_LLVM_ERROR);
 
                 var_count += 1;
