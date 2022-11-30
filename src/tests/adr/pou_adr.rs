@@ -372,3 +372,71 @@ fn calling_a_function() {
     }
     "###);
 }
+
+/// Returning complex/aggregate types (string, array, struct) from a function cost a lot of compile-performance. complex types
+/// can be returned much faster if the caller allocates the result on its own stack and passes a reference to it. That reference
+/// needs to be treated exactly like a VAR_IN_OUT member.
+/// ```
+/// result := foo(a, b, c);
+/// ```
+/// where result is a complex/aggregate type is internally handled like
+/// ```
+/// foo(&result, a, b, c);
+/// ```
+#[test]
+fn return_a_complex_type_from_function() {
+    let returning_string = r#"
+        FUNCTION foo : STRING
+            foo := 'hello world!';
+        END_FUNCTION
+
+        PROGRAM prg
+            VAR
+                s : STRING; 
+            END_VAR
+            s := foo(); 
+        END_FUNCTION
+    "#;
+    insta::assert_snapshot!(codegen(returning_string), @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %prg = type { [81 x i8] }
+
+    @prg_instance = global %prg zeroinitializer
+    @utf08_literal_0 = unnamed_addr constant [13 x i8] c"hello world!\00"
+
+    define void @foo([81 x i8]* %0) {
+    entry:
+      %foo = alloca [81 x i8]*, align 8
+      store [81 x i8]* %0, [81 x i8]** %foo, align 8
+      %deref = load [81 x i8]*, [81 x i8]** %foo, align 8
+      %1 = bitcast [81 x i8]* %deref to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      %deref1 = load [81 x i8]*, [81 x i8]** %foo, align 8
+      %2 = bitcast [81 x i8]* %deref1 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([13 x i8], [13 x i8]* @utf08_literal_0, i32 0, i32 0), i32 13, i1 false)
+      ret void
+    }
+
+    define void @prg(%prg* %0) {
+    entry:
+      %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+      %1 = alloca [81 x i8], align 1
+      call void @foo([81 x i8]* %1)
+      %2 = bitcast [81 x i8]* %s to i8*
+      %3 = bitcast [81 x i8]* %1 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 %3, i32 80, i1 false)
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #1
+
+    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #1 = { argmemonly nofree nounwind willreturn }
+    "###);
+}
