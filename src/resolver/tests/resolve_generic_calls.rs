@@ -5,8 +5,8 @@ use crate::{
     resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
-        DataTypeInformation, BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE,
-        SINT_TYPE, STRING_TYPE,
+        DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE,
+        STRING_TYPE,
     },
 };
 
@@ -19,8 +19,8 @@ fn resolved_generic_call_added_to_index() {
         VAR_INPUT   x : G;  END_VAR
         END_FUNCTION
 
-        FUNCTION myFunc__BYTE : BYTE
-        VAR_INPUT   x : BYTE; END_VAR
+        FUNCTION myFunc__SINT : SINT
+        VAR_INPUT   x : SINT; END_VAR
         END_FUNCTION
 
         PROGRAM PRG
@@ -30,7 +30,7 @@ fn resolved_generic_call_added_to_index() {
             myFunc(x := a);
             myFunc(6);
             myFunc(1.0);
-            myFunc(BYTE#1);
+            myFunc(SINT#1);
         END_PROGRAM",
         id_provider.clone(),
     );
@@ -213,7 +213,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
             END_VAR
             myFunc(x := a, y := b, z := c);
             myFunc(a,b,c);
-            myFunc(1.0, 2, BYTE#2);
+            myFunc(1.0, 2, SINT#2);
         END_PROGRAM",
         id_provider.clone(),
     );
@@ -308,7 +308,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
     {
         //The call name should nave the correct type
         assert_eq!(
-            Some("myFunc__REAL__BYTE"),
+            Some("myFunc__REAL__SINT"),
             annotations.get_call_name(operator)
         );
         //parameters should have the correct type
@@ -316,7 +316,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
             if let [x, y, z] = ast::flatten_expression_list(parameters)[..] {
                 assert_type_and_hint!(&annotations, &index, x, REAL_TYPE, Some(REAL_TYPE));
                 assert_type_and_hint!(&annotations, &index, y, DINT_TYPE, Some(REAL_TYPE));
-                assert_type_and_hint!(&annotations, &index, z, BYTE_TYPE, Some(BYTE_TYPE));
+                assert_type_and_hint!(&annotations, &index, z, SINT_TYPE, Some(SINT_TYPE));
             } else {
                 unreachable!("Wrong parameters {:?}", parameters)
             }
