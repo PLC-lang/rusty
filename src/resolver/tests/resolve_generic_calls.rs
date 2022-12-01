@@ -820,7 +820,13 @@ fn string_ref_as_generic_resolved() {
     if let AstStatement::CallStatement { parameters, .. } = call_statement {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
 
-        assert_type_and_hint!(&annotations, &index, parameters[0], "STRING", None);
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            "STRING",
+            Some("STRING")
+        );
     } else {
         unreachable!("Should be a call statement")
     }
@@ -1004,7 +1010,13 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
             );
 
             let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-            assert_type_and_hint!(&annotations, &index, parameters[0], "__STRING_3", None);
+            assert_type_and_hint!(
+                &annotations,
+                &index,
+                parameters[0],
+                "__STRING_3",
+                Some("STRING")
+            );
         } else {
             unreachable!("Not a call statement.")
         }
