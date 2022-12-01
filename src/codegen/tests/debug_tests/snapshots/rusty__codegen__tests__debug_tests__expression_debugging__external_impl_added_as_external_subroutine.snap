@@ -29,12 +29,12 @@ declare !dbg !16 void @myFb(%myFb*)
 !7 = !DICompositeType(tag: DW_TAG_structure_type, name: "myFb", scope: !2, file: !2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myFb")
 !8 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !4, globals: !9, splitDebugInlining: false)
 !9 = !{!0, !5}
-!10 = !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 1, type: !11, scopeLine: 1, flags: DIFlagPublic, spFlags: 0, retainedNodes: !13)
+!10 = !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 2, type: !11, scopeLine: 3, flags: DIFlagPublic, spFlags: 0, retainedNodes: !13)
 !11 = !DISubroutineType(flags: DIFlagPublic, types: !12)
 !12 = !{null}
 !13 = <temporary!> !{}
-!14 = !DISubprogram(name: "myPrg", linkageName: "myPrg", scope: !2, file: !2, line: 3, type: !11, scopeLine: 3, flags: DIFlagPublic, spFlags: 0, retainedNodes: !15)
+!14 = !DISubprogram(name: "myPrg", linkageName: "myPrg", scope: !2, file: !2, line: 4, type: !11, scopeLine: 5, flags: DIFlagPublic, spFlags: 0, retainedNodes: !15)
 !15 = <temporary!> !{}
-!16 = !DISubprogram(name: "myFb", linkageName: "myFb", scope: !2, file: !2, line: 5, type: !11, scopeLine: 5, flags: DIFlagPublic, spFlags: 0, retainedNodes: !17)
+!16 = !DISubprogram(name: "myFb", linkageName: "myFb", scope: !2, file: !2, line: 6, type: !11, scopeLine: 7, flags: DIFlagPublic, spFlags: 0, retainedNodes: !17)
 !17 = <temporary!> !{}
 

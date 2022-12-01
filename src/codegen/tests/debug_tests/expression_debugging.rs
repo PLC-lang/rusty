@@ -58,14 +58,39 @@ fn var_and_vartemp_variables_in_pous_added_as_local() {
 
 #[test]
 fn var_in_out_inout_in_function_added_as_params() {
-    todo!("Variables missing");
-
+    // Let a function with an assignment 
+    let (result,_) = codegen_with_debug("
+        FUNCTION myFunc : DINT
+        VAR_IN_OUT
+            x : INT;
+        END_VAR
+            myFunc := x + 2;
+        END_FUNCTION
+        ");
+    //The asignment should recieve a debug info entry
+    assert_snapshot!(result);
 }
 
 #[test]
 fn non_function_pous_have_struct_as_param() {
-    todo!("Variables missing");
+    // Let a function with an assignment 
+    let (result,_) = codegen_with_debug("
+        PROGRAM myProg
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+            x := x + 2;
+        END_PROGRAM
 
+        FUNCTION_BLOCK fb
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+            x := x + 2;
+        END_FUNCTION_BLOCK
+        ");
+    //The asignment should recieve a debug info entry
+    assert_snapshot!(result);
 }
 
 #[test]
