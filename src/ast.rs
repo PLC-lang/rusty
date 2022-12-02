@@ -163,18 +163,11 @@ impl TypeNature {
     }
 
     pub fn is_numerical(&self) -> bool {
-        matches!(
-            self,
-            TypeNature::Num { .. }
-                | TypeNature::Real { .. }
-                | TypeNature::Int { .. }
-                | TypeNature::Unsigned { .. }
-                | TypeNature::Signed { .. }
-        )
+        self.derives(TypeNature::Num)
     }
 
     pub fn is_real(&self) -> bool {
-        matches!(self, TypeNature::Real { .. })
+        self.derives(TypeNature::Real)
     }
 }
 
