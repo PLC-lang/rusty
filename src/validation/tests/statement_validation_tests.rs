@@ -783,3 +783,39 @@ fn program_call_parameter_validation() {
         ]
     );
 }
+
+#[test]
+fn address_of_operations() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        PROGRAM main
+            VAR
+                a: INT;
+                b: ARRAY[0..5] OF INT;
+            END_VAR
+
+            // Should work
+            &(a);
+            &b[1];
+
+            // Should not work
+            &&a;
+            &100;
+            &(a+3);
+        END_PROGRAM
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 3);
+
+    let ranges = vec![(243..246), (260..264), (278..283)];
+    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::invalid_operation(
+                "Invalid address-of operation",
+                ranges[idx].to_owned().into()
+            )
+        );
+    }
+}
