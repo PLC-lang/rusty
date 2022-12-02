@@ -808,7 +808,7 @@ fn address_of_operations() {
 
     assert_eq!(diagnostics.len(), 3);
 
-    let ranges = vec![(243..246), (260..264), (278..283)];
+    let ranges = vec![(230..233), (247..251), (265..270)];
     for (idx, diagnostic) in diagnostics.iter().enumerate() {
         assert_eq!(
             diagnostic,
