@@ -95,4 +95,3 @@ fn method_can_resolve_non_class_functions() {
     //Expecting it not to fail
     assert_eq!(res, 42);
 }
-
