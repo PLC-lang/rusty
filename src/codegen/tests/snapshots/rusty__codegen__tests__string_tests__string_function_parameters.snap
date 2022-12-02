@@ -13,9 +13,9 @@ source_filename = "main"
 
 define i16 @foo([81 x i8] %0) {
 entry:
+  %foo = alloca i16, align 2
   %s = alloca [81 x i8], align 1
   store [81 x i8] %0, [81 x i8]* %s, align 1
-  %foo = alloca i16, align 2
   store i16 0, i16* %foo, align 2
   %foo_ret = load i16, i16* %foo, align 2
   ret i16 %foo_ret

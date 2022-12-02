@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
-assertion_line: 206
 expression: result
 ---
 ; ModuleID = 'main'
@@ -8,9 +7,9 @@ source_filename = "main"
 
 define i16 @baz() {
 entry:
+  %baz = alloca i16, align 2
   %x = alloca i16, align 2
   %y = alloca i16, align 2
-  %baz = alloca i16, align 2
   store i16 0, i16* %x, align 2
   store i16 0, i16* %y, align 2
   store i16 0, i16* %baz, align 2

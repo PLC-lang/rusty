@@ -7,9 +7,9 @@ source_filename = "main"
 
 define i16 @smaller_than_ten(i8 %0) {
 entry:
+  %smaller_than_ten = alloca i16, align 2
   %n = alloca i8, align 1
   store i8 %0, i8* %n, align 1
-  %smaller_than_ten = alloca i16, align 2
   store i16 0, i16* %smaller_than_ten, align 2
   %load_n = load i8, i8* %n, align 1
   %1 = sext i8 %load_n to i32

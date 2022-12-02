@@ -743,15 +743,16 @@ fn string_returned_from_generic_wrapper_function_does_not_truncate() {
 #[test]
 fn string_returned_from_main_does_not_truncate() {
     let src = "
-        PROGRAM main : STRING[100]
+        FUNCTION main : STRING[100]
         VAR 
             param : STRING[100];
         END_VAR
             param := '     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.';
             main := param;
-        END_PROGRAM
+        END_FUNCTION
     ";
-    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
+    let mut res: [u8; 101] = [0; 101];
+    let _: u32 = compile_and_run(src, &mut res);
 
     assert_eq!(
         format!("{:?}",res), 

@@ -1014,3 +1014,63 @@ fn lreal_to_int_assignment() {
     );
     assert_eq!(1, res);
 }
+
+#[test]
+fn function_return_string_by_ref_via_inout() {
+    #[repr(C)]
+    struct MainType {
+        text: [u8; 81],
+    }
+
+    let function = r#"
+        FUNCTION read_string : VOID
+            VAR_IN_OUT
+                ret: STRING;
+            END_VAR
+            
+            ret := 'abc';
+        END_FUNCTION
+
+        PROGRAM main
+            VAR_INPUT
+                str: STRING;
+            END_VAR
+            read_string(ret => str);
+        END_PROGRAM
+
+    "#;
+
+    let mut main = MainType { text: [0; 81] };
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+
+    let t = str::from_utf8(&main.text[0..3]).unwrap();
+    assert_eq!(t, "abc");
+}
+
+#[test]
+fn function_return_string() {
+    #[repr(C)]
+    struct MainType {
+        text: [u8; 81],
+    }
+
+    let function = r#"
+        FUNCTION read_string : STRING
+            read_string := 'abc';
+        END_FUNCTION
+
+        PROGRAM main
+            VAR_INPUT
+                str: STRING;
+            END_VAR
+            str := read_string();
+        END_PROGRAM
+
+    "#;
+
+    let mut main = MainType { text: [0; 81] };
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+
+    let t = str::from_utf8(&main.text[0..3]).unwrap();
+    assert_eq!(t, "abc");
+}
