@@ -97,32 +97,18 @@ pub fn generate_global_constants_for_pou_members<'ink>(
             ExpressionCodeGenerator::new_context_free(llvm, index, annotations, llvm_index);
         for variable in variables {
             let name = index::get_initializer_name(variable.get_qualified_name());
-            let right_stmt = match variable.initial_value {
-                Some(..) => Some(
-                    index
-                        .get_const_expressions()
-                        .maybe_get_constant_statement(&variable.initial_value)
-                        .ok_or_else(|| {
-                            Diagnostic::cannot_generate_initializer(
-                                variable.get_qualified_name(),
-                                variable.source_location.source_range.clone(),
-                            )
-                        })?,
-                ),
-                None => None,
-            };
+            let right_stmt = index
+                .get_const_expressions()
+                .maybe_get_constant_statement(&variable.initial_value);
 
-            if let Some(stmt) = right_stmt {
-                if llvm_index.find_global_value(&name).is_none() {
-                    //Get either a global initial value for the constant (For arrays) and copy it,
-                    let value = if let Some(value) =
-                        llvm_index.find_associated_initial_value(variable.get_qualified_name())
-                    {
-                        value
-                    } else {
-                        exp_gen.generate_expression(stmt)?
-                    };
-                    let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
+            if right_stmt.is_some() && llvm_index.find_global_value(&name).is_none() {
+                let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
+                let value = if let Some(stmt) = right_stmt {
+                    Some(exp_gen.generate_expression(stmt)?)
+                } else {
+                    llvm_index.find_associated_initial_value(variable.get_qualified_name())
+                };
+                if let Some(value) = value {
                     let global_value = llvm
                         .create_global_variable(module, &name, variable_type)
                         .make_constant()
@@ -588,21 +574,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         ),
                     )?;
                 }
-                let right_stmt = match variable.initial_value {
-                    Some(..) => Some(
-                        self.index
-                            .get_const_expressions()
-                            .maybe_get_constant_statement(&variable.initial_value)
-                            .ok_or_else(|| {
-                                Diagnostic::cannot_generate_initializer(
-                                    variable.get_qualified_name(),
-                                    variable.source_location.source_range.clone(),
-                                )
-                            })?,
-                    ),
-                    None => None,
-                };
-
+                let right_stmt = self
+                    .index
+                    .get_const_expressions()
+                    .maybe_get_constant_statement(&variable.initial_value);
                 self.generate_variable_initializer(variable, left, right_stmt, &exp_gen)?;
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(

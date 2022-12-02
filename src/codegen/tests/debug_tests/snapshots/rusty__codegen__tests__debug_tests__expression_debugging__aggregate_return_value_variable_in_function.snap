@@ -1,0 +1,50 @@
+---
+source: src/codegen/tests/debug_tests/expression_debugging.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@utf08_literal_0 = unnamed_addr constant [6 x i8] c"hello\00"
+
+define [81 x i8] @myFunc() !dbg !3 {
+entry:
+  %myFunc = alloca [81 x i8], align 1, !dbg !6
+  call void @llvm.dbg.declare(metadata [81 x i8]* %myFunc, metadata !7, metadata !DIExpression()), !dbg !12
+  %0 = bitcast [81 x i8]* %myFunc to i8*, !dbg !6
+  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false), !dbg !6
+  %1 = bitcast [81 x i8]* %myFunc to i8*, !dbg !6
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !6
+  %myFunc_ret = load [81 x i8], [81 x i8]* %myFunc, align 1, !dbg !6
+  ret [81 x i8] %myFunc_ret, !dbg !6
+}
+
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #2
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+attributes #2 = { argmemonly nofree nounwind willreturn }
+
+!llvm.dbg.cu = !{!0}
+
+!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, splitDebugInlining: false)
+!1 = !DIFile(filename: "main", directory: "")
+!2 = !{}
+!3 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !1, file: !1, line: 2, type: !4, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !2)
+!4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
+!5 = !{null}
+!6 = !DILocation(line: 3, column: 12, scope: !3)
+!7 = !DILocalVariable(name: "myFunc", scope: !3, file: !1, line: 2, type: !8, align: 64)
+!8 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 80, align: 64, elements: !10)
+!9 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+!10 = !{!11}
+!11 = !DISubrange(count: 80, lowerBound: 0)
+!12 = !DILocation(line: 2, column: 17, scope: !3)
+

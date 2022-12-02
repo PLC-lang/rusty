@@ -187,6 +187,21 @@ fn return_statement_have_location() {
 }
 
 #[test]
+fn aggregate_return_value_variable_in_function() {
+    // Let a function with an addition and a reference
+    let (result, _) = codegen_with_debug(
+        "
+        FUNCTION myFunc : STRING
+            myFunc := 'hello';
+        END_FUNCTION
+        ",
+    );
+    // No line information should be added on the statements
+    assert_snapshot!(result);
+    
+}
+
+#[test]
 #[ignore]
 fn exit_statement_have_location() {
     todo!("Exits belong in loops")
