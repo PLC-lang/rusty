@@ -13,10 +13,10 @@ source_filename = "main"
 
 define i32 @myFunc() !dbg !15 {
 entry:
+  %myFunc = alloca i32, align 4, !dbg !18
   %a = alloca i32, align 4, !dbg !18
   %b = alloca i32, align 4, !dbg !18
   %c = alloca i32, align 4, !dbg !18
-  %myFunc = alloca i32, align 4, !dbg !18
   call void @llvm.dbg.declare(metadata i32* %a, metadata !19, metadata !DIExpression()), !dbg !20
   store i32 0, i32* %a, align 4, !dbg !18
   call void @llvm.dbg.declare(metadata i32* %b, metadata !21, metadata !DIExpression()), !dbg !22

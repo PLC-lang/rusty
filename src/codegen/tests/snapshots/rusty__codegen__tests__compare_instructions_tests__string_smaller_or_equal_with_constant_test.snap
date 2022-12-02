@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
-assertion_line: 126
 expression: result
 ---
 ; ModuleID = 'main'
@@ -10,11 +9,11 @@ source_filename = "main"
 
 define i8 @STRING_LESS([1025 x i8] %0, [1025 x i8] %1) {
 entry:
+  %STRING_LESS = alloca i8, align 1
   %op1 = alloca [1025 x i8], align 1
   store [1025 x i8] %0, [1025 x i8]* %op1, align 1
   %op2 = alloca [1025 x i8], align 1
   store [1025 x i8] %1, [1025 x i8]* %op2, align 1
-  %STRING_LESS = alloca i8, align 1
   store i8 0, i8* %STRING_LESS, align 1
   %STRING_LESS_ret = load i8, i8* %STRING_LESS, align 1
   ret i8 %STRING_LESS_ret
@@ -22,11 +21,11 @@ entry:
 
 define i8 @STRING_EQUAL([1025 x i8] %0, [1025 x i8] %1) {
 entry:
+  %STRING_EQUAL = alloca i8, align 1
   %op1 = alloca [1025 x i8], align 1
   store [1025 x i8] %0, [1025 x i8]* %op1, align 1
   %op2 = alloca [1025 x i8], align 1
   store [1025 x i8] %1, [1025 x i8]* %op2, align 1
-  %STRING_EQUAL = alloca i8, align 1
   store i8 0, i8* %STRING_EQUAL, align 1
   %STRING_EQUAL_ret = load i8, i8* %STRING_EQUAL, align 1
   ret i8 %STRING_EQUAL_ret
@@ -34,10 +33,10 @@ entry:
 
 define i16 @baz() {
 entry:
+  %baz = alloca i16, align 2
   %a = alloca [81 x i8], align 1
   %b = alloca [81 x i8], align 1
   %result = alloca i8, align 1
-  %baz = alloca i16, align 2
   %0 = bitcast [81 x i8]* %a to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
   %1 = bitcast [81 x i8]* %b to i8*

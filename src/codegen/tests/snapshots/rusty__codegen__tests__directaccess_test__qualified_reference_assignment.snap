@@ -11,8 +11,8 @@ source_filename = "main"
 
 define i16 @main() {
 entry:
-  %str = alloca %myStruct, align 8
   %main = alloca i16, align 2
+  %str = alloca %myStruct, align 8
   %0 = bitcast %myStruct* %str to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%myStruct, %myStruct* @__myStruct__init, i32 0, i32 0), i64 ptrtoint (%myStruct* getelementptr (%myStruct, %myStruct* null, i32 1) to i64), i1 false)
   store i16 0, i16* %main, align 2

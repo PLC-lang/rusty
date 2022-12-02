@@ -11,9 +11,9 @@ source_filename = "main"
 
 define float @foo__REAL(float %0) {
 entry:
+  %foo__REAL = alloca float, align 4
   %in1 = alloca float, align 4
   store float %0, float* %in1, align 4
-  %foo__REAL = alloca float, align 4
   store float 0.000000e+00, float* %foo__REAL, align 4
   %foo__REAL_ret = load float, float* %foo__REAL, align 4
   ret float %foo__REAL_ret

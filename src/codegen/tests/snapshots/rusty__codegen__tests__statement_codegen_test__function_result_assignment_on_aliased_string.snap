@@ -5,15 +5,15 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-declare [1025 x i8] @CONCAT([1025 x i8], [1025 x i8])
+declare void @CONCAT([1025 x i8]*, [1025 x i8], [1025 x i8])
 
 define i8 @LIST_ADD([1001 x i8] %0, [2 x i8] %1) {
 entry:
+  %LIST_ADD = alloca i8, align 1
   %INS = alloca [1001 x i8], align 1
   store [1001 x i8] %0, [1001 x i8]* %INS, align 1
   %sx = alloca [2 x i8], align 1
   store [2 x i8] %1, [2 x i8]* %sx, align 1
-  %LIST_ADD = alloca i8, align 1
   store i8 0, i8* %LIST_ADD, align 1
   %2 = alloca [1025 x i8], align 1
   %3 = bitcast [1025 x i8]* %2 to i8*
@@ -29,9 +29,8 @@ entry:
   %10 = bitcast [1001 x i8]* %INS to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %9, i8* align 1 %10, i32 1001, i1 false)
   %11 = load [1025 x i8], [1025 x i8]* %7, align 1
-  %call = call [1025 x i8] @CONCAT([1025 x i8] %6, [1025 x i8] %11)
   %12 = alloca [1025 x i8], align 1
-  store [1025 x i8] %call, [1025 x i8]* %12, align 1
+  call void @CONCAT([1025 x i8]* %12, [1025 x i8] %6, [1025 x i8] %11)
   %13 = bitcast [1001 x i8]* %INS to i8*
   %14 = bitcast [1025 x i8]* %12 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %13, i8* align 1 %14, i32 1000, i1 false)

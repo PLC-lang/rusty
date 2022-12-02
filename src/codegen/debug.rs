@@ -14,7 +14,7 @@ use inkwell::{
 
 use crate::{
     ast::{LinkageType, SourceRange},
-    datalayout::{Bytes, MemoryLocation},
+    datalayout::{Bytes, DataLayout, MemoryLocation},
     diagnostics::Diagnostic,
     index::{ImplementationType, Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
@@ -438,6 +438,7 @@ impl<'ink> DebugBuilder<'ink> {
         parameter_types: &[&DataType],
     ) -> Result<DISubroutineType, Diagnostic> {
         let return_type = return_type
+            .filter(|it| !it.is_aggregate_type())
             .and_then(|dt| self.types.get(dt.get_name()))
             .map(|it| it.to_owned())
             .map(Into::into);
@@ -497,15 +498,25 @@ impl<'ink> DebugBuilder<'ink> {
         func: FunctionValue<'ink>,
         index: &Index,
     ) -> Result<(), Diagnostic> {
+        let mut param_offset = 0;
         //Register the return and local variables for debugging
         for variable in index
             .get_container_members(pou.get_name())
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
-            let var_type = index.get_type_information_or_void(variable.get_type_name());
-            let alignment = var_type.get_alignment(index).bits();
-            self.register_local_variable(variable, alignment, func)?;
+            let var_type = index
+                .find_effective_type_by_name(variable.get_type_name())
+                .expect("Type should exist at this stage");
+            let alignment = var_type.get_type_information().get_alignment(index).bits();
+            //If the variable is an aggregate return type, register it as first parameter, and
+            //increase the param count
+            if variable.is_return() && var_type.is_aggregate_type() {
+                self.register_aggregate_return(variable, var_type, func)?;
+                param_offset += 1;
+            } else {
+                self.register_local_variable(variable, alignment, func)?;
+            }
         }
         let implementation = pou
             .find_implementation(index)
@@ -519,10 +530,57 @@ impl<'ink> DebugBuilder<'ink> {
             let declared_params = index.get_declared_parameters(implementation.get_call_name());
             //Register all parameters for debugging
             for (index, variable) in declared_params.iter().enumerate() {
-                self.register_parameter(variable, index, func)?;
+                self.register_parameter(variable, index + param_offset, func)?;
             }
             Ok(())
         }
+    }
+
+    fn register_aggregate_return(
+        &mut self,
+        variable: &VariableIndexEntry,
+        var_type: &DataType,
+        scope: FunctionValue<'ink>,
+    ) -> Result<(), Diagnostic> {
+        dbg!(self.types.keys());
+        let original_type = self
+            .types
+            .get(&var_type.get_name().to_lowercase())
+            .copied()
+            .ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    &format!("Cannot find type {} in debug types", variable.get_name()),
+                    variable.source_location.source_range.clone(),
+                )
+            })?
+            .into();
+        let data_layout = DataLayout::default();
+        let debug_type = self.debug_info.create_pointer_type(
+            &format!("__ref_to_{}", variable.get_type_name()),
+            original_type,
+            data_layout.p64.bits().into(),
+            data_layout.p64.bits(),
+            inkwell::AddressSpace::Global,
+        );
+        let location = &variable.source_location;
+        let line = location.line_number;
+        let scope = scope
+            .get_subprogram()
+            .map(|it| it.as_debug_info_scope())
+            .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
+        let debug_variable = self.debug_info.create_parameter_variable(
+            scope,
+            variable.get_name(),
+            0,
+            self.compile_unit.get_file(),
+            line as u32,
+            debug_type.as_type(),
+            false,
+            DIFlagsConstants::ZERO,
+        );
+        self.variables
+            .insert(variable.get_qualified_name().to_string(), debug_variable);
+        Ok(())
     }
 }
 

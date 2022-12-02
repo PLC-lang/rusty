@@ -460,7 +460,11 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     self.annotations,
                     &self.types_index,
                 );
-                Ok(Some(generator.generate_literal(initializer)?))
+                Ok(Some(
+                    generator
+                        .generate_literal(initializer)?
+                        .get_basic_value_enum(),
+                ))
             } else {
                 Err(Diagnostic::codegen_error(
                     &format!("Expected {} but found {:?}", expected_ast, initializer),

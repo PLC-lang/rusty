@@ -198,7 +198,6 @@ fn aggregate_return_value_variable_in_function() {
     );
     // No line information should be added on the statements
     assert_snapshot!(result);
-    
 }
 
 #[test]
