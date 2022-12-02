@@ -925,15 +925,6 @@ fn sizeof_test() {
         VAR
             x, y : INT; // 4 bytes
         END_VAR
-
-        METHOD testMethod
-            VAR_INPUT myMethodArg : INT; END_VAR
-            VAR myMethodLocalVar : INT; END_VAR
-
-            x := myMethodArg;
-            y := x;
-            myMethodLocalVar = y;
-        END_METHOD
         END_CLASS
         TYPE MyStruct : STRUCT
             a : BYTE; //8bit - offset 0 -> 1 byte
@@ -965,7 +956,7 @@ fn sizeof_test() {
             s2 := SIZEOF(s2);
             s3 := SIZEOF(t5);
             s4 := SIZEOF(t1);
-            s5 := SIZEOF(&s1); // ref
+            s5 := SIZEOF(&s1);
             s6 := SIZEOF(t2);
             s7 := SIZEOF(t3);
             s8 := SIZEOF(t4);
@@ -989,4 +980,30 @@ fn sizeof_test() {
     };
 
     assert_eq!(expected, maintype);
+}
+
+#[test]
+#[ignore = "variable sized arrays not yet implemented"]
+fn sizeof_len() {
+    let src = r#"
+    PROGRAM main
+    VAR
+        y : ARRAY[0..13] OF INT;
+    END_VAR
+        len(y);
+    END_PROGRAM
+
+    FUNCTION len : DINT
+    VAR_INPUT
+        arr : ARRAY[*, *] OF INT;
+    END_VAR
+        len := SIZEOF(arr) / SIZEOFF(arr(0));
+    END_FUNCTION
+    "#;
+
+    let context = Context::create();
+    let exec_engine = compile(&context, src);
+    let res: i32 = run_no_param(&exec_engine, "main");
+
+    assert_eq!(13, res);
 }
