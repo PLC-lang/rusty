@@ -2,7 +2,10 @@
 use crate::{
     index::Index,
     lexer::IdProvider,
-    typesystem::{DataTypeInformation, REAL_TYPE, VOID_TYPE},
+    typesystem::{
+        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
+        TIME_TYPE, USINT_TYPE, VOID_TYPE,
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -84,7 +87,15 @@ pub enum TypeNature {
 impl TypeNature {
     pub fn get_smallest_possible_type(&self) -> &str {
         match self {
+            TypeNature::Magnitude | TypeNature::Num | TypeNature::Int => USINT_TYPE,
             TypeNature::Real => REAL_TYPE,
+            TypeNature::Unsigned => USINT_TYPE,
+            TypeNature::Signed => SINT_TYPE,
+            TypeNature::Duration => TIME_TYPE,
+            TypeNature::Bit => BOOL_TYPE,
+            TypeNature::Chars | TypeNature::Char => CHAR_TYPE,
+            TypeNature::String => STRING_TYPE,
+            TypeNature::Date => DATE_TYPE,
             _ => "",
         }
     }
@@ -149,6 +160,14 @@ impl TypeNature {
                 TypeNature::Date => matches!(other, TypeNature::Elementary | TypeNature::Any),
             }
         }
+    }
+
+    pub fn is_numerical(&self) -> bool {
+        self.derives(TypeNature::Num)
+    }
+
+    pub fn is_real(&self) -> bool {
+        self.derives(TypeNature::Real)
     }
 }
 

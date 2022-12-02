@@ -49,27 +49,18 @@ fn generic_output_parameter() {
                 VAR_OUTPUT  out1: INT;  END_VAR
             END_FUNCTION
 
-        // ...AND an implementatino for BYTE
-            FUNCTION foo__BYTE : BYTE
-                VAR_INPUT   in1 : DATE; END_VAR
-                VAR_OUTPUT  out1: BYTE; END_VAR
-            END_FUNCTION
-
         // ... AND a program calling foo with an INT-parameter
             PROGRAM prg
             VAR 
                 theInt, iResult : INT; 
-                theByte, bResult : BYTE; 
                 data : DATE;
             END_VAR
 
             iResult := foo(data, theInt);
-            bResult := foo(data, theByte);
-            END_VAR
+            END_PROGRAM
         ";
 
     // THEN we expect a first call to foo__INT with out1 passed as a pointer
-    // AND we expect a second call to foo__BYTE with out1 passed as a pointer
     insta::assert_snapshot!(codegen(src));
 }
 
