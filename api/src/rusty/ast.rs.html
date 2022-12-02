@@ -1579,11 +1579,33 @@
 <span id="1574">1574</span>
 <span id="1575">1575</span>
 <span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">index::Index</span>,
     <span class="ident">lexer::IdProvider</span>,
-    <span class="ident">typesystem</span>::{<span class="ident">DataTypeInformation</span>, <span class="ident">REAL_TYPE</span>, <span class="ident">VOID_TYPE</span>},
+    <span class="ident">typesystem</span>::{
+        <span class="ident">DataTypeInformation</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">CHAR_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">REAL_TYPE</span>, <span class="ident">SINT_TYPE</span>, <span class="ident">STRING_TYPE</span>,
+        <span class="ident">TIME_TYPE</span>, <span class="ident">USINT_TYPE</span>, <span class="ident">VOID_TYPE</span>,
+    },
 };
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1665,7 +1687,15 @@
 <span class="kw">impl</span> <span class="ident">TypeNature</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_smallest_possible_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">TypeNature::Magnitude</span> <span class="op">|</span> <span class="ident">TypeNature::Num</span> <span class="op">|</span> <span class="ident">TypeNature::Int</span> =&gt; <span class="ident">USINT_TYPE</span>,
             <span class="ident">TypeNature::Real</span> =&gt; <span class="ident">REAL_TYPE</span>,
+            <span class="ident">TypeNature::Unsigned</span> =&gt; <span class="ident">USINT_TYPE</span>,
+            <span class="ident">TypeNature::Signed</span> =&gt; <span class="ident">SINT_TYPE</span>,
+            <span class="ident">TypeNature::Duration</span> =&gt; <span class="ident">TIME_TYPE</span>,
+            <span class="ident">TypeNature::Bit</span> =&gt; <span class="ident">BOOL_TYPE</span>,
+            <span class="ident">TypeNature::Chars</span> <span class="op">|</span> <span class="ident">TypeNature::Char</span> =&gt; <span class="ident">CHAR_TYPE</span>,
+            <span class="ident">TypeNature::String</span> =&gt; <span class="ident">STRING_TYPE</span>,
+            <span class="ident">TypeNature::Date</span> =&gt; <span class="ident">DATE_TYPE</span>,
             <span class="kw">_</span> =&gt; <span class="string">&quot;&quot;</span>,
         }
     }
@@ -1730,6 +1760,14 @@
                 <span class="ident">TypeNature::Date</span> =&gt; <span class="macro">matches!</span>(<span class="ident">other</span>, <span class="ident">TypeNature::Elementary</span> <span class="op">|</span> <span class="ident">TypeNature::Any</span>),
             }
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_numerical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">derives</span>(<span class="ident">TypeNature::Num</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_real</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">derives</span>(<span class="ident">TypeNature::Real</span>)
     }
 }
 

@@ -1112,13 +1112,6 @@
 <span id="1107">1107</span>
 <span id="1108">1108</span>
 <span id="1109">1109</span>
-<span id="1110">1110</span>
-<span id="1111">1111</span>
-<span id="1112">1112</span>
-<span id="1113">1113</span>
-<span id="1114">1114</span>
-<span id="1115">1115</span>
-<span id="1116">1116</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">mem::size_of</span>,
@@ -1235,18 +1228,11 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_numerical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>.<span class="ident">nature</span>,
-            <span class="ident">TypeNature::Num</span> { .. }
-                <span class="op">|</span> <span class="ident">TypeNature::Real</span> { .. }
-                <span class="op">|</span> <span class="ident">TypeNature::Int</span> { .. }
-                <span class="op">|</span> <span class="ident">TypeNature::Unsigned</span> { .. }
-                <span class="op">|</span> <span class="ident">TypeNature::Signed</span> { .. }
-        )
+        <span class="self">self</span>.<span class="ident">nature</span>.<span class="ident">is_numerical</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_real</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">nature</span>, <span class="ident">TypeNature::Real</span> { .. })
+        <span class="self">self</span>.<span class="ident">nature</span>.<span class="ident">is_real</span>()
     }
 
     <span class="doccomment">/// returns true if this type is an internal, auto-generated type</span>
