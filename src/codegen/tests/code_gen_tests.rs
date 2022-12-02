@@ -494,6 +494,19 @@ fn date_comparisons() {
 }
 
 #[test]
+#[should_panic]
+fn date_invalid_declaration() {
+    let result = codegen(
+        r#"PROGRAM prg
+        VAR
+          a : DATE := D#2001-02-29; (* feb29 on non-leap year should not pass *)
+        END_VAR
+        END_PROGRAM"#,
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn program_with_string_assignment() {
     let result = codegen(
         r#"PROGRAM prg
