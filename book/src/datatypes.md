@@ -26,7 +26,7 @@ Integer literals can be prefixed with either `2#` (binary), `8#` (octal) or
 `16#` (hexadecimal). They will then be treated with regard to the respective number system.
 
 Examples:
-- `i1 : DINT := 34;` - declares and initializes a 32bit signed integer with value 42.
+- `i1 : DINT := 42;` - declares and initializes a 32bit signed integer with value 42.
 - `i1 : DINT := 2#101010;` - declares and initializes a 32bit signed integer with value 42.
 - `i1 : DINT := 8#52;` - declares and initializes a 32bit signed integer with value 42.
 - `i1 : DINT := 16#2A;` - declares and initializes a 32bit signed integer with value 42.
