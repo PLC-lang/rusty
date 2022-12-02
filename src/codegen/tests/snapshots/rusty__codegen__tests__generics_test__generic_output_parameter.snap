@@ -5,7 +5,7 @@ expression: codegen(src)
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg = type { i16, i16, i8, i8, i64 }
+%prg = type { i16, i16, i64 }
 
 @prg_instance = global %prg zeroinitializer
 
@@ -21,31 +21,14 @@ entry:
   ret i16 %foo__INT_ret
 }
 
-define i8 @foo__BYTE(i64 %0, i8* %1) {
-entry:
-  %in1 = alloca i64, align 8
-  store i64 %0, i64* %in1, align 4
-  %out1 = alloca i8*, align 8
-  store i8* %1, i8** %out1, align 8
-  %foo__BYTE = alloca i8, align 1
-  store i8 0, i8* %foo__BYTE, align 1
-  %foo__BYTE_ret = load i8, i8* %foo__BYTE, align 1
-  ret i8 %foo__BYTE_ret
-}
-
 define void @prg(%prg* %0) {
 entry:
   %theInt = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %iResult = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %theByte = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %bResult = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-  %data = getelementptr inbounds %prg, %prg* %0, i32 0, i32 4
+  %data = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
   %load_data = load i64, i64* %data, align 4
   %call = call i16 @foo__INT(i64 %load_data, i16* %theInt)
   store i16 %call, i16* %iResult, align 2
-  %load_data1 = load i64, i64* %data, align 4
-  %call2 = call i8 @foo__BYTE(i64 %load_data1, i8* %theByte)
-  store i8 %call2, i8* %bResult, align 1
   ret void
 }
 

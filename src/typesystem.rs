@@ -114,18 +114,11 @@ impl DataType {
     }
 
     pub fn is_numerical(&self) -> bool {
-        matches!(
-            self.nature,
-            TypeNature::Num { .. }
-                | TypeNature::Real { .. }
-                | TypeNature::Int { .. }
-                | TypeNature::Unsigned { .. }
-                | TypeNature::Signed { .. }
-        )
+        self.nature.is_numerical()
     }
 
     pub fn is_real(&self) -> bool {
-        matches!(self.nature, TypeNature::Real { .. })
+        self.nature.is_real()
     }
 
     /// returns true if this type is an internal, auto-generated type
