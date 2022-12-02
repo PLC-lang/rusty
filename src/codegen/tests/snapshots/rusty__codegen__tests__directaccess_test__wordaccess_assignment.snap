@@ -7,8 +7,8 @@ source_filename = "main"
 
 define i16 @main() {
 entry:
-  %c = alloca i32, align 4
   %main = alloca i16, align 2
+  %c = alloca i32, align 4
   store i32 0, i32* %c, align 4
   store i16 0, i16* %main, align 2
   %0 = load i32, i32* %c, align 4

@@ -11,10 +11,10 @@ source_filename = "main"
 
 define i32 @drive() {
 entry:
+  %drive = alloca i32, align 4
   %input = alloca i32, align 4
   %horiz = alloca i32, align 4
   %depth = alloca i32, align 4
-  %drive = alloca i32, align 4
   store i32 0, i32* %input, align 4
   store i32 0, i32* %horiz, align 4
   store i32 0, i32* %depth, align 4

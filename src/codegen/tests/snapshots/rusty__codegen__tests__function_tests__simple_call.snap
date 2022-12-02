@@ -11,9 +11,9 @@ source_filename = "main"
 
 define i32 @func(i32 %0) {
 entry:
+  %func = alloca i32, align 4
   %x = alloca i32, align 4
   store i32 %0, i32* %x, align 4
-  %func = alloca i32, align 4
   store i32 0, i32* %func, align 4
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret

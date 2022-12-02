@@ -11,13 +11,13 @@ source_filename = "main"
 
 define i32 @foo(i32 %0, i32* %1, i32* %2) {
 entry:
+  %foo = alloca i32, align 4
   %input1 = alloca i32, align 4
   store i32 %0, i32* %input1, align 4
   %output1 = alloca i32*, align 8
   store i32* %1, i32** %output1, align 8
   %inout1 = alloca i32*, align 8
   store i32* %2, i32** %inout1, align 8
-  %foo = alloca i32, align 4
   store i32 0, i32* %foo, align 4
   %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
