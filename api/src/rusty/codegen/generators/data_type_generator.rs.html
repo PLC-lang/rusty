@@ -532,6 +532,10 @@
 <span id="527">527</span>
 <span id="528">528</span>
 <span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>};
 <span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
 
@@ -994,7 +998,11 @@
                     <span class="self">self</span>.<span class="ident">annotations</span>,
                     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">types_index</span>,
                 );
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">generator</span>.<span class="ident">generate_literal</span>(<span class="ident">initializer</span>)<span class="question-mark">?</span>))
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
+                    <span class="ident">generator</span>
+                        .<span class="ident">generate_literal</span>(<span class="ident">initializer</span>)<span class="question-mark">?</span>
+                        .<span class="ident">get_basic_value_enum</span>(),
+                ))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
                     <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Expected {} but found {:?}&quot;</span>, <span class="ident">expected_ast</span>, <span class="ident">initializer</span>),
