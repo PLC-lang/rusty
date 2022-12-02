@@ -476,7 +476,7 @@ impl<'ink> DebugBuilder<'ink> {
             Some(pou.get_name()), // for generics e.g. NAME__TYPE
             self.compile_unit.get_file(),
             (pou.get_location().line_number + 1) as u32, // This sets the start of the POU as the
-                                                         // entry for the function
+            // entry for the function
             ditype,
             false, // TODO: what is this
             !is_external,
@@ -505,7 +505,7 @@ impl<'ink> DebugBuilder<'ink> {
         {
             let var_type = index.get_type_information_or_void(variable.get_type_name());
             let alignment = var_type.get_alignment(index).bits();
-            self.register_local_variable(&variable, alignment, func)?;
+            self.register_local_variable(variable, alignment, func)?;
         }
         let implementation = pou
             .find_implementation(index)

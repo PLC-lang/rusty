@@ -2,8 +2,8 @@
 
 use crate::{
     ast::{
-        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, 
-        LinkageType, PouType, SourceRange, TypeNature,
+        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
+        SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
@@ -354,7 +354,7 @@ impl ImplementationIndexEntry {
     pub fn is_generic(&self) -> bool {
         self.generic
     }
-    
+
     pub fn get_location(&self) -> &SymbolLocation {
         &self.location
     }
@@ -1384,7 +1384,7 @@ impl Index {
         associated_class_name: Option<&String>,
         impl_type: ImplementationType,
         generic: bool,
-        location: SymbolLocation
+        location: SymbolLocation,
     ) {
         self.implementations.insert(
             call_name.to_lowercase(),
@@ -1394,7 +1394,7 @@ impl Index {
                 associated_class: associated_class_name.map(|str| str.into()),
                 implementation_type: impl_type,
                 generic,
-                location
+                location,
             },
         );
     }

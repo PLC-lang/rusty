@@ -281,10 +281,6 @@ impl NewLines {
         NewLines { line_breaks }
     }
 
-    pub fn empty() -> NewLines{
-        NewLines{ line_breaks: vec![]}
-    }
-
     ///
     /// returns the 0 based line-nr of the given offset-location
     ///

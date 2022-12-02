@@ -28,11 +28,7 @@ pub struct FunctionContext<'ink, 'b> {
     pub linking_context: &'b ImplementationIndexEntry,
     /// the llvm function to generate statements into
     pub function: FunctionValue<'ink>,
-}
-
-/// A context information holder for debugging, contains a debug builder and the new lines
-pub struct DebugContext<'ink, 'b> {
-    pub debug: &'b DebugBuilderEnum<'ink>,
+    /// The new lines marker for the compilation unit containing the POU
     pub new_lines: &'b NewLines,
 }
 
@@ -43,7 +39,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     annotations: &'b AstAnnotations,
     pou_generator: &'b PouGenerator<'a, 'b>,
     llvm_index: &'b LlvmTypedIndex<'a>,
-    function_context: &'b FunctionContext<'a,'b>,
+    function_context: &'b FunctionContext<'a, 'b>,
 
     pub load_prefix: String,
     pub load_suffix: String,
@@ -53,7 +49,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     /// the block to jump to when you want to continue the loop
     pub current_loop_continue: Option<BasicBlock<'a>>,
 
-    pub debug_context: Option<&'b DebugContext<'a, 'b>>,
+    pub debug: &'b DebugBuilderEnum<'a>,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -65,7 +61,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         pou_generator: &'b PouGenerator<'a, 'b>,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a, 'b>,
-        debug_context: Option<&'b DebugContext<'a, 'b>>,
+        debug: &'b DebugBuilderEnum<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
@@ -78,7 +74,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             load_suffix: "".to_string(),
             current_loop_exit: None,
             current_loop_continue: None,
-            debug_context,
+            debug,
         }
     }
 
@@ -90,7 +86,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.annotations,
             self.llvm_index,
             self.function_context,
-            self.debug_context,
+            self.debug,
         )
     }
 
@@ -229,13 +225,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     fn register_debug_location(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
-        if let Some(debug_context) = self.debug_context {
-            let line = debug_context.new_lines.get_line_nr(statement.get_location().get_start());
-            let column = debug_context.new_lines.get_column(line, statement.get_location().get_start());
-            debug_context.debug.set_debug_location(&self.llvm, &self.function_context.function, line, column)
-        } else {
-            Ok(())
-        }
+        let line = self
+            .function_context
+            .new_lines
+            .get_line_nr(statement.get_location().get_start());
+        let column = self
+            .function_context
+            .new_lines
+            .get_column(line, statement.get_location().get_start());
+        self.debug
+            .set_debug_location(self.llvm, &self.function_context.function, line, column)
     }
 
     fn generate_direct_access_assignment(

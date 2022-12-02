@@ -1,7 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::{self, DirectAccessType, SourceRange},
-    codegen::{llvm_typesystem, debug::Debug},
+    codegen::{
+        debug::{Debug, DebugBuilderEnum},
+        llvm_typesystem,
+    },
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{
         const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
@@ -33,7 +36,7 @@ use crate::{
     typesystem::{DataType, DataTypeInformation},
 };
 
-use super::{llvm::Llvm, statement_generator::{FunctionContext, DebugContext}};
+use super::{llvm::Llvm, statement_generator::FunctionContext};
 
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
@@ -44,7 +47,7 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     /// the current function to create blocks in
     pub function_context: Option<&'b FunctionContext<'a, 'b>>,
     /// The debug context used to create breakpoint information
-    pub debug_context: Option<&'b DebugContext<'a, 'b>>,
+    pub debug: &'b DebugBuilderEnum<'a>,
 
     /// the string-prefix to use for temporary variables
     pub temp_variable_prefix: String,
@@ -80,7 +83,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         annotations: &'b AstAnnotations,
         llvm_index: &'b LlvmTypedIndex<'ink>,
         function_context: &'b FunctionContext<'ink, 'b>,
-        debug_context: Option<&'b DebugContext<'ink, 'b>>, 
+        debug: &'b DebugBuilderEnum<'ink>,
     ) -> ExpressionCodeGenerator<'ink, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -88,7 +91,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             llvm_index,
             annotations,
             function_context: Some(function_context),
-            debug_context,
+            debug,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |_, actual_length| actual_length, //when generating string-literals in a body, use the actual length
@@ -114,7 +117,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             llvm_index,
             annotations,
             function_context: None,
-            debug_context: None,
+            debug: &DebugBuilderEnum::None,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |type_length_declaration, _| type_length_declaration, //when generating string-literals in declarations, use the declared length
@@ -156,11 +159,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn register_debug_location(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
-        let function_context = self.function_context.expect("Cannot generate debug info without function context");
-        let debug_context = self.debug_context.expect("Cannot generate debug info without debug context");
-        let line = debug_context.new_lines.get_line_nr(statement.get_location().get_start());
-        let column = debug_context.new_lines.get_column(line, statement.get_location().get_start());
-        debug_context.debug.set_debug_location(&self.llvm, &function_context.function, line, column)
+        let function_context = self
+            .function_context
+            .expect("Cannot generate debug info without function context");
+        let line = function_context
+            .new_lines
+            .get_line_nr(statement.get_location().get_start());
+        let column = function_context
+            .new_lines
+            .get_column(line, statement.get_location().get_start());
+        self.debug
+            .set_debug_location(self.llvm, &function_context.function, line, column)
     }
 
     fn do_generate_expression(

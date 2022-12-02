@@ -7,7 +7,7 @@ use self::{
         data_type_generator,
         llvm::{GlobalValueExt, Llvm},
         pou_generator::{self, PouGenerator},
-        variable_generator, statement_generator::DebugContext,
+        variable_generator,
     },
     llvm_index::LlvmTypedIndex,
 };
@@ -162,19 +162,18 @@ impl<'ink> CodeGen<'ink> {
     ) -> Result<(), Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(self.context, self.context.create_builder());
-        let debug_context = DebugContext {
-            debug: &self.debug,
-            new_lines: &unit.new_lines,
-        };
-        let pou_generator =
-            PouGenerator::new(llvm, global_index, annotations, llvm_index, Some(debug_context));
+        let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(implementation)?;
+                    pou_generator.generate_implementation(
+                        implementation,
+                        &self.debug,
+                        &unit.new_lines,
+                    )?;
                 }
             }
         }
