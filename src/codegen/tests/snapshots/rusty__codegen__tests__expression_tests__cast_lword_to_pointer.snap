@@ -7,9 +7,9 @@ source_filename = "main"
 
 define i16 @baz() {
 entry:
+  %baz = alloca i16, align 2
   %ptr_x = alloca i16*, align 8
   %y = alloca i64, align 8
-  %baz = alloca i16, align 2
   store i16* null, i16** %ptr_x, align 8
   store i64 0, i64* %y, align 4
   store i16 0, i16* %baz, align 2

@@ -765,6 +765,45 @@ fn nested_calls_in_call_statement() {
 }
 
 #[test]
+fn nested_calls_passing_aggregate_types() {
+    #[repr(C)]
+    struct MainType {
+        var1: [i32; 2],
+    }
+
+    let function = r#"
+        TYPE Arr : ARRAY[0..1] OF DINT := [1, 1]; END_TYPE
+		FUNCTION getArr : Arr
+			getArr[0] := 3;
+			getArr[1] := 4;
+        END_FUNCTION
+
+        FUNCTION inc : Arr
+			VAR_INPUT
+                a: Arr; 
+                index: DINT;
+            END_VAR
+
+            a[index] := a[index] + 1;
+            inc := a;
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                var1 : Arr;
+            END_VAR
+
+            var1 := inc(getArr(), 1);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: [0, 0] };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!([3, 5], interface.var1);
+}
+
+#[test]
 fn by_ref_and_by_val_mixed_function_call() {
     let function = r#"FUNCTION func : DINT
         VAR_INPUT {ref}

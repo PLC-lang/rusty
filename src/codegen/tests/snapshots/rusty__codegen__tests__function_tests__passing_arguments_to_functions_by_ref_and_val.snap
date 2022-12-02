@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/function_tests.rs
-assertion_line: 153
 expression: result
 ---
 ; ModuleID = 'main'
@@ -12,6 +11,7 @@ source_filename = "main"
 
 define i32 @func(i16* %0, i32* %1, i16 %2, i32 %3) {
 entry:
+  %func = alloca i32, align 4
   %byRef1 = alloca i16*, align 8
   store i16* %0, i16** %byRef1, align 8
   %byRef2 = alloca i32*, align 8
@@ -20,7 +20,6 @@ entry:
   store i16 %2, i16* %byVal1, align 2
   %byVal2 = alloca i32, align 4
   store i32 %3, i32* %byVal2, align 4
-  %func = alloca i32, align 4
   store i32 0, i32* %func, align 4
   %deref = load i16*, i16** %byRef1, align 8
   %load_byRef1 = load i16, i16* %deref, align 2

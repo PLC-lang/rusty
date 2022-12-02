@@ -1345,12 +1345,13 @@ fn initial_value_of_function_return_array() {
     VAR
         arr : ARRAY[0..3] OF DINT;
     END_VAR
-    
-    arr := target();
+        arr := target();
     END_PROGRAM
 		";
 
     #[allow(dead_code)]
+    #[repr(C)]
+    #[derive(Debug)]
     struct MainType {
         arr: [i32; 4],
     }
@@ -1358,6 +1359,7 @@ fn initial_value_of_function_return_array() {
     // THEN i expect to get [1,2,4,4]
     let mut maintype = MainType { arr: [0; 4] };
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+
     assert_eq!([1, 2, 4, 4], maintype.arr);
 }
 

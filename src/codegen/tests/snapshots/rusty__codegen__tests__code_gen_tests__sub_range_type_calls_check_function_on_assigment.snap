@@ -11,13 +11,13 @@ source_filename = "main"
 
 define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
+  %CheckRangeSigned = alloca i16, align 2
   %value = alloca i16, align 2
   store i16 %0, i16* %value, align 2
   %lower = alloca i16, align 2
   store i16 %1, i16* %lower, align 2
   %upper = alloca i16, align 2
   store i16 %2, i16* %upper, align 2
-  %CheckRangeSigned = alloca i16, align 2
   store i16 0, i16* %CheckRangeSigned, align 2
   %load_value = load i16, i16* %value, align 2
   store i16 %load_value, i16* %CheckRangeSigned, align 2

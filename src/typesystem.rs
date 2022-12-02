@@ -125,6 +125,11 @@ impl DataType {
     pub fn is_internal(&self) -> bool {
         self.location.is_internal()
     }
+
+    /// returns true if this type is an array, struct or string
+    pub fn is_aggregate_type(&self) -> bool {
+        self.get_type_information().is_agregate()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -511,6 +516,15 @@ impl DataTypeInformation {
                 .get_alignment(index),
             _ => type_layout.i8,
         }
+    }
+
+    fn is_agregate(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct { .. }
+                | DataTypeInformation::Array { .. }
+                | DataTypeInformation::String { .. }
+        )
     }
 }
 
