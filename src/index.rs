@@ -360,20 +360,6 @@ impl ImplementationIndexEntry {
     }
 }
 
-// impl From<&Implementation> for ImplementationIndexEntry {
-//     fn from(implementation: &Implementation) -> Self {
-//         let pou_type = &implementation.pou_type;
-//         ImplementationIndexEntry {
-//             call_name: implementation.name.clone(),
-//             type_name: implementation.type_name.clone(),
-//             associated_class: pou_type.get_optional_owner_class(),
-//             implementation_type: pou_type.into(),
-//             generic: implementation.generic,
-//             location: implementation.location,
-//         }
-//     }
-// }
-
 impl From<&PouType> for ImplementationType {
     fn from(it: &PouType) -> Self {
         match it {

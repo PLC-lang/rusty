@@ -147,8 +147,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         debug: &mut DebugBuilderEnum<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         //generate a function that takes a instance-struct parameter
-
-        //generate a function that takes a instance-struct parameter
         let parameters = self.collect_parameters_for_implementation(implementation)?;
         let return_type = self
             .index

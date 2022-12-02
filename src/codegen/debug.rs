@@ -5,8 +5,8 @@ use inkwell::{
     context::Context,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFlags,
-        DIFlagsConstants, DILocalVariable, DILocation, DIScope, DISubprogram, DISubroutineType,
-        DIType, DWARFEmissionKind, DebugInfoBuilder,
+        DIFlagsConstants, DILocalVariable, DISubprogram, DISubroutineType, DIType,
+        DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
     values::{FunctionValue, GlobalValue, PointerValue},
@@ -67,7 +67,8 @@ pub trait Debug<'ink> {
         column: usize,
     ) -> Result<(), Diagnostic>;
 
-    /// ...
+    /// Reginsters a new function for debugging, this method is responsible for registering a
+    /// function's stub as well as its interface (variables/parameters)
     fn register_function<'idx>(
         &mut self,
         index: &Index,
@@ -417,21 +418,6 @@ impl<'ink> DebugBuilder<'ink> {
         Ok(())
     }
 
-    fn create_debug_location(
-        &self,
-        scope: DIScope<'ink>,
-        line: usize,
-        column: usize,
-    ) -> Result<DILocation, Diagnostic> {
-        Ok(self.debug_info.create_debug_location(
-            self.context,
-            line as u32,   // try_into() error msg on fail
-            column as u32, // not implemented yet
-            scope,
-            None, // ?
-        ))
-    }
-
     fn create_subroutine_type(
         &self,
         return_type: Option<&DataType>,
@@ -448,11 +434,19 @@ impl<'ink> DebugBuilder<'ink> {
             .map(|dt| {
                 self.types
                     .get(dt.get_name().to_lowercase().as_str())
-                    .expect("at this point we should have all types") // TODO: error msg
-                    .to_owned()
+                    .copied()
+                    .map(Into::into)
+                    .ok_or_else(|| {
+                        Diagnostic::codegen_error(
+                            &format!(
+                                "Could not find debug type information for {}",
+                                dt.get_name()
+                            ),
+                            SourceRange::undefined(),
+                        )
+                    })
             })
-            .map(Into::into)
-            .collect::<Vec<DIType>>();
+            .collect::<Result<Vec<DIType>, Diagnostic>>()?;
 
         Ok(self.debug_info.create_subroutine_type(
             self.compile_unit.get_file(),
@@ -523,7 +517,10 @@ impl<'ink> DebugBuilder<'ink> {
             .expect("A POU will have an impl at this stage");
         if implementation.implementation_type != ImplementationType::Function {
             if implementation.get_implementation_type() == &ImplementationType::Method {
-                todo!("Method debugging");
+                return Err(Diagnostic::codegen_error(
+                    "Method debugging not yet implemented",
+                    implementation.get_location().source_range.clone(),
+                ));
             }
             self.register_struct_parameter(pou, func)
         } else {
@@ -596,7 +593,13 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        let location = self.create_debug_location(scope, line + 1, column)?;
+        let location = self.debug_info.create_debug_location(
+            self.context,
+            (line + 1) as u32,
+            column as u32,
+            scope,
+            None,
+        );
         llvm.builder
             .set_current_debug_location(llvm.context, location);
         Ok(())
