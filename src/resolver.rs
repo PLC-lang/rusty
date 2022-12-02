@@ -1602,7 +1602,10 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     pub(crate) fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
-        if !matches!(p, AstStatement::Assignment { .. }) {
+        if !matches!(
+            p,
+            AstStatement::Assignment { .. } | AstStatement::OutputAssignment { .. }
+        ) {
             if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
                 //update the type hint
                 self.annotation_map.annotate_type_hint(

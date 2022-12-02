@@ -3,12 +3,20 @@ use std::collections::HashMap;
 use crate::{
     ast::{self, AstStatement, GenericBinding, LinkageType, TypeNature},
     builtins,
-    index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry},
+    codegen::generators::expression_generator::get_implicit_call_parameter,
+    index::{symbol::SymbolLocation, Index, PouIndexEntry},
     resolver::AnnotationMap,
     typesystem::{self, DataType, DataTypeInformation, StringEncoding, STRING_TYPE, WSTRING_TYPE},
 };
 
 use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
+
+pub struct GenericType {
+    // this is the derived type used for the generic call
+    derived_type: String,
+    // this is the nature the generic was declared with
+    generic_nature: TypeNature,
+}
 
 // Utility methods handling generic resolution
 impl<'i> TypeAnnotator<'i> {
@@ -116,12 +124,7 @@ impl<'i> TypeAnnotator<'i> {
                 // Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
-                    self.update_generic_function_parameters(
-                        &ctx,
-                        s,
-                        implementation_name,
-                        generic_map,
-                    );
+                    self.update_generic_function_parameters(s, implementation_name, generic_map);
                 }
             }
         }
@@ -134,7 +137,7 @@ impl<'i> TypeAnnotator<'i> {
         generic_function: &PouIndexEntry,
         return_type: &str,
         new_name: &str,
-        generics: &HashMap<String, String>,
+        generics: &HashMap<String, GenericType>,
     ) {
         // the generic implementation
         if let Some(generic_implementation) = generic_function.find_implementation(self.index) {
@@ -183,14 +186,14 @@ impl<'i> TypeAnnotator<'i> {
     fn find_or_create_datatype(
         &mut self,
         member_name: &str,
-        generics: &HashMap<String, String>,
+        generics: &HashMap<String, GenericType>,
     ) -> String {
         match self.index.find_effective_type_info(member_name) {
             Some(DataTypeInformation::Generic { generic_symbol, .. }) => {
                 // this is a generic member, so lets see what it's generic symbol is and translate it
                 generics
                     .get(generic_symbol)
-                    .map(String::as_str)
+                    .map(|it| it.derived_type.as_str())
                     .unwrap_or_else(|| member_name)
                     .to_string()
             }
@@ -230,10 +233,9 @@ impl<'i> TypeAnnotator<'i> {
 
     fn update_generic_function_parameters(
         &mut self,
-        ctx: &VisitorContext,
         s: &AstStatement,
         function_name: &str,
-        generic_map: &HashMap<String, String>,
+        generic_map: &HashMap<String, GenericType>,
     ) {
         /// An internal struct used to hold the type and nature of a generic parameter
         struct TypeAndNature<'a> {
@@ -241,102 +243,82 @@ impl<'i> TypeAnnotator<'i> {
             nature: TypeNature,
         }
 
-        // Map the input or output parameters of the function into a list of Index Entry with an optional generic type discription
-        let parameters = ast::flatten_expression_list(s);
-        let members: Vec<(&VariableIndexEntry, Option<TypeAndNature>)> = self
-            .index
-            .get_declared_parameters(function_name)
-            .into_iter()
-            .map(|it| {
-                //if the member is generic
-                if let Some(DataTypeInformation::Generic {
-                    generic_symbol,
-                    nature,
-                    ..
-                }) = self.index.find_effective_type_info(it.get_type_name())
-                {
-                    let real_type = generic_map
-                        .get(generic_symbol)
-                        .and_then(|it| self.index.find_effective_type_by_name(it))
-                        .map(|datatype| TypeAndNature {
-                            datatype,
-                            nature: *nature,
-                        });
-                    (it, real_type)
-                } else {
-                    (it, None)
-                }
-            })
-            .collect();
-
-        //See if parameters have assignments, as they need to be treated differently
-        if parameters.iter().any(|it| {
-            matches!(
-                it,
-                AstStatement::Assignment { .. } | AstStatement::OutputAssignment { .. }
-            )
-        }) {
-            for p in parameters {
-                match p {
-                    AstStatement::Assignment { left, right, .. }
-                    | AstStatement::OutputAssignment { left, right, .. } => {
-                        if let AstStatement::Reference { name, .. } = &**left {
-                            //Find the member with that name
-                            if let Some((_, Some(TypeAndNature { datatype, nature }))) =
-                                members.iter().find(|(it, _)| it.get_name() == name)
+        let passed_parameters = ast::flatten_expression_list(s);
+        let declared_parameters = self.index.get_declared_parameters(function_name);
+        for (i, p) in passed_parameters.iter().enumerate() {
+            if let Ok((location_in_parent, passed_parameter, ..)) =
+                get_implicit_call_parameter(p, &declared_parameters, i)
+            {
+                if let Some(declared_parameter) = declared_parameters.get(location_in_parent) {
+                    // check if declared parameter is generic
+                    if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = self
+                        .index
+                        .find_effective_type_info(declared_parameter.get_type_name())
+                        .map(|t| self.index.find_elementary_pointer_type(t))
+                    {
+                        // get generic type of the declared parameter this will be our type hint as the expected type
+                        if let Some(generic) = generic_map.get(generic_symbol) {
+                            if let Some(datatype) = self
+                                .index
+                                .find_effective_type_by_name(generic.derived_type.as_str())
                             {
-                                self.annotation_map.add_generic_nature(p, *nature);
-                                self.annotation_map.annotate(
-                                    left,
+                                // annotate the type hint for the passed parameter
+                                self.annotation_map.annotate_type_hint(
+                                    passed_parameter,
                                     StatementAnnotation::value(datatype.get_name()),
                                 );
-                                self.update_right_hand_side_expected_type(ctx, left, right);
+                                // annotate the generic type nature of the passed parameter, this is the actual nature of the generic declaration
+                                self.annotation_map
+                                    .add_generic_nature(passed_parameter, generic.generic_nature);
+
+                                // for assignments we need to annotate the left side aswell
+                                match p {
+                                    AstStatement::Assignment { left, .. }
+                                    | AstStatement::OutputAssignment { left, .. } => {
+                                        self.annotation_map.annotate(
+                                            left,
+                                            StatementAnnotation::value(datatype.get_name()),
+                                        );
+                                    }
+                                    _ => {}
+                                }
                             }
                         }
                     }
-                    _ => { /*do nothing*/ }
                 }
             }
-        } else {
-            //First handle the declared params
-            let mut parameters = parameters.into_iter();
-            for (_, dt) in members {
-                if let Some(p) = parameters.next() {
-                    if let Some(TypeAndNature { datatype, nature }) = dt {
-                        self.annotation_map.add_generic_nature(p, nature);
-                        self.annotation_map
-                            .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
-                    }
-                }
+        }
+
+        //Then handle the varargs
+        //Get the variadic argument if any
+        if let Some(dt) = self.index.get_variadic_member(function_name).map(|it| {
+            //if the member is generic
+            if let Some(DataTypeInformation::Generic {
+                generic_symbol,
+                nature,
+                ..
+            }) = self.index.find_effective_type_info(it.get_type_name())
+            {
+                let real_type = generic_map
+                    .get(generic_symbol)
+                    .and_then(|it| {
+                        self.index
+                            .find_effective_type_by_name(it.derived_type.as_str())
+                    })
+                    .map(|datatype| TypeAndNature {
+                        datatype,
+                        nature: *nature,
+                    });
+                real_type
+            } else {
+                None
             }
-            //Then handle the varargs
-            //Get the variadic argument if any
-            if let Some(dt) = self.index.get_variadic_member(function_name).map(|it| {
-                //if the member is generic
-                if let Some(DataTypeInformation::Generic {
-                    generic_symbol,
-                    nature,
-                    ..
-                }) = self.index.find_effective_type_info(it.get_type_name())
-                {
-                    let real_type = generic_map
-                        .get(generic_symbol)
-                        .and_then(|it| self.index.find_effective_type_by_name(it))
-                        .map(|datatype| TypeAndNature {
-                            datatype,
-                            nature: *nature,
-                        });
-                    real_type
-                } else {
-                    None
-                }
-            }) {
-                for p in parameters {
-                    if let Some(TypeAndNature { datatype, nature }) = dt {
-                        self.annotation_map.add_generic_nature(p, nature);
-                        self.annotation_map
-                            .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
-                    }
+        }) {
+            for p in passed_parameters {
+                if let Some(TypeAndNature { datatype, nature }) = dt {
+                    self.annotation_map.add_generic_nature(p, nature);
+                    self.annotation_map
+                        .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
                 }
             }
         }
@@ -348,7 +330,7 @@ impl<'i> TypeAnnotator<'i> {
         generics: &[GenericBinding],
         generic_qualified_name: &str,
         generic_return_type: &str,
-        generic_map: &HashMap<String, String>,
+        generic_map: &HashMap<String, GenericType>,
         generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
         let call_name = generic_name_resolver(generic_qualified_name, generics, generic_map);
@@ -363,7 +345,7 @@ impl<'i> TypeAnnotator<'i> {
                 {
                     generic_map
                         .get(generic_symbol)
-                        .map(String::as_str)
+                        .map(|it| it.derived_type.as_str())
                         .unwrap_or(generic_return_type)
                 } else {
                     generic_return_type
@@ -383,8 +365,8 @@ impl<'i> TypeAnnotator<'i> {
         &self,
         generics: &[GenericBinding],
         generics_candidates: HashMap<String, Vec<String>>,
-    ) -> HashMap<String, String> {
-        let mut generic_map: HashMap<String, String> = HashMap::new();
+    ) -> HashMap<String, GenericType> {
+        let mut generic_map: HashMap<String, GenericType> = HashMap::new();
         for GenericBinding { name, nature } in generics {
             let smallest_possible_type = self
                 .index
@@ -426,17 +408,45 @@ impl<'i> TypeAnnotator<'i> {
                                         _ => self.index.find_intrinsic_type(it),
                                     }
                                 });
-                            //Find bigger
-                            if let Some((previous, current)) = previous_type.zip(current_type) {
-                                Some(typesystem::get_bigger_type(current, previous, self.index))
-                            } else {
-                                current_type
+
+                            // Find bigger
+                            if let Some(current) = current_type {
+                                // check if the current type derives from the generic nature
+                                if self
+                                    .index
+                                    .find_effective_type_by_name(current.get_name())
+                                    .map(|t| {
+                                        t.has_nature(*nature, self.index)
+										// INT parameter for REAL is allowed
+                                            | (nature.is_real() & t.is_numerical())
+                                    })
+                                    .unwrap_or_default()
+                                {
+                                    // if we got the right nature we can search for the bigger type
+                                    if let Some(previous) = previous_type {
+                                        return Some(typesystem::get_bigger_type(
+                                            current, previous, self.index,
+                                        ));
+                                    } else {
+                                        // if the previous type was None just return the current
+                                        // type should be ok because of the previouse nature check
+                                        return current_type;
+                                    }
+                                }
                             }
+                            // if we didn't get the right nature return the last one
+                            previous_type
                         },
                     )
                     .map(DataTypeInformation::get_name);
                 if let Some(winner) = winner {
-                    generic_map.insert(name.into(), winner.into());
+                    generic_map.insert(
+                        name.into(),
+                        GenericType {
+                            derived_type: winner.to_string(),
+                            generic_nature: *nature,
+                        },
+                    );
                 }
             }
         }
@@ -444,20 +454,20 @@ impl<'i> TypeAnnotator<'i> {
     }
 }
 
-type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, String>) -> String;
+type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 
 /// Builds the correct generic name from the given information
 pub fn generic_name_resolver(
     qualified_name: &str,
     generics: &[GenericBinding],
-    generic_map: &HashMap<String, String>,
+    generic_map: &HashMap<String, GenericType>,
 ) -> String {
     generics
         .iter()
         .map(|it| {
             generic_map
                 .get(&it.name)
-                .map(String::as_str)
+                .map(|it| it.derived_type.as_str())
                 .unwrap_or_else(|| it.name.as_str())
         })
         .fold(qualified_name.to_string(), |accum, s| {
@@ -469,7 +479,7 @@ pub fn generic_name_resolver(
 pub fn no_generic_name_resolver(
     qualified_name: &str,
     _: &[GenericBinding],
-    _: &HashMap<String, String>,
+    _: &HashMap<String, GenericType>,
 ) -> String {
     generic_name_resolver(qualified_name, &[], &HashMap::new())
 }

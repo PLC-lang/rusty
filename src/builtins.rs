@@ -16,7 +16,7 @@ use crate::{
     lexer::{self, IdProvider},
     parser,
     resolver::{
-        generics::{generic_name_resolver, no_generic_name_resolver},
+        generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, TypeAnnotator, VisitorContext,
     },
     typesystem::{
@@ -263,7 +263,7 @@ type AnnotationFunction = fn(
     Option<&AstStatement>,
     VisitorContext,
 ) -> Result<(), Diagnostic>;
-type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, String>) -> String;
+type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstStatement],
