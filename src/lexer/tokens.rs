@@ -370,7 +370,7 @@ pub enum Token {
     )]
     LiteralTime,
 
-    #[regex("%(B|b|D|d|W|w|X|x)", super::parse_access_type)]
+    #[regex("%(B|b|D|d|W|w|L|l|X|x)", super::parse_access_type)]
     DirectAccess(DirectAccessType),
 
     #[regex(

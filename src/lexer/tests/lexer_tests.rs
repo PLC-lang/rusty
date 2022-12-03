@@ -698,7 +698,7 @@ fn direct_access_test() {
     let mut lexer = lex(r"
         %X1 %x1 %B1 %b1
         %W1 %w1 %D1 %d1
-        %X1_1
+        %L1 %l1 %X1_1
     ");
 
     assert_eq!(lexer.token, DirectAccess(DirectAccessType::Bit));
@@ -730,6 +730,14 @@ fn direct_access_test() {
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
     assert_eq!(lexer.token, DirectAccess(DirectAccessType::DWord));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::LWord));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::LWord));
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
