@@ -22,8 +22,8 @@ use crate::{
     lexer::IdProvider,
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
-        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, REAL_TYPE,
-        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
+        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -1706,6 +1706,7 @@ fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str
         crate::ast::DirectAccessType::Byte => BYTE_TYPE,
         crate::ast::DirectAccessType::Word => WORD_TYPE,
         crate::ast::DirectAccessType::DWord => DWORD_TYPE,
+        crate::ast::DirectAccessType::LWord => LWORD_TYPE,
         crate::ast::DirectAccessType::Template => VOID_TYPE,
     }
 }
