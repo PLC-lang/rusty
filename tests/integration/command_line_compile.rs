@@ -1,3 +1,4 @@
+use std::fs;
 use std::fs::File;
 use std::io::Read;
 
@@ -54,6 +55,8 @@ fn hardware_conf_full_pass_json() {
     //Verify file content
 
     assert_snapshot!(content);
+    //clean up
+    let _foo = fs::remove_file("json");
 }
 
 #[test]
@@ -82,4 +85,6 @@ fn hardware_conf_full_pass_toml() {
     //Verify file content
 
     assert_snapshot!(content);
+    //clean up
+    let _foo = fs::remove_file("toml");
 }
