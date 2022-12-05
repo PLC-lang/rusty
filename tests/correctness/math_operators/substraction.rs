@@ -233,12 +233,12 @@ fn substract_date_basic() {
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
     let date_var = chrono::Utc
-        .ymd(2021, 1, 1)
-        .and_hms(0, 0, 0)
+        .with_ymd_and_hms(2021, 1, 1, 0, 0, 0)
+        .unwrap()
         .timestamp_nanos() as u64;
     let date_temp = chrono::Utc
-        .ymd(2021, 1, 10)
-        .and_hms(0, 0, 0)
+        .with_ymd_and_hms(2021, 1, 10, 0, 0, 0)
+        .unwrap()
         .timestamp_nanos() as u64;
     assert_eq!(res, date_temp - date_var);
 }
