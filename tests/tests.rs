@@ -43,6 +43,9 @@ mod integration {
     mod multi_files;
 }
 
+#[macro_use]
+extern crate serial_test;
+
 #[macro_export]
 macro_rules! assert_almost_eq {
     ($left:expr, $right:expr, $prec:expr) => {{
