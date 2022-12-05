@@ -1,0 +1,22 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 629
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg = type { i32 }
+
+@prg_instance = global %prg zeroinitializer
+
+define void @prg(%prg* %0) {
+entry:
+  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %call = call i32 @EXPT__DINT__UDINT(i32 1, i32 -294967296)
+  store i32 %call, i32* %x, align 4
+  ret void
+}
+
+declare i32 @EXPT__DINT__UDINT(i32, i32)
+
