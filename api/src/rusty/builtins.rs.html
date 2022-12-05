@@ -319,10 +319,48 @@
 <span id="314">314</span>
 <span id="315">315</span>
 <span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">basic_block::BasicBlock</span>,
+    <span class="ident">types::BasicType</span>,
     <span class="ident">values</span>::{<span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">IntValue</span>},
 };
 <span class="kw">use</span> <span class="ident">lazy_static::lazy_static</span>;
@@ -366,7 +404,7 @@
                             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">generator</span>.<span class="ident">ptr_as_value</span>(<span class="ident">it</span>))
                     } <span class="kw">else</span> {
                         <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
-                            <span class="string">&quot;Expected exadtly one parameter for REF&quot;</span>,
+                            <span class="string">&quot;Expected exactly one parameter for REF&quot;</span>,
                             <span class="ident">location</span>,
                         ))
                     }
@@ -391,7 +429,7 @@
                             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_basic_value_enum</span>())
                     } <span class="kw">else</span> {
                         <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
-                            <span class="string">&quot;Expected exadtly one parameter for REF&quot;</span>,
+                            <span class="string">&quot;Expected exactly one parameter for REF&quot;</span>,
                             <span class="ident">location</span>,
                         ))
                     }
@@ -513,16 +551,16 @@
                 &quot;</span>,
                 <span class="ident">annotation</span>: <span class="prelude-val">Some</span>(<span class="op">|</span><span class="ident">annotator</span>, <span class="ident">operator</span> , <span class="ident">parameters</span>, <span class="ident">ctx</span><span class="op">|</span> {
                     <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;EXPT requires parameters&quot;</span>, <span class="ident">operator</span>.<span class="ident">get_location</span>()))<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="kw">let</span> [<span class="ident">element</span>, <span class="ident">exponant</span>] <span class="op">=</span> <span class="ident">flatten_expression_list</span>(<span class="ident">params</span>)[..] {
+                    <span class="kw">if</span> <span class="kw">let</span> [<span class="ident">element</span>, <span class="ident">exponent</span>] <span class="op">=</span> <span class="ident">flatten_expression_list</span>(<span class="ident">params</span>)[..] {
                         <span class="comment">//Resolve the parameter types</span>
                         <span class="kw">let</span> <span class="ident">element_type</span> <span class="op">=</span> <span class="ident">annotator</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type</span>(<span class="ident">element</span>, <span class="ident">annotator</span>.<span class="ident">index</span>);
-                        <span class="kw">let</span> <span class="ident">exponant_type</span> <span class="op">=</span> <span class="ident">annotator</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type</span>(<span class="ident">exponant</span>, <span class="ident">annotator</span>.<span class="ident">index</span>);
+                        <span class="kw">let</span> <span class="ident">exponent_type</span> <span class="op">=</span> <span class="ident">annotator</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type</span>(<span class="ident">exponent</span>, <span class="ident">annotator</span>.<span class="ident">index</span>);
                         <span class="kw">let</span> <span class="ident">dint_type</span> <span class="op">=</span> <span class="ident">annotator</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">DINT_TYPE</span>);
                         <span class="kw">let</span> <span class="ident">udint_type</span> <span class="op">=</span> <span class="ident">annotator</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">UDINT_TYPE</span>);
                         <span class="kw">let</span> <span class="ident">real_type</span> <span class="op">=</span> <span class="ident">annotator</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">REAL_TYPE</span>);
-                        <span class="kw">let</span> <span class="ident">is_exponent_positive_literal</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } <span class="op">=</span> <span class="ident">exponant</span> { <span class="ident">value</span>.<span class="ident">is_positive</span>() } <span class="kw">else</span> {<span class="bool-val">false</span>};
-                        <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">element_type</span>), <span class="prelude-val">Some</span>(<span class="ident">exponant_type</span>)) <span class="op">=</span> (<span class="ident">element_type</span>, <span class="ident">exponant_type</span>) {
-                            <span class="kw">let</span> (<span class="ident">element_type</span>, <span class="ident">exponant_type</span>)  <span class="op">=</span> <span class="kw">match</span> (<span class="ident">element_type</span>.<span class="ident">get_type_information</span>(), <span class="ident">exponant_type</span>.<span class="ident">get_type_information</span>()) {
+                        <span class="kw">let</span> <span class="ident">is_exponent_positive_literal</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } <span class="op">=</span> <span class="ident">exponent</span> { <span class="ident">value</span>.<span class="ident">is_positive</span>() } <span class="kw">else</span> {<span class="bool-val">false</span>};
+                        <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">element_type</span>), <span class="prelude-val">Some</span>(<span class="ident">exponent_type</span>)) <span class="op">=</span> (<span class="ident">element_type</span>, <span class="ident">exponent_type</span>) {
+                            <span class="kw">let</span> (<span class="ident">element_type</span>, <span class="ident">exponant_type</span>)  <span class="op">=</span> <span class="kw">match</span> (<span class="ident">element_type</span>.<span class="ident">get_type_information</span>(), <span class="ident">exponent_type</span>.<span class="ident">get_type_information</span>()) {
                                 <span class="comment">//If both params are int types, convert to a common type and call an int power function</span>
                                 (<span class="ident">DataTypeInformation::Integer</span> { .. }, <span class="ident">DataTypeInformation::Integer</span> {<span class="ident">signed</span> : <span class="bool-val">false</span>, <span class="ident">size</span>, ..})
                                 <span class="op">|</span> (<span class="ident">DataTypeInformation::Integer</span> { .. }, <span class="ident">DataTypeInformation::Integer</span> {<span class="ident">signed</span> : <span class="bool-val">true</span>, <span class="ident">size</span>, ..}) <span class="kw">if</span> <span class="ident">is_exponent_positive_literal</span> =&gt; {
@@ -531,7 +569,7 @@
                                     <span class="kw">let</span> <span class="ident">exponant_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">DINT_SIZE</span> {
                                         <span class="ident">udint_type</span>
                                     } <span class="kw">else</span> {
-                                        <span class="ident">exponant_type</span>
+                                        <span class="ident">exponent_type</span>
                                     };
                                     (<span class="ident">element_type</span>.<span class="ident">get_name</span>(), <span class="ident">exponant_type</span>.<span class="ident">get_name</span>())
                                 },
@@ -545,7 +583,7 @@
                                         <span class="ident">dint_type</span>
                                     } <span class="kw">else</span> {
                                         <span class="comment">//For bigger types, we move to the target type (Effectively always LREAL)</span>
-                                        <span class="ident">get_bigger_type</span>(<span class="ident">target_type</span>, <span class="ident">exponant_type</span>, <span class="ident">annotator</span>.<span class="ident">index</span>)
+                                        <span class="ident">get_bigger_type</span>(<span class="ident">target_type</span>, <span class="ident">exponent_type</span>, <span class="ident">annotator</span>.<span class="ident">index</span>)
                                     };
                                     <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">get_bigger_type</span>(<span class="ident">target_type</span>, <span class="ident">exponant_type</span>, <span class="ident">annotator</span>.<span class="ident">index</span>);
                                     (<span class="ident">target_type</span>.<span class="ident">get_name</span>(), <span class="ident">exponant_type</span>.<span class="ident">get_name</span>())
@@ -554,7 +592,7 @@
                                 <span class="kw">_</span> =&gt; {
                                     <span class="comment">//Convert left and right to minimum REAL</span>
                                     <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">get_bigger_type</span>(
-                                        <span class="ident">get_bigger_type</span>(<span class="ident">element_type</span>, <span class="ident">exponant_type</span>, <span class="ident">annotator</span>.<span class="ident">index</span>), <span class="ident">real_type</span>, <span class="ident">annotator</span>.<span class="ident">index</span>);
+                                        <span class="ident">get_bigger_type</span>(<span class="ident">element_type</span>, <span class="ident">exponent_type</span>, <span class="ident">annotator</span>.<span class="ident">index</span>), <span class="ident">real_type</span>, <span class="ident">annotator</span>.<span class="ident">index</span>);
                                     (<span class="ident">target_type</span>.<span class="ident">get_name</span>(), <span class="ident">target_type</span>.<span class="ident">get_name</span>())
                                 }
                             };
@@ -574,7 +612,43 @@
                     <span class="macro">unreachable!</span>(<span class="string">&quot;Expt will always end up calling the real functions by the resolver magic&quot;</span>)
                 }
             }
-        )
+        ),
+        (
+            <span class="string">&quot;SIZEOF&quot;</span>,
+            <span class="ident">BuiltIn</span> {
+                <span class="ident">decl</span> : <span class="string">&quot;FUNCTION SIZEOF&lt;U: ANY&gt; : DINT
+                VAR_INPUT
+                    in : U;
+                END_VAR
+                END_FUNCTION&quot;</span>,
+                <span class="ident">annotation</span>: <span class="prelude-val">None</span>,
+                <span class="ident">generic_name_resolver</span>: <span class="ident">no_generic_name_resolver</span>,
+                <span class="ident">code</span> : <span class="op">|</span><span class="ident">generator</span>, <span class="ident">params</span>, <span class="ident">location</span><span class="op">|</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> [<span class="ident">reference</span>] <span class="op">=</span> <span class="ident">params</span> {
+                        <span class="comment">// get name of datatype behind reference</span>
+                        <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">annotations</span>
+                            .<span class="ident">get_type</span>(<span class="ident">reference</span>, <span class="ident">generator</span>.<span class="ident">index</span>)
+                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">generator</span>.<span class="ident">index</span>.<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">it</span>.<span class="ident">get_name</span>()))
+                            .<span class="ident">unwrap</span>()
+                            .<span class="ident">get_name</span>();
+
+                        <span class="comment">// return size of llvm type</span>
+                        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">llvm_index</span>
+                            .<span class="ident">get_associated_type</span>(<span class="ident">type_name</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Could not find associated data type: {type_name}&quot;</span>), <span class="ident">location</span>.<span class="ident">clone</span>())
+                            )<span class="question-mark">?</span>.<span class="ident">size_of</span>()
+                            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;Parameter type is not sized.&quot;</span>, <span class="ident">location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>
+                            .<span class="ident">as_basic_value_enum</span>();
+                            <span class="prelude-val">Ok</span>(<span class="ident">size</span>)
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
+                            <span class="string">&quot;Expected exactly one parameter for SIZEOF&quot;</span>,
+                            <span class="ident">location</span>,
+                        ))
+                    }
+                }
+            }
+        ),
     ]);
 }
 
