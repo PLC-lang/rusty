@@ -370,6 +370,21 @@ fn builtin_function_call_move() {
 }
 
 #[test]
+fn builtin_function_call_sizeof() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a: DINT;
+            b: LINT;
+        END_VAR
+            a := SIZEOF(b);
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn test_max_int() {
     let result = codegen(
         r"

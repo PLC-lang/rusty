@@ -613,7 +613,7 @@ fn duplicate_with_generic() {
     // AND the resolvers does its job
     let (mut annotations1, _) = TypeAnnotator::visit_unit(&global_index, &unit1, ids.clone());
     let (mut annotations2, _) = TypeAnnotator::visit_unit(&global_index, &unit2, ids.clone());
-    let (mut annotations3, _) = TypeAnnotator::visit_unit(&global_index, &unit3, ids.clone());
+    let (mut annotations3, _) = TypeAnnotator::visit_unit(&global_index, &unit3, ids);
     global_index.import(std::mem::take(&mut annotations1.new_index));
     global_index.import(std::mem::take(&mut annotations2.new_index));
     global_index.import(std::mem::take(&mut annotations3.new_index));
