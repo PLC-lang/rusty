@@ -14,14 +14,12 @@ entry:
   store i32 0, i32* %y, align 4
   store i32 0, i32* %main, align 4
   %load_x = load i32, i32* %x, align 4
-  %0 = sitofp i32 %load_x to float
   %load_y = load i32, i32* %y, align 4
-  %call = call float @EXPT__REAL__DINT(float %0, i32 %load_y)
-  %1 = fptosi float %call to i32
-  store i32 %1, i32* %main, align 4
+  %call = call i32 @EXPT__DINT__DINT(i32 %load_x, i32 %load_y)
+  store i32 %call, i32* %main, align 4
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }
 
-declare float @EXPT__REAL__DINT(float, i32)
+declare i32 @EXPT__DINT__DINT(i32, i32)
 

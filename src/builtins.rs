@@ -20,9 +20,7 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, TypeAnnotator, VisitorContext,
     },
-    typesystem::{
-        get_bigger_type, DataTypeInformation, DINT_SIZE, DINT_TYPE, REAL_TYPE, UDINT_TYPE,
-    },
+    typesystem::{get_bigger_type, DataTypeInformation, DINT_SIZE, DINT_TYPE, REAL_TYPE},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -198,22 +196,15 @@ lazy_static! {
                         let element_type = annotator.annotation_map.get_type(element, annotator.index);
                         let exponent_type = annotator.annotation_map.get_type(exponent, annotator.index);
                         let dint_type = annotator.index.get_type_or_panic(DINT_TYPE);
-                        let udint_type = annotator.index.get_type_or_panic(UDINT_TYPE);
                         let real_type = annotator.index.get_type_or_panic(REAL_TYPE);
-                        let is_exponent_positive_literal = if let AstStatement::LiteralInteger { value, .. } = exponent { value.is_positive() } else {false};
                         if let (Some(element_type), Some(exponent_type)) = (element_type, exponent_type) {
                             let (element_type, exponant_type)  = match (element_type.get_type_information(), exponent_type.get_type_information()) {
                                 //If both params are int types, convert to a common type and call an int power function
-                                (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {signed : false, size, ..})
-                                | (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {signed : true, size, ..}) if is_exponent_positive_literal => {
+                                (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer { .. }) => {
                                     //Convert both to minimum dint
-                                    let element_type = get_bigger_type(element_type, dint_type, annotator.index);
-                                    let exponant_type = if *size <= DINT_SIZE {
-                                        udint_type
-                                    } else {
-                                        exponent_type
-                                    };
-                                    (element_type.get_name(), exponant_type.get_name())
+                                    let target_type = get_bigger_type(element_type, dint_type, annotator.index);
+
+                                    (target_type.get_name(), exponent_type.get_name())
                                 },
                                 //If left is real, then if right is int call powi
                                 (_, DataTypeInformation::Integer {size, ..}) => {
@@ -221,14 +212,14 @@ lazy_static! {
                                     let target_type = get_bigger_type(element_type, real_type, annotator.index);
 
                                     // For integer powers, only a 32 bit integer is allowed
-                                    let exponant_type = if *size <= DINT_SIZE {
+                                    let exponent_type = if *size <= DINT_SIZE {
                                         dint_type
                                     } else {
                                         //For bigger types, we move to the target type (Effectively always LREAL)
                                         get_bigger_type(target_type, exponent_type, annotator.index)
                                     };
-                                    let target_type = get_bigger_type(target_type, exponant_type, annotator.index);
-                                    (target_type.get_name(), exponant_type.get_name())
+                                    let target_type = get_bigger_type(target_type, exponent_type, annotator.index);
+                                    (target_type.get_name(), exponent_type.get_name())
                                 },
                                 //If right is real convert to common real type and call powf
                                 _ => {

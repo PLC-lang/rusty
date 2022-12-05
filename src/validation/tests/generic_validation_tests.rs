@@ -1775,7 +1775,7 @@ fn any_date_allows_date() {
 }
 
 #[test]
-fn builtin_expt_with_literlals_without_explicit_type_annotation_does_not_report_errors() {
+fn builtin_expt_with_literals_without_explicit_type_annotation_does_not_report_errors() {
     let src = r"
     FUNCTION main : DINT
     VAR
@@ -1783,9 +1783,9 @@ fn builtin_expt_with_literlals_without_explicit_type_annotation_does_not_report_
         i2: DINT;
         r : REAL;
     END_VAR
-        i := 2**DINT#3; // this works
+        // i := 2**DINT#3; // this works
         i2 := 2**3; // this line reports an error
-        r := 3.0**2; // also does not seem to happen with REAL types
+        // r := 3.0**2; // also does not seem to happen with REAL types
     END_FUNCTION
     ";
 
