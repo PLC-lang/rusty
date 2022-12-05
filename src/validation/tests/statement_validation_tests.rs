@@ -783,3 +783,41 @@ fn program_call_parameter_validation() {
         ]
     );
 }
+
+#[test]
+fn assign_reference_to_reference() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(r#"
+    VAR_GLOBAL
+        global1 : STRUCT_params;
+        global2 : STRUCT_params;
+        global3 : STRUCT_params;
+    END_VAR
+
+    TYPE STRUCT_params :
+        STRUCT
+            param1 : BOOL;
+            param2 : BOOL;
+            param3 : BOOL;
+        END_STRUCT
+    END_TYPE
+
+    PROGRAM mainProg
+        program_0(
+            // ALL of these should be valid
+            input1 := ADR(global1),
+            input2 := REF(global2),
+            input3 := &global3
+        );
+    END_PROGRAM
+
+    PROGRAM program_0
+        VAR_INPUT
+            input1 : REF_TO STRUCT_params;
+            input2 : REF_TO STRUCT_params;
+            input3 : REF_TO STRUCT_params;
+        END_VAR
+    END_PROGRAM
+    "#);
+
+    assert!(diagnostics.is_empty());
+}

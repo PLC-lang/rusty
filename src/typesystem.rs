@@ -1029,12 +1029,43 @@ pub fn is_same_type_class(
 ) -> bool {
     let ltype = index.find_intrinsic_type(ltype);
     let rtype = index.find_intrinsic_type(rtype);
+
     match ltype {
         DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
         DataTypeInformation::Float { .. } => matches!(rtype, DataTypeInformation::Float { .. }),
         DataTypeInformation::String { encoding: lenc, .. } => {
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
+
+        // TODO: improve this
+        // 1) foo := ADR(bar)
+        // 2) foo := REF(bar)
+        // 3) foo := &bar
+        // In 1) ADDR(bar) ...; valid if...
+        // In 2) REF(bar) ...; valid if...
+        // In 3) &bar returns a pointer; valid if their elementary pointer types are the same
+        DataTypeInformation::Pointer { .. } => match rtype {
+            // TODO: hacky & unsafe
+            DataTypeInformation::Integer { .. } => matches!(
+                rtype,
+                DataTypeInformation::Integer { name, size, .. } if name == LWORD_TYPE && *size == 64
+            ),
+
+            DataTypeInformation::Pointer { .. } => {
+                // TODO: hacky & unsafe
+                if rtype.get_name() == "__REF_return" {
+                    return true;
+                }
+
+                let ldetails = index.find_elementary_pointer_type(ltype);
+                let rdetails = index.find_elementary_pointer_type(rtype);
+
+                ldetails == rdetails
+            }
+
+            _ => unreachable!(),
+        },
+
         _ => ltype == rtype,
     }
 }
