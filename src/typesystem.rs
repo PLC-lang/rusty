@@ -1060,7 +1060,7 @@ pub fn is_same_type_class(
                 ldetails == rdetails
             }
 
-            _ => unreachable!(),
+            _ => false,
         },
 
         _ => ltype == rtype,

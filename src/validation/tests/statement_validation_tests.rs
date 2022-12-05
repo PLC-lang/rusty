@@ -792,6 +792,10 @@ fn assign_reference_to_reference() {
         global1 : STRUCT_params;
         global2 : STRUCT_params;
         global3 : STRUCT_params;
+
+        global4 : String[3] := 'foo';
+        global5 : String[3] := 'bar';
+        global6 : String[6] := 'foobar';
     END_VAR
 
     TYPE STRUCT_params :
@@ -809,6 +813,13 @@ fn assign_reference_to_reference() {
             input2 := REF(global2),
             input3 := &global3
         );
+
+        program_0(
+            // NONE of these should be valid
+            input1 := ADR(global4),
+            input2 := REF(global5),
+            input3 := REF(global6),
+        );
     END_PROGRAM
 
     PROGRAM program_0
@@ -821,5 +832,6 @@ fn assign_reference_to_reference() {
     "#,
     );
 
-    assert!(diagnostics.is_empty());
+    // TODO: this is currently failing because ADR() and REF() are not handled properly
+    assert_eq!(diagnostics.len(), 3);
 }
