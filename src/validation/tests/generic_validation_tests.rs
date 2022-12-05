@@ -1773,3 +1773,22 @@ fn any_date_allows_date() {
     let diagnostics = parse_and_validate(src);
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn builtin_expt_with_literlals_without_explicit_type_annotation_does_not_report_errors() {
+    let src = r"
+    FUNCTION main : DINT
+    VAR
+        i : DINT;
+        i2: DINT;
+        r : REAL;
+    END_VAR
+        i := 2**DINT#3; // this works
+        i2 := 2**3; // this line reports an error
+        r := 3.0**2; // also does not seem to happen with REAL types
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(diagnostics, vec![]);
+}
