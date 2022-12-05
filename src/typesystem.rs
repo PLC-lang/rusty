@@ -1037,26 +1037,23 @@ pub fn is_same_type_class(
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
 
-        // TODO: improve this
-        // 1) foo := ADR(bar)
-        // 2) foo := REF(bar)
-        // 3) foo := &bar
-        // In 1) ADDR(bar) ...; valid if...
-        // In 2) REF(bar) ...; valid if...
-        // In 3) &bar returns a pointer; valid if their elementary pointer types are the same
+        // We have to handle 3 different cases here:
+        // 1. foo := ADR(bar)
+        // 2. foo := REF(bar)
+        // 3. foo := &bar
+        // TODO: Case 1 and 2s implementation are super hacky and kind of unsafe; improve this
         DataTypeInformation::Pointer { .. } => match rtype {
-            // TODO: hacky & unsafe
+            // Case 1: ADR(bar) returns a `LWORD` value, thus we check if we have a LWORD_TYPE
             DataTypeInformation::Integer { .. } => matches!(
                 rtype,
-                DataTypeInformation::Integer { name, size, .. } if name == LWORD_TYPE && *size == 64
+                DataTypeInformation::Integer { name, .. } if name == LWORD_TYPE
             ),
 
-            DataTypeInformation::Pointer { .. } => {
-                // TODO: hacky & unsafe
-                if rtype.get_name() == "__REF_return" {
-                    return true;
-                }
+            // Case 2: REF(bar) returns a generic, thus we check if its name is `__REF_return`
+            DataTypeInformation::Pointer { .. } if rtype.get_name() == "__REF_return" => true,
 
+            // Case 3: &bar returns a pointer, thus we check if ltype and rtype deduce to the same inner type
+            DataTypeInformation::Pointer { .. } => {
                 let ldetails = index.find_elementary_pointer_type(ltype);
                 let rdetails = index.find_elementary_pointer_type(rtype);
 

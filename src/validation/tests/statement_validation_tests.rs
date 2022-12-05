@@ -786,7 +786,8 @@ fn program_call_parameter_validation() {
 
 #[test]
 fn assign_reference_to_reference() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(r#"
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        r#"
     VAR_GLOBAL
         global1 : STRUCT_params;
         global2 : STRUCT_params;
@@ -817,7 +818,8 @@ fn assign_reference_to_reference() {
             input3 : REF_TO STRUCT_params;
         END_VAR
     END_PROGRAM
-    "#);
+    "#,
+    );
 
     assert!(diagnostics.is_empty());
 }
