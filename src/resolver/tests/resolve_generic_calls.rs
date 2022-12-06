@@ -556,6 +556,53 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
 }
 
 #[test]
+fn builtin_adr_ref_return_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM main 
+        VAR_INPUT
+            input1 : REF_TO DINT;
+            input2 : REF_TO BOOL;
+            input3 : REF_TO STRING;
+
+            intA : DINT;
+            boolA : BOOL;
+            strA : STRING;
+        END_VAR
+            input1 := ADR(intA);
+            input1 := REF(intA);
+            input1 := &intA;
+            input2 := ADR(intA);(*Wrong*)
+            input2 := REF(boolA);
+            input2 := &strA;(*Wrong*)
+            input3 := ADR(intA); (*Wrong*)
+            input3 := REF(boolA);(*Wrong*)
+            input3 := &intA;
+        END_PROGRAM
+    ", id_provider.clone());
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    let in1 = &unit.implementations[0].statements[0];
+    if let AstStatement::Assignment { right, .. } = in1 {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), LWORD_TYPE, Some("__main_input1"));
+    }
+    let in2 = &unit.implementations[0].statements[1];
+    if let AstStatement::Assignment { right, .. } = in2 {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), "__POINTER_TO_DINT", Some("__main_input1"));
+        let ref_type = annotations.get_type_or_void(right.as_ref(), &index);
+        if let DataTypeInformation::Pointer { inner_type_name, .. } = ref_type.get_type_information() {
+            assert_eq!(DINT_TYPE, index.find_effective_type_by_name(&inner_type_name).unwrap().get_name())
+        } else {
+            unreachable!("Expecting a pointer but found {}", ref_type.get_name())
+        }
+    }
+    let in4 = &unit.implementations[0].statements[3];
+    if let AstStatement::Assignment { right, .. } = in4 {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), LWORD_TYPE, Some("__main_input2"));
+    }
+} 
+
+#[test]
 fn builtin_sel_param_type_is_not_changed() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(

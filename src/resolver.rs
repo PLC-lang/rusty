@@ -1557,7 +1557,9 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(StatementAnnotation::Function { return_type, .. }) =
             self.annotation_map.get(operator)
         {
-            if let Some(return_type) = self.index.find_effective_type_by_name(return_type) {
+            if let Some(return_type) = self.index.find_effective_type_by_name(return_type)
+            .or_else(|| self.annotation_map.new_index.find_effective_type_by_name(return_type))
+             {
                 self.annotation_map.annotate(
                     statement,
                     StatementAnnotation::value(return_type.get_name()),
@@ -1741,7 +1743,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
 }
 
 /// adds a pointer to the given inner_type to the given index and return's its name
-fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
+pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
     let new_type_name =
         typesystem::create_internal_type_name("POINTER_TO_", inner_type_name.as_str());
 

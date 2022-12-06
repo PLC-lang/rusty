@@ -17,6 +17,7 @@ use crate::{
     lexer::{self, IdProvider},
     parser,
     resolver::{
+        self,
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, TypeAnnotator, VisitorContext,
     },
@@ -62,7 +63,26 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: None,
+                annotation: Some(|annotator, operator, parameters, context|
+                    {
+                    let params = parameters.ok_or_else(|| Diagnostic::codegen_error("EXPT requires parameters", operator.get_location()))?;
+                        if let [input] = flatten_expression_list(params)[..] {
+                            //Get type for input
+                            let input_type = annotator.annotation_map.get_type_or_void(input, annotator.index).get_name().to_string();
+                            //Annotate operator with that type
+                            let ptr_type = resolver::add_pointer_type(&mut annotator.annotation_map.new_index, input_type);
+                            annotator.annotation_map.annotate(
+                                operator, resolver::StatementAnnotation::Function {
+                                    return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None 
+                                }
+                            );
+                            Ok(())
+                        } else {
+                            unreachable!()
+                        }
+
+                    }
+            ),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {

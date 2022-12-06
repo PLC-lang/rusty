@@ -1030,6 +1030,7 @@ pub fn is_same_type_class(
     let ltype = index.find_intrinsic_type(ltype);
     let rtype = index.find_intrinsic_type(rtype);
 
+    dbg!((ltype,rtype));
     match ltype {
         DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
         DataTypeInformation::Float { .. } => matches!(rtype, DataTypeInformation::Float { .. }),
@@ -1050,7 +1051,10 @@ pub fn is_same_type_class(
             ),
 
             // Case 2: REF(bar) returns a generic, thus we check if its name is `__REF_return`
-            DataTypeInformation::Pointer { .. } if rtype.get_name() == "__REF_return" => true,
+            DataTypeInformation::Pointer { .. } if rtype.get_name() == "__REF_return" => {
+                dbg!(index.get_effective_type_by_name(rtype.get_name()));
+                true
+            }
 
             // Case 3: &bar returns a pointer, thus we check if ltype and rtype deduce to the same inner type
             DataTypeInformation::Pointer { .. } => {
@@ -1060,6 +1064,7 @@ pub fn is_same_type_class(
                 ldetails == rdetails
             }
 
+            // If neither case 1, 2 or 3 apply they're not the same type
             _ => false,
         },
 
