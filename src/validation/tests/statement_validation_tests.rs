@@ -785,7 +785,7 @@ fn program_call_parameter_validation() {
 }
 
 #[test]
-fn assign_reference_to_reference() {
+fn reference_to_reference_assignments_in_function_arguments() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         r#"
     VAR_GLOBAL
@@ -793,8 +793,8 @@ fn assign_reference_to_reference() {
         global2 : STRUCT_params;
         global3 : STRUCT_params;
 
-        global4 : String[3] := 'foo';
-        global5 : String[3] := 'bar';
+        global4 : INT := 1;
+        global5 : REAL := 1.1;
         global6 : String[6] := 'foobar';
     END_VAR
 
@@ -806,32 +806,48 @@ fn assign_reference_to_reference() {
         END_STRUCT
     END_TYPE
 
-    PROGRAM mainProg
-        program_0(
-            // ALL of these should be valid
-            input1 := ADR(global1),
-            input2 := REF(global2),
-            input3 := &global3
-        );
-
-        program_0(
-            // NONE of these should be valid
-            input1 := ADR(global4),
-            input2 := REF(global5),
-            input3 := REF(global6),
-        );
-    END_PROGRAM
-
-    PROGRAM program_0
+    PROGRAM prog
         VAR_INPUT
             input1 : REF_TO STRUCT_params;
             input2 : REF_TO STRUCT_params;
             input3 : REF_TO STRUCT_params;
         END_VAR
     END_PROGRAM
+
+    PROGRAM main
+        prog(
+            // ALL of these should be valid
+            input1 := ADR(global1),
+            input2 := REF(global2),
+            input3 := &global3
+        );
+
+        prog(
+            // ALL of these should be valid because ADR(...) returns no type information and instead
+            // only a LWORD is returned which we allow to be assigned to any pointer
+            input1 := ADR(global4),
+            input2 := ADR(global5),
+            input3 := ADR(global6),
+        );
+
+        prog(
+            // NONE of these should be valid because REF(...) returns type information and we
+            // explicitly check if pointer assignments are of the same type
+            input1 := REF(global4),
+            input2 := REF(global5),
+            input3 := REF(global6),
+        );
+        
+        prog(
+            // NONE of these should be valid because &(...) returns type information and we
+            // explicitly check if pointer assignments are of the same type
+            input1 := &(global4),
+            input2 := &(global5),
+            input3 := &(global6),
+        );
+    END_PROGRAM
     "#,
     );
 
-    // TODO: this is currently failing because ADR() and REF() are not handled properly
-    assert_eq!(diagnostics.len(), 3);
+    assert_eq!(diagnostics.len(), 6);
 }

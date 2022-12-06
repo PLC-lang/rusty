@@ -312,6 +312,13 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_lword(&self) -> bool {
+        match self {
+            DataTypeInformation::Integer { name, .. } => name == LWORD_TYPE,
+            _ => false,
+        }
+    }
+
     pub fn is_bool(&self) -> bool {
         matches!(
             self,
@@ -1030,7 +1037,6 @@ pub fn is_same_type_class(
     let ltype = index.find_intrinsic_type(ltype);
     let rtype = index.find_intrinsic_type(rtype);
 
-    dbg!((ltype,rtype));
     match ltype {
         DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
         DataTypeInformation::Float { .. } => matches!(rtype, DataTypeInformation::Float { .. }),
@@ -1042,21 +1048,12 @@ pub fn is_same_type_class(
         // 1. foo := ADR(bar)
         // 2. foo := REF(bar)
         // 3. foo := &bar
-        // TODO: Case 1 and 2s implementation are super hacky and kind of unsafe; improve this
         DataTypeInformation::Pointer { .. } => match rtype {
-            // Case 1: ADR(bar) returns a `LWORD` value, thus we check if we have a LWORD_TYPE
-            DataTypeInformation::Integer { .. } => matches!(
-                rtype,
-                DataTypeInformation::Integer { name, .. } if name == LWORD_TYPE
-            ),
+            // Case 1: ADR(bar) returns a LWORD value, thus check if we're working with a LWORD 
+            DataTypeInformation::Integer { .. } => rtype.is_lword(),
 
-            // Case 2: REF(bar) returns a generic, thus we check if its name is `__REF_return`
-            DataTypeInformation::Pointer { .. } if rtype.get_name() == "__REF_return" => {
-                dbg!(index.get_effective_type_by_name(rtype.get_name()));
-                true
-            }
-
-            // Case 3: &bar returns a pointer, thus we check if ltype and rtype deduce to the same inner type
+            // Case 2 & 3:
+            // REF(...) and &bar returns a pointer, thus deduce their inner types and check if they're equal
             DataTypeInformation::Pointer { .. } => {
                 let ldetails = index.find_elementary_pointer_type(ltype);
                 let rdetails = index.find_elementary_pointer_type(rtype);
@@ -1064,7 +1061,7 @@ pub fn is_same_type_class(
                 ldetails == rdetails
             }
 
-            // If neither case 1, 2 or 3 apply they're not the same type
+            // If nothing applies we can assume the types to be different
             _ => false,
         },
 
