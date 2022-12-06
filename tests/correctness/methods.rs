@@ -63,3 +63,35 @@ END_CLASS
     //Expecting it not to fail
     assert_eq!(res, 42);
 }
+
+// issue #402 testcase added
+#[test]
+//#[ignore = "class support postponed"]
+fn method_can_resolve_non_class_functions() {
+    let src = "
+    FUNCTION foo : DINT
+        foo := 42;
+    END_FUNCTION
+    
+    CLASS baz 
+    METHOD test : DINT
+        test := foo();
+    END_METHOD
+    END_CLASS
+
+    PROGRAM prg
+        VAR x : baz; END_VAR
+        VAR_OUTPUT y : DINT; END_VAR
+        y := x.test();
+    END_PROGRAM
+
+    FUNCTION main : DINT 
+        prg();
+        main := prg.y;
+    END_FUNCTION
+    ";
+
+    let res: i32 = compile_and_run(src, &mut MainType::default());
+    //Expecting it not to fail
+    assert_eq!(res, 42);
+}
