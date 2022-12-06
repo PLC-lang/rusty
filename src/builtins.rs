@@ -63,7 +63,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, context|
+                annotation: Some(|annotator, operator, parameters, _|
                     {
                     let params = parameters.ok_or_else(|| Diagnostic::codegen_error("EXPT requires parameters", operator.get_location()))?;
                         if let [input] = flatten_expression_list(params)[..] {

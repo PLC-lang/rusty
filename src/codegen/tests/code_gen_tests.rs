@@ -3097,3 +3097,43 @@ fn sub_range_check_functions() {
     // with the correct type cast for parameters and return type
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn reference_to_reference_assignments_in_function_arguments() {
+    let result = codegen(
+        r#"
+    VAR_GLOBAL
+        global1 : STRUCT_params;
+        global2 : STRUCT_params;
+        global3 : STRUCT_params;
+    END_VAR
+
+    TYPE STRUCT_params :
+        STRUCT
+            param1 : BOOL;
+            param2 : BOOL;
+            param3 : BOOL;
+        END_STRUCT
+    END_TYPE
+
+    PROGRAM prog
+        VAR_INPUT
+            input1 : REF_TO STRUCT_params;
+            input2 : REF_TO STRUCT_params;
+            input3 : REF_TO STRUCT_params;
+        END_VAR
+    END_PROGRAM
+
+    PROGRAM main
+        prog(
+            // ALL of these should have an identical IR representation
+            input1 := ADR(global1),
+            input2 := REF(global2),
+            input3 := &global3
+        );
+    END_PROGRAM
+    "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
