@@ -190,7 +190,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    fn register_debug_location(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
+    fn register_debug_location(&self, statement: &AstStatement) {
         let function_context = self
             .function_context
             .expect("Cannot generate debug info without function context");
@@ -201,7 +201,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .new_lines
             .get_column(line, statement.get_location().get_start());
         self.debug
-            .set_debug_location(self.llvm, &function_context.function, line, column)
+            .set_debug_location(self.llvm, &function_context.function, line, column);
     }
 
     fn generate_expression_value(
@@ -593,7 +593,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 )
             })?;
         //Generate the debug statetment for a call
-        self.register_debug_location(operator)?;
+        self.register_debug_location(operator);
 
         // if this is a function that returns an aggregate type we need to allocate an out.pointer
         let by_ref_func_out: Option<PointerValue> =

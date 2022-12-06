@@ -156,7 +156,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
             AstStatement::ReturnStatement { .. } => {
-                self.register_debug_location(statement)?;
+                self.register_debug_location(statement);
                 self.pou_generator
                     .generate_return_statement(self.function_context, self.llvm_index)?;
                 self.generate_buffer_block();
@@ -201,7 +201,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         right_statement: &AstStatement,
     ) -> Result<(), Diagnostic> {
         //Register any debug info for the store
-        self.register_debug_location(left_statement)?;
+        self.register_debug_location(left_statement);
         //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         if left_statement.has_direct_access() {
             return self.generate_direct_access_assignment(left_statement, right_statement);
@@ -224,7 +224,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
-    fn register_debug_location(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
+    fn register_debug_location(&self, statement: &AstStatement) {
         let line = self
             .function_context
             .new_lines
@@ -234,7 +234,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .new_lines
             .get_column(line, statement.get_location().get_start());
         self.debug
-            .set_debug_location(self.llvm, &self.function_context.function, line, column)
+            .set_debug_location(self.llvm, &self.function_context.function, line, column);
     }
 
     fn generate_direct_access_assignment(

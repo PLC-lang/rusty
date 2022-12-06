@@ -65,7 +65,7 @@ pub trait Debug<'ink> {
         //Current line starts with 0
         line: usize,
         column: usize,
-    ) -> Result<(), Diagnostic>;
+    );
 
     /// Reginsters a new function for debugging, this method is responsible for registering a
     /// function's stub as well as its interface (variables/parameters)
@@ -77,7 +77,7 @@ pub trait Debug<'ink> {
         return_type: Option<&'idx DataType>,
         parameter_types: &[&'idx DataType],
         implementation_start: u32,
-    ) -> Result<(), Diagnostic>;
+    );
 
     /// Registers a new datatype for debugging
     fn register_debug_type<'idx>(
@@ -93,7 +93,7 @@ pub trait Debug<'ink> {
         name: &str,
         type_name: &str,
         global_variable: GlobalValue<'ink>,
-    ) -> Result<(), Diagnostic>;
+    );
 
     /// Creates a locally accessible variable.
     fn register_local_variable(
@@ -101,7 +101,7 @@ pub trait Debug<'ink> {
         variable: &VariableIndexEntry,
         alignment: u32,
         scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic>;
+    );
 
     /// Creates a debug entry for a function parameter
     fn register_parameter(
@@ -109,14 +109,10 @@ pub trait Debug<'ink> {
         variable: &VariableIndexEntry,
         arg_no: usize,
         scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic>;
+    );
 
     /// Create the debug entry for an Function POU entry
-    fn register_struct_parameter(
-        &mut self,
-        pou: &PouIndexEntry,
-        scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic>;
+    fn register_struct_parameter(&mut self, pou: &PouIndexEntry, scope: FunctionValue<'ink>);
 
     fn add_variable_declaration(
         &self,
@@ -126,11 +122,11 @@ pub trait Debug<'ink> {
         block: BasicBlock<'ink>,
         line: usize,
         column: usize,
-    ) -> Result<(), Diagnostic>;
+    );
 
     /// When code generation is done, this method needs to be called to ensure the inner LLVM state
     /// of the debug builder has been finalized.
-    fn finalize(&self) -> Result<(), Diagnostic>;
+    fn finalize(&self);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -422,7 +418,7 @@ impl<'ink> DebugBuilder<'ink> {
         &self,
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
-    ) -> Result<DISubroutineType, Diagnostic> {
+    ) -> DISubroutineType {
         let return_type = return_type
             .filter(|it| !it.is_aggregate_type())
             .and_then(|dt| self.types.get(dt.get_name()))
@@ -436,24 +432,21 @@ impl<'ink> DebugBuilder<'ink> {
                     .get(dt.get_name().to_lowercase().as_str())
                     .copied()
                     .map(Into::into)
-                    .ok_or_else(|| {
-                        Diagnostic::codegen_error(
-                            &format!(
-                                "Could not find debug type information for {}",
-                                dt.get_name()
-                            ),
-                            SourceRange::undefined(),
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "Cound not find debug type information for {}",
+                            dt.get_name()
                         )
-                    })
+                    }) //Types should be created by this stage
             })
-            .collect::<Result<Vec<DIType>, Diagnostic>>()?;
+            .collect::<Vec<DIType>>();
 
-        Ok(self.debug_info.create_subroutine_type(
+        self.debug_info.create_subroutine_type(
             self.compile_unit.get_file(),
             return_type,
             &parameter_types,
             DIFlagsConstants::PUBLIC,
-        ))
+        )
     }
 
     fn create_function(
@@ -462,10 +455,10 @@ impl<'ink> DebugBuilder<'ink> {
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
         implementation_start: u32,
-    ) -> Result<DISubprogram, Diagnostic> {
+    ) -> DISubprogram {
         let is_external = matches!(pou.get_linkage(), LinkageType::External);
-        let ditype = self.create_subroutine_type(return_type, parameter_types)?;
-        Ok(self.debug_info.create_function(
+        let ditype = self.create_subroutine_type(return_type, parameter_types);
+        self.debug_info.create_function(
             self.compile_unit.get_file().as_debug_info_scope(),
             pou.get_name(),
             Some(pou.get_name()), // for generics e.g. NAME__TYPE
@@ -478,7 +471,7 @@ impl<'ink> DebugBuilder<'ink> {
             implementation_start + 1,
             DIFlagsConstants::PUBLIC,
             self.optimization.is_optimized(),
-        ))
+        )
     }
 
     ///Creates the debug information for function variables
@@ -491,7 +484,7 @@ impl<'ink> DebugBuilder<'ink> {
         pou: &PouIndexEntry,
         func: FunctionValue<'ink>,
         index: &Index,
-    ) -> Result<(), Diagnostic> {
+    ) {
         let mut param_offset = 0;
         //Register the return and local variables for debugging
         for variable in index
@@ -506,10 +499,10 @@ impl<'ink> DebugBuilder<'ink> {
             //If the variable is an aggregate return type, register it as first parameter, and
             //increase the param count
             if variable.is_return() && var_type.is_aggregate_type() {
-                self.register_aggregate_return(variable, var_type, func)?;
+                self.register_aggregate_return(variable, var_type, func);
                 param_offset += 1;
             } else {
-                self.register_local_variable(variable, alignment, func)?;
+                self.register_local_variable(variable, alignment, func);
             }
         }
         let implementation = pou
@@ -517,19 +510,16 @@ impl<'ink> DebugBuilder<'ink> {
             .expect("A POU will have an impl at this stage");
         if implementation.implementation_type != ImplementationType::Function {
             if implementation.get_implementation_type() == &ImplementationType::Method {
-                return Err(Diagnostic::codegen_error(
-                    "Method debugging not yet implemented",
-                    implementation.get_location().source_range.clone(),
-                ));
+                //Methods ignored for now
+            } else {
+                self.register_struct_parameter(pou, func);
             }
-            self.register_struct_parameter(pou, func)
         } else {
             let declared_params = index.get_declared_parameters(implementation.get_call_name());
             //Register all parameters for debugging
             for (index, variable) in declared_params.iter().enumerate() {
-                self.register_parameter(variable, index + param_offset, func)?;
+                self.register_parameter(variable, index + param_offset, func);
             }
-            Ok(())
         }
     }
 
@@ -538,18 +528,12 @@ impl<'ink> DebugBuilder<'ink> {
         variable: &VariableIndexEntry,
         var_type: &DataType,
         scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
-        dbg!(self.types.keys());
+    ) {
         let original_type = self
             .types
             .get(&var_type.get_name().to_lowercase())
             .copied()
-            .ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    &format!("Cannot find type {} in debug types", variable.get_name()),
-                    variable.source_location.source_range.clone(),
-                )
-            })?
+            .unwrap_or_else(|| panic!("Cannot find type {} in debug types", variable.get_name()))
             .into();
         let data_layout = DataLayout::default();
         let debug_type = self.debug_info.create_pointer_type(
@@ -577,18 +561,11 @@ impl<'ink> DebugBuilder<'ink> {
         );
         self.variables
             .insert(variable.get_qualified_name().to_string(), debug_variable);
-        Ok(())
     }
 }
 
 impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
-    fn set_debug_location(
-        &self,
-        llvm: &Llvm,
-        scope: &FunctionValue,
-        line: usize,
-        column: usize,
-    ) -> Result<(), Diagnostic> {
+    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionValue, line: usize, column: usize) {
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -602,7 +579,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         );
         llvm.builder
             .set_current_debug_location(llvm.context, location);
-        Ok(())
     }
 
     fn register_function<'idx>(
@@ -613,12 +589,12 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         return_type: Option<&'idx DataType>,
         parameter_types: &[&'idx DataType],
         implementation_start: u32,
-    ) -> Result<(), Diagnostic> {
+    ) {
         let subprogram =
-            self.create_function(pou, return_type, parameter_types, implementation_start)?;
+            self.create_function(pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
         //Create function parameters
-        self.create_function_variables(pou, func, index)
+        self.create_function_variables(pou, func, index);
     }
 
     fn register_debug_type<'idx>(
@@ -702,7 +678,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         name: &str,
         type_name: &str,
         global_variable: GlobalValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) {
         if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
             let debug_variable = self.debug_info.create_global_variable_expression(
                 self.compile_unit.get_file().as_debug_info_scope(),
@@ -721,8 +697,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             global_variable.set_metadata(gv_metadata, 0);
             self.context.metadata_node(&[gv_metadata.into()]);
         }
-
-        Ok(())
     }
 
     fn register_local_variable(
@@ -730,7 +704,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         variable: &VariableIndexEntry,
         alignment: u32,
         scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) {
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let line = location.line_number;
@@ -754,8 +728,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             self.variables
                 .insert(variable.get_qualified_name().to_string(), debug_variable);
         }
-
-        Ok(())
     }
 
     fn register_parameter(
@@ -763,7 +735,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         variable: &VariableIndexEntry,
         arg_no: usize,
         scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) {
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let line = location.line_number;
@@ -787,15 +759,9 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             self.variables
                 .insert(variable.get_qualified_name().to_string(), debug_variable);
         }
-
-        Ok(())
     }
 
-    fn register_struct_parameter(
-        &mut self,
-        pou: &PouIndexEntry,
-        scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    fn register_struct_parameter(&mut self, pou: &PouIndexEntry, scope: FunctionValue<'ink>) {
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -815,8 +781,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             self.variables
                 .insert(pou.get_name().to_string(), debug_variable);
         }
-
-        Ok(())
     }
 
     fn add_variable_declaration(
@@ -827,7 +791,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         block: BasicBlock<'ink>,
         line: usize,
         column: usize,
-    ) -> Result<(), Diagnostic> {
+    ) {
         let scope = scope
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
@@ -848,28 +812,19 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 block,
             );
         }
-
-        Ok(())
     }
 
-    fn finalize(&self) -> Result<(), Diagnostic> {
+    fn finalize(&self) {
         self.debug_info.finalize();
-        Ok(())
     }
 }
 
 impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
-    fn set_debug_location(
-        &self,
-        llvm: &Llvm,
-        scope: &FunctionValue,
-        line: usize,
-        column: usize,
-    ) -> Result<(), Diagnostic> {
+    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionValue, line: usize, column: usize) {
         match self {
-            Self::None | Self::VariablesOnly(..) => Ok(()),
+            Self::None | Self::VariablesOnly(..) => {}
             Self::Full(obj) => obj.set_debug_location(llvm, scope, line, column),
-        }
+        };
     }
 
     fn register_function<'idx>(
@@ -880,9 +835,9 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         return_type: Option<&'idx DataType>,
         parameter_types: &[&'idx DataType],
         implementation_start: u32,
-    ) -> Result<(), Diagnostic> {
+    ) {
         match self {
-            Self::None | Self::VariablesOnly(..) => Ok(()),
+            Self::None | Self::VariablesOnly(..) => {}
             Self::Full(obj) => obj.register_function(
                 index,
                 func,
@@ -891,7 +846,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
                 parameter_types,
                 implementation_start,
             ),
-        }
+        };
     }
 
     fn register_debug_type<'idx>(
@@ -913,9 +868,9 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         name: &str,
         type_name: &str,
         global_variable: GlobalValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) {
         match self {
-            Self::None => Ok(()),
+            Self::None => {}
             Self::VariablesOnly(obj) | Self::Full(obj) => {
                 obj.create_global_variable(name, type_name, global_variable)
             }
@@ -927,9 +882,9 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         variable: &VariableIndexEntry,
         alignment: u32,
         scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) {
         match self {
-            Self::None | Self::VariablesOnly(_) => Ok(()),
+            Self::None | Self::VariablesOnly(_) => {}
             Self::Full(obj) => obj.register_local_variable(variable, alignment, scope),
         }
     }
@@ -939,20 +894,16 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         variable: &VariableIndexEntry,
         arg_no: usize,
         scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) {
         match self {
-            Self::None | Self::VariablesOnly(_) => Ok(()),
+            Self::None | Self::VariablesOnly(_) => {}
             Self::Full(obj) => obj.register_parameter(variable, arg_no, scope),
         }
     }
 
-    fn register_struct_parameter(
-        &mut self,
-        pou: &PouIndexEntry,
-        scope: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    fn register_struct_parameter(&mut self, pou: &PouIndexEntry, scope: FunctionValue<'ink>) {
         match self {
-            Self::None | Self::VariablesOnly(_) => Ok(()),
+            Self::None | Self::VariablesOnly(_) => {}
             Self::Full(obj) => obj.register_struct_parameter(pou, scope),
         }
     }
@@ -965,18 +916,18 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         block: BasicBlock<'ink>,
         line: usize,
         column: usize,
-    ) -> Result<(), Diagnostic> {
+    ) {
         match self {
-            Self::None | Self::VariablesOnly(_) => Ok(()),
+            Self::None | Self::VariablesOnly(_) => {}
             Self::Full(obj) => {
                 obj.add_variable_declaration(name, value, scope, block, line, column)
             }
         }
     }
 
-    fn finalize(&self) -> Result<(), Diagnostic> {
+    fn finalize(&self) {
         match self {
-            Self::None => Ok(()),
+            Self::None => {}
             Self::VariablesOnly(obj) | Self::Full(obj) => obj.finalize(),
         }
     }

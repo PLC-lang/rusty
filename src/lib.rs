@@ -672,7 +672,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
 
-    code_generator.finalize()?;
+    code_generator.finalize();
 
     #[cfg(feature = "verify")]
     {

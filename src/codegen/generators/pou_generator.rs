@@ -203,7 +203,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 return_type,
                 parameter_types.as_slice(),
                 implementation.get_location().line_number as u32,
-            )?;
+            );
         }
         Ok(curr_f)
     }
@@ -288,7 +288,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 (line, column)
             })
             .unwrap();
-        debug.set_debug_location(&self.llvm, &current_function, line, column)?;
+        debug.set_debug_location(&self.llvm, &current_function, line, column);
 
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
@@ -494,7 +494,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             m.source_location.line_number,
                             m.source_location.source_range.get_start(),
                         ),
-                    )?;
+                    );
                 }
                 self.llvm.builder.build_store(ptr, ptr_value);
 
@@ -541,7 +541,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 block,
                 line,
                 column,
-            )?;
+            );
         }
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
@@ -610,7 +610,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             variable.source_location.line_number,
                             variable.source_location.source_range.get_start(),
                         ),
-                    )?;
+                    );
                 }
                 let right_stmt = self
                     .index
