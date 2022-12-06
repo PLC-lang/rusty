@@ -3781,14 +3781,15 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
     // GIVEN
     let (unit, mut index) = index_with_ids(
         "
-        TYPE myStruct : STRUCT 
-            	a,b : DINT; 
-        	END_STRUCT
+		TYPE myStruct : STRUCT
+				a, b : DINT;
+				c : ARRAY[0..1] OF DINT;
+			END_STRUCT
 		END_TYPE
 
 		PROGRAM main
 		VAR
-			arr : ARRAY[0..1] OF myStruct := ((a:= 10, b:= 20), (a:= 30, b:= 40));
+			arr : ARRAY[0..1] OF myStruct := ((a := 10, b := 20, c := (30, 40)), (a := 50, b := 60, c := (70, 80)));
 		END_VAR
 		END_PROGRAM",
         id_provider.clone(),
@@ -3799,7 +3800,7 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
 
     let container_name = &unit.implementations[0].name; // main
     let members = index.get_container_members(container_name);
-    // there is only one member => arr
+    // there is only one member => main.arr
     assert_eq!(1, members.len());
 
     if let Some(AstStatement::ExpressionList { expressions, .. }) = index
@@ -3811,11 +3812,33 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
         let target_type = index
             .find_effective_type_by_name("myStruct")
             .expect("at this point we should have the type");
+        // each expression is an expression list and contains assignments for the struct fields (a, b, c)
         for e in expressions {
+            // the expression list should be annotated with the structs type
             let type_hint = annotations
                 .get_type_hint(e, &index)
                 .expect("we should have a type hint");
             assert_eq!(target_type, type_hint);
+
+            // we have three assignments (a, b, c)
+            let assignments = flatten_expression_list(e);
+            assert_eq!(3, assignments.len());
+            // the last expression of the list is the assignment to myStruct.c (array initialization)
+            if let AstStatement::Assignment { left, right, .. } = assignments
+                .last()
+                .expect("this should be the array initialization for myStruct.c")
+            {
+                // the array initialization should be annotated with the correct type hint (myStruct.c type)
+                let target_type = annotations
+                    .get_type(left, &index)
+                    .expect("we should have the type");
+                let array_init_type = annotations
+                    .get_type_hint(right, &index)
+                    .expect("we should have a type hint");
+                assert_eq!(target_type, array_init_type);
+            } else {
+                panic!("should be an assignment")
+            }
         }
     } else {
         panic!("No initial value, initial value should be an expression list")
