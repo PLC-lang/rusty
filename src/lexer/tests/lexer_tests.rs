@@ -698,7 +698,7 @@ fn direct_access_test() {
     let mut lexer = lex(r"
         %X1 %x1 %B1 %b1
         %W1 %w1 %D1 %d1
-        %X1_1
+        %L1 %l1 %X1_1
     ");
 
     assert_eq!(lexer.token, DirectAccess(DirectAccessType::Bit));
@@ -733,6 +733,14 @@ fn direct_access_test() {
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::LWord));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::LWord));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
     assert_eq!(lexer.token, DirectAccess(DirectAccessType::Bit));
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
@@ -742,7 +750,7 @@ fn direct_access_test() {
 
 #[test]
 fn hardware_access_test() {
-    let mut lexer = lex("AT %I* %Q* %M* %IX1.1 %IB2.2 %QW5 %MD7 %GX8");
+    let mut lexer = lex("AT %I* %Q* %M* %IX1.1 %IB2.2 %QW5 %MD7 %IL6 %GX8");
     assert_eq!(lexer.token, KeywordAt);
     lexer.advance();
     assert_eq!(
@@ -792,6 +800,13 @@ fn hardware_access_test() {
     assert_eq!(
         lexer.token,
         HardwareAccess((HardwareAccessType::Memory, DirectAccessType::DWord))
+    );
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(
+        lexer.token,
+        HardwareAccess((HardwareAccessType::Input, DirectAccessType::LWord))
     );
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);

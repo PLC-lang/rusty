@@ -1,3 +1,5 @@
+use std::fs;
+use std::fs::File;
 use std::io::Read;
 
 use insta::assert_snapshot;
@@ -25,4 +27,64 @@ fn ir_generation_full_pass() {
         .unwrap();
 
     assert_snapshot!(content);
+}
+
+#[test]
+fn hardware_conf_full_pass_json() {
+    let file = get_test_file("io.st");
+
+    let temp_file = tempfile::NamedTempFile::new().unwrap();
+    let path = temp_file.path().to_string_lossy();
+    build_with_params(
+        rusty::cli::CompileParameters::parse(&[
+            "rustyc",
+            file.as_str(),
+            "-o",
+            &path,
+            "--ir",
+            "--hardware-conf",
+            "json",
+        ])
+        .unwrap(),
+    )
+    .unwrap();
+
+    let mut f = File::open("json").expect("file named 'json' should have been generated");
+    let mut content = String::new();
+    let _foo = f.read_to_string(&mut content);
+    //Verify file content
+
+    assert_snapshot!(content);
+    //clean up
+    let _foo = fs::remove_file("json");
+}
+
+#[test]
+fn hardware_conf_full_pass_toml() {
+    let file = get_test_file("io.st");
+
+    let temp_file = tempfile::NamedTempFile::new().unwrap();
+    let path = temp_file.path().to_string_lossy();
+    build_with_params(
+        rusty::cli::CompileParameters::parse(&[
+            "rustyc",
+            file.as_str(),
+            "-o",
+            &path,
+            "--ir",
+            "--hardware-conf",
+            "toml",
+        ])
+        .unwrap(),
+    )
+    .unwrap();
+
+    let mut f = File::open("toml").expect("file named 'toml' should have been generated");
+    let mut content = String::new();
+    let _foo = f.read_to_string(&mut content);
+    //Verify file content
+
+    assert_snapshot!(content);
+    //clean up
+    let _foo = fs::remove_file("toml");
 }
