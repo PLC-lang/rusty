@@ -1053,7 +1053,7 @@ pub fn is_same_type_class(
             DataTypeInformation::Integer { .. } => rtype.is_lword(),
 
             // Case 2 & 3:
-            // REF(...) and &bar returns a pointer, thus deduce their inner types and check if they're equal
+            // REF(bar) and &bar returns a pointer, thus deduce their inner types and check if they're equal
             DataTypeInformation::Pointer { .. } => {
                 let ldetails = index.find_elementary_pointer_type(ltype);
                 let rdetails = index.find_elementary_pointer_type(rtype);

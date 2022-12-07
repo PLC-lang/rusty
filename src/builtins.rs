@@ -65,22 +65,21 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, operator, parameters, _|
                     {
-                    let params = parameters.ok_or_else(|| Diagnostic::codegen_error("EXPT requires parameters", operator.get_location()))?;
+                    let params = parameters.ok_or_else(|| Diagnostic::codegen_error("REF requires parameters", operator.get_location()))?;
+                        // Get the input and annotate it with a pointer type
                         if let [input] = flatten_expression_list(params)[..] {
-                            //Get type for input
                             let input_type = annotator.annotation_map.get_type_or_void(input, annotator.index).get_name().to_string();
-                            //Annotate operator with that type
                             let ptr_type = resolver::add_pointer_type(&mut annotator.annotation_map.new_index, input_type);
+
                             annotator.annotation_map.annotate(
                                 operator, resolver::StatementAnnotation::Function {
-                                    return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None 
+                                    return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
                                 }
                             );
                             Ok(())
                         } else {
                             unreachable!()
                         }
-
                     }
             ),
                 generic_name_resolver: no_generic_name_resolver,
