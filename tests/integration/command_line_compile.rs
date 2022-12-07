@@ -26,6 +26,10 @@ fn ir_generation_full_pass() {
         .read_to_string(&mut content)
         .unwrap();
 
+    //Skip the module name since it is different on every system
+    //We only need to test that an IR got generated, not which IR really
+    let content: String = content.lines().skip(2).collect();
+
     assert_snapshot!(content);
 }
 

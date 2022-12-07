@@ -45,10 +45,12 @@ impl<'ink> CodeGen<'ink> {
     pub fn new(
         context: &'ink Context,
         module_name: &str,
+        module_location: &str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
+        module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, optimization_level, debug_level);
         CodeGen {
             context,
@@ -95,6 +97,7 @@ impl<'ink> CodeGen<'ink> {
             global_index,
             annotations,
             &index,
+            &mut self.debug,
         )?;
         let llvm = Llvm::new(self.context, self.context.create_builder());
         index.merge(llvm_impl_index);
@@ -166,20 +169,15 @@ impl<'ink> CodeGen<'ink> {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(implementation)?;
+                    pou_generator.generate_implementation(
+                        implementation,
+                        &self.debug,
+                        &unit.new_lines,
+                    )?;
                 }
             }
         }
 
-        #[cfg(feature = "verify")]
-        {
-            self.module.verify().map_err(|it| Diagnostic::GeneralError {
-                message: it.to_string(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
-            })
-        }
-
-        #[cfg(not(feature = "verify"))]
         Ok(())
     }
 
@@ -187,7 +185,7 @@ impl<'ink> CodeGen<'ink> {
     /// done and that the debug builder can now mark the debug information as complete. This is
     /// required to be called on the debug builder by the LLVM API, and has to happen on a module
     /// before it gets generated into object or IR
-    pub fn finalize(&self) -> Result<(), Diagnostic> {
+    pub fn finalize(&self) {
         self.debug.finalize()
     }
 }

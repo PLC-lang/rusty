@@ -148,6 +148,7 @@ impl<'i> TypeAnnotator<'i> {
                 generic_implementation.get_associated_class_name(),
                 generic_implementation.get_implementation_type().clone(),
                 false,
+                generic_implementation.get_location().to_owned(),
             );
 
             //register a copy of the pou under the new name
