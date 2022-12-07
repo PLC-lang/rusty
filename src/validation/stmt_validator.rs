@@ -48,7 +48,9 @@ impl StatementValidator {
             } => {
                 if operator == &Operator::Address {
                     match value.as_ref() {
-                        AstStatement::Reference { .. } | AstStatement::ArrayAccess { .. } => (),
+                        AstStatement::Reference { .. }
+                        | AstStatement::QualifiedReference { .. }
+                        | AstStatement::ArrayAccess { .. } => (),
 
                         _ => self.diagnostics.push(Diagnostic::invalid_operation(
                             "Invalid address-of operation",
