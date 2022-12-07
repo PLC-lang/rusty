@@ -685,6 +685,118 @@
 <span id="680">680</span>
 <span id="681">681</span>
 <span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">data_type_generator::get_default_for</span>,
@@ -693,12 +805,15 @@
     <span class="ident">statement_generator</span>::{<span class="ident">FunctionContext</span>, <span class="ident">StatementCodeGenerator</span>},
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast::AstStatement</span>,
-    <span class="ident">codegen::llvm_index::LlvmTypedIndex</span>,
+    <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">NewLines</span>},
+    <span class="ident">codegen</span>::{
+        <span class="ident">debug</span>::{<span class="ident">Debug</span>, <span class="ident">DebugBuilderEnum</span>},
+        <span class="ident">llvm_index::LlvmTypedIndex</span>,
+    },
     <span class="ident">diagnostics</span>::{<span class="ident">Diagnostic</span>, <span class="ident">INTERNAL_LLVM_ERROR</span>},
     <span class="ident">index</span>::{<span class="self">self</span>, <span class="ident">ImplementationType</span>},
     <span class="ident">resolver::AstAnnotations</span>,
-    <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="ident">VarArgs</span>},
+    <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="ident">DataType</span>, <span class="ident">VarArgs</span>},
 };
 
 <span class="doccomment">/// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)</span>
@@ -738,12 +853,14 @@
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
     <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AstAnnotations</span>,
     <span class="ident">types_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    <span class="ident">debug</span>: <span class="kw-2">&amp;mut</span> <span class="ident">DebugBuilderEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">llvm_index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::default</span>();
     <span class="kw">let</span> <span class="ident">pou_generator</span> <span class="op">=</span> <span class="ident">PouGenerator::new</span>(<span class="ident">llvm</span>, <span class="ident">index</span>, <span class="ident">annotations</span>, <span class="ident">types_index</span>);
     <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">implementation</span>) <span class="kw">in</span> <span class="ident">index</span>.<span class="ident">get_implementations</span>() {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">implementation</span>.<span class="ident">is_generic</span>() {
-            <span class="kw">let</span> <span class="ident">curr_f</span> <span class="op">=</span> <span class="ident">pou_generator</span>.<span class="ident">generate_implementation_stub</span>(<span class="ident">implementation</span>, <span class="ident">module</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">curr_f</span> <span class="op">=</span>
+                <span class="ident">pou_generator</span>.<span class="ident">generate_implementation_stub</span>(<span class="ident">implementation</span>, <span class="ident">module</span>, <span class="ident">debug</span>)<span class="question-mark">?</span>;
             <span class="ident">llvm_index</span>.<span class="ident">associate_implementation</span>(<span class="ident">name</span>, <span class="ident">curr_f</span>)<span class="question-mark">?</span>;
         }
     }
@@ -826,6 +943,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">implementation</span>: <span class="kw-2">&amp;</span><span class="ident">ImplementationIndexEntry</span>,
         <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+        <span class="ident">debug</span>: <span class="kw-2">&amp;mut</span> <span class="ident">DebugBuilderEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="comment">//generate a function that takes a instance-struct parameter</span>
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">collect_parameters_for_implementation</span>(<span class="ident">implementation</span>)<span class="question-mark">?</span>;
@@ -865,6 +983,27 @@
 
         <span class="kw">let</span> <span class="ident">curr_f</span> <span class="op">=</span>
             <span class="ident">module</span>.<span class="ident">add_function</span>(<span class="ident">implementation</span>.<span class="ident">get_call_name</span>(), <span class="ident">function_declaration</span>, <span class="prelude-val">None</span>);
+
+        <span class="kw">let</span> <span class="ident">pou_name</span> <span class="op">=</span> <span class="ident">implementation</span>.<span class="ident">get_call_name</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pou</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">pou_name</span>) {
+            <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_declared_parameters</span>(<span class="ident">pou_name</span>);
+            <span class="kw">let</span> <span class="ident">parameter_types</span> <span class="op">=</span> <span class="ident">parameters</span>
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
+                    <span class="self">self</span>.<span class="ident">index</span>
+                        .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">v</span>.<span class="ident">get_type_name</span>())
+                })
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+            <span class="ident">debug</span>.<span class="ident">register_function</span>(
+                <span class="self">self</span>.<span class="ident">index</span>,
+                <span class="ident">curr_f</span>,
+                <span class="ident">pou</span>,
+                <span class="ident">return_type</span>,
+                <span class="ident">parameter_types</span>.<span class="ident">as_slice</span>(),
+                <span class="ident">implementation</span>.<span class="ident">get_location</span>().<span class="ident">line_number</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            );
+        }
         <span class="prelude-val">Ok</span>(<span class="ident">curr_f</span>)
     }
 
@@ -896,11 +1035,15 @@
                 .<span class="ident">get_associated_pou_type</span>(<span class="ident">implementation</span>.<span class="ident">get_type_name</span>())
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">into_struct_type</span>())<span class="question-mark">?</span>;
             <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">instance_struct_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>).<span class="ident">into</span>());
+
             <span class="prelude-val">Ok</span>(<span class="ident">parameters</span>)
         } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">declared_params</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">index</span>
+                .<span class="ident">get_declared_parameters</span>(<span class="ident">implementation</span>.<span class="ident">get_call_name</span>());
+
             <span class="comment">//find the function&#39;s parameters</span>
-            <span class="self">self</span>.<span class="ident">index</span>
-                .<span class="ident">get_declared_parameters</span>(<span class="ident">implementation</span>.<span class="ident">get_call_name</span>())
+            <span class="ident">declared_params</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
                     <span class="self">self</span>.<span class="ident">llvm_index</span>
@@ -915,6 +1058,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_implementation</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">implementation</span>: <span class="kw-2">&amp;</span><span class="ident">Implementation</span>,
+        <span class="ident">debug</span>: <span class="kw-2">&amp;</span><span class="ident">DebugBuilderEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+        <span class="ident">new_lines</span>: <span class="kw-2">&amp;</span><span class="ident">NewLines</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::create_child</span>(<span class="self">self</span>.<span class="ident">llvm_index</span>);
@@ -931,63 +1076,95 @@
                 )
             })<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> (<span class="ident">line</span>, <span class="ident">column</span>) <span class="op">=</span> <span class="ident">implementation</span>
+            .<span class="ident">statements</span>
+            .<span class="ident">first</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_location</span>().<span class="ident">get_start</span>())
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">implementation</span>.<span class="ident">location</span>.<span class="ident">get_start</span>()))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">offset</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">new_lines</span>.<span class="ident">get_line_nr</span>(<span class="ident">offset</span>);
+                <span class="kw">let</span> <span class="ident">column</span> <span class="op">=</span> <span class="ident">new_lines</span>.<span class="ident">get_column</span>(<span class="ident">line</span>, <span class="ident">offset</span>);
+                (<span class="ident">line</span>, <span class="ident">column</span>)
+            })
+            .<span class="ident">unwrap</span>();
+        <span class="ident">debug</span>.<span class="ident">set_debug_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>, <span class="kw-2">&amp;</span><span class="ident">current_function</span>, <span class="ident">line</span>, <span class="ident">column</span>);
+
         <span class="comment">//generate the body</span>
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">append_basic_block</span>(<span class="ident">current_function</span>, <span class="string">&quot;entry&quot;</span>);
         <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">block</span>);
+        <span class="comment">//Set debug location</span>
+
+        <span class="kw">let</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="ident">FunctionContext</span> {
+            <span class="ident">linking_context</span>: <span class="self">self</span>
+                .<span class="ident">index</span>
+                .<span class="ident">find_implementation_by_name</span>(<span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">name</span>)
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">Diagnostic::codegen_error</span>(
+                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Could not find implementation for {}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">name</span>),
+                        <span class="ident">implementation</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
+                    )
+                })<span class="question-mark">?</span>,
+            <span class="ident">function</span>: <span class="ident">current_function</span>,
+            <span class="ident">new_lines</span>,
+        };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">param_index</span> <span class="op">=</span> <span class="number">0</span>;
-
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PouType::Method</span> { .. } <span class="op">=</span> <span class="ident">implementation</span>.<span class="ident">pou_type</span> {
             <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="ident">implementation</span>.<span class="ident">type_name</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>()[<span class="number">0</span>];
-            <span class="kw">let</span> <span class="ident">class_members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_container_members</span>(<span class="ident">class_name</span>);
             <span class="self">self</span>.<span class="ident">generate_local_struct_variable_accessors</span>(
                 <span class="ident">param_index</span>,
                 <span class="kw-2">&amp;mut</span> <span class="ident">local_index</span>,
                 <span class="ident">class_name</span>,
-                <span class="ident">current_function</span>,
-                <span class="kw-2">&amp;</span><span class="ident">class_members</span>,
+                <span class="kw-2">&amp;</span><span class="ident">function_context</span>,
+                <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">location</span>,
+                <span class="ident">debug</span>,
             )<span class="question-mark">?</span>;
             <span class="ident">param_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
-
-        <span class="kw">let</span> <span class="ident">pou_members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_container_members</span>(<span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>);
 
         <span class="comment">// generate local variables</span>
         <span class="kw">if</span> <span class="ident">implementation</span>.<span class="ident">pou_type</span> <span class="op">==</span> <span class="ident">PouType::Function</span> {
             <span class="self">self</span>.<span class="ident">generate_local_function_arguments_accessors</span>(
                 <span class="kw-2">&amp;mut</span> <span class="ident">local_index</span>,
                 <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>,
-                <span class="ident">current_function</span>,
-                <span class="kw-2">&amp;</span><span class="ident">pou_members</span>,
+                <span class="kw-2">&amp;</span><span class="ident">function_context</span>,
+                <span class="ident">debug</span>,
             )<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">generate_local_struct_variable_accessors</span>(
                 <span class="ident">param_index</span>,
                 <span class="kw-2">&amp;mut</span> <span class="ident">local_index</span>,
                 <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>,
-                <span class="ident">current_function</span>,
-                <span class="kw-2">&amp;</span><span class="ident">pou_members</span>,
+                <span class="kw-2">&amp;</span><span class="ident">function_context</span>,
+                <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">location</span>,
+                <span class="ident">debug</span>,
             )<span class="question-mark">?</span>;
         }
-
-        <span class="kw">let</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="ident">FunctionContext</span> {
-            <span class="ident">linking_context</span>: <span class="ident">implementation</span>.<span class="ident">into</span>(),
-            <span class="ident">function</span>: <span class="ident">current_function</span>,
-        };
         {
+            <span class="kw">let</span> <span class="ident">pou_members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_container_members</span>(<span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>);
             <span class="comment">//if this is a function, we need to initilialize the VAR-variables</span>
             <span class="kw">if</span> <span class="macro">matches!</span>(
                 <span class="ident">implementation</span>.<span class="ident">pou_type</span>,
                 <span class="ident">PouType::Function</span> <span class="op">|</span> <span class="ident">PouType::Method</span> { .. }
             ) {
-                <span class="self">self</span>.<span class="ident">generate_initialization_of_local_vars</span>(<span class="kw-2">&amp;</span><span class="ident">pou_members</span>, <span class="kw-2">&amp;</span><span class="ident">local_index</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">generate_initialization_of_local_vars</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">pou_members</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">local_index</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">function_context</span>,
+                    <span class="ident">debug</span>,
+                )<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
                 <span class="comment">//Generate temp variables</span>
                 <span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="ident">pou_members</span>
                     .<span class="ident">into_iter</span>()
                     .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_temp</span>())
                     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                <span class="self">self</span>.<span class="ident">generate_initialization_of_local_vars</span>(<span class="kw-2">&amp;</span><span class="ident">members</span>, <span class="kw-2">&amp;</span><span class="ident">local_index</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">generate_initialization_of_local_vars</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">members</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">local_index</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">function_context</span>,
+                    <span class="ident">debug</span>,
+                )<span class="question-mark">?</span>;
             }
             <span class="kw">let</span> <span class="ident">statement_gen</span> <span class="op">=</span> <span class="ident">StatementCodeGenerator::new</span>(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>,
@@ -996,6 +1173,7 @@
                 <span class="self">self</span>,
                 <span class="kw-2">&amp;</span><span class="ident">local_index</span>,
                 <span class="kw-2">&amp;</span><span class="ident">function_context</span>,
+                <span class="ident">debug</span>,
             );
             <span class="ident">statement_gen</span>.<span class="ident">generate_body</span>(<span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">statements</span>)<span class="question-mark">?</span>
         }
@@ -1052,11 +1230,14 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
         <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">current_function</span>: <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-        <span class="ident">members</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>],
+        <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">debug</span>: <span class="kw-2">&amp;</span><span class="ident">DebugBuilderEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_container_members</span>(<span class="ident">type_name</span>);
+        <span class="comment">//Generate reference to parameter</span>
+        <span class="comment">// cannot use index from members because return and temp variables may not be considered for index in build_struct_gep</span>
         <span class="comment">// eagerly handle the return-variable</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params_iter</span> <span class="op">=</span> <span class="ident">current_function</span>.<span class="ident">get_param_iter</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params_iter</span> <span class="op">=</span> <span class="ident">function_context</span>.<span class="ident">function</span>.<span class="ident">get_param_iter</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ret_v</span>) <span class="op">=</span> <span class="ident">members</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_return</span>()) {
             <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_associated_type</span>(<span class="ident">ret_v</span>.<span class="ident">get_type_name</span>())<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">return_variable</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>
@@ -1100,14 +1281,27 @@
                     <span class="ident">m</span>.<span class="ident">get_name</span>(),
                     <span class="kw-2">&amp;</span><span class="ident">index</span>.<span class="ident">get_associated_type</span>(<span class="ident">m</span>.<span class="ident">get_type_name</span>())<span class="question-mark">?</span>,
                 );
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">get_insert_block</span>() {
+                    <span class="ident">debug</span>.<span class="ident">add_variable_declaration</span>(
+                        <span class="ident">m</span>.<span class="ident">get_qualified_name</span>(),
+                        <span class="ident">ptr</span>,
+                        <span class="ident">function_context</span>.<span class="ident">function</span>,
+                        <span class="ident">block</span>,
+                        <span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">line_number</span>,
+                        <span class="ident">function_context</span>.<span class="ident">new_lines</span>.<span class="ident">get_column</span>(
+                            <span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">line_number</span>,
+                            <span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">get_start</span>(),
+                        ),
+                    );
+                }
                 <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">ptr</span>, <span class="ident">ptr_value</span>);
+
                 (<span class="ident">parameter_name</span>, <span class="ident">ptr</span>)
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="ident">temp_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_associated_type</span>(<span class="ident">m</span>.<span class="ident">get_type_name</span>())<span class="question-mark">?</span>;
-                (
-                    <span class="ident">parameter_name</span>,
-                    <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_local_variable</span>(<span class="ident">parameter_name</span>, <span class="kw-2">&amp;</span><span class="ident">temp_type</span>),
-                )
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_local_variable</span>(<span class="ident">parameter_name</span>, <span class="kw-2">&amp;</span><span class="ident">temp_type</span>);
+                (<span class="ident">parameter_name</span>, <span class="ident">value</span>)
             };
 
             <span class="ident">index</span>.<span class="ident">associate_loaded_local_variable</span>(<span class="ident">type_name</span>, <span class="ident">name</span>, <span class="ident">variable</span>)<span class="question-mark">?</span>;
@@ -1123,9 +1317,31 @@
         <span class="ident">arg_index</span>: <span class="ident">u32</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
         <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">current_function</span>: <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-        <span class="ident">members</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>],
+        <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
+        <span class="ident">debug</span>: <span class="kw-2">&amp;</span><span class="ident">DebugBuilderEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_container_members</span>(<span class="ident">type_name</span>);
+        <span class="kw">let</span> <span class="ident">param_pointer</span> <span class="op">=</span> <span class="ident">function_context</span>
+            .<span class="ident">function</span>
+            .<span class="ident">get_nth_param</span>(<span class="ident">arg_index</span>)
+            .<span class="ident">map</span>(<span class="ident">BasicValueEnum::into_pointer_value</span>)
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::missing_function</span>(<span class="ident">location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
+        <span class="comment">//Generate POU struct declaration for debug</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">get_insert_block</span>() {
+            <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">function_context</span>.<span class="ident">new_lines</span>.<span class="ident">get_line_nr</span>(<span class="ident">location</span>.<span class="ident">get_start</span>());
+            <span class="kw">let</span> <span class="ident">column</span> <span class="op">=</span> <span class="ident">function_context</span>
+                .<span class="ident">new_lines</span>
+                .<span class="ident">get_column</span>(<span class="ident">line</span>, <span class="ident">location</span>.<span class="ident">get_start</span>());
+            <span class="ident">debug</span>.<span class="ident">add_variable_declaration</span>(
+                <span class="ident">type_name</span>,
+                <span class="ident">param_pointer</span>,
+                <span class="ident">function_context</span>.<span class="ident">function</span>,
+                <span class="ident">block</span>,
+                <span class="ident">line</span>,
+                <span class="ident">column</span>,
+            );
+        }
         <span class="comment">//Generate reference to parameter</span>
         <span class="comment">// cannot use index from members because return and temp variables may not be considered for index in build_struct_gep</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_count</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1139,17 +1355,10 @@
                     <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_local_variable</span>(<span class="ident">parameter_name</span>, <span class="kw-2">&amp;</span><span class="ident">temp_type</span>),
                 )
             } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">ptr_value</span> <span class="op">=</span> <span class="ident">current_function</span>
-                    .<span class="ident">get_nth_param</span>(<span class="ident">arg_index</span>)
-                    .<span class="ident">map</span>(<span class="ident">BasicValueEnum::into_pointer_value</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">Diagnostic::missing_function</span>(<span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>())
-                    })<span class="question-mark">?</span>;
-
                 <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">llvm</span>
                     .<span class="ident">builder</span>
-                    .<span class="ident">build_struct_gep</span>(<span class="ident">ptr_value</span>, <span class="ident">var_count</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">parameter_name</span>)
+                    .<span class="ident">build_struct_gep</span>(<span class="ident">param_pointer</span>, <span class="ident">var_count</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">parameter_name</span>)
                     .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
 
                 <span class="ident">var_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -1170,6 +1379,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">variables</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>],
         <span class="ident">local_llvm_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span>,
+        <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>,
+        <span class="ident">debug</span>: <span class="kw-2">&amp;</span><span class="ident">DebugBuilderEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">variables_with_initializers</span> <span class="op">=</span> <span class="ident">variables</span>
             .<span class="ident">iter</span>()
@@ -1187,6 +1398,19 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">left</span>) <span class="op">=</span> <span class="ident">local_llvm_index</span>
                 .<span class="ident">find_loaded_associated_variable_value</span>(<span class="ident">variable</span>.<span class="ident">get_qualified_name</span>())
             {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">get_insert_block</span>() {
+                    <span class="ident">debug</span>.<span class="ident">add_variable_declaration</span>(
+                        <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
+                        <span class="ident">left</span>,
+                        <span class="ident">function_context</span>.<span class="ident">function</span>,
+                        <span class="ident">block</span>,
+                        <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">line_number</span>,
+                        <span class="ident">function_context</span>.<span class="ident">new_lines</span>.<span class="ident">get_column</span>(
+                            <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">line_number</span>,
+                            <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">get_start</span>(),
+                        ),
+                    );
+                }
                 <span class="kw">let</span> <span class="ident">right_stmt</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">index</span>
                     .<span class="ident">get_const_expressions</span>()
@@ -1308,10 +1532,10 @@
     <span class="doccomment">/// generates the function&#39;s return statement only if the given pou_type is a `PouType::Function`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// a function returns the value of the local variable that has the function&#39;s name</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_return_statement</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-        <span class="ident">local_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_return_statement</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
+        <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">local_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ret_v</span>) <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">index</span>

@@ -488,6 +488,7 @@
 <span id="483">483</span>
 <span id="484">484</span>
 <span id="485">485</span>
+<span id="486">486</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -638,6 +639,7 @@
                 <span class="ident">generic_implementation</span>.<span class="ident">get_associated_class_name</span>(),
                 <span class="ident">generic_implementation</span>.<span class="ident">get_implementation_type</span>().<span class="ident">clone</span>(),
                 <span class="bool-val">false</span>,
+                <span class="ident">generic_implementation</span>.<span class="ident">get_location</span>().<span class="ident">to_owned</span>(),
             );
 
             <span class="comment">//register a copy of the pou under the new name</span>
