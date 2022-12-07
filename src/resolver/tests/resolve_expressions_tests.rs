@@ -2080,7 +2080,7 @@ fn enum_element_initialization_is_annotated_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let data_type = &unit.types[0].data_type;
     if let DataType::EnumType { elements, .. } = data_type {
-        if let AstStatement::Assignment { right, .. } = flatten_expression_list(&elements)[2] {
+        if let AstStatement::Assignment { right, .. } = flatten_expression_list(elements)[2] {
             assert_type_and_hint!(&annotations, &index, &*right, "DINT", Some("MyEnum"));
         } else {
             unreachable!()
