@@ -2,8 +2,8 @@
 
 use crate::{
     ast::{
-        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, Implementation,
-        LinkageType, PouType, SourceRange, TypeNature,
+        AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
+        SourceRange, TypeNature,
     },
     builtins::{self, BuiltIn},
     datalayout::DataLayout,
@@ -334,6 +334,7 @@ pub struct ImplementationIndexEntry {
     pub(crate) associated_class: Option<String>,
     pub(crate) implementation_type: ImplementationType,
     pub(crate) generic: bool,
+    pub(crate) location: SymbolLocation,
 }
 
 impl ImplementationIndexEntry {
@@ -353,18 +354,9 @@ impl ImplementationIndexEntry {
     pub fn is_generic(&self) -> bool {
         self.generic
     }
-}
 
-impl From<&Implementation> for ImplementationIndexEntry {
-    fn from(implementation: &Implementation) -> Self {
-        let pou_type = &implementation.pou_type;
-        ImplementationIndexEntry {
-            call_name: implementation.name.clone(),
-            type_name: implementation.type_name.clone(),
-            associated_class: pou_type.get_optional_owner_class(),
-            implementation_type: pou_type.into(),
-            generic: implementation.generic,
-        }
+    pub fn get_location(&self) -> &SymbolLocation {
+        &self.location
     }
 }
 
@@ -1378,6 +1370,7 @@ impl Index {
         associated_class_name: Option<&String>,
         impl_type: ImplementationType,
         generic: bool,
+        location: SymbolLocation,
     ) {
         self.implementations.insert(
             call_name.to_lowercase(),
@@ -1387,6 +1380,7 @@ impl Index {
                 associated_class: associated_class_name.map(|str| str.into()),
                 implementation_type: impl_type,
                 generic,
+                location,
             },
         );
     }

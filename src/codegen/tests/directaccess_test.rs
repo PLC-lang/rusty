@@ -65,6 +65,21 @@ fn dwordaccess_assignment() {
 }
 
 #[test]
+fn lwordaccess_assignment() {
+    let prog = codegen(
+        "
+    FUNCTION main : INT
+    VAR
+        d : LWORD := 0;
+    END_VAR
+    d.%L1 := 16#AB_CD_EF;
+    END_FUNCTION",
+    );
+
+    insta::assert_snapshot!(prog);
+}
+
+#[test]
 fn chained_bit_assignment() {
     let prog = codegen(
         "
