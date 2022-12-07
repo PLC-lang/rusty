@@ -1598,6 +1598,8 @@
 <span id="1593">1593</span>
 <span id="1594">1594</span>
 <span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">index::Index</span>,
@@ -1662,6 +1664,7 @@
     <span class="ident">Byte</span>,
     <span class="ident">Word</span>,
     <span class="ident">DWord</span>,
+    <span class="ident">LWord</span>,
     <span class="ident">Template</span>,
 }
 
@@ -1799,6 +1802,7 @@
             <span class="ident">DirectAccessType::Byte</span> =&gt; <span class="number">8</span>,
             <span class="ident">DirectAccessType::Word</span> =&gt; <span class="number">16</span>,
             <span class="ident">DirectAccessType::DWord</span> =&gt; <span class="number">32</span>,
+            <span class="ident">DirectAccessType::LWord</span> =&gt; <span class="number">64</span>,
             <span class="ident">DirectAccessType::Template</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;Should not test for template width&quot;</span>),
         }
     }

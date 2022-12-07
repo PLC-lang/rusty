@@ -426,6 +426,8 @@
 <span id="421">421</span>
 <span id="422">422</span>
 <span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
 <span class="kw">use</span> <span class="ident">logos::Filter</span>;
@@ -754,6 +756,7 @@
             <span class="string">&#39;b&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span>),
             <span class="string">&#39;w&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span>),
             <span class="string">&#39;d&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span>),
+            <span class="string">&#39;l&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::LWord</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })
         .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
@@ -787,6 +790,7 @@
             <span class="string">&#39;b&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span>),
             <span class="string">&#39;w&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span>),
             <span class="string">&#39;d&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span>),
+            <span class="string">&#39;l&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::LWord</span>),
             <span class="string">&#39;*&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Template</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         })

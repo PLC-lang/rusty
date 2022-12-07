@@ -1834,6 +1834,7 @@
 <span id="1829">1829</span>
 <span id="1830">1830</span>
 <span id="1831">1831</span>
+<span id="1832">1832</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1858,8 +1859,8 @@
     <span class="ident">lexer::IdProvider</span>,
     <span class="ident">typesystem</span>::{
         <span class="self">self</span>, <span class="ident">get_bigger_type</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">StringEncoding</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">BYTE_TYPE</span>,
-        <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">LREAL_TYPE</span>, <span class="ident">REAL_TYPE</span>,
-        <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>, <span class="ident">VOID_TYPE</span>, <span class="ident">WORD_TYPE</span>,
+        <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">LREAL_TYPE</span>, <span class="ident">LWORD_TYPE</span>,
+        <span class="ident">REAL_TYPE</span>, <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>, <span class="ident">VOID_TYPE</span>, <span class="ident">WORD_TYPE</span>,
     },
 };
 
@@ -3542,6 +3543,7 @@
         <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span> =&gt; <span class="ident">BYTE_TYPE</span>,
         <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span> =&gt; <span class="ident">WORD_TYPE</span>,
         <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span> =&gt; <span class="ident">DWORD_TYPE</span>,
+        <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::LWord</span> =&gt; <span class="ident">LWORD_TYPE</span>,
         <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Template</span> =&gt; <span class="ident">VOID_TYPE</span>,
     }
 }
