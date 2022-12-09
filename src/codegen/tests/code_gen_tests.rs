@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::test_utils::tests::{codegen, generate_with_empty_program};
+use crate::test_utils::tests::{
+    codegen, codegen_debug_without_unwrap, generate_with_empty_program,
+};
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -491,6 +493,25 @@ fn date_comparisons() {
         END_PROGRAM"#,
     );
     insta::assert_snapshot!(result);
+}
+
+#[test]
+fn date_invalid_declaration() {
+    let (diagnostics, _) = codegen_debug_without_unwrap(
+        r#"PROGRAM prg
+        VAR
+          a : DATE := D#2001-02-29; (* feb29 on non-leap year should not pass *)
+        END_VAR
+        END_PROGRAM"#,
+        crate::DebugLevel::None,
+    )
+    .unwrap_err();
+
+    assert_eq!(diagnostics.len(), 1);
+    assert_eq!(
+        "Cannot generate literal initializer for 'prg.a': Value cannot be derived",
+        &diagnostics[0].message
+    );
 }
 
 #[test]

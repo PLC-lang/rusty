@@ -1,5 +1,7 @@
 use insta::assert_snapshot;
 
+mod expression_debugging;
+
 use crate::test_utils::tests::codegen_with_debug as codegen;
 #[test]
 fn test_global_var_int_added_to_debug_info() {

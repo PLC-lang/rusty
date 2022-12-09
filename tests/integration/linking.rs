@@ -307,7 +307,7 @@ fn link_missing_file() {
     match res {
         Err(err) => {
             let out = out.to_string_lossy();
-            assert_eq!(Diagnostic::link_error(&format!("lld: error: undefined symbol: func2\n>>> referenced by main\n>>>               {}:(func1)\n>>> did you mean: func1\n>>> defined in: {}\n",out, out)), err);
+            assert_eq!(Diagnostic::link_error(&format!("lld: error: undefined symbol: func2\n>>> referenced by file1.st\n>>>               {}:(func1)\n>>> did you mean: func1\n>>> defined in: {}\n",out, out)), err);
         }
         _ => panic!("Expected link failure"),
     }
