@@ -574,9 +574,9 @@ fn builtin_adr_ref_return_annotated() {
     let stmt = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { right, .. } = stmt {
-        let _type = AnnotationMap::get_type(&annotations, &right, &index);
-        let _hint = AnnotationMap::get_type_hint(&annotations, &right, &index);
-        let ref_type = annotations.get_type_or_void(&right, &index);
+        let _type = AnnotationMap::get_type(&annotations, right, &index);
+        let _hint = AnnotationMap::get_type_hint(&annotations, right, &index);
+        let ref_type = annotations.get_type_or_void(right, &index);
 
         match ref_type.get_type_information() {
             DataTypeInformation::Pointer {
@@ -586,7 +586,7 @@ fn builtin_adr_ref_return_annotated() {
                 assert_eq!(
                     DINT_TYPE,
                     index
-                        .find_effective_type_by_name(&inner_type_name)
+                        .find_effective_type_by_name(inner_type_name)
                         .unwrap()
                         .get_name()
                 )

@@ -1557,14 +1557,16 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(StatementAnnotation::Function { return_type, .. }) =
             self.annotation_map.get(operator)
         {
-            if let Some(return_type) =
-                self.index
-                    .find_effective_type_by_name(return_type)
-                    .or_else(|| {
-                        self.annotation_map
-                            .new_index
-                            .find_effective_type_by_name(return_type)
-                    })
+            if let Some(return_type) = self
+                .index
+                .find_effective_type_by_name(return_type)
+                .or_else(|| {
+                    self.annotation_map
+                        .new_index
+                        .find_effective_type_by_name(return_type)
+                })
+                // XXX: this `cloned()` statement should be removable in >= 1.65 Rust versions?
+                .cloned()
             {
                 self.annotation_map.annotate(
                     statement,
