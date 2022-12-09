@@ -168,7 +168,7 @@ pub mod tests {
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator
-            .generate_llvm_index(&annotations, &literals, &index, &diagnostician)
+            .generate_llvm_index(&annotations, literals, &index, &diagnostician)
             .map_err(|err| (diagnostics.take(), err))?;
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)
@@ -204,7 +204,7 @@ pub mod tests {
         includes: Vec<T>,
         encoding: Option<&'static Encoding>,
         diagnostician: Diagnostician,
-        debug_level: DebugLevel
+        debug_level: DebugLevel,
     ) -> Result<String, Diagnostic> {
         let context = Context::create();
         let (_, cg) = crate::compile_module(
@@ -214,7 +214,7 @@ pub mod tests {
             encoding,
             diagnostician,
             crate::OptimizationLevel::None,
-            debug_level
+            debug_level,
         )?;
         Ok(cg.module.print_to_string().to_string())
     }

@@ -663,7 +663,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     //Associate the index type with LLVM types
     let llvm_index = code_generator.generate_llvm_index(
         &annotations,
-        &index.all_literals,
+        index.all_literals,
         &full_index,
         &diagnostician,
     )?;
