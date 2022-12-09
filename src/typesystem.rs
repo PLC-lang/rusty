@@ -1049,7 +1049,7 @@ pub fn is_same_type_class(
         // 2. foo := REF(bar)
         // 3. foo := &bar
         DataTypeInformation::Pointer { .. } => match rtype {
-            // Case 1: ADR(bar) returns a LWORD value, thus check if we're working with a LWORD 
+            // Case 1: ADR(bar) returns a LWORD value, thus check if we're working with a LWORD
             DataTypeInformation::Integer { .. } => rtype.is_lword(),
 
             // Case 2 & 3:
