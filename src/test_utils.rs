@@ -204,6 +204,7 @@ pub mod tests {
         includes: Vec<T>,
         encoding: Option<&'static Encoding>,
         diagnostician: Diagnostician,
+        debug_level: DebugLevel
     ) -> Result<String, Diagnostic> {
         let context = Context::create();
         let (_, cg) = crate::compile_module(
@@ -213,7 +214,7 @@ pub mod tests {
             encoding,
             diagnostician,
             crate::OptimizationLevel::None,
-            crate::DebugLevel::None,
+            debug_level
         )?;
         Ok(cg.module.print_to_string().to_string())
     }

@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests.rs
-expression: codegen
+expression: codegen.0
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -17,29 +17,29 @@ source_filename = "main"
 !llvm.dbg.cu = !{!25}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-!1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "main", directory: "")
 !3 = !DIBasicType(name: "sint", size: 8, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !4 = !DIGlobalVariableExpression(var: !5, expr: !DIExpression())
-!5 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, type: !6, isLocal: false, isDefinition: true)
+!5 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 4, type: !6, isLocal: false, isDefinition: true)
 !6 = !DIBasicType(name: "usint", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
 !7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
-!8 = distinct !DIGlobalVariable(name: "c", scope: !2, file: !2, type: !9, isLocal: false, isDefinition: true)
+!8 = distinct !DIGlobalVariable(name: "c", scope: !2, file: !2, line: 5, type: !9, isLocal: false, isDefinition: true)
 !9 = !DIBasicType(name: "int", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !10 = !DIGlobalVariableExpression(var: !11, expr: !DIExpression())
-!11 = distinct !DIGlobalVariable(name: "d", scope: !2, file: !2, type: !12, isLocal: false, isDefinition: true)
+!11 = distinct !DIGlobalVariable(name: "d", scope: !2, file: !2, line: 6, type: !12, isLocal: false, isDefinition: true)
 !12 = !DIBasicType(name: "uint", size: 16, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
 !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
-!14 = distinct !DIGlobalVariable(name: "e", scope: !2, file: !2, type: !15, isLocal: false, isDefinition: true)
+!14 = distinct !DIGlobalVariable(name: "e", scope: !2, file: !2, line: 7, type: !15, isLocal: false, isDefinition: true)
 !15 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
-!17 = distinct !DIGlobalVariable(name: "f", scope: !2, file: !2, type: !18, isLocal: false, isDefinition: true)
+!17 = distinct !DIGlobalVariable(name: "f", scope: !2, file: !2, line: 8, type: !18, isLocal: false, isDefinition: true)
 !18 = !DIBasicType(name: "udint", size: 32, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
 !19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
-!20 = distinct !DIGlobalVariable(name: "g", scope: !2, file: !2, type: !21, isLocal: false, isDefinition: true)
+!20 = distinct !DIGlobalVariable(name: "g", scope: !2, file: !2, line: 9, type: !21, isLocal: false, isDefinition: true)
 !21 = !DIBasicType(name: "lint", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !22 = !DIGlobalVariableExpression(var: !23, expr: !DIExpression())
-!23 = distinct !DIGlobalVariable(name: "h", scope: !2, file: !2, type: !24, isLocal: false, isDefinition: true)
+!23 = distinct !DIGlobalVariable(name: "h", scope: !2, file: !2, line: 10, type: !24, isLocal: false, isDefinition: true)
 !24 = !DIBasicType(name: "ulint", size: 64, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
 !25 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !26, globals: !27, splitDebugInlining: false)
 !26 = !{}

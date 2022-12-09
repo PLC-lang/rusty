@@ -82,7 +82,7 @@ impl<'ink> CodeGen<'ink> {
         let llvm_gv_index = variable_generator::generate_global_variables(
             &self.module,
             &llvm,
-            &self.debug,
+            &mut self.debug,
             global_index,
             annotations,
             &index,
