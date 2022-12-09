@@ -88,6 +88,7 @@ pub enum ErrNo {
     type__unknown_nature,
     type__unresolved_generic,
     type__incompatible_size,
+    type__invalid_operation,
 
     //codegen related
     codegen__general,
@@ -759,6 +760,14 @@ impl Diagnostic {
             message: format!("{}: {}", name, additional_text),
             range: locations,
             err_no: ErrNo::duplicate_symbol,
+        }
+    }
+
+    pub fn invalid_operation(message: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: message.to_string(),
+            range: vec![range],
+            err_no: ErrNo::type__invalid_operation,
         }
     }
 }

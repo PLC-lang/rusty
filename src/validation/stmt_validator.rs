@@ -39,6 +39,27 @@ impl StatementValidator {
             AstStatement::Reference { name, location, .. } => {
                 self.validate_reference(statement, name, location, context);
             }
+
+            AstStatement::UnaryExpression {
+                operator,
+                value,
+                location,
+                ..
+            } => {
+                if operator == &Operator::Address {
+                    match value.as_ref() {
+                        AstStatement::Reference { .. }
+                        | AstStatement::QualifiedReference { .. }
+                        | AstStatement::ArrayAccess { .. } => (),
+
+                        _ => self.diagnostics.push(Diagnostic::invalid_operation(
+                            "Invalid address-of operation",
+                            location.to_owned(),
+                        )),
+                    }
+                }
+            }
+
             AstStatement::CastStatement {
                 location,
                 target,
