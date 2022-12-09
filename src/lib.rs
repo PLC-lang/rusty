@@ -650,33 +650,53 @@ pub fn compile_module<'c, T: SourceContainer>(
         .to_owned();
     let (full_index, mut index) = index_module(sources, includes, encoding, &mut diagnostician)?;
 
+    let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     // ### PHASE 3 ###
-    // - codegen
-    let mut code_generator = codegen::CodeGen::new(
+
+    let mut main_module = codegen::CodeGen::new(
         context,
         &module_location,
         &module_location,
         optimization,
         debug_level,
     );
-
-    let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
-    let llvm_index = code_generator.generate_llvm_index(
+    let llvm_index = main_module.generate_llvm_index(
         &annotations,
-        index.all_literals,
+        &index.all_literals,
         &full_index,
         &diagnostician,
     )?;
-    for unit in index.annotated_units {
-        code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
+
+    let modules = index
+        .annotated_units
+        .into_iter()
+        .map(|unit| {
+            // - codegen
+            let code_generator = codegen::CodeGen::new(
+                context,
+                &unit.file_name,
+                &unit.file_name,
+                optimization,
+                debug_level,
+            );
+
+            code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
+
+            code_generator.finalize();
+            Ok(code_generator.module)
+        })
+        .collect::<Result<Vec<_>, Diagnostic>>()?;
+
+    for module in modules {
+        main_module.module.link_in_module(module)?;
     }
 
-    code_generator.finalize();
+    main_module.finalize();
 
     #[cfg(feature = "verify")]
     {
-        code_generator
+        main_module
             .module
             .verify()
             .map_err(|it| Diagnostic::GeneralError {
@@ -685,7 +705,7 @@ pub fn compile_module<'c, T: SourceContainer>(
             })?
     }
 
-    Ok((full_index, code_generator))
+    Ok((full_index, main_module))
 }
 
 type Units = Vec<(Vec<Diagnostic>, CompilationUnit)>;

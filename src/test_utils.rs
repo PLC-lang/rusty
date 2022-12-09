@@ -168,7 +168,7 @@ pub mod tests {
         );
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
         let llvm_index = code_generator
-            .generate_llvm_index(&annotations, literals, &index, &diagnostician)
+            .generate_llvm_index(&annotations, &literals, &index, &diagnostician)
             .map_err(|err| (diagnostics.take(), err))?;
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)

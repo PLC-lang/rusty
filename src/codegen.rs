@@ -62,7 +62,7 @@ impl<'ink> CodeGen<'ink> {
     pub fn generate_llvm_index(
         &mut self,
         annotations: &AstAnnotations,
-        literals: StringLiterals,
+        literals: &StringLiterals,
         global_index: &Index,
         diagnostician: &Diagnostician,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
@@ -112,7 +112,7 @@ impl<'ink> CodeGen<'ink> {
 
         //Generate constants for string-literal
         //generate literals but first sort, so we get reproducable builds
-        let mut utf08s = literals.utf08.into_iter().collect::<Vec<String>>();
+        let mut utf08s = literals.utf08.iter().collect::<Vec<_>>();
         utf08s.sort_unstable();
         for (idx, literal) in utf08s.into_iter().enumerate() {
             let len = literal.len() + 1;
@@ -127,10 +127,10 @@ impl<'ink> CodeGen<'ink> {
                 .make_constant()
                 .set_initializer(&initializer);
 
-            index.associate_utf08_literal(literal, literal_variable);
+            index.associate_utf08_literal(literal.clone(), literal_variable);
         }
         //generate literals but first sort, so we get reproducable builds
-        let mut utf16s = literals.utf16.into_iter().collect::<Vec<String>>();
+        let mut utf16s = literals.utf16.iter().collect::<Vec<_>>();
         utf16s.sort_unstable();
         for (idx, literal) in utf16s.into_iter().enumerate() {
             let len = literal.len() + 1;
@@ -146,7 +146,7 @@ impl<'ink> CodeGen<'ink> {
                 .make_constant()
                 .set_initializer(&initializer);
 
-            index.associate_utf16_literal(literal, literal_variable);
+            index.associate_utf16_literal(literal.clone(), literal_variable);
         }
 
         Ok(index)
