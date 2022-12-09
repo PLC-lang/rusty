@@ -3106,6 +3106,10 @@ fn reference_to_reference_assignments_in_function_arguments() {
         global1 : STRUCT_params;
         global2 : STRUCT_params;
         global3 : STRUCT_params;
+
+        global4 : DINT;
+        global5 : STRING;
+        global6 : REAL;
     END_VAR
 
     TYPE STRUCT_params :
@@ -3130,6 +3134,13 @@ fn reference_to_reference_assignments_in_function_arguments() {
             input1 := ADR(global1),
             input2 := REF(global2),
             input3 := &global3
+        );
+        
+        prog(
+            // These are not valid but we want to see if there's a cast involved
+            input1 := ADR(global4),
+            input2 := REF(global5),
+            input3 := &global6
         );
     END_PROGRAM
     "#,
