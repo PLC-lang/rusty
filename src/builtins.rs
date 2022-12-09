@@ -63,8 +63,7 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: Some(|annotator, operator, parameters, _|
-                    {
+                annotation: Some(|annotator, operator, parameters, _| {
                     let params = parameters.ok_or_else(|| Diagnostic::codegen_error("REF requires parameters", operator.get_location()))?;
                         // Get the input and annotate it with a pointer type
                         if let [input] = flatten_expression_list(params)[..] {
@@ -76,6 +75,7 @@ lazy_static! {
                                     return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
                                 }
                             );
+
                             Ok(())
                         } else {
                             unreachable!()
