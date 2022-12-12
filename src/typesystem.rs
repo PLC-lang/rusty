@@ -314,7 +314,7 @@ impl DataTypeInformation {
 
     pub fn is_lword(&self) -> bool {
         match self {
-            DataTypeInformation::Integer { name, .. } => name == LWORD_TYPE,
+            DataTypeInformation::Integer { size, .. } => *size == POINTER_SIZE,
             _ => false,
         }
     }

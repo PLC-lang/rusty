@@ -574,15 +574,14 @@ fn builtin_adr_ref_return_annotated() {
     let stmt = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { right, .. } = stmt {
-        let _type = AnnotationMap::get_type(&annotations, right, &index);
-        let _hint = AnnotationMap::get_type_hint(&annotations, right, &index);
-        let ref_type = annotations.get_type_or_void(right, &index);
+        let actual_type = AnnotationMap::get_type(&annotations, right, &index);
+        let reference_type = annotations.get_type_or_void(right, &index);
 
-        match ref_type.get_type_information() {
+        match reference_type.get_type_information() {
             DataTypeInformation::Pointer {
                 inner_type_name, ..
             } => {
-                assert_eq!(_type.unwrap().get_name(), "__POINTER_TO_DINT");
+                assert_eq!(actual_type.unwrap().get_name(), "__POINTER_TO_DINT");
                 assert_eq!(
                     DINT_TYPE,
                     index
@@ -592,7 +591,7 @@ fn builtin_adr_ref_return_annotated() {
                 )
             }
 
-            _ => unreachable!("Expected a pointer, got {}", ref_type.get_name()),
+            _ => unreachable!("Expected a pointer, got {}", reference_type.get_name()),
         }
     }
 }

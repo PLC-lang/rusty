@@ -849,9 +849,35 @@ fn reference_to_reference_assignments_in_function_arguments() {
     "#,
     );
 
+    let types_and_ranges = vec![
+        ("__POINTER_TO_INT", "__prog_input1", (1286..1308)),
+        ("__POINTER_TO_REAL", "__prog_input2", (1322..1344)),
+        (
+            "__POINTER_TO___global_global6",
+            "__prog_input3",
+            (1358..1380),
+        ),
+        ("__POINTER_TO_INT", "__prog_input1", (1596..1615)),
+        ("__POINTER_TO_REAL", "__prog_input2", (1630..1649)),
+        ("__POINTER_TO_STRING", "__prog_input3", (1664..1683)),
+    ];
+
     assert_eq!(diagnostics.len(), 6);
+    assert_eq!(diagnostics.len(), types_and_ranges.len());
+
+    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::invalid_assignment(
+                types_and_ranges[idx].0,
+                types_and_ranges[idx].1,
+                types_and_ranges[idx].2.to_owned().into()
+            )
+        );
+    }
 }
 
+#[test]
 fn address_of_operations() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
