@@ -26,6 +26,31 @@ END_PROGRAM
 }
 
 #[test]
+fn casted_string_assignment_uses_memcpy() {
+    // GIVEN some string assignments
+    let result = codegen(
+        r#"
+    PROGRAM prg
+    VAR
+        a : STRING;
+        b : WSTRING;
+    END_VAR
+
+    a := STRING#"abc";
+    a := STRING#'abc';
+
+    b := WSTRING#"abc";
+    b := WSTRING#'abc';
+
+    END_PROGRAM
+    "#,
+    );
+
+    // THEN we expect the assignments to use memcpy, no stores!
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn vartmp_string_init_test() {
     let result = codegen(
         r"
@@ -139,25 +164,43 @@ fn variable_length_strings_can_be_created() {
 }
 
 #[test]
-fn function_parameters_string() {
+fn function_returns_a_literal_string() {
+    let program = codegen(
+        r#"
+        FUNCTION ret : STRING
+            ret := 'abc';
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                str: STRING;
+            END_VAR
+            str := ret();
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(program);
+}
+
+#[test]
+fn function_takes_string_paramter_and_returns_string() {
     let program = codegen(
         r#"
         FUNCTION read_string : STRING
-        VAR_INPUT
-            to_read : STRING;
-        END_VAR
+            VAR_INPUT
+                to_read : STRING;
+            END_VAR
 
-        read_string := to_read;
+            read_string := to_read;
         END_FUNCTION
+
         PROGRAM main
-        VAR
-            text1 : STRING;
-            text2 : STRING;
-            text3 : STRING;
-        END_VAR
+            VAR
+                text1 : STRING;
+            END_VAR
 
             text1 := read_string('abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc');
-            text3 := read_string('hello');
         END_PROGRAM
         "#,
     );
@@ -276,6 +319,101 @@ fn program_string_output() {
 		END_VAR
 			prog(x, y);
         END_PROGRAM
+    "#,
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn function_returning_generic_string_should_return_by_ref() {
+    // GIVEN PROGRAM returning generic strings
+    let result = codegen(
+        r#"
+        FUNCTION MID <T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        VAR_INPUT
+            L  : DINT;
+            P  : DINT;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION MID__STRING : STRING
+        VAR_INPUT {ref}
+            IN : STRING;
+        END_VAR
+        VAR_INPUT
+            L  : DINT;
+            P  : DINT;
+        END_VAR
+            MID__STRING := 'abc';
+        END_FUNCTION
+
+        PROGRAM main
+            VAR_INPUT
+                fmt : STRING[60];
+                x : STRING;
+            END_VAR
+            x := MID(fmt, 1,2);
+        END_PROGRAM
+    "#,
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn function_var_constant_strings_should_be_collected_as_literals() {
+    // GIVEN FUNCTION with var constant literal initializers
+    let result = codegen(
+        r#"
+        FUNCTION FSTRING_TO_DT : DT
+            VAR CONSTANT
+                ignore: STRING[1] := '*';  (* ignore character is * *)
+            END_VAR
+            VAR
+                fchar : STRING[1] := '#';  (* format character is # *)
+            END_VAR
+
+            fchar := '#';
+            ignore := '*';
+
+        END_FUNCTION
+    "#,
+    );
+
+    // THEN we should see global variables for * and #
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn using_a_constant_var_string_should_be_memcpyable() {
+    //regression test that used to break in IF c = ignore because ignore had troubles
+    //when it tried to load the constant string
+    let result = codegen(
+        r#"
+        FUNCTION STRING_EQUAL : BOOL
+            VAR_INPUT {ref} op1, op2: STRING[1024] END_VAR
+        END_FUNCTION
+
+        FUNCTION FSTRING_TO_DT : DT
+            VAR CONSTANT
+                ignore: STRING[1] := '*';  (* ignore character is * *)
+                fchar : STRING[1] := '#';  (* format character is # *)
+            END_VAR
+            VAR
+                c: STRING[1];
+            END_VAR
+
+            IF c = ignore THEN
+                (* skip ignore characters *)
+            END_IF;
+
+        END_FUNCTION
     "#,
     );
 

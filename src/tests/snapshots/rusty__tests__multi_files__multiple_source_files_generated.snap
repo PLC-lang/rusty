@@ -2,8 +2,8 @@
 source: src/tests/multi_files.rs
 expression: res
 ---
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = 'external_file.st'
+source_filename = "external_file.st"
 
 %mainProg = type {}
 

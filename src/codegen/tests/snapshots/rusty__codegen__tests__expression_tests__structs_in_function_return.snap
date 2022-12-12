@@ -9,13 +9,16 @@ source_filename = "main"
 
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
-define %myStruct @func() {
+define void @func(%myStruct* %0, %myStruct* %1) {
 entry:
-  %func = alloca %myStruct, align 8
-  %0 = bitcast %myStruct* %func to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%myStruct* @__myStruct__init to i8*), i64 ptrtoint (%myStruct* getelementptr (%myStruct, %myStruct* null, i32 1) to i64), i1 false)
-  %func_ret = load %myStruct, %myStruct* %func, align 2
-  ret %myStruct %func_ret
+  %func = alloca %myStruct*, align 8
+  store %myStruct* %0, %myStruct** %func, align 8
+  %xxx = alloca %myStruct*, align 8
+  store %myStruct* %1, %myStruct** %xxx, align 8
+  %deref = load %myStruct*, %myStruct** %func, align 8
+  %2 = bitcast %myStruct* %deref to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 bitcast (%myStruct* @__myStruct__init to i8*), i64 ptrtoint (%myStruct* getelementptr (%myStruct, %myStruct* null, i32 1) to i64), i1 false)
+  ret void
 }
 
 ; Function Attrs: argmemonly nofree nounwind willreturn

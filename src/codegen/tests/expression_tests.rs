@@ -19,7 +19,46 @@ fn structs_in_function_return() {
             END_STRUCT
         END_TYPE
         FUNCTION func : myStruct
+            VAR_OUTPUT
+                xxx : myStruct;
+            END_VAR
         END_FUNCTION"#,
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn strings_in_function_return() {
+    let result = codegen(
+        r#"
+       FUNCTION func : STRING
+            VAR_INPUT
+                myout : REF_TO STRING;
+            END_VAR
+
+            func := 'hello';
+            myout^ := 'hello';
+       END_FUNCTION"#,
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn calling_strings_in_function_return() {
+    let result = codegen(
+        r#"
+       FUNCTION func : STRING
+            func := 'hello';
+       END_FUNCTION
+       
+       PROGRAM main
+            VAR
+                x : STRING;
+            END_VAR
+
+            x := func();
+       END_PROGRAM
+       "#,
     );
     insta::assert_snapshot!(result);
 }
@@ -324,6 +363,21 @@ fn builtin_function_call_move() {
             a,b : DINT;
         END_VAR
             a := MOVE(b);
+        END_PROGRAM",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_sizeof() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a: DINT;
+            b: LINT;
+        END_VAR
+            a := SIZEOF(b);
         END_PROGRAM",
     );
 

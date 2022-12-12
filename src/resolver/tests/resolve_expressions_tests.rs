@@ -10,7 +10,7 @@ use crate::{
     test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
     typesystem::{
         DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
-        LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
+        LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -2080,7 +2080,7 @@ fn enum_element_initialization_is_annotated_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let data_type = &unit.types[0].data_type;
     if let DataType::EnumType { elements, .. } = data_type {
-        if let AstStatement::Assignment { right, .. } = flatten_expression_list(&elements)[2] {
+        if let AstStatement::Assignment { right, .. } = flatten_expression_list(elements)[2] {
             assert_type_and_hint!(&annotations, &index, &*right, "DINT", Some("MyEnum"));
         } else {
             unreachable!()
@@ -3626,11 +3626,13 @@ fn hardware_access_types_annotated() {
         VAR
           x1,x2 : BYTE;
           y1,y2 : INT;
+          z1    : LINT;
         END_VAR
           x1 := %IB1.2;
           x2 := %QW1.2;
           y1 := %MD1.2;
           y2 := %GX1.2;
+          z1 := %Il2.3;
         ",
         id_provider.clone(),
     );
@@ -3653,6 +3655,11 @@ fn hardware_access_types_annotated() {
     }
     if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[3] {
         assert_type_and_hint!(&annotations, &index, &*right, BOOL_TYPE, Some(INT_TYPE));
+    } else {
+        unreachable!("Must be assignment")
+    }
+    if let AstStatement::Assignment { right, .. } = &unit.implementations[0].statements[4] {
+        assert_type_and_hint!(&annotations, &index, &*right, LWORD_TYPE, Some(LINT_TYPE));
     } else {
         unreachable!("Must be assignment")
     }
@@ -3781,14 +3788,15 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
     // GIVEN
     let (unit, mut index) = index_with_ids(
         "
-        TYPE myStruct : STRUCT 
-            	a,b : DINT; 
-        	END_STRUCT
+		TYPE myStruct : STRUCT
+				a, b : DINT;
+				c : ARRAY[0..1] OF DINT;
+			END_STRUCT
 		END_TYPE
 
 		PROGRAM main
 		VAR
-			arr : ARRAY[0..1] OF myStruct := ((a:= 10, b:= 20), (a:= 30, b:= 40));
+			arr : ARRAY[0..1] OF myStruct := ((a := 10, b := 20, c := (30, 40)), (a := 50, b := 60, c := (70, 80)));
 		END_VAR
 		END_PROGRAM",
         id_provider.clone(),
@@ -3799,7 +3807,7 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
 
     let container_name = &unit.implementations[0].name; // main
     let members = index.get_container_members(container_name);
-    // there is only one member => arr
+    // there is only one member => main.arr
     assert_eq!(1, members.len());
 
     if let Some(AstStatement::ExpressionList { expressions, .. }) = index
@@ -3811,11 +3819,33 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
         let target_type = index
             .find_effective_type_by_name("myStruct")
             .expect("at this point we should have the type");
+        // each expression is an expression list and contains assignments for the struct fields (a, b, c)
         for e in expressions {
+            // the expression list should be annotated with the structs type
             let type_hint = annotations
                 .get_type_hint(e, &index)
                 .expect("we should have a type hint");
             assert_eq!(target_type, type_hint);
+
+            // we have three assignments (a, b, c)
+            let assignments = flatten_expression_list(e);
+            assert_eq!(3, assignments.len());
+            // the last expression of the list is the assignment to myStruct.c (array initialization)
+            if let AstStatement::Assignment { left, right, .. } = assignments
+                .last()
+                .expect("this should be the array initialization for myStruct.c")
+            {
+                // the array initialization should be annotated with the correct type hint (myStruct.c type)
+                let target_type = annotations
+                    .get_type(left, &index)
+                    .expect("we should have the type");
+                let array_init_type = annotations
+                    .get_type_hint(right, &index)
+                    .expect("we should have a type hint");
+                assert_eq!(target_type, array_init_type);
+            } else {
+                panic!("should be an assignment")
+            }
         }
     } else {
         panic!("No initial value, initial value should be an expression list")

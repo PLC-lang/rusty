@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use inkwell::{
     basic_block::BasicBlock,
+    types::BasicType,
     values::{BasicValue, BasicValueEnum, IntValue},
 };
 use lazy_static::lazy_static;
@@ -16,7 +17,7 @@ use crate::{
     lexer::{self, IdProvider},
     parser,
     resolver::{
-        generics::{generic_name_resolver, no_generic_name_resolver},
+        generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, TypeAnnotator, VisitorContext,
     },
     typesystem::{
@@ -45,7 +46,7 @@ lazy_static! {
                             .map(|it| generator.ptr_as_value(it))
                     } else {
                         Err(Diagnostic::codegen_error(
-                            "Expected exadtly one parameter for REF",
+                            "Expected exactly one parameter for REF",
                             location,
                         ))
                     }
@@ -70,7 +71,7 @@ lazy_static! {
                             .map(|it| it.as_basic_value_enum())
                     } else {
                         Err(Diagnostic::codegen_error(
-                            "Expected exadtly one parameter for REF",
+                            "Expected exactly one parameter for REF",
                             location,
                         ))
                     }
@@ -192,16 +193,16 @@ lazy_static! {
                 ",
                 annotation: Some(|annotator, operator , parameters, ctx| {
                     let params = parameters.ok_or_else(|| Diagnostic::codegen_error("EXPT requires parameters", operator.get_location()))?;
-                    if let [element, exponant] = flatten_expression_list(params)[..] {
+                    if let [element, exponent] = flatten_expression_list(params)[..] {
                         //Resolve the parameter types
                         let element_type = annotator.annotation_map.get_type(element, annotator.index);
-                        let exponant_type = annotator.annotation_map.get_type(exponant, annotator.index);
+                        let exponent_type = annotator.annotation_map.get_type(exponent, annotator.index);
                         let dint_type = annotator.index.get_type_or_panic(DINT_TYPE);
                         let udint_type = annotator.index.get_type_or_panic(UDINT_TYPE);
                         let real_type = annotator.index.get_type_or_panic(REAL_TYPE);
-                        let is_exponent_positive_literal = if let AstStatement::LiteralInteger { value, .. } = exponant { value.is_positive() } else {false};
-                        if let (Some(element_type), Some(exponant_type)) = (element_type, exponant_type) {
-                            let (element_type, exponant_type)  = match (element_type.get_type_information(), exponant_type.get_type_information()) {
+                        let is_exponent_positive_literal = if let AstStatement::LiteralInteger { value, .. } = exponent { value.is_positive() } else {false};
+                        if let (Some(element_type), Some(exponent_type)) = (element_type, exponent_type) {
+                            let (element_type, exponant_type)  = match (element_type.get_type_information(), exponent_type.get_type_information()) {
                                 //If both params are int types, convert to a common type and call an int power function
                                 (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {signed : false, size, ..})
                                 | (DataTypeInformation::Integer { .. }, DataTypeInformation::Integer {signed : true, size, ..}) if is_exponent_positive_literal => {
@@ -210,7 +211,7 @@ lazy_static! {
                                     let exponant_type = if *size <= DINT_SIZE {
                                         udint_type
                                     } else {
-                                        exponant_type
+                                        exponent_type
                                     };
                                     (element_type.get_name(), exponant_type.get_name())
                                 },
@@ -224,7 +225,7 @@ lazy_static! {
                                         dint_type
                                     } else {
                                         //For bigger types, we move to the target type (Effectively always LREAL)
-                                        get_bigger_type(target_type, exponant_type, annotator.index)
+                                        get_bigger_type(target_type, exponent_type, annotator.index)
                                     };
                                     let target_type = get_bigger_type(target_type, exponant_type, annotator.index);
                                     (target_type.get_name(), exponant_type.get_name())
@@ -233,7 +234,7 @@ lazy_static! {
                                 _ => {
                                     //Convert left and right to minimum REAL
                                     let target_type = get_bigger_type(
-                                        get_bigger_type(element_type, exponant_type, annotator.index), real_type, annotator.index);
+                                        get_bigger_type(element_type, exponent_type, annotator.index), real_type, annotator.index);
                                     (target_type.get_name(), target_type.get_name())
                                 }
                             };
@@ -253,7 +254,43 @@ lazy_static! {
                     unreachable!("Expt will always end up calling the real functions by the resolver magic")
                 }
             }
-        )
+        ),
+        (
+            "SIZEOF",
+            BuiltIn {
+                decl : "FUNCTION SIZEOF<U: ANY> : DINT
+                VAR_INPUT
+                    in : U;
+                END_VAR
+                END_FUNCTION",
+                annotation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, location| {
+                    if let [reference] = params {
+                        // get name of datatype behind reference
+                        let type_name = generator.annotations
+                            .get_type(reference, generator.index)
+                            .map(|it| generator.index.get_effective_type_or_void_by_name(it.get_name()))
+                            .unwrap()
+                            .get_name();
+
+                        // return size of llvm type
+                        let size = generator.llvm_index
+                            .get_associated_type(type_name)
+                            .map_err(|_| Diagnostic::codegen_error(&format!("Could not find associated data type: {type_name}"), location.clone())
+                            )?.size_of()
+                            .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", location.clone()))?
+                            .as_basic_value_enum();
+                            Ok(size)
+                    } else {
+                        Err(Diagnostic::codegen_error(
+                            "Expected exactly one parameter for SIZEOF",
+                            location,
+                        ))
+                    }
+                }
+            }
+        ),
     ]);
 }
 
@@ -263,7 +300,7 @@ type AnnotationFunction = fn(
     Option<&AstStatement>,
     VisitorContext,
 ) -> Result<(), Diagnostic>;
-type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, String>) -> String;
+type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstStatement],

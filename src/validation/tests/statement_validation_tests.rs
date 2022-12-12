@@ -783,3 +783,51 @@ fn program_call_parameter_validation() {
         ]
     );
 }
+
+#[test]
+fn address_of_operations() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        TYPE MyStruct: STRUCT
+            a : SubStruct;
+        END_STRUCT
+        END_TYPE
+
+        TYPE SubStruct: STRUCT
+            b : INT;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM main
+            VAR
+                a: INT;
+                b: ARRAY[0..5] OF INT;
+                c: MyStruct;
+            END_VAR
+
+            // Should work
+            &(a);
+            &b[1];
+            &c.a.b;
+
+            // Should not work
+            &&a;
+            &100;
+            &(a+3);
+        END_PROGRAM
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 3);
+
+    let ranges = vec![(462..465), (479..483), (497..502)];
+    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::invalid_operation(
+                "Invalid address-of operation",
+                ranges[idx].to_owned().into()
+            )
+        );
+    }
+}

@@ -7,9 +7,9 @@ source_filename = "main"
 
 define i16 @main() {
 entry:
+  %main = alloca i16, align 2
   %a = alloca i8, align 1
   %b = alloca i16, align 2
-  %main = alloca i16, align 2
   store i8 0, i8* %a, align 1
   store i16 1, i16* %b, align 2
   store i16 0, i16* %main, align 2

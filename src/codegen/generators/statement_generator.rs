@@ -5,9 +5,11 @@ use super::{
     pou_generator::PouGenerator,
 };
 use crate::{
-    ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
-    codegen::llvm_typesystem,
-    codegen::LlvmTypedIndex,
+    ast::{
+        flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange,
+    },
+    codegen::{debug::Debug, llvm_typesystem},
+    codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations},
@@ -21,11 +23,13 @@ use inkwell::{
 };
 
 /// the full context when generating statements inside a POU
-pub struct FunctionContext<'a> {
+pub struct FunctionContext<'ink, 'b> {
     /// the current pou's name. This means that a variable x may refer to "`linking_context`.x"
-    pub linking_context: ImplementationIndexEntry,
+    pub linking_context: &'b ImplementationIndexEntry,
     /// the llvm function to generate statements into
-    pub function: FunctionValue<'a>,
+    pub function: FunctionValue<'ink>,
+    /// The new lines marker for the compilation unit containing the POU
+    pub new_lines: &'b NewLines,
 }
 
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
@@ -35,7 +39,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     annotations: &'b AstAnnotations,
     pou_generator: &'b PouGenerator<'a, 'b>,
     llvm_index: &'b LlvmTypedIndex<'a>,
-    function_context: &'b FunctionContext<'a>,
+    function_context: &'b FunctionContext<'a, 'b>,
 
     pub load_prefix: String,
     pub load_suffix: String,
@@ -44,6 +48,8 @@ pub struct StatementCodeGenerator<'a, 'b> {
     pub current_loop_exit: Option<BasicBlock<'a>>,
     /// the block to jump to when you want to continue the loop
     pub current_loop_continue: Option<BasicBlock<'a>>,
+
+    pub debug: &'b DebugBuilderEnum<'a>,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -54,7 +60,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         annotations: &'b AstAnnotations,
         pou_generator: &'b PouGenerator<'a, 'b>,
         llvm_index: &'b LlvmTypedIndex<'a>,
-        linking_context: &'b FunctionContext<'a>,
+        linking_context: &'b FunctionContext<'a, 'b>,
+        debug: &'b DebugBuilderEnum<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
@@ -67,6 +74,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             load_suffix: "".to_string(),
             current_loop_exit: None,
             current_loop_continue: None,
+            debug,
         }
     }
 
@@ -78,6 +86,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.annotations,
             self.llvm_index,
             self.function_context,
+            self.debug,
         )
     }
 
@@ -147,6 +156,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
             AstStatement::ReturnStatement { .. } => {
+                self.register_debug_location(statement);
                 self.pou_generator
                     .generate_return_statement(self.function_context, self.llvm_index)?;
                 self.generate_buffer_block();
@@ -190,6 +200,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         left_statement: &AstStatement,
         right_statement: &AstStatement,
     ) -> Result<(), Diagnostic> {
+        //Register any debug info for the store
+        self.register_debug_location(left_statement);
         //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         if left_statement.has_direct_access() {
             return self.generate_direct_access_assignment(left_statement, right_statement);
@@ -210,6 +222,19 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         exp_gen.generate_store(left, left_type, right_statement)?;
         Ok(())
+    }
+
+    fn register_debug_location(&self, statement: &AstStatement) {
+        let line = self
+            .function_context
+            .new_lines
+            .get_line_nr(statement.get_location().get_start());
+        let column = self
+            .function_context
+            .new_lines
+            .get_column(line, statement.get_location().get_start());
+        self.debug
+            .set_debug_location(self.llvm, &self.function_context.function, line, column);
     }
 
     fn generate_direct_access_assignment(

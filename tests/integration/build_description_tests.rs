@@ -3,6 +3,7 @@ use crate::get_test_file;
 use rusty::{build_with_params, build_with_subcommand};
 
 #[test]
+#[serial]
 fn build_to_temp() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(&[
@@ -28,6 +29,7 @@ fn build_to_temp() {
 }
 
 #[test]
+#[serial]
 fn exports_env_variable() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(&[
@@ -60,6 +62,7 @@ fn exports_env_variable() {
 }
 
 #[test]
+#[serial]
 fn build_with_separate_lib_folder() {
     let dir = tempfile::tempdir().unwrap();
     let lib_dir = tempfile::tempdir().unwrap();
@@ -86,6 +89,7 @@ fn build_with_separate_lib_folder() {
 }
 
 #[test]
+#[serial]
 #[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
 fn build_with_target_but_without_sysroot() {
     let dir = tempfile::tempdir().unwrap();
@@ -109,6 +113,7 @@ fn build_with_target_but_without_sysroot() {
 }
 
 #[test]
+#[serial]
 fn build_for_multiple_targets_and_sysroots() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = CompileParameters::parse(&[
@@ -142,6 +147,7 @@ fn build_for_multiple_targets_and_sysroots() {
 }
 
 #[test]
+#[serial]
 #[cfg_attr(target_os = "windows", ignore = "linker not available for Windows")]
 fn build_with_cc_linker() {
     let dir = tempfile::tempdir().unwrap();
@@ -171,6 +177,7 @@ fn build_with_cc_linker() {
 }
 
 #[test]
+#[serial]
 #[cfg_attr(target_os = "linux", ignore)]
 fn build_with_clang_linker_windows() {
     let dir = tempfile::tempdir().unwrap();

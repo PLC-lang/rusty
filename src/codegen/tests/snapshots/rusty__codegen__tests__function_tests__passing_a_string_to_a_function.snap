@@ -12,9 +12,9 @@ source_filename = "main"
 
 define i32 @func([6 x i8] %0) {
 entry:
+  %func = alloca i32, align 4
   %x = alloca [6 x i8], align 1
   store [6 x i8] %0, [6 x i8]* %x, align 1
-  %func = alloca i32, align 4
   store i32 0, i32* %func, align 4
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret

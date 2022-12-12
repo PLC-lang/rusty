@@ -217,6 +217,12 @@ fn class_struct_initialized_in_function() {
 fn function_return_value_is_initialized() {
     let function = codegen(
         r"
+        TYPE MyStruct: STRUCT
+          a: DINT;
+          b: INT;
+        END_STRUCT
+        END_TYPE
+
         FUNCTION foo_int : INT
         END_FUNCTION
 
@@ -225,9 +231,36 @@ fn function_return_value_is_initialized() {
 
         FUNCTION foo_arr : ARRAY[0..9] OF REAL
         END_FUNCTION
+
+        FUNCTION foo_struct : MyStruct
+        END_FUNCTION
         ",
     );
     //expect 0-initialization
+    insta::assert_snapshot!(function)
+}
+
+#[test]
+fn function_return_value_is_initialized_with_type_initializer() {
+    let function = codegen(
+        r"
+          TYPE myArray : ARRAY[0..3] OF DINT := [1,2,3,4]; END_TYPE
+
+          FUNCTION target : myArray
+            target[2] := 7;
+          END_FUNCTION
+
+          PROGRAM main
+            VAR
+              x : ARRAY[0..3] OF DINT;
+              y : ARRAY[0..3] OF DINT;
+            END_VAR
+            x := target();
+            y := x;
+          END_PROGRAM
+        ",
+    );
+    //expect [1,2,3,4]-initialization of function's out pointer
     insta::assert_snapshot!(function)
 }
 

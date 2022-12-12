@@ -1345,12 +1345,13 @@ fn initial_value_of_function_return_array() {
     VAR
         arr : ARRAY[0..3] OF DINT;
     END_VAR
-    
-    arr := target();
+        arr := target();
     END_PROGRAM
 		";
 
     #[allow(dead_code)]
+    #[repr(C)]
+    #[derive(Debug)]
     struct MainType {
         arr: [i32; 4],
     }
@@ -1358,6 +1359,7 @@ fn initial_value_of_function_return_array() {
     // THEN i expect to get [1,2,4,4]
     let mut maintype = MainType { arr: [0; 4] };
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+
     assert_eq!([1, 2, 4, 4], maintype.arr);
 }
 
@@ -1417,27 +1419,34 @@ fn initial_value_of_function_return_struct() {
 #[test]
 fn initial_value_in_array_of_struct() {
     let function = "
-    TYPE myStruct : STRUCT 
-            a,b : DINT; 
-        END_STRUCT
-    END_TYPE
+	TYPE myStruct : STRUCT
+			a, b : DINT;
+			c : ARRAY[0..1] OF DINT;
+		END_STRUCT
+	END_TYPE
 
 	VAR_GLOBAL CONSTANT
-		str : myStruct := (a := 30, b := 40);
+		str : myStruct := (a := 50, b := 60, c := (70, 80));
 	END_VAR
 
-    PROGRAM main
+	PROGRAM main
 	VAR_TEMP
-		arr : ARRAY[0..1] OF myStruct := ((a:= 10, b:= 20), str);
+		arr : ARRAY[0..1] OF myStruct := ((a := 10, b := 20, c := (30, 40)), str);
 	END_VAR
 	VAR
-		a,b,c,d: DINT;
+		a, b, c, d : DINT;
+		e, f, g, h : DINT;
 	END_VAR
 		a := arr[0].a;
 		b := arr[0].b;
-		c := arr[1].a;
-		d := arr[1].b;
-    END_PROGRAM
+		c := arr[0].c[0];
+		d := arr[0].c[1];
+
+		e := arr[1].a;
+		f := arr[1].b;
+		g := arr[1].c[0];
+		h := arr[1].c[1];
+	END_PROGRAM
 	";
 
     #[allow(dead_code)]
@@ -1447,12 +1456,19 @@ fn initial_value_in_array_of_struct() {
         b: i32,
         c: i32,
         d: i32,
+        e: i32,
+        f: i32,
+        g: i32,
+        h: i32,
     }
     let mut maintype = MainType::default();
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(
-        [10, 20, 30, 40],
-        [maintype.a, maintype.b, maintype.c, maintype.d]
+        [10, 20, 30, 40, 50, 60, 70, 80],
+        [
+            maintype.a, maintype.b, maintype.c, maintype.d, maintype.e, maintype.f, maintype.g,
+            maintype.h
+        ]
     );
 }

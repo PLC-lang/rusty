@@ -22,8 +22,8 @@ use crate::{
     lexer::IdProvider,
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
-        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, REAL_TYPE,
-        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
+        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -796,7 +796,7 @@ impl<'i> TypeAnnotator<'i> {
                 let ctx = ctx.with_lhs(expected_type.get_name());
 
                 if matches!(initializer, AstStatement::DefaultValue { .. }) {
-                    // the default-placeholder must be annotated witht he correc type,
+                    // the default-placeholder must be annotated with the correct type,
                     // it will be replaced by the appropriate literal later
                     self.annotation_map.annotate(
                         initializer,
@@ -822,6 +822,7 @@ impl<'i> TypeAnnotator<'i> {
                         .get_effective_type_or_void_by_name(inner_type_name);
                     if struct_type.get_type_information().is_struct() {
                         if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                            let ctx = ctx.with_qualifier(struct_type.get_name().to_string());
                             for e in expressions {
                                 // annotate with the arrays inner_type
                                 self.annotation_map.annotate_type_hint(
@@ -829,7 +830,8 @@ impl<'i> TypeAnnotator<'i> {
                                     StatementAnnotation::Value {
                                         resulting_type: struct_type.get_name().to_string(),
                                     },
-                                )
+                                );
+                                self.visit_statement(&ctx, e);
                             }
                         }
                     }
@@ -1364,6 +1366,47 @@ impl<'i> TypeAnnotator<'i> {
                             .get_name();
                         vec![(statement, type_name.to_string())]
                     } else if let Some(t) = data_type {
+                        // special handling for unlucky casted-strings where caste-type does not match the literal encoding
+                        // ´STRING#"abc"´ or ´WSTRING#'abc'´
+                        match (t, target.as_ref()) {
+                            (
+                                DataTypeInformation::String {
+                                    encoding: StringEncoding::Utf8,
+                                    ..
+                                },
+                                AstStatement::LiteralString {
+                                    value,
+                                    is_wide: is_wide @ true,
+                                    location,
+                                    id,
+                                },
+                            )
+                            | (
+                                DataTypeInformation::String {
+                                    encoding: StringEncoding::Utf16,
+                                    ..
+                                },
+                                AstStatement::LiteralString {
+                                    value,
+                                    is_wide: is_wide @ false,
+                                    location,
+                                    id,
+                                },
+                            ) => {
+                                // visit the target-statement as if the programmer used the correct quotes to prevent
+                                // a utf16 literal-global-variable that needs to be casted back to utf8 or vice versa
+                                self.visit_statement(
+                                    ctx,
+                                    &AstStatement::LiteralString {
+                                        value: value.clone(),
+                                        is_wide: !*is_wide,
+                                        location: location.clone(),
+                                        id: *id,
+                                    },
+                                );
+                            }
+                            _ => {}
+                        }
                         vec![
                             (statement, t.get_name().to_string()),
                             (target, t.get_name().to_string()),
@@ -1561,7 +1604,10 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     pub(crate) fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
-        if !matches!(p, AstStatement::Assignment { .. }) {
+        if !matches!(
+            p,
+            AstStatement::Assignment { .. } | AstStatement::OutputAssignment { .. }
+        ) {
             if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
                 //update the type hint
                 self.annotation_map.annotate_type_hint(
@@ -1662,6 +1708,7 @@ fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str
         crate::ast::DirectAccessType::Byte => BYTE_TYPE,
         crate::ast::DirectAccessType::Word => WORD_TYPE,
         crate::ast::DirectAccessType::DWord => DWORD_TYPE,
+        crate::ast::DirectAccessType::LWord => LWORD_TYPE,
         crate::ast::DirectAccessType::Template => VOID_TYPE,
     }
 }
@@ -1725,18 +1772,30 @@ fn to_variable_annotation(
     index: &Index,
     constant_override: bool,
 ) -> StatementAnnotation {
+    const AUTO_DEREF: bool = true;
+    const NO_DEREF: bool = false;
     let v_type = index.get_effective_type_or_void_by_name(v.get_type_name());
 
     //see if this is an auto-deref variable
-    let (effective_type_name, is_auto_deref) = if let DataTypeInformation::Pointer {
-        auto_deref: true,
-        inner_type_name,
-        ..
-    } = v_type.get_type_information()
+    let (effective_type_name, is_auto_deref) = match (v_type.get_type_information(), v.is_return())
     {
-        (inner_type_name.clone(), true)
-    } else {
-        (v_type.get_name().to_string(), false)
+        (_, true) if v_type.is_aggregate_type() => {
+            // treat a return-aggregate variable like an auto-deref pointer since it got
+            // passed by-ref
+            (v_type.get_name().to_string(), AUTO_DEREF)
+        }
+        (
+            DataTypeInformation::Pointer {
+                inner_type_name,
+                auto_deref: true,
+                ..
+            },
+            _,
+        ) => {
+            // real auto-deref pointer
+            (inner_type_name.clone(), AUTO_DEREF)
+        }
+        _ => (v_type.get_name().to_string(), NO_DEREF),
     };
 
     StatementAnnotation::Variable {
