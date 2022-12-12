@@ -78,7 +78,7 @@ fn get_test_file(name: &str) -> String {
 }
 
 /// # Safety
-/// 
+///
 /// Unsafe by design, it dereferences a pointer
 pub unsafe fn new_cstr<'a>(chars: *const i8) -> &'a core::ffi::CStr {
     // Depending on the architecture `CStr::from_ptr` might either take
