@@ -521,21 +521,23 @@ fn struct_initializer_uses_fallback_to_field_default() {
 fn array_of_struct_initialization() {
     let source = "
 	TYPE myStruct : STRUCT
-			a,b : DINT;
+			a, b : DINT;
+			c : ARRAY[0..1] OF DINT;
 		END_STRUCT
 	END_TYPE
 
-    TYPE AliasMyStruct : myStruct; END_TYPE
+	TYPE AliasMyStruct : myStruct; END_TYPE
 
 	VAR_GLOBAL CONSTANT
-		str : myStruct := (a := 40, b := 50);
-		alias_str : AliasMyStruct := (a := 40, b := 50);
+		str : myStruct := (a := 50, b := 60, c := (70, 80));
+		alias_str : AliasMyStruct := (a := 50, b := 60, c := (70, 80));
+		global_arr : ARRAY[0..1] OF DINT := (30, 40);
 	END_VAR
 
 	PROGRAM main
 	VAR
-		arr : ARRAY[0..1] OF myStruct := ((a := 20, b := 30), str);
-		alias_arr : ARRAY[0..1] OF AliasMyStruct := ((a := 20, b := 30), alias_str);
+		arr : ARRAY[0..1] OF myStruct := ((a := 10, b := 20, c := (30, 40)), str);
+		alias_arr : ARRAY[0..1] OF AliasMyStruct := ((a := 10, b := 20, c := global_arr), alias_str);
 	END_VAR
 	END_PROGRAM
     ";
