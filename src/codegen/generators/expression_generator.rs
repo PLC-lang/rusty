@@ -1,7 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::{self, DirectAccessType, SourceRange},
-    codegen::llvm_typesystem,
+    codegen::{
+        debug::{Debug, DebugBuilderEnum},
+        llvm_typesystem,
+    },
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{
         const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
@@ -42,7 +45,9 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     pub(crate) annotations: &'b AstAnnotations,
     pub llvm_index: &'b LlvmTypedIndex<'a>,
     /// the current function to create blocks in
-    pub function_context: Option<&'b FunctionContext<'a>>,
+    pub function_context: Option<&'b FunctionContext<'a, 'b>>,
+    /// The debug context used to create breakpoint information
+    pub debug: &'b DebugBuilderEnum<'a>,
 
     /// the string-prefix to use for temporary variables
     pub temp_variable_prefix: String,
@@ -106,7 +111,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         index: &'b Index,
         annotations: &'b AstAnnotations,
         llvm_index: &'b LlvmTypedIndex<'ink>,
-        function_context: &'b FunctionContext<'ink>,
+        function_context: &'b FunctionContext<'ink, 'b>,
+        debug: &'b DebugBuilderEnum<'ink>,
     ) -> ExpressionCodeGenerator<'ink, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -114,6 +120,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             llvm_index,
             annotations,
             function_context: Some(function_context),
+            debug,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |_, actual_length| actual_length, //when generating string-literals in a body, use the actual length
@@ -139,6 +146,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             llvm_index,
             annotations,
             function_context: None,
+            debug: &DebugBuilderEnum::None,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |type_length_declaration, _| type_length_declaration, //when generating string-literals in declarations, use the declared length
@@ -149,7 +157,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn get_function_context(
         &self,
         statement: &AstStatement,
-    ) -> Result<&'b FunctionContext<'ink>, Diagnostic> {
+    ) -> Result<&'b FunctionContext<'ink, 'b>, Diagnostic> {
         self.function_context
             .ok_or_else(|| Diagnostic::missing_function(statement.get_location()))
     }
@@ -180,6 +188,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         } else {
             Ok(v)
         }
+    }
+
+    fn register_debug_location(&self, statement: &AstStatement) {
+        let function_context = self
+            .function_context
+            .expect("Cannot generate debug info without function context");
+        let line = function_context
+            .new_lines
+            .get_line_nr(statement.get_location().get_start());
+        let column = function_context
+            .new_lines
+            .get_column(line, statement.get_location().get_start());
+        self.debug
+            .set_debug_location(self.llvm, &function_context.function, line, column);
     }
 
     fn generate_expression_value(
@@ -570,6 +592,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     operator.get_location(),
                 )
             })?;
+        //Generate the debug statetment for a call
+        self.register_debug_location(operator);
 
         // if this is a function that returns an aggregate type we need to allocate an out.pointer
         let by_ref_func_out: Option<PointerValue> =
@@ -749,7 +773,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         parameters: &[&AstStatement],
         implementation: &ImplementationIndexEntry,
         operator: &AstStatement,
-        function_context: &'b FunctionContext<'ink>,
+        function_context: &'b FunctionContext<'ink, 'b>,
         function_name: &str,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {

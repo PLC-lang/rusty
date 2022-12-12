@@ -643,11 +643,22 @@ pub fn compile_module<'c, T: SourceContainer>(
     optimization: OptimizationLevel,
     debug_level: DebugLevel,
 ) -> Result<(Index, CodeGen<'c>), Diagnostic> {
+    let module_location = sources
+        .get(0)
+        .map(|it| it.get_location())
+        .unwrap_or("main")
+        .to_owned();
     let (full_index, mut index) = index_module(sources, includes, encoding, &mut diagnostician)?;
 
     // ### PHASE 3 ###
     // - codegen
-    let mut code_generator = codegen::CodeGen::new(context, "main", optimization, debug_level);
+    let mut code_generator = codegen::CodeGen::new(
+        context,
+        &module_location,
+        &module_location,
+        optimization,
+        debug_level,
+    );
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
@@ -661,7 +672,18 @@ pub fn compile_module<'c, T: SourceContainer>(
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
 
-    code_generator.finalize()?;
+    code_generator.finalize();
+
+    #[cfg(feature = "verify")]
+    {
+        code_generator
+            .module
+            .verify()
+            .map_err(|it| Diagnostic::GeneralError {
+                message: it.to_string(),
+                err_no: crate::diagnostics::ErrNo::codegen__general,
+            })?
+    }
 
     Ok((full_index, code_generator))
 }

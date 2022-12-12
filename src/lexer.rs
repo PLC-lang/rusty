@@ -326,6 +326,7 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
             'b' => Some(crate::ast::DirectAccessType::Byte),
             'w' => Some(crate::ast::DirectAccessType::Word),
             'd' => Some(crate::ast::DirectAccessType::DWord),
+            'l' => Some(crate::ast::DirectAccessType::LWord),
             _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");
@@ -359,6 +360,7 @@ fn parse_hardware_access_type(
             'b' => Some(crate::ast::DirectAccessType::Byte),
             'w' => Some(crate::ast::DirectAccessType::Word),
             'd' => Some(crate::ast::DirectAccessType::DWord),
+            'l' => Some(crate::ast::DirectAccessType::LWord),
             '*' => Some(crate::ast::DirectAccessType::Template),
             _ => None,
         })
