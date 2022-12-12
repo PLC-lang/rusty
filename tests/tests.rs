@@ -80,7 +80,7 @@ fn get_test_file(name: &str) -> String {
 /// # Safety
 ///
 /// Unsafe by design, it dereferences a pointer
-pub unsafe fn new_cstr<'a>(chars: *const i8) -> &'a core::ffi::CStr {
+pub unsafe fn new_cstr<'a>(chars: *const i8) -> &'a std::ffi::CStr {
     // Depending on the architecture `CStr::from_ptr` might either take
     // `i8` or `u8` as an argument. For example x86_64 would yield `i8`
     // whereas aarch64 would yield `u8`. Instead of relying on conditional
@@ -89,5 +89,5 @@ pub unsafe fn new_cstr<'a>(chars: *const i8) -> &'a core::ffi::CStr {
     // For more information regarding `CStr::from_ptr` see:
     // * https://doc.rust-lang.org/nightly/src/core/ffi/mod.rs.html#54
     // * https://doc.rust-lang.org/nightly/src/core/ffi/mod.rs.html#104
-    core::ffi::CStr::from_ptr(chars as *const _)
+    std::ffi::CStr::from_ptr(chars as *const _)
 }
