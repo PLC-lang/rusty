@@ -201,7 +201,112 @@ fn aggregate_return_value_variable_in_function() {
 }
 
 #[test]
-#[ignore]
 fn exit_statement_have_location() {
-    todo!("Exits belong in loops")
+    // Let a function with an addition and a reference
+    let (result, _) = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+            WHILE TRUE THEN
+                EXIT;
+            END_WHILE
+            myFunc := 1;
+        END_FUNCTION
+        ",
+    );
+    // No line information should be added on the statements
+    assert_snapshot!(result);
 }
+
+#[test]
+fn if_conditions_location_marked() {
+    // Let a function with an addition and a reference
+    let (result, _) = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+            IF TRUE THEN
+                myFunc := 1;
+            ELSIF FALSE THEN
+                myFunc := 1;
+            ELSE 
+                myFunc := 1;
+            END_IF
+            myFunc := 1;
+        END_FUNCTION
+        ",
+    );
+    // No line information should be added on the statements
+    assert_snapshot!(result);
+}
+
+#[test]
+fn case_conditions_location_marked() {
+    // Let a function with an addition and a reference
+    let (result, _) = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+            CASE myFunc OF
+            1:
+                myFunc := 1;
+            2:
+                myFunc := 1;
+            ELSE 
+                myFunc := 1;
+            END_CASE
+            myFunc := 1;
+        END_FUNCTION
+        ",
+    );
+    // No line information should be added on the statements
+    assert_snapshot!(result);
+}
+
+#[test]
+fn while_conditions_location_marked() {
+    // Let a function with an addition and a reference
+    let (result, _) = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+            WHILE myFunc > 1 DO
+                myFunc := 1;
+            END_WHILE
+            myFunc := 1;
+        END_FUNCTION
+        ",
+    );
+    // No line information should be added on the statements
+    assert_snapshot!(result);
+}
+
+#[test]
+fn repeat_conditions_location_marked() {
+    // Let a function with an addition and a reference
+    let (result, _) = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+            REPEAT
+                myFunc := 1;
+            UNTIL myFunc > 10 END_REPEAT
+            myFunc := 1;
+        END_FUNCTION
+        ",
+    );
+    // No line information should be added on the statements
+    assert_snapshot!(result);
+}
+
+#[test]
+fn for_conditions_location_marked() {
+    // Let a function with an addition and a reference
+    let (result, _) = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+            FOR myFunc := 1 TO 20 BY 2 DO
+                myFunc := 1;
+            END_FOR
+        END_FUNCTION
+        ",
+    );
+    // No line information should be added on the statements
+    assert_snapshot!(result);
+}
+
