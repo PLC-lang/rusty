@@ -1835,6 +1835,8 @@
 <span id="1830">1830</span>
 <span id="1831">1831</span>
 <span id="1832">1832</span>
+<span id="1833">1833</span>
+<span id="1834">1834</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2633,7 +2635,7 @@
                 <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_lhs</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>());
 
                 <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">initializer</span>, <span class="ident">AstStatement::DefaultValue</span> { .. }) {
-                    <span class="comment">// the default-placeholder must be annotated witht he correc type,</span>
+                    <span class="comment">// the default-placeholder must be annotated with the correct type,</span>
                     <span class="comment">// it will be replaced by the appropriate literal later</span>
                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
                         <span class="ident">initializer</span>,
@@ -2659,6 +2661,7 @@
                         .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">inner_type_name</span>);
                     <span class="kw">if</span> <span class="ident">struct_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_struct</span>() {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span> <span class="ident">initializer</span> {
+                            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_qualifier</span>(<span class="ident">struct_type</span>.<span class="ident">get_name</span>().<span class="ident">to_string</span>());
                             <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">expressions</span> {
                                 <span class="comment">// annotate with the arrays inner_type</span>
                                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(
@@ -2666,7 +2669,8 @@
                                     <span class="ident">StatementAnnotation::Value</span> {
                                         <span class="ident">resulting_type</span>: <span class="ident">struct_type</span>.<span class="ident">get_name</span>().<span class="ident">to_string</span>(),
                                     },
-                                )
+                                );
+                                <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">e</span>);
                             }
                         }
                     }
