@@ -76,3 +76,18 @@ fn get_test_file(name: &str) -> String {
 
     data_path.display().to_string()
 }
+
+/// # Safety
+/// 
+/// Unsafe by design, it dereferences a pointer
+pub unsafe fn new_cstr<'a>(chars: *const i8) -> &'a core::ffi::CStr {
+    // Depending on the architecture `CStr::from_ptr` might either take
+    // `i8` or `u8` as an argument. For example x86_64 would yield `i8`
+    // whereas aarch64 would yield `u8`. Instead of relying on conditional
+    // compilation we can ask the compiler to deduce the right type here,
+    // i.e. by casting with `as *const _`.
+    // For more information regarding `CStr::from_ptr` see:
+    // * https://doc.rust-lang.org/nightly/src/core/ffi/mod.rs.html#54
+    // * https://doc.rust-lang.org/nightly/src/core/ffi/mod.rs.html#104
+    core::ffi::CStr::from_ptr(chars as *const _)
+}
