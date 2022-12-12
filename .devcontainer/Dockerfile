@@ -49,3 +49,6 @@ RUN chmod -R a+rw $CARGO_HOME \
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
+
+# Required if we want to use `lld` as the default linker for RuSTy
+RUN ln -sf /usr/bin/ld.lld-$LLVM_VER /usr/bin/ld.lld
