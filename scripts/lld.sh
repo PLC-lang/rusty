@@ -25,13 +25,14 @@ if [ -z $LD_LLD_WITHOUT_VERSION ]; then
     mkdir -p $HOME/.local/bin
     ln -svf $LD_LLD_WITH_VERSION $HOME/.local/bin/ld.lld
 
-    echo "\nYou might need to update your \$PATH environment variable for cargo to recognize lld, like so:"
-    echo "${TEXT_BOLD}echo 'export PATH=\$HOME/.local/bin:\$PATH' >> $HOME/.bashrc${TEXT_NORMAL}"
+    # Append new $PATH to `.bashrc`
+    echo 'export PATH=$HOME/.local/bin:$PATH' >> $HOME/.bashrc
+    echo 'A new $PATH entry has been added to your .bashrc'
+    echo 'For changes to take effect close and reopen your current shell.'
 
 else 
     # Present, do nothing because we don't want to modifiy system-wide configurations
     echo "Note: Using already present $LD_LLD_WITHOUT_VERSION binary"
-    echo "      Make sure $LD_LLD_WITHOUT_VERSION matches with RuSTys LLVM version"
 fi
 
 # Create `config.toml` to make `lld` the default linker for RuSTy
