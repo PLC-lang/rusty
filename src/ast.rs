@@ -62,6 +62,7 @@ pub enum DirectAccessType {
     Byte,
     Word,
     DWord,
+    LWord,
     Template,
 }
 
@@ -199,6 +200,7 @@ impl DirectAccessType {
             DirectAccessType::Byte => 8,
             DirectAccessType::Word => 16,
             DirectAccessType::DWord => 32,
+            DirectAccessType::LWord => 64,
             DirectAccessType::Template => unimplemented!("Should not test for template width"),
         }
     }

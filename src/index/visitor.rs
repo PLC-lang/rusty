@@ -247,12 +247,21 @@ fn visit_implementation(
     symbol_location_factory: &SymbolLocationFactory,
 ) {
     let pou_type = &implementation.pou_type;
+    let start_location = implementation
+        .statements
+        .first()
+        .map(|it| it.get_location())
+        .as_ref()
+        .or(Some(&implementation.location))
+        .map(|it| symbol_location_factory.create_symbol_location(it))
+        .unwrap();
     index.register_implementation(
         &implementation.name,
         &implementation.type_name,
         pou_type.get_optional_owner_class().as_ref(),
         pou_type.into(),
         implementation.generic,
+        start_location,
     );
     //if we are registing an action, also register a datatype for it
     if pou_type == &PouType::Action {

@@ -81,7 +81,7 @@ pub fn generate_global_variables<'ctx, 'b>(
             variable.get_qualified_name(),
             &variable.data_type_name,
             global_variable,
-        )?;
+        );
     }
     Ok(index)
 }

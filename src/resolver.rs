@@ -22,8 +22,8 @@ use crate::{
     lexer::IdProvider,
     typesystem::{
         self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
-        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, REAL_TYPE,
-        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
+        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -796,7 +796,7 @@ impl<'i> TypeAnnotator<'i> {
                 let ctx = ctx.with_lhs(expected_type.get_name());
 
                 if matches!(initializer, AstStatement::DefaultValue { .. }) {
-                    // the default-placeholder must be annotated witht he correc type,
+                    // the default-placeholder must be annotated with the correct type,
                     // it will be replaced by the appropriate literal later
                     self.annotation_map.annotate(
                         initializer,
@@ -822,6 +822,7 @@ impl<'i> TypeAnnotator<'i> {
                         .get_effective_type_or_void_by_name(inner_type_name);
                     if struct_type.get_type_information().is_struct() {
                         if let AstStatement::ExpressionList { expressions, .. } = initializer {
+                            let ctx = ctx.with_qualifier(struct_type.get_name().to_string());
                             for e in expressions {
                                 // annotate with the arrays inner_type
                                 self.annotation_map.annotate_type_hint(
@@ -829,7 +830,8 @@ impl<'i> TypeAnnotator<'i> {
                                     StatementAnnotation::Value {
                                         resulting_type: struct_type.get_name().to_string(),
                                     },
-                                )
+                                );
+                                self.visit_statement(&ctx, e);
                             }
                         }
                     }
@@ -1706,6 +1708,7 @@ fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str
         crate::ast::DirectAccessType::Byte => BYTE_TYPE,
         crate::ast::DirectAccessType::Word => WORD_TYPE,
         crate::ast::DirectAccessType::DWord => DWORD_TYPE,
+        crate::ast::DirectAccessType::LWord => LWORD_TYPE,
         crate::ast::DirectAccessType::Template => VOID_TYPE,
     }
 }
