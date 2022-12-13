@@ -242,6 +242,8 @@ give you a smaller and likely a faster binary.</p>
 <pre><code class="language-bash">cargo build --release
 </code></pre>
 <p>You can find the binary at <code>./target/release/rustyc</code>.</p>
+<h2 id="improving-compile-times"><a class="header" href="#improving-compile-times">Improving Compile Times</a></h2>
+<p>By default Rust uses the GNU Linker on Linux which compared to <a href="https://lld.llvm.org/">lld</a> is slower by a margin of <a href="https://llvm.org/devmtg/2016-10/slides/Ueyama-lld.pdf">~2x - 4x</a>. To improve compile times we can therefore use <code>lld</code>. To do so you will need to run the <code>rusty/scripts/lld.sh</code> script inside the <code>rusty</code> root folder, i.e. by executing <code>./scripts/lld.sh</code>. <strong>Note</strong> that the script was only tested on Ubuntu based distributions thus far.</p>
 <h2 id="installing"><a class="header" href="#installing">Installing</a></h2>
 <p><em>TODO</em></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
