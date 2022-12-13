@@ -1,8 +1,5 @@
 #!/usr/bin/env sh
 
-TEXT_BOLD=$(tput bold)
-TEXT_NORMAL=$(tput sgr0)
-
 LD_LLD_WITH_VERSION=$(command -v ld.lld-$1)
 LD_LLD_WITHOUT_VERSION=$(command -v ld.lld)
 
