@@ -397,8 +397,11 @@ fn repeat_with_literal() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RepeatLoopStatement {
-    condition: LiteralBool {
-        value: true,
+    condition: UnaryExpression {
+        operator: Not,
+        value: LiteralBool {
+            value: true,
+        },
     },
     body: [],
 }"#;
@@ -421,13 +424,16 @@ fn repeat_with_expression() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RepeatLoopStatement {
-    condition: BinaryExpression {
-        operator: Greater,
-        left: Reference {
-            name: "x",
-        },
-        right: LiteralInteger {
-            value: 7,
+    condition: UnaryExpression {
+        operator: Not,
+        value: BinaryExpression {
+            operator: Greater,
+            left: Reference {
+                name: "x",
+            },
+            right: LiteralInteger {
+                value: 7,
+            },
         },
     },
     body: [],
@@ -453,8 +459,11 @@ fn repeat_with_body_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RepeatLoopStatement {
-    condition: LiteralBool {
-        value: true,
+    condition: UnaryExpression {
+        operator: Not,
+        value: LiteralBool {
+            value: true,
+        },
     },
     body: [
         Reference {

@@ -566,10 +566,15 @@ fn test_repeat_with_missing_semicolon_in_body() {
                         }),
                         id: 0
                     }],
-                    condition: Box::new(AstStatement::BinaryExpression {
-                        left: Box::new(ref_to("x")),
-                        right: Box::new(ref_to("y")),
-                        operator: crate::ast::Operator::Equal,
+                    condition: Box::new(AstStatement::UnaryExpression {
+                        operator: Operator::Not,
+                        value: Box::new(AstStatement::BinaryExpression {
+                            left: Box::new(ref_to("x")),
+                            right: Box::new(ref_to("y")),
+                            operator: crate::ast::Operator::Equal,
+                            id: 0
+                        }),
+                        location: SourceRange::undefined(),
                         id: 0
                     }),
                     location: SourceRange::undefined(),
@@ -607,17 +612,28 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
     );
 
     assert_eq!(
-        format!("{:#?}", unit.implementations[0].statements),
+        format!("{:#?}", &unit.implementations[0].statements),
         format!(
             "{:#?}",
             vec![AstStatement::RepeatLoopStatement {
+                condition: Box::new(AstStatement::UnaryExpression {
+                    operator: Operator::Not,
+                    value: Box::new(empty_stmt()),
+                    location: SourceRange::undefined(),
+                    id: 0
+                }),
                 body: vec![
                     AstStatement::RepeatLoopStatement {
                         body: vec![empty_stmt()],
-                        condition: Box::new(AstStatement::BinaryExpression {
-                            left: Box::new(ref_to("x")),
-                            right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal,
+                        condition: Box::new(AstStatement::UnaryExpression {
+                            operator: Operator::Not,
+                            value: Box::new(AstStatement::BinaryExpression {
+                                left: Box::new(ref_to("x")),
+                                right: Box::new(ref_to("y")),
+                                operator: crate::ast::Operator::Equal,
+                                id: 0
+                            }),
+                            location: SourceRange::undefined(),
                             id: 0
                         }),
                         location: SourceRange::undefined(),
@@ -629,7 +645,6 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                         id: 0
                     }
                 ],
-                condition: Box::new(empty_stmt()),
                 location: SourceRange::undefined(),
                 id: 0
             },]
@@ -672,10 +687,15 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                 body: vec![
                     AstStatement::RepeatLoopStatement {
                         body: vec![empty_stmt()],
-                        condition: Box::new(AstStatement::BinaryExpression {
-                            left: Box::new(ref_to("x")),
-                            right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal,
+                        condition: Box::new(AstStatement::UnaryExpression {
+                            operator: Operator::Not,
+                            value: Box::new(AstStatement::BinaryExpression {
+                                left: Box::new(ref_to("x")),
+                                right: Box::new(ref_to("y")),
+                                operator: crate::ast::Operator::Equal,
+                                id: 0
+                            }),
+                            location: SourceRange::undefined(),
                             id: 0
                         }),
                         location: SourceRange::undefined(),
@@ -687,7 +707,12 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                         id: 0
                     }
                 ],
-                condition: Box::new(empty_stmt()),
+                condition: Box::new(AstStatement::UnaryExpression {
+                    operator: Operator::Not,
+                    value: Box::new(empty_stmt()),
+                    location: SourceRange::undefined(),
+                    id: 0
+                }),
                 location: SourceRange::undefined(),
                 id: 0
             },]
@@ -729,10 +754,15 @@ fn test_nested_repeat_with_missing_end_repeat() {
                 body: vec![
                     AstStatement::RepeatLoopStatement {
                         body: vec![empty_stmt()],
-                        condition: Box::new(AstStatement::BinaryExpression {
-                            left: Box::new(ref_to("x")),
-                            right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal,
+                        condition: Box::new(AstStatement::UnaryExpression {
+                            operator: Operator::Not,
+                            value: Box::new(AstStatement::BinaryExpression {
+                                left: Box::new(ref_to("x")),
+                                right: Box::new(ref_to("y")),
+                                operator: crate::ast::Operator::Equal,
+                                id: 0
+                            }),
+                            location: SourceRange::undefined(),
                             id: 0
                         }),
                         location: SourceRange::undefined(),
@@ -744,10 +774,15 @@ fn test_nested_repeat_with_missing_end_repeat() {
                         id: 0
                     }
                 ],
-                condition: Box::new(AstStatement::BinaryExpression {
-                    left: Box::new(ref_to("x")),
-                    right: Box::new(ref_to("y")),
-                    operator: crate::ast::Operator::Equal,
+                condition: Box::new(AstStatement::UnaryExpression {
+                    operator: Operator::Not,
+                    value: Box::new(AstStatement::BinaryExpression {
+                        left: Box::new(ref_to("x")),
+                        right: Box::new(ref_to("y")),
+                        operator: crate::ast::Operator::Equal,
+                        id: 0
+                    }),
+                    location: SourceRange::undefined(),
                     id: 0
                 }),
                 location: SourceRange::undefined(),

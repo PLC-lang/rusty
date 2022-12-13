@@ -689,7 +689,7 @@ fn repeat_loop_10_times() {
         &mut rusty::runner::MainType::default(),
     );
     // do..while: i = 11, main = 111
-    assert_eq!(res, 11111); 
+    assert_eq!(res, 11111);
 }
 
 #[test]
