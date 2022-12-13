@@ -309,4 +309,3 @@ fn for_conditions_location_marked() {
     // No line information should be added on the statements
     assert_snapshot!(result);
 }
-
