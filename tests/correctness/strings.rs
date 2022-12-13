@@ -358,13 +358,15 @@ struct Wrapper<T> {
 ///
 /// Unsafe by design, it dereferences a pointer
 #[allow(dead_code)]
-unsafe extern "C" fn string_id(input: *const i8) -> Wrapper<[u8; 81]> {
-    let mut res = [0; 81];
-    let bytes = CStr::from_ptr(input).to_bytes();
-    for (index, val) in bytes.iter().enumerate() {
-        res[index] = *val;
+unsafe extern "C" fn string_id(res: *mut u8, input: *const i8) {
+    let bytes = new_cstr(input).to_bytes();
+    let mut res = res;
+    for val in bytes.iter() {
+        *res = *val;
+        res = res.add(1);
     }
-    Wrapper { inner: res }
+
+    *res = 0;
 }
 
 /// .
@@ -373,13 +375,63 @@ unsafe extern "C" fn string_id(input: *const i8) -> Wrapper<[u8; 81]> {
 ///
 /// Unsafe by design, it dereferences a pointer
 #[allow(dead_code)]
-unsafe extern "C" fn wstring_id(input: *const i16) -> Wrapper<[u16; 81]> {
-    let mut res = [0; 81];
+unsafe extern "C" fn wstring_id(mut res: *mut u16, input: *const i16) {
     let bytes = std::slice::from_raw_parts(input, 81);
-    for (index, val) in bytes.iter().enumerate() {
-        res[index] = *val as u16;
+
+    for val in bytes.iter() {
+        *res = *val as u16;
+        res = res.add(1);
     }
-    Wrapper { inner: res }
+}
+
+#[test]
+fn string_as_function_parameters_internal() {
+    let src = "
+    FUNCTION func : STRING
+        VAR_INPUT {ref}
+            in : STRING;
+        END_VAR
+
+        func := in;
+    END_FUNCTION
+
+    PROGRAM main
+	VAR
+		res : STRING;
+	END_VAR
+		res := func('hello');
+    END_PROGRAM
+    ";
+
+    let mut main_type: [u8; 81] = [0; 81];
+
+    Target::initialize_native(&InitializationConfig::default()).unwrap();
+    let context: Context = Context::create();
+    let source = SourceCode {
+        path: "string_test.st".to_string(),
+        source: src.to_string(),
+    };
+    let (_, code_gen) = compile_module(
+        &context,
+        vec![source],
+        vec![],
+        None,
+        Diagnostician::default(),
+        OptimizationLevel::None,
+        DebugLevel::None,
+    )
+    .unwrap();
+    let exec_engine = code_gen
+        .module
+        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
+        .unwrap();
+
+    let _: i32 = run(&exec_engine, "main", &mut main_type);
+    let res = CStr::from_bytes_with_nul(&main_type[..6])
+        .unwrap()
+        .to_str()
+        .unwrap();
+    assert_eq!(res, "hello");
 }
 
 #[test]
@@ -400,13 +452,7 @@ fn string_as_function_parameters() {
     END_PROGRAM
     ";
 
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        res: [u8; 81],
-    }
-
-    let mut main_type = MainType { res: [0; 81] };
+    let mut main_type: [u8; 81] = [0; 81];
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
@@ -434,7 +480,8 @@ fn string_as_function_parameters() {
     exec_engine.add_global_mapping(&fn_value, string_id as usize);
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    let res = CStr::from_bytes_with_nul(&main_type.res[..6])
+    dbg!(main_type);
+    let res = CStr::from_bytes_with_nul(&main_type[..6])
         .unwrap()
         .to_str()
         .unwrap();
@@ -797,7 +844,8 @@ fn when_function_returns_value_from_generic_function_call_then_string_does_not_t
             main := foo(param);           
         END_FUNCTION
     ";
-    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
+    let mut res: [u8; 101] = [0; 101];
+    let _: () = compile_and_run(src, &mut res);
 
     assert_eq!(
         format!("{:?}",res), 
@@ -836,7 +884,8 @@ fn when_function_returns_value_from_function_call_string_does_not_truncate() {
             main := foo(param);            
         END_FUNCTION
     ";
-    let res: [u8; 101] = compile_and_run(src, &mut MainType::default());
+    let mut res: [u8; 101] = [0; 101];
+    let _: () = compile_and_run(src, &mut res);
 
     assert_eq!(
         format!("{:?}",res), 

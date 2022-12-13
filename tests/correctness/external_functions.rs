@@ -172,7 +172,7 @@ fn verify_string(size: i32, ptr: *const i8) -> bool {
     unsafe {
         let mut ptr = ptr;
         for _ in 0..size {
-            let string = std::ffi::CStr::from_ptr(ptr).to_str().unwrap();
+            let string = std::ffi::CStr::from_ptr(ptr as *const _).to_str().unwrap();
             result.push(string.to_owned());
             ptr = ptr.add(81);
         }
@@ -189,13 +189,13 @@ fn verify_string(size: i32, ptr: *const i8) -> bool {
 
 fn verify_string_ref(_: i32, ptr: *const *const i8) -> bool {
     unsafe {
-        let s = std::ffi::CStr::from_ptr(*ptr).to_str().unwrap();
+        let s = new_cstr(*ptr).to_str().unwrap();
         assert_eq!("abc", s);
 
-        let s = std::ffi::CStr::from_ptr(*(ptr.add(1))).to_str().unwrap();
+        let s = new_cstr(*(ptr.add(1))).to_str().unwrap();
         assert_eq!("sample text", s);
 
-        let s = std::ffi::CStr::from_ptr(*(ptr.add(2))).to_str().unwrap();
+        let s = new_cstr(*(ptr.add(2))).to_str().unwrap();
         assert_eq!("test string", s);
     }
     true
