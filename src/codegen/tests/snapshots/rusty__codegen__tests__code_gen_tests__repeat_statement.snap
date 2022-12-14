@@ -17,7 +17,8 @@ entry:
 condition_check:                                  ; preds = %while_body
   %load_x = load i8, i8* %x, align 1
   %1 = icmp ne i8 %load_x, 0
-  br i1 %1, label %while_body, label %continue
+  %tmpVar = xor i1 %1, true
+  br i1 %tmpVar, label %while_body, label %continue
 
 while_body:                                       ; preds = %entry, %condition_check
   %load_x1 = load i8, i8* %x, align 1

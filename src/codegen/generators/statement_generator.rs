@@ -667,7 +667,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        let (_, while_block) = self.generate_base_while_statement(condition, body)?;
+
+        // for REPEAT .. UNTIL blocks, the abort condition logic needs to be inverted to be correct
+        let condition =
+            crate::ast::create_not_expression(condition.clone(), condition.get_location());
+        let (_, while_block) = self.generate_base_while_statement(&condition, body)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 

@@ -630,7 +630,7 @@ fn repeat_loop_no_entry() {
     REPEAT
         i := i+1;
         main := main + 10;
-    UNTIL i < 0 
+    UNTIL i > 0 
     END_REPEAT
     main := main + (i * 1000);
     END_FUNCTION
@@ -678,7 +678,7 @@ fn repeat_loop_10_times() {
     REPEAT
         i := i+1;
         main := main + 10;
-    UNTIL i < 10
+    UNTIL i > 10
     END_REPEAT
     main := main + (i * 1000);
     END_FUNCTION
@@ -688,8 +688,8 @@ fn repeat_loop_10_times() {
         function.to_string(),
         &mut rusty::runner::MainType::default(),
     );
-    // do..while: i = 11, main = 111
-    assert_eq!(res, 11111); 
+
+    assert_eq!(res, 11111);
 }
 
 #[test]
