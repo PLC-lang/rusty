@@ -312,13 +312,6 @@ impl DataTypeInformation {
         )
     }
 
-    pub fn is_lword(&self) -> bool {
-        match self {
-            DataTypeInformation::Integer { size, .. } => *size == POINTER_SIZE,
-            _ => false,
-        }
-    }
-
     pub fn is_bool(&self) -> bool {
         matches!(
             self,
@@ -1050,7 +1043,7 @@ pub fn is_same_type_class(
         // 3. foo := &bar
         DataTypeInformation::Pointer { .. } => match rtype {
             // Case 1: ADR(bar) returns a LWORD value, thus check if we're working with a LWORD
-            DataTypeInformation::Integer { .. } => rtype.is_lword(),
+            DataTypeInformation::Integer { size, .. } => *size == POINTER_SIZE,
 
             // Case 2 & 3:
             // REF(bar) and &bar returns a pointer, thus deduce their inner types and check if they're equal
