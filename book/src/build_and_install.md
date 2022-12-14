@@ -21,7 +21,7 @@ sudo apt install                \
 Same as Ubuntu with the exception of adding additional repository sources since Debian 11 only includes LLVM packages up to version 11. To do so follow the [official documentation](https://apt.llvm.org/).
 
 ## MacOS
-On MacOs you need to install the [`Xcode Command Line Tools`](https://developer.apple.com/downloads/). Furthermore LLVM 13 is needed, which can be easily installed with [homebrew](https://brew.sh)
+On MacOS you need to install the [`Xcode Command Line Tools`](https://developer.apple.com/downloads/). Furthermore LLVM 13 is needed, which can be easily installed with [homebrew](https://brew.sh)
 ```bash
 brew install llvm@13
 ````
