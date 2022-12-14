@@ -612,19 +612,3 @@ fn hardware_access_codegen() {
 
     insta::assert_snapshot!(result);
 }
-
-#[test]
-fn expt_edge_case() {
-    let result = codegen(
-        "
-        PROGRAM prg
-        VAR
-            x : UDINT;
-        END_VAR
-          x := 1**UDINT#4_000_000_000;
-        END_PROGRAM
-        ",
-    );
-
-    insta::assert_snapshot!(result);
-}
