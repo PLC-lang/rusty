@@ -173,12 +173,6 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
             id: lexer.next_id(),
         }
     };
-<<<<<<< HEAD
-
-    // invert condition
-    let condition = create_not_expression(condition, lexer.location());
-=======
->>>>>>> parent of eb39bcfde (fixes repeat until inverted logic)
 
     AstStatement::RepeatLoopStatement {
         condition: Box::new(condition),

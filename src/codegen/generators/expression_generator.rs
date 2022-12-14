@@ -1361,7 +1361,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::Reference { name, .. } => self.create_llvm_pointer_value_for_reference(
                 qualifier.as_ref(),
                 name.as_str(),
-                dbg!(reference_statement),
+                reference_statement,
             ),
             AstStatement::ArrayAccess {
                 reference, access, ..
@@ -1436,7 +1436,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // no context ... so just something like 'x'
-        match dbg!(self.annotations.get(context)) {
+        match self.annotations.get(context) {
             Some(StatementAnnotation::Variable { qualified_name, .. })
             | Some(StatementAnnotation::Program { qualified_name, .. }) => self
                 .llvm_index
