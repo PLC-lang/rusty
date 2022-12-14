@@ -208,6 +208,16 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">/// module to generate llvm intermediate representation for a CompilationUnit</span>
@@ -395,8 +405,18 @@
     <span class="doccomment">/// done and that the debug builder can now mark the debug information as complete. This is</span>
     <span class="doccomment">/// required to be called on the debug builder by the LLVM API, and has to happen on a module</span>
     <span class="doccomment">/// before it gets generated into object or IR</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">debug</span>.<span class="ident">finalize</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">debug</span>.<span class="ident">finalize</span>();
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;verify&quot;</span>)]</span>
+        {
+            <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">verify</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::GeneralError</span> {
+                <span class="ident">message</span>: <span class="ident">it</span>.<span class="ident">to_string</span>(),
+                <span class="ident">err_no</span>: <span class="ident"><span class="kw">crate</span>::diagnostics::ErrNo::codegen__general</span>,
+            })
+        }
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;verify&quot;</span>))]</span>
+        <span class="prelude-val">Ok</span>(())
     }
 }
 

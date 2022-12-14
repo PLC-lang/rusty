@@ -1299,17 +1299,6 @@
 <span id="1294">1294</span>
 <span id="1295">1295</span>
 <span id="1296">1296</span>
-<span id="1297">1297</span>
-<span id="1298">1298</span>
-<span id="1299">1299</span>
-<span id="1300">1300</span>
-<span id="1301">1301</span>
-<span id="1302">1302</span>
-<span id="1303">1303</span>
-<span id="1304">1304</span>
-<span id="1305">1305</span>
-<span id="1306">1306</span>
-<span id="1307">1307</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A St&amp;ructured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -1984,18 +1973,7 @@
         <span class="ident">code_generator</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>, <span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>, <span class="kw-2">&amp;</span><span class="ident">llvm_index</span>)<span class="question-mark">?</span>;
     }
 
-    <span class="ident">code_generator</span>.<span class="ident">finalize</span>();
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;verify&quot;</span>)]</span>
-    {
-        <span class="ident">code_generator</span>
-            .<span class="ident">module</span>
-            .<span class="ident">verify</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::GeneralError</span> {
-                <span class="ident">message</span>: <span class="ident">it</span>.<span class="ident">to_string</span>(),
-                <span class="ident">err_no</span>: <span class="ident"><span class="kw">crate</span>::diagnostics::ErrNo::codegen__general</span>,
-            })<span class="question-mark">?</span>
-    }
+    <span class="ident">code_generator</span>.<span class="ident">finalize</span>()<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>((<span class="ident">full_index</span>, <span class="ident">code_generator</span>))
 }
