@@ -678,9 +678,9 @@ fn repeat_loop_10_times() {
     REPEAT
         i := i+1;
         main := main + 10;
-    UNTIL i > 10
+    UNTIL i < 10
     END_REPEAT
-    main := main + (i * 1000); 
+    main := main + (i * 1000);
     END_FUNCTION
     "#;
 
