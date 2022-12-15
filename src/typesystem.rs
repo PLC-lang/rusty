@@ -1029,12 +1029,35 @@ pub fn is_same_type_class(
 ) -> bool {
     let ltype = index.find_intrinsic_type(ltype);
     let rtype = index.find_intrinsic_type(rtype);
+
     match ltype {
         DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
         DataTypeInformation::Float { .. } => matches!(rtype, DataTypeInformation::Float { .. }),
         DataTypeInformation::String { encoding: lenc, .. } => {
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
+
+        // We have to handle 3 different cases here:
+        // 1. foo := ADR(bar)
+        // 2. foo := REF(bar)
+        // 3. foo := &bar
+        DataTypeInformation::Pointer { .. } => match rtype {
+            // Case 1: ADR(bar) returns a LWORD value, thus check if we're working with a LWORD
+            DataTypeInformation::Integer { size, .. } => *size == POINTER_SIZE,
+
+            // Case 2 & 3:
+            // REF(bar) and &bar returns a pointer, thus deduce their inner types and check if they're equal
+            DataTypeInformation::Pointer { .. } => {
+                let ldetails = index.find_elementary_pointer_type(ltype);
+                let rdetails = index.find_elementary_pointer_type(rtype);
+
+                ldetails == rdetails
+            }
+
+            // If nothing applies we can assume the types to be different
+            _ => false,
+        },
+
         _ => ltype == rtype,
     }
 }

@@ -556,6 +556,47 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
 }
 
 #[test]
+fn builtin_adr_ref_return_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM main 
+        VAR_INPUT
+            input1 : REF_TO DINT;
+            param1 : DINT;
+        END_VAR
+            input1 := REF(param1);
+        END_PROGRAM
+    ",
+        id_provider.clone(),
+    );
+
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+
+    if let AstStatement::Assignment { right, .. } = stmt {
+        let actual_type = AnnotationMap::get_type(&annotations, right, &index);
+        let reference_type = annotations.get_type_or_void(right, &index);
+
+        match reference_type.get_type_information() {
+            DataTypeInformation::Pointer {
+                inner_type_name, ..
+            } => {
+                assert_eq!(actual_type.unwrap().get_name(), "__POINTER_TO_DINT");
+                assert_eq!(
+                    DINT_TYPE,
+                    index
+                        .find_effective_type_by_name(inner_type_name)
+                        .unwrap()
+                        .get_name()
+                )
+            }
+
+            _ => unreachable!("Expected a pointer, got {}", reference_type.get_name()),
+        }
+    }
+}
+
+#[test]
 fn builtin_sel_param_type_is_not_changed() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
