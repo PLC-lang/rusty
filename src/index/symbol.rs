@@ -9,7 +9,7 @@ use std::hash::Hash;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct SymbolLocation {
     /// the line-number of this symbol in the source-file
-    pub line_number: usize,
+    pub line_number: u32,
     /// the exact location of the symbol and the file_name
     pub source_range: SourceRange,
 }
@@ -108,7 +108,7 @@ where
 }
 
 impl SymbolLocation {
-    const INTERNAL_LINE: usize = usize::max_value();
+    const INTERNAL_LINE: u32 = u32::max_value();
     /// creates a SymbolLocation with undefined source_range used for
     /// symbols that are created by the compiler on-the-fly.
     pub fn internal() -> SymbolLocation {

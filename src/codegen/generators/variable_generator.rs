@@ -22,7 +22,7 @@ use crate::codegen::debug::DebugBuilderEnum;
 pub fn generate_global_variables<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
-    debug: &'b DebugBuilderEnum<'ctx>,
+    debug: &'b mut DebugBuilderEnum<'ctx>,
     global_index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: &'b LlvmTypedIndex<'ctx>,
@@ -81,6 +81,7 @@ pub fn generate_global_variables<'ctx, 'b>(
             variable.get_qualified_name(),
             &variable.data_type_name,
             global_variable,
+            &variable.source_location,
         );
     }
     Ok(index)
