@@ -785,6 +785,97 @@ fn program_call_parameter_validation() {
 }
 
 #[test]
+fn reference_to_reference_assignments_in_function_arguments() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        r#"
+    VAR_GLOBAL
+        global1 : STRUCT_params;
+        global2 : STRUCT_params;
+        global3 : STRUCT_params;
+
+        global4 : INT := 1;
+        global5 : REAL := 1.1;
+        global6 : String[6] := 'foobar';
+    END_VAR
+
+    TYPE STRUCT_params :
+        STRUCT
+            param1 : BOOL;
+            param2 : BOOL;
+            param3 : BOOL;
+        END_STRUCT
+    END_TYPE
+
+    PROGRAM prog
+        VAR_INPUT
+            input1 : REF_TO STRUCT_params;
+            input2 : REF_TO STRUCT_params;
+            input3 : REF_TO STRUCT_params;
+        END_VAR
+    END_PROGRAM
+
+    PROGRAM main
+        prog(
+            // ALL of these should be valid
+            input1 := ADR(global1),
+            input2 := REF(global2),
+            input3 := &global3
+        );
+
+        prog(
+            // ALL of these should be valid because ADR(...) returns no type information and instead
+            // only a LWORD is returned which we allow to be assigned to any pointer
+            input1 := ADR(global4),
+            input2 := ADR(global5),
+            input3 := ADR(global6),
+        );
+
+        prog(
+            // NONE of these should be valid because REF(...) returns type information and we
+            // explicitly check if pointer assignments are of the same type
+            input1 := REF(global4),
+            input2 := REF(global5),
+            input3 := REF(global6),
+        );
+        
+        prog(
+            // NONE of these should be valid because &(...) returns type information and we
+            // explicitly check if pointer assignments are of the same type
+            input1 := &(global4),
+            input2 := &(global5),
+            input3 := &(global6),
+        );
+    END_PROGRAM
+    "#,
+    );
+
+    let types_and_ranges = vec![
+        // REF(...)
+        ("__POINTER_TO_INT", "__prog_input1", (1286..1308)),
+        ("__POINTER_TO_REAL", "__prog_input2", (1322..1344)),
+        ("__POINTER_TO_STRING", "__prog_input3", (1358..1380)),
+        // &(...)
+        ("__POINTER_TO_INT", "__prog_input1", (1596..1615)),
+        ("__POINTER_TO_REAL", "__prog_input2", (1630..1649)),
+        ("__POINTER_TO_STRING", "__prog_input3", (1664..1683)),
+    ];
+
+    assert_eq!(diagnostics.len(), 6);
+    assert_eq!(diagnostics.len(), types_and_ranges.len());
+
+    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::invalid_assignment(
+                types_and_ranges[idx].0,
+                types_and_ranges[idx].1,
+                types_and_ranges[idx].2.to_owned().into()
+            )
+        );
+    }
+}
+
+#[test]
 fn address_of_operations() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
