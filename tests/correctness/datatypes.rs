@@ -4,9 +4,9 @@ use std::str;
 #[allow(dead_code)]
 #[repr(C)]
 struct MainType {
-    bool_1: bool,
-    bool_2: bool,
-    bool_3: bool,
+    bool_1: i8,
+    bool_2: i8,
+    bool_3: i8,
     lword_1: u64,
     lint_1: i64,
     ulint_1: u64,
@@ -14,9 +14,9 @@ struct MainType {
 
 fn new() -> MainType {
     MainType {
-        bool_1: false,
-        bool_2: false,
-        bool_3: false,
+        bool_1: 0,
+        bool_2: 0,
+        bool_3: 0,
         lword_1: 0,
         lint_1: 0,
         ulint_1: 0,
@@ -36,7 +36,7 @@ fn same_type_addition() {
         END_VAR
             bool_1  := 0 + 0;
             bool_2  := 0 + 1;
-            bool_3  := 1 + 1;
+            bool_3  := BOOL#2 = TRUE;
             lword_1 := 65535 + 10;
             lint_1  := 65535 + 10;
             ulint_1 := 65535 + 10;
@@ -48,9 +48,9 @@ fn same_type_addition() {
     let mut maintype = new();
 
     let _: i32 = compile_and_run(function, &mut maintype);
-    assert!(!maintype.bool_1);
-    assert!(maintype.bool_2);
-    assert!(!maintype.bool_3); //Overflow
+    assert_eq!(maintype.bool_1, 0);
+    assert_eq!(maintype.bool_2, 1);
+    assert_eq!(maintype.bool_3, 1); //Overflow
 
     assert_eq!(65545, maintype.lword_1);
     assert_eq!(65545, maintype.lint_1);

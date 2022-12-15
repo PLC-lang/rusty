@@ -170,10 +170,11 @@ pub mod tests {
         let llvm_index = code_generator
             .generate_llvm_index(&annotations, literals, &index, &diagnostician)
             .map_err(|err| (diagnostics.take(), err))?;
+
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)
+            .and_then(|_| code_generator.finalize())
             .map(|_| {
-                code_generator.finalize();
                 (
                     code_generator.module.print_to_string().to_string(),
                     diagnostics.take(),
@@ -204,6 +205,7 @@ pub mod tests {
         includes: Vec<T>,
         encoding: Option<&'static Encoding>,
         diagnostician: Diagnostician,
+        debug_level: DebugLevel,
     ) -> Result<String, Diagnostic> {
         let context = Context::create();
         let (_, cg) = crate::compile_module(
@@ -213,7 +215,7 @@ pub mod tests {
             encoding,
             diagnostician,
             crate::OptimizationLevel::None,
-            crate::DebugLevel::None,
+            debug_level,
         )?;
         Ok(cg.module.print_to_string().to_string())
     }

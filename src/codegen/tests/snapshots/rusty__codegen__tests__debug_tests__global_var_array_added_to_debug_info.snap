@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests.rs
-expression: codegen
+expression: codegen.0
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -12,19 +12,19 @@ source_filename = "main"
 !llvm.dbg.cu = !{!17}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-!1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "main", directory: "")
 !3 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 352, align: 64, elements: !5)
 !4 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !5 = !{!6}
 !6 = !DISubrange(count: 10, lowerBound: 0)
 !7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
-!8 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, type: !9, isLocal: false, isDefinition: true)
+!8 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 4, type: !9, isLocal: false, isDefinition: true)
 !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 3520, align: 64, elements: !10)
 !10 = !{!6, !11}
 !11 = !DISubrange(count: 9, lowerBound: 11)
 !12 = !DIGlobalVariableExpression(var: !13, expr: !DIExpression())
-!13 = distinct !DIGlobalVariable(name: "c", scope: !2, file: !2, type: !14, isLocal: false, isDefinition: true)
+!13 = distinct !DIGlobalVariable(name: "c", scope: !2, file: !2, line: 5, type: !14, isLocal: false, isDefinition: true)
 !14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: 3520, align: 64, elements: !5)
 !15 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 320, align: 64, elements: !16)
 !16 = !{!11}
