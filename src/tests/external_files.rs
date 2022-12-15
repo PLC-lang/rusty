@@ -26,6 +26,7 @@ fn external_file_function_call() {
         vec![ext],
         None,
         Diagnostician::null_diagnostician(),
+        crate::DebugLevel::None,
     )
     .unwrap();
     insta::assert_snapshot!(res);
@@ -60,6 +61,7 @@ fn external_file_global_var() {
         vec![ext],
         None,
         Diagnostician::null_diagnostician(),
+        crate::DebugLevel::None,
     )
     .unwrap();
     //x should be external
@@ -81,6 +83,7 @@ fn calling_external_file_function_without_including_file_results_in_error() {
         vec![],
         None,
         Diagnostician::null_diagnostician(),
+        crate::DebugLevel::None,
     );
 
     if let Err(msg) = res {

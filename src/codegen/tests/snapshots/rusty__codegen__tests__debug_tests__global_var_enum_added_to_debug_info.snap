@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests.rs
-expression: codegen
+expression: codegen.0
 ---
 ; ModuleID = 'main'
 source_filename = "main"
@@ -19,32 +19,32 @@ source_filename = "main"
 !llvm.dbg.cu = !{!27}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-!1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "main", directory: "")
-!3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__global_en3", scope: !2, file: !2, baseType: !4, align: 64)
+!3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4, align: 64)
 !4 = !DIBasicType(name: "lint", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())
-!6 = distinct !DIGlobalVariable(name: "en1.a", scope: !2, file: !2, type: !7, isLocal: false, isDefinition: true)
-!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "en1", scope: !2, file: !2, baseType: !8, align: 32)
+!6 = distinct !DIGlobalVariable(name: "en1.a", scope: !2, file: !2, line: 2, type: !7, isLocal: false, isDefinition: true)
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "en1", scope: !2, file: !2, line: 2, baseType: !8, align: 32)
 !8 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
-!10 = distinct !DIGlobalVariable(name: "en1.b", scope: !2, file: !2, type: !7, isLocal: false, isDefinition: true)
+!10 = distinct !DIGlobalVariable(name: "en1.b", scope: !2, file: !2, line: 2, type: !7, isLocal: false, isDefinition: true)
 !11 = !DIGlobalVariableExpression(var: !12, expr: !DIExpression())
-!12 = distinct !DIGlobalVariable(name: "en1.c", scope: !2, file: !2, type: !7, isLocal: false, isDefinition: true)
+!12 = distinct !DIGlobalVariable(name: "en1.c", scope: !2, file: !2, line: 2, type: !7, isLocal: false, isDefinition: true)
 !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
-!14 = distinct !DIGlobalVariable(name: "en2.d", scope: !2, file: !2, type: !15, isLocal: false, isDefinition: true)
-!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "en2", scope: !2, file: !2, baseType: !16, align: 8)
+!14 = distinct !DIGlobalVariable(name: "en2.d", scope: !2, file: !2, line: 3, type: !15, isLocal: false, isDefinition: true)
+!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "en2", scope: !2, file: !2, line: 3, baseType: !16, align: 8)
 !16 = !DIBasicType(name: "byte", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
 !17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
-!18 = distinct !DIGlobalVariable(name: "en2.e", scope: !2, file: !2, type: !15, isLocal: false, isDefinition: true)
+!18 = distinct !DIGlobalVariable(name: "en2.e", scope: !2, file: !2, line: 3, type: !15, isLocal: false, isDefinition: true)
 !19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
-!20 = distinct !DIGlobalVariable(name: "en2.f", scope: !2, file: !2, type: !15, isLocal: false, isDefinition: true)
+!20 = distinct !DIGlobalVariable(name: "en2.f", scope: !2, file: !2, line: 3, type: !15, isLocal: false, isDefinition: true)
 !21 = !DIGlobalVariableExpression(var: !22, expr: !DIExpression())
-!22 = distinct !DIGlobalVariable(name: "__global_en3.a", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!22 = distinct !DIGlobalVariable(name: "__global_en3.a", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
 !23 = !DIGlobalVariableExpression(var: !24, expr: !DIExpression())
-!24 = distinct !DIGlobalVariable(name: "__global_en3.b", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!24 = distinct !DIGlobalVariable(name: "__global_en3.b", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
 !25 = !DIGlobalVariableExpression(var: !26, expr: !DIExpression())
-!26 = distinct !DIGlobalVariable(name: "__global_en3.c", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
+!26 = distinct !DIGlobalVariable(name: "__global_en3.c", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
 !27 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !28, globals: !29, splitDebugInlining: false)
 !28 = !{}
 !29 = !{!0, !5, !9, !11, !13, !17, !19, !21, !23, !25}

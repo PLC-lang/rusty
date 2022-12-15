@@ -163,6 +163,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstStatement::ExitStatement { location, .. } => {
                 if let Some(exit_block) = &self.current_loop_exit {
+                    self.register_debug_location(statement);
                     self.llvm.builder.build_unconditional_branch(*exit_block);
                     self.generate_buffer_block();
                 } else {
@@ -428,7 +429,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     SourceRange::undefined(),
                 )
             },
-            |step| expression_generator.generate_expression(step),
+            |step| {
+                self.register_debug_location(step);
+                expression_generator.generate_expression(step)
+            },
         )?;
 
         let next = builder.build_int_add(
@@ -498,6 +502,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             left: Box::new(and_1),
             right: Box::new(and_2),
         };
+        self.register_debug_location(&or);
         let or_eval = exp_gen.generate_expression(&or)?;
         Ok(or_eval)
     }
@@ -524,6 +529,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let exp_gen = self.create_expr_generator();
+        self.register_debug_location(selector);
         let selector_statement = exp_gen.generate_expression(selector)?;
 
         let mut cases = Vec::new();
@@ -596,7 +602,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let range_else = context.insert_basic_block_after(range_then, "range_else");
         let exp_gen = self.create_expr_generator();
         let lower_bound = {
+            self.register_debug_location(start);
             let start_val = exp_gen.generate_expression(start)?;
+            self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
             exp_gen.create_llvm_int_binary_expression(
                 &Operator::GreaterOrEqual,
@@ -613,7 +621,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
         builder.position_at_end(range_then);
         let upper_bound = {
+            self.register_debug_location(end);
             let end_val = exp_gen.generate_expression(end)?;
+            self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
             exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)
         };
@@ -691,6 +701,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Check loop condition
         builder.position_at_end(condition_check);
+        self.register_debug_location(condition);
         let condition_value = self
             .create_expr_generator()
             .generate_expression(condition)?;
@@ -750,6 +761,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             builder.position_at_end(then_block);
 
+            self.register_debug_location(&block.condition);
             let condition = self
                 .create_expr_generator()
                 .generate_expression(&block.condition)?;

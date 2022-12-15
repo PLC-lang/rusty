@@ -674,6 +674,7 @@ fn duplicate_with_generic_ir() {
         vec![],
         None,
         Diagnostician::default(),
+        crate::DebugLevel::None,
     )
     .unwrap();
 

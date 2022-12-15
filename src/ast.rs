@@ -305,26 +305,26 @@ impl NewLines {
     ///
     /// returns the 0 based line-nr of the given offset-location
     ///
-    pub fn get_line_nr(&self, offset: usize) -> usize {
-        match self.line_breaks.binary_search(&offset) {
+    pub fn get_line_nr(&self, offset: usize) -> u32 {
+        (match self.line_breaks.binary_search(&offset) {
             //In case we hit an exact match, we just found the first character of a new line, we must add one to the result
             Ok(line) => line + 1,
             Err(line) => line,
-        }
+        }) as u32
     }
 
     ///
     /// returns the 0 based column of the given offset-location
     ///
-    pub fn get_column(&self, line: usize, offset: usize) -> usize {
-        if line > 0 {
+    pub fn get_column(&self, line: u32, offset: usize) -> u32 {
+        (if line > 0 {
             self.line_breaks
-                .get(line - 1)
+                .get((line - 1) as usize)
                 .map(|l| offset - *l)
                 .unwrap_or(0)
         } else {
             offset
-        }
+        }) as u32
     }
 }
 
