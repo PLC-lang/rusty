@@ -693,6 +693,34 @@ fn repeat_loop_10_times() {
 }
 
 #[test]
+fn repeat_loop_reference() {
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : DINT;
+        b : BOOL;
+    END_VAR
+    main := 1;
+    i := 0;
+    REPEAT
+        i := i+1;
+        main := main + 10;
+        b := i > 10;
+    UNTIL b
+    END_REPEAT
+    main := main + (i * 1000);
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
+
+    assert_eq!(res, 11111);
+}
+
+#[test]
 fn case_statement() {
     #[allow(dead_code)]
     #[repr(C)]
