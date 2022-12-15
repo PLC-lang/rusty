@@ -1837,6 +1837,16 @@
 <span id="1832">1832</span>
 <span id="1833">1833</span>
 <span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -3398,7 +3408,17 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> { <span class="ident">return_type</span>, .. }) <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">operator</span>)
         {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">return_type</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">index</span>
+                .<span class="ident">find_effective_type_by_name</span>(<span class="ident">return_type</span>)
+                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="self">self</span>.<span class="ident">annotation_map</span>
+                        .<span class="ident">new_index</span>
+                        .<span class="ident">find_effective_type_by_name</span>(<span class="ident">return_type</span>)
+                })
+                <span class="comment">// XXX: this `cloned()` statement should be removable in &gt;= 1.65 Rust versions?</span>
+                .<span class="ident">cloned</span>()
+            {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
                     <span class="ident">statement</span>,
                     <span class="ident">StatementAnnotation::value</span>(<span class="ident">return_type</span>.<span class="ident">get_name</span>()),
@@ -3583,7 +3603,7 @@
 }
 
 <span class="doccomment">/// adds a pointer to the given inner_type to the given index and return&#39;s its name</span>
-<span class="kw">fn</span> <span class="ident">add_pointer_type</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">inner_type_name</span>: <span class="ident">String</span>) -&gt; <span class="ident">String</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_pointer_type</span>(<span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Index</span>, <span class="ident">inner_type_name</span>: <span class="ident">String</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="ident">new_type_name</span> <span class="op">=</span>
         <span class="ident">typesystem::create_internal_type_name</span>(<span class="string">&quot;POINTER_TO_&quot;</span>, <span class="ident">inner_type_name</span>.<span class="ident">as_str</span>());
 

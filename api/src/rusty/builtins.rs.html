@@ -356,6 +356,33 @@
 <span id="351">351</span>
 <span id="352">352</span>
 <span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
@@ -375,6 +402,7 @@
     <span class="ident">lexer</span>::{<span class="self">self</span>, <span class="ident">IdProvider</span>},
     <span class="ident">parser</span>,
     <span class="ident">resolver</span>::{
+        <span class="self">self</span>,
         <span class="ident">generics</span>::{<span class="ident">generic_name_resolver</span>, <span class="ident">no_generic_name_resolver</span>, <span class="ident">GenericType</span>},
         <span class="ident">AnnotationMap</span>, <span class="ident">TypeAnnotator</span>, <span class="ident">VisitorContext</span>,
     },
@@ -420,7 +448,33 @@
                 END_VAR
                 END_FUNCTION
                 &quot;</span>,
-                <span class="ident">annotation</span>: <span class="prelude-val">None</span>,
+                <span class="ident">annotation</span>: <span class="prelude-val">Some</span>(<span class="op">|</span><span class="ident">annotator</span>, <span class="ident">operator</span>, <span class="ident">parameters</span>, <span class="kw">_</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;REF requires parameters&quot;</span>, <span class="ident">operator</span>.<span class="ident">get_location</span>()))<span class="question-mark">?</span>;
+                        <span class="comment">// Get the input and annotate it with a pointer type</span>
+                        <span class="kw">if</span> <span class="kw">let</span> [<span class="ident">input</span>] <span class="op">=</span> <span class="ident">flatten_expression_list</span>(<span class="ident">params</span>)[..] {
+                            <span class="kw">let</span> <span class="ident">input_type</span> <span class="op">=</span> <span class="ident">annotator</span>.<span class="ident">annotation_map</span>
+                                .<span class="ident">get_type_or_void</span>(<span class="ident">input</span>, <span class="ident">annotator</span>.<span class="ident">index</span>)
+                                .<span class="ident">get_type_information</span>()
+                                .<span class="ident">get_name</span>()
+                                .<span class="ident">to_owned</span>();
+
+                            <span class="kw">let</span> <span class="ident">ptr_type</span> <span class="op">=</span> <span class="ident">resolver::add_pointer_type</span>(
+                                <span class="kw-2">&amp;mut</span> <span class="ident">annotator</span>.<span class="ident">annotation_map</span>.<span class="ident">new_index</span>,
+                                <span class="ident">input_type</span>
+                            );
+
+                            <span class="ident">annotator</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                                <span class="ident">operator</span>, <span class="ident">resolver::StatementAnnotation::Function</span> {
+                                    <span class="ident">return_type</span>: <span class="ident">ptr_type</span>, <span class="ident">qualified_name</span>: <span class="string">&quot;REF&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">call_name</span>: <span class="prelude-val">None</span>
+                                }
+                            );
+
+                            <span class="prelude-val">Ok</span>(())
+                        } <span class="kw">else</span> {
+                            <span class="macro">unreachable!</span>()
+                        }
+                    }
+            ),
                 <span class="ident">generic_name_resolver</span>: <span class="ident">no_generic_name_resolver</span>,
                 <span class="ident">code</span>: <span class="op">|</span><span class="ident">generator</span>, <span class="ident">params</span>, <span class="ident">location</span><span class="op">|</span> {
                     <span class="kw">if</span> <span class="kw">let</span> [<span class="ident">reference</span>] <span class="op">=</span> <span class="ident">params</span> {

@@ -1126,6 +1126,29 @@
 <span id="1121">1121</span>
 <span id="1122">1122</span>
 <span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">mem::size_of</span>,
@@ -2157,12 +2180,35 @@
 ) -&gt; <span class="ident">bool</span> {
     <span class="kw">let</span> <span class="ident">ltype</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_intrinsic_type</span>(<span class="ident">ltype</span>);
     <span class="kw">let</span> <span class="ident">rtype</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_intrinsic_type</span>(<span class="ident">rtype</span>);
+
     <span class="kw">match</span> <span class="ident">ltype</span> {
         <span class="ident">DataTypeInformation::Integer</span> { .. } =&gt; <span class="macro">matches!</span>(<span class="ident">rtype</span>, <span class="ident">DataTypeInformation::Integer</span> { .. }),
         <span class="ident">DataTypeInformation::Float</span> { .. } =&gt; <span class="macro">matches!</span>(<span class="ident">rtype</span>, <span class="ident">DataTypeInformation::Float</span> { .. }),
         <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>: <span class="ident">lenc</span>, .. } =&gt; {
             <span class="macro">matches!</span>(<span class="ident">rtype</span>, <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } <span class="kw">if</span> <span class="ident">encoding</span> <span class="op">==</span> <span class="ident">lenc</span>)
         }
+
+        <span class="comment">// We have to handle 3 different cases here:</span>
+        <span class="comment">// 1. foo := ADR(bar)</span>
+        <span class="comment">// 2. foo := REF(bar)</span>
+        <span class="comment">// 3. foo := &amp;bar</span>
+        <span class="ident">DataTypeInformation::Pointer</span> { .. } =&gt; <span class="kw">match</span> <span class="ident">rtype</span> {
+            <span class="comment">// Case 1: ADR(bar) returns a LWORD value, thus check if we&#39;re working with a LWORD</span>
+            <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">size</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">size</span> <span class="op">==</span> <span class="ident">POINTER_SIZE</span>,
+
+            <span class="comment">// Case 2 &amp; 3:</span>
+            <span class="comment">// REF(bar) and &amp;bar returns a pointer, thus deduce their inner types and check if they&#39;re equal</span>
+            <span class="ident">DataTypeInformation::Pointer</span> { .. } =&gt; {
+                <span class="kw">let</span> <span class="ident">ldetails</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_elementary_pointer_type</span>(<span class="ident">ltype</span>);
+                <span class="kw">let</span> <span class="ident">rdetails</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_elementary_pointer_type</span>(<span class="ident">rtype</span>);
+
+                <span class="ident">ldetails</span> <span class="op">==</span> <span class="ident">rdetails</span>
+            }
+
+            <span class="comment">// If nothing applies we can assume the types to be different</span>
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+        },
+
         <span class="kw">_</span> =&gt; <span class="ident">ltype</span> <span class="op">==</span> <span class="ident">rtype</span>,
     }
 }
