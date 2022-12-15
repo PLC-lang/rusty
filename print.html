@@ -207,20 +207,35 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <li>✔ Bitwise Operators</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="building-and-installing"><a class="header" href="#building-and-installing">Building and Installing</a></h1>
-<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
-<p>To be able to build the source code, you will need to <a href="https://www.rust-lang.org/tools/install">install Rust</a>
-and the following dependencies:</p>
+<p>RuSTys code can be found on <a href="https://github.com/PLC-lang/rusty">GitHub</a>. By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided. If you wish to develop natively however, you will need some additional dependencies namely</p>
 <ul>
-<li>the usual <strong>standard build tools</strong> (aka <code>build-essential</code>)</li>
-<li><strong>LLVM 13</strong>: On Ubuntu, the package manager version of LLVM (e.g. <code>llvm-13-dev</code>, <code>liblld-13-dev</code>) will work fine,
-on debian you'll need to add additional repository sources (<code>deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-13 main</code>), since Debian 11 (latest) only includes LLVM packages up to version 11. For Windows, you need a
-<a href="https://github.com/PLC-lang/llvm-package-windows/releases/tag/v13.0.0">special build</a>.</li>
-<li><strong>zlib</strong> (apt: <code>libz-dev</code>)</li>
-<li><strong>Polly</strong> in the form of a static library (included in apt package <code>libclang-common-13-dev</code>). Alternatively,
-building LLVM from source should also provide you with that file. Building from source may take a while, though.</li>
-<li>If you want to clone and work on the repository, you'll also need <strong>git</strong>.</li>
+<li><a href="https://www.rust-lang.org/tools/install">Rust</a></li>
+<li>LLVM 13</li>
+<li>LLVM Polly</li>
+<li>Build Tools (e.g. <code>build-essential</code> on Ubuntu)</li>
+<li>zlib</li>
 </ul>
-<h3 id="tips-for-troubleshooting"><a class="header" href="#tips-for-troubleshooting">Tips for troubleshooting</a></h3>
+<p>The next sections will cover how to install these dependencies on different platforms.</p>
+<h2 id="ubuntu"><a class="header" href="#ubuntu">Ubuntu</a></h2>
+<p>The specified dependencies can be installed with the following command on Ubuntu</p>
+<pre><code class="language-bash">sudo apt install                \
+    build-essential             \
+    llvm-13-dev liblld-13-dev   \
+    libz-dev                    \
+    libclang-common-13-dev 
+</code></pre>
+<h2 id="debian"><a class="header" href="#debian">Debian</a></h2>
+<p>Same as Ubuntu with the exception of adding additional repository sources since Debian 11 only includes LLVM packages up to version 11. To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.</p>
+<h2 id="macos"><a class="header" href="#macos">MacOS</a></h2>
+<p>On MacOS you need to install the <a href="https://developer.apple.com/downloads/"><code>Xcode Command Line Tools</code></a>. Furthermore LLVM 13 is needed, which can be easily installed with <a href="https://brew.sh">homebrew</a></p>
+<pre><code class="language-bash">brew install llvm@13
+</code></pre>
+<p>After the installation you have to add <code>/opt/homebrew/opt/llvm@13/bin</code> to your <code>$PATH</code> environment variable, e.g. with the following command</p>
+<pre><code class="language-bash">echo 'export PATH=&quot;/opt/homebrew/opt/llvm@13/bin:$PATH&quot;' &gt;&gt; ~/.bashrc
+</code></pre>
+<h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
+<p>For Windows you will need a <a href="https://github.com/plc-lang/llvm-package-windows/releases/tag/v13.0.0">custom build</a>.</p>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
 <ul>
 <li>Because of weak compatibility guarantees of the LLVM API, the LLVM installation must exactly match the
 major version of the <code>llvm-sys</code> crate. Currently you will need to install LLVM 13 to satisfy this constraint.
@@ -230,18 +245,8 @@ major version of the <code>llvm-sys</code> crate. Currently you will need to ins
 the appropriate environment variable (<code>LLVM_SYS_130_PREFIX=/usr/lib/llvm-13</code> for LLVM 13), so
 the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
 </ul>
-<h2 id="cloning-the-repository"><a class="header" href="#cloning-the-repository">Cloning the repository</a></h2>
-<p>On your local computer, open up a shell and clone the repository.</p>
-<pre><code class="language-bash">git clone https://github.com/PLC-lang/rusty
-cd rusty
-</code></pre>
 <h2 id="building"><a class="header" href="#building">Building</a></h2>
-<p>Building is as easy as typing a single command. If you just want to use the
-compiler without doing development, building the release configuration will
-give you a smaller and likely a faster binary.</p>
-<pre><code class="language-bash">cargo build --release
-</code></pre>
-<p>You can find the binary at <code>./target/release/rustyc</code>.</p>
+<p>Just like any Rust project, binaries can be built with <code>cargo build</code>. For release builds, i.e. faster and smaller binaries, you have to pass the <code>--release</code> flag, like so <code>cargo build --release</code>. The resulting binaries can be found at <code>target/release/rustyc</code></p>
 <h2 id="improving-compile-times"><a class="header" href="#improving-compile-times">Improving Compile Times</a></h2>
 <p>By default Rust uses the GNU Linker on Linux which compared to <a href="https://lld.llvm.org/">lld</a> is slower by a margin of <a href="https://llvm.org/devmtg/2016-10/slides/Ueyama-lld.pdf">~2x - 4x</a>. To improve compile times we can therefore use <code>lld</code>. To do so you will need to run the <code>rusty/scripts/lld.sh</code> script inside the <code>rusty</code> root folder, i.e. by executing <code>./scripts/lld.sh</code>. <strong>Note</strong> that the script was only tested on Ubuntu based distributions thus far.</p>
 <h2 id="installing"><a class="header" href="#installing">Installing</a></h2>
