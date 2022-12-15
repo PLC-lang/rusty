@@ -646,12 +646,13 @@ pub fn compile_module<'c, T: SourceContainer>(
     let module_location = sources
         .get(0)
         .map(|it| it.get_location())
-        .unwrap_or("main")
+        .unwrap_or("")
         .to_owned();
     let (full_index, mut index) = index_module(sources, includes, encoding, &mut diagnostician)?;
 
+    let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     // ### PHASE 3 ###
-    // - codegen
+
     let mut code_generator = codegen::CodeGen::new(
         context,
         &module_location,
@@ -659,8 +660,6 @@ pub fn compile_module<'c, T: SourceContainer>(
         optimization,
         debug_level,
     );
-
-    let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     //Associate the index type with LLVM types
     let llvm_index = code_generator.generate_llvm_index(
         &annotations,
@@ -668,6 +667,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         &full_index,
         &diagnostician,
     )?;
+
     for unit in index.annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }

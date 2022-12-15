@@ -232,9 +232,9 @@ impl Diagnostic {
         }
     }
 
-    pub fn missing_token(epxected_token: &str, range: SourceRange) -> Diagnostic {
+    pub fn missing_token(expected_token: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Missing expected Token {}", epxected_token),
+            message: format!("Missing expected Token {}", expected_token),
             range: vec![range],
             err_no: ErrNo::syntax__missing_token,
         }
