@@ -1468,9 +1468,9 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_token</span>(<span class="ident">epxected_token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">missing_token</span>(<span class="ident">expected_token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
         <span class="ident">Diagnostic::SyntaxError</span> {
-            <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Missing expected Token {}&quot;</span>, <span class="ident">epxected_token</span>),
+            <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Missing expected Token {}&quot;</span>, <span class="ident">expected_token</span>),
             <span class="ident">range</span>: <span class="macro">vec!</span>[<span class="ident">range</span>],
             <span class="ident">err_no</span>: <span class="ident">ErrNo::syntax__missing_token</span>,
         }

@@ -280,7 +280,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolLocation</span> {
     <span class="doccomment">/// the line-number of this symbol in the source-file</span>
-    <span class="kw">pub</span> <span class="ident">line_number</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">line_number</span>: <span class="ident">u32</span>,
     <span class="doccomment">/// the exact location of the symbol and the file_name</span>
     <span class="kw">pub</span> <span class="ident">source_range</span>: <span class="ident">SourceRange</span>,
 }
@@ -379,7 +379,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">SymbolLocation</span> {
-    <span class="kw">const</span> <span class="ident">INTERNAL_LINE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">usize::max_value</span>();
+    <span class="kw">const</span> <span class="ident">INTERNAL_LINE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">u32::max_value</span>();
     <span class="doccomment">/// creates a SymbolLocation with undefined source_range used for</span>
     <span class="doccomment">/// symbols that are created by the compiler on-the-fly.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal</span>() -&gt; <span class="ident">SymbolLocation</span> {

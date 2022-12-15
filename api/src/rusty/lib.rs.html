@@ -1947,12 +1947,13 @@
     <span class="kw">let</span> <span class="ident">module_location</span> <span class="op">=</span> <span class="ident">sources</span>
         .<span class="ident">get</span>(<span class="number">0</span>)
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_location</span>())
-        .<span class="ident">unwrap_or</span>(<span class="string">&quot;main&quot;</span>)
+        .<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>)
         .<span class="ident">to_owned</span>();
     <span class="kw">let</span> (<span class="ident">full_index</span>, <span class="kw-2">mut</span> <span class="ident">index</span>) <span class="op">=</span> <span class="ident">index_module</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="kw-2">&amp;mut</span> <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
 
+    <span class="kw">let</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="ident">AstAnnotations::new</span>(<span class="ident">index</span>.<span class="ident">all_annotations</span>, <span class="ident">index</span>.<span class="ident">id_provider</span>.<span class="ident">next_id</span>());
     <span class="comment">// ### PHASE 3 ###</span>
-    <span class="comment">// - codegen</span>
+
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">codegen::CodeGen::new</span>(
         <span class="ident">context</span>,
         <span class="kw-2">&amp;</span><span class="ident">module_location</span>,
@@ -1960,8 +1961,6 @@
         <span class="ident">optimization</span>,
         <span class="ident">debug_level</span>,
     );
-
-    <span class="kw">let</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="ident">AstAnnotations::new</span>(<span class="ident">index</span>.<span class="ident">all_annotations</span>, <span class="ident">index</span>.<span class="ident">id_provider</span>.<span class="ident">next_id</span>());
     <span class="comment">//Associate the index type with LLVM types</span>
     <span class="kw">let</span> <span class="ident">llvm_index</span> <span class="op">=</span> <span class="ident">code_generator</span>.<span class="ident">generate_llvm_index</span>(
         <span class="kw-2">&amp;</span><span class="ident">annotations</span>,
@@ -1969,6 +1968,7 @@
         <span class="kw-2">&amp;</span><span class="ident">full_index</span>,
         <span class="kw-2">&amp;</span><span class="ident">diagnostician</span>,
     )<span class="question-mark">?</span>;
+
     <span class="kw">for</span> <span class="ident">unit</span> <span class="kw">in</span> <span class="ident">index</span>.<span class="ident">annotated_units</span> {
         <span class="ident">code_generator</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>, <span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>, <span class="kw-2">&amp;</span><span class="ident">llvm_index</span>)<span class="question-mark">?</span>;
     }

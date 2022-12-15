@@ -224,6 +224,7 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
+<span id="222">222</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
 
@@ -431,6 +432,7 @@
         <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
         <span class="ident">diagnostician</span>: <span class="ident">Diagnostician</span>,
+        <span class="ident">debug_level</span>: <span class="ident">DebugLevel</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::create</span>();
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">cg</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::compile_module</span>(
@@ -440,7 +442,7 @@
             <span class="ident">encoding</span>,
             <span class="ident">diagnostician</span>,
             <span class="ident"><span class="kw">crate</span>::OptimizationLevel::None</span>,
-            <span class="ident"><span class="kw">crate</span>::DebugLevel::None</span>,
+            <span class="ident">debug_level</span>,
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">cg</span>.<span class="ident">module</span>.<span class="ident">print_to_string</span>().<span class="ident">to_string</span>())
     }
