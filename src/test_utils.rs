@@ -170,10 +170,11 @@ pub mod tests {
         let llvm_index = code_generator
             .generate_llvm_index(&annotations, literals, &index, &diagnostician)
             .map_err(|err| (diagnostics.take(), err))?;
+
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)
+            .and_then(|_| code_generator.finalize())
             .map(|_| {
-                code_generator.finalize();
                 (
                     code_generator.module.print_to_string().to_string(),
                     diagnostics.take(),

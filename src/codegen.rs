@@ -185,8 +185,18 @@ impl<'ink> CodeGen<'ink> {
     /// done and that the debug builder can now mark the debug information as complete. This is
     /// required to be called on the debug builder by the LLVM API, and has to happen on a module
     /// before it gets generated into object or IR
-    pub fn finalize(&self) {
-        self.debug.finalize()
+    pub fn finalize(&self) -> Result<(), Diagnostic> {
+        self.debug.finalize();
+        #[cfg(feature = "verify")]
+        {
+            self.module.verify().map_err(|it| Diagnostic::GeneralError {
+                message: it.to_string(),
+                err_no: crate::diagnostics::ErrNo::codegen__general,
+            })
+        }
+
+        #[cfg(not(feature = "verify"))]
+        Ok(())
     }
 }
 

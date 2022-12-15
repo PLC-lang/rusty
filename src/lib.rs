@@ -672,18 +672,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
 
-    code_generator.finalize();
-
-    #[cfg(feature = "verify")]
-    {
-        code_generator
-            .module
-            .verify()
-            .map_err(|it| Diagnostic::GeneralError {
-                message: it.to_string(),
-                err_no: crate::diagnostics::ErrNo::codegen__general,
-            })?
-    }
+    code_generator.finalize()?;
 
     Ok((full_index, code_generator))
 }
