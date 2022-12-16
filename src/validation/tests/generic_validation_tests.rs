@@ -1780,12 +1780,13 @@ fn builtin_expt_with_literlals_without_explicit_type_annotation_does_not_report_
     FUNCTION main : DINT
     VAR
         i : DINT;
-        i2: DINT;
-        r : REAL;
+        i2 : DINT;
+        i3 : DINT;
     END_VAR
-        i := 2**DINT#3; // this works
-        i2 := 2**3; // this line reports an error
-        r := 3.0**2; // also does not seem to happen with REAL types
+        // i := 2**DINT#3;
+        // i2 := 2**3;
+        i3 := 2**UDINT#3; // validation error
+        // i3 := 2**ULINT#3; // results in real
     END_FUNCTION
     ";
 
