@@ -23,10 +23,7 @@ fn string_assignment_from_smaller_literal() {
         x: [u8; 7],
         y: [u16; 7],
     }
-    let mut main_type = MainType {
-        x: [0; 7],
-        y: [0; 7],
-    };
+    let mut main_type = MainType { x: [0; 7], y: [0; 7] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hello\0\0".as_bytes(), &main_type.x);
@@ -52,10 +49,7 @@ fn string_assignment_from_bigger_literal() {
         x: [u8; 5],
         y: [u16; 5],
     }
-    let mut main_type = MainType {
-        x: [0; 5],
-        y: [0; 5],
-    };
+    let mut main_type = MainType { x: [0; 5], y: [0; 5] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hell\0".as_bytes(), &main_type.x);
@@ -85,12 +79,7 @@ fn string_assignment_from_smaller_string() {
         u: [u16; 7],
         v: [u16; 6],
     }
-    let mut main_type = MainType {
-        x: [0; 7],
-        y: [0; 6],
-        u: [0; 7],
-        v: [0; 6],
-    };
+    let mut main_type = MainType { x: [0; 7], y: [0; 6], u: [0; 7], v: [0; 6] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hello\0\0".as_bytes(), &main_type.x);
@@ -120,12 +109,7 @@ fn string_assignment_from_bigger_string() {
         u: [u16; 5],
         v: [u16; 6],
     }
-    let mut main_type = MainType {
-        x: [0; 5],
-        y: [0; 6],
-        u: [0; 5],
-        v: [0; 6],
-    };
+    let mut main_type = MainType { x: [0; 5], y: [0; 6], u: [0; 5], v: [0; 6] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("hell\0".as_bytes(), &main_type.x);
@@ -197,10 +181,7 @@ fn string_assignment_from_bigger_literal_do_not_leak() {
         x: [u8; 5],
         y: [u8; 5],
     }
-    let mut main_type = MainType {
-        x: [0; 5],
-        y: [0; 5],
-    };
+    let mut main_type = MainType { x: [0; 5], y: [0; 5] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!(&[0; 5], &main_type.y);
@@ -223,11 +204,7 @@ fn string_assignment_from_bigger_string_does_not_leak() {
         y: [u8; 5],
         z: [u8; 11],
     }
-    let mut main_type = MainType {
-        x: [0; 5],
-        y: [0; 5],
-        z: [0; 11],
-    };
+    let mut main_type = MainType { x: [0; 5], y: [0; 5], z: [0; 11] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!(&[0; 5], &main_type.y);
@@ -264,10 +241,7 @@ fn string_parameter_assignment_in_functions_with_multiple_size2() {
         x: [u8; 21],
         y: [u8; 21],
     }
-    let mut main_type = MainType {
-        x: [0; 21],
-        y: [0; 21],
-    };
+    let mut main_type = MainType { x: [0; 21], y: [0; 21] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     // long string passed to short function and returned
@@ -300,10 +274,7 @@ fn string_assignment_from_bigger_function_does_not_leak() {
         x: [u8; 5],
         y: [u8; 5],
     }
-    let mut main_type = MainType {
-        x: [0; 5],
-        y: [0; 5],
-    };
+    let mut main_type = MainType { x: [0; 5], y: [0; 5] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!(&[0; 5], &main_type.y);
@@ -334,11 +305,7 @@ fn initialization_of_string_arrays() {
         y: [u8; 11],
         z: [u8; 11],
     }
-    let mut main_type = MainType {
-        x: [0; 11],
-        y: [0; 11],
-        z: [0; 11],
-    };
+    let mut main_type = MainType { x: [0; 11], y: [0; 11], z: [0; 11] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!(main_type.x, "hello\0\0\0\0\0\0".as_bytes());
@@ -407,10 +374,7 @@ fn string_as_function_parameters_internal() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let source = SourceCode {
-        path: "string_test.st".to_string(),
-        source: src.to_string(),
-    };
+    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
     let (_, code_gen) = compile_module(
         &context,
         vec![source],
@@ -421,16 +385,10 @@ fn string_as_function_parameters_internal() {
         DebugLevel::None,
     )
     .unwrap();
-    let exec_engine = code_gen
-        .module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .unwrap();
+    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    let res = CStr::from_bytes_with_nul(&main_type[..6])
-        .unwrap()
-        .to_str()
-        .unwrap();
+    let res = CStr::from_bytes_with_nul(&main_type[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
 
@@ -456,10 +414,7 @@ fn string_as_function_parameters() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let source = SourceCode {
-        path: "string_test.st".to_string(),
-        source: src.to_string(),
-    };
+    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
     let (_, code_gen) = compile_module(
         &context,
         vec![source],
@@ -470,10 +425,7 @@ fn string_as_function_parameters() {
         DebugLevel::None,
     )
     .unwrap();
-    let exec_engine = code_gen
-        .module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .unwrap();
+    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("func").unwrap();
 
@@ -481,10 +433,7 @@ fn string_as_function_parameters() {
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
     dbg!(main_type);
-    let res = CStr::from_bytes_with_nul(&main_type[..6])
-        .unwrap()
-        .to_str()
-        .unwrap();
+    let res = CStr::from_bytes_with_nul(&main_type[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
 
@@ -516,10 +465,7 @@ fn wstring_as_function_parameters() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let source = SourceCode {
-        path: "string_test.st".to_string(),
-        source: src.to_string(),
-    };
+    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
     let (_, code_gen) = compile_module(
         &context,
         vec![source],
@@ -530,10 +476,7 @@ fn wstring_as_function_parameters() {
         DebugLevel::None,
     )
     .unwrap();
-    let exec_engine = code_gen
-        .module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .unwrap();
+    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("func").unwrap();
 
@@ -573,10 +516,7 @@ fn string_as_function_parameters_cast() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let source = SourceCode {
-        path: "string_test.st".to_string(),
-        source: src.to_string(),
-    };
+    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
     let (_, code_gen) = compile_module(
         &context,
         vec![source],
@@ -587,20 +527,14 @@ fn string_as_function_parameters_cast() {
         DebugLevel::None,
     )
     .unwrap();
-    let exec_engine = code_gen
-        .module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .unwrap();
+    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("func").unwrap();
 
     exec_engine.add_global_mapping(&fn_value, string_id as usize);
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    let res = CStr::from_bytes_with_nul(&main_type.res[..6])
-        .unwrap()
-        .to_str()
-        .unwrap();
+    let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
 
@@ -632,10 +566,7 @@ fn wstring_as_function_parameters_cast() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let source = SourceCode {
-        path: "string_test.st".to_string(),
-        source: src.to_string(),
-    };
+    let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
     let (_, code_gen) = compile_module(
         &context,
         vec![source],
@@ -646,10 +577,7 @@ fn wstring_as_function_parameters_cast() {
         DebugLevel::None,
     )
     .unwrap();
-    let exec_engine = code_gen
-        .module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .unwrap();
+    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("func").unwrap();
 
@@ -923,10 +851,7 @@ fn program_string_output() {
         x: [u8; 7],
         y: [u16; 8],
     }
-    let mut main_type = MainType {
-        x: [0; 7],
-        y: [0; 8],
-    };
+    let mut main_type = MainType { x: [0; 7], y: [0; 8] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
     assert_eq!("string\0".as_bytes(), &main_type.x);

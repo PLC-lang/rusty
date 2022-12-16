@@ -14,13 +14,7 @@ fn generics_saved_in_index() {
     assert!(foo_info.is_generic());
     if let PouIndexEntry::Function { generics, .. } = foo_info {
         let t = &generics[0];
-        assert_eq!(
-            &GenericBinding {
-                name: "T".into(),
-                nature: crate::ast::TypeNature::Any,
-            },
-            t
-        );
+        assert_eq!(&GenericBinding { name: "T".into(), nature: crate::ast::TypeNature::Any }, t);
     } else {
         panic!("{:#?} not a generic function", foo_info);
     }

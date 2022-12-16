@@ -76,9 +76,7 @@ pub struct ConstExpressions {
 
 impl ConstExpressions {
     pub fn new() -> ConstExpressions {
-        ConstExpressions {
-            expressions: Arena::new(),
-        }
+        ConstExpressions { expressions: Arena::new() }
     }
 
     /// adds the const expression `statement`
@@ -91,10 +89,8 @@ impl ConstExpressions {
         target_type_name: String,
         scope: Option<String>,
     ) -> ConstId {
-        self.expressions.insert(ConstWrapper {
-            expr: ConstExpression::Unresolved { statement, scope },
-            target_type_name,
-        })
+        self.expressions
+            .insert(ConstWrapper { expr: ConstExpression::Unresolved { statement, scope }, target_type_name })
     }
 
     /// returns the expression associated with the given `id` together with an optional
@@ -108,9 +104,7 @@ impl ConstExpressions {
     }
 
     pub fn find_expression_target_type(&self, id: &ConstId) -> Option<&str> {
-        self.expressions
-            .get(*id)
-            .map(|it| it.target_type_name.as_str())
+        self.expressions.get(*id).map(|it| it.target_type_name.as_str())
     }
 
     /// similar to `find_expression` but it does not return the `AstStatement` directly.
@@ -123,11 +117,9 @@ impl ConstExpressions {
     /// clones the expression in the ConstExpressions and returns all of its elements
     pub fn clone(&self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
         self.expressions.get(*id).map(|it| match &it.expr {
-            ConstExpression::Unresolved { statement, scope } => (
-                statement.clone(),
-                it.target_type_name.clone(),
-                scope.clone(),
-            ),
+            ConstExpression::Unresolved { statement, scope } => {
+                (statement.clone(), it.target_type_name.clone(), scope.clone())
+            }
             ConstExpression::Resolved(s) | ConstExpression::Unresolvable { statement: s, .. } => {
                 (s.clone(), it.target_type_name.clone(), None)
             }
@@ -136,11 +128,7 @@ impl ConstExpressions {
 
     /// marks the const-expression represented by the given `id` as resolvend and stores the the
     /// given `new_statement` as it's resolved value.
-    pub fn mark_resolved(
-        &mut self,
-        id: &ConstId,
-        new_statement: AstStatement,
-    ) -> Result<(), String> {
+    pub fn mark_resolved(&mut self, id: &ConstId, new_statement: AstStatement) -> Result<(), String> {
         let wrapper = self
             .expressions
             .get_mut(*id)
@@ -207,21 +195,19 @@ impl ConstExpressions {
     /// this operation returns None, if an unresolved/unresolvable expression was registered
     /// for the given id (for different behavior see `get_constant_statement`)
     pub fn get_resolved_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
-        self.find_const_expression(id)
-            .filter(|it| it.is_resolved())
-            .map(ConstExpression::get_statement)
+        self.find_const_expression(id).filter(|it| it.is_resolved()).map(ConstExpression::get_statement)
     }
 
     /// query the constants arena for an expression that can be evaluated to an i128.
     /// returns an Err if no expression was associated, or the associated expression is a
     /// complex one (not a LiteralInteger)
     pub fn get_constant_int_statement_value(&self, id: &ConstId) -> Result<i128, String> {
-        self.get_constant_statement(id)
-            .ok_or_else(|| "Cannot find constant expression".into())
-            .and_then(|it| match it {
+        self.get_constant_statement(id).ok_or_else(|| "Cannot find constant expression".into()).and_then(
+            |it| match it {
                 AstStatement::LiteralInteger { value, .. } => Ok(*value),
                 _ => Err(format!("Cannot extract int constant from {:#?}", it)),
-            })
+            },
+        )
     }
 
     pub fn import(&mut self, other: ConstExpressions) {
@@ -234,9 +220,7 @@ impl<'a> IntoIterator for &'a ConstExpressions {
     type IntoIter = IntoStatementIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
-        IntoStatementIter {
-            inner: self.expressions.iter(),
-        }
+        IntoStatementIter { inner: self.expressions.iter() }
     }
 }
 
@@ -248,8 +232,6 @@ impl<'a> Iterator for IntoStatementIter<'a> {
     type Item = (ConstId, &'a AstStatement);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner
-            .next()
-            .map(|(idx, expr)| (idx, expr.get_statement()))
+        self.inner.next().map(|(idx, expr)| (idx, expr.get_statement()))
     }
 }

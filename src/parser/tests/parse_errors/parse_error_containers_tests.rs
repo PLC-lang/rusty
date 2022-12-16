@@ -31,11 +31,7 @@ fn missing_pou_name() {
         format!("{:#?}", pou.statements[0]),
         format!(
             "{:#?}",
-            AstStatement::Reference {
-                name: "a".into(),
-                location: SourceRange::undefined(),
-                id: 0
-            }
+            AstStatement::Reference { name: "a".into(), location: SourceRange::undefined(), id: 0 }
         )
     );
 }
@@ -64,11 +60,7 @@ fn missing_pou_name_2() {
         format!("{:#?}", pou.statements[1]),
         format!(
             "{:#?}",
-            AstStatement::Reference {
-                name: "x".into(),
-                location: SourceRange::undefined(),
-                id: 0
-            }
+            AstStatement::Reference { name: "x".into(), location: SourceRange::undefined(), id: 0 }
         )
     );
 }
@@ -98,11 +90,7 @@ fn illegal_end_pou_keyword() {
         format!("{:#?}", pou.statements),
         format!(
             "{:#?}",
-            vec![AstStatement::Reference {
-                name: "b".into(),
-                location: SourceRange::undefined(),
-                id: 0
-            }]
+            vec![AstStatement::Reference { name: "b".into(), location: SourceRange::undefined(), id: 0 }]
         )
     );
 }
@@ -121,8 +109,7 @@ fn function_without_return_variable_declaration() {
     let (compilation_unit, diagnostics) = parse(src);
 
     // THEN I expect a diagnostic complaining about a missing return type
-    let expected =
-        Diagnostic::unexpected_token_found("COLON", "'a', (Identifier)", (76..79).into());
+    let expected = Diagnostic::unexpected_token_found("COLON", "'a', (Identifier)", (76..79).into());
     assert_eq!(diagnostics, vec![expected]);
 
     // AND I expect the body to be parsed successfully
@@ -149,8 +136,7 @@ fn function_with_illegal_return_variable_declaration() {
     let (compilation_unit, diagnostics) = parse(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected =
-        Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordVar", (40..43).into());
+    let expected = Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordVar", (40..43).into());
     assert_eq!(diagnostics[0], expected);
 
     //check if a was parsed successfully
@@ -213,11 +199,7 @@ fn program_with_illegal_return_variable_declaration() {
         format!("{:#?}", pou.statements),
         format!(
             "{:#?}",
-            vec![AstStatement::Reference {
-                name: "a".into(),
-                location: SourceRange::undefined(),
-                id: 0
-            }]
+            vec![AstStatement::Reference { name: "a".into(), location: SourceRange::undefined(), id: 0 }]
         )
     );
 }
@@ -233,11 +215,7 @@ fn unclosed_var_container() {
 
     let (compilation_unit, diagnostics) = parse(src);
     assert_eq!(
-        vec![Diagnostic::unexpected_token_found(
-            "KeywordEndVar",
-            "'VAR b : INT;'",
-            (82..94).into(),
-        )],
+        vec![Diagnostic::unexpected_token_found("KeywordEndVar", "'VAR b : INT;'", (82..94).into(),)],
         diagnostics
     );
     //check if b was parsed successfully
@@ -278,11 +256,7 @@ fn test_unexpected_type_declaration_error_message() {
     let (_, diagnostics) = parse(src);
     assert_eq!(
         vec![
-            Diagnostic::unexpected_token_found(
-                "DataTypeDefinition",
-                "KeywordProgram",
-                (29..36).into(),
-            ),
+            Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordProgram", (29..36).into(),),
             Diagnostic::unexpected_token_found(
                 "KeywordSemicolon",
                 "'PROGRAM\n                END_PROGRAM'",
@@ -301,11 +275,7 @@ fn a_program_needs_to_end_with_end_program() {
     let (_, diagnostics) = parse(src);
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::unexpected_token_found(
-            "KeywordEndProgram",
-            "''",
-            (12..12).into()
-        ),]
+        vec![Diagnostic::unexpected_token_found("KeywordEndProgram", "''", (12..12).into()),]
     );
 }
 

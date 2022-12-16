@@ -69,13 +69,7 @@ fn external_global_vars_can_be_parsed() {
     variable_block_type: Global,
 }"#;
     assert_eq!(ast_string, expected_ast);
-    assert!(matches!(
-        vars,
-        VariableBlock {
-            linkage: LinkageType::External,
-            ..
-        }
-    ));
+    assert!(matches!(vars, VariableBlock { linkage: LinkageType::External, .. }));
 }
 
 #[test]

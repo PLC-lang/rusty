@@ -20,13 +20,7 @@ fn binary_expressions_resolves_types() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    if let AstStatement::ForLoopStatement {
-        counter,
-        start,
-        end,
-        by_step: Some(by_step),
-        ..
-    } = &statements[0]
+    if let AstStatement::ForLoopStatement { counter, start, end, by_step: Some(by_step), .. } = &statements[0]
     {
         assert_type_and_hint!(&annotations, &index, counter, "INT", None);
         assert_type_and_hint!(&annotations, &index, start, "DINT", Some("INT"));

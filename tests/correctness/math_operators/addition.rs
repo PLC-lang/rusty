@@ -246,14 +246,8 @@ fn add_date_basic() {
     let mut main = MainType::default();
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var = chrono::Utc
-        .with_ymd_and_hms(2021, 1, 1, 0, 0, 0)
-        .unwrap()
-        .timestamp_nanos() as u64;
-    let date_10_days = chrono::Utc
-        .with_ymd_and_hms(1970, 1, 10, 0, 0, 0)
-        .unwrap()
-        .timestamp_nanos() as u64;
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos() as u64;
+    let date_10_days = chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos() as u64;
     assert_eq!(res, date_10_days + date_var);
 }
 

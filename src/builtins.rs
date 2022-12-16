@@ -9,8 +9,8 @@ use lazy_static::lazy_static;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType,
-        SourceRange, SourceRangeFactory,
+        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
+        SourceRangeFactory,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator},
     diagnostics::Diagnostic,
@@ -21,9 +21,7 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, TypeAnnotator, VisitorContext,
     },
-    typesystem::{
-        get_bigger_type, DataTypeInformation, DINT_SIZE, DINT_TYPE, REAL_TYPE, UDINT_TYPE,
-    },
+    typesystem::{get_bigger_type, DataTypeInformation, DINT_SIZE, DINT_TYPE, REAL_TYPE, UDINT_TYPE},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -321,12 +319,8 @@ lazy_static! {
     ]);
 }
 
-type AnnotationFunction = fn(
-    &mut TypeAnnotator,
-    &AstStatement,
-    Option<&AstStatement>,
-    VisitorContext,
-) -> Result<(), Diagnostic>;
+type AnnotationFunction =
+    fn(&mut TypeAnnotator, &AstStatement, Option<&AstStatement>, VisitorContext) -> Result<(), Diagnostic>;
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
@@ -359,11 +353,7 @@ impl BuiltIn {
 }
 
 pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
-    let src = BUILTIN
-        .iter()
-        .map(|(_, it)| it.decl)
-        .collect::<Vec<&str>>()
-        .join(" ");
+    let src = BUILTIN.iter().map(|(_, it)| it.decl).collect::<Vec<&str>>().join(" ");
     let mut unit = parser::parse(
         lexer::lex_with_ids(&src, id_provider.clone(), SourceRangeFactory::internal()),
         LinkageType::BuiltIn,

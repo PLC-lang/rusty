@@ -27,28 +27,19 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> AstStatement {
 fn parse_return_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ReturnStatement {
-        location,
-        id: lexer.next_id(),
-    }
+    AstStatement::ReturnStatement { location, id: lexer.next_id() }
 }
 
 fn parse_exit_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ExitStatement {
-        location,
-        id: lexer.next_id(),
-    }
+    AstStatement::ExitStatement { location, id: lexer.next_id() }
 }
 
 fn parse_continue_statement(lexer: &mut ParseSession) -> AstStatement {
     let location = lexer.location();
     lexer.advance();
-    AstStatement::ContinueStatement {
-        location,
-        id: lexer.next_id(),
-    }
+    AstStatement::ContinueStatement { location, id: lexer.next_id() }
 }
 
 fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
@@ -61,10 +52,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstStatement {
         expect_token!(
             lexer,
             KeywordThen,
-            AstStatement::EmptyStatement {
-                location: lexer.location(),
-                id: lexer.next_id(),
-            }
+            AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
         );
         lexer.advance();
 
@@ -100,10 +88,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
     expect_token!(
         lexer,
         KeywordAssignment,
-        AstStatement::EmptyStatement {
-            location: lexer.location(),
-            id: lexer.next_id()
-        }
+        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
     );
     lexer.advance();
 
@@ -111,10 +96,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
     expect_token!(
         lexer,
         KeywordTo,
-        AstStatement::EmptyStatement {
-            location: lexer.location(),
-            id: lexer.next_id(),
-        }
+        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
     );
     lexer.advance();
     let end_expression = parse_expression(lexer);
@@ -134,9 +116,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstStatement {
         end: Box::new(end_expression),
         by_step: step,
         body: parse_body_in_region(lexer, vec![KeywordEndFor]),
-        location: lexer
-            .source_range_factory
-            .create_range(start..lexer.last_range.end),
+        location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
         id: lexer.next_id(),
     }
 }
@@ -151,9 +131,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstStatement {
     AstStatement::WhileLoopStatement {
         condition: Box::new(condition),
         body: parse_body_in_region(lexer, vec![KeywordEndWhile]),
-        location: lexer
-            .source_range_factory
-            .create_range(start..lexer.last_range.end),
+        location: lexer.source_range_factory.create_range(start..lexer.last_range.end),
         id: lexer.next_id(),
     }
 }
@@ -164,22 +142,15 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstStatement {
 
     let body = parse_body_in_region(lexer, vec![KeywordUntil, KeywordEndRepeat]); //UNTIL
     let condition = if lexer.last_token == KeywordUntil {
-        parse_any_in_region(lexer, vec![KeywordEndRepeat], |lexer| {
-            parse_expression(lexer)
-        })
+        parse_any_in_region(lexer, vec![KeywordEndRepeat], parse_expression)
     } else {
-        AstStatement::EmptyStatement {
-            location: lexer.location(),
-            id: lexer.next_id(),
-        }
+        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
     };
 
     AstStatement::RepeatLoopStatement {
         condition: Box::new(condition),
         body,
-        location: lexer
-            .source_range_factory
-            .create_range(start..lexer.range().end),
+        location: lexer.source_range_factory.create_range(start..lexer.range().end),
         id: lexer.next_id(),
     }
 }
@@ -193,10 +164,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
     expect_token!(
         lexer,
         KeywordOf,
-        AstStatement::EmptyStatement {
-            location: lexer.location(),
-            id: lexer.next_id()
-        }
+        AstStatement::EmptyStatement { location: lexer.location(), id: lexer.next_id() }
     );
 
     lexer.advance();
@@ -210,10 +178,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
         for statement in body {
             if let AstStatement::CaseCondition { condition, .. } = statement {
                 if let Some(condition) = current_condition {
-                    let block = ConditionalBlock {
-                        condition,
-                        body: current_body,
-                    };
+                    let block = ConditionalBlock { condition, body: current_body };
                     case_blocks.push(block);
                     current_body = vec![];
                 }
@@ -234,10 +199,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
             }
         }
         if let Some(condition) = current_condition {
-            let block = ConditionalBlock {
-                condition,
-                body: current_body,
-            };
+            let block = ConditionalBlock { condition, body: current_body };
             case_blocks.push(block);
         }
     }

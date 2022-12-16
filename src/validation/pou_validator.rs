@@ -8,9 +8,7 @@ pub struct PouValidator {
 
 impl PouValidator {
     pub fn new() -> PouValidator {
-        PouValidator {
-            diagnostics: Vec::new(),
-        }
+        PouValidator { diagnostics: Vec::new() }
     }
 
     pub fn validate_pou(&mut self, pou: &Pou, context: &ValidationContext) {
@@ -23,9 +21,7 @@ impl PouValidator {
         let return_type = context.index.find_return_type(&pou.name);
         // functions must have a return type
         if return_type.is_none() {
-            self.diagnostics.push(Diagnostic::function_return_missing(
-                pou.name_location.to_owned(),
-            ));
+            self.diagnostics.push(Diagnostic::function_return_missing(pou.name_location.to_owned()));
         }
     }
 }

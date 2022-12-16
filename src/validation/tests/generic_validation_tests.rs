@@ -29,14 +29,7 @@ fn non_resolved_generics_reported() {
     ";
 
     let diagnostics = parse_and_validate(src);
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::unresolved_generic_type(
-            "T",
-            "String",
-            (94..101).into()
-        ),]
-    );
+    assert_eq!(diagnostics, vec![Diagnostic::unresolved_generic_type("T", "String", (94..101).into()),]);
 }
 
 // ##########    ANY_MAGNITUDE    ##########

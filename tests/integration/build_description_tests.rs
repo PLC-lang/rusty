@@ -20,11 +20,7 @@ fn build_to_temp() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir
-        .path()
-        .join("x86_64-linux-gnu")
-        .join("proj.so")
-        .is_file());
+    assert!(dir.path().join("x86_64-linux-gnu").join("proj.so").is_file());
     assert!(dir.path().join("libcopy.so").is_file());
 }
 
@@ -80,11 +76,7 @@ fn build_with_separate_lib_folder() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir
-        .path()
-        .join("x86_64-linux-gnu")
-        .join("proj.so")
-        .is_file());
+    assert!(dir.path().join("x86_64-linux-gnu").join("proj.so").is_file());
     assert!(lib_dir.path().join("libcopy2.so").is_file());
 }
 
@@ -105,11 +97,7 @@ fn build_with_target_but_without_sysroot() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir
-        .path()
-        .join("x86_64-unknown-linux-gnu")
-        .join("proj.so")
-        .is_file());
+    assert!(dir.path().join("x86_64-unknown-linux-gnu").join("proj.so").is_file());
 }
 
 #[test]
@@ -134,16 +122,8 @@ fn build_for_multiple_targets_and_sysroots() {
     .unwrap();
     build_with_subcommand(parameters).unwrap();
 
-    assert!(dir
-        .path()
-        .join("aarch64-linux-gnu")
-        .join("proj.so")
-        .is_file());
-    assert!(dir
-        .path()
-        .join("x86_64-linux-gnu")
-        .join("proj.so")
-        .is_file());
+    assert!(dir.path().join("aarch64-linux-gnu").join("proj.so").is_file());
+    assert!(dir.path().join("x86_64-linux-gnu").join("proj.so").is_file());
 }
 
 #[test]

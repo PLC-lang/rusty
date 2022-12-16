@@ -51,9 +51,7 @@ fn programs_state_is_stored_in_a_struct() {
     // process pou and types
     annotate_with_ids(&pr, &mut index, id_provider);
 
-    let pou_struct = index
-        .find_pou("main_prg")
-        .and_then(|pou| pou.find_instance_struct_type(&index));
+    let pou_struct = index.find_pou("main_prg").and_then(|pou| pou.find_instance_struct_type(&index));
 
     insta::assert_debug_snapshot!(pou_struct, @r###"
     Some(

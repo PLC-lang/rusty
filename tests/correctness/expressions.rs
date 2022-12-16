@@ -188,11 +188,7 @@ fn enums_can_be_compared() {
         c: bool,
     }
 
-    let mut main = Main {
-        a: false,
-        b: false,
-        c: false,
-    };
+    let mut main = Main { a: false, b: false, c: false };
 
     let function = "
         TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
@@ -291,8 +287,5 @@ fn aliased_ranged_numbers_can_be_compared() {
     END_PROGRAM
     "#;
     let _: i32 = compile_and_run(src, &mut main);
-    assert_eq!(
-        [main.a, main.b, main.c, main.d, main.e, main.f],
-        [false, true, false, false, true, false]
-    );
+    assert_eq!([main.a, main.b, main.c, main.d, main.e, main.f], [false, true, false, false, true, false]);
 }

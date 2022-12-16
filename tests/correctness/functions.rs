@@ -44,16 +44,8 @@ fn max_function() {
 
     let context: Context = Context::create();
     let engine = compile(&context, function);
-    let mut case1 = MainType {
-        the_a: 4,
-        the_b: 7,
-        ret: 0,
-    };
-    let mut case2 = MainType {
-        the_a: 9,
-        the_b: -2,
-        ret: 0,
-    };
+    let mut case1 = MainType { the_a: 4, the_b: 7, ret: 0 };
+    let mut case2 = MainType { the_a: 9, the_b: -2, ret: 0 };
 
     let _: i32 = run(&engine, "main", &mut case1);
     assert_eq!(case1.ret, 7);
@@ -262,10 +254,7 @@ fn function_block_instances_save_state_per_instance() {
     END_PROGRAM
     "#;
 
-    let mut interface = MainType {
-        f: FooType { i: 0 },
-        j: FooType { i: 0 },
-    };
+    let mut interface = MainType { f: FooType { i: 0 }, j: FooType { i: 0 } };
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
     assert_eq!(interface.f.i, 2);
     assert_eq!(interface.j.i, 7);
@@ -331,9 +320,7 @@ fn program_instances_save_state_per() {
     END_PROGRAM
     "#;
 
-    let mut interface = MainType {
-        f: FooType { i: 4 },
-    };
+    let mut interface = MainType { f: FooType { i: 4 } };
     let context = inkwell::context::Context::create();
     let exec_engine = compile(&context, function.to_string());
     run::<_, i32>(&exec_engine, "main", &mut interface);
@@ -421,16 +408,8 @@ fn function_block_instances_save_state_per_instance_2() {
     END_PROGRAM
     "#;
 
-    let mut interface = MainType {
-        f: FooType {
-            i: 0,
-            baz: BazType { i: 0 },
-        },
-        j: FooType {
-            i: 0,
-            baz: BazType { i: 0 },
-        },
-    };
+    let mut interface =
+        MainType { f: FooType { i: 0, baz: BazType { i: 0 } }, j: FooType { i: 0, baz: BazType { i: 0 } } };
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(2, interface.f.baz.i);
@@ -519,11 +498,7 @@ fn inouts_behave_like_pointers() {
         END_PROGRAM
     "#;
 
-    let mut interface = MainType {
-        p1: 0,
-        p2: 0,
-        p3: 0,
-    };
+    let mut interface = MainType { p1: 0, p2: 0, p3: 0 };
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.p1);
@@ -758,10 +733,7 @@ fn nested_calls_in_call_statement() {
     let mut interface = MainType { var1: 0, var2: 0 };
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
-    assert_eq!(
-        (7 + 8 + 9, 3 * (7 + 8 + 9)),
-        (interface.var1, interface.var2)
-    );
+    assert_eq!((7 + 8 + 9, 3 * (7 + 8 + 9)), (interface.var1, interface.var2));
 }
 
 #[test]
@@ -1007,16 +979,7 @@ fn sizeof_test() {
     let exec_engine = compile(&context, function);
     let _: i32 = run(&exec_engine, "main", &mut maintype);
 
-    let expected = MainType {
-        s1: 1,
-        s2: 2,
-        s3: 8,
-        s4: 24,
-        s5: 8,
-        s6: 81,
-        s7: 2,
-        s8: 4,
-    };
+    let expected = MainType { s1: 1, s2: 2, s3: 8, s4: 24, s5: 8, s6: 81, s7: 2, s8: 4 };
 
     assert_eq!(expected, maintype);
 }

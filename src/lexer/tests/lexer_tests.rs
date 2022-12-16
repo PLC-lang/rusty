@@ -35,12 +35,7 @@ fn comments_are_ignored_by_the_lexer() {
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        KeywordEndFunctionBlock,
-        "Token : {}",
-        lexer.slice()
-    );
+    assert_eq!(lexer.token, KeywordEndFunctionBlock, "Token : {}", lexer.slice());
     lexer.advance();
 }
 
@@ -57,12 +52,7 @@ fn undefined_pragmas_are_ignored_by_the_lexer() {
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        KeywordEndFunctionBlock,
-        "Token : {}",
-        lexer.slice()
-    );
+    assert_eq!(lexer.token, KeywordEndFunctionBlock, "Token : {}", lexer.slice());
     lexer.advance();
 }
 
@@ -128,19 +118,13 @@ fn unicode_chars_in_comments() {
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        KeywordEndFunctionBlock,
-        "Token : {}",
-        lexer.slice()
-    );
+    assert_eq!(lexer.token, KeywordEndFunctionBlock, "Token : {}", lexer.slice());
     lexer.advance();
 }
 
 #[test]
 fn pou_tokens() {
-    let mut lexer =
-        lex("PROGRAM END_PROGRAM FUNCTION END_FUNCTION FUNCTION_BLOCK END_FUNCTION_BLOCK");
+    let mut lexer = lex("PROGRAM END_PROGRAM FUNCTION END_FUNCTION FUNCTION_BLOCK END_FUNCTION_BLOCK");
     assert_eq!(lexer.token, KeywordProgram);
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndProgram);
@@ -348,7 +332,9 @@ fn long_date_literals_test() {
 
 #[test]
 fn date_and_time_literals_test() {
-    let mut lexer = lex("DATE_AND_TIME#1984-10-01-20:15:12 DT#1-1-1-1:1:1 DT#1-1-1-1:1:1.123 DATE_AND_TIME#2000-01-01-20:15");
+    let mut lexer = lex(
+        "DATE_AND_TIME#1984-10-01-20:15:12 DT#1-1-1-1:1:1 DT#1-1-1-1:1:1.123 DATE_AND_TIME#2000-01-01-20:15",
+    );
     assert_eq!(lexer.token, LiteralDateAndTime);
     lexer.advance();
     assert_eq!(lexer.token, LiteralDateAndTime);
@@ -753,25 +739,13 @@ fn hardware_access_test() {
     let mut lexer = lex("AT %I* %Q* %M* %IX1.1 %IB2.2 %QW5 %MD7 %IL6 %GX8");
     assert_eq!(lexer.token, KeywordAt);
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Input, DirectAccessType::Template))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Input, DirectAccessType::Template)));
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Output, DirectAccessType::Template))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Output, DirectAccessType::Template)));
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Memory, DirectAccessType::Template))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Memory, DirectAccessType::Template)));
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Input, DirectAccessType::Bit))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Input, DirectAccessType::Bit)));
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
@@ -779,10 +753,7 @@ fn hardware_access_test() {
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Input, DirectAccessType::Byte))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Input, DirectAccessType::Byte)));
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
@@ -790,31 +761,19 @@ fn hardware_access_test() {
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Output, DirectAccessType::Word))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Output, DirectAccessType::Word)));
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Memory, DirectAccessType::DWord))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Memory, DirectAccessType::DWord)));
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Input, DirectAccessType::LWord))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Input, DirectAccessType::LWord)));
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    assert_eq!(
-        lexer.token,
-        HardwareAccess((HardwareAccessType::Global, DirectAccessType::Bit))
-    );
+    assert_eq!(lexer.token, HardwareAccess((HardwareAccessType::Global, DirectAccessType::Bit)));
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
@@ -823,11 +782,9 @@ fn hardware_access_test() {
 
 #[test]
 fn multi_named_keywords_without_underscore_test() {
-    let mut lexer = lex(
-        "VARINPUT VARGLOBAL VARINOUT REFTO ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
+    let mut lexer = lex("VARINPUT VARGLOBAL VARINOUT REFTO ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
         VARRETAIN VARTEMP VAROUTPUT FUNCTIONBLOCK ENDFUNCTIONBLOCK ENDSTRUCT ENDACTION
-        ENDACTIONS ENDIF ENDFOR ENDREPEAT",
-    );
+        ENDACTIONS ENDIF ENDFOR ENDREPEAT");
 
     while lexer.token != End {
         lexer.advance();
@@ -838,16 +795,10 @@ fn multi_named_keywords_without_underscore_test() {
     let d1 = lexer.diagnostics.first().unwrap();
     let d2 = lexer.diagnostics.last().unwrap();
 
-    assert_eq!(
-        d1.get_message(),
-        "the words in VARINPUT should be separated by a '_'"
-    );
+    assert_eq!(d1.get_message(), "the words in VARINPUT should be separated by a '_'");
     assert_eq!(d1.get_location(), (0..8).into());
 
-    assert_eq!(
-        d2.get_message(),
-        "the words in ENDREPEAT should be separated by a '_'"
-    );
+    assert_eq!(d2.get_message(), "the words in ENDREPEAT should be separated by a '_'");
     assert_eq!(d2.get_location(), (191..200).into());
 }
 

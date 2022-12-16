@@ -18,10 +18,6 @@ fn method_with_invalid_return_type() {
 
     assert_eq!(
         diagnostics.first().unwrap(),
-        &Diagnostic::unexpected_token_found(
-            "DataTypeDefinition",
-            "KeywordAbstract",
-            (29..37).into()
-        )
+        &Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordAbstract", (29..37).into())
     );
 }

@@ -52,11 +52,7 @@ impl<'ink> CodeGen<'ink> {
         let module = context.create_module(module_name);
         module.set_source_file_name(module_location);
         let debug = debug::DebugBuilderEnum::new(context, &module, optimization_level, debug_level);
-        CodeGen {
-            context,
-            module,
-            debug,
-        }
+        CodeGen { context, module, debug }
     }
 
     pub fn generate_llvm_index(
@@ -123,9 +119,7 @@ impl<'ink> CodeGen<'ink> {
                 data_type.as_basic_type_enum(),
             );
             let initializer = llvm.create_const_utf8_string(literal.as_str(), len)?;
-            literal_variable
-                .make_constant()
-                .set_initializer(&initializer);
+            literal_variable.make_constant().set_initializer(&initializer);
 
             index.associate_utf08_literal(literal, literal_variable);
         }
@@ -140,11 +134,8 @@ impl<'ink> CodeGen<'ink> {
                 format!("utf16_literal_{}", idx).as_str(),
                 data_type.as_basic_type_enum(),
             );
-            let initializer =
-                llvm.create_const_utf16_string(literal.as_str(), literal.len() + 1)?;
-            literal_variable
-                .make_constant()
-                .set_initializer(&initializer);
+            let initializer = llvm.create_const_utf16_string(literal.as_str(), literal.len() + 1)?;
+            literal_variable.make_constant().set_initializer(&initializer);
 
             index.associate_utf16_literal(literal, literal_variable);
         }
@@ -169,11 +160,7 @@ impl<'ink> CodeGen<'ink> {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(
-                        implementation,
-                        &self.debug,
-                        &unit.new_lines,
-                    )?;
+                    pou_generator.generate_implementation(implementation, &self.debug, &unit.new_lines)?;
                 }
             }
         }

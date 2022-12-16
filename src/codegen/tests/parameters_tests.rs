@@ -62,10 +62,7 @@ fn function_empty_input_assignment() {
     // THEN
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::codegen_error(
-                "Cannot generate Literal for EmptyStatement",
-                (238..239).into(),
-            ),
+            Diagnostic::codegen_error("Cannot generate Literal for EmptyStatement", (238..239).into(),),
             msg
         )
     } else {
@@ -424,10 +421,7 @@ fn program_empty_input_assignment() {
     // THEN
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::codegen_error(
-                "Cannot generate Literal for EmptyStatement",
-                (231..232).into(),
-            ),
+            Diagnostic::codegen_error("Cannot generate Literal for EmptyStatement", (231..232).into(),),
             msg
         )
     } else {
@@ -463,10 +457,7 @@ fn program_empty_output_assignment() {
     // THEN
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::codegen_error(
-                "Cannot generate a LValue for EmptyStatement",
-                (248..249).into(),
-            ),
+            Diagnostic::codegen_error("Cannot generate a LValue for EmptyStatement", (248..249).into(),),
             msg
         )
     } else {

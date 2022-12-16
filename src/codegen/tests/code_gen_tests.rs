@@ -1,7 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::test_utils::tests::{
-    codegen, codegen_debug_without_unwrap, generate_with_empty_program,
-};
+use crate::test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program};
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -70,9 +68,8 @@ fn external_global_variable_generates_as_external() {
 
 #[test]
 fn two_global_variables_generates_in_separate_global_variables() {
-    let result = generate_with_empty_program(
-        "VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR",
-    );
+    let result =
+        generate_with_empty_program("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
     insta::assert_snapshot!(result);
 }
 

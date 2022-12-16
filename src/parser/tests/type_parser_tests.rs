@@ -225,11 +225,7 @@ fn string_type_can_be_parsed_test() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
-                    size: Some(LiteralInteger {
-                        value: 253,
-                        location: (10..11).into(),
-                        id: 0,
-                    }),
+                    size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
                 initializer: None,
@@ -239,11 +235,7 @@ fn string_type_can_be_parsed_test() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
-                    size: Some(LiteralInteger {
-                        value: 253,
-                        location: (10..11).into(),
-                        id: 0,
-                    }),
+                    size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
                 initializer: Some(AstStatement::LiteralString {
@@ -276,11 +268,7 @@ fn wide_string_type_can_be_parsed_test() {
         &UserTypeDeclaration {
             data_type: DataType::StringType {
                 name: Some("MyString".to_string()),
-                size: Some(LiteralInteger {
-                    value: 253,
-                    location: (10..11).into(),
-                    id: 0,
-                }),
+                size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
                 is_wide: true,
             },
             initializer: None,
@@ -308,16 +296,8 @@ fn subrangetype_can_be_parsed() {
             data_type: DataType::SubRangeType {
                 name: None,
                 bounds: Some(AstStatement::RangeStatement {
-                    start: Box::new(LiteralInteger {
-                        value: 0,
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    end: Box::new(LiteralInteger {
-                        value: 1000,
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
+                    start: Box::new(LiteralInteger { value: 0, location: SourceRange::undefined(), id: 0 }),
+                    end: Box::new(LiteralInteger { value: 1000, location: SourceRange::undefined(), id: 0 }),
                     id: 0,
                 }),
                 referenced_type: "UINT".to_string(),
@@ -401,10 +381,7 @@ fn pointer_type_test() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(
-        format!("{:#?}", expected),
-        format!("{:#?}", pointer_type).as_str()
-    );
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pointer_type).as_str());
     assert_eq!(diagnostics.len(), 1);
     let diagnostic = Diagnostic::ImprovementSuggestion {
         message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
@@ -435,10 +412,7 @@ fn ref_type_test() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(
-        format!("{:#?}", expected),
-        format!("{:#?}", reference_type).as_str()
-    );
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", reference_type).as_str());
     assert_eq!(diagnostics.len(), 0)
 }
 
@@ -470,10 +444,7 @@ fn global_pointer_declaration() {
         address: None,
         location: (0..0).into(),
     };
-    assert_eq!(
-        format!("{:#?}", expected),
-        format!("{:#?}", reference_type).as_str()
-    );
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", reference_type).as_str());
     let pointer_type = &result.global_vars[0].variables[1];
     let expected = Variable {
         name: "SamplePointer".into(),
@@ -492,10 +463,7 @@ fn global_pointer_declaration() {
         address: None,
         location: (0..0).into(),
     };
-    assert_eq!(
-        format!("{:#?}", expected),
-        format!("{:#?}", pointer_type).as_str()
-    );
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pointer_type).as_str());
     assert_eq!(diagnostics.len(), 1);
     let diagnostic = Diagnostic::ImprovementSuggestion {
         message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),

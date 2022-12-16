@@ -21,18 +21,8 @@ fn bool_literals_are_annotated() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    assert_eq!(
-        "BOOL",
-        annotations
-            .get_type_or_void(&statements[0], &index)
-            .get_name()
-    );
-    assert_eq!(
-        "BOOL",
-        annotations
-            .get_type_or_void(&statements[1], &index)
-            .get_name()
-    );
+    assert_eq!("BOOL", annotations.get_type_or_void(&statements[0], &index).get_name());
+    assert_eq!("BOOL", annotations.get_type_or_void(&statements[1], &index).get_name());
 }
 
 #[test]
@@ -104,10 +94,8 @@ fn int_literals_are_annotated() {
 
     let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT"];
 
-    let types: Vec<&str> = statements
-        .iter()
-        .map(|s| annotations.get_type_or_void(s, &index).get_name())
-        .collect();
+    let types: Vec<&str> =
+        statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
 
     assert_eq!(expected_types, types);
 }
@@ -146,12 +134,7 @@ fn date_literals_are_annotated() {
         "DATE",
     ];
     for (i, s) in statements.iter().enumerate() {
-        assert_eq!(
-            expected_types[i],
-            annotations.get_type_or_void(s, &index).get_name(),
-            "{:#?}",
-            s
-        );
+        assert_eq!(expected_types[i], annotations.get_type_or_void(s, &index).get_name(), "{:#?}", s);
     }
 }
 
@@ -172,12 +155,7 @@ fn long_date_literals_are_annotated() {
 
     let expected_types = vec!["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
     for (i, s) in statements.iter().enumerate() {
-        assert_eq!(
-            expected_types[i],
-            annotations.get_type_or_void(s, &index).get_name(),
-            "{:#?}",
-            s
-        );
+        assert_eq!(expected_types[i], annotations.get_type_or_void(s, &index).get_name(), "{:#?}", s);
     }
 }
 
@@ -224,18 +202,11 @@ fn casted_literals_are_annotated() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec![
-        "SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL",
-    ];
-    let actual_types: Vec<&str> = statements
-        .iter()
-        .map(|it| annotations.get_type_or_void(it, &index).get_name())
-        .collect();
+    let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];
+    let actual_types: Vec<&str> =
+        statements.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
 
-    assert_eq!(
-        format!("{:#?}", expected_types),
-        format!("{:#?}", actual_types),
-    )
+    assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
 }
 
 #[test]
@@ -275,15 +246,10 @@ fn enum_literals_are_annotated() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let actual_resolves: Vec<&str> = statements
-        .iter()
-        .map(|it| annotations.get_type_or_void(it, &index).get_name())
-        .collect();
+    let actual_resolves: Vec<&str> =
+        statements.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
     assert_eq!(
-        vec![
-            "Color", "Animal", "BYTE", "Color", "BOOL", "Animal", "VOID", "VOID", "VOID", "VOID",
-            "VOID"
-        ],
+        vec!["Color", "Animal", "BYTE", "Color", "BOOL", "Animal", "VOID", "VOID", "VOID", "VOID", "VOID"],
         actual_resolves
     )
 }
@@ -309,9 +275,7 @@ fn enum_literals_target_are_annotated() {
             elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
             referenced_type: DINT_TYPE.into(),
         },
-        annotations
-            .get_type_or_void(color_red, &index)
-            .get_type_information()
+        annotations.get_type_or_void(color_red, &index).get_type_information()
     );
 
     if let AstStatement::CastStatement { target, .. } = color_red {
@@ -321,9 +285,7 @@ fn enum_literals_target_are_annotated() {
                 elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
                 referenced_type: DINT_TYPE.into(),
             },
-            annotations
-                .get_type_or_void(target, &index)
-                .get_type_information()
+            annotations.get_type_or_void(target, &index).get_type_information()
         );
     } else {
         panic!("no cast statement")
@@ -349,25 +311,22 @@ fn casted_inner_literals_are_annotated() {
     let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec![
-        "SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL",
-    ];
+    let expected_types = vec!["SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL"];
     let actual_types: Vec<&str> = statements
         .iter()
-        .map(|it| {
-            if let AstStatement::CastStatement { target, .. } = it {
-                target
-            } else {
-                panic!("no cast")
-            }
-        })
+        .map(
+            |it| {
+                if let AstStatement::CastStatement { target, .. } = it {
+                    target
+                } else {
+                    panic!("no cast")
+                }
+            },
+        )
         .map(|it| annotations.get_type_or_void(it, &index).get_name())
         .collect();
 
-    assert_eq!(
-        format!("{:#?}", expected_types),
-        format!("{:#?}", actual_types),
-    )
+    assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
 }
 
 #[test]
@@ -399,10 +358,7 @@ fn casted_literals_enums_are_annotated_correctly() {
         .map(|it| annotations.get_type_or_void(it, &index).get_name())
         .collect();
 
-    assert_eq!(
-        format!("{:#?}", expected_types),
-        format!("{:#?}", actual_types),
-    )
+    assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
 }
 
 #[test]
@@ -420,15 +376,10 @@ fn expression_list_members_are_annotated() {
     let expected_types = vec!["DINT", "BOOL", "REAL"];
 
     if let AstStatement::ExpressionList { expressions, .. } = exp_list {
-        let actual_types: Vec<&str> = expressions
-            .iter()
-            .map(|it| annotations.get_type_or_void(it, &index).get_name())
-            .collect();
+        let actual_types: Vec<&str> =
+            expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
 
-        assert_eq!(
-            format!("{:#?}", expected_types),
-            format!("{:#?}", actual_types),
-        )
+        assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
     } else {
         unreachable!()
     }
@@ -456,15 +407,10 @@ fn expression_lists_with_expressions_are_annotated() {
     let expected_types = vec!["DINT", "BOOL", "LREAL", "LREAL"];
 
     if let AstStatement::ExpressionList { expressions, .. } = exp_list {
-        let actual_types: Vec<&str> = expressions
-            .iter()
-            .map(|it| annotations.get_type_or_void(it, &index).get_name())
-            .collect();
+        let actual_types: Vec<&str> =
+            expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
 
-        assert_eq!(
-            format!("{:#?}", expected_types),
-            format!("{:#?}", actual_types),
-        )
+        assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
     } else {
         unreachable!()
     }
@@ -484,15 +430,9 @@ fn array_initialization_is_annotated_correctly() {
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
-    let a_init = unit.global_vars[0].variables[0]
-        .initializer
-        .as_ref()
-        .unwrap();
+    let a_init = unit.global_vars[0].variables[0].initializer.as_ref().unwrap();
     let t = annotations.get_type_hint(a_init, &index).unwrap();
-    assert_eq!(
-        index.find_global_variable("a").unwrap().get_type_name(),
-        t.get_name()
-    )
+    assert_eq!(index.find_global_variable("a").unwrap().get_type_name(), t.get_name())
 }
 
 #[test]
@@ -513,10 +453,7 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN for the first statement
-    let a_init = unit.global_vars[0].variables[0]
-        .initializer
-        .as_ref()
-        .unwrap();
+    let a_init = unit.global_vars[0].variables[0].initializer.as_ref().unwrap();
     // all expressions should be annotated with the right type [INT]
     if let AstStatement::ExpressionList { expressions, .. } = a_init {
         for exp in expressions {
@@ -532,10 +469,7 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     }
 
     // AND for the second statement
-    let b_init = unit.global_vars[0].variables[1]
-        .initializer
-        .as_ref()
-        .unwrap();
+    let b_init = unit.global_vars[0].variables[1].initializer.as_ref().unwrap();
     // all expressions should be annotated with the right type [STRING]
     if let AstStatement::ExpressionList { expressions, .. } = b_init {
         for exp in expressions {
