@@ -8,14 +8,7 @@ fn illegal_literal_time_missing_segments_test() {
         END_PROGRAM
         ";
     let (_, diagnostics) = parse(src);
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::unexpected_token_found(
-            "Literal",
-            ";",
-            (36..37).into()
-        )]
-    );
+    assert_eq!(diagnostics, vec![Diagnostic::unexpected_token_found("Literal", ";", (36..37).into())]);
 }
 
 #[test]
@@ -32,10 +25,7 @@ fn time_literal_problems_can_be_recovered_from_during_parsing() {
     assert_eq!(actual_statements, 2);
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments must be unique",
-            (34..44).into()
-        )]
+        vec![Diagnostic::syntax_error("Invalid TIME Literal: segments must be unique", (34..44).into())]
     );
 }
 
@@ -50,10 +40,7 @@ fn illegal_literal_time_double_segments_test() {
     let (_, diagnostics) = parse(src);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments must be unique",
-            (34..44).into()
-        )
+        Diagnostic::syntax_error("Invalid TIME Literal: segments must be unique", (34..44).into())
     );
 }
 
@@ -155,11 +142,7 @@ fn string_with_round_parens_can_be_parsed() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString1".to_string()),
-                    size: Some(LiteralInteger {
-                        value: 253,
-                        location: (10..11).into(),
-                        id: 0,
-                    }),
+                    size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
                 initializer: None,
@@ -169,11 +152,7 @@ fn string_with_round_parens_can_be_parsed() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString2".to_string()),
-                    size: Some(LiteralInteger {
-                        value: 254,
-                        location: (10..11).into(),
-                        id: 0,
-                    }),
+                    size: Some(LiteralInteger { value: 254, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
                 initializer: Some(AstStatement::LiteralString {
@@ -188,11 +167,7 @@ fn string_with_round_parens_can_be_parsed() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString3".to_string()),
-                    size: Some(LiteralInteger {
-                        value: 255,
-                        location: (10..11).into(),
-                        id: 0,
-                    }),
+                    size: Some(LiteralInteger { value: 255, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
                 initializer: None,
@@ -210,11 +185,5 @@ fn literal_cast_with_space() {
     let src = "PROGRAM exp INT# 123; END_PROGRAM";
     let (_, diagnostics) = parse(src);
 
-    assert_eq!(
-        vec![Diagnostic::syntax_error(
-            "Incomplete statement",
-            (12..16).into()
-        )],
-        diagnostics
-    );
+    assert_eq!(vec![Diagnostic::syntax_error("Incomplete statement", (12..16).into())], diagnostics);
 }

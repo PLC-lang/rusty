@@ -12,12 +12,8 @@ static TARGET: Option<&str> = Some("x86_64-linux-gnu");
 
 #[test]
 fn link_as_shared_object() {
-    let file1 = FilePath {
-        path: get_test_file("linking/file1.st"),
-    };
-    let file2 = FilePath {
-        path: get_test_file("linking/file2.st"),
-    };
+    let file1 = FilePath { path: get_test_file("linking/file1.st") };
+    let file2 = FilePath { path: get_test_file("linking/file2.st") };
 
     let mut out = env::temp_dir();
     out.push("shared1.so");
@@ -76,12 +72,8 @@ fn link_as_shared_object() {
 
 #[test]
 fn link_as_pic_object() {
-    let file1 = FilePath {
-        path: get_test_file("linking/file1.st"),
-    };
-    let file2 = FilePath {
-        path: get_test_file("linking/file2.st"),
-    };
+    let file1 = FilePath { path: get_test_file("linking/file1.st") };
+    let file2 = FilePath { path: get_test_file("linking/file2.st") };
 
     let mut out = env::temp_dir();
     out.push("pic1.so");
@@ -139,12 +131,8 @@ fn link_as_pic_object() {
 
 #[test]
 fn link_as_static_object() {
-    let file1 = FilePath {
-        path: get_test_file("linking/file1.st"),
-    };
-    let file2 = FilePath {
-        path: get_test_file("linking/file2.st"),
-    };
+    let file1 = FilePath { path: get_test_file("linking/file1.st") };
+    let file2 = FilePath { path: get_test_file("linking/file2.st") };
 
     let mut out = env::temp_dir();
     out.push("static1.o");
@@ -203,12 +191,8 @@ fn link_as_static_object() {
 
 #[test]
 fn link_as_relocatable_object() {
-    let file1 = FilePath {
-        path: get_test_file("linking/file1.st"),
-    };
-    let file2 = FilePath {
-        path: get_test_file("linking/file2.st"),
-    };
+    let file1 = FilePath { path: get_test_file("linking/file1.st") };
+    let file2 = FilePath { path: get_test_file("linking/file2.st") };
 
     let mut out = env::temp_dir();
     out.push("reloc1.o");
@@ -267,9 +251,7 @@ fn link_as_relocatable_object() {
 
 #[test]
 fn link_missing_file() {
-    let file1 = FilePath {
-        path: get_test_file("linking/file1.st"),
-    };
+    let file1 = FilePath { path: get_test_file("linking/file1.st") };
     let mut out = env::temp_dir();
     out.push("missing.o");
     let target: Target = TARGET.unwrap().into();
@@ -294,15 +276,7 @@ fn link_missing_file() {
         rusty::OptimizationLevel::Default,
     )
     .unwrap();
-    let res = link(
-        &out,
-        FormatOption::Static,
-        &[object],
-        &[],
-        &[],
-        &target,
-        None,
-    );
+    let res = link(&out, FormatOption::Static, &[object], &[], &[], &target, None);
 
     match res {
         Err(err) => {
@@ -320,9 +294,7 @@ fn link_missing_file() {
 #[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
 //This is a regression, see #548
 fn link_to_a_relative_location_with_no_parent() {
-    let file1 = FilePath {
-        path: get_test_file("linking/relative.st"),
-    };
+    let file1 = FilePath { path: get_test_file("linking/relative.st") };
 
     //Compile file1 as shared object with file2 as param
     build_and_link(
@@ -353,5 +325,5 @@ fn link_to_a_relative_location_with_no_parent() {
     assert!(res.exists());
 
     //Delete it
-    fs::remove_file(&res).unwrap();
+    fs::remove_file(res).unwrap();
 }

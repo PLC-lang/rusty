@@ -5,8 +5,8 @@ use inkwell::{
     context::Context,
     debug_info::{
         AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFile, DIFlags,
-        DIFlagsConstants, DILocalVariable, DISubprogram, DISubroutineType, DIType,
-        DWARFEmissionKind, DebugInfoBuilder,
+        DIFlagsConstants, DILocalVariable, DISubprogram, DISubroutineType, DIType, DWARFEmissionKind,
+        DebugInfoBuilder,
     },
     module::Module,
     values::{FunctionValue, GlobalValue, PointerValue},
@@ -252,9 +252,7 @@ impl<'ink> DebugBuilder<'ink> {
             .filter_map(|it| index.find_member(name, it))
             .map(|it| (it.get_name(), it.get_type_name(), &it.source_location))
             .map(|(name, type_name, location)| {
-                index
-                    .get_type(type_name.as_ref())
-                    .map(|dt| (name, dt, location))
+                index.get_type(type_name.as_ref()).map(|dt| (name, dt, location))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
 
@@ -454,21 +452,12 @@ impl<'ink> DebugBuilder<'ink> {
                     .get(dt.get_name().to_lowercase().as_str())
                     .copied()
                     .map(Into::into)
-                    .unwrap_or_else(|| {
-                        panic!(
-                            "Cound not find debug type information for {}",
-                            dt.get_name()
-                        )
-                    }) //Types should be created by this stage
+                    .unwrap_or_else(|| panic!("Cound not find debug type information for {}", dt.get_name()))
+                //Types should be created by this stage
             })
             .collect::<Vec<DIType>>();
 
-        self.debug_info.create_subroutine_type(
-            file,
-            return_type,
-            &parameter_types,
-            DIFlagsConstants::PUBLIC,
-        )
+        self.debug_info.create_subroutine_type(file, return_type, &parameter_types, DIFlagsConstants::PUBLIC)
     }
 
     fn create_function(
@@ -507,12 +496,7 @@ impl<'ink> DebugBuilder<'ink> {
     ///entries for VAR and VAR_TEMP
     ///For other POUs we create enties in VAR_TEMP and an additional single parameter at position 0
     ///(the struct)
-    fn create_function_variables(
-        &mut self,
-        pou: &PouIndexEntry,
-        func: FunctionValue<'ink>,
-        index: &Index,
-    ) {
+    fn create_function_variables(&mut self, pou: &PouIndexEntry, func: FunctionValue<'ink>, index: &Index) {
         let mut param_offset = 0;
         //Register the return and local variables for debugging
         for variable in index
@@ -533,9 +517,7 @@ impl<'ink> DebugBuilder<'ink> {
                 self.register_local_variable(variable, alignment, func);
             }
         }
-        let implementation = pou
-            .find_implementation(index)
-            .expect("A POU will have an impl at this stage");
+        let implementation = pou.find_implementation(index).expect("A POU will have an impl at this stage");
         if implementation.implementation_type != ImplementationType::Function {
             if implementation.get_implementation_type() == &ImplementationType::Method {
                 //Methods ignored for now
@@ -592,17 +574,13 @@ impl<'ink> DebugBuilder<'ink> {
             false,
             DIFlagsConstants::ZERO,
         );
-        self.variables
-            .insert(variable.get_qualified_name().to_string(), debug_variable);
+        self.variables.insert(variable.get_qualified_name().to_string(), debug_variable);
     }
 
     fn get_or_create_debug_file(&mut self, location: &'static str) -> DIFile<'ink> {
         let path = Path::new(location);
         let directory = path.parent().and_then(|it| it.to_str()).unwrap_or("");
-        let filename = path
-            .file_name()
-            .and_then(|it| it.to_str())
-            .unwrap_or(location);
+        let filename = path.file_name().and_then(|it| it.to_str()).unwrap_or(location);
         *self.files.entry(location).or_insert_with(|| {
             //split to dir and file
             self.debug_info.create_file(filename, directory)
@@ -623,8 +601,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             scope,
             None,
         );
-        llvm.builder
-            .set_current_debug_location(llvm.context, location);
+        llvm.builder.set_current_debug_location(llvm.context, location);
     }
 
     fn register_function<'idx>(
@@ -636,8 +613,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         parameter_types: &[&'idx DataType],
         implementation_start: u32,
     ) {
-        let subprogram =
-            self.create_function(pou, return_type, parameter_types, implementation_start);
+        let subprogram = self.create_function(pou, return_type, parameter_types, implementation_start);
         func.set_subprogram(subprogram);
         //Create function parameters
         self.create_function_variables(pou, func, index);
@@ -659,24 +635,12 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 DataTypeInformation::Struct { member_names, .. } => {
                     self.create_struct_type(name, member_names.as_slice(), index, location)
                 }
-                DataTypeInformation::Array {
-                    name,
-                    inner_type_name,
-                    dimensions,
-                    ..
-                } => self.create_array_type(
-                    name,
-                    inner_type_name,
-                    dimensions,
-                    size,
-                    alignment,
-                    index,
-                ),
-                DataTypeInformation::Pointer {
-                    name,
-                    inner_type_name,
-                    ..
-                } => self.create_pointer_type(name, inner_type_name, size, alignment, index),
+                DataTypeInformation::Array { name, inner_type_name, dimensions, .. } => {
+                    self.create_array_type(name, inner_type_name, dimensions, size, alignment, index)
+                }
+                DataTypeInformation::Pointer { name, inner_type_name, .. } => {
+                    self.create_pointer_type(name, inner_type_name, size, alignment, index)
+                }
                 DataTypeInformation::Integer { signed, size, .. } => {
                     let encoding = if type_info.is_bool() {
                         DebugEncoding::DW_ATE_boolean
@@ -690,31 +654,19 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                     };
                     self.create_basic_type(name, *size as u64, encoding, location)
                 }
-                DataTypeInformation::Float { size, .. } => self.create_basic_type(
-                    name,
-                    *size as u64,
-                    DebugEncoding::DW_ATE_float,
-                    location,
-                ),
-                DataTypeInformation::String {
-                    size: string_size,
-                    encoding,
-                    ..
-                } => {
+                DataTypeInformation::Float { size, .. } => {
+                    self.create_basic_type(name, *size as u64, DebugEncoding::DW_ATE_float, location)
+                }
+                DataTypeInformation::String { size: string_size, encoding, .. } => {
                     let length = string_size
                         .as_int_value(index)
                         .map_err(|err| Diagnostic::codegen_error(&err, SourceRange::undefined()))?;
                     self.create_string_type(name, length, *encoding, size, alignment, index)
                 }
-                DataTypeInformation::Alias {
-                    name,
-                    referenced_type,
+                DataTypeInformation::Alias { name, referenced_type }
+                | DataTypeInformation::Enum { name, referenced_type, .. } => {
+                    self.create_typedef_type(name, referenced_type, index, location)
                 }
-                | DataTypeInformation::Enum {
-                    name,
-                    referenced_type,
-                    ..
-                } => self.create_typedef_type(name, referenced_type, index, location),
                 // Other types are just derived basic types
                 _ => Ok(()),
             }
@@ -787,8 +739,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 alignment as u32,
             );
 
-            self.variables
-                .insert(variable.get_qualified_name().to_string(), debug_variable);
+            self.variables.insert(variable.get_qualified_name().to_string(), debug_variable);
         }
     }
 
@@ -823,8 +774,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 DIFlagsConstants::ZERO,
             );
 
-            self.variables
-                .insert(variable.get_qualified_name().to_string(), debug_variable);
+            self.variables.insert(variable.get_qualified_name().to_string(), debug_variable);
         }
     }
 
@@ -852,8 +802,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 false,
                 DIFlagsConstants::ZERO,
             );
-            self.variables
-                .insert(pou.get_name().to_string(), debug_variable);
+            self.variables.insert(pou.get_name().to_string(), debug_variable);
         }
     }
 
@@ -910,14 +859,9 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
     ) {
         match self {
             Self::None | Self::VariablesOnly(..) => {}
-            Self::Full(obj) => obj.register_function(
-                index,
-                func,
-                pou,
-                return_type,
-                parameter_types,
-                implementation_start,
-            ),
+            Self::Full(obj) => {
+                obj.register_function(index, func, pou, return_type, parameter_types, implementation_start)
+            }
         };
     }
 
@@ -929,9 +873,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
     ) -> Result<(), Diagnostic> {
         match self {
             Self::None => Ok(()),
-            Self::VariablesOnly(obj) | Self::Full(obj) => {
-                obj.register_debug_type(name, datatype, index)
-            }
+            Self::VariablesOnly(obj) | Self::Full(obj) => obj.register_debug_type(name, datatype, index),
         }
     }
 
@@ -992,9 +934,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
     ) {
         match self {
             Self::None | Self::VariablesOnly(_) => {}
-            Self::Full(obj) => {
-                obj.add_variable_declaration(name, value, scope, block, line, column)
-            }
+            Self::Full(obj) => obj.add_variable_declaration(name, value, scope, block, line, column),
         }
     }
 

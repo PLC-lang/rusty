@@ -33,13 +33,10 @@ pub fn calculate_date_time(
     sec: u32,
     nano: u32,
 ) -> Result<i64, String> {
-    if let Some(date_time) = NaiveDate::from_ymd_opt(year, month, day)
-        .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
+    if let Some(date_time) =
+        NaiveDate::from_ymd_opt(year, month, day).and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
     {
         return Ok(date_time.timestamp_nanos());
     }
-    Err(format!(
-        "Invalid Date {}-{}-{}-{}:{}:{}.{}",
-        year, month, day, hour, min, sec, nano
-    ))
+    Err(format!("Invalid Date {}-{}-{}-{}:{}:{}.{}", year, month, day, hour, min, sec, nano))
 }

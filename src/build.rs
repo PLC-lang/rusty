@@ -45,11 +45,7 @@ impl Project {
                 .libraries
                 .into_iter()
                 .map(|it| Libraries {
-                    path: if it.path.is_absolute() {
-                        it.path
-                    } else {
-                        root.join(it.path)
-                    },
+                    path: if it.path.is_absolute() { it.path } else { root.join(it.path) },
                     include_path: it
                         .include_path
                         .into_iter()

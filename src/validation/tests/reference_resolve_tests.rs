@@ -254,10 +254,7 @@ fn reference_to_private_variable_is_illegal() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::illegal_access("prg.s", (175..176).into()),]
-    );
+    assert_eq!(diagnostics, vec![Diagnostic::illegal_access("prg.s", (175..176).into()),]);
 }
 
 /// tests whether an intermediate access like: `a.priv.b` (where priv is a var_local)
@@ -293,10 +290,7 @@ fn reference_to_private_variable_in_intermediate_fb() {
 
     // THEN we get a validtion-error for accessing fb1.f, but no follow-up errors for
     // the access of fb2 which is legit
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::illegal_access("fb1.f", (413..414).into()),]
-    );
+    assert_eq!(diagnostics, vec![Diagnostic::illegal_access("fb1.f", (413..414).into()),]);
 }
 
 #[test]

@@ -179,18 +179,9 @@ fn mixed_math_date_basic() {
     let mut main = MainType::default();
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var = chrono::Utc
-        .with_ymd_and_hms(2021, 1, 1, 0, 0, 0)
-        .unwrap()
-        .timestamp_nanos() as u64;
-    let date_10_days = chrono::Utc
-        .with_ymd_and_hms(1970, 1, 10, 0, 0, 0)
-        .unwrap()
-        .timestamp_nanos() as u64;
-    let date_1_day = chrono::Utc
-        .with_ymd_and_hms(1970, 1, 2, 0, 0, 0)
-        .unwrap()
-        .timestamp_nanos() as u64;
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos() as u64;
+    let date_10_days = chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos() as u64;
+    let date_1_day = chrono::Utc.with_ymd_and_hms(1970, 1, 2, 0, 0, 0).unwrap().timestamp_nanos() as u64;
     assert_eq!(res, date_var + date_10_days * 2 - date_1_day / 2);
 }
 
@@ -212,18 +203,9 @@ fn mixed_math_dt_basic() {
     let mut main = MainType::default();
 
     let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var = chrono::Utc
-        .with_ymd_and_hms(2021, 1, 1, 0, 0, 0)
-        .unwrap()
-        .timestamp_nanos() as u64;
-    let date_10_days = chrono::Utc
-        .with_ymd_and_hms(1970, 1, 10, 0, 0, 0)
-        .unwrap()
-        .timestamp_nanos() as u64;
-    let date_1_day = chrono::Utc
-        .with_ymd_and_hms(1970, 1, 2, 0, 0, 0)
-        .unwrap()
-        .timestamp_nanos() as u64;
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos() as u64;
+    let date_10_days = chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos() as u64;
+    let date_1_day = chrono::Utc.with_ymd_and_hms(1970, 1, 2, 0, 0, 0).unwrap().timestamp_nanos() as u64;
     assert_eq!(res, date_var + date_10_days * 2 - date_1_day / 2);
 }
 

@@ -99,15 +99,8 @@ fn actions_are_indexed() {
     let foo_impl = index.find_implementation_by_name("myProgram.foo").unwrap();
     assert_eq!("myProgram.foo", foo_impl.call_name);
     assert_eq!("myProgram", foo_impl.type_name);
-    let info = index
-        .get_type("myProgram.foo")
-        .unwrap()
-        .get_type_information();
-    if let crate::typesystem::DataTypeInformation::Alias {
-        name,
-        referenced_type,
-    } = info
-    {
+    let info = index.get_type("myProgram.foo").unwrap().get_type_information();
+    if let crate::typesystem::DataTypeInformation::Alias { name, referenced_type } = info {
         assert_eq!("myProgram.foo", name);
         assert_eq!("myProgram", referenced_type);
     } else {
@@ -125,15 +118,8 @@ fn actions_are_indexed() {
     assert_eq!("myProgram.bar", bar.call_name);
     assert_eq!("myProgram", bar.type_name);
 
-    let info = index
-        .get_type("myProgram.bar")
-        .unwrap()
-        .get_type_information();
-    if let crate::typesystem::DataTypeInformation::Alias {
-        name,
-        referenced_type,
-    } = info
-    {
+    let info = index.get_type("myProgram.bar").unwrap().get_type_information();
+    if let crate::typesystem::DataTypeInformation::Alias { name, referenced_type } = info {
         assert_eq!("myProgram.bar", name);
         assert_eq!("myProgram", referenced_type);
     } else {
@@ -160,19 +146,11 @@ fn fb_methods_are_indexed() {
     "#,
     );
 
-    let foo_impl = index
-        .find_implementation_by_name("myFuncBlock.foo")
-        .unwrap();
+    let foo_impl = index.find_implementation_by_name("myFuncBlock.foo").unwrap();
     assert_eq!("myFuncBlock.foo", foo_impl.call_name);
     assert_eq!("myFuncBlock.foo", foo_impl.type_name);
-    let info = index
-        .get_type("myFuncBlock.foo")
-        .unwrap()
-        .get_type_information();
-    if let crate::typesystem::DataTypeInformation::Struct {
-        name, member_names, ..
-    } = info
-    {
+    let info = index.get_type("myFuncBlock.foo").unwrap().get_type_information();
+    if let crate::typesystem::DataTypeInformation::Struct { name, member_names, .. } = info {
         assert_eq!("myFuncBlock.foo", name);
         assert_eq!(&vec!["x"], member_names);
     } else {
@@ -195,14 +173,8 @@ fn class_methods_are_indexed() {
     let foo_impl = index.find_implementation_by_name("myClass.foo").unwrap();
     assert_eq!("myClass.foo", foo_impl.call_name);
     assert_eq!("myClass.foo", foo_impl.type_name);
-    let info = index
-        .get_type("myClass.foo")
-        .unwrap()
-        .get_type_information();
-    if let crate::typesystem::DataTypeInformation::Struct {
-        name, member_names, ..
-    } = info
-    {
+    let info = index.get_type("myClass.foo").unwrap().get_type_information();
+    if let crate::typesystem::DataTypeInformation::Struct { name, member_names, .. } = info {
         assert_eq!("myClass.foo", name);
         assert_eq!(&vec!["y"], member_names);
     } else {
@@ -241,10 +213,7 @@ fn function_with_varargs_param_marked() {
     );
     let function = index.find_pou("myFunc").unwrap();
     assert!(function.is_variadic());
-    assert_eq!(
-        VOID_TYPE,
-        index.get_variadic_member("myFunc").unwrap().get_type_name()
-    );
+    assert_eq!(VOID_TYPE, index.get_variadic_member("myFunc").unwrap().get_type_name());
 }
 
 #[test]
@@ -261,10 +230,7 @@ fn function_with_typed_varargs_param_marked() {
     );
     let function = index.find_pou("myFunc").unwrap();
     assert!(function.is_variadic());
-    assert_eq!(
-        INT_TYPE,
-        index.get_variadic_member("myFunc").unwrap().get_type_name()
-    );
+    assert_eq!(INT_TYPE, index.get_variadic_member("myFunc").unwrap().get_type_name());
 }
 
 #[test]
@@ -292,9 +258,7 @@ fn pous_are_indexed() {
 
     index.find_effective_type_by_name("myFunction").unwrap();
     index.find_effective_type_by_name("myProgram").unwrap();
-    index
-        .find_effective_type_by_name("myFunctionBlock")
-        .unwrap();
+    index.find_effective_type_by_name("myFunctionBlock").unwrap();
     index.find_effective_type_by_name("myClass").unwrap();
     index.find_effective_type_by_name("myProgram.act").unwrap();
 }
@@ -463,9 +427,7 @@ fn index_can_be_retrieved_from_qualified_name() {
     "#,
     );
 
-    let result = index
-        .find_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst", "x"])
-        .unwrap();
+    let result = index.find_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst", "x"]).unwrap();
     assert_eq!(VariableType::Input, result.get_variable_type());
     assert_eq!("x", result.name);
 }
@@ -514,42 +476,22 @@ fn callable_instances_can_be_retreived() {
     "#,
     );
 
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["fb1_inst"])
-        .is_some());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["fb2_inst"])
-        .is_some());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["fb3_inst"])
-        .is_some());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["fb1_local"])
-        .is_some());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["fb1_inst"]).is_some());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["fb2_inst"]).is_some());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["fb3_inst"]).is_some());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["fb1_local"]).is_some());
     assert!(index
         .find_callable_instance_variable(Some("prg"), &["fb1_local", "fb2_inst", "fb3_inst"])
         .is_some());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst"])
-        .is_some());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst"]).is_some());
     assert!(index
         .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst"])
         .is_some());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["foo"])
-        .is_none());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["a"])
-        .is_none());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["b"])
-        .is_none());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["c"])
-        .is_none());
-    assert!(index
-        .find_callable_instance_variable(Some("prg"), &["d"])
-        .is_none());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["foo"]).is_none());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["a"]).is_none());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["b"]).is_none());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["c"]).is_none());
+    assert!(index.find_callable_instance_variable(Some("prg"), &["d"]).is_none());
 }
 
 #[test]
@@ -624,18 +566,11 @@ fn pre_processing_generates_inline_enums_global() {
         },
         var_data_type
     );
-    assert_eq!(
-        src[var_data_type.get_location().to_range()].to_string(),
-        "(a,b,c)".to_string()
-    );
+    assert_eq!(src[var_data_type.get_location().to_range()].to_string(), "(a,b,c)".to_string());
 
     assert_eq!(
         &"__global_inline_enum".to_string(),
-        &ast.global_vars[0].variables[0]
-            .data_type
-            .get_name()
-            .unwrap()
-            .to_string()
+        &ast.global_vars[0].variables[0].data_type.get_name().unwrap().to_string()
     )
 }
 
@@ -1312,24 +1247,9 @@ fn pre_processing_generates_generic_types() {
 
     //The variables with type G now have type __myFunc__G
     let pou = &ast.units[0];
-    assert_eq!(
-        pou.variable_blocks[0].variables[0]
-            .data_type
-            .get_name()
-            .unwrap(),
-        "__myFunc__G"
-    );
-    assert_eq!(
-        pou.variable_blocks[0].variables[1]
-            .data_type
-            .get_name()
-            .unwrap(),
-        "INT"
-    );
-    assert_eq!(
-        pou.return_type.as_ref().unwrap().get_name().unwrap(),
-        "__myFunc__G"
-    );
+    assert_eq!(pou.variable_blocks[0].variables[0].data_type.get_name().unwrap(), "__myFunc__G");
+    assert_eq!(pou.variable_blocks[0].variables[1].data_type.get_name().unwrap(), "INT");
+    assert_eq!(pou.return_type.as_ref().unwrap().get_name().unwrap(), "__myFunc__G");
 }
 
 #[test]
@@ -1361,18 +1281,12 @@ fn pre_processing_generates_nested_generic_types() {
     //Additional types created
     assert_eq!(3, ast.types.len());
     //referenced types of additional types are the new type
-    if let DataType::ArrayType {
-        referenced_type, ..
-    } = &ast.types[1].data_type
-    {
+    if let DataType::ArrayType { referenced_type, .. } = &ast.types[1].data_type {
         assert_eq!(referenced_type.get_name().unwrap(), "__myFunc__G");
     } else {
         panic!("expected array");
     }
-    if let DataType::PointerType {
-        referenced_type, ..
-    } = &ast.types[2].data_type
-    {
+    if let DataType::PointerType { referenced_type, .. } = &ast.types[2].data_type {
         assert_eq!(referenced_type.get_name().unwrap(), "__myFunc__G");
     } else {
         panic!("expected pointer");
@@ -1394,25 +1308,16 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
-        sub_range: AstStatement::LiteralInteger {
-            value: 7,
-            location: SourceRange::undefined(),
-            id: 0,
-        }..AstStatement::LiteralInteger {
-            value: 1000,
-            location: SourceRange::undefined(),
-            id: 0,
-        },
+        sub_range: AstStatement::LiteralInteger { value: 7, location: SourceRange::undefined(), id: 0 }
+            ..AstStatement::LiteralInteger { value: 1000, location: SourceRange::undefined(), id: 0 },
     };
 
     assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
 
     // THEN I expect the index to contain the defined range-information for the given type
     let my_int = &index.get_type("MyAliasInt").unwrap().information;
-    let expected = &DataTypeInformation::Alias {
-        name: "MyAliasInt".to_string(),
-        referenced_type: "MyInt".to_string(),
-    };
+    let expected =
+        &DataTypeInformation::Alias { name: "MyAliasInt".to_string(), referenced_type: "MyInt".to_string() };
 
     assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
 }
@@ -1435,31 +1340,25 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids.clone());
-    let index = crate::index::visitor::visit(&ast, ids);
+    crate::ast::pre_process(&mut ast, ids);
+    let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the globals
     let variables = &ast.global_vars[0].variables;
-    let initializer = index.find_global_variable("a").and_then(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    });
+    let initializer = index
+        .find_global_variable("a")
+        .and_then(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[0].initializer.as_ref(), initializer);
 
-    let initializer = index.find_global_variable("b").and_then(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    });
+    let initializer = index
+        .find_global_variable("b")
+        .and_then(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[1].initializer.as_ref(), initializer);
 
-    let initializer = index.find_global_variable("c").and_then(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    });
+    let initializer = index
+        .find_global_variable("c")
+        .and_then(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[2].initializer.as_ref(), initializer);
 }
 
@@ -1483,31 +1382,25 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids.clone());
-    let index = crate::index::visitor::visit(&ast, ids);
+    crate::ast::pre_process(&mut ast, ids);
+    let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the members
     let variables = &ast.units[0].variable_blocks[0].variables;
-    let initializer = index.find_member("prg", "a").and_then(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    });
+    let initializer = index
+        .find_member("prg", "a")
+        .and_then(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[0].initializer.as_ref(), initializer);
 
-    let initializer = index.find_member("prg", "b").and_then(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    });
+    let initializer = index
+        .find_member("prg", "b")
+        .and_then(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[1].initializer.as_ref(), initializer);
 
-    let initializer = index.find_member("prg", "c").and_then(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    });
+    let initializer = index
+        .find_member("prg", "c")
+        .and_then(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[2].initializer.as_ref(), initializer);
 }
 
@@ -1525,19 +1418,15 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids.clone());
-    let index = crate::index::visitor::visit(&ast, ids);
+    crate::ast::pre_process(&mut ast, ids);
+    let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
     let data_type = &ast.types[0];
     let initializer = index
         .get_type("MyInt")
-        .map(|g| {
-            index
-                .get_const_expressions()
-                .maybe_get_constant_statement(&g.initial_value)
-        })
+        .map(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value))
         .unwrap();
     assert_eq!(data_type.initializer.as_ref(), initializer);
 }
@@ -1556,8 +1445,8 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids.clone());
-    let index = crate::index::visitor::visit(&ast, ids);
+    crate::ast::pre_process(&mut ast, ids);
+    let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
 
@@ -1569,10 +1458,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
                 //return the pair (start, end)
                 (
                     dimensions[0].start_offset.as_int_value(&index).unwrap(),
-                    dimensions[0]
-                        .end_offset
-                        .as_const_expression(&index)
-                        .unwrap(),
+                    dimensions[0].end_offset.as_const_expression(&index).unwrap(),
                 )
             } else {
                 unreachable!()
@@ -1601,14 +1487,8 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
             if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
                 (
-                    dimensions[1]
-                        .start_offset
-                        .as_const_expression(&index)
-                        .unwrap(),
-                    dimensions[1]
-                        .end_offset
-                        .as_const_expression(&index)
-                        .unwrap(),
+                    dimensions[1].start_offset.as_const_expression(&index).unwrap(),
+                    dimensions[1].end_offset.as_const_expression(&index).unwrap(),
                 )
             } else {
                 unreachable!()
@@ -1616,15 +1496,9 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         })
         .unwrap();
 
-    assert_eq!(
-        format!("{:#?}", crate::parser::tests::ref_to("MIN")),
-        format!("{:#?}", start_1)
-    );
+    assert_eq!(format!("{:#?}", crate::parser::tests::ref_to("MIN")), format!("{:#?}", start_1));
 
-    assert_eq!(
-        format!("{:#?}", crate::parser::tests::ref_to("MAX")),
-        format!("{:#?}", end_1)
-    );
+    assert_eq!(format!("{:#?}", crate::parser::tests::ref_to("MAX")), format!("{:#?}", end_1));
 }
 
 #[test]
@@ -1641,8 +1515,8 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         "test.st",
     );
 
-    crate::ast::pre_process(&mut ast, ids.clone());
-    let index = crate::index::visitor::visit(&ast, ids);
+    crate::ast::pre_process(&mut ast, ids);
+    let index = crate::index::visitor::visit(&ast);
 
     // THEN I expect the index to contain constants expressions used in the string-len
 
@@ -1652,10 +1526,8 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     } else {
         unreachable!()
     };
-    if let Some(DataTypeInformation::String {
-        size: TypeSize::ConstExpression(expr),
-        ..
-    }) = index.find_effective_type_info("MyString")
+    if let Some(DataTypeInformation::String { size: TypeSize::ConstExpression(expr), .. }) =
+        index.find_effective_type_info("MyString")
     {
         assert_eq!(
             format!(
@@ -1667,13 +1539,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
                     right: Box::new(crate::parser::tests::literal_int(1))
                 }
             ),
-            format!(
-                "{:#?}",
-                index
-                    .get_const_expressions()
-                    .get_constant_statement(expr)
-                    .unwrap()
-            )
+            format!("{:#?}", index.get_const_expressions().get_constant_statement(expr).unwrap())
         );
     } else {
         unreachable!()
@@ -1721,10 +1587,7 @@ fn function_name_equals_return_type() {
     // with the name "time"
     assert_eq!(data_type.get_name(), "TIME");
     // and DataTypeInformation of the type struct
-    assert!(matches!(
-        data_type.get_type_information(),
-        DataTypeInformation::Struct { .. }
-    ));
+    assert!(matches!(data_type.get_type_information(), DataTypeInformation::Struct { .. }));
 }
 
 #[test]
@@ -1765,10 +1628,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
 
     // THEN x and y whould be different pointer types
     let x = index.find_member("main", "x").expect("main.x not found");
-    let x_type = index
-        .get_type(x.get_type_name())
-        .unwrap()
-        .get_type_information();
+    let x_type = index.get_type(x.get_type_name()).unwrap().get_type_information();
     assert_eq!(
         x_type,
         &DataTypeInformation::Pointer {
@@ -1779,10 +1639,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
     );
 
     let y = index.find_member("main", "y").expect("main.y not found");
-    let y_type = index
-        .get_type(y.get_type_name())
-        .unwrap()
-        .get_type_information();
+    let y_type = index.get_type(y.get_type_name()).unwrap().get_type_information();
     assert_eq!(
         y_type,
         &DataTypeInformation::Pointer {
@@ -1821,10 +1678,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
     // THEN x should be a normal pointer
     // AND y should be an auto-deref pointer
     let x = index.find_member("main", "x").expect("main.x not found");
-    let x_type = index
-        .get_type(x.get_type_name())
-        .unwrap()
-        .get_type_information();
+    let x_type = index.get_type(x.get_type_name()).unwrap().get_type_information();
     assert_eq!(
         x_type,
         &DataTypeInformation::Pointer {
@@ -1835,10 +1689,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
     );
 
     let y = index.find_member("main", "y").expect("main.y not found");
-    let y_type = index
-        .get_type(y.get_type_name())
-        .unwrap()
-        .get_type_information();
+    let y_type = index.get_type(y.get_type_name()).unwrap().get_type_information();
     assert_eq!(
         y_type,
         &DataTypeInformation::Pointer {
@@ -1880,10 +1731,7 @@ fn a_program_pou_is_indexed() {
             name: "myProgram".into(),
             instance_struct_name: "myProgram".into(),
             linkage: LinkageType::Internal,
-            location: SymbolLocation {
-                source_range: (17..26).into(),
-                line_number: 1
-            },
+            location: SymbolLocation { source_range: (17..26).into(), line_number: 1 },
 
             instance_variable: VariableIndexEntry {
                 name: "myProgram_instance".into(),
@@ -1895,10 +1743,7 @@ fn a_program_pou_is_indexed() {
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
                 binding: None,
-                source_location: SymbolLocation {
-                    source_range: (17..26).into(),
-                    line_number: 1
-                },
+                source_location: SymbolLocation { source_range: (17..26).into(), line_number: 1 },
                 varargs: None,
             }
         }),
@@ -1910,17 +1755,10 @@ fn a_program_pou_is_indexed() {
             name: "myFunction".into(),
             linkage: LinkageType::Internal,
             instance_struct_name: "myFunction".into(),
-            generics: [GenericBinding {
-                name: "A".into(),
-                nature: TypeNature::Int
-            }]
-            .to_vec(),
+            generics: [GenericBinding { name: "A".into(), nature: TypeNature::Int }].to_vec(),
             return_type: "INT".into(),
             is_variadic: false,
-            location: SymbolLocation {
-                source_range: (65..75).into(),
-                line_number: 4
-            },
+            location: SymbolLocation { source_range: (65..75).into(), line_number: 4 },
             is_generated: false,
         }),
         index.find_pou("myFunction"),
@@ -1931,10 +1769,7 @@ fn a_program_pou_is_indexed() {
             name: "myFunctionBlock".into(),
             linkage: LinkageType::Internal,
             instance_struct_name: "myFunctionBlock".into(),
-            location: SymbolLocation {
-                source_range: (139..154).into(),
-                line_number: 7
-            },
+            location: SymbolLocation { source_range: (139..154).into(), line_number: 7 },
         }),
         index.find_pou("myFunctionBlock"),
     );
@@ -1944,10 +1779,7 @@ fn a_program_pou_is_indexed() {
             name: "myClass".into(),
             linkage: LinkageType::Internal,
             instance_struct_name: "myClass".into(),
-            location: SymbolLocation {
-                source_range: (197..204).into(),
-                line_number: 10
-            },
+            location: SymbolLocation { source_range: (197..204).into(), line_number: 10 },
         }),
         index.find_pou("myClass"),
     );
@@ -1958,10 +1790,7 @@ fn a_program_pou_is_indexed() {
             parent_pou_name: "myProgram".into(),
             linkage: LinkageType::Internal,
             instance_struct_name: "myProgram".into(),
-            location: SymbolLocation {
-                source_range: (269..272).into(),
-                line_number: 14
-            },
+            location: SymbolLocation { source_range: (269..272).into(), line_number: 14 },
         }),
         index.find_pou("myProgram.act"),
     );
@@ -2079,16 +1908,8 @@ fn pou_duplicates_are_indexed() {
     );
 
     //THEN I expect both PouIndexEntries
-    let pous = index
-        .get_pous()
-        .values()
-        .filter(|it| it.get_name().eq("foo"))
-        .collect::<Vec<_>>();
-    let members = index
-        .get_members("foo")
-        .unwrap()
-        .values()
-        .collect::<Vec<_>>();
+    let pous = index.get_pous().values().filter(|it| it.get_name().eq("foo")).collect::<Vec<_>>();
+    let members = index.get_members("foo").unwrap().values().collect::<Vec<_>>();
 
     let foo1 = pous.get(0).unwrap();
     assert_eq!(foo1.get_name(), "foo");
@@ -2126,16 +1947,8 @@ fn type_duplicates_are_indexed() {
     );
 
     //THEN I expect all 3 DataTypes
-    let types = index
-        .get_types()
-        .values()
-        .filter(|it| it.get_name().eq("MyStruct"))
-        .collect::<Vec<_>>();
-    let members = index
-        .get_members("MyStruct")
-        .unwrap()
-        .values()
-        .collect::<Vec<_>>();
+    let types = index.get_types().values().filter(|it| it.get_name().eq("MyStruct")).collect::<Vec<_>>();
+    let members = index.get_members("MyStruct").unwrap().values().collect::<Vec<_>>();
 
     let mystruct1 = types.get(0).unwrap();
     assert_eq!(mystruct1.get_name(), "MyStruct");
@@ -2167,11 +1980,7 @@ fn global_variables_duplicates_are_indexed() {
     );
 
     //THEN I expect both globals
-    let globals = index
-        .get_globals()
-        .values()
-        .filter(|it| it.get_name().eq("x"))
-        .collect::<Vec<_>>();
+    let globals = index.get_globals().values().filter(|it| it.get_name().eq("x")).collect::<Vec<_>>();
 
     let x1 = globals.get(0).unwrap();
     assert_eq!(x1.get_name(), "x");

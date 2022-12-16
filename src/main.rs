@@ -24,8 +24,7 @@ use rusty::{build_with_params, build_with_subcommand};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let compile_parameters: Result<CompileParameters, ParameterError> =
-        CompileParameters::parse(&args);
+    let compile_parameters: Result<CompileParameters, ParameterError> = CompileParameters::parse(&args);
     match compile_parameters {
         Ok(cp) => {
             if cp.commands.is_some() {

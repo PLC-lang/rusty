@@ -13,14 +13,7 @@ struct MainType {
 }
 
 fn new() -> MainType {
-    MainType {
-        bool_1: 0,
-        bool_2: 0,
-        bool_3: 0,
-        lword_1: 0,
-        lint_1: 0,
-        ulint_1: 0,
-    }
+    MainType { bool_1: 0, bool_2: 0, bool_3: 0, lword_1: 0, lint_1: 0, ulint_1: 0 }
 }
 #[test]
 fn same_type_addition() {
@@ -79,11 +72,7 @@ fn byte_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        byte_2: 0,
-        byte_3: 0,
-    };
+    let mut maintype = Type { byte_1: 0, byte_2: 0, byte_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(2, maintype.byte_1);
@@ -111,20 +100,12 @@ fn byte_mixed_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        sint_1: -10,
-        int_1: 275,
-    };
+    let mut maintype = Type { byte_1: 0, sint_1: -10, int_1: 275 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(9, maintype.byte_1); //Overflow
 
-    let mut maintype = Type {
-        byte_1: 0,
-        sint_1: 10,
-        int_1: 10,
-    };
+    let mut maintype = Type { byte_1: 0, sint_1: 10, int_1: 10 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(20, maintype.byte_1);
@@ -152,11 +133,7 @@ fn usint_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        usint_1: 0,
-        usint_2: 0,
-        usint_3: 0,
-    };
+    let mut maintype = Type { usint_1: 0, usint_2: 0, usint_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(2, maintype.usint_1);
@@ -184,20 +161,12 @@ fn usint_mixed_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        usint_1: 0,
-        sint_1: -10,
-        int_1: 275,
-    };
+    let mut maintype = Type { usint_1: 0, sint_1: -10, int_1: 275 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(9, maintype.usint_1); //Overflow
 
-    let mut maintype = Type {
-        usint_1: 0,
-        sint_1: 10,
-        int_1: 10,
-    };
+    let mut maintype = Type { usint_1: 0, sint_1: 10, int_1: 10 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(20, maintype.usint_1);
@@ -225,11 +194,7 @@ fn sint_additions() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        sint_1: 0,
-        sint_2: 0,
-        sint_3: 0,
-    };
+    let mut maintype = Type { sint_1: 0, sint_2: 0, sint_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(2, maintype.sint_1);
@@ -257,20 +222,12 @@ fn sint_mixed_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        usint_1: 250,
-        sint_1: 0,
-        int_1: 0,
-    };
+    let mut maintype = Type { usint_1: 250, sint_1: 0, int_1: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(-6, maintype.sint_1);
 
-    let mut maintype = Type {
-        usint_1: 10,
-        sint_1: 0,
-        int_1: 300,
-    };
+    let mut maintype = Type { usint_1: 10, sint_1: 0, int_1: 300 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(54, maintype.sint_1);
@@ -298,11 +255,7 @@ fn word_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        byte_2: 0,
-        byte_3: 0,
-    };
+    let mut maintype = Type { byte_1: 0, byte_2: 0, byte_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(1, maintype.byte_1);
@@ -335,13 +288,7 @@ fn word_mixed_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        word_1: 0,
-        word_2: 0,
-        byte_1: 255,
-        int_1: -10,
-        dint_1: -0xFFFFFFF,
-    };
+    let mut maintype = Type { word_1: 0, word_2: 0, byte_1: 255, int_1: -10, dint_1: -0xFFFFFFF };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(256, maintype.word_1);
@@ -371,11 +318,7 @@ fn int_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        byte_2: 0,
-        byte_3: 0,
-    };
+    let mut maintype = Type { byte_1: 0, byte_2: 0, byte_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(1, maintype.byte_1);
@@ -405,11 +348,7 @@ fn uint_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        byte_2: 0,
-        byte_3: 0,
-    };
+    let mut maintype = Type { byte_1: 0, byte_2: 0, byte_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(1, maintype.byte_1);
@@ -439,11 +378,7 @@ fn dword_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        byte_2: 0,
-        byte_3: 0,
-    };
+    let mut maintype = Type { byte_1: 0, byte_2: 0, byte_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(1, maintype.byte_1);
@@ -473,11 +408,7 @@ fn dint_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        byte_2: 0,
-        byte_3: 0,
-    };
+    let mut maintype = Type { byte_1: 0, byte_2: 0, byte_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(1, maintype.byte_1);
@@ -507,11 +438,7 @@ fn udint_addition() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        byte_2: 0,
-        byte_3: 0,
-    };
+    let mut maintype = Type { byte_1: 0, byte_2: 0, byte_3: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(1, maintype.byte_1);
@@ -538,10 +465,7 @@ fn unsinged_byte_expansion() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        int_1: 0,
-    };
+    let mut maintype = Type { byte_1: 0, int_1: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(265, maintype.int_1);
@@ -575,13 +499,7 @@ fn unsinged_byte_expansion2() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        byte_1: 0,
-        byte_2: 0,
-        byte_3: 0,
-        int_1: 0,
-        int_2: 0,
-    };
+    let mut maintype = Type { byte_1: 0, byte_2: 0, byte_3: 0, int_1: 0, int_2: 0 };
 
     let _: i32 = compile_and_run(program, &mut maintype);
     assert_eq!(245, maintype.int_1);
@@ -618,12 +536,7 @@ fn unsinged_byte_expansion3() {
      *
      */
 
-    let mut maintype = Type {
-        arg1: 10000,
-        arg2: 0xFFFF_FFFF,
-        arg3: 10,
-        result: 0,
-    };
+    let mut maintype = Type { arg1: 10000, arg2: 0xFFFF_FFFF, arg3: 10, result: 0 };
     let _: i32 = compile_and_run(program, &mut maintype);
     let arg1: u64 = maintype.arg1.into();
     let arg2: u64 = maintype.arg2.into();
@@ -655,10 +568,7 @@ fn assign_short_string_to_long_string_variable() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        text: [0; 81],
-        text2: [0; 81],
-    };
+    let mut maintype = Type { text: [0; 81], text2: [0; 81] };
     let _: i32 = compile_and_run(program, &mut maintype);
 
     let t: [u8; 81] = maintype.text;
@@ -705,10 +615,7 @@ fn assign_string_to_string() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        text: [0; 81],
-        text2: [0; 81],
-    };
+    let mut maintype = Type { text: [0; 81], text2: [0; 81] };
     let _: i32 = compile_and_run(program, &mut maintype);
 
     let t: [u8; 81] = maintype.text2;
@@ -746,10 +653,7 @@ fn assign_long_string_to_short_string_variable() {
         END_PROGRAM
         "#;
 
-    let mut maintype = Type {
-        text: [0; 81],
-        text2: [0; 81],
-    };
+    let mut maintype = Type { text: [0; 81], text2: [0; 81] };
     for (i, b) in "hello".bytes().enumerate() {
         maintype.text2[i] = b;
     }
@@ -799,14 +703,8 @@ fn assign_long_string_to_short_string_variable_2() {
         text3: [u8; 81],
         magic3: i16,
     }
-    let mut maintype = Type {
-        text: [0; 81],
-        magic1: 0,
-        text2: [0; 81],
-        magic2: 0,
-        text3: [0; 81],
-        magic3: 0,
-    };
+    let mut maintype =
+        Type { text: [0; 81], magic1: 0, text2: [0; 81], magic2: 0, text3: [0; 81], magic3: 0 };
     let _: i32 = compile_and_run(program, &mut maintype);
 
     assert_eq!(maintype.magic1, 111);
@@ -869,14 +767,8 @@ fn function_parameters_string() {
         text3: [u8; 81],
         magic3: i16,
     }
-    let mut maintype = Type {
-        text: [0; 81],
-        magic1: 0,
-        text2: [0; 81],
-        magic2: 0,
-        text3: [0; 81],
-        magic3: 0,
-    };
+    let mut maintype =
+        Type { text: [0; 81], magic1: 0, text2: [0; 81], magic2: 0, text3: [0; 81], magic3: 0 };
     let _: i32 = compile_and_run(program, &mut maintype);
 
     assert_eq!(maintype.magic1, 111);
@@ -927,12 +819,7 @@ fn real_to_int_assignment() {
         END_PROGRAM
         ";
 
-    let mut maintype = Type {
-        real_val: 0.0,
-        lreal_val: 0.0,
-        int_val: 0,
-        int_val2: 0,
-    };
+    let mut maintype = Type { real_val: 0.0, lreal_val: 0.0, int_val: 0, int_val2: 0 };
 
     let _: i32 = compile_and_run(function, &mut maintype);
     assert_almost_eq!(2.0, maintype.real_val, f32::EPSILON);
@@ -966,12 +853,7 @@ fn real_float_assingment() {
         END_PROGRAM
         ";
 
-    let mut maintype = Type {
-        real_val: 0.0,
-        lreal_val: 0.0,
-        real_target: 0.0,
-        lreal_target: 0.0,
-    };
+    let mut maintype = Type { real_val: 0.0, lreal_val: 0.0, real_target: 0.0, lreal_target: 0.0 };
 
     let _: i32 = compile_and_run(function, &mut maintype);
     assert_almost_eq!(2.0, maintype.real_val, f32::EPSILON);
@@ -1008,10 +890,7 @@ fn lreal_to_int_assignment() {
             main := LOG();
         END_FUNCTION
     "#;
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
     assert_eq!(1, res);
 }
 

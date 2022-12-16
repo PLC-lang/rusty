@@ -7,18 +7,15 @@ use crate::{
         Index,
     },
     typesystem::{
-        DataType, DataTypeInformation, NativeByteType, NativeDintType, NativeDwordType,
-        NativeIntType, NativeLintType, NativeLwordType, NativeSintType, NativeWordType,
-        StringEncoding, DINT_SIZE, INT_SIZE, LINT_SIZE, SINT_SIZE, VOID_TYPE,
+        DataType, DataTypeInformation, NativeByteType, NativeDintType, NativeDwordType, NativeIntType,
+        NativeLintType, NativeLwordType, NativeSintType, NativeWordType, StringEncoding, DINT_SIZE, INT_SIZE,
+        LINT_SIZE, SINT_SIZE, VOID_TYPE,
     },
 };
 
 macro_rules! cannot_eval_error {
     ($left:expr, $op_text:expr, $right:expr) => {
-        Err(format!(
-            "Cannot evaluate {:?} {:} {:?}",
-            $left, $op_text, $right
-        ))
+        Err(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right))
     };
 }
 
@@ -118,17 +115,11 @@ pub struct UnresolvableConstant {
 
 impl UnresolvableConstant {
     pub fn new(id: ConstId, reason: &str) -> Self {
-        UnresolvableConstant {
-            id,
-            reason: reason.to_string(),
-        }
+        UnresolvableConstant { id, reason: reason.to_string() }
     }
 
     pub fn incomplete_initialzation(id: &ConstId) -> Self {
-        UnresolvableConstant::new(
-            *id,
-            "Incomplete initialization - cannot evaluate const expressions",
-        )
+        UnresolvableConstant::new(*id, "Incomplete initialization - cannot evaluate const expressions")
     }
 
     pub fn no_initial_value(id: &ConstId) -> Self {
@@ -150,21 +141,12 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
         | AstStatement::LiteralTime { .. }
         | AstStatement::LiteralString { .. } => false,
         AstStatement::Assignment { right, .. } => needs_evaluation(right.as_ref()),
-        &AstStatement::LiteralArray {
-            elements: Some(elements),
-            ..
-        } => match elements.as_ref() {
-            AstStatement::ExpressionList { expressions, .. } => {
-                expressions.iter().any(needs_evaluation)
-            }
+        &AstStatement::LiteralArray { elements: Some(elements), .. } => match elements.as_ref() {
+            AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
             _ => needs_evaluation(elements.as_ref()),
         },
-        AstStatement::ExpressionList { expressions, .. } => {
-            expressions.iter().any(needs_evaluation)
-        }
-        AstStatement::RangeStatement { start, end, .. } => {
-            needs_evaluation(start) || needs_evaluation(end)
-        }
+        AstStatement::ExpressionList { expressions, .. } => expressions.iter().any(needs_evaluation),
+        AstStatement::RangeStatement { start, end, .. } => needs_evaluation(start) || needs_evaluation(end),
         _ => true,
     }
 }
@@ -175,8 +157,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     let constants = index.get_const_expressions();
 
     //todo should these be references?
-    let mut remaining_constants: VecDeque<ConstId> =
-        constants.into_iter().map(|(id, _)| id).collect();
+    let mut remaining_constants: VecDeque<ConstId> = constants.into_iter().map(|(id, _)| id).collect();
 
     //count how many consecutive resolve-attempts failed
     let mut failed_tries = 0;
@@ -187,12 +168,8 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     while failed_tries < remaining_constants.len() {
         if let Some(candidate) = remaining_constants.pop_front() {
             if let (Some(const_expr), target_type) = (
-                index
-                    .get_const_expressions()
-                    .find_const_expression(&candidate),
-                index
-                    .get_const_expressions()
-                    .find_expression_target_type(&candidate),
+                index.get_const_expressions().find_const_expression(&candidate),
+                index.get_const_expressions().find_expression_target_type(&candidate),
             ) {
                 let candidates_type = target_type
                     .and_then(|type_name| index.find_effective_type_by_name(type_name))
@@ -220,16 +197,8 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                 match (initial_value_literal, candidates_type) {
                     //we found an Int-Value and we found the const's datatype to be an unsigned Integer type (e.g. WORD)
                     (
-                        Ok(Some(AstStatement::LiteralInteger {
-                            value,
-                            id,
-                            location,
-                        })),
-                        Some(DataTypeInformation::Integer {
-                            size,
-                            signed: false,
-                            ..
-                        }),
+                        Ok(Some(AstStatement::LiteralInteger { value, id, location })),
+                        Some(DataTypeInformation::Integer { size, signed: false, .. }),
                     ) => {
                         // since we store literal-ints as i128 we need to truncate all of them down to their
                         // original size to avoid negative numbers
@@ -240,11 +209,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             .get_mut_const_expressions()
                             .mark_resolved(
                                 &candidate,
-                                AstStatement::LiteralInteger {
-                                    id,
-                                    location,
-                                    value: masked_value,
-                                },
+                                AstStatement::LiteralInteger { id, location, value: masked_value },
                             )
                             .expect("unknown id for const-expression"); //panic if we dont know the id
                         failed_tries = 0;
@@ -254,9 +219,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     (Ok(Some(literal)), _) => {
                         let literal = cast_if_necessary(
                             literal,
-                            &index
-                                .get_const_expressions()
-                                .find_expression_target_type(&candidate),
+                            &index.get_const_expressions().find_expression_target_type(&candidate),
                             &index,
                         );
                         do_resolve_candidate(&mut index, candidate, literal);
@@ -288,11 +251,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     }
 
     //import all constants that were note resolved in the loop above
-    unresolvable.extend(
-        remaining_constants
-            .iter()
-            .map(UnresolvableConstant::incomplete_initialzation),
-    );
+    unresolvable.extend(remaining_constants.iter().map(UnresolvableConstant::incomplete_initialzation));
 
     (index, unresolvable)
 }
@@ -320,42 +279,33 @@ fn get_default_initializer(
     } else {
         let dt = index.get_type_information_or_void(target_type);
         let init = match dt {
-            DataTypeInformation::Pointer { .. } => Some(AstStatement::LiteralNull {
-                location: location.clone(),
-                id,
-            }),
-            DataTypeInformation::Integer { .. } => Some(AstStatement::LiteralInteger {
-                value: 0,
-                location: location.clone(),
-                id,
-            }),
+            DataTypeInformation::Pointer { .. } => {
+                Some(AstStatement::LiteralNull { location: location.clone(), id })
+            }
+            DataTypeInformation::Integer { .. } => {
+                Some(AstStatement::LiteralInteger { value: 0, location: location.clone(), id })
+            }
             DataTypeInformation::Enum { name, elements, .. } => elements
                 .get(0)
                 .and_then(|default_enum| index.find_enum_element(name, default_enum))
                 .and_then(|enum_element| enum_element.initial_value)
                 .and_then(|initial_val| {
-                    index
-                        .get_const_expressions()
-                        .get_resolved_constant_statement(&initial_val)
+                    index.get_const_expressions().get_resolved_constant_statement(&initial_val)
                 })
                 .cloned(),
-            DataTypeInformation::Float { .. } => Some(AstStatement::LiteralReal {
-                value: "0.0".to_string(),
-                location: location.clone(),
-                id,
-            }),
+            DataTypeInformation::Float { .. } => {
+                Some(AstStatement::LiteralReal { value: "0.0".to_string(), location: location.clone(), id })
+            }
             DataTypeInformation::String { encoding, .. } => Some(AstStatement::LiteralString {
                 value: "".to_string(),
                 is_wide: encoding == &StringEncoding::Utf16,
                 location: location.clone(),
                 id,
             }),
-            DataTypeInformation::SubRange {
-                referenced_type, ..
+            DataTypeInformation::SubRange { referenced_type, .. }
+            | DataTypeInformation::Alias { referenced_type, .. } => {
+                return get_default_initializer(id, referenced_type, index, location)
             }
-            | DataTypeInformation::Alias {
-                referenced_type, ..
-            } => return get_default_initializer(id, referenced_type, index, location),
             _ => None,
         };
         Ok(init)
@@ -364,18 +314,10 @@ fn get_default_initializer(
 
 /// transforms the given literal to better fit the datatype of the candidate
 /// effectively this casts an IntLiteral to a RealLiteral if necessary
-fn cast_if_necessary(
-    literal: AstStatement,
-    target_type_name: &Option<&str>,
-    index: &Index,
-) -> AstStatement {
+fn cast_if_necessary(literal: AstStatement, target_type_name: &Option<&str>, index: &Index) -> AstStatement {
     if let Some(data_type) = target_type_name.and_then(|it| index.find_effective_type_by_name(it)) {
         match &literal {
-            AstStatement::LiteralInteger {
-                value,
-                id,
-                location,
-            } => {
+            AstStatement::LiteralInteger { value, id, location } => {
                 if data_type.get_type_information().is_float() {
                     return AstStatement::LiteralReal {
                         value: format!("{:}", value),
@@ -384,18 +326,10 @@ fn cast_if_necessary(
                     };
                 }
             }
-            AstStatement::LiteralString {
-                value,
-                id,
-                location,
-                is_wide: false,
-            } => {
+            AstStatement::LiteralString { value, id, location, is_wide: false } => {
                 if matches!(
                     data_type.get_type_information(),
-                    DataTypeInformation::String {
-                        encoding: StringEncoding::Utf16,
-                        ..
-                    }
+                    DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }
                 ) {
                     return AstStatement::LiteralString {
                         value: value.clone(),
@@ -405,18 +339,10 @@ fn cast_if_necessary(
                     };
                 }
             }
-            AstStatement::LiteralString {
-                value,
-                id,
-                location,
-                is_wide: true,
-            } => {
+            AstStatement::LiteralString { value, id, location, is_wide: true } => {
                 if matches!(
                     data_type.get_type_information(),
-                    DataTypeInformation::String {
-                        encoding: StringEncoding::Utf8,
-                        ..
-                    }
+                    DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }
                 ) {
                     return AstStatement::LiteralString {
                         value: value.clone(),
@@ -467,18 +393,14 @@ pub fn evaluate_with_target_hint(
                 location,
             )
         }
-        AstStatement::CastStatement {
-            target, type_name, ..
-        } => match index.find_effective_type_info(type_name) {
-            Some(DataTypeInformation::Enum {
-                name: enum_name, ..
-            }) => {
+        AstStatement::CastStatement { target, type_name, .. } => match index
+            .find_effective_type_info(type_name)
+        {
+            Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
                 if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
                     return index
                         .find_enum_element(enum_name, ref_name)
-                        .ok_or_else(|| {
-                            format!("Cannot resolve constant enum {}#{}.", enum_name, ref_name)
-                        })
+                        .ok_or_else(|| format!("Cannot resolve constant enum {}#{}.", enum_name, ref_name))
                         .and_then(|v| resolve_const_reference(v, ref_name, index));
                 } else {
                     return Err("Cannot resolve unknown constant.".to_string());
@@ -497,29 +419,18 @@ pub fn evaluate_with_target_hint(
             if elements.len() == 2 {
                 if let (
                     AstStatement::Reference { name: pou_name, .. },
-                    AstStatement::Reference {
-                        name: variable_name,
-                        ..
-                    },
+                    AstStatement::Reference { name: variable_name, .. },
                 ) = (&elements[0], &elements[1])
                 {
                     return index
                         .find_member(pou_name, variable_name)
                         .ok_or_else(|| "Cannot resolve unknown constant.".to_string())
-                        .and_then(|variable| {
-                            resolve_const_reference(variable, variable_name, index)
-                        });
+                        .and_then(|variable| resolve_const_reference(variable, variable_name, index));
                 }
             }
             return Err("Qualified references only allow references to qualified variables in the form of 'POU.variable'".to_string());
         }
-        AstStatement::BinaryExpression {
-            left,
-            right,
-            operator,
-            id,
-            ..
-        } => {
+        AstStatement::BinaryExpression { left, right, operator, id, .. } => {
             let eval_left = evaluate(left, scope, index)?;
             let eval_right = evaluate(right, scope, index)?;
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
@@ -532,9 +443,7 @@ pub fn evaluate_with_target_hint(
                     }
                     Operator::Division => arithmetic_expression!(left, /, right, "/", *id)?,
                     Operator::Modulo if is_zero(right) => {
-                        return Err(
-                            "Attempt to calculate the remainder with a divisor of zero".to_string()
-                        )
+                        return Err("Attempt to calculate the remainder with a divisor of zero".to_string())
                     }
                     Operator::Modulo => arithmetic_expression!(left, %, right, "MOD", *id)?,
                     Operator::Equal => compare_expression!(left, ==, right, "=", *id)?,
@@ -547,10 +456,7 @@ pub fn evaluate_with_target_hint(
                     Operator::Or => bitwise_expression!(left, | , right, "OR", *id)?,
                     Operator::Xor => bitwise_expression!(left, ^, right, "XOR", *id)?,
                     _ => {
-                        return Err(format!(
-                            "Cannot resolve operator {:?} in constant evaluation",
-                            operator
-                        ))
+                        return Err(format!("Cannot resolve operator {:?} in constant evaluation", operator))
                     }
                 })
             } else {
@@ -559,72 +465,43 @@ pub fn evaluate_with_target_hint(
         }
 
         // NOT x
-        AstStatement::UnaryExpression {
-            operator: Operator::Not,
-            value,
-            ..
-        } => match evaluate(value, scope, index)? {
-            Some(AstStatement::LiteralBool {
-                value: v,
-                id,
-                location,
-            }) => Some(AstStatement::LiteralBool {
-                value: !v,
-                id,
-                location,
-            }),
-            Some(AstStatement::LiteralInteger {
-                value: v,
-                id,
-                location,
-            }) => Some(AstStatement::LiteralInteger {
-                value: !v,
-                id,
-                location,
-            }),
-            None => {
-                None //not yet resolvable
+        AstStatement::UnaryExpression { operator: Operator::Not, value, .. } => {
+            match evaluate(value, scope, index)? {
+                Some(AstStatement::LiteralBool { value: v, id, location }) => {
+                    Some(AstStatement::LiteralBool { value: !v, id, location })
+                }
+                Some(AstStatement::LiteralInteger { value: v, id, location }) => {
+                    Some(AstStatement::LiteralInteger { value: !v, id, location })
+                }
+                None => {
+                    None //not yet resolvable
+                }
+                _ => return Err(format!("Cannot resolve constant Not {:?}", value)),
             }
-            _ => return Err(format!("Cannot resolve constant Not {:?}", value)),
-        },
+        }
         // - x
-        AstStatement::UnaryExpression {
-            operator: Operator::Minus,
-            value,
-            ..
-        } => match evaluate(value, scope, index)? {
-            Some(AstStatement::LiteralInteger {
-                value: v,
-                id,
-                location,
-            }) => Some(AstStatement::LiteralInteger {
-                value: -v,
-                id,
-                location,
-            }),
-            Some(AstStatement::LiteralReal {
-                value: v,
-                id,
-                location,
-            }) => Some(AstStatement::LiteralReal {
-                value: format!(
-                    "{:}",
-                    -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err, v))?
-                ),
-                id,
-                location,
-            }),
-            None => {
-                None //not yet resolvable
+        AstStatement::UnaryExpression { operator: Operator::Minus, value, .. } => {
+            match evaluate(value, scope, index)? {
+                Some(AstStatement::LiteralInteger { value: v, id, location }) => {
+                    Some(AstStatement::LiteralInteger { value: -v, id, location })
+                }
+                Some(AstStatement::LiteralReal { value: v, id, location }) => {
+                    Some(AstStatement::LiteralReal {
+                        value: format!(
+                            "{:}",
+                            -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err, v))?
+                        ),
+                        id,
+                        location,
+                    })
+                }
+                None => {
+                    None //not yet resolvable
+                }
+                _ => return Err(format!("Cannot resolve constant Minus {:?}", value)),
             }
-            _ => return Err(format!("Cannot resolve constant Minus {:?}", value)),
-        },
-        AstStatement::LiteralArray {
-            id,
-            elements: Some(elements),
-            location,
-            ..
-        } => {
+        }
+        AstStatement::LiteralArray { id, elements: Some(elements), location, .. } => {
             let inner_elements = AstStatement::get_as_list(elements)
                 .iter()
                 .map(|e| evaluate(e, scope, index))
@@ -635,10 +512,7 @@ pub fn evaluate_with_target_hint(
             //return a new array, or return none if one was not resolvable
             inner_elements.map(|ie| AstStatement::LiteralArray {
                 id: *id,
-                elements: Some(Box::new(AstStatement::ExpressionList {
-                    expressions: ie,
-                    id: *id,
-                })),
+                elements: Some(Box::new(AstStatement::ExpressionList { expressions: ie, id: *id })),
                 location: location.clone(),
             })
         }
@@ -651,17 +525,9 @@ pub fn evaluate_with_target_hint(
                 .collect::<Option<Vec<AstStatement>>>();
 
             //return a new array, or return none if one was not resolvable
-            inner_elements.map(|ie| AstStatement::ExpressionList {
-                expressions: ie,
-                id: *id,
-            })
+            inner_elements.map(|ie| AstStatement::ExpressionList { expressions: ie, id: *id })
         }
-        AstStatement::MultipliedStatement {
-            element,
-            id,
-            multiplier,
-            location,
-        } => {
+        AstStatement::MultipliedStatement { element, id, multiplier, location } => {
             let inner_elements = AstStatement::get_as_list(element.as_ref())
                 .iter()
                 .map(|e| evaluate(e, scope, index))
@@ -681,10 +547,7 @@ pub fn evaluate_with_target_hint(
                 } else {
                     AstStatement::MultipliedStatement {
                         id: *id,
-                        element: Box::new(AstStatement::ExpressionList {
-                            expressions: ie,
-                            id: *id,
-                        }),
+                        element: Box::new(AstStatement::ExpressionList { expressions: ie, id: *id }),
                         multiplier: *multiplier,
                         location: location.clone(),
                     }
@@ -694,24 +557,15 @@ pub fn evaluate_with_target_hint(
         AstStatement::Assignment { left, right, id } => {
             //Right needs evaluation
             if let Some(right) = evaluate(right, scope, index)? {
-                Some(AstStatement::Assignment {
-                    left: left.clone(),
-                    right: Box::new(right),
-                    id: *id,
-                })
+                Some(AstStatement::Assignment { left: left.clone(), right: Box::new(right), id: *id })
             } else {
                 Some(initial.clone())
             }
         }
         AstStatement::RangeStatement { start, end, id } => {
-            let start =
-                Box::new(evaluate(start, scope, index)?.unwrap_or_else(|| *start.to_owned()));
+            let start = Box::new(evaluate(start, scope, index)?.unwrap_or_else(|| *start.to_owned()));
             let end = Box::new(evaluate(end, scope, index)?.unwrap_or_else(|| *end.to_owned()));
-            Some(AstStatement::RangeStatement {
-                start,
-                end,
-                id: *id,
-            })
+            Some(AstStatement::RangeStatement { start, end, id: *id })
         }
         _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),
     };
@@ -755,16 +609,8 @@ fn get_cast_statement_literal(
     scope: Option<&str>,
     index: &Index,
 ) -> Result<AstStatement, String> {
-    match index
-        .find_effective_type_by_name(type_name)
-        .map(DataType::get_type_information)
-    {
-        Some(&crate::typesystem::DataTypeInformation::Integer {
-            signed,
-            size,
-            semantic_size,
-            ..
-        }) => {
+    match index.find_effective_type_by_name(type_name).map(DataType::get_type_information) {
+        Some(&crate::typesystem::DataTypeInformation::Integer { signed, size, semantic_size, .. }) => {
             let evaluated_initial = evaluate(cast_statement, scope, index)?
                 .as_ref()
                 .map(|v| {
@@ -789,12 +635,7 @@ fn get_cast_statement_literal(
                     (UNSIGNED, INT_SIZE) => (value as NativeWordType) as i128,
                     (UNSIGNED, DINT_SIZE) => (value as NativeDwordType) as i128,
                     (UNSIGNED, LINT_SIZE) => (value as NativeLwordType) as i128,
-                    _ => {
-                        return Err(format!(
-                            "Cannot resolve constant: {:}#{:?}",
-                            type_name, cast_statement
-                        ))
-                    }
+                    _ => return Err(format!("Cannot resolve constant: {:}#{:?}", type_name, cast_statement)),
                 };
                 Ok(AstStatement::LiteralInteger {
                     value,
@@ -802,17 +643,11 @@ fn get_cast_statement_literal(
                     location: cast_statement.get_location(),
                 })
             } else {
-                Err(format!(
-                    "Cannot resolve constant: {:}#{:?}",
-                    type_name, cast_statement
-                ))
+                Err(format!("Cannot resolve constant: {:}#{:?}", type_name, cast_statement))
             }
         }
 
         //Some(&crate::typesystem::DataTypeInformation::Float{..}) => {},
-        _ => Err(format!(
-            "Cannot resolve constant: {:}#{:?}",
-            type_name, cast_statement
-        )),
+        _ => Err(format!("Cannot resolve constant: {:}#{:?}", type_name, cast_statement)),
     }
 }

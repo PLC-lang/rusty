@@ -46,23 +46,9 @@ fn adding_through_conditions() {
 
     let (func_true, func_false) = function;
 
-    let res: i32 = compile_and_run(
-        func_true,
-        &mut MainType {
-            inc: 0,
-            cond: false,
-            ret: 0,
-        },
-    );
+    let res: i32 = compile_and_run(func_true, &mut MainType { inc: 0, cond: false, ret: 0 });
     assert_eq!(res, 10);
-    let res: i32 = compile_and_run(
-        func_false,
-        &mut MainType {
-            inc: 0,
-            cond: false,
-            ret: 0,
-        },
-    );
+    let res: i32 = compile_and_run(func_false, &mut MainType { inc: 0, cond: false, ret: 0 });
     assert_eq!(res, 100);
 }
 
@@ -367,12 +353,7 @@ fn for_loop_variable_does_not_affect_other_variables_dint() {
     END_PROGRAM
     "#;
 
-    let mut main = MainType {
-        a: 0,
-        i: 0,
-        b: 0,
-        ret: 0,
-    };
+    let mut main = MainType { a: 0, i: 0, b: 0, ret: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut main);
     assert_eq!(main.ret, 110);
@@ -406,12 +387,7 @@ fn for_loop_variable_does_not_affect_other_variables_int() {
     END_PROGRAM
     "#;
 
-    let mut main = MainType {
-        a: 0,
-        i: 0,
-        b: 0,
-        ret: 0,
-    };
+    let mut main = MainType { a: 0, i: 0, b: 0, ret: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut main);
     assert_eq!(main.ret, 110);
@@ -445,12 +421,7 @@ fn for_loop_variable_does_not_affect_other_variables_sint() {
     END_PROGRAM
     "#;
 
-    let mut main = MainType {
-        a: 0,
-        i: 0,
-        b: 0,
-        ret: 0,
-    };
+    let mut main = MainType { a: 0, i: 0, b: 0, ret: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut main);
     assert_eq!(main.ret, 110);
@@ -484,12 +455,7 @@ fn for_loop_variable_does_not_affect_other_variables_lint() {
     END_PROGRAM
     "#;
 
-    let mut main = MainType {
-        a: 0,
-        i: 0,
-        b: 0,
-        ret: 0,
-    };
+    let mut main = MainType { a: 0, i: 0, b: 0, ret: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut main);
     assert_eq!(main.ret, 110);
@@ -511,10 +477,7 @@ fn for_loop_and_increment_10_times_skipping_1() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
     assert_eq!(res, 1005);
 }
 
@@ -535,10 +498,7 @@ fn while_loop_no_entry() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
     assert_eq!(res, 5);
 }
 
@@ -560,10 +520,7 @@ fn exit_in_if_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
     assert_eq!(res, 10);
 }
 
@@ -585,10 +542,7 @@ fn exit_in_for_loop_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
     assert_eq!(res, 20);
 }
 
@@ -611,10 +565,7 @@ fn continue_in_for_loop_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
     assert_eq!(res, 31);
 }
 
@@ -636,10 +587,7 @@ fn repeat_loop_no_entry() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
     assert_eq!(res, 1017);
 }
 #[test]
@@ -659,10 +607,7 @@ fn while_loop_10_times() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
     assert_eq!(res, 10101);
 }
 
@@ -684,10 +629,7 @@ fn repeat_loop_10_times() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
 
     assert_eq!(res, 11111);
 }
@@ -712,10 +654,7 @@ fn repeat_loop_reference() {
     END_FUNCTION
     "#;
 
-    let res: i32 = compile_and_run(
-        function.to_string(),
-        &mut rusty::runner::MainType::default(),
-    );
+    let res: i32 = compile_and_run(function.to_string(), &mut rusty::runner::MainType::default());
 
     assert_eq!(res, 11111);
 }

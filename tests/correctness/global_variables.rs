@@ -98,20 +98,9 @@ fn global_variables_with_initialization() {
     let context = inkwell::context::Context::create();
     let exec_engine = compile(&context, function.to_string());
 
-    let mut params = MainGlobalsType {
-        x: 0,
-        y: false,
-        z: 0.0,
-    };
+    let mut params = MainGlobalsType { x: 0, y: false, z: 0.0 };
     run::<_, i32>(&exec_engine, "main", &mut params);
-    assert_eq!(
-        params,
-        MainGlobalsType {
-            x: 77,
-            y: true,
-            z: 9.1415,
-        }
-    );
+    assert_eq!(params, MainGlobalsType { x: 77, y: true, z: 9.1415 });
 }
 
 #[test]

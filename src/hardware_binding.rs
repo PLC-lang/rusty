@@ -68,11 +68,8 @@ impl Serialize for HardwareConfiguration<'_> {
     where
         S: serde::Serializer,
     {
-        let bindings: Vec<WithContext<HardwareBinding>> = self
-            .hardware_binding
-            .iter()
-            .map(|it| WithContext::new(self.index, it))
-            .collect();
+        let bindings: Vec<WithContext<HardwareBinding>> =
+            self.hardware_binding.iter().map(|it| WithContext::new(self.index, it)).collect();
         let mut config = serializer.serialize_struct("Configuration", 1)?;
         config.serialize_field("HardwareConfiguration", &bindings)?;
         config.end()
@@ -132,17 +129,11 @@ pub fn collect_hardware_configuration(index: &Index) -> Result<HardwareConfigura
         .find_instances()
         .filter(|(_, instance)| instance.has_hardware_binding())
         .map(|(name, instance)| {
-            let binding = instance
-                .get_hardware_binding()
-                .expect("Instance should have a binding");
+            let binding = instance.get_hardware_binding().expect("Instance should have a binding");
             binding
                 .entries
                 .iter()
-                .map(|it| {
-                    index
-                        .get_const_expressions()
-                        .get_constant_int_statement_value(it)
-                })
+                .map(|it| index.get_const_expressions().get_constant_int_statement_value(it))
                 .map(|it| it.map(|it| it.to_string()))
                 .collect::<Result<Vec<String>, String>>()
                 .map(|address| HardwareBinding {
@@ -154,14 +145,8 @@ pub fn collect_hardware_configuration(index: &Index) -> Result<HardwareConfigura
         })
         .collect();
 
-    conf.map(|hardware_binding| HardwareConfiguration {
-        index,
-        hardware_binding,
-    })
-    .map_err(|message| Diagnostic::GeneralError {
-        err_no: ErrNo::general__io_err,
-        message,
-    })
+    conf.map(|hardware_binding| HardwareConfiguration { index, hardware_binding })
+        .map_err(|message| Diagnostic::GeneralError { err_no: ErrNo::general__io_err, message })
 }
 
 pub fn generate_hardware_configuration(
@@ -169,18 +154,10 @@ pub fn generate_hardware_configuration(
     format: ConfigFormat,
 ) -> Result<String, Diagnostic> {
     match format {
-        ConfigFormat::JSON => {
-            serde_json::to_string_pretty(&config).map_err(|e| Diagnostic::GeneralError {
-                message: e.to_string(),
-                err_no: ErrNo::general__io_err,
-            })
-        }
-        ConfigFormat::TOML => {
-            toml::ser::to_string_pretty(&config).map_err(|e| Diagnostic::GeneralError {
-                message: e.to_string(),
-                err_no: ErrNo::general__io_err,
-            })
-        }
+        ConfigFormat::JSON => serde_json::to_string_pretty(&config)
+            .map_err(|e| Diagnostic::GeneralError { message: e.to_string(), err_no: ErrNo::general__io_err }),
+        ConfigFormat::TOML => toml::ser::to_string_pretty(&config)
+            .map_err(|e| Diagnostic::GeneralError { message: e.to_string(), err_no: ErrNo::general__io_err }),
     }
 }
 
@@ -205,9 +182,7 @@ mod tests {
             z AT %IW1.2 : INT;
         END_VAR",
         );
-        let config = collect_hardware_configuration(&index)
-            .unwrap()
-            .hardware_binding;
+        let config = collect_hardware_configuration(&index).unwrap().hardware_binding;
         insta::assert_debug_snapshot!(config);
     }
 
@@ -226,9 +201,7 @@ mod tests {
         END_VAR
         END_PROGRAM",
         );
-        let config = collect_hardware_configuration(&index)
-            .unwrap()
-            .hardware_binding;
+        let config = collect_hardware_configuration(&index).unwrap().hardware_binding;
         insta::assert_debug_snapshot!(config);
     }
     #[test]
@@ -250,9 +223,7 @@ mod tests {
             aFb : ARRAY[0..2] OF fb;
         END_VAR",
         );
-        let config = collect_hardware_configuration(&index)
-            .unwrap()
-            .hardware_binding;
+        let config = collect_hardware_configuration(&index).unwrap().hardware_binding;
         insta::assert_debug_snapshot!(config);
     }
 

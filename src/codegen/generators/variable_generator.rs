@@ -29,52 +29,36 @@ pub fn generate_global_variables<'ctx, 'b>(
 ) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
     let mut index = LlvmTypedIndex::default();
 
-    fn to_k_v<'a, 'b>(
-        kv: (&'a String, &'b VariableIndexEntry),
-    ) -> (&'a str, &'b VariableIndexEntry) {
+    fn to_k_v<'a, 'b>(kv: (&'a String, &'b VariableIndexEntry)) -> (&'a str, &'b VariableIndexEntry) {
         (kv.0.as_str(), kv.1)
     }
 
     //all declared global variables
     let globals = global_index.get_globals().elements().map(to_k_v);
     //all initializers
-    let initializers = global_index
-        .get_global_initializers()
-        .elements()
-        .map(to_k_v);
+    let initializers = global_index.get_global_initializers().elements().map(to_k_v);
     //all enum-elements
-    let enums = global_index
-        .get_global_qualified_enums()
-        .elements()
-        .map(to_k_v);
+    let enums = global_index.get_global_qualified_enums().elements().map(to_k_v);
     //all program instances
     let programs = global_index
         .get_pous()
         .values()
         .into_iter()
         .filter_map(|p| match p {
-            PouIndexEntry::Program {
-                instance_variable, ..
-            } => Some(instance_variable),
+            PouIndexEntry::Program { instance_variable, .. } => Some(instance_variable),
             _ => None,
         })
         .map(|v| (v.get_qualified_name(), v));
 
     for (name, variable) in globals.chain(programs).chain(initializers).chain(enums) {
-        let global_variable = generate_global_variable(
-            module,
-            llvm,
-            global_index,
-            annotations,
-            types_index,
-            variable,
-        )
-        .map_err(|err| match err.get_type() {
-            ErrNo::codegen__missing_function | ErrNo::reference__unresolved => {
-                Diagnostic::cannot_generate_initializer(name, SourceRange::undefined())
-            }
-            _ => err,
-        })?;
+        let global_variable =
+            generate_global_variable(module, llvm, global_index, annotations, types_index, variable)
+                .map_err(|err| match err.get_type() {
+                    ErrNo::codegen__missing_function | ErrNo::reference__unresolved => {
+                        Diagnostic::cannot_generate_initializer(name, SourceRange::undefined())
+                    }
+                    _ => err,
+                })?;
         index.associate_global(name, global_variable)?;
         //generate debug info
         debug.create_global_variable(
@@ -104,9 +88,8 @@ pub fn generate_global_variable<'ctx, 'b>(
     let type_name = global_variable.get_type_name();
     let variable_type = index.get_associated_type(type_name)?;
 
-    let initial_value = if let Some(initializer) = global_index
-        .get_const_expressions()
-        .maybe_get_constant_statement(&global_variable.initial_value)
+    let initial_value = if let Some(initializer) =
+        global_index.get_const_expressions().maybe_get_constant_statement(&global_variable.initial_value)
     {
         let expr_generator =
             ExpressionCodeGenerator::new_context_free(llvm, global_index, annotations, index);

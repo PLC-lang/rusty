@@ -6,10 +6,9 @@ use crate::{
     index::{ArgumentType, VariableIndexEntry, VariableType},
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{
-        DataType, DataTypeInformation, Dimension, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE,
-        DINT_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, POINTER_SIZE, SINT_TYPE, STRING_TYPE,
-        TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE,
-        WSTRING_TYPE,
+        DataType, DataTypeInformation, Dimension, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
+        INT_TYPE, LINT_TYPE, LREAL_TYPE, POINTER_SIZE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
+        UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
     },
     Diagnostic,
 };
@@ -29,9 +28,7 @@ pub struct StatementValidator {
 
 impl StatementValidator {
     pub fn new() -> StatementValidator {
-        StatementValidator {
-            diagnostics: Vec::new(),
-        }
+        StatementValidator { diagnostics: Vec::new() }
     }
 
     pub fn validate_statement(&mut self, statement: &AstStatement, context: &ValidationContext) {
@@ -40,12 +37,7 @@ impl StatementValidator {
                 self.validate_reference(statement, name, location, context);
             }
 
-            AstStatement::UnaryExpression {
-                operator,
-                value,
-                location,
-                ..
-            } => {
+            AstStatement::UnaryExpression { operator, value, location, .. } => {
                 if operator == &Operator::Address {
                     match value.as_ref() {
                         AstStatement::Reference { .. }
@@ -60,21 +52,12 @@ impl StatementValidator {
                 }
             }
 
-            AstStatement::CastStatement {
-                location,
-                target,
-                type_name,
-                ..
-            } => {
+            AstStatement::CastStatement { location, target, type_name, .. } => {
                 self.validate_cast_literal(target, type_name, location, context);
             }
-            AstStatement::ArrayAccess {
-                reference, access, ..
-            } => {
-                let target_type = context
-                    .ast_annotation
-                    .get_type_or_void(reference, context.index)
-                    .get_type_information();
+            AstStatement::ArrayAccess { reference, access, .. } => {
+                let target_type =
+                    context.ast_annotation.get_type_or_void(reference, context.index).get_type_information();
 
                 if let DataTypeInformation::Array { dimensions, .. } = target_type {
                     if let AstStatement::ExpressionList { expressions, .. } = access.as_ref() {
@@ -85,24 +68,16 @@ impl StatementValidator {
                         self.validate_array_access(access.as_ref(), dimensions, 0, context);
                     }
                 } else {
-                    self.diagnostics
-                        .push(Diagnostic::incompatible_array_access_variable(
-                            target_type.get_name(),
-                            access.get_location(),
-                        ));
+                    self.diagnostics.push(Diagnostic::incompatible_array_access_variable(
+                        target_type.get_name(),
+                        access.get_location(),
+                    ));
                 }
             }
             AstStatement::QualifiedReference { elements, .. } => {
                 let mut i = elements.iter().rev();
-                if let Some((
-                    AstStatement::DirectAccess {
-                        access,
-                        index,
-                        location,
-                        ..
-                    },
-                    reference,
-                )) = i.next().zip(i.next())
+                if let Some((AstStatement::DirectAccess { access, index, location, .. }, reference)) =
+                    i.next().zip(i.next())
                 {
                     let target_type = context
                         .ast_annotation
@@ -116,13 +91,7 @@ impl StatementValidator {
                                 location.clone(),
                             ))
                         } else {
-                            self.validate_access_index(
-                                context,
-                                index,
-                                access,
-                                target_type,
-                                location,
-                            );
+                            self.validate_access_index(context, index, access, target_type, location);
                         }
                     } else {
                         //Report incompatible type issue
@@ -154,10 +123,8 @@ impl StatementValidator {
                         .index
                         .get_effective_type_or_void_by_name(l_resulting_type)
                         .get_type_information();
-                    let r_effective_type = context
-                        .ast_annotation
-                        .get_type_or_void(right, context.index)
-                        .get_type_information();
+                    let r_effective_type =
+                        context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
 
                     //check if Datatype can hold a Pointer (u64)
                     if r_effective_type.is_pointer()
@@ -187,10 +154,7 @@ impl StatementValidator {
                     // valid assignments -> char := literalString, char := char
                     // check if we assign to a character variable -> char := ..
                     if l_effective_type.is_character() {
-                        if let AstStatement::LiteralString {
-                            value, location, ..
-                        } = right.as_ref()
-                        {
+                        if let AstStatement::LiteralString { value, location, .. } = right.as_ref() {
                             // literalString may only be 1 character long
                             if value.len() > 1 {
                                 self.diagnostics.push(Diagnostic::syntax_error(
@@ -221,54 +185,21 @@ impl StatementValidator {
                     }
                 }
             }
-            AstStatement::BinaryExpression {
-                operator,
-                left,
-                right,
-                ..
-            } => match operator {
-                Operator::NotEqual => self.validate_binary_expression(
-                    context,
-                    &Operator::Equal,
-                    left,
-                    right,
-                    statement,
-                ),
+            AstStatement::BinaryExpression { operator, left, right, .. } => match operator {
+                Operator::NotEqual => {
+                    self.validate_binary_expression(context, &Operator::Equal, left, right, statement)
+                }
                 Operator::GreaterOrEqual => {
                     //check for the > operator
-                    self.validate_binary_expression(
-                        context,
-                        &Operator::Greater,
-                        left,
-                        right,
-                        statement,
-                    );
+                    self.validate_binary_expression(context, &Operator::Greater, left, right, statement);
                     //check for the = operator
-                    self.validate_binary_expression(
-                        context,
-                        &Operator::Equal,
-                        left,
-                        right,
-                        statement,
-                    );
+                    self.validate_binary_expression(context, &Operator::Equal, left, right, statement);
                 }
                 Operator::LessOrEqual => {
                     //check for the < operator
-                    self.validate_binary_expression(
-                        context,
-                        &Operator::Less,
-                        left,
-                        right,
-                        statement,
-                    );
+                    self.validate_binary_expression(context, &Operator::Less, left, right, statement);
                     //check for the = operator
-                    self.validate_binary_expression(
-                        context,
-                        &Operator::Equal,
-                        left,
-                        right,
-                        statement,
-                    );
+                    self.validate_binary_expression(context, &Operator::Equal, left, right, statement);
                 }
                 _ => self.validate_binary_expression(context, operator, left, right, statement),
             },
@@ -285,11 +216,8 @@ impl StatementValidator {
             .get_type_hint(statement, context.index)
             .or_else(|| context.ast_annotation.get_type(statement, context.index))
         {
-            if let DataTypeInformation::Generic {
-                generic_symbol,
-                nature,
-                ..
-            } = statement_type.get_type_information()
+            if let DataTypeInformation::Generic { generic_symbol, nature, .. } =
+                statement_type.get_type_information()
             {
                 self.diagnostics.push(Diagnostic::unresolved_generic_type(
                     generic_symbol,
@@ -325,30 +253,23 @@ impl StatementValidator {
     ) {
         match *access_index {
             AstStatement::LiteralInteger { value, .. } => {
-                if !access_type.is_in_range(
-                    value.try_into().unwrap_or_default(),
-                    target_type,
-                    context.index,
-                ) {
-                    self.diagnostics
-                        .push(Diagnostic::incompatible_directaccess_range(
-                            &format!("{:?}", access_type),
-                            target_type.get_name(),
-                            access_type.get_range(target_type, context.index),
-                            location.clone(),
-                        ))
+                if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type, context.index)
+                {
+                    self.diagnostics.push(Diagnostic::incompatible_directaccess_range(
+                        &format!("{:?}", access_type),
+                        target_type.get_name(),
+                        access_type.get_range(target_type, context.index),
+                        location.clone(),
+                    ))
                 }
             }
             AstStatement::Reference { .. } => {
-                let ref_type = context
-                    .ast_annotation
-                    .get_type_or_void(access_index, context.index);
+                let ref_type = context.ast_annotation.get_type_or_void(access_index, context.index);
                 if !ref_type.get_type_information().is_int() {
-                    self.diagnostics
-                        .push(Diagnostic::incompatible_directaccess_variable(
-                            ref_type.get_name(),
-                            location.clone(),
-                        ))
+                    self.diagnostics.push(Diagnostic::incompatible_directaccess_variable(
+                        ref_type.get_name(),
+                        location.clone(),
+                    ))
                 }
             }
             _ => unreachable!(),
@@ -369,24 +290,18 @@ impl StatementValidator {
                 if let Ok(range) = range {
                     if !(range.start as i128 <= *value && range.end as i128 >= *value) {
                         self.diagnostics
-                            .push(Diagnostic::incompatible_array_access_range(
-                                range,
-                                access.get_location(),
-                            ))
+                            .push(Diagnostic::incompatible_array_access_range(range, access.get_location()))
                     }
                 }
             }
         } else {
-            let type_info = context
-                .ast_annotation
-                .get_type_or_void(access, context.index)
-                .get_type_information();
+            let type_info =
+                context.ast_annotation.get_type_or_void(access, context.index).get_type_information();
             if !type_info.is_int() {
-                self.diagnostics
-                    .push(Diagnostic::incompatible_array_access_type(
-                        type_info.get_name(),
-                        access.get_location(),
-                    ))
+                self.diagnostics.push(Diagnostic::incompatible_array_access_type(
+                    type_info.get_name(),
+                    access.get_location(),
+                ))
             }
         }
     }
@@ -400,13 +315,9 @@ impl StatementValidator {
     ) {
         // unresolved reference
         if !context.ast_annotation.has_type_annotation(statement) {
-            self.diagnostics
-                .push(Diagnostic::unresolved_reference(ref_name, location.clone()));
-        } else if let Some(StatementAnnotation::Variable {
-            qualified_name,
-            variable_type,
-            ..
-        }) = context.ast_annotation.get(statement)
+            self.diagnostics.push(Diagnostic::unresolved_reference(ref_name, location.clone()));
+        } else if let Some(StatementAnnotation::Variable { qualified_name, variable_type, .. }) =
+            context.ast_annotation.get(statement)
         {
             //check if we're accessing a private variable AND the variable's qualifier is not the
             //POU we're accessing it from
@@ -419,10 +330,7 @@ impl StatementValidator {
                         !qualified_name.starts_with(it) && !qualified_name.starts_with(container)
                     })
             {
-                self.diagnostics.push(Diagnostic::illegal_access(
-                    qualified_name.as_str(),
-                    location.clone(),
-                ));
+                self.diagnostics.push(Diagnostic::illegal_access(qualified_name.as_str(), location.clone()));
             }
         }
     }
@@ -438,10 +346,7 @@ impl StatementValidator {
         location: &SourceRange,
         context: &ValidationContext,
     ) {
-        let cast_type = context
-            .index
-            .get_effective_type_or_void_by_name(type_name)
-            .get_type_information();
+        let cast_type = context.index.get_effective_type_or_void_by_name(type_name).get_type_information();
 
         let literal_type = context
             .index
@@ -451,23 +356,16 @@ impl StatementValidator {
                     !cast_type.is_unsigned_int(),
                 )
                 .or_else(|| {
-                    context
-                        .ast_annotation
-                        .get_type_hint(literal, context.index)
-                        .map(DataType::get_name)
+                    context.ast_annotation.get_type_hint(literal, context.index).map(DataType::get_name)
                 })
                 .unwrap_or_else(|| {
-                    context
-                        .ast_annotation
-                        .get_type_or_void(literal, context.index)
-                        .get_name()
+                    context.ast_annotation.get_type_or_void(literal, context.index).get_name()
                 }),
             )
             .unwrap_or_else(|| context.index.get_void_type().get_type_information());
 
         if !is_typable_literal(literal) {
-            self.diagnostics
-                .push(Diagnostic::literal_expected(location.clone()))
+            self.diagnostics.push(Diagnostic::literal_expected(location.clone()))
         } else if is_date_or_time_type(cast_type) || is_date_or_time_type(literal_type) {
             self.diagnostics.push(Diagnostic::incompatible_literal_cast(
                 cast_type.get_name(),
@@ -477,9 +375,7 @@ impl StatementValidator {
             //see if target and cast_type are compatible
         } else if cast_type.is_int() && literal_type.is_int() {
             //INTs with INTs
-            if cast_type.get_semantic_size(context.index)
-                < literal_type.get_semantic_size(context.index)
-            {
+            if cast_type.get_semantic_size(context.index) < literal_type.get_semantic_size(context.index) {
                 self.diagnostics.push(Diagnostic::literal_out_of_range(
                     StatementValidator::get_literal_value(literal).as_str(),
                     cast_type.get_name(),
@@ -511,16 +407,8 @@ impl StatementValidator {
 
     fn get_literal_value(literal: &AstStatement) -> String {
         match literal {
-            AstStatement::LiteralString {
-                value,
-                is_wide: true,
-                ..
-            } => format!(r#""{:}""#, value),
-            AstStatement::LiteralString {
-                value,
-                is_wide: false,
-                ..
-            } => format!(r#"'{:}'"#, value),
+            AstStatement::LiteralString { value, is_wide: true, .. } => format!(r#""{:}""#, value),
+            AstStatement::LiteralString { value, is_wide: false, .. } => format!(r#"'{:}'"#, value),
             AstStatement::LiteralBool { value, .. } => {
                 format!("{}", value)
             }
@@ -570,14 +458,8 @@ impl StatementValidator {
         right: &AstStatement,
         binary_statement: &AstStatement,
     ) {
-        let left_type = context
-            .ast_annotation
-            .get_type_or_void(left, context.index)
-            .get_type_information();
-        let right_type = context
-            .ast_annotation
-            .get_type_or_void(right, context.index)
-            .get_type_information();
+        let left_type = context.ast_annotation.get_type_or_void(left, context.index).get_type_information();
+        let right_type = context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
 
         // if the type is a subrange, check if the intrinsic type is numerical
         let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();
@@ -602,19 +484,13 @@ impl StatementValidator {
 }
 
 /// returns true if the index contains a compare function for the given operator and type
-fn compare_function_exists(
-    type_name: &str,
-    operator: &Operator,
-    context: &ValidationContext,
-) -> bool {
+fn compare_function_exists(type_name: &str, operator: &Operator, context: &ValidationContext) -> bool {
     let implementation = crate::typesystem::get_equals_function_name_for(type_name, operator)
         .as_ref()
         .and_then(|function_name| context.index.find_pou_implementation(function_name));
 
     if let Some(implementation) = implementation {
-        let members = context
-            .index
-            .get_container_members(implementation.get_type_name());
+        let members = context.index.get_container_members(implementation.get_type_name());
 
         //we expect two input parameters and a return-parameter
         if let [VariableIndexEntry {

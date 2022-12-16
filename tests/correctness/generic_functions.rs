@@ -40,10 +40,7 @@ fn test_external_function_called() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let source = SourceCode {
-        path: "external_test.st".to_string(),
-        source: prog.to_string(),
-    };
+    let source = SourceCode { path: "external_test.st".to_string(), source: prog.to_string() };
     let (_, code_gen) = compile_module(
         &context,
         vec![source],
@@ -54,10 +51,7 @@ fn test_external_function_called() {
         DebugLevel::None,
     )
     .unwrap();
-    let exec_engine = code_gen
-        .module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .unwrap();
+    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("times_two__INT").unwrap();
     exec_engine.add_global_mapping(&fn_value, times_two_int as usize);
@@ -159,10 +153,7 @@ fn test_generic_function_with_param_by_ref_called() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let source = SourceCode {
-        path: "external_test.st".to_string(),
-        source: prog.to_string(),
-    };
+    let source = SourceCode { path: "external_test.st".to_string(), source: prog.to_string() };
     let (_, code_gen) = compile_module(
         &context,
         vec![source],
@@ -173,20 +164,14 @@ fn test_generic_function_with_param_by_ref_called() {
         DebugLevel::None,
     )
     .unwrap();
-    let exec_engine = code_gen
-        .module
-        .create_jit_execution_engine(inkwell::OptimizationLevel::None)
-        .unwrap();
+    let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("LEFT_EXT__STRING").unwrap();
     exec_engine.add_global_mapping(&fn_value, left_ext__string as usize);
 
     let mut main_type = MainType2 { s: *b"hello\0" };
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    let result = CStr::from_bytes_with_nul(&main_type.s)
-        .unwrap()
-        .to_str()
-        .unwrap();
+    let result = CStr::from_bytes_with_nul(&main_type.s).unwrap().to_str().unwrap();
     assert_eq!(result, "hello");
 }
 

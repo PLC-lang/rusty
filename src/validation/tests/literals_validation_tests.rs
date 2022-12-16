@@ -134,10 +134,7 @@ fn literal_cast_with_non_literal() {
             INT#[x]; 
         END_PROGRAM",
     );
-    assert_eq!(
-        vec![Diagnostic::literal_expected((25..32).into())],
-        diagnostics
-    );
+    assert_eq!(vec![Diagnostic::literal_expected((25..32).into())], diagnostics);
 }
 
 #[test]

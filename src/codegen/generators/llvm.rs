@@ -21,11 +21,7 @@ pub struct Llvm<'a> {
 pub trait GlobalValueExt {
     fn make_constant(self) -> Self;
     fn make_external(self) -> Self;
-    fn set_initial_value(
-        self,
-        initial_value: Option<BasicValueEnum>,
-        data_type: BasicTypeEnum,
-    ) -> Self;
+    fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self;
 }
 
 impl<'ink> GlobalValueExt for GlobalValue<'ink> {
@@ -41,11 +37,7 @@ impl<'ink> GlobalValueExt for GlobalValue<'ink> {
         self
     }
 
-    fn set_initial_value(
-        self,
-        initial_value: Option<BasicValueEnum>,
-        data_type: BasicTypeEnum,
-    ) -> Self {
+    fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self {
         if let Some(initializer) = initial_value {
             let v = &initializer as &dyn BasicValue;
             self.set_initializer(v);
@@ -85,11 +77,7 @@ impl<'a> Llvm<'a> {
     ///
     /// - `name` the name of the local variable
     /// - `data_type` the variable's datatype
-    pub fn create_local_variable(
-        &self,
-        name: &str,
-        data_type: &BasicTypeEnum<'a>,
-    ) -> PointerValue<'a> {
+    pub fn create_local_variable(&self, name: &str, data_type: &BasicTypeEnum<'a>) -> PointerValue<'a> {
         self.builder.build_alloca(*data_type, name)
     }
 
@@ -121,11 +109,7 @@ impl<'a> Llvm<'a> {
         accessor_sequence: &[IntValue<'a>],
         name: &str,
     ) -> Result<PointerValue<'a>, Diagnostic> {
-        unsafe {
-            Ok(self
-                .builder
-                .build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name))
-        }
+        unsafe { Ok(self.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)) }
     }
 
     /// creates a pointervalue that points to a member of a struct
@@ -141,14 +125,12 @@ impl<'a> Llvm<'a> {
         name: &str,
         offset: &SourceRange,
     ) -> Result<PointerValue<'a>, Diagnostic> {
-        self.builder
-            .build_struct_gep(pointer_to_struct_instance, member_index, name)
-            .map_err(|_| {
-                Diagnostic::codegen_error(
-                    &format!("Cannot generate qualified reference for {:}", name),
-                    offset.clone(),
-                )
-            })
+        self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|_| {
+            Diagnostic::codegen_error(
+                &format!("Cannot generate qualified reference for {:}", name),
+                offset.clone(),
+            )
+        })
     }
 
     /// loads the value behind the given pointer
@@ -178,11 +160,7 @@ impl<'a> Llvm<'a> {
     pub fn create_const_bool(&self, value: bool) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let itype = self.context.bool_type();
 
-        let value = if value {
-            itype.const_all_ones()
-        } else {
-            itype.const_zero()
-        };
+        let value = if value { itype.const_all_ones() } else { itype.const_zero() };
         Ok(BasicValueEnum::IntValue(value))
     }
 
@@ -200,9 +178,7 @@ impl<'a> Llvm<'a> {
         match target_type {
             BasicTypeEnum::IntType { 0: int_type } => int_type
                 .const_int_from_string(value, StringRadix::Decimal)
-                .ok_or_else(|| {
-                    Diagnostic::codegen_error(&format!("Cannot parse {} as int", value), location)
-                })
+                .ok_or_else(|| Diagnostic::codegen_error(&format!("Cannot parse {} as int", value), location))
                 .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { 0: float_type } => {
                 let value = float_type.const_float_from_string(value);
@@ -259,24 +235,17 @@ impl<'a> Llvm<'a> {
         &self,
         value: &[u16],
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let values: Vec<IntValue> = value
-            .iter()
-            .map(|it| self.context.i16_type().const_int(*it as u64, false))
-            .collect();
+        let values: Vec<IntValue> =
+            value.iter().map(|it| self.context.i16_type().const_int(*it as u64, false)).collect();
         let vector = self.context.i16_type().const_array(&values);
         Ok(BasicValueEnum::ArrayValue(vector))
     }
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_llvm_const_vec_string(
-        &self,
-        value: &[u8],
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let values: Vec<IntValue> = value
-            .iter()
-            .map(|it| self.context.i8_type().const_int(*it as u64, false))
-            .collect();
+    pub fn create_llvm_const_vec_string(&self, value: &[u8]) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        let values: Vec<IntValue> =
+            value.iter().map(|it| self.context.i8_type().const_int(*it as u64, false)).collect();
         let vector = self.context.i8_type().const_array(&values);
         Ok(BasicValueEnum::ArrayValue(vector))
     }
@@ -294,10 +263,7 @@ impl<'a> Llvm<'a> {
             let value = self.context.i8_type().const_int(*first as u64, false);
             Ok(BasicValueEnum::IntValue(value))
         } else {
-            Err(Diagnostic::cannot_generate_from_empty_literal(
-                CHAR_TYPE,
-                location.clone(),
-            ))
+            Err(Diagnostic::cannot_generate_from_empty_literal(CHAR_TYPE, location.clone()))
         }
     }
 
@@ -314,10 +280,7 @@ impl<'a> Llvm<'a> {
                 let value = self.context.i16_type().const_int(first as u64, false);
                 Ok(BasicValueEnum::IntValue(value))
             }
-            None => Err(Diagnostic::cannot_generate_from_empty_literal(
-                WCHAR_TYPE,
-                location.clone(),
-            )),
+            None => Err(Diagnostic::cannot_generate_from_empty_literal(WCHAR_TYPE, location.clone())),
         }
     }
 

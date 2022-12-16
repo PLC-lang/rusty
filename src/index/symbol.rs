@@ -25,9 +25,7 @@ pub struct SymbolMap<K, V> {
 
 impl<K, V> Default for SymbolMap<K, V> {
     fn default() -> Self {
-        Self {
-            inner_map: Default::default(),
-        }
+        Self { inner_map: Default::default() }
     }
 }
 
@@ -54,10 +52,7 @@ where
     }
 
     /// removes and returns all elements in the SymbolMap
-    pub fn drain(
-        &mut self,
-        range: std::ops::RangeFull,
-    ) -> indexmap::map::Drain<'_, K, std::vec::Vec<V>> {
+    pub fn drain(&mut self, range: std::ops::RangeFull) -> indexmap::map::Drain<'_, K, std::vec::Vec<V>> {
         self.inner_map.drain(range)
     }
 
@@ -70,9 +65,7 @@ where
     /// keys with `n` associated elements will emit `n` key-value tuples in the returned
     /// iterator
     pub fn elements(&self) -> impl Iterator<Item = (&'_ K, &'_ V)> {
-        self.inner_map
-            .iter()
-            .flat_map(|(k, v)| v.iter().map(move |v| (k, v)))
+        self.inner_map.iter().flat_map(|(k, v)| v.iter().map(move |v| (k, v)))
     }
 
     /// returns an iterator over the keys in the map, in their order
@@ -112,10 +105,7 @@ impl SymbolLocation {
     /// creates a SymbolLocation with undefined source_range used for
     /// symbols that are created by the compiler on-the-fly.
     pub fn internal() -> SymbolLocation {
-        SymbolLocation {
-            line_number: SymbolLocation::INTERNAL_LINE,
-            source_range: SourceRange::undefined(),
-        }
+        SymbolLocation { line_number: SymbolLocation::INTERNAL_LINE, source_range: SourceRange::undefined() }
     }
 
     pub fn is_internal(&self) -> bool {
@@ -236,10 +226,7 @@ mod tests {
         let iter = map.values();
 
         // THEN i expect all pairs in their order
-        assert_eq!(
-            iter.collect::<Vec<_>>(),
-            vec![&77, &20, &30, &100, &200, &300, &1, &2, &3,],
-        );
+        assert_eq!(iter.collect::<Vec<_>>(), vec![&77, &20, &30, &100, &200, &300, &1, &2, &3,],);
     }
 
     #[test]
@@ -256,11 +243,7 @@ mod tests {
         // THEN i expect all pairs in their order
         assert_eq!(
             iter.collect::<Vec<_>>(),
-            vec![
-                (&1, &vec![77, 20, 30]),
-                (&2, &vec![100, 200, 300]),
-                (&3, &vec![1, 2, 3])
-            ],
+            vec![(&1, &vec![77, 20, 30]), (&2, &vec![100, 200, 300]), (&3, &vec![1, 2, 3])],
         );
     }
 }

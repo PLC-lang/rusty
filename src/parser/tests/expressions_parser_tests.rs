@@ -1,7 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::{
-    AstStatement, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou, SourceRange,
-};
+use crate::ast::{AstStatement, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou, SourceRange};
 use crate::parser::tests::{literal_int, ref_to};
 use crate::test_utils::tests::parse;
 use insta::assert_snapshot;
@@ -36,16 +34,8 @@ fn qualified_reference_statement_parsed() {
             format!(
                 "{:?}",
                 &[
-                    AstStatement::Reference {
-                        name: "a".to_string(),
-                        location: (12..13).into(),
-                        id: 0
-                    },
-                    AstStatement::Reference {
-                        name: "x".to_string(),
-                        location: (14..15).into(),
-                        id: 0
-                    },
+                    AstStatement::Reference { name: "a".to_string(), location: (12..13).into(), id: 0 },
+                    AstStatement::Reference { name: "x".to_string(), location: (14..15).into(), id: 0 },
                 ]
             )
         );
@@ -319,13 +309,7 @@ fn additon_of_three_variables_parsed() {
     } = statement
     {
         assert_eq!(operator, &Operator::Minus);
-        if let AstStatement::BinaryExpression {
-            operator,
-            left,
-            right,
-            ..
-        } = &**left
-        {
+        if let AstStatement::BinaryExpression { operator, left, right, .. } = &**left {
             if let AstStatement::Reference { name, .. } = &**left {
                 assert_eq!(name, "x");
             }
@@ -352,13 +336,7 @@ fn parenthesis_expressions_should_not_change_the_ast() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let AstStatement::BinaryExpression {
-        operator,
-        left,
-        right,
-        ..
-    } = statement
-    {
+    if let AstStatement::BinaryExpression { operator, left, right, .. } = statement {
         if let AstStatement::Reference { name, .. } = &**left {
             assert_eq!(name, "x");
         }
@@ -1256,11 +1234,7 @@ fn literal_int_cast(data_type: &str, value: i128) -> AstStatement {
     AstStatement::CastStatement {
         id: 0,
         location: SourceRange::undefined(),
-        target: Box::new(AstStatement::LiteralInteger {
-            id: 0,
-            location: (0..0).into(),
-            value,
-        }),
+        target: Box::new(AstStatement::LiteralInteger { id: 0, location: (0..0).into(), value }),
         type_name: data_type.to_string(),
     }
 }
@@ -2316,7 +2290,8 @@ fn wide_string_can_be_parsed() {
 
 #[test]
 fn arrays_can_be_parsed() {
-    let src = "PROGRAM buz VAR x : ARRAY[0..9] OF STRING; END_VAR x[0] := 'Hello, World!'; x[y] := ''; END_PROGRAM";
+    let src =
+        "PROGRAM buz VAR x : ARRAY[0..9] OF STRING; END_VAR x[0] := 'Hello, World!'; x[y] := ''; END_PROGRAM";
     let result = parse(src).0;
 
     let unit = &result.units[0];
@@ -2736,34 +2711,22 @@ fn literals_location_test() {
     // 1
     let location = &unit.statements[0].get_location();
     assert_eq!(location, &(12..13).into());
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "7"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "7");
 
     // 'hello'
     let location = &unit.statements[1].get_location();
     assert_eq!(location, &(15..22).into());
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "'hello'"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "'hello'");
 
     // true
     let location = &unit.statements[2].get_location();
     assert_eq!(location, &(24..28).into());
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "TRUE"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "TRUE");
 
     //3.1415
     let location = &unit.statements[3].get_location();
     assert_eq!(location, &(30..36).into());
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "3.1415"
-    )
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "3.1415")
 }
 
 #[test]
@@ -2774,22 +2737,13 @@ fn reference_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "a"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "bb"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "bb");
 
     let location = &unit.statements[2].get_location();
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "ccc"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "ccc");
 }
 
 #[test]
@@ -2807,34 +2761,19 @@ fn expressions_location_test() {
     let unit = &parse_result.implementations[0];
 
     let location = &unit.statements[0].get_location();
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "a + b"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a + b");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "x + z - y + u - v"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "x + z - y + u - v");
 
     let location = &unit.statements[2].get_location();
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "-x"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "-x");
 
     let location = &unit.statements[3].get_location();
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "1..3"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "1..3");
 
     let location = &unit.statements[4].get_location();
-    assert_eq!(
-        source[location.get_start()..location.get_end()].to_string(),
-        "a := a + 4"
-    );
+    assert_eq!(source[location.get_start()..location.get_end()].to_string(), "a := a + 4");
 }
 
 #[test]

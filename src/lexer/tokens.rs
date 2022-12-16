@@ -358,25 +358,16 @@ pub enum Token {
     )]
     LiteralDateAndTime,
 
-    #[regex(
-        "(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?",
-        ignore(case)
-    )]
+    #[regex("(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?", ignore(case))]
     LiteralTimeOfDay,
 
-    #[regex(
-        "(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+",
-        ignore(case)
-    )]
+    #[regex("(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]
     LiteralTime,
 
     #[regex("%(B|b|D|d|W|w|L|l|X|x)", super::parse_access_type)]
     DirectAccess(DirectAccessType),
 
-    #[regex(
-        r"%(I|i|Q|q|M|m|G|g)(B|b|D|d|W|w|L|l|X|x|\*)",
-        super::parse_hardware_access_type
-    )]
+    #[regex(r"%(I|i|Q|q|M|m|G|g)(B|b|D|d|W|w|L|l|X|x|\*)", super::parse_hardware_access_type)]
     HardwareAccess((HardwareAccessType, DirectAccessType)),
 
     #[regex("'((\\$.)|[^$'])*'")]

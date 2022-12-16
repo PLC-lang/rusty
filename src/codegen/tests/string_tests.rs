@@ -114,10 +114,7 @@ END_PROGRAM
 
     assert_eq!(
         result,
-        Err(Diagnostic::codegen_error(
-            "Cannot generate String-Literal for type INT",
-            (44..51).into()
-        ))
+        Err(Diagnostic::codegen_error("Cannot generate String-Literal for type INT", (44..51).into()))
     );
 }
 

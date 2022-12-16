@@ -16,9 +16,7 @@ pub struct GlobalValidator {
 
 impl GlobalValidator {
     pub fn new() -> GlobalValidator {
-        GlobalValidator {
-            diagnostics: Vec::new(),
-        }
+        GlobalValidator { diagnostics: Vec::new() }
     }
 
     /// reports a name-conflict for the given name. the locations indicate the
@@ -39,16 +37,14 @@ impl GlobalValidator {
                 .collect::<Vec<_>>();
 
             if let Some(additional_text) = additional_text {
-                self.diagnostics
-                    .push(Diagnostic::global_name_conflict_with_text(
-                        name,
-                        (*v).clone(),
-                        others,
-                        additional_text,
-                    ));
+                self.diagnostics.push(Diagnostic::global_name_conflict_with_text(
+                    name,
+                    (*v).clone(),
+                    others,
+                    additional_text,
+                ));
             } else {
-                self.diagnostics
-                    .push(Diagnostic::global_name_conflict(name, (*v).clone(), others));
+                self.diagnostics.push(Diagnostic::global_name_conflict(name, (*v).clone(), others));
             }
         }
     }
@@ -74,10 +70,7 @@ impl GlobalValidator {
     /// - member-variables
     /// - enums
     fn validate_unique_variables(&mut self, index: &Index) {
-        let globals = index
-            .get_globals()
-            .values()
-            .map(|g| (g.get_name(), &g.source_location.source_range));
+        let globals = index.get_globals().values().map(|g| (g.get_name(), &g.source_location.source_range));
         let prgs = index
             .get_pous()
             .values()
@@ -93,10 +86,7 @@ impl GlobalValidator {
             .flat_map(|it| it.entries())
             .filter(|(_, vars)| vars.len() > 1)
             .map(|(_, variables)| {
-                (
-                    variables[0].get_qualified_name(),
-                    variables.iter().map(|v| &v.source_location.source_range),
-                )
+                (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location.source_range))
             });
 
         for (name, locations) in duplication_members {
@@ -109,10 +99,7 @@ impl GlobalValidator {
             .entries()
             .filter(|(_, vars)| vars.len() > 1)
             .map(|(_, variables)| {
-                (
-                    variables[0].get_qualified_name(),
-                    variables.iter().map(|v| &v.source_location.source_range),
-                )
+                (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location.source_range))
             });
 
         for (name, locations) in duplication_enums {
@@ -122,10 +109,8 @@ impl GlobalValidator {
 
     ///validates uniqueness of datatypes (types + functionblocks + classes)
     fn validate_unique_datatypes(&mut self, index: &Index) {
-        let all_declared_types = index
-            .get_types()
-            .values()
-            .map(|dt| (dt.get_name(), &dt.location.source_range));
+        let all_declared_types =
+            index.get_types().values().map(|dt| (dt.get_name(), &dt.location.source_range));
         let all_function_blocks = index
             .get_pous()
             .values()
@@ -188,15 +173,11 @@ impl GlobalValidator {
         let pou_clusters = index
             .get_pous()
             .entries()
-            .filter(|(_, entries_per_name)| {
-                entries_per_name.iter().filter(only_toplevel_pous).count() > 1
-            })
+            .filter(|(_, entries_per_name)| entries_per_name.iter().filter(only_toplevel_pous).count() > 1)
             .map(|(name, pous)| {
                 (
                     name.as_str(),
-                    pous.iter()
-                        .filter(only_toplevel_pous)
-                        .map(|p| &p.get_location().source_range),
+                    pous.iter().filter(only_toplevel_pous).map(|p| &p.get_location().source_range),
                 )
             });
 
@@ -214,7 +195,7 @@ impl GlobalValidator {
             cluster_map.insert(name, loc);
         }
         for (name, locations) in cluster_map.entries().filter(|(_, v)| v.len() > 1) {
-            self.report_name_conflict(*name, locations, additional_text);
+            self.report_name_conflict(name, locations, additional_text);
         }
     }
 }

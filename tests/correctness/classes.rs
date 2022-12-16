@@ -47,10 +47,7 @@ fn class_reference_in_pou() {
         END_PROGRAM
         ";
 
-    let mut m = MainType {
-        cl: MyClass { x: 0, y: 0 },
-        x: 0,
-    };
+    let mut m = MainType { cl: MyClass { x: 0, y: 0 }, x: 0 };
     let _: i32 = compile_and_run(source, &mut m);
     assert_eq!(m.x, 10);
 }

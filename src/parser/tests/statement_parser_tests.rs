@@ -18,22 +18,10 @@ fn empty_statements_are_are_parsed() {
         format!(
             "{:?}",
             vec![
-                AstStatement::EmptyStatement {
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
-                AstStatement::EmptyStatement {
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
-                AstStatement::EmptyStatement {
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
-                AstStatement::EmptyStatement {
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
+                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
+                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
+                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
+                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
             ]
         ),
     );
@@ -51,27 +39,11 @@ fn empty_statements_are_parsed_before_a_statement() {
         format!(
             "{:?}",
             vec![
-                AstStatement::EmptyStatement {
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
-                AstStatement::EmptyStatement {
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
-                AstStatement::EmptyStatement {
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
-                AstStatement::EmptyStatement {
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
-                AstStatement::Reference {
-                    name: "x".into(),
-                    location: SourceRange::undefined(),
-                    id: 0
-                },
+                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
+                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
+                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
+                AstStatement::EmptyStatement { location: SourceRange::undefined(), id: 0 },
+                AstStatement::Reference { name: "x".into(), location: SourceRange::undefined(), id: 0 },
             ]
         ),
     );

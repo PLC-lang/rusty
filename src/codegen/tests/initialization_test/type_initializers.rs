@@ -293,10 +293,7 @@ fn unresolvable_types_validation() {
 
     assert_eq!(
         error,
-        Diagnostic::codegen_error(
-            "Some initial values were not generated",
-            SourceRange::undefined(),
-        )
+        Diagnostic::codegen_error("Some initial values were not generated", SourceRange::undefined(),)
     );
 }
 
@@ -350,10 +347,7 @@ fn struct_init_with_wrong_types_does_not_trigger_codegen_validation() {
 
     assert_eq!(
         error,
-        Diagnostic::codegen_error(
-            "Some initial values were not generated",
-            SourceRange::undefined()
-        )
+        Diagnostic::codegen_error("Some initial values were not generated", SourceRange::undefined())
     );
     assert_eq!(diagnostics.len(), 2);
     assert_eq!(

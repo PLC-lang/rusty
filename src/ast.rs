@@ -3,8 +3,8 @@ use crate::{
     index::Index,
     lexer::IdProvider,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
-        TIME_TYPE, USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_TYPE,
+        USINT_TYPE, VOID_TYPE,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -110,23 +110,16 @@ impl TypeNature {
                 TypeNature::Derived => matches!(other, TypeNature::Any),
                 TypeNature::Elementary => matches!(other, TypeNature::Any),
                 TypeNature::Magnitude => matches!(other, TypeNature::Elementary | TypeNature::Any),
-                TypeNature::Num => matches!(
-                    other,
-                    TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
-                ),
+                TypeNature::Num => {
+                    matches!(other, TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any)
+                }
                 TypeNature::Real => matches!(
                     other,
-                    TypeNature::Num
-                        | TypeNature::Magnitude
-                        | TypeNature::Elementary
-                        | TypeNature::Any
+                    TypeNature::Num | TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
                 ),
                 TypeNature::Int => matches!(
                     other,
-                    TypeNature::Num
-                        | TypeNature::Magnitude
-                        | TypeNature::Elementary
-                        | TypeNature::Any
+                    TypeNature::Num | TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
                 ),
                 TypeNature::Signed => matches!(
                     other,
@@ -144,20 +137,17 @@ impl TypeNature {
                         | TypeNature::Elementary
                         | TypeNature::Any
                 ),
-                TypeNature::Duration => matches!(
-                    other,
-                    TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
-                ),
+                TypeNature::Duration => {
+                    matches!(other, TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any)
+                }
                 TypeNature::Bit => matches!(other, TypeNature::Elementary | TypeNature::Any),
                 TypeNature::Chars => matches!(other, TypeNature::Elementary | TypeNature::Any),
-                TypeNature::String => matches!(
-                    other,
-                    TypeNature::Chars | TypeNature::Elementary | TypeNature::Any
-                ),
-                TypeNature::Char => matches!(
-                    other,
-                    TypeNature::Chars | TypeNature::Elementary | TypeNature::Any
-                ),
+                TypeNature::String => {
+                    matches!(other, TypeNature::Chars | TypeNature::Elementary | TypeNature::Any)
+                }
+                TypeNature::Char => {
+                    matches!(other, TypeNature::Chars | TypeNature::Elementary | TypeNature::Any)
+                }
                 TypeNature::Date => matches!(other, TypeNature::Elementary | TypeNature::Any),
             }
         }
@@ -174,12 +164,7 @@ impl TypeNature {
 
 impl DirectAccessType {
     /// Returns true if the current index is in the range for the given type
-    pub fn is_in_range(
-        &self,
-        access_index: u64,
-        data_type: &DataTypeInformation,
-        index: &Index,
-    ) -> bool {
+    pub fn is_in_range(&self, access_index: u64, data_type: &DataTypeInformation, index: &Index) -> bool {
         (self.get_bit_width() * access_index) < data_type.get_size_in_bits(index) as u64
     }
 
@@ -318,10 +303,7 @@ impl NewLines {
     ///
     pub fn get_column(&self, line: u32, offset: usize) -> u32 {
         (if line > 0 {
-            self.line_breaks
-                .get((line - 1) as usize)
-                .map(|l| offset - *l)
-                .unwrap_or(0)
+            self.line_breaks.get((line - 1) as usize).map(|l| offset - *l).unwrap_or(0)
         } else {
             offset
         }) as u32
@@ -412,8 +394,7 @@ pub struct Variable {
 impl Debug for Variable {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let mut var = f.debug_struct("Variable");
-        var.field("name", &self.name)
-            .field("data_type", &self.data_type);
+        var.field("name", &self.name).field("data_type", &self.data_type);
         if self.initializer.is_some() {
             var.field("initializer", &self.initializer);
         }
@@ -425,10 +406,7 @@ impl Debug for Variable {
 }
 
 impl Variable {
-    pub fn replace_data_type_with_reference_to(
-        &mut self,
-        type_name: String,
-    ) -> DataTypeDeclaration {
+    pub fn replace_data_type_with_reference_to(&mut self, type_name: String) -> DataTypeDeclaration {
         let new_data_type = DataTypeDeclaration::DataTypeReference {
             referenced_type: type_name,
             location: self.data_type.get_location(),
@@ -464,17 +442,12 @@ impl SourceRangeFactory {
 
     /// constructs a SourceRangeFactory used to construct SourceRanes that point into the given file_name
     pub fn for_file(file_name: &'static str) -> Self {
-        SourceRangeFactory {
-            file: Some(file_name),
-        }
+        SourceRangeFactory { file: Some(file_name) }
     }
 
     /// creates a new SourceRange using the factory's file_name
     pub fn create_range(&self, range: core::ops::Range<usize>) -> SourceRange {
-        SourceRange {
-            range,
-            file: self.file,
-        }
+        SourceRange { range, file: self.file }
     }
 }
 
@@ -502,10 +475,7 @@ impl Debug for SourceRange {
 impl SourceRange {
     /// Constructs a new SourceRange with the given range and filename
     pub fn in_file(range: core::ops::Range<usize>, file_name: &'static str) -> SourceRange {
-        SourceRange {
-            range,
-            file: Some(file_name),
-        }
+        SourceRange { range, file: Some(file_name) }
     }
 
     /// Constructs a new SourceRange without the file_name attribute
@@ -515,10 +485,7 @@ impl SourceRange {
 
     /// Constructs an undefined SourceRange with a 0..0 range and no filename
     pub fn undefined() -> SourceRange {
-        SourceRange {
-            range: 0..0,
-            file: None,
-        }
+        SourceRange { range: 0..0, file: None }
     }
 
     /// returns the start-offset of this source-range
@@ -534,10 +501,7 @@ impl SourceRange {
     /// returns a new SourceRange that spans `this` and the `other` range.
     /// In other words this results in `self.start .. other.end`
     pub fn span(&self, other: &SourceRange) -> SourceRange {
-        SourceRange {
-            range: self.get_start()..other.get_end(),
-            file: self.get_file_name(),
-        }
+        SourceRange { range: self.get_start()..other.get_end(), file: self.get_file_name() }
     }
 
     /// converts this SourceRange into a Range
@@ -564,30 +528,19 @@ impl From<std::ops::Range<usize>> for SourceRange {
 
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
-    DataTypeReference {
-        referenced_type: String,
-        location: SourceRange,
-    },
-    DataTypeDefinition {
-        data_type: DataType,
-        location: SourceRange,
-        scope: Option<String>,
-    },
+    DataTypeReference { referenced_type: String, location: SourceRange },
+    DataTypeDefinition { data_type: DataType, location: SourceRange, scope: Option<String> },
 }
 
 impl Debug for DataTypeDeclaration {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            DataTypeDeclaration::DataTypeReference {
-                referenced_type, ..
-            } => f
-                .debug_struct("DataTypeReference")
-                .field("referenced_type", referenced_type)
-                .finish(),
-            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => f
-                .debug_struct("DataTypeDefinition")
-                .field("data_type", data_type)
-                .finish(),
+            DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
+                f.debug_struct("DataTypeReference").field("referenced_type", referenced_type).finish()
+            }
+            DataTypeDeclaration::DataTypeDefinition { data_type, .. } => {
+                f.debug_struct("DataTypeDefinition").field("data_type", data_type).finish()
+            }
         }
     }
 }
@@ -595,9 +548,7 @@ impl Debug for DataTypeDeclaration {
 impl DataTypeDeclaration {
     pub fn get_name(&self) -> Option<&str> {
         match self {
-            DataTypeDeclaration::DataTypeReference {
-                referenced_type, ..
-            } => Some(referenced_type.as_str()),
+            DataTypeDeclaration::DataTypeReference { referenced_type, .. } => Some(referenced_type.as_str()),
             DataTypeDeclaration::DataTypeDefinition { data_type, .. } => data_type.get_name(),
         }
     }
@@ -693,9 +644,7 @@ impl DataType {
             | DataType::StringType { name, .. }
             | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::GenericType { name, .. } => Some(name.as_str()),
-            DataType::VarArgs {
-                referenced_type, ..
-            } => referenced_type
+            DataType::VarArgs { referenced_type, .. } => referenced_type
                 .as_ref()
                 .and_then(|it| DataTypeDeclaration::get_name(it.as_ref()))
                 .or(Some(VOID_TYPE)),
@@ -709,12 +658,12 @@ impl DataType {
         location: &SourceRange,
     ) -> Option<DataTypeDeclaration> {
         match self {
-            DataType::ArrayType {
-                referenced_type, ..
-            } => replace_reference(referenced_type, type_name, location),
-            DataType::PointerType {
-                referenced_type, ..
-            } => replace_reference(referenced_type, type_name, location),
+            DataType::ArrayType { referenced_type, .. } => {
+                replace_reference(referenced_type, type_name, location)
+            }
+            DataType::PointerType { referenced_type, .. } => {
+                replace_reference(referenced_type, type_name, location)
+            }
             _ => None,
         }
     }
@@ -728,10 +677,8 @@ fn replace_reference(
     if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
         return None;
     }
-    let new_data_type = DataTypeDeclaration::DataTypeReference {
-        referenced_type: type_name,
-        location: location.clone(),
-    };
+    let new_data_type =
+        DataTypeDeclaration::DataTypeReference { referenced_type: type_name, location: location.clone() };
     let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
     Some(*old_data_type)
 }
@@ -974,28 +921,16 @@ impl Debug for AstStatement {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue { .. } => f.debug_struct("DefaultValue").finish(),
             AstStatement::LiteralNull { .. } => f.debug_struct("LiteralNull").finish(),
-            AstStatement::LiteralInteger { value, .. } => f
-                .debug_struct("LiteralInteger")
-                .field("value", value)
-                .finish(),
-            AstStatement::LiteralDate {
-                year, month, day, ..
-            } => f
+            AstStatement::LiteralInteger { value, .. } => {
+                f.debug_struct("LiteralInteger").field("value", value).finish()
+            }
+            AstStatement::LiteralDate { year, month, day, .. } => f
                 .debug_struct("LiteralDate")
                 .field("year", year)
                 .field("month", month)
                 .field("day", day)
                 .finish(),
-            AstStatement::LiteralDateAndTime {
-                year,
-                month,
-                day,
-                hour,
-                min,
-                sec,
-                nano,
-                ..
-            } => f
+            AstStatement::LiteralDateAndTime { year, month, day, hour, min, sec, nano, .. } => f
                 .debug_struct("LiteralDateAndTime")
                 .field("year", year)
                 .field("month", month)
@@ -1005,30 +940,14 @@ impl Debug for AstStatement {
                 .field("sec", sec)
                 .field("nano", nano)
                 .finish(),
-            AstStatement::LiteralTimeOfDay {
-                hour,
-                min,
-                sec,
-                nano,
-                ..
-            } => f
+            AstStatement::LiteralTimeOfDay { hour, min, sec, nano, .. } => f
                 .debug_struct("LiteralTimeOfDay")
                 .field("hour", hour)
                 .field("min", min)
                 .field("sec", sec)
                 .field("nano", nano)
                 .finish(),
-            AstStatement::LiteralTime {
-                day,
-                hour,
-                min,
-                sec,
-                milli,
-                micro,
-                nano,
-                negative,
-                ..
-            } => f
+            AstStatement::LiteralTime { day, hour, min, sec, milli, micro, nano, negative, .. } => f
                 .debug_struct("LiteralTime")
                 .field("day", day)
                 .field("hour", hour)
@@ -1045,83 +964,46 @@ impl Debug for AstStatement {
             AstStatement::LiteralBool { value, .. } => {
                 f.debug_struct("LiteralBool").field("value", value).finish()
             }
-            AstStatement::LiteralString { value, is_wide, .. } => f
-                .debug_struct("LiteralString")
-                .field("value", value)
-                .field("is_wide", is_wide)
-                .finish(),
-            AstStatement::LiteralArray { elements, .. } => f
-                .debug_struct("LiteralArray")
-                .field("elements", elements)
-                .finish(),
-            AstStatement::Reference { name, .. } => {
-                f.debug_struct("Reference").field("name", name).finish()
+            AstStatement::LiteralString { value, is_wide, .. } => {
+                f.debug_struct("LiteralString").field("value", value).field("is_wide", is_wide).finish()
             }
-            AstStatement::QualifiedReference { elements, .. } => f
-                .debug_struct("QualifiedReference")
-                .field("elements", elements)
-                .finish(),
-            AstStatement::BinaryExpression {
-                operator,
-                left,
-                right,
-                ..
-            } => f
+            AstStatement::LiteralArray { elements, .. } => {
+                f.debug_struct("LiteralArray").field("elements", elements).finish()
+            }
+            AstStatement::Reference { name, .. } => f.debug_struct("Reference").field("name", name).finish(),
+            AstStatement::QualifiedReference { elements, .. } => {
+                f.debug_struct("QualifiedReference").field("elements", elements).finish()
+            }
+            AstStatement::BinaryExpression { operator, left, right, .. } => f
                 .debug_struct("BinaryExpression")
                 .field("operator", operator)
                 .field("left", left)
                 .field("right", right)
                 .finish(),
-            AstStatement::UnaryExpression {
-                operator, value, ..
-            } => f
-                .debug_struct("UnaryExpression")
-                .field("operator", operator)
-                .field("value", value)
-                .finish(),
-            AstStatement::ExpressionList { expressions, .. } => f
-                .debug_struct("ExpressionList")
-                .field("expressions", expressions)
-                .finish(),
-            AstStatement::RangeStatement { start, end, .. } => f
-                .debug_struct("RangeStatement")
-                .field("start", start)
-                .field("end", end)
-                .finish(),
-            AstStatement::Assignment { left, right, .. } => f
-                .debug_struct("Assignment")
-                .field("left", left)
-                .field("right", right)
-                .finish(),
-            AstStatement::OutputAssignment { left, right, .. } => f
-                .debug_struct("OutputAssignment")
-                .field("left", left)
-                .field("right", right)
-                .finish(),
-            AstStatement::CallStatement {
-                operator,
-                parameters,
-                ..
-            } => f
+            AstStatement::UnaryExpression { operator, value, .. } => {
+                f.debug_struct("UnaryExpression").field("operator", operator).field("value", value).finish()
+            }
+            AstStatement::ExpressionList { expressions, .. } => {
+                f.debug_struct("ExpressionList").field("expressions", expressions).finish()
+            }
+            AstStatement::RangeStatement { start, end, .. } => {
+                f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
+            }
+            AstStatement::Assignment { left, right, .. } => {
+                f.debug_struct("Assignment").field("left", left).field("right", right).finish()
+            }
+            AstStatement::OutputAssignment { left, right, .. } => {
+                f.debug_struct("OutputAssignment").field("left", left).field("right", right).finish()
+            }
+            AstStatement::CallStatement { operator, parameters, .. } => f
                 .debug_struct("CallStatement")
                 .field("operator", operator)
                 .field("parameters", parameters)
                 .finish(),
-            AstStatement::IfStatement {
-                blocks, else_block, ..
-            } => f
-                .debug_struct("IfStatement")
-                .field("blocks", blocks)
-                .field("else_block", else_block)
-                .finish(),
-            AstStatement::ForLoopStatement {
-                counter,
-                start,
-                end,
-                by_step,
-                body,
-                ..
-            } => f
+            AstStatement::IfStatement { blocks, else_block, .. } => {
+                f.debug_struct("IfStatement").field("blocks", blocks).field("else_block", else_block).finish()
+            }
+            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => f
                 .debug_struct("ForLoopStatement")
                 .field("counter", counter)
                 .field("start", start)
@@ -1129,83 +1011,52 @@ impl Debug for AstStatement {
                 .field("by_step", by_step)
                 .field("body", body)
                 .finish(),
-            AstStatement::WhileLoopStatement {
-                condition, body, ..
-            } => f
+            AstStatement::WhileLoopStatement { condition, body, .. } => f
                 .debug_struct("WhileLoopStatement")
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            AstStatement::RepeatLoopStatement {
-                condition, body, ..
-            } => f
+            AstStatement::RepeatLoopStatement { condition, body, .. } => f
                 .debug_struct("RepeatLoopStatement")
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            AstStatement::CaseStatement {
-                selector,
-                case_blocks,
-                else_block,
-                ..
-            } => f
+            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => f
                 .debug_struct("CaseStatement")
                 .field("selector", selector)
                 .field("case_blocks", case_blocks)
                 .field("else_block", else_block)
                 .finish(),
-            AstStatement::ArrayAccess {
-                reference, access, ..
-            } => f
-                .debug_struct("ArrayAccess")
-                .field("reference", reference)
-                .field("access", access)
-                .finish(),
-            AstStatement::PointerAccess { reference, .. } => f
-                .debug_struct("PointerAccess")
-                .field("reference", reference)
-                .finish(),
-            AstStatement::DirectAccess { access, index, .. } => f
-                .debug_struct("DirectAccess")
-                .field("access", access)
-                .field("index", index)
-                .finish(),
-            AstStatement::HardwareAccess {
-                direction,
-                access,
-                address,
-                location,
-                ..
-            } => f
+            AstStatement::ArrayAccess { reference, access, .. } => {
+                f.debug_struct("ArrayAccess").field("reference", reference).field("access", access).finish()
+            }
+            AstStatement::PointerAccess { reference, .. } => {
+                f.debug_struct("PointerAccess").field("reference", reference).finish()
+            }
+            AstStatement::DirectAccess { access, index, .. } => {
+                f.debug_struct("DirectAccess").field("access", access).field("index", index).finish()
+            }
+            AstStatement::HardwareAccess { direction, access, address, location, .. } => f
                 .debug_struct("HardwareAccess")
                 .field("direction", direction)
                 .field("access", access)
                 .field("address", address)
                 .field("location", location)
                 .finish(),
-            AstStatement::MultipliedStatement {
-                multiplier,
-                element,
-                ..
-            } => f
+            AstStatement::MultipliedStatement { multiplier, element, .. } => f
                 .debug_struct("MultipliedStatement")
                 .field("multiplier", multiplier)
                 .field("element", element)
                 .finish(),
-            AstStatement::CaseCondition { condition, .. } => f
-                .debug_struct("CaseCondition")
-                .field("condition", condition)
-                .finish(),
+            AstStatement::CaseCondition { condition, .. } => {
+                f.debug_struct("CaseCondition").field("condition", condition).finish()
+            }
             AstStatement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
             AstStatement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
             AstStatement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
-            AstStatement::CastStatement {
-                target, type_name, ..
-            } => f
-                .debug_struct("CastStatement")
-                .field("type_name", type_name)
-                .field("target", target)
-                .finish(),
+            AstStatement::CastStatement { target, type_name, .. } => {
+                f.debug_struct("CastStatement").field("type_name", type_name).field("target", target).finish()
+            }
         }
     }
 }
@@ -1235,12 +1086,8 @@ impl AstStatement {
             AstStatement::LiteralArray { location, .. } => location.clone(),
             AstStatement::Reference { location, .. } => location.clone(),
             AstStatement::QualifiedReference { elements, .. } => {
-                let first = elements
-                    .first()
-                    .map_or_else(SourceRange::undefined, |it| it.get_location());
-                let last = elements
-                    .last()
-                    .map_or_else(SourceRange::undefined, |it| it.get_location());
+                let first = elements.first().map_or_else(SourceRange::undefined, |it| it.get_location());
+                let last = elements.last().map_or_else(SourceRange::undefined, |it| it.get_location());
                 first.span(&last)
             }
             AstStatement::BinaryExpression { left, right, .. } => {
@@ -1250,12 +1097,8 @@ impl AstStatement {
             }
             AstStatement::UnaryExpression { location, .. } => location.clone(),
             AstStatement::ExpressionList { expressions, .. } => {
-                let first = expressions
-                    .first()
-                    .map_or_else(SourceRange::undefined, |it| it.get_location());
-                let last = expressions
-                    .last()
-                    .map_or_else(SourceRange::undefined, |it| it.get_location());
+                let first = expressions.first().map_or_else(SourceRange::undefined, |it| it.get_location());
+                let last = expressions.last().map_or_else(SourceRange::undefined, |it| it.get_location());
                 first.span(&last)
             }
             AstStatement::RangeStatement { start, end, .. } => {
@@ -1279,9 +1122,7 @@ impl AstStatement {
             AstStatement::WhileLoopStatement { location, .. } => location.clone(),
             AstStatement::RepeatLoopStatement { location, .. } => location.clone(),
             AstStatement::CaseStatement { location, .. } => location.clone(),
-            AstStatement::ArrayAccess {
-                reference, access, ..
-            } => {
+            AstStatement::ArrayAccess { reference, access, .. } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
                 reference_loc.span(&access_loc)
@@ -1390,12 +1231,7 @@ impl Display for Operator {
 pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
     flatten_expression_list(enum_elements)
         .into_iter()
-        .filter(|it| {
-            matches!(
-                it,
-                AstStatement::Reference { .. } | AstStatement::Assignment { .. }
-            )
-        })
+        .filter(|it| matches!(it, AstStatement::Reference { .. } | AstStatement::Assignment { .. }))
         .map(get_enum_element_name)
         .collect()
 }
@@ -1412,10 +1248,7 @@ pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
             }
         }
         _ => {
-            unreachable!(
-                "expected {:?} to be a Reference or Assignment",
-                enum_element
-            );
+            unreachable!("expected {:?} to be a Reference or Assignment", enum_element);
         }
     }
 }
@@ -1424,19 +1257,12 @@ pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
 /// It can also handle nested structures like 2(3(4,5))
 pub fn flatten_expression_list(list: &AstStatement) -> Vec<&AstStatement> {
     match list {
-        AstStatement::ExpressionList { expressions, .. } => expressions
-            .iter()
-            .by_ref()
-            .flat_map(flatten_expression_list)
-            .collect(),
-        AstStatement::MultipliedStatement {
-            multiplier,
-            element,
-            ..
-        } => iter::repeat(flatten_expression_list(element))
-            .take(*multiplier as usize)
-            .flatten()
-            .collect(),
+        AstStatement::ExpressionList { expressions, .. } => {
+            expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
+        }
+        AstStatement::MultipliedStatement { multiplier, element, .. } => {
+            iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
+        }
         _ => vec![list],
     }
 }
@@ -1506,19 +1332,11 @@ pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> A
 }
 
 pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
-    AstStatement::Reference {
-        id,
-        location: location.clone(),
-        name: name.to_string(),
-    }
+    AstStatement::Reference { id, location: location.clone(), name: name.to_string() }
 }
 
 pub fn create_literal_int(value: i128, location: &SourceRange, id: AstId) -> AstStatement {
-    AstStatement::LiteralInteger {
-        id,
-        location: location.clone(),
-        value,
-    }
+    AstStatement::LiteralInteger { id, location: location.clone(), value }
 }
 
 pub fn create_binary_expression(
@@ -1527,12 +1345,7 @@ pub fn create_binary_expression(
     right: AstStatement,
     id: AstId,
 ) -> AstStatement {
-    AstStatement::BinaryExpression {
-        id,
-        left: Box::new(left),
-        operator,
-        right: Box::new(right),
-    }
+    AstStatement::BinaryExpression { id, left: Box::new(left), operator, right: Box::new(right) }
 }
 
 pub fn create_cast_statement(
