@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use crate::{
     ast::{
-        self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, PouType,
-        SourceRange, UserTypeDeclaration, Variable, VariableBlock,
+        self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, PouType, SourceRange,
+        UserTypeDeclaration, Variable, VariableBlock,
     },
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -13,8 +13,8 @@ use crate::{
 };
 
 use self::{
-    global_validator::GlobalValidator, pou_validator::PouValidator,
-    stmt_validator::StatementValidator, variable_validator::VariableValidator,
+    global_validator::GlobalValidator, pou_validator::PouValidator, stmt_validator::StatementValidator,
+    variable_validator::VariableValidator,
 };
 
 mod global_validator;
@@ -97,28 +97,15 @@ impl Validator {
         self.global_validator.validate_unique_symbols(index);
     }
 
-    pub fn visit_unit(
-        &mut self,
-        annotations: &AnnotationMapImpl,
-        index: &Index,
-        unit: &CompilationUnit,
-    ) {
+    pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
         for pou in &unit.units {
             self.visit_pou(
                 pou,
-                &ValidationContext {
-                    ast_annotation: annotations,
-                    index,
-                    qualifier: Some(pou.name.as_str()),
-                },
+                &ValidationContext { ast_annotation: annotations, index, qualifier: Some(pou.name.as_str()) },
             );
         }
 
-        let no_context = &ValidationContext {
-            ast_annotation: annotations,
-            index,
-            qualifier: None,
-        };
+        let no_context = &ValidationContext { ast_annotation: annotations, index, qualifier: None };
         for t in &unit.types {
             self.visit_user_type_declaration(t, no_context);
         }
@@ -128,19 +115,12 @@ impl Validator {
         }
 
         for i in &unit.implementations {
-            let context = ValidationContext {
-                ast_annotation: annotations,
-                index,
-                qualifier: Some(i.name.as_str()),
-            };
+            let context =
+                ValidationContext { ast_annotation: annotations, index, qualifier: Some(i.name.as_str()) };
             if i.pou_type == PouType::Action && i.type_name == "__unknown__" {
-                self.pou_validator
-                    .diagnostics
-                    .push(Diagnostic::missing_action_container(i.location.clone()));
+                self.pou_validator.diagnostics.push(Diagnostic::missing_action_container(i.location.clone()));
             }
-            i.statements
-                .iter()
-                .for_each(|s| self.visit_statement(s, &context));
+            i.statements.iter().for_each(|s| self.visit_statement(s, &context));
         }
     }
 
@@ -160,11 +140,7 @@ impl Validator {
         }
     }
 
-    pub fn visit_variable_container(
-        &mut self,
-        context: &ValidationContext,
-        container: &VariableBlock,
-    ) {
+    pub fn visit_variable_container(&mut self, context: &ValidationContext, container: &VariableBlock) {
         self.variable_validator.validate_variable_block(container);
 
         for variable in &container.variables {
@@ -183,15 +159,9 @@ impl Validator {
         context: &ValidationContext,
         declaration: &DataTypeDeclaration,
     ) {
-        self.variable_validator
-            .validate_data_type_declaration(declaration);
+        self.variable_validator.validate_data_type_declaration(declaration);
 
-        if let DataTypeDeclaration::DataTypeDefinition {
-            data_type,
-            location,
-            ..
-        } = declaration
-        {
+        if let DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } = declaration {
             self.visit_data_type(context, data_type, location);
         }
     }
@@ -202,20 +172,16 @@ impl Validator {
         data_type: &DataType,
         location: &SourceRange,
     ) {
-        self.variable_validator
-            .validate_data_type(data_type, location);
+        self.variable_validator.validate_data_type(data_type, location);
 
         match data_type {
-            DataType::StructType { variables, .. } => variables
-                .iter()
-                .for_each(|v| self.visit_variable(context, v)),
-            DataType::ArrayType {
-                referenced_type, ..
-            } => self.visit_data_type_declaration(context, referenced_type),
-            DataType::VarArgs {
-                referenced_type: Some(referenced_type),
-                ..
-            } => {
+            DataType::StructType { variables, .. } => {
+                variables.iter().for_each(|v| self.visit_variable(context, v))
+            }
+            DataType::ArrayType { referenced_type, .. } => {
+                self.visit_data_type_declaration(context, referenced_type)
+            }
+            DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
                 self.visit_data_type_declaration(context, referenced_type.as_ref());
             }
             _ => {}
@@ -224,28 +190,23 @@ impl Validator {
 
     pub fn visit_statement(&mut self, statement: &AstStatement, context: &ValidationContext) {
         match statement {
-            AstStatement::LiteralArray {
-                elements: Some(elements),
-                ..
-            } => self.visit_statement(elements.as_ref(), context),
-            AstStatement::MultipliedStatement { element, .. } => {
-                self.visit_statement(element, context)
+            AstStatement::LiteralArray { elements: Some(elements), .. } => {
+                self.visit_statement(elements.as_ref(), context)
             }
-            AstStatement::QualifiedReference { elements, .. } => elements
-                .iter()
-                .for_each(|e| self.visit_statement(e, context)),
-            AstStatement::ArrayAccess {
-                reference, access, ..
-            } => {
+            AstStatement::MultipliedStatement { element, .. } => self.visit_statement(element, context),
+            AstStatement::QualifiedReference { elements, .. } => {
+                elements.iter().for_each(|e| self.visit_statement(e, context))
+            }
+            AstStatement::ArrayAccess { reference, access, .. } => {
                 visit_all_statements!(self, context, reference, access);
             }
             AstStatement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, context, left, right);
             }
             AstStatement::UnaryExpression { value, .. } => self.visit_statement(value, context),
-            AstStatement::ExpressionList { expressions, .. } => expressions
-                .iter()
-                .for_each(|e| self.visit_statement(e, context)),
+            AstStatement::ExpressionList { expressions, .. } => {
+                expressions.iter().for_each(|e| self.visit_statement(e, context))
+            }
             AstStatement::RangeStatement { start, end, .. } => {
                 visit_all_statements!(self, context, start, end);
             }
@@ -257,21 +218,14 @@ impl Validator {
                 self.visit_statement(left, context);
                 self.visit_statement(right, context);
             }
-            AstStatement::CallStatement {
-                parameters,
-                operator,
-                ..
-            } => {
+            AstStatement::CallStatement { parameters, operator, .. } => {
                 // visit called pou
                 self.visit_statement(operator, context);
 
                 if let Some(pou) = context.find_pou(operator) {
                     let declared_parameters = context.index.get_declared_parameters(pou.get_name());
-                    let passed_parameters = parameters
-                        .as_ref()
-                        .as_ref()
-                        .map(ast::flatten_expression_list)
-                        .unwrap_or_default();
+                    let passed_parameters =
+                        parameters.as_ref().as_ref().map(ast::flatten_expression_list).unwrap_or_default();
 
                     let mut passed_params_idx = Vec::new();
                     let mut are_implicit_parameters = true;
@@ -285,9 +239,7 @@ impl Validator {
 
                             let left = declared_parameters.get(location_in_parent);
                             let left_type = left.map(|param| {
-                                context
-                                    .index
-                                    .get_effective_type_or_void_by_name(param.get_type_name())
+                                context.index.get_effective_type_or_void_by_name(param.get_type_name())
                             });
                             let right_type = context.ast_annotation.get_type(right, context.index);
 
@@ -318,8 +270,7 @@ impl Validator {
                     }
 
                     // for PROGRAM/FB we need special inout validation
-                    if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou
-                    {
+                    if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
                         let inouts: Vec<&&VariableIndexEntry> = declared_parameters
                             .iter()
                             .filter(|p| VariableType::InOut == p.get_variable_type())
@@ -328,9 +279,7 @@ impl Validator {
                         if !inouts.is_empty() {
                             // check if all inouts were passed to the pou call
                             inouts.into_iter().for_each(|p| {
-                                if !passed_params_idx
-                                    .contains(&(p.get_location_in_parent() as usize))
-                                {
+                                if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
                                     self.stmt_validator.diagnostics.push(
                                         Diagnostic::missing_inout_parameter(
                                             p.get_name(),
@@ -348,49 +297,29 @@ impl Validator {
                     }
                 }
             }
-            AstStatement::IfStatement {
-                blocks, else_block, ..
-            } => {
+            AstStatement::IfStatement { blocks, else_block, .. } => {
                 blocks.iter().for_each(|b| {
                     self.visit_statement(b.condition.as_ref(), context);
                     b.body.iter().for_each(|s| self.visit_statement(s, context));
                 });
-                else_block
-                    .iter()
-                    .for_each(|e| self.visit_statement(e, context));
+                else_block.iter().for_each(|e| self.visit_statement(e, context));
             }
-            AstStatement::ForLoopStatement {
-                counter,
-                start,
-                end,
-                by_step,
-                body,
-                ..
-            } => {
+            AstStatement::ForLoopStatement { counter, start, end, by_step, body, .. } => {
                 visit_all_statements!(self, context, counter, start, end);
                 if let Some(by_step) = by_step {
                     self.visit_statement(by_step, context);
                 }
                 body.iter().for_each(|s| self.visit_statement(s, context));
             }
-            AstStatement::WhileLoopStatement {
-                condition, body, ..
-            } => {
+            AstStatement::WhileLoopStatement { condition, body, .. } => {
                 self.visit_statement(condition, context);
                 body.iter().for_each(|s| self.visit_statement(s, context));
             }
-            AstStatement::RepeatLoopStatement {
-                condition, body, ..
-            } => {
+            AstStatement::RepeatLoopStatement { condition, body, .. } => {
                 self.visit_statement(condition, context);
                 body.iter().for_each(|s| self.visit_statement(s, context));
             }
-            AstStatement::CaseStatement {
-                selector,
-                case_blocks,
-                else_block,
-                ..
-            } => {
+            AstStatement::CaseStatement { selector, case_blocks, else_block, .. } => {
                 self.visit_statement(selector, context);
 
                 let mut cases = HashSet::new();
@@ -412,12 +341,9 @@ impl Validator {
                     const_evaluator::evaluate(condition, context.qualifier, context.index)
                         .map_err(|err| {
                             // value evaluation and validation not possible with non constants
-                            self.stmt_validator.diagnostics.push(
-                                Diagnostic::non_constant_case_condition(
-                                    &err,
-                                    condition.get_location(),
-                                ),
-                            )
+                            self.stmt_validator
+                                .diagnostics
+                                .push(Diagnostic::non_constant_case_condition(&err, condition.get_location()))
                         })
                         .map(|v| {
                             // check for duplicates if we got a value
@@ -438,19 +364,15 @@ impl Validator {
                     b.body.iter().for_each(|s| self.visit_statement(s, context));
                 });
 
-                else_block
-                    .iter()
-                    .for_each(|s| self.visit_statement(s, context));
+                else_block.iter().for_each(|s| self.visit_statement(s, context));
             }
             AstStatement::CaseCondition { condition, .. } => {
                 // if we get here, then a `CaseCondition` is used outside a `CaseStatement`
                 // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
                 // see `control_parser` `parse_case_statement()`
-                self.stmt_validator.diagnostics.push(
-                    Diagnostic::case_condition_used_outside_case_statement(
-                        condition.get_location(),
-                    ),
-                );
+                self.stmt_validator
+                    .diagnostics
+                    .push(Diagnostic::case_condition_used_outside_case_statement(condition.get_location()));
                 self.visit_statement(condition, context)
             }
             _ => {}
@@ -478,13 +400,11 @@ impl Validator {
         if !matches!(left_type_info, DataTypeInformation::Generic { .. })
             & !typesystem::is_same_type_class(left_type_info, right_type_info, index)
         {
-            self.stmt_validator
-                .diagnostics
-                .push(Diagnostic::invalid_assignment(
-                    right_type_info.get_name(),
-                    left_type_info.get_name(),
-                    location,
-                ))
+            self.stmt_validator.diagnostics.push(Diagnostic::invalid_assignment(
+                right_type_info.get_name(),
+                left_type_info.get_name(),
+                location,
+            ))
         }
     }
 }

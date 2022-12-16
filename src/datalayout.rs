@@ -183,10 +183,7 @@ mod tests {
         ",
         );
 
-        let struct_type = index
-            .get_effective_type_by_name("MyStruct")
-            .unwrap()
-            .get_type_information();
+        let struct_type = index.get_effective_type_by_name("MyStruct").unwrap().get_type_information();
         // And the struct size takes the alignment into account
         assert_eq!(struct_type.get_size(&index).bits(), 192);
         assert_eq!(struct_type.get_alignment(&index), Bytes::new(8)) //Struct alignment is 64 by default

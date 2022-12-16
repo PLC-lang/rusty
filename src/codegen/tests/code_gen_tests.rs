@@ -1,7 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::test_utils::tests::{
-    codegen, codegen_debug_without_unwrap, generate_with_empty_program,
-};
+use crate::test_utils::tests::{codegen, codegen_debug_without_unwrap, generate_with_empty_program};
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -70,9 +68,8 @@ fn external_global_variable_generates_as_external() {
 
 #[test]
 fn two_global_variables_generates_in_separate_global_variables() {
-    let result = generate_with_empty_program(
-        "VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR",
-    );
+    let result =
+        generate_with_empty_program("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
     insta::assert_snapshot!(result);
 }
 
@@ -3116,5 +3113,56 @@ fn sub_range_check_functions() {
 
     // THEN for every assignment a check function should be called
     // with the correct type cast for parameters and return type
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn reference_to_reference_assignments_in_function_arguments() {
+    let result = codegen(
+        r#"
+    VAR_GLOBAL
+        global1 : STRUCT_params;
+        global2 : STRUCT_params;
+        global3 : STRUCT_params;
+
+        global4 : DINT;
+        global5 : STRING;
+        global6 : REAL;
+    END_VAR
+
+    TYPE STRUCT_params :
+        STRUCT
+            param1 : BOOL;
+            param2 : BOOL;
+            param3 : BOOL;
+        END_STRUCT
+    END_TYPE
+
+    PROGRAM prog
+        VAR_INPUT
+            input1 : REF_TO STRUCT_params;
+            input2 : REF_TO STRUCT_params;
+            input3 : REF_TO STRUCT_params;
+        END_VAR
+    END_PROGRAM
+
+    PROGRAM main
+        prog(
+            // ALL of these should have an identical IR representation
+            input1 := ADR(global1),
+            input2 := REF(global2),
+            input3 := &global3
+        );
+        
+        prog(
+            // These are not valid but we want to see if there's a cast involved
+            input1 := ADR(global4),
+            input2 := REF(global5),
+            input3 := &global6
+        );
+    END_PROGRAM
+    "#,
+    );
+
     insta::assert_snapshot!(result);
 }

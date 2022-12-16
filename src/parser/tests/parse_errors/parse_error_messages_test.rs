@@ -13,14 +13,7 @@ fn test_unexpected_token_error_message() {
 
     assert_eq!(
         format!("{:?}", diagnostics),
-        format!(
-            "{:?}",
-            vec![Diagnostic::unexpected_token_found(
-                "KeywordEndVar",
-                "';'",
-                (32..33).into()
-            ),]
-        )
+        format!("{:?}", vec![Diagnostic::unexpected_token_found("KeywordEndVar", "';'", (32..33).into()),])
     );
 }
 
@@ -118,10 +111,6 @@ fn test_unclosed_body_error_message() {
 
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::unexpected_token_found(
-            "KeywordEndProgram",
-            "''",
-            (46..46).into()
-        )]
+        vec![Diagnostic::unexpected_token_found("KeywordEndProgram", "''", (46..46).into())]
     );
 }

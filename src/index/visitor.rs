@@ -2,28 +2,21 @@ use super::symbol::{SymbolLocation, SymbolLocationFactory};
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::ast::{
-    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration,
-    Implementation, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
-    VariableBlockType,
+    self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
+    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
-use crate::lexer::IdProvider;
 use crate::typesystem::{self, *};
 
-pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
+pub fn visit(unit: &CompilationUnit) -> Index {
     let mut index = Index::default();
     //Create the typesystem
     let symbol_location_factory = SymbolLocationFactory::new(&unit.new_lines);
 
     //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(
-            &mut index,
-            &mut id_provider,
-            user_type,
-            &symbol_location_factory,
-        );
+        visit_data_type(&mut index, user_type, &symbol_location_factory);
     }
 
     //Create defined global variables
@@ -52,11 +45,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
         let block_type = get_declaration_type_for(block, &pou.pou_type);
         for var in &block.variables {
             let varargs = if let DataTypeDeclaration::DataTypeDefinition {
-                data_type:
-                    ast::DataType::VarArgs {
-                        referenced_type,
-                        sized,
-                    },
+                data_type: ast::DataType::VarArgs { referenced_type, sized },
                 ..
             } = &var.data_type
             {
@@ -65,11 +54,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                     .map(|it| &**it)
                     .and_then(DataTypeDeclaration::get_name)
                     .map(|it| it.to_string());
-                Some(if *sized {
-                    VarArgs::Sized(name)
-                } else {
-                    VarArgs::Unsized(name)
-                })
+                Some(if *sized { VarArgs::Sized(name) } else { VarArgs::Unsized(name) })
             } else {
                 None
             };
@@ -87,17 +72,16 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 } else {
                     var_type_name.to_string()
                 };
-                let initial_value = index
-                    .get_mut_const_expressions()
-                    .maybe_add_constant_expression(
-                        var.initializer.clone(),
-                        type_name.as_str(),
-                        Some(pou.name.clone()),
-                    );
+                let initial_value = index.get_mut_const_expressions().maybe_add_constant_expression(
+                    var.initializer.clone(),
+                    type_name.as_str(),
+                    Some(pou.name.clone()),
+                );
 
-                let binding = var.address.as_ref().and_then(|it| {
-                    HardwareBinding::from_statement(index, it, Some(pou.name.clone()))
-                });
+                let binding = var
+                    .address
+                    .as_ref()
+                    .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
 
                 index.register_member_variable(
                     MemberInfo {
@@ -119,11 +103,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
     }
 
     //register a function's return type as a member variable
-    let return_type_name = pou
-        .return_type
-        .as_ref()
-        .and_then(|it| it.get_name())
-        .unwrap_or(VOID_TYPE);
+    let return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
     if pou.return_type.is_some() {
         member_names.push(pou.get_return_name().into());
         index.register_member_variable(
@@ -292,10 +272,7 @@ fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
     let type_name = typesystem::create_internal_type_name("auto_pointer_to_", inner_type_name);
 
     //check if type was already created
-    if index
-        .find_effective_type_by_name(type_name.as_str())
-        .is_none()
-    {
+    if index.find_effective_type_by_name(type_name.as_str()).is_none() {
         //generate a pointertype for the variable
         index.register_type(typesystem::DataType {
             name: type_name.clone(),
@@ -321,9 +298,11 @@ fn visit_global_var_block(
     let linkage = block.linkage;
     for var in &block.variables {
         let target_type = var.data_type.get_name().unwrap_or_default();
-        let initializer = index
-            .get_mut_const_expressions()
-            .maybe_add_constant_expression(var.initializer.clone(), target_type, None);
+        let initializer = index.get_mut_const_expressions().maybe_add_constant_expression(
+            var.initializer.clone(),
+            target_type,
+            None,
+        );
         let variable = VariableIndexEntry::create_global(
             &var.name,
             &var.name,
@@ -334,9 +313,7 @@ fn visit_global_var_block(
         .set_constant(block.constant)
         .set_linkage(linkage)
         .set_hardware_binding(
-            var.address
-                .as_ref()
-                .and_then(|it| HardwareBinding::from_statement(index, it, None)),
+            var.address.as_ref().and_then(|it| HardwareBinding::from_statement(index, it, None)),
         );
         index.register_global_variable(&var.name, variable);
     }
@@ -355,7 +332,6 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
 
 fn visit_data_type(
     index: &mut Index,
-    id_provider: &mut IdProvider,
     type_declaration: &UserTypeDeclaration,
     symbol_location_factory: &SymbolLocationFactory,
 ) {
@@ -363,14 +339,10 @@ fn visit_data_type(
     let scope = &type_declaration.scope;
     //names should not be empty
     match data_type {
-        DataType::StructType {
-            name: Some(name),
-            variables,
-        } => {
+        DataType::StructType { name: Some(name), variables } => {
             let struct_name = name.as_str();
 
-            let member_names: Vec<String> =
-                variables.iter().map(|it| it.name.to_string()).collect();
+            let member_names: Vec<String> = variables.iter().map(|it| it.name.to_string()).collect();
 
             let type_name = name.clone();
             let information = DataTypeInformation::Struct {
@@ -379,20 +351,17 @@ fn visit_data_type(
                 source: StructSource::OriginalDeclaration,
             };
 
-            let init = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    type_declaration.initializer.clone(),
-                    type_name.as_str(),
-                    scope.clone(),
-                );
+            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                type_declaration.initializer.clone(),
+                type_name.as_str(),
+                scope.clone(),
+            );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
                 initial_value: init,
                 information,
                 nature: TypeNature::Derived,
-                location: symbol_location_factory
-                    .create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
             //Generate an initializer for the struct
             let global_struct_name = crate::index::get_initializer_name(name);
@@ -406,14 +375,10 @@ fn visit_data_type(
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
             for (count, var) in variables.iter().enumerate() {
-                if let DataTypeDeclaration::DataTypeDefinition {
-                    data_type, scope, ..
-                } = &var.data_type
-                {
+                if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } = &var.data_type {
                     //first we need to handle the inner type
                     visit_data_type(
                         index,
-                        id_provider,
                         &UserTypeDeclaration {
                             data_type: data_type.clone(),
                             initializer: None,
@@ -425,13 +390,11 @@ fn visit_data_type(
                 }
 
                 let member_type = var.data_type.get_name().expect("named variable datatype");
-                let init = index
-                    .get_mut_const_expressions()
-                    .maybe_add_constant_expression(
-                        var.initializer.clone(),
-                        member_type,
-                        scope.clone(),
-                    );
+                let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                    var.initializer.clone(),
+                    member_type,
+                    scope.clone(),
+                );
 
                 let binding = var
                     .address
@@ -455,12 +418,7 @@ fn visit_data_type(
             }
         }
 
-        DataType::EnumType {
-            name: Some(name),
-            elements,
-            numeric_type,
-            ..
-        } => {
+        DataType::EnumType { name: Some(name), elements, numeric_type, .. } => {
             let enum_name = name.as_str();
 
             let information = DataTypeInformation::Enum {
@@ -488,63 +446,45 @@ fn visit_data_type(
                 }
             }
 
-            let init = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    type_declaration.initializer.clone(),
-                    enum_name,
-                    scope.clone(),
-                );
+            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                type_declaration.initializer.clone(),
+                enum_name,
+                scope.clone(),
+            );
             index.register_type(typesystem::DataType {
                 name: enum_name.to_string(),
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
-                location: symbol_location_factory
-                    .create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
 
-        DataType::SubRangeType {
-            name: Some(name),
-            referenced_type,
-            bounds,
-        } => {
-            let information = if let Some(AstStatement::RangeStatement { start, end, .. }) = bounds
-            {
+        DataType::SubRangeType { name: Some(name), referenced_type, bounds } => {
+            let information = if let Some(AstStatement::RangeStatement { start, end, .. }) = bounds {
                 DataTypeInformation::SubRange {
                     name: name.into(),
                     referenced_type: referenced_type.into(),
                     sub_range: (*start.clone()..*end.clone()),
                 }
             } else {
-                DataTypeInformation::Alias {
-                    name: name.into(),
-                    referenced_type: referenced_type.into(),
-                }
+                DataTypeInformation::Alias { name: name.into(), referenced_type: referenced_type.into() }
             };
 
-            let init = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    type_declaration.initializer.clone(),
-                    name,
-                    scope.clone(),
-                );
+            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                type_declaration.initializer.clone(),
+                name,
+                scope.clone(),
+            );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
                 initial_value: init,
                 information,
                 nature: TypeNature::Int,
-                location: symbol_location_factory
-                    .create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
-        DataType::ArrayType {
-            name: Some(name),
-            referenced_type,
-            bounds,
-        } => {
+        DataType::ArrayType { name: Some(name), referenced_type, bounds } => {
             let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
                 .get_as_list()
                 .iter()
@@ -552,20 +492,16 @@ fn visit_data_type(
                     if let AstStatement::RangeStatement { start, end, .. } = it {
                         let constants = index.get_mut_const_expressions();
                         Ok(Dimension {
-                            start_offset: TypeSize::from_expression(
-                                constants.add_constant_expression(
-                                    *start.clone(),
-                                    typesystem::INT_TYPE.to_string(),
-                                    scope.clone(),
-                                ),
-                            ),
-                            end_offset: TypeSize::from_expression(
-                                constants.add_constant_expression(
-                                    *end.clone(),
-                                    typesystem::INT_TYPE.to_string(),
-                                    scope.clone(),
-                                ),
-                            ),
+                            start_offset: TypeSize::from_expression(constants.add_constant_expression(
+                                *start.clone(),
+                                typesystem::INT_TYPE.to_string(),
+                                scope.clone(),
+                            )),
+                            end_offset: TypeSize::from_expression(constants.add_constant_expression(
+                                *end.clone(),
+                                typesystem::INT_TYPE.to_string(),
+                                scope.clone(),
+                            )),
                         })
                     } else {
                         Err(Diagnostic::codegen_error(
@@ -583,30 +519,25 @@ fn visit_data_type(
                 dimensions,
             };
 
-            let init1 = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    type_declaration.initializer.clone(),
-                    name,
-                    scope.clone(),
-                );
+            let init1 = index.get_mut_const_expressions().maybe_add_constant_expression(
+                type_declaration.initializer.clone(),
+                name,
+                scope.clone(),
+            );
             // TODO unfortunately we cannot share const-expressions between multiple
             // index-entries
-            let init2 = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    type_declaration.initializer.clone(),
-                    name,
-                    scope.clone(),
-                );
+            let init2 = index.get_mut_const_expressions().maybe_add_constant_expression(
+                type_declaration.initializer.clone(),
+                name,
+                scope.clone(),
+            );
 
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
                 initial_value: init1,
                 information,
                 nature: TypeNature::Any,
-                location: symbol_location_factory
-                    .create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
             let global_init_name = crate::index::get_initializer_name(name);
             if init2.is_some() {
@@ -621,11 +552,7 @@ fn visit_data_type(
                 index.register_global_initializer(&global_init_name, variable);
             }
         }
-        DataType::PointerType {
-            name: Some(name),
-            referenced_type,
-            ..
-        } => {
+        DataType::PointerType { name: Some(name), referenced_type, .. } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Pointer {
                 name: name.clone(),
@@ -633,34 +560,22 @@ fn visit_data_type(
                 auto_deref: false,
             };
 
-            let init = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    type_declaration.initializer.clone(),
-                    name,
-                    scope.clone(),
-                );
+            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                type_declaration.initializer.clone(),
+                name,
+                scope.clone(),
+            );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
                 initial_value: init,
                 information,
                 nature: TypeNature::Any,
-                location: symbol_location_factory
-                    .create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
-        DataType::StringType {
-            name: Some(name),
-            size,
-            is_wide,
-            ..
-        } => {
+        DataType::StringType { name: Some(name), size, is_wide, .. } => {
             let type_name = name;
-            let encoding = if *is_wide {
-                StringEncoding::Utf16
-            } else {
-                StringEncoding::Utf8
-            };
+            let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
                 Some(AstStatement::LiteralInteger { value, .. }) => {
@@ -679,31 +594,26 @@ fn visit_data_type(
                         }),
                     };
 
-                    TypeSize::from_expression(
-                        index.get_mut_const_expressions().add_constant_expression(
-                            len_plus_1,
-                            type_name.clone(),
-                            scope.clone(),
-                        ),
-                    )
+                    TypeSize::from_expression(index.get_mut_const_expressions().add_constant_expression(
+                        len_plus_1,
+                        type_name.clone(),
+                        scope.clone(),
+                    ))
                 }
                 None => TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
             };
             let information = DataTypeInformation::String { size, encoding };
-            let init = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    type_declaration.initializer.clone(),
-                    type_name,
-                    scope.clone(),
-                );
+            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                type_declaration.initializer.clone(),
+                type_name,
+                scope.clone(),
+            );
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
                 initial_value: init,
                 information,
                 nature: TypeNature::String,
-                location: symbol_location_factory
-                    .create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
 
             if init.is_some() {
@@ -721,11 +631,7 @@ fn visit_data_type(
             }
         }
         DataType::VarArgs { .. } => {} //Varargs are not indexed,
-        DataType::GenericType {
-            name,
-            generic_symbol,
-            nature,
-        } => {
+        DataType::GenericType { name, generic_symbol, nature } => {
             let information = DataTypeInformation::Generic {
                 name: name.clone(),
                 generic_symbol: generic_symbol.clone(),
@@ -736,8 +642,7 @@ fn visit_data_type(
                 initial_value: None,
                 information,
                 nature: TypeNature::Any,
-                location: symbol_location_factory
-                    .create_symbol_location(&type_declaration.location),
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
 

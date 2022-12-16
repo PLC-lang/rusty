@@ -9,20 +9,19 @@ use lazy_static::lazy_static;
 
 use crate::{
     ast::{
-        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType,
-        SourceRange, SourceRangeFactory,
+        flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
+        SourceRangeFactory,
     },
     codegen::generators::expression_generator::{self, ExpressionCodeGenerator},
     diagnostics::Diagnostic,
     lexer::{self, IdProvider},
     parser,
     resolver::{
+        self,
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, TypeAnnotator, VisitorContext,
     },
-    typesystem::{
-        get_bigger_type, DataTypeInformation, DINT_SIZE, DINT_TYPE, REAL_TYPE, LINT_TYPE,
-    },
+    typesystem::{get_bigger_type, DataTypeInformation, DINT_SIZE, DINT_TYPE, REAL_TYPE, LINT_TYPE},
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -62,7 +61,33 @@ lazy_static! {
                 END_VAR
                 END_FUNCTION
                 ",
-                annotation: None,
+                annotation: Some(|annotator, operator, parameters, _| {
+                    let params = parameters.ok_or_else(|| Diagnostic::codegen_error("REF requires parameters", operator.get_location()))?;
+                        // Get the input and annotate it with a pointer type
+                        if let [input] = flatten_expression_list(params)[..] {
+                            let input_type = annotator.annotation_map
+                                .get_type_or_void(input, annotator.index)
+                                .get_type_information()
+                                .get_name()
+                                .to_owned();
+
+                            let ptr_type = resolver::add_pointer_type(
+                                &mut annotator.annotation_map.new_index,
+                                input_type
+                            );
+
+                            annotator.annotation_map.annotate(
+                                operator, resolver::StatementAnnotation::Function {
+                                    return_type: ptr_type, qualified_name: "REF".to_string(), call_name: None
+                                }
+                            );
+
+                            Ok(())
+                        } else {
+                            unreachable!()
+                        }
+                    }
+            ),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
@@ -294,12 +319,8 @@ lazy_static! {
     ]);
 }
 
-type AnnotationFunction = fn(
-    &mut TypeAnnotator,
-    &AstStatement,
-    Option<&AstStatement>,
-    VisitorContext,
-) -> Result<(), Diagnostic>;
+type AnnotationFunction =
+    fn(&mut TypeAnnotator, &AstStatement, Option<&AstStatement>, VisitorContext) -> Result<(), Diagnostic>;
 type GenericNameResolver = fn(&str, &[GenericBinding], &HashMap<String, GenericType>) -> String;
 type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
@@ -332,11 +353,7 @@ impl BuiltIn {
 }
 
 pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
-    let src = BUILTIN
-        .iter()
-        .map(|(_, it)| it.decl)
-        .collect::<Vec<&str>>()
-        .join(" ");
+    let src = BUILTIN.iter().map(|(_, it)| it.decl).collect::<Vec<&str>>().join(" ");
     let mut unit = parser::parse(
         lexer::lex_with_ids(&src, id_provider.clone(), SourceRangeFactory::internal()),
         LinkageType::BuiltIn,

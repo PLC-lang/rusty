@@ -27,7 +27,8 @@ fn two_action_containers_parsed() {
 
 #[test]
 fn mixed_action_types_parsed() {
-    let src = "PROGRAM foo END_PROGRAM ACTIONS foo ACTION bar END_ACTION END_ACTIONS ACTION foo.buz END_ACTION";
+    let src =
+        "PROGRAM foo END_PROGRAM ACTIONS foo ACTION bar END_ACTION END_ACTIONS ACTION foo.buz END_ACTION";
     let result = parse(src).0;
 
     let prg = &result.implementations[1];
@@ -53,8 +54,7 @@ fn actions_with_no_container_have_unknown_container() {
 
 #[test]
 fn actions_with_no_container_inherits_previous_pou() {
-    let src =
-        "PROGRAM buz END_PROGRAM PROGRAM foo END_PROGRAM ACTIONS ACTION bar END_ACTION END_ACTIONS";
+    let src = "PROGRAM buz END_PROGRAM PROGRAM foo END_PROGRAM ACTIONS ACTION bar END_ACTION END_ACTIONS";
     let (result, diagnostic) = parse(src);
     let prg = &result.implementations[0];
     assert_eq!(prg.name, "buz");

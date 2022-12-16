@@ -81,10 +81,7 @@ extern crate shell_words;
 pub(crate) const DEFAULT_OUTPUT_NAME: &str = "out";
 pub enum Target {
     System,
-    Param {
-        triple: String,
-        sysroot: Option<String>,
-    },
+    Param { triple: String, sysroot: Option<String> },
 }
 
 impl Target {
@@ -154,10 +151,7 @@ impl FormatOption {
     pub fn should_link(self) -> bool {
         matches!(
             self,
-            FormatOption::Static
-                | FormatOption::Shared
-                | FormatOption::Relocatable
-                | FormatOption::PIC
+            FormatOption::Static | FormatOption::Shared | FormatOption::Relocatable | FormatOption::PIC
         )
     }
 }
@@ -298,9 +292,7 @@ impl From<String> for FilePath {
 
 impl From<&Path> for FilePath {
     fn from(it: &Path) -> Self {
-        FilePath {
-            path: it.to_string_lossy().to_string(),
-        }
+        FilePath { path: it.to_string_lossy().to_string() }
     }
 }
 
@@ -328,10 +320,7 @@ impl SourceContainer for FilePath {
             let mut file = File::open(&self.path).map_err(|err| err.to_string())?;
             let source = create_source_code(&mut file, encoding)?;
 
-            Ok(SourceCode {
-                source,
-                path: self.path,
-            })
+            Ok(SourceCode { source, path: self.path })
         }
     }
 
@@ -362,19 +351,13 @@ impl SourceContainer for SourceCode {
 
 impl From<&str> for SourceCode {
     fn from(src: &str) -> Self {
-        SourceCode {
-            source: src.into(),
-            path: "external_file.st".into(),
-        }
+        SourceCode { source: src.into(), path: "external_file.st".into() }
     }
 }
 
 impl From<String> for SourceCode {
     fn from(source: String) -> Self {
-        SourceCode {
-            source,
-            path: "external_file.st".into(),
-        }
+        SourceCode { source, path: "external_file.st".into() }
     }
 }
 
@@ -383,12 +366,8 @@ fn create_source_code<T: Read>(
     encoding: Option<&'static Encoding>,
 ) -> Result<String, String> {
     let mut buffer = String::new();
-    let mut decoder = DecodeReaderBytesBuilder::new()
-        .encoding(encoding)
-        .build(reader);
-    decoder
-        .read_to_string(&mut buffer)
-        .map_err(|err| format!("{:}", err))?;
+    let mut decoder = DecodeReaderBytesBuilder::new().encoding(encoding).build(reader);
+    decoder.read_to_string(&mut buffer).map_err(|err| format!("{:}", err))?;
     Ok(buffer)
 }
 
@@ -421,9 +400,7 @@ fn persist_to_obj(
             reloc,
             CodeModel::Default,
         )
-        .ok_or_else(|| {
-            Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
-        });
+        .ok_or_else(|| Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined()));
 
     //Make sure all parents exist
     if let Some(parent) = output.parent() {
@@ -489,13 +466,7 @@ pub fn persist_to_shared_object(
     target: &TargetTriple,
     optimization: OptimizationLevel,
 ) -> Result<(), Diagnostic> {
-    persist_to_obj(
-        codegen,
-        output,
-        RelocMode::DynamicNoPic,
-        target,
-        optimization,
-    )
+    persist_to_obj(codegen, output, RelocMode::DynamicNoPic, target, optimization)
 }
 
 ///
@@ -509,10 +480,7 @@ pub fn persist_to_bitcode(codegen: &CodeGen, output: &Path) -> Result<(), Diagno
     if codegen.module.write_bitcode_to_path(output) {
         Ok(())
     } else {
-        Err(Diagnostic::codegen_error(
-            "Could not write bitcode to file",
-            SourceRange::undefined(),
-        ))
+        Err(Diagnostic::codegen_error("Could not write bitcode to file", SourceRange::undefined()))
     }
 }
 
@@ -525,10 +493,7 @@ pub fn persist_to_bitcode(codegen: &CodeGen, output: &Path) -> Result<(), Diagno
 /// * `output`  - The location to save the generated ir file
 pub fn persist_to_ir(codegen: &CodeGen, output: &Path) -> Result<(), Diagnostic> {
     codegen.module.print_to_file(output).map_err(|err| {
-        Diagnostic::io_write_error(
-            output.to_str().unwrap_or_default(),
-            err.to_string().as_str(),
-        )
+        Diagnostic::io_write_error(output.to_str().unwrap_or_default(), err.to_string().as_str())
     })
 }
 
@@ -552,13 +517,8 @@ fn index_module<T: SourceContainer>(
 
     // ### PHASE 1 ###
     // parse & index everything
-    let (index, mut units) = parse_and_index(
-        sources,
-        encoding,
-        &id_provider,
-        diagnostician,
-        LinkageType::Internal,
-    )?;
+    let (index, mut units) =
+        parse_and_index(sources, encoding, &id_provider, diagnostician, LinkageType::Internal)?;
     full_index.import(index);
     // import built-in types like INT, BOOL, etc.
     for data_type in get_builtin_types() {
@@ -566,23 +526,17 @@ fn index_module<T: SourceContainer>(
     }
     // import builtin functions
     let builtins = builtins::parse_built_ins(id_provider.clone());
-    full_index.import(index::visitor::visit(&builtins, id_provider.clone()));
+    full_index.import(index::visitor::visit(&builtins));
 
     all_units.append(&mut units);
 
-    let (includes_index, mut includes_units) = parse_and_index(
-        includes,
-        encoding,
-        &id_provider,
-        diagnostician,
-        LinkageType::External,
-    )?;
+    let (includes_index, mut includes_units) =
+        parse_and_index(includes, encoding, &id_provider, diagnostician, LinkageType::External)?;
     full_index.import(includes_index);
     all_units.append(&mut includes_units);
 
     // ### PHASE 1.1 resolve constant literal values
-    let (mut full_index, _unresolvables) =
-        resolver::const_evaluator::evaluate_constants(full_index);
+    let (mut full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
 
     // perform global validation
     let global_diagnostics = {
@@ -615,15 +569,7 @@ fn index_module<T: SourceContainer>(
     //Merge the new indices with the full index
     full_index.import(std::mem::take(&mut all_annotations.new_index));
 
-    Ok((
-        full_index,
-        IndexComponents {
-            id_provider,
-            all_annotations,
-            all_literals,
-            annotated_units,
-        },
-    ))
+    Ok((full_index, IndexComponents { id_provider, all_annotations, all_literals, annotated_units }))
 }
 
 ///
@@ -643,31 +589,18 @@ pub fn compile_module<'c, T: SourceContainer>(
     optimization: OptimizationLevel,
     debug_level: DebugLevel,
 ) -> Result<(Index, CodeGen<'c>), Diagnostic> {
-    let module_location = sources
-        .get(0)
-        .map(|it| it.get_location())
-        .unwrap_or("main")
-        .to_owned();
+    let module_location = sources.get(0).map(|it| it.get_location()).unwrap_or("").to_owned();
     let (full_index, mut index) = index_module(sources, includes, encoding, &mut diagnostician)?;
 
-    // ### PHASE 3 ###
-    // - codegen
-    let mut code_generator = codegen::CodeGen::new(
-        context,
-        &module_location,
-        &module_location,
-        optimization,
-        debug_level,
-    );
-
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
+    // ### PHASE 3 ###
+
+    let mut code_generator =
+        codegen::CodeGen::new(context, &module_location, &module_location, optimization, debug_level);
     //Associate the index type with LLVM types
-    let llvm_index = code_generator.generate_llvm_index(
-        &annotations,
-        index.all_literals,
-        &full_index,
-        &diagnostician,
-    )?;
+    let llvm_index =
+        code_generator.generate_llvm_index(&annotations, index.all_literals, &full_index, &diagnostician)?;
+
     for unit in index.annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
@@ -708,7 +641,7 @@ fn parse_and_index<T: SourceContainer>(
         //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result, id_provider.clone());
         //index the pou
-        index.import(index::visitor::visit(&parse_result, id_provider.clone()));
+        index.import(index::visitor::visit(&parse_result));
 
         //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
         diagnostician.register_file(location.to_string(), e.source);
@@ -727,42 +660,25 @@ fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
         })?;
 
         for p in paths {
-            let path =
-                p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {:}", err)))?;
-            sources.push(FilePath {
-                path: path.to_string_lossy().to_string(),
-            });
+            let path = p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {:}", err)))?;
+            sources.push(FilePath { path: path.to_string_lossy().to_string() });
         }
     }
     if !inputs.is_empty() && sources.is_empty() {
         return Err(Diagnostic::param_error(&format!(
             "No such file(s): {}",
-            inputs
-                .iter()
-                .map(|it| it.to_string())
-                .collect::<Vec<_>>()
-                .join(",")
+            inputs.iter().map(|it| it.to_string()).collect::<Vec<_>>().join(",")
         )));
     }
     Ok(sources)
 }
 pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagnostic> {
-    let config_options = parameters
-        .hardware_config
-        .as_ref()
-        .map(|config| ConfigurationOptions {
-            format: parameters
-                .config_format()
-                .expect("Never none for valid parameters"),
-            output: config.to_owned(),
-        });
+    let config_options = parameters.hardware_config.as_ref().map(|config| ConfigurationOptions {
+        format: parameters.config_format().expect("Never none for valid parameters"),
+        output: config.to_owned(),
+    });
 
-    if let Some(SubCommands::Build {
-        build_config,
-        build_location,
-        lib_location,
-        ..
-    }) = &parameters.commands
+    if let Some(SubCommands::Build { build_config, build_location, lib_location, .. }) = &parameters.commands
     {
         let build_config = build_config
             .as_deref()
@@ -770,31 +686,21 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             .map(PathBuf::from)
             .ok_or_else(|| unreachable!("The or plc.json means this exists"))
             .and_then(|it| env::current_dir().map(|cd| cd.join(it)))?;
-        let root = build_config
-            .parent()
-            .map(|it| Ok(it.to_path_buf()))
-            .unwrap_or_else(env::current_dir)?;
+        let root = build_config.parent().map(|it| Ok(it.to_path_buf())).unwrap_or_else(env::current_dir)?;
         env::set_var("PROJECT_ROOT", &root);
         let build_location = Path::new(build_location.as_deref().unwrap_or("build"));
         if !build_location.is_dir() {
             std::fs::create_dir_all(build_location)?;
         }
-        env::set_var("BUILD_LOCATION", &build_location);
-        let lib_location = lib_location
-            .as_deref()
-            .filter(|it| !it.is_empty())
-            .map(Path::new)
-            .unwrap_or(build_location);
+        env::set_var("BUILD_LOCATION", build_location);
+        let lib_location =
+            lib_location.as_deref().filter(|it| !it.is_empty()).map(Path::new).unwrap_or(build_location);
         // let lib_location = make_absolute(lib_location, &root);
-        env::set_var("LIB_LOCATION", &lib_location);
+        env::set_var("LIB_LOCATION", lib_location);
         let project = get_project_from_file(&build_config).map(|it| it.to_resolved(&root))?;
 
-        let input = project
-            .files
-            .first()
-            .and_then(|it| it.file_stem())
-            .and_then(OsStr::to_str)
-            .unwrap_or("out");
+        let input =
+            project.files.first().and_then(|it| it.file_stem()).and_then(OsStr::to_str).unwrap_or("out");
 
         let includes = if !project.libraries.is_empty() {
             create_file_paths(
@@ -812,11 +718,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         let compile_options = CompileOptions {
             build_location: Some(build_location.to_owned()),
             output: get_output_name(project.output.as_deref(), project.compile_type, input),
-            format: if parameters.check_only {
-                FormatOption::None
-            } else {
-                project.compile_type
-            },
+            format: if parameters.check_only { FormatOption::None } else { project.compile_type },
             optimization: parameters.optimization,
             error_format: parameters.error_format,
             debug_level: parameters.debug_level(),
@@ -833,22 +735,13 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
             .collect::<Vec<_>>();
 
         let files = create_file_paths(
-            &project
-                .files
-                .iter()
-                .map(|it| it.to_string_lossy())
-                .map(|it| it.to_string())
-                .collect::<Vec<_>>(),
+            &project.files.iter().map(|it| it.to_string_lossy()).map(|it| it.to_string()).collect::<Vec<_>>(),
         )?;
         let link_options = if parameters.compile_only {
             None
         } else {
             Some(LinkOptions {
-                libraries: project
-                    .libraries
-                    .iter()
-                    .map(|it| it.name.clone())
-                    .collect::<Vec<_>>(),
+                libraries: project.libraries.iter().map(|it| it.name.clone()).collect::<Vec<_>>(),
                 library_pathes: project
                     .libraries
                     .iter()
@@ -912,9 +805,7 @@ fn execute_commands(commands: Vec<String>) -> Result<(), Diagnostic> {
 
             env::set_current_dir(args[1].as_str())?;
         } else {
-            let output = Command::new(args[0].as_str())
-                .args(args[1..args.len()].to_vec())
-                .output()?;
+            let output = Command::new(args[0].as_str()).args(args[1..args.len()].to_vec()).output()?;
 
             io::stdout().write_all(&[b">>> ", args.join(" ").as_bytes(), b"\n"].concat())?;
 
@@ -963,44 +854,23 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     let format = parameters.output_format_or_default();
     let output = parameters.output_name();
 
-    let config_options = parameters
-        .hardware_config
-        .as_ref()
-        .map(|config| ConfigurationOptions {
-            format: parameters
-                .config_format()
-                .expect("Never none for valid parameters"),
-            output: config.to_owned(),
-        });
+    let config_options = parameters.hardware_config.as_ref().map(|config| ConfigurationOptions {
+        format: parameters.config_format().expect("Never none for valid parameters"),
+        output: config.to_owned(),
+    });
 
     let compile_options = CompileOptions {
         build_location: None,
         output,
-        format: if parameters.check_only {
-            FormatOption::None
-        } else {
-            format
-        },
+        format: if parameters.check_only { FormatOption::None } else { format },
         optimization: parameters.optimization,
         error_format: parameters.error_format,
         debug_level: parameters.debug_level(),
     };
 
-    let files = create_file_paths(
-        &parameters
-            .input
-            .iter()
-            .map(|it| it.as_str())
-            .collect::<Vec<_>>(),
-    )?;
+    let files = create_file_paths(&parameters.input.iter().map(|it| it.as_str()).collect::<Vec<_>>())?;
 
-    let includes = create_file_paths(
-        &parameters
-            .includes
-            .iter()
-            .map(|it| it.as_str())
-            .collect::<Vec<_>>(),
-    )?;
+    let includes = create_file_paths(&parameters.includes.iter().map(|it| it.as_str()).collect::<Vec<_>>())?;
 
     let link_options = if parameters.compile_only {
         None
@@ -1074,11 +944,7 @@ pub fn build_and_link(
     )?;
 
     if compile_options.format != FormatOption::None {
-        let targets = if targets.is_empty() {
-            vec![Target::System]
-        } else {
-            targets
-        };
+        let targets = if targets.is_empty() { vec![Target::System] } else { targets };
         for target in targets {
             let triple = target.get_target_triple();
             let output = if let Some(target_name) = target.try_get_name() {
@@ -1096,20 +962,15 @@ pub fn build_and_link(
             let mut objects = objects.clone();
 
             let output_name = output.to_str().unwrap_or(&compile_options.output);
-            let compile_name = Path::new(output_name)
-                .file_name()
-                .and_then(|it| it.to_str())
-                .unwrap_or("tmp.o");
-            let compile_location = if link_options
-                .as_ref()
-                .map(|it| it.format.should_link())
-                .unwrap_or_default()
-            {
-                let compile_dir = tempfile::tempdir()?;
-                compile_dir.path().join(compile_name)
-            } else {
-                PathBuf::from(output_name)
-            };
+            let compile_name =
+                Path::new(output_name).file_name().and_then(|it| it.to_str()).unwrap_or("tmp.o");
+            let compile_location =
+                if link_options.as_ref().map(|it| it.format.should_link()).unwrap_or_default() {
+                    let compile_dir = tempfile::tempdir()?;
+                    compile_dir.path().join(compile_name)
+                } else {
+                    PathBuf::from(output_name)
+                };
 
             objects.push(persist(
                 &codegen,
@@ -1185,12 +1046,8 @@ pub fn link(
     if let Some(parent) = output.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let linkable_formats = vec![
-        FormatOption::Static,
-        FormatOption::Relocatable,
-        FormatOption::Shared,
-        FormatOption::PIC,
-    ];
+    let linkable_formats =
+        vec![FormatOption::Static, FormatOption::Relocatable, FormatOption::Shared, FormatOption::PIC];
     if linkable_formats.contains(&out_format) {
         let mut linker = target
             .get_target_triple()

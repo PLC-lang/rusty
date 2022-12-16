@@ -49,12 +49,7 @@ fn method_with_defaults_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 1);
 
     let method_pou = &unit.units[1];
-    assert_eq!(
-        method_pou.pou_type,
-        PouType::Method {
-            owner_class: "MyClass".into()
-        }
-    );
+    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod");
@@ -74,12 +69,7 @@ fn method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 1);
 
     let method_pou = &unit.units[1];
-    assert_eq!(
-        method_pou.pou_type,
-        PouType::Method {
-            owner_class: "MyClass".into()
-        }
-    );
+    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod2");
@@ -109,20 +99,14 @@ fn two_methods_can_be_parsed() {
 
 #[test]
 fn method_with_return_type_can_be_parsed() {
-    let src =
-        "CLASS MyClass METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD END_CLASS";
+    let src = "CLASS MyClass METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD END_CLASS";
     let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
 
     let method_pou = &unit.units[1];
-    assert_eq!(
-        method_pou.pou_type,
-        PouType::Method {
-            owner_class: "MyClass".into()
-        }
-    );
+    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyClass".into() });
     let method = &unit.implementations[0];
     assert_eq!(unit.implementations.len(), 1);
 
@@ -231,10 +215,7 @@ fn method_with_var_inout_blocks() {
     let vblock3 = &method_pou.variable_blocks[2];
 
     assert_eq!(vblock1.constant, true);
-    assert_eq!(
-        vblock1.variable_block_type,
-        VariableBlockType::Input(ArgumentProperty::ByVal)
-    );
+    assert_eq!(vblock1.variable_block_type, VariableBlockType::Input(ArgumentProperty::ByVal));
 
     assert_eq!(vblock2.constant, false);
     assert_eq!(vblock2.variable_block_type, VariableBlockType::InOut);
@@ -257,12 +238,7 @@ fn fb_method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(
-        method_pou.pou_type,
-        PouType::Method {
-            owner_class: "MyFb".into()
-        }
-    );
+    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyFb".into() });
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyFb.testMethod2");
@@ -308,12 +284,7 @@ fn fb_method_with_return_type_can_be_parsed() {
     assert_eq!(class.pou_type, PouType::FunctionBlock);
 
     let method_pou = &unit.units[1];
-    assert_eq!(
-        method_pou.pou_type,
-        PouType::Method {
-            owner_class: "MyShinyFb".into()
-        }
-    );
+    assert_eq!(method_pou.pou_type, PouType::Method { owner_class: "MyShinyFb".into() });
     let method = &unit.implementations[0];
     assert_eq!(unit.implementations.len(), 2);
 

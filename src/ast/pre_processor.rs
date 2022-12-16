@@ -46,25 +46,17 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     for dt in unit.types.iter_mut() {
         {
             match &mut dt.data_type {
-                DataType::StructType {
-                    name, variables, ..
-                } => {
+                DataType::StructType { name, variables, .. } => {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
                     variables
                         .iter_mut()
                         .filter(|it| should_generate_implicit_type(it))
                         .for_each(|var| pre_process_variable_data_type(name, var, &mut new_types));
                 }
-                DataType::ArrayType {
-                    name,
-                    referenced_type,
-                    ..
-                }
-                | DataType::PointerType {
-                    name,
-                    referenced_type,
-                    ..
-                } if should_generate_implicit(referenced_type) => {
+                DataType::ArrayType { name, referenced_type, .. }
+                | DataType::PointerType { name, referenced_type, .. }
+                    if should_generate_implicit(referenced_type) =>
+                {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
 
                     let type_name = typesystem::create_internal_type_name("", name);
@@ -73,20 +65,12 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                         location: SourceRange::undefined(), //return_type.get_location(),
                     };
                     let datatype = std::mem::replace(referenced_type, Box::new(type_ref));
-                    if let DataTypeDeclaration::DataTypeDefinition {
-                        mut data_type,
-                        location,
-                        scope,
-                    } = *datatype
+                    if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =
+                        *datatype
                     {
                         data_type.set_name(type_name);
                         add_nested_datatypes(name, &mut data_type, &mut new_types, &location);
-                        let data_type = UserTypeDeclaration {
-                            data_type,
-                            initializer: None,
-                            location,
-                            scope,
-                        };
+                        let data_type = UserTypeDeclaration { data_type, initializer: None, location, scope };
                         new_types.push(data_type);
                     }
                 }
@@ -96,31 +80,23 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     //avoid empty statements, just use an empty expression list to make it easier to work with
                     let _ = std::mem::replace(
                         elements,
-                        AstStatement::ExpressionList {
-                            expressions: vec![],
-                            id: id_provider.next_id(),
-                        },
+                        AstStatement::ExpressionList { expressions: vec![], id: id_provider.next_id() },
                     );
                 }
-                DataType::EnumType {
-                    elements: original_elements,
-                    name: Some(enum_name),
-                    ..
-                } if !matches!(original_elements, AstStatement::EmptyStatement { .. }) => {
+                DataType::EnumType { elements: original_elements, name: Some(enum_name), .. }
+                    if !matches!(original_elements, AstStatement::EmptyStatement { .. }) =>
+                {
                     let mut last_name: Option<String> = None;
                     let initialized_enum_elements = flatten_expression_list(original_elements)
                         .iter()
                         .map(|it| match it {
-                            AstStatement::Reference { name, .. } => {
-                                (name.clone(), None, it.get_location())
-                            }
+                            AstStatement::Reference { name, .. } => (name.clone(), None, it.get_location()),
                             AstStatement::Assignment { left, right, .. } => {
-                                let name =
-                                    if let AstStatement::Reference { name, .. } = left.as_ref() {
-                                        name.clone()
-                                    } else {
-                                        unreachable!("expected reference, got {:?}", left.as_ref())
-                                    };
+                                let name = if let AstStatement::Reference { name, .. } = left.as_ref() {
+                                    name.clone()
+                                } else {
+                                    unreachable!("expected reference, got {:?}", left.as_ref())
+                                };
                                 //<element-name, initializer, location>
                                 (name, Some(*right.clone()), it.get_location())
                             }
@@ -128,12 +104,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                         })
                         .map(|(element_name, initializer, location)| {
                             let enum_literal = initializer.unwrap_or_else(|| {
-                                build_enum_initializer(
-                                    &last_name,
-                                    &location,
-                                    &mut id_provider,
-                                    enum_name,
-                                )
+                                build_enum_initializer(&last_name, &location, &mut id_provider, enum_name)
                             });
                             last_name = Some(element_name.clone());
                             AstStatement::Assignment {
@@ -203,11 +174,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
         types.push(data_type);
         generic_types.insert(binding.name.clone(), new_name);
     }
-    for var in pou
-        .variable_blocks
-        .iter_mut()
-        .flat_map(|it| it.variables.iter_mut())
-    {
+    for var in pou.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
         replace_generic_type_name(&mut var.data_type, &generic_types);
     }
     if let Some(datatype) = pou.return_type.as_mut() {
@@ -225,20 +192,11 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                 location: return_type.get_location(),
             };
             let datatype = std::mem::replace(&mut pou.return_type, Some(type_ref));
-            if let Some(DataTypeDeclaration::DataTypeDefinition {
-                mut data_type,
-                location,
-                scope,
-            }) = datatype
+            if let Some(DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope }) = datatype
             {
                 data_type.set_name(type_name);
                 add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location);
-                let data_type = UserTypeDeclaration {
-                    data_type,
-                    initializer: None,
-                    location,
-                    scope,
-                };
+                let data_type = UserTypeDeclaration { data_type, initializer: None, location, scope };
                 types.push(data_type);
             }
         }
@@ -248,10 +206,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
 fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
     match datatype {
         DataTypeDeclaration::DataTypeReference { .. } => false,
-        DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::VarArgs { .. },
-            ..
-        } => false,
+        DataTypeDeclaration::DataTypeDefinition { data_type: DataType::VarArgs { .. }, .. } => false,
         DataTypeDeclaration::DataTypeDefinition { .. } => true,
     }
 }
@@ -269,21 +224,13 @@ fn pre_process_variable_data_type(
         format!("{}_", container_name).as_str(),
         variable.name.as_str(),
     );
-    if let DataTypeDeclaration::DataTypeDefinition {
-        mut data_type,
-        location,
-        scope,
-    } = variable.replace_data_type_with_reference_to(new_type_name.clone())
+    if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =
+        variable.replace_data_type_with_reference_to(new_type_name.clone())
     {
         // create index entry
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location);
         data_type.set_name(new_type_name);
-        types.push(UserTypeDeclaration {
-            data_type,
-            initializer: None,
-            location,
-            scope,
-        });
+        types.push(UserTypeDeclaration { data_type, initializer: None, location, scope });
     }
     //make sure it gets generated
 }
@@ -295,46 +242,26 @@ fn add_nested_datatypes(
     location: &SourceRange,
 ) {
     let new_type_name = format!("{}_", container_name);
-    if let Some(DataTypeDeclaration::DataTypeDefinition {
-        mut data_type,
-        location: inner_location,
-        scope,
-    }) = datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
+    if let Some(DataTypeDeclaration::DataTypeDefinition { mut data_type, location: inner_location, scope }) =
+        datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {
         data_type.set_name(new_type_name.clone());
-        add_nested_datatypes(
-            new_type_name.as_str(),
-            &mut data_type,
-            types,
-            &inner_location,
-        );
-        types.push(UserTypeDeclaration {
-            data_type,
-            initializer: None,
-            location: location.clone(),
-            scope,
-        });
+        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &inner_location);
+        types.push(UserTypeDeclaration { data_type, initializer: None, location: location.clone(), scope });
     }
 }
 
 fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &HashMap<String, String>) {
     match dt {
         DataTypeDeclaration::DataTypeDefinition { data_type, .. } => match data_type {
-            DataType::ArrayType {
-                referenced_type, ..
+            DataType::ArrayType { referenced_type, .. }
+            | DataType::PointerType { referenced_type, .. }
+            | DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
+                replace_generic_type_name(referenced_type.as_mut(), generics)
             }
-            | DataType::PointerType {
-                referenced_type, ..
-            }
-            | DataType::VarArgs {
-                referenced_type: Some(referenced_type),
-                ..
-            } => replace_generic_type_name(referenced_type.as_mut(), generics),
             _ => {}
         },
-        DataTypeDeclaration::DataTypeReference {
-            referenced_type, ..
-        } => {
+        DataTypeDeclaration::DataTypeReference { referenced_type, .. } => {
             if let Some(type_name) = generics.get(referenced_type) {
                 *referenced_type = type_name.clone();
             }

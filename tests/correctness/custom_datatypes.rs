@@ -15,13 +15,7 @@ fn using_structs() {
         my_s: MyStruct,
     }
 
-    let mut main_data = MainType {
-        my_s: MyStruct {
-            field1: 0,
-            field2: 0,
-            field3: 0,
-        },
-    };
+    let mut main_data = MainType { my_s: MyStruct { field1: 0, field2: 0, field3: 0 } };
 
     let testcode = r#"
     TYPE MyStruct:
@@ -74,21 +68,9 @@ fn using_nested_structs() {
 
     let mut main_data = MainType {
         my_s: MyStruct {
-            mys1: MyInnerStruct {
-                field1: 0,
-                field2: 0,
-                field3: 0,
-            },
-            mys2: MyInnerStruct {
-                field1: 0,
-                field2: 0,
-                field3: 0,
-            },
-            mys3: MyInnerStruct {
-                field1: 0,
-                field2: 0,
-                field3: 0,
-            },
+            mys1: MyInnerStruct { field1: 0, field2: 0, field3: 0 },
+            mys2: MyInnerStruct { field1: 0, field2: 0, field3: 0 },
+            mys3: MyInnerStruct { field1: 0, field2: 0, field3: 0 },
         },
     };
 
@@ -151,11 +133,7 @@ fn using_enums() {
         field2: i32,
         field3: i32,
     }
-    let mut d = ThreeFields {
-        field1: 0,
-        field2: 0,
-        field3: 0,
-    };
+    let mut d = ThreeFields { field1: 0, field2: 0, field3: 0 };
 
     let testcode = r#"
     TYPE TrafficLight:
@@ -189,11 +167,7 @@ fn using_inline_enums() {
         field2: i32,
         field3: i32,
     }
-    let mut d = ThreeFields {
-        field1: 0,
-        field2: 0,
-        field3: 0,
-    };
+    let mut d = ThreeFields { field1: 0, field2: 0, field3: 0 };
 
     let testcode = r#"
     TYPE TrafficLight:
@@ -227,11 +201,7 @@ fn using_duplicate_enums_with_casts() {
         field2: u16,
         field3: u32,
     }
-    let mut d = ThreeFields {
-        field1: 0,
-        field2: 0,
-        field3: 0,
-    };
+    let mut d = ThreeFields { field1: 0, field2: 0, field3: 0 };
 
     let testcode = r#"
     TYPE MyEnum: BYTE(red := 1, yellow := 2, green := 3);
@@ -268,11 +238,7 @@ fn using_inline_enums_in_structs() {
         tf2: i32,
         tf3: i32,
     }
-    let mut data = MyStruct {
-        tf1: 0,
-        tf2: 0,
-        tf3: 0,
-    };
+    let mut data = MyStruct { tf1: 0, tf2: 0, tf3: 0 };
 
     let testcode = r#"
     TYPE TrafficLight:
@@ -311,11 +277,7 @@ fn using_inline_arrays_in_structs() {
         arr2: [i16; 8],
         arr3: [i16; 3],
     }
-    let mut data = MyStruct {
-        arr1: [0; 4],
-        arr2: [0; 8],
-        arr3: [0; 3],
-    };
+    let mut data = MyStruct { arr1: [0; 4], arr2: [0; 8], arr3: [0; 3] };
 
     let testcode = r#"
     

@@ -423,13 +423,7 @@ fn bool_array_assignments() {
         END_PROGRAM
         ";
 
-    let mut maintype = MainType {
-        x: 0,
-        b_array1: [0; 8],
-        y: 0,
-        b_array2: [0; 8],
-        z: 0,
-    };
+    let mut maintype = MainType { x: 0, b_array1: [0; 8], y: 0, b_array2: [0; 8], z: 0 };
     //Then i expect the correct array-values without leaking into neighbour segments
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(maintype.b_array1, [1, 0, 1, 0, 1, 0, 1, 0]);

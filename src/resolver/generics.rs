@@ -32,12 +32,10 @@ impl<'i> TypeAnnotator<'i> {
         //find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
         let effective_type = index.find_effective_type_info(type_name);
         let candidate = match effective_type {
-            Some(DataTypeInformation::Pointer {
-                inner_type_name, ..
-            })
-            | Some(DataTypeInformation::Array {
-                inner_type_name, ..
-            }) => index.find_effective_type_info(inner_type_name),
+            Some(DataTypeInformation::Pointer { inner_type_name, .. })
+            | Some(DataTypeInformation::Array { inner_type_name, .. }) => {
+                index.find_effective_type_info(inner_type_name)
+            }
             _ => effective_type,
         };
 
@@ -49,9 +47,7 @@ impl<'i> TypeAnnotator<'i> {
                 _ => statement,
             };
             //Find the statement's type
-            annotation_map
-                .get_type(statement, index)
-                .map(|it| (generic_symbol.as_str(), it.get_name()))
+            annotation_map.get_type(statement, index).map(|it| (generic_symbol.as_str(), it.get_name()))
         } else {
             None
         }
@@ -69,17 +65,12 @@ impl<'i> TypeAnnotator<'i> {
         parameters: Option<&AstStatement>,
         ctx: VisitorContext,
     ) {
-        if let Some(PouIndexEntry::Function { generics, .. }) =
-            self.index.find_pou(implementation_name)
-        {
+        if let Some(PouIndexEntry::Function { generics, .. }) = self.index.find_pou(implementation_name) {
             if !generics.is_empty() {
                 let generic_map = &self.derive_generic_types(generics, generics_candidates);
                 // Annotate the statement with the new function call
-                if let Some(StatementAnnotation::Function {
-                    qualified_name,
-                    return_type,
-                    ..
-                }) = self.annotation_map.get(operator)
+                if let Some(StatementAnnotation::Function { qualified_name, return_type, .. }) =
+                    self.annotation_map.get(operator)
                 {
                     // Find the generic resolver
                     let generic_name_resolver = builtins::get_builtin(qualified_name)
@@ -111,10 +102,7 @@ impl<'i> TypeAnnotator<'i> {
                                     generic_map,
                                 );
                             } else {
-                                unreachable!(
-                                    "Annotation must be a function but was {:?}",
-                                    &annotation
-                                )
+                                unreachable!("Annotation must be a function but was {:?}", &annotation)
                             }
                         }
                     }
@@ -152,33 +140,26 @@ impl<'i> TypeAnnotator<'i> {
             );
 
             //register a copy of the pou under the new name
-            self.annotation_map.new_index.register_pou(
-                PouIndexEntry::create_generated_function_entry(
-                    new_name,
-                    return_type,
-                    &[],
-                    LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
-                    generic_function.is_variadic(),
-                    generic_function.get_location().clone(),
-                ),
-            );
+            self.annotation_map.new_index.register_pou(PouIndexEntry::create_generated_function_entry(
+                new_name,
+                return_type,
+                &[],
+                LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
+                generic_function.is_variadic(),
+                generic_function.get_location().clone(),
+            ));
 
             // register the member-variables (interface) of the new function
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
             // into the concrete type (e.g. INT)
-            if let Some(generic_function_members) =
-                self.index.get_members(generic_function.get_name())
-            {
+            if let Some(generic_function_members) = self.index.get_members(generic_function.get_name()) {
                 for member in generic_function_members.values() {
-                    let new_type_name =
-                        self.find_or_create_datatype(member.get_type_name(), generics);
+                    let new_type_name = self.find_or_create_datatype(member.get_type_name(), generics);
 
                     //register the member under the new container (old: foo__T, new: foo__INT)
                     //with its new type-name (old: T, new: INT)
                     let entry = member.into_typed(new_name, &new_type_name);
-                    self.annotation_map
-                        .new_index
-                        .register_member_entry(new_name, entry);
+                    self.annotation_map.new_index.register_member_entry(new_name, entry);
                 }
             }
         }
@@ -198,21 +179,14 @@ impl<'i> TypeAnnotator<'i> {
                     .unwrap_or_else(|| member_name)
                     .to_string()
             }
-            Some(DataTypeInformation::Pointer {
-                name,
-                inner_type_name,
-                auto_deref: true,
-            }) => {
+            Some(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: true }) => {
                 // This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
                 let inner_type_name = self.find_or_create_datatype(inner_type_name, generics);
                 let name = format!("{name}__{inner_type_name}");
-                let new_type_info = DataTypeInformation::Pointer {
-                    name: name.clone(),
-                    inner_type_name,
-                    auto_deref: true,
-                };
+                let new_type_info =
+                    DataTypeInformation::Pointer { name: name.clone(), inner_type_name, auto_deref: true };
 
                 // Registers a new pointer type to the index
                 self.annotation_map.new_index.register_type(DataType {
@@ -259,9 +233,8 @@ impl<'i> TypeAnnotator<'i> {
                     {
                         // get generic type of the declared parameter this will be our type hint as the expected type
                         if let Some(generic) = generic_map.get(generic_symbol) {
-                            if let Some(datatype) = self
-                                .index
-                                .find_effective_type_by_name(generic.derived_type.as_str())
+                            if let Some(datatype) =
+                                self.index.find_effective_type_by_name(generic.derived_type.as_str())
                             {
                                 // annotate the type hint for the passed parameter
                                 self.annotation_map.annotate_type_hint(
@@ -276,10 +249,8 @@ impl<'i> TypeAnnotator<'i> {
                                 match p {
                                     AstStatement::Assignment { left, .. }
                                     | AstStatement::OutputAssignment { left, .. } => {
-                                        self.annotation_map.annotate(
-                                            left,
-                                            StatementAnnotation::value(datatype.get_name()),
-                                        );
+                                        self.annotation_map
+                                            .annotate(left, StatementAnnotation::value(datatype.get_name()));
                                     }
                                     _ => {}
                                 }
@@ -294,22 +265,13 @@ impl<'i> TypeAnnotator<'i> {
         //Get the variadic argument if any
         if let Some(dt) = self.index.get_variadic_member(function_name).map(|it| {
             //if the member is generic
-            if let Some(DataTypeInformation::Generic {
-                generic_symbol,
-                nature,
-                ..
-            }) = self.index.find_effective_type_info(it.get_type_name())
+            if let Some(DataTypeInformation::Generic { generic_symbol, nature, .. }) =
+                self.index.find_effective_type_info(it.get_type_name())
             {
                 let real_type = generic_map
                     .get(generic_symbol)
-                    .and_then(|it| {
-                        self.index
-                            .find_effective_type_by_name(it.derived_type.as_str())
-                    })
-                    .map(|datatype| TypeAndNature {
-                        datatype,
-                        nature: *nature,
-                    });
+                    .and_then(|it| self.index.find_effective_type_by_name(it.derived_type.as_str()))
+                    .map(|datatype| TypeAndNature { datatype, nature: *nature });
                 real_type
             } else {
                 None
@@ -369,84 +331,63 @@ impl<'i> TypeAnnotator<'i> {
     ) -> HashMap<String, GenericType> {
         let mut generic_map: HashMap<String, GenericType> = HashMap::new();
         for GenericBinding { name, nature } in generics {
-            let smallest_possible_type = self
-                .index
-                .find_effective_type_info(nature.get_smallest_possible_type());
+            let smallest_possible_type =
+                self.index.find_effective_type_info(nature.get_smallest_possible_type());
             //Get the current binding
             if let Some(candidates) = generics_candidates.get(name) {
                 //Find the best suiting type
                 let winner = candidates
                     .iter()
-                    .fold(
-                        smallest_possible_type,
-                        |previous_type: Option<&DataTypeInformation>, current| {
-                            let current_type = self
-                                .index
-                                .find_effective_type_info(current)
-                                // if type is not found, look for it in new index, because the type could have been created recently
-                                .or_else(|| {
-                                    self.annotation_map
-                                        .new_index
-                                        .find_effective_type_info(current)
-                                })
-                                .map(|it| {
-                                    match it {
-                                        // generic strings are a special case and need to be handled differently
-                                        DataTypeInformation::String {
-                                            encoding: StringEncoding::Utf8,
-                                            ..
-                                        } => self
-                                            .index
-                                            .find_effective_type_info(STRING_TYPE)
-                                            .unwrap_or(it),
-                                        DataTypeInformation::String {
-                                            encoding: StringEncoding::Utf16,
-                                            ..
-                                        } => self
-                                            .index
-                                            .find_effective_type_info(WSTRING_TYPE)
-                                            .unwrap_or(it),
-                                        _ => self.index.find_intrinsic_type(it),
-                                    }
-                                });
+                    .fold(smallest_possible_type, |previous_type: Option<&DataTypeInformation>, current| {
+                        let current_type = self
+                            .index
+                            .find_effective_type_info(current)
+                            // if type is not found, look for it in new index, because the type could have been created recently
+                            .or_else(|| self.annotation_map.new_index.find_effective_type_info(current))
+                            .map(|it| {
+                                match it {
+                                    // generic strings are a special case and need to be handled differently
+                                    DataTypeInformation::String {
+                                        encoding: StringEncoding::Utf8, ..
+                                    } => self.index.find_effective_type_info(STRING_TYPE).unwrap_or(it),
+                                    DataTypeInformation::String {
+                                        encoding: StringEncoding::Utf16, ..
+                                    } => self.index.find_effective_type_info(WSTRING_TYPE).unwrap_or(it),
+                                    _ => self.index.find_intrinsic_type(it),
+                                }
+                            });
 
-                            // Find bigger
-                            if let Some(current) = current_type {
-                                // check if the current type derives from the generic nature
-                                if self
-                                    .index
-                                    .find_effective_type_by_name(current.get_name())
-                                    .map(|t| {
-                                        t.has_nature(*nature, self.index)
+                        // Find bigger
+                        if let Some(current) = current_type {
+                            // check if the current type derives from the generic nature
+                            if self
+                                .index
+                                .find_effective_type_by_name(current.get_name())
+                                .map(|t| {
+                                    t.has_nature(*nature, self.index)
 										// INT parameter for REAL is allowed
                                             | (nature.is_real() & t.is_numerical())
-                                    })
-                                    .unwrap_or_default()
-                                {
-                                    // if we got the right nature we can search for the bigger type
-                                    if let Some(previous) = previous_type {
-                                        return Some(typesystem::get_bigger_type(
-                                            current, previous, self.index,
-                                        ));
-                                    } else {
-                                        // if the previous type was None just return the current
-                                        // type should be ok because of the previouse nature check
-                                        return current_type;
-                                    }
+                                })
+                                .unwrap_or_default()
+                            {
+                                // if we got the right nature we can search for the bigger type
+                                if let Some(previous) = previous_type {
+                                    return Some(typesystem::get_bigger_type(current, previous, self.index));
+                                } else {
+                                    // if the previous type was None just return the current
+                                    // type should be ok because of the previouse nature check
+                                    return current_type;
                                 }
                             }
-                            // if we didn't get the right nature return the last one
-                            previous_type
-                        },
-                    )
+                        }
+                        // if we didn't get the right nature return the last one
+                        previous_type
+                    })
                     .map(DataTypeInformation::get_name);
                 if let Some(winner) = winner {
                     generic_map.insert(
                         name.into(),
-                        GenericType {
-                            derived_type: winner.to_string(),
-                            generic_nature: *nature,
-                        },
+                        GenericType { derived_type: winner.to_string(), generic_nature: *nature },
                     );
                 }
             }
@@ -466,14 +407,9 @@ pub fn generic_name_resolver(
     generics
         .iter()
         .map(|it| {
-            generic_map
-                .get(&it.name)
-                .map(|it| it.derived_type.as_str())
-                .unwrap_or_else(|| it.name.as_str())
+            generic_map.get(&it.name).map(|it| it.derived_type.as_str()).unwrap_or_else(|| it.name.as_str())
         })
-        .fold(qualified_name.to_string(), |accum, s| {
-            format!("{accum}__{s}")
-        })
+        .fold(qualified_name.to_string(), |accum, s| format!("{accum}__{s}"))
 }
 
 /// This method returns the qualified name, but has the same signature as the generic resover to be used in builtins

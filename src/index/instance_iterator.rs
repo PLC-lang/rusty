@@ -33,20 +33,9 @@ impl<'idx> InstanceIterator<'idx> {
             index,
             current_prefix: ExpressionPath::default(),
             iterator: (Box::new(
-                index
-                    .get_globals()
-                    .values()
-                    .chain(index.get_program_instances().into_iter())
-                    .map(|it| {
-                        (
-                            it.get_qualified_name()
-                                .split('.')
-                                .last()
-                                .expect("Variable needs a name")
-                                .into(),
-                            it,
-                        )
-                    }),
+                index.get_globals().values().chain(index.get_program_instances().into_iter()).map(|it| {
+                    (it.get_qualified_name().split('.').last().expect("Variable needs a name").into(), it)
+                }),
             )) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
             inner: None,
             filter: |_, _| true,
@@ -61,20 +50,9 @@ impl<'idx> InstanceIterator<'idx> {
             index,
             current_prefix: ExpressionPath::default(),
             iterator: (Box::new(
-                index
-                    .get_globals()
-                    .values()
-                    .chain(index.get_program_instances().into_iter())
-                    .map(|it| {
-                        (
-                            it.get_qualified_name()
-                                .split('.')
-                                .last()
-                                .expect("Variable needs a name")
-                                .into(),
-                            it,
-                        )
-                    }),
+                index.get_globals().values().chain(index.get_program_instances().into_iter()).map(|it| {
+                    (it.get_qualified_name().split('.').last().expect("Variable needs a name").into(), it)
+                }),
             )) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
 
             inner: None,
@@ -90,31 +68,17 @@ impl<'idx> InstanceIterator<'idx> {
     ) -> Option<InstanceIterator<'idx>> {
         //If the container is an array, build a new iterator for that datatype with the iterations of that array as variables
         let inner_type = index.find_effective_type_info(container);
-        let (container, prefix) = if let Some(DataTypeInformation::Array {
-            inner_type_name,
-            dimensions,
-            ..
-        }) = inner_type
-        {
-            (
-                inner_type_name.as_str(),
-                current_prefix.append(dimensions.as_slice().into()),
-            )
-        } else {
-            (container, current_prefix.clone())
-        };
+        let (container, prefix) =
+            if let Some(DataTypeInformation::Array { inner_type_name, dimensions, .. }) = inner_type {
+                (inner_type_name.as_str(), current_prefix.append(dimensions.as_slice().into()))
+            } else {
+                (container, current_prefix.clone())
+            };
         index
             .get_members(container)
             .map(|it| {
                 it.values().map(|it| {
-                    (
-                        it.get_qualified_name()
-                            .split('.')
-                            .last()
-                            .expect("Variable needs a name")
-                            .into(),
-                        it,
-                    )
+                    (it.get_qualified_name().split('.').last().expect("Variable needs a name").into(), it)
                 })
             })
             .map(|iterator| InstanceIterator {

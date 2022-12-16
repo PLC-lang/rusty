@@ -32,8 +32,7 @@ fn missing_semicolon_after_call() {
     let (compilation_unit, diagnostics) = parse(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected =
-        Diagnostic::unexpected_token_found("KeywordSemicolon", "'foo()'", (76..81).into());
+    let expected = Diagnostic::unexpected_token_found("KeywordSemicolon", "'foo()'", (76..81).into());
     assert_eq!(diagnostics[0], expected);
 
     let pou = &compilation_unit.implementations[0];
@@ -160,10 +159,7 @@ fn incomplete_statement_test() {
 ]"#
     );
 
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::unexpected_token_found("Literal", ";", (41..42).into())
-    );
+    assert_eq!(diagnostics[0], Diagnostic::unexpected_token_found("Literal", ";", (41..42).into()));
 }
 
 #[test]
@@ -205,10 +201,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 ]"#
     );
 
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::unexpected_token_found("Literal", ")", (43..44).into())
-    );
+    assert_eq!(diagnostics[0], Diagnostic::unexpected_token_found("Literal", ")", (43..44).into()));
 }
 
 #[test]
@@ -240,10 +233,7 @@ fn mismatched_parantheses_recovery_test() {
 ]"#
     );
 
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::missing_token("[KeywordParensClose]", (40..41).into())
-    );
+    assert_eq!(diagnostics[0], Diagnostic::missing_token("[KeywordParensClose]", (40..41).into()));
 }
 
 #[test]
@@ -328,23 +318,11 @@ fn invalid_variable_data_type_error_recovery() {
         diagnostics,
         vec![
             Diagnostic::missing_token("KeywordColon or KeywordComma", (53..54).into()),
-            Diagnostic::unexpected_token_found(
-                "DataTypeDefinition",
-                "KeywordSemicolon",
-                (61..62).into()
-            ),
+            Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordSemicolon", (61..62).into()),
             Diagnostic::missing_token("KeywordColon", (108..109).into()),
-            Diagnostic::unexpected_token_found(
-                "DataTypeDefinition",
-                "KeywordComma",
-                (108..109).into()
-            ),
+            Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordComma", (108..109).into()),
             Diagnostic::unexpected_token_found("KeywordSemicolon", "', : INT'", (108..115).into()),
-            Diagnostic::unexpected_token_found(
-                "DataTypeDefinition",
-                "KeywordSemicolon",
-                (143..144).into()
-            ),
+            Diagnostic::unexpected_token_found("DataTypeDefinition", "KeywordSemicolon", (143..144).into()),
         ]
     );
 }
@@ -385,10 +363,7 @@ fn test_nested_if_with_missing_end_if() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::missing_token(
-                "[KeywordEndIf, KeywordElseIf, KeywordElse]",
-                (145..156).into()
-            ),
+            Diagnostic::missing_token("[KeywordEndIf, KeywordElseIf, KeywordElse]", (145..156).into()),
             Diagnostic::unexpected_token_found("KeywordEndIf", "'END_PROGRAM'", (145..156).into()),
         ]
     );
@@ -575,11 +550,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                AstStatement::Assignment {
-                    left: Box::new(ref_to("y")),
-                    right: Box::new(ref_to("x")),
-                    id: 0
-                }
+                AstStatement::Assignment { left: Box::new(ref_to("y")), right: Box::new(ref_to("x")), id: 0 }
             ]
         )
     );
@@ -656,11 +627,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
         vec![
             Diagnostic::unexpected_token_found("Literal", "END_PROGRAM", (171..182).into()),
             Diagnostic::missing_token("[KeywordEndRepeat]", (171..182).into()),
-            Diagnostic::unexpected_token_found(
-                "KeywordEndRepeat",
-                "'END_PROGRAM'",
-                (171..182).into()
-            ),
+            Diagnostic::unexpected_token_found("KeywordEndRepeat", "'END_PROGRAM'", (171..182).into()),
         ]
     );
 
@@ -713,11 +680,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
         diagnostics,
         vec![
             Diagnostic::missing_token("[KeywordEndRepeat]", (177..188).into()),
-            Diagnostic::unexpected_token_found(
-                "KeywordEndRepeat",
-                "'END_PROGRAM'",
-                (177..188).into()
-            ),
+            Diagnostic::unexpected_token_found("KeywordEndRepeat", "'END_PROGRAM'", (177..188).into()),
         ]
     );
 
@@ -801,11 +764,7 @@ fn test_while_with_missing_semicolon_in_body() {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                AstStatement::Assignment {
-                    left: Box::new(ref_to("y")),
-                    right: Box::new(ref_to("x")),
-                    id: 0
-                }
+                AstStatement::Assignment { left: Box::new(ref_to("y")), right: Box::new(ref_to("x")), id: 0 }
             ]
         )
     );
@@ -828,11 +787,7 @@ fn test_nested_while_with_missing_end_while() {
         diagnostics,
         vec![
             Diagnostic::missing_token("[KeywordEndWhile]", (156..167).into()),
-            Diagnostic::unexpected_token_found(
-                "KeywordEndWhile",
-                "'END_PROGRAM'",
-                (156..167).into()
-            ),
+            Diagnostic::unexpected_token_found("KeywordEndWhile", "'END_PROGRAM'", (156..167).into()),
         ]
     );
 
@@ -883,10 +838,7 @@ fn test_while_with_missing_do() {
     ";
     let (unit, diagnostics) = parse(src);
 
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::missing_token("KeywordDo", (55..56).into()),]
-    );
+    assert_eq!(diagnostics, vec![Diagnostic::missing_token("KeywordDo", (55..56).into()),]);
 
     assert_eq!(
         format!("{:#?}", unit.implementations[0].statements),
@@ -997,14 +949,7 @@ fn test_case_without_condition() {
 ]"#
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::unexpected_token_found(
-            "Literal",
-            ":",
-            (85..86).into()
-        )]
-    );
+    assert_eq!(diagnostics, vec![Diagnostic::unexpected_token_found("Literal", ":", (85..86).into())]);
 }
 
 #[test]
@@ -1028,10 +973,7 @@ fn pointer_type_without_to_test() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(
-        format!("{:#?}", expected),
-        format!("{:#?}", pointer_type).as_str()
-    );
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pointer_type).as_str());
 
     assert_eq!(
         vec![
@@ -1066,10 +1008,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(
-        format!("{:#?}", expected),
-        format!("{:#?}", pointer_type).as_str()
-    );
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pointer_type).as_str());
     assert_eq!(
         vec![
             Diagnostic::ImprovementSuggestion {

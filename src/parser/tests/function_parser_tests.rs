@@ -1,6 +1,4 @@
-use crate::{
-    ast::*, parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE, Diagnostic,
-};
+use crate::{ast::*, parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE, Diagnostic};
 use pretty_assertions::*;
 
 #[test]
@@ -187,10 +185,7 @@ fn varargs_parameters_can_be_parsed() {
            ";
     let (parse_result, diagnostics) = parse(src);
 
-    assert_eq!(
-        format!("{:#?}", diagnostics),
-        format!("{:#?}", Vec::<Diagnostic>::new()).as_str()
-    );
+    assert_eq!(format!("{:#?}", diagnostics), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
 
     let x = &parse_result.units[0];
     let expected = Pou {
@@ -211,10 +206,7 @@ fn varargs_parameters_can_be_parsed() {
                 Variable {
                     name: "args1".into(),
                     data_type: DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::VarArgs {
-                            referenced_type: None,
-                            sized: false,
-                        },
+                        data_type: DataType::VarArgs { referenced_type: None, sized: false },
                         location: SourceRange::undefined(),
                         scope: Some("foo".into()),
                     },
@@ -226,12 +218,10 @@ fn varargs_parameters_can_be_parsed() {
                     name: "args2".into(),
                     data_type: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs {
-                            referenced_type: Some(Box::new(
-                                DataTypeDeclaration::DataTypeReference {
-                                    referenced_type: "INT".into(),
-                                    location: SourceRange::undefined(),
-                                },
-                            )),
+                            referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
+                                referenced_type: "INT".into(),
+                                location: SourceRange::undefined(),
+                            })),
                             sized: false,
                         },
                         location: SourceRange::undefined(),
@@ -264,10 +254,7 @@ fn sized_varargs_parameters_can_be_parsed() {
            ";
     let (parse_result, diagnostics) = parse(src);
 
-    assert_eq!(
-        format!("{:#?}", diagnostics),
-        format!("{:#?}", Vec::<Diagnostic>::new()).as_str()
-    );
+    assert_eq!(format!("{:#?}", diagnostics), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
 
     let x = &parse_result.units[0];
     let expected = Pou {
@@ -288,10 +275,7 @@ fn sized_varargs_parameters_can_be_parsed() {
                 Variable {
                     name: "args1".into(),
                     data_type: DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::VarArgs {
-                            referenced_type: None,
-                            sized: true,
-                        },
+                        data_type: DataType::VarArgs { referenced_type: None, sized: true },
                         location: SourceRange::undefined(),
                         scope: Some("foo".into()),
                     },
@@ -303,12 +287,10 @@ fn sized_varargs_parameters_can_be_parsed() {
                     name: "args2".into(),
                     data_type: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs {
-                            referenced_type: Some(Box::new(
-                                DataTypeDeclaration::DataTypeReference {
-                                    referenced_type: "INT".into(),
-                                    location: SourceRange::undefined(),
-                                },
-                            )),
+                            referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
+                                referenced_type: "INT".into(),
+                                location: SourceRange::undefined(),
+                            })),
                             sized: true,
                         },
                         location: SourceRange::undefined(),
@@ -455,64 +437,59 @@ fn function_inline_enum_return_unsupported() {
     // THEN there should be one diagnostic -> unsupported return type
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::function_unsupported_return_type(
-            &DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::EnumType {
-                    name: None,
-                    numeric_type: DINT_TYPE.to_string(),
-                    elements: AstStatement::ExpressionList {
-                        expressions: vec![ref_to("green"), ref_to("yellow"), ref_to("red")],
-                        id: 0,
-                    }
-                },
-                location: (15..35).into(),
-                scope: Some("foo".into()),
-            }
-        )]
+        vec![Diagnostic::function_unsupported_return_type(&DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::EnumType {
+                name: None,
+                numeric_type: DINT_TYPE.to_string(),
+                elements: AstStatement::ExpressionList {
+                    expressions: vec![ref_to("green"), ref_to("yellow"), ref_to("red")],
+                    id: 0,
+                }
+            },
+            location: (15..35).into(),
+            scope: Some("foo".into()),
+        })]
     );
 }
 
 #[test]
 fn function_inline_struct_return_unsupported() {
     // GIVEN FUNCTION returning an inline STRUCT
-    let function =
-        "FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION";
+    let function = "FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION";
     // WHEN parsing is done
     let (_parse_result, diagnostics) = parse(function);
     // THEN there should be one diagnostic -> unsupported return type
-    assert!(
-        diagnostics.contains(&Diagnostic::function_unsupported_return_type(
-            &DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::StructType {
-                    name: None,
-                    variables: vec![
-                        Variable {
-                            name: "x".into(),
+    assert!(diagnostics.contains(&Diagnostic::function_unsupported_return_type(
+        &DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::StructType {
+                name: None,
+                variables: vec![
+                    Variable {
+                        name: "x".into(),
+                        location: SourceRange::undefined(),
+                        data_type: DataTypeDeclaration::DataTypeReference {
                             location: SourceRange::undefined(),
-                            data_type: DataTypeDeclaration::DataTypeReference {
-                                location: SourceRange::undefined(),
-                                referenced_type: "INT".into()
-                            },
-                            initializer: None,
-                            address: None,
+                            referenced_type: "INT".into()
                         },
-                        Variable {
-                            name: "y".into(),
+                        initializer: None,
+                        address: None,
+                    },
+                    Variable {
+                        name: "y".into(),
+                        location: SourceRange::undefined(),
+                        data_type: DataTypeDeclaration::DataTypeReference {
                             location: SourceRange::undefined(),
-                            data_type: DataTypeDeclaration::DataTypeReference {
-                                location: SourceRange::undefined(),
-                                referenced_type: "INT".into()
-                            },
-                            initializer: None,
-                            address: None,
-                        }
-                    ],
-                },
-                location: (15..50).into(),
-                scope: Some("foo".into()),
-            }
-        ))
-    );
+                            referenced_type: "INT".into()
+                        },
+                        initializer: None,
+                        address: None,
+                    }
+                ],
+            },
+            location: (15..50).into(),
+            scope: Some("foo".into()),
+        }
+    )));
 }
 
 #[test]

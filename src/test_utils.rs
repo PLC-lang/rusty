@@ -13,9 +13,7 @@ pub mod tests {
         index::{self, Index},
         lexer::{self, IdProvider},
         parser,
-        resolver::{
-            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator,
-        },
+        resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
         DebugLevel, SourceContainer, Validator,
     };
@@ -44,19 +42,14 @@ pub mod tests {
 
     /// creates a diagnostician that just saves passed diagnostics, it is mainly used in tests
     #[cfg(test)]
-    pub fn list_based_diagnostician(
-        diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>,
-    ) -> Diagnostician {
+    pub fn list_based_diagnostician(diagnostics: Rc<RefCell<Vec<ResolvedDiagnostics>>>) -> Diagnostician {
         use std::collections::HashMap;
 
         use crate::diagnostics::DefaultDiagnosticAssessor;
 
         Diagnostician {
             assessor: Box::new(DefaultDiagnosticAssessor::default()),
-            reporter: Box::new(ListBasedDiagnosticReporter {
-                diagnostics,
-                ..Default::default()
-            }),
+            reporter: Box::new(ListBasedDiagnosticReporter { diagnostics, ..Default::default() }),
             filename_fileid_mapping: HashMap::new(),
         }
     }
@@ -85,7 +78,7 @@ pub mod tests {
         //Import builtins
         let builtins = builtins::parse_built_ins(id_provider.clone());
 
-        index.import(index::visitor::visit(&builtins, id_provider.clone()));
+        index.import(index::visitor::visit(&builtins));
         // import built-in types like INT, BOOL, etc.
         for data_type in get_builtin_types() {
             index.register_type(data_type);
@@ -96,8 +89,8 @@ pub mod tests {
             ast::LinkageType::Internal,
             "test.st",
         );
-        ast::pre_process(&mut unit, id_provider.clone());
-        index.import(index::visitor::visit(&unit, id_provider));
+        ast::pre_process(&mut unit, id_provider);
+        index.import(index::visitor::visit(&unit));
         (unit, index)
     }
 
@@ -135,9 +128,7 @@ pub mod tests {
     }
 
     pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
-        codegen_debug_without_unwrap(src, DebugLevel::None)
-            .map(|(it, _)| it)
-            .map_err(|(_, err)| err)
+        codegen_debug_without_unwrap(src, DebugLevel::None).map(|(it, _)| it).map_err(|(_, err)| err)
     }
 
     /// Returns either a string or an error, in addition it always returns
@@ -154,8 +145,7 @@ pub mod tests {
         let (unit, index) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
-        let (mut annotations, literals) =
-            TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+        let (mut annotations, literals) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();
@@ -174,12 +164,7 @@ pub mod tests {
         code_generator
             .generate(&unit, &annotations, &index, &llvm_index)
             .and_then(|_| code_generator.finalize())
-            .map(|_| {
-                (
-                    code_generator.module.print_to_string().to_string(),
-                    diagnostics.take(),
-                )
-            })
+            .map(|_| (code_generator.module.print_to_string().to_string(), diagnostics.take()))
             .map_err(|err| (diagnostics.take(), err))
     }
 
@@ -205,6 +190,7 @@ pub mod tests {
         includes: Vec<T>,
         encoding: Option<&'static Encoding>,
         diagnostician: Diagnostician,
+        debug_level: DebugLevel,
     ) -> Result<String, Diagnostic> {
         let context = Context::create();
         let (_, cg) = crate::compile_module(
@@ -214,7 +200,7 @@ pub mod tests {
             encoding,
             diagnostician,
             crate::OptimizationLevel::None,
-            crate::DebugLevel::None,
+            debug_level,
         )?;
         Ok(cg.module.print_to_string().to_string())
     }

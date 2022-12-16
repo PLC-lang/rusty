@@ -18,14 +18,7 @@ struct ThreeInts {
 }
 
 fn new() -> MainType {
-    MainType {
-        x: 0,
-        x_: 0,
-        y: false,
-        y_: false,
-        z: 0.0,
-        z_: 0.0,
-    }
+    MainType { x: 0, x_: 0, y: false, y_: false, z: 0.0, z_: 0.0 }
 }
 #[test]
 fn initial_values_of_programs_members() {
@@ -441,12 +434,7 @@ fn initial_values_in_multi_dimension_array_variable() {
             a3 := a[1,4];
         END_PROGRAM";
 
-    let mut maintype: MultiDimArrayProgram = MultiDimArrayProgram {
-        a0: 0,
-        a1: 0,
-        a2: 0,
-        a3: 0,
-    };
+    let mut maintype: MultiDimArrayProgram = MultiDimArrayProgram { a0: 0, a1: 0, a2: 0, a3: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(1, maintype.a0);
@@ -497,16 +485,8 @@ fn initial_values_in_array_of_array_variable() {
             a8 := a[1][1][1];
         END_PROGRAM";
 
-    let mut maintype: ArrayOfArrayProgram = ArrayOfArrayProgram {
-        a1: 0,
-        a2: 0,
-        a3: 0,
-        a4: 0,
-        a5: 0,
-        a6: 0,
-        a7: 0,
-        a8: 0,
-    };
+    let mut maintype: ArrayOfArrayProgram =
+        ArrayOfArrayProgram { a1: 0, a2: 0, a3: 0, a4: 0, a5: 0, a6: 0, a7: 0, a8: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(1, maintype.a1);
@@ -550,12 +530,7 @@ fn real_initial_values_in_array_variable() {
             r2 := r[1];
         END_PROGRAM";
 
-    let mut maintype = RealsAndFloats {
-        f1: 0.0,
-        f2: 0.0,
-        r1: 0.0,
-        r2: 0.0,
-    };
+    let mut maintype = RealsAndFloats { f1: 0.0, f2: 0.0, r1: 0.0, r2: 0.0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     assert_almost_eq!(9.1415, maintype.f1, f32::EPSILON);
@@ -615,13 +590,7 @@ fn initialization_of_complex_struct_instance() {
         END_PROGRAM
         ";
 
-    let mut maintype = StructProgram {
-        x: 0,
-        y: 0,
-        arr1: 0,
-        arr3: 0,
-        f: 0.0,
-    };
+    let mut maintype = StructProgram { x: 0, y: 0, arr1: 0, arr3: 0, f: 0.0 };
 
     let _: i32 = compile_and_run(src.to_string(), &mut maintype);
     assert_eq!(1, maintype.x);
@@ -674,13 +643,7 @@ fn initialization_of_complex_struct_instance_using_defaults() {
         END_PROGRAM
         ";
 
-    let mut maintype = StructProgram {
-        x: 0,
-        y: 0,
-        arr1: 0,
-        arr3: 0,
-        f: 0.0,
-    };
+    let mut maintype = StructProgram { x: 0, y: 0, arr1: 0, arr3: 0, f: 0.0 };
 
     let _: i32 = compile_and_run(src.to_string(), &mut maintype);
     assert_eq!(1, maintype.x);
@@ -743,11 +706,8 @@ fn initialization_of_string_variables() {
     };
 
     let _: i32 = compile_and_run(src.to_string(), &mut maintype);
-    assert_eq!(
-        &maintype.mystring1[0..8],
-        [97, 98, 99, 100, 101, 102, 103, 0]
-    ); // abcdefg
-       // assert_eq!(&maintype.mystring1[9..26], [0; 17]); //rest is blank
+    assert_eq!(&maintype.mystring1[0..8], [97, 98, 99, 100, 101, 102, 103, 0]); // abcdefg
+                                                                                // assert_eq!(&maintype.mystring1[9..26], [0; 17]); //rest is blank
 
     assert_eq!(&maintype.mystring2[0..8], [65, 66, 67, 68, 69, 70, 71, 0]); // ABCDEFG
                                                                             // assert_eq!(&maintype.mystring2[9..26], [0; 17]); //rest is blank
@@ -757,11 +717,9 @@ fn initialization_of_string_variables() {
     assert_eq!(maintype.string2[0..6], [113, 119, 101, 114, 116, 0]); // qwert
                                                                       // assert_eq!(maintype.string2[7..81], [0; 74]); // rest is blank
 
-    assert_eq!(
-        maintype.string3[0..6],
-        [113 - 32, 119 - 32, 101 - 32, 114 - 32, 116 - 32, 0]
-    ); // QWERT
-       // assert_eq!(maintype.string3[7..21], [0; 14]); // rest is blank
+    assert_eq!(maintype.string3[0..6], [113 - 32, 119 - 32, 101 - 32, 114 - 32, 116 - 32, 0]);
+    // QWERT
+    // assert_eq!(maintype.string3[7..21], [0; 14]); // rest is blank
 }
 
 #[derive(Debug, PartialEq)]
@@ -812,12 +770,7 @@ fn initialization_of_function_variables() {
         END_PROGRAM
         ";
 
-    let mut maintype = FourInts {
-        a: 0,
-        b: 0,
-        c: 0,
-        d: 0,
-    };
+    let mut maintype = FourInts { a: 0, b: 0, c: 0, d: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
@@ -856,12 +809,7 @@ fn initialization_of_struct_in_fb() {
         END_PROGRAM
         ";
 
-    let mut maintype = FourInts {
-        a: 0,
-        b: 0,
-        c: 0,
-        d: 0,
-    };
+    let mut maintype = FourInts { a: 0, b: 0, c: 0, d: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
@@ -896,12 +844,7 @@ fn initialization_of_struct_in_prg() {
         END_PROGRAM
         ";
 
-    let mut maintype = FourInts {
-        a: 0,
-        b: 0,
-        c: 0,
-        d: 0,
-    };
+    let mut maintype = FourInts { a: 0, b: 0, c: 0, d: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
@@ -955,12 +898,7 @@ fn initialization_of_struct_ref_in_fb_in_function() {
         END_PROGRAM
         ";
 
-    let mut maintype = FourInts {
-        a: 0,
-        b: 0,
-        c: 0,
-        d: 0,
-    };
+    let mut maintype = FourInts { a: 0, b: 0, c: 0, d: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
@@ -1008,12 +946,7 @@ fn initialization_of_struct_ref_in_function() {
         END_PROGRAM
         ";
 
-    let mut maintype = FourInts {
-        a: 0,
-        b: 0,
-        c: 0,
-        d: 0,
-    };
+    let mut maintype = FourInts { a: 0, b: 0, c: 0, d: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
@@ -1059,12 +992,7 @@ fn initialization_of_struct_in_function() {
         END_PROGRAM
         ";
 
-    let mut maintype = FourInts {
-        a: 0,
-        b: 0,
-        c: 0,
-        d: 0,
-    };
+    let mut maintype = FourInts { a: 0, b: 0, c: 0, d: 0 };
 
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
@@ -1100,22 +1028,9 @@ fn initialized_array_in_function() {
         END_PROGRAM
         ";
 
-    let mut maintype = FourInts {
-        a: 0,
-        b: 0,
-        c: 0,
-        d: 0,
-    };
+    let mut maintype = FourInts { a: 0, b: 0, c: 0, d: 0 };
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
-    assert_eq!(
-        FourInts {
-            a: 77,
-            b: 20,
-            c: 300,
-            d: 4000
-        },
-        maintype
-    );
+    assert_eq!(FourInts { a: 77, b: 20, c: 300, d: 4000 }, maintype);
 }
 
 #[test]
@@ -1166,23 +1081,10 @@ fn array_test() {
         c: u64,
         d: u64,
     }
-    let mut maintype = T {
-        a: 0,
-        b: 0,
-        c: 0,
-        d: 0,
-    };
+    let mut maintype = T { a: 0, b: 0, c: 0, d: 0 };
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
-    println!(
-        "{}, {}, {}, {}",
-        maintype.a, maintype.b, maintype.c, maintype.d
-    );
-    println!(
-        "{}, {}, {}",
-        maintype.b - maintype.a,
-        maintype.c - maintype.b,
-        maintype.d - maintype.c
-    );
+    println!("{}, {}, {}, {}", maintype.a, maintype.b, maintype.c, maintype.d);
+    println!("{}, {}, {}", maintype.b - maintype.a, maintype.c - maintype.b, maintype.d - maintype.c);
 }
 
 #[test]
@@ -1286,10 +1188,7 @@ fn intial_values_diverge_from_type() {
         arr: [i32; 4],
         my_int: i32,
     }
-    let mut maintype = MainType {
-        arr: [0; 4],
-        my_int: 0,
-    };
+    let mut maintype = MainType { arr: [0; 4], my_int: 0 };
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!([5, 6, 7, 8], maintype.arr);
     assert_eq!(5, maintype.my_int);
@@ -1404,12 +1303,7 @@ fn initial_value_of_function_return_struct() {
         c: i32,
         buffer: [i32; 3],
     }
-    let mut maintype = MainType {
-        a: 0,
-        b: 0,
-        c: 0,
-        buffer: [0; 3],
-    };
+    let mut maintype = MainType { a: 0, b: 0, c: 0, buffer: [0; 3] };
 
     // THEN i expect to get { a = 11, b = 22, c = 33 }
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
@@ -1466,9 +1360,6 @@ fn initial_value_in_array_of_struct() {
     let _: i32 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(
         [10, 20, 30, 40, 50, 60, 70, 80],
-        [
-            maintype.a, maintype.b, maintype.c, maintype.d, maintype.e, maintype.f, maintype.g,
-            maintype.h
-        ]
+        [maintype.a, maintype.b, maintype.c, maintype.d, maintype.e, maintype.f, maintype.g, maintype.h]
     );
 }

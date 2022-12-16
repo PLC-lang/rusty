@@ -16,12 +16,7 @@ pub type ParameterError = clap::Error;
 #[clap(propagate_version = true)]
 #[clap(subcommand_negates_reqs = true)]
 pub struct CompileParameters {
-    #[clap(
-        short,
-        long,
-        name = "output-file",
-        help = "Write output to <output-file>"
-    )]
+    #[clap(short, long, name = "output-file", help = "Write output to <output-file>")]
     pub output: Option<String>,
 
     #[clap(
@@ -31,35 +26,19 @@ pub struct CompileParameters {
     )]
     pub check_only: bool,
 
-    #[clap(
-        long = "ir",
-        group = "format",
-        help = "Emit IR (LLVM Intermediate Representation) as output"
-    )]
+    #[clap(long = "ir", group = "format", help = "Emit IR (LLVM Intermediate Representation) as output")]
     pub output_ir: bool,
 
-    #[clap(
-        long = "shared",
-        group = "format",
-        help = "Emit a shared object as output"
-    )]
+    #[clap(long = "shared", group = "format", help = "Emit a shared object as output")]
     pub output_shared_obj: bool,
 
-    #[clap(
-        long = "pic",
-        group = "format",
-        help = "Emit PIC (Position Independent Code) as output"
-    )]
+    #[clap(long = "pic", group = "format", help = "Emit PIC (Position Independent Code) as output")]
     pub output_pic_obj: bool,
 
     #[clap(long = "static", group = "format", help = "Emit an object as output")]
     pub output_obj_code: bool,
 
-    #[clap(
-        long = "relocatable",
-        group = "format",
-        help = "Emit an object as output"
-    )]
+    #[clap(long = "relocatable", group = "format", help = "Emit an object as output")]
     pub output_reloc_code: bool,
 
     #[clap(
@@ -69,19 +48,10 @@ pub struct CompileParameters {
     )]
     pub output_bit_code: bool,
 
-    #[clap(
-        short = 'c',
-        global = true,
-        help = "Do not link after compiling object code"
-    )]
+    #[clap(short = 'c', global = true, help = "Do not link after compiling object code")]
     pub compile_only: bool,
 
-    #[clap(
-        long,
-        name = "target-triple",
-        global = true,
-        help = "A target-triple supported by LLVM"
-    )]
+    #[clap(long, name = "target-triple", global = true, help = "A target-triple supported by LLVM")]
     pub target: Vec<String>,
 
     #[clap(
@@ -102,31 +72,16 @@ pub struct CompileParameters {
     // having a vec allows bash to resolve *.st itself
     pub input: Vec<String>,
 
-    #[clap(
-        name = "library-path",
-        long,
-        short = 'L',
-        help = "Search path for libraries, used for linking"
-    )]
+    #[clap(name = "library-path", long, short = 'L', help = "Search path for libraries, used for linking")]
     pub library_paths: Vec<String>,
 
     #[clap(name = "library", long, short = 'l', help = "Library name to link")]
     pub libraries: Vec<String>,
 
-    #[clap(
-        long,
-        name = "sysroot",
-        global = true,
-        help = "Path to system root, used for linking"
-    )]
+    #[clap(long, name = "sysroot", global = true, help = "Path to system root, used for linking")]
     pub sysroot: Vec<String>,
 
-    #[clap(
-        name = "include",
-        long,
-        short = 'i',
-        help = "Include source files for external functions"
-    )]
+    #[clap(name = "include", long, short = 'i', help = "Include source files for external functions")]
     pub includes: Vec<String>,
 
     #[clap(
@@ -161,12 +116,7 @@ pub struct CompileParameters {
     )]
     pub error_format: ErrorFormat,
 
-    #[clap(
-        name = "linker",
-        long,
-        help = "Define a custom (cc compatible) linker command",
-        global = true
-    )]
+    #[clap(name = "linker", long, help = "Define a custom (cc compatible) linker command", global = true)]
     pub linker: Option<String>,
 
     #[clap(
@@ -225,10 +175,7 @@ fn validate_config(config_name: &str) -> Result<String, String> {
     if get_config_format(config_name).is_some() {
         Ok(config_name.to_string())
     } else {
-        Err(format!(
-            r#"Cannot identify format type for {}, valid extensions : "json", "toml""#,
-            config_name
-        ))
+        Err(format!(r#"Cannot identify format type for {}, valid extensions : "json", "toml""#, config_name))
     }
 }
 
@@ -306,11 +253,7 @@ impl CompileParameters {
             .and_then(Path::file_stem)
             .and_then(OsStr::to_str)
             .unwrap_or(crate::DEFAULT_OUTPUT_NAME);
-        crate::get_output_name(
-            self.output.as_deref(),
-            self.output_format_or_default(),
-            input,
-        )
+        crate::get_output_name(self.output.as_deref(), self.output_format_or_default(), input)
     }
 
     pub fn config_format(&self) -> Option<ConfigFormat> {
@@ -342,10 +285,7 @@ mod cli_tests {
             Err(e) => {
                 assert_eq!(e.kind(), expected_error_kind);
             }
-            Ok(p) => panic!(
-                "expected error, but found none. arguments: {:?}. params: {:?}",
-                args, p
-            ),
+            Ok(p) => panic!("expected error, but found none. arguments: {:?}. params: {:?}", args, p),
         }
     }
     macro_rules! vec_of_strings {
@@ -366,10 +306,7 @@ mod cli_tests {
             vec_of_strings!["input.st", "--check", "--shared"],
             ErrorKind::ArgumentConflict,
         );
-        expect_argument_error(
-            vec_of_strings!["input.st", "--ir", "--shared"],
-            ErrorKind::ArgumentConflict,
-        );
+        expect_argument_error(vec_of_strings!["input.st", "--ir", "--shared"], ErrorKind::ArgumentConflict);
         expect_argument_error(
             vec_of_strings!["input.st", "--ir", "--shared", "--pic"],
             ErrorKind::ArgumentConflict,
@@ -386,36 +323,21 @@ mod cli_tests {
 
     #[test]
     fn unknown_arguments_results_in_error() {
-        expect_argument_error(
-            vec_of_strings!["input.st", "--unknown"],
-            ErrorKind::UnknownArgument,
-        );
-        expect_argument_error(
-            vec_of_strings!["input.st", "--ir", "--unknown"],
-            ErrorKind::UnknownArgument,
-        );
-        expect_argument_error(
-            vec_of_strings!["input.st", "--ir", "-u"],
-            ErrorKind::UnknownArgument,
-        );
+        expect_argument_error(vec_of_strings!["input.st", "--unknown"], ErrorKind::UnknownArgument);
+        expect_argument_error(vec_of_strings!["input.st", "--ir", "--unknown"], ErrorKind::UnknownArgument);
+        expect_argument_error(vec_of_strings!["input.st", "--ir", "-u"], ErrorKind::UnknownArgument);
     }
 
     #[test]
     fn valid_output_files() {
         //short -o
         let parameters =
-            CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out")).unwrap();
         assert_eq!(parameters.output_name(), "myout.out".to_string());
 
         //long --output
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "input.st",
-            "--ir",
-            "--output",
-            "myout2.out"
-        ))
-        .unwrap();
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--ir", "--output", "myout2.out")).unwrap();
         assert_eq!(parameters.output_name(), "myout2.out".to_string());
     }
 
@@ -427,29 +349,24 @@ mod cli_tests {
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
         assert_eq!(parameters.output_name(), "bravo.so".to_string());
 
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
         assert_eq!(parameters.output_name(), "charlie.so".to_string());
 
         let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static", "-c"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static", "-c")).unwrap();
         assert_eq!(parameters.output_name(), "delta.o".to_string());
 
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
         assert_eq!(parameters.output_name(), "echo.bc".to_string());
 
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
         assert_eq!(parameters.output_name(), "echo".to_string());
     }
 
     #[test]
     fn test_target_triple() {
         let parameters =
-            CompileParameters::parse(vec_of_strings!("alpha.st", "--target", "x86_64-linux-gnu"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--target", "x86_64-linux-gnu")).unwrap();
 
         assert_eq!(parameters.target, vec!["x86_64-linux-gnu".to_string()]);
     }
@@ -463,32 +380,26 @@ mod cli_tests {
 
         assert_eq!(parameters.optimization, OptimizationLevel::None);
         let parameters =
-            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "none"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "none")).unwrap();
         assert_eq!(parameters.optimization, OptimizationLevel::None);
 
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "-Oless")).unwrap();
 
         assert_eq!(parameters.optimization, OptimizationLevel::Less);
         let parameters =
-            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "less"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "less")).unwrap();
         assert_eq!(parameters.optimization, OptimizationLevel::Less);
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("alpha.st", "-Odefault")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "-Odefault")).unwrap();
 
         assert_eq!(parameters.optimization, OptimizationLevel::Default);
         let parameters =
-            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "default"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "default")).unwrap();
         assert_eq!(parameters.optimization, OptimizationLevel::Default);
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("alpha.st", "-Oaggressive")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "-Oaggressive")).unwrap();
 
         assert_eq!(parameters.optimization, OptimizationLevel::Aggressive);
         let parameters =
-            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "aggressive"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--optimization", "aggressive")).unwrap();
         assert_eq!(parameters.optimization, OptimizationLevel::Aggressive);
     }
 
@@ -503,37 +414,28 @@ mod cli_tests {
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
 
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::PIC);
 
         let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
 
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::Bitcode);
 
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
     }
 
     #[test]
     fn encoding_resolution() {
         let parameters =
-            CompileParameters::parse(vec_of_strings!("input.st", "--ir", "--encoding", "cp1252"))
-                .unwrap();
+            CompileParameters::parse(vec_of_strings!("input.st", "--ir", "--encoding", "cp1252")).unwrap();
         assert_eq!(parameters.encoding, Some(encoding_rs::WINDOWS_1252));
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "input.st",
-            "--ir",
-            "--encoding",
-            "windows-1252"
-        ))
-        .unwrap();
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--ir", "--encoding", "windows-1252"))
+                .unwrap();
         assert_eq!(parameters.encoding, Some(encoding_rs::WINDOWS_1252));
     }
 
@@ -587,8 +489,7 @@ mod cli_tests {
         assert!(parameters.output_shared_obj);
         assert!(!parameters.output_reloc_code);
 
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
         assert!(!parameters.output_ir);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
@@ -622,15 +523,9 @@ mod cli_tests {
 
     #[test]
     fn libraries_added() {
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "input.st",
-            "-l",
-            "test",
-            "-lc",
-            "--library",
-            "xx"
-        ))
-        .unwrap();
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "-l", "test", "-lc", "--library", "xx"))
+                .unwrap();
         assert_eq!(parameters.libraries, vec!["test", "c", "xx"]);
     }
 
@@ -673,25 +568,14 @@ mod cli_tests {
         .unwrap();
         if let Some(commands) = parameters.commands {
             match commands {
-                SubCommands::Build {
-                    build_config,
-                    build_location,
-                    lib_location,
-                    ..
-                } => {
+                SubCommands::Build { build_config, build_location, lib_location, .. } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
                     assert_eq!(build_location, Some("bin/build".to_string()));
                     assert_eq!(lib_location, Some("bin/build/libs".to_string()));
                 }
             };
-            assert_eq!(
-                parameters.sysroot,
-                vec!["sysroot1".to_string(), "sysroot2".to_string()]
-            );
-            assert_eq!(
-                parameters.target,
-                vec!["targettest".to_string(), "othertarget".to_string()]
-            );
+            assert_eq!(parameters.sysroot, vec!["sysroot1".to_string(), "sysroot2".to_string()]);
+            assert_eq!(parameters.target, vec!["targettest".to_string(), "othertarget".to_string()]);
             assert_eq!(parameters.linker, Some("cc".to_string()));
         }
     }
@@ -721,10 +605,7 @@ mod cli_tests {
             "include3"
         ))
         .unwrap();
-        assert_eq!(
-            parameters.includes,
-            vec!["include1", "include2", "include3"]
-        );
+        assert_eq!(parameters.includes, vec!["include1", "include2", "include3"]);
     }
 
     #[test]
@@ -738,18 +619,9 @@ mod cli_tests {
         assert_eq!(parameters.hardware_config, Some("conf.toml".to_string()));
         assert_eq!(parameters.config_format().unwrap(), ConfigFormat::TOML);
 
-        expect_argument_error(
-            vec_of_strings!("foo", "--hardware-conf=foo"),
-            ErrorKind::ValueValidation,
-        );
-        expect_argument_error(
-            vec_of_strings!("foo", "--hardware-conf=conf.foo"),
-            ErrorKind::ValueValidation,
-        );
-        expect_argument_error(
-            vec_of_strings!("foo", "--hardware-conf=conf.xml"),
-            ErrorKind::ValueValidation,
-        );
+        expect_argument_error(vec_of_strings!("foo", "--hardware-conf=foo"), ErrorKind::ValueValidation);
+        expect_argument_error(vec_of_strings!("foo", "--hardware-conf=conf.foo"), ErrorKind::ValueValidation);
+        expect_argument_error(vec_of_strings!("foo", "--hardware-conf=conf.xml"), ErrorKind::ValueValidation);
     }
 
     #[test]
@@ -762,14 +634,10 @@ mod cli_tests {
     #[test]
     fn error_format_set() {
         // set clang as error format
-        let params =
-            CompileParameters::parse(vec_of_strings!("input.st", "--error-format=clang")).unwrap();
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--error-format=clang")).unwrap();
         assert_eq!(params.error_format, ErrorFormat::Clang);
         // set invalid error format
-        expect_argument_error(
-            vec_of_strings!("input.st", "--error-format=none"),
-            ErrorKind::InvalidValue,
-        );
+        expect_argument_error(vec_of_strings!("input.st", "--error-format=none"), ErrorKind::InvalidValue);
     }
 
     #[test]

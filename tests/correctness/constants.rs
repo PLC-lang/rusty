@@ -42,14 +42,7 @@ fn constant_values_used_as_initial_values() {
     let _: i32 = compile_and_run(src, &mut main);
 
     //THEN we expec the globals to have the constant's values
-    assert_eq!(
-        main,
-        MainType {
-            i: 1,
-            b: true,
-            f: 2.1543,
-        },
-    );
+    assert_eq!(main, MainType { i: 1, b: true, f: 2.1543 },);
 }
 
 #[test]
@@ -94,14 +87,7 @@ fn constant_expressions_used_as_initial_values() {
     let _: i32 = compile_and_run(src, &mut main);
 
     //THEN we expec the globals to have the constant's values
-    assert_eq!(
-        main,
-        MainType {
-            i: 10,
-            b: true,
-            f: 32.1543,
-        },
-    );
+    assert_eq!(main, MainType { i: 10, b: true, f: 32.1543 },);
 }
 
 #[test]
@@ -140,11 +126,7 @@ fn constant_expressions_used_in_case_statement() {
     END_PROGRAM"#;
 
     fn param(i: i32) -> MainType {
-        MainType {
-            i,
-            b: false,
-            f: 0.0,
-        }
+        MainType { i, b: false, f: 0.0 }
     }
 
     // WHEN the code gets executed

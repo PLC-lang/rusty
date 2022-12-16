@@ -214,12 +214,7 @@ fn dwordaccess_range_test() {
 
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::incompatible_directaccess_range(
-            "DWord",
-            "LWORD",
-            0..1,
-            (107..110).into()
-        ),]
+        vec![Diagnostic::incompatible_directaccess_range("DWord", "LWORD", 0..1, (107..110).into()),]
     );
 }
 

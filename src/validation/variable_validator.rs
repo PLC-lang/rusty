@@ -18,20 +18,14 @@ pub struct VariableValidator {
 
 impl VariableValidator {
     pub fn new() -> VariableValidator {
-        VariableValidator {
-            diagnostics: Vec::new(),
-        }
+        VariableValidator { diagnostics: Vec::new() }
     }
 
     pub fn validate_variable_block(&mut self, block: &VariableBlock) {
         if block.constant
-            && !matches!(
-                block.variable_block_type,
-                VariableBlockType::Global | VariableBlockType::Local
-            )
+            && !matches!(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
         {
-            self.diagnostics
-                .push(Diagnostic::invalid_constant_block(block.location.clone()))
+            self.diagnostics.push(Diagnostic::invalid_constant_block(block.location.clone()))
         }
     }
 
@@ -42,10 +36,7 @@ impl VariableValidator {
             .or_else(|| context.index.find_global_variable(variable.name.as_str()))
         {
             match v_entry.initial_value.and_then(|initial_id| {
-                context
-                    .index
-                    .get_const_expressions()
-                    .find_const_expression(&initial_id)
+                context.index.get_const_expressions().find_const_expression(&initial_id)
             }) {
                 Some(ConstExpression::Unresolvable { reason, statement }) => {
                     self.diagnostics.push(Diagnostic::unresolved_constant(
@@ -75,10 +66,8 @@ impl VariableValidator {
             if v_entry.is_constant()
                 && data_type_is_fb_or_class_instance(v_entry.get_type_name(), context.index)
             {
-                self.diagnostics.push(Diagnostic::invalid_constant(
-                    v_entry.get_name(),
-                    variable.location.clone(),
-                ));
+                self.diagnostics
+                    .push(Diagnostic::invalid_constant(v_entry.get_name(), variable.location.clone()));
             }
         }
     }
@@ -89,24 +78,20 @@ impl VariableValidator {
         match declaration {
             DataType::StructType { variables, .. } => {
                 if variables.is_empty() {
-                    self.diagnostics
-                        .push(Diagnostic::empty_variable_block(location.clone()));
+                    self.diagnostics.push(Diagnostic::empty_variable_block(location.clone()));
                 }
             }
-            DataType::EnumType {
-                elements: AstStatement::ExpressionList { expressions, .. },
-                ..
-            } if expressions.is_empty() => {
-                self.diagnostics
-                    .push(Diagnostic::empty_variable_block(location.clone()));
+            DataType::EnumType { elements: AstStatement::ExpressionList { expressions, .. }, .. }
+                if expressions.is_empty() =>
+            {
+                self.diagnostics.push(Diagnostic::empty_variable_block(location.clone()));
             }
-            DataType::VarArgs {
-                referenced_type: None,
-                sized: true,
-            } => self.diagnostics.push(Diagnostic::missing_datatype(
-                Some(": Sized Variadics require a known datatype."),
-                location.clone(),
-            )),
+            DataType::VarArgs { referenced_type: None, sized: true } => {
+                self.diagnostics.push(Diagnostic::missing_datatype(
+                    Some(": Sized Variadics require a known datatype."),
+                    location.clone(),
+                ))
+            }
             _ => {}
         }
     }
@@ -128,28 +113,24 @@ fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
     }
 
     match data_type {
-        DataTypeInformation::Struct {
-            member_names, name, ..
-        } =>
+        DataTypeInformation::Struct { member_names, name, .. } =>
         //see if any member is fb or class intance
         {
             member_names.iter().any(|member_name| {
                 index
                     .find_member(name.as_str(), member_name.as_str())
-                    .map_or(false, |v| {
-                        data_type_is_fb_or_class_instance(v.get_type_name(), index)
-                    })
+                    .map_or(false, |v| data_type_is_fb_or_class_instance(v.get_type_name(), index))
             })
         }
-        DataTypeInformation::Array {
-            inner_type_name, ..
-        } => data_type_is_fb_or_class_instance(inner_type_name.as_str(), index),
-        DataTypeInformation::Pointer {
-            inner_type_name, ..
-        } => data_type_is_fb_or_class_instance(inner_type_name.as_str(), index),
-        DataTypeInformation::Alias {
-            referenced_type, ..
-        } => data_type_is_fb_or_class_instance(referenced_type.as_str(), index),
+        DataTypeInformation::Array { inner_type_name, .. } => {
+            data_type_is_fb_or_class_instance(inner_type_name.as_str(), index)
+        }
+        DataTypeInformation::Pointer { inner_type_name, .. } => {
+            data_type_is_fb_or_class_instance(inner_type_name.as_str(), index)
+        }
+        DataTypeInformation::Alias { referenced_type, .. } => {
+            data_type_is_fb_or_class_instance(referenced_type.as_str(), index)
+        }
         _ => false,
     }
 }

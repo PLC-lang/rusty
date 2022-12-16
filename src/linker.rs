@@ -39,10 +39,7 @@ impl Linker {
                 _ => Err(LinkerError::Target(target_os.into())),
             }?
         };
-        Ok(Linker {
-            errors: Vec::default(),
-            linker,
-        })
+        Ok(Linker { errors: Vec::default(), linker })
     }
 
     /// Add an object file or static library to linker input
@@ -113,10 +110,7 @@ struct CcLinker {
 
 impl CcLinker {
     fn new(linker: &str) -> CcLinker {
-        CcLinker {
-            args: Vec::default(),
-            linker: linker.to_string(),
-        }
+        CcLinker { args: Vec::default(), linker: linker.to_string() }
     }
 }
 
@@ -163,19 +157,13 @@ impl LinkerInterface for CcLinker {
             .map_err(|e| LinkerError::Link(format!("{} for linker: {}", e, &self.linker)))?;
 
         #[cfg(feature = "debug")]
-        println!(
-            "Linker command : {} {}",
-            linker_location.to_string_lossy(),
-            self.args.join(" ")
-        );
+        println!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
 
         let status = Command::new(linker_location).args(&self.args).status()?;
         if status.success() {
             Ok(())
         } else {
-            Err(LinkerError::Link(
-                "An error occured during linking".to_string(),
-            ))
+            Err(LinkerError::Link("An error occured during linking".to_string()))
         }
     }
 }
@@ -186,9 +174,7 @@ struct LdLinker {
 
 impl LdLinker {
     fn new() -> LdLinker {
-        LdLinker {
-            args: Vec::default(),
-        }
+        LdLinker { args: Vec::default() }
     }
 }
 
@@ -234,9 +220,7 @@ impl LinkerInterface for LdLinker {
         #[cfg(feature = "debug")]
         println!("Linker arguments : {}", self.args.join(" "));
 
-        lld_rs::link(lld_rs::LldFlavor::Elf, &self.args)
-            .ok()
-            .map_err(LinkerError::Link)
+        lld_rs::link(lld_rs::LldFlavor::Elf, &self.args).ok().map_err(LinkerError::Link)
     }
 }
 
@@ -288,14 +272,12 @@ impl From<LinkerError> for Diagnostic {
     fn from(error: LinkerError) -> Self {
         match error {
             LinkerError::Link(e) => Diagnostic::link_error(&e),
-            LinkerError::Path(path) => Diagnostic::link_error(&format!(
-                "path contains invalid UTF-8 characters: {}",
-                path.display()
-            )),
-            LinkerError::Target(tgt) => Diagnostic::link_error(&format!(
-                "linker not available for target platform: {}",
-                tgt
-            )),
+            LinkerError::Path(path) => {
+                Diagnostic::link_error(&format!("path contains invalid UTF-8 characters: {}", path.display()))
+            }
+            LinkerError::Target(tgt) => {
+                Diagnostic::link_error(&format!("linker not available for target platform: {}", tgt))
+            }
         }
     }
 }

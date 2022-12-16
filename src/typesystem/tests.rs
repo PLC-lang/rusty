@@ -3,10 +3,10 @@ use crate::{
     index::{symbol::SymbolLocation, Index},
     test_utils::tests::index,
     typesystem::{
-        self, get_equals_function_name_for, get_signed_type, Dimension, BOOL_TYPE, BYTE_TYPE,
-        CHAR_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
-        LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WCHAR_TYPE, WORD_TYPE, WSTRING_TYPE,
+        self, get_equals_function_name_for, get_signed_type, Dimension, BOOL_TYPE, BYTE_TYPE, CHAR_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
+        REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE,
+        USINT_TYPE, WCHAR_TYPE, WORD_TYPE, WSTRING_TYPE,
     },
 };
 
@@ -35,19 +35,9 @@ pub fn signed_types_tests() {
     assert_signed_type!(LINT_TYPE, LWORD_TYPE, index);
 
     assert_eq!(
-        Some(
-            index
-                .find_effective_type_by_name(STRING_TYPE)
-                .as_ref()
-                .unwrap()
-                .get_type_information()
-        ),
+        Some(index.find_effective_type_by_name(STRING_TYPE).as_ref().unwrap().get_type_information()),
         get_signed_type(
-            index
-                .find_effective_type_by_name(STRING_TYPE)
-                .as_ref()
-                .unwrap()
-                .get_type_information(),
+            index.find_effective_type_by_name(STRING_TYPE).as_ref().unwrap().get_type_information(),
             &index
         )
     );
@@ -55,22 +45,10 @@ pub fn signed_types_tests() {
 
 #[test]
 pub fn equal_method_function_names() {
-    assert_eq!(
-        Some("STRING_EQUAL".to_string()),
-        get_equals_function_name_for("STRING", &Operator::Equal)
-    );
-    assert_eq!(
-        Some("MY_TYPE_EQUAL".to_string()),
-        get_equals_function_name_for("MY_TYPE", &Operator::Equal)
-    );
-    assert_eq!(
-        Some("STRING_LESS".to_string()),
-        get_equals_function_name_for("STRING", &Operator::Less)
-    );
-    assert_eq!(
-        Some("MY_TYPE_LESS".to_string()),
-        get_equals_function_name_for("MY_TYPE", &Operator::Less)
-    );
+    assert_eq!(Some("STRING_EQUAL".to_string()), get_equals_function_name_for("STRING", &Operator::Equal));
+    assert_eq!(Some("MY_TYPE_EQUAL".to_string()), get_equals_function_name_for("MY_TYPE", &Operator::Equal));
+    assert_eq!(Some("STRING_LESS".to_string()), get_equals_function_name_for("STRING", &Operator::Less));
+    assert_eq!(Some("MY_TYPE_LESS".to_string()), get_equals_function_name_for("MY_TYPE", &Operator::Less));
     assert_eq!(
         Some("STRING_GREATER".to_string()),
         get_equals_function_name_for("STRING", &Operator::Greater)
@@ -97,30 +75,12 @@ fn get_bigger_size_integers_test() {
     let ulint_type = index.get_type_or_panic(ULINT_TYPE);
 
     //The bigger type is the one with the bigger size
-    assert_eq!(
-        int_type,
-        typesystem::get_bigger_type(sint_type, int_type, &index)
-    );
-    assert_eq!(
-        dint_type,
-        typesystem::get_bigger_type(int_type, dint_type, &index)
-    );
-    assert_eq!(
-        lint_type,
-        typesystem::get_bigger_type(lint_type, dint_type, &index)
-    );
-    assert_eq!(
-        uint_type,
-        typesystem::get_bigger_type(usint_type, uint_type, &index)
-    );
-    assert_eq!(
-        udint_type,
-        typesystem::get_bigger_type(uint_type, udint_type, &index)
-    );
-    assert_eq!(
-        ulint_type,
-        typesystem::get_bigger_type(ulint_type, udint_type, &index)
-    );
+    assert_eq!(int_type, typesystem::get_bigger_type(sint_type, int_type, &index));
+    assert_eq!(dint_type, typesystem::get_bigger_type(int_type, dint_type, &index));
+    assert_eq!(lint_type, typesystem::get_bigger_type(lint_type, dint_type, &index));
+    assert_eq!(uint_type, typesystem::get_bigger_type(usint_type, uint_type, &index));
+    assert_eq!(udint_type, typesystem::get_bigger_type(uint_type, udint_type, &index));
+    assert_eq!(ulint_type, typesystem::get_bigger_type(ulint_type, udint_type, &index));
 }
 
 fn get_builtin_index() -> Index {
@@ -143,43 +103,16 @@ fn get_bigger_size_integers_mix_test() {
     let udint_type = index.get_type_or_panic(UDINT_TYPE);
     let ulint_type = index.get_type_or_panic(ULINT_TYPE);
 
-    assert_eq!(
-        int_type,
-        typesystem::get_bigger_type(sint_type, int_type, &index)
-    );
-    assert_eq!(
-        dint_type,
-        typesystem::get_bigger_type(int_type, dint_type, &index)
-    );
-    assert_eq!(
-        lint_type,
-        typesystem::get_bigger_type(lint_type, dint_type, &index)
-    );
-    assert_eq!(
-        uint_type,
-        typesystem::get_bigger_type(usint_type, uint_type, &index)
-    );
-    assert_eq!(
-        udint_type,
-        typesystem::get_bigger_type(uint_type, udint_type, &index)
-    );
-    assert_eq!(
-        ulint_type,
-        typesystem::get_bigger_type(ulint_type, udint_type, &index)
-    );
+    assert_eq!(int_type, typesystem::get_bigger_type(sint_type, int_type, &index));
+    assert_eq!(dint_type, typesystem::get_bigger_type(int_type, dint_type, &index));
+    assert_eq!(lint_type, typesystem::get_bigger_type(lint_type, dint_type, &index));
+    assert_eq!(uint_type, typesystem::get_bigger_type(usint_type, uint_type, &index));
+    assert_eq!(udint_type, typesystem::get_bigger_type(uint_type, udint_type, &index));
+    assert_eq!(ulint_type, typesystem::get_bigger_type(ulint_type, udint_type, &index));
     //The bigger type is the signed
-    assert_eq!(
-        sint_type,
-        typesystem::get_bigger_type(sint_type, usint_type, &index)
-    );
-    assert_eq!(
-        int_type,
-        typesystem::get_bigger_type(int_type, uint_type, &index)
-    );
-    assert_eq!(
-        dint_type,
-        typesystem::get_bigger_type(dint_type, udint_type, &index)
-    );
+    assert_eq!(sint_type, typesystem::get_bigger_type(sint_type, usint_type, &index));
+    assert_eq!(int_type, typesystem::get_bigger_type(int_type, uint_type, &index));
+    assert_eq!(dint_type, typesystem::get_bigger_type(dint_type, udint_type, &index));
 }
 
 #[test]
@@ -190,10 +123,7 @@ fn get_bigger_size_real_test() {
     let real_type = index.get_type_or_panic(REAL_TYPE);
     let lreal_type = index.get_type_or_panic(LREAL_TYPE);
     //LREAL is bigger than REAL
-    assert_eq!(
-        lreal_type,
-        typesystem::get_bigger_type(lreal_type, real_type, &index)
-    );
+    assert_eq!(lreal_type, typesystem::get_bigger_type(lreal_type, real_type, &index));
 }
 
 #[test]
@@ -210,20 +140,11 @@ fn get_bigger_size_numeric_test() {
     let real_type = index.get_type_or_panic(REAL_TYPE);
     let lreal_type = index.get_type_or_panic(LREAL_TYPE);
     //The bigger type is the float
-    assert_eq!(
-        real_type,
-        typesystem::get_bigger_type(real_type, int_type, &index)
-    );
-    assert_eq!(
-        real_type,
-        typesystem::get_bigger_type(real_type, dint_type, &index)
-    );
+    assert_eq!(real_type, typesystem::get_bigger_type(real_type, int_type, &index));
+    assert_eq!(real_type, typesystem::get_bigger_type(real_type, dint_type, &index));
     //Given an int that is bigger than a float in size (LINT)
     //The bigger type is an LREAL
-    assert_eq!(
-        lreal_type,
-        typesystem::get_bigger_type(lint_type, real_type, &index)
-    );
+    assert_eq!(lreal_type, typesystem::get_bigger_type(lint_type, real_type, &index));
 }
 
 #[test]
@@ -253,14 +174,8 @@ fn get_bigger_size_string_test() {
         location: SymbolLocation::internal(),
     };
     //The string with the bigger length is the bigger string
-    assert_eq!(
-        &string_1024,
-        typesystem::get_bigger_type(&string_1024, &string_30, &index)
-    );
-    assert_eq!(
-        &string_1024,
-        typesystem::get_bigger_type(&string_30, &string_1024, &index)
-    );
+    assert_eq!(&string_1024, typesystem::get_bigger_type(&string_1024, &string_30, &index));
+    assert_eq!(&string_1024, typesystem::get_bigger_type(&string_30, &string_1024, &index));
 
     //TODO : Strings with constant sizes
 }
@@ -299,14 +214,8 @@ fn get_bigger_size_array_test_returns_first() {
         location: SymbolLocation::internal(),
     };
     //The array with the most elements is bigger
-    assert_eq!(
-        &array_1024,
-        typesystem::get_bigger_type(&array_1024, &array_30, &index)
-    );
-    assert_eq!(
-        &array_30,
-        typesystem::get_bigger_type(&array_30, &array_1024, &index)
-    );
+    assert_eq!(&array_1024, typesystem::get_bigger_type(&array_1024, &array_30, &index));
+    assert_eq!(&array_30, typesystem::get_bigger_type(&array_30, &array_1024, &index));
 }
 
 #[test]
@@ -390,30 +299,12 @@ fn get_bigger_size_mixed_test_no_() {
 
     //Given two incompatible types
     //The first given type is returned
-    assert_eq!(
-        &array_30,
-        typesystem::get_bigger_type(&array_30, &array_30_30, &index)
-    );
-    assert_eq!(
-        &string_1024,
-        typesystem::get_bigger_type(&string_1024, &array_30, &index)
-    );
-    assert_eq!(
-        &string_1024,
-        typesystem::get_bigger_type(&string_1024, &wstring_1024, &index)
-    );
-    assert_eq!(
-        &wstring_1024,
-        typesystem::get_bigger_type(&wstring_1024, &string_1024, &index)
-    );
-    assert_eq!(
-        &array_string_30,
-        typesystem::get_bigger_type(&array_string_30, &array_30, &index)
-    );
-    assert_eq!(
-        int_type,
-        typesystem::get_bigger_type(int_type, &array_30, &index)
-    );
+    assert_eq!(&array_30, typesystem::get_bigger_type(&array_30, &array_30_30, &index));
+    assert_eq!(&string_1024, typesystem::get_bigger_type(&string_1024, &array_30, &index));
+    assert_eq!(&string_1024, typesystem::get_bigger_type(&string_1024, &wstring_1024, &index));
+    assert_eq!(&wstring_1024, typesystem::get_bigger_type(&wstring_1024, &string_1024, &index));
+    assert_eq!(&array_string_30, typesystem::get_bigger_type(&array_string_30, &array_30, &index));
+    assert_eq!(int_type, typesystem::get_bigger_type(int_type, &array_30, &index));
 }
 
 fn get_index() -> Index {
@@ -644,10 +535,7 @@ fn array_size_single_dim_tests() {
         location: SymbolLocation::internal(),
     };
     //the size of the array is 20*size(int)
-    assert_eq!(
-        320,
-        array_20.get_type_information().get_size_in_bits(&index)
-    );
+    assert_eq!(320, array_20.get_type_information().get_size_in_bits(&index));
 }
 
 #[test]
@@ -675,10 +563,7 @@ fn array_size_multi_dim_tests() {
         location: SymbolLocation::internal(),
     };
     //the size of the array is 20*size(int)
-    assert_eq!(
-        6400,
-        array_20_20.get_type_information().get_size_in_bits(&index)
-    );
+    assert_eq!(6400, array_20_20.get_type_information().get_size_in_bits(&index));
 }
 
 #[test]
@@ -716,8 +601,5 @@ fn array_size_nested_tests() {
     };
 
     //the size of the array is 20*size(int)
-    assert_eq!(
-        6400,
-        nested_array.get_type_information().get_size_in_bits(&index)
-    );
+    assert_eq!(6400, nested_array.get_type_information().get_size_in_bits(&index));
 }

@@ -126,8 +126,7 @@ impl<'a> ParseSession<'a> {
 
     pub fn advance(&mut self) {
         self.last_range = self.range();
-        self.last_token =
-            std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
+        self.last_token = std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
         self.parse_progress += 1;
 
         match self.token {
@@ -154,10 +153,7 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordEndClass => {
                 if !self.slice().to_string().contains('_') {
                     self.accept_diagnostic(Diagnostic::ImprovementSuggestion {
-                        message: format!(
-                            "the words in {} should be separated by a '_'",
-                            self.slice()
-                        ),
+                        message: format!("the words in {} should be separated by a '_'", self.slice()),
                         range: vec![self.location()],
                     });
                 }
@@ -175,8 +171,7 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn last_location(&self) -> SourceRange {
-        self.source_range_factory
-            .create_range(self.last_range.clone())
+        self.source_range_factory.create_range(self.last_range.clone())
     }
 
     pub fn range(&self) -> Range<usize> {
@@ -208,9 +203,7 @@ impl<'a> ParseSession<'a> {
     /// returns the level (which corresponds to the position on the `closing_keywords` stack)
     /// returns `None` if this token does not close an open region
     fn get_close_region_level(&self, token: &Token) -> Option<usize> {
-        self.closing_keywords
-            .iter()
-            .rposition(|it| it.contains(token))
+        self.closing_keywords.iter().rposition(|it| it.contains(token))
     }
 
     /// returns true if the given token closes an open region
@@ -225,10 +218,7 @@ impl<'a> ParseSession<'a> {
         while self.token != Token::End && hit.is_none() {
             end = self.location().get_end();
             self.advance();
-            hit = self
-                .closing_keywords
-                .iter()
-                .rposition(|it| it.contains(&self.token));
+            hit = self.closing_keywords.iter().rposition(|it| it.contains(&self.token));
         }
 
         //Did we recover in the while loop above?
@@ -237,10 +227,7 @@ impl<'a> ParseSession<'a> {
             self.accept_diagnostic(Diagnostic::unexpected_token_found(
                 format!(
                     "{:?}",
-                    self.closing_keywords
-                        .last()
-                        .and_then(|it| it.first())
-                        .unwrap_or(&Token::End) //only show first expected token
+                    self.closing_keywords.last().and_then(|it| it.first()).unwrap_or(&Token::End) //only show first expected token
                 )
                 .as_str(),
                 format!("'{}'", self.slice_region(range.clone())).as_str(),
@@ -255,10 +242,7 @@ impl<'a> ParseSession<'a> {
                     .last()
                     .expect("parse-recovery has no closing-keyword to recover from."); //illegal state! invalid use of parser-recovery?
                 let expected_tokens = format!("{:?}", closing);
-                self.accept_diagnostic(Diagnostic::missing_token(
-                    expected_tokens.as_str(),
-                    self.location(),
-                ));
+                self.accept_diagnostic(Diagnostic::missing_token(expected_tokens.as_str(), self.location()));
             }
         }
     }
@@ -334,9 +318,7 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
     Some(access)
 }
 
-fn parse_hardware_access_type(
-    lexer: &mut Lexer<Token>,
-) -> Option<(HardwareAccessType, DirectAccessType)> {
+fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAccessType, DirectAccessType)> {
     //Percent is at position 0
     let hardware_type = lexer
         .slice()
@@ -382,19 +364,13 @@ impl IdProvider {
 
 impl Default for IdProvider {
     fn default() -> Self {
-        IdProvider {
-            current_id: Arc::new(AtomicUsize::new(1)),
-        }
+        IdProvider { current_id: Arc::new(AtomicUsize::new(1)) }
     }
 }
 
 #[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(
-        Token::lexer(source),
-        IdProvider::default(),
-        SourceRangeFactory::internal(),
-    )
+    ParseSession::new(Token::lexer(source), IdProvider::default(), SourceRangeFactory::internal())
 }
 
 pub fn lex_with_ids(

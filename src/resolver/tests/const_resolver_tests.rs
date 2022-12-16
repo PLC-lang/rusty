@@ -19,36 +19,24 @@ macro_rules! debug_assert_eq {
 
 macro_rules! global {
     ($index:expr, $name:expr) => {
-        $index
-            .find_global_variable($name)
-            .unwrap()
-            .initial_value
-            .unwrap()
+        $index.find_global_variable($name).unwrap().initial_value.unwrap()
     };
 }
 
 fn find_member_value<'a>(index: &'a Index, pou: &str, reference: &str) -> Option<&'a AstStatement> {
-    index.find_member(pou, reference).and_then(|it| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&it.initial_value)
-    })
+    index
+        .find_member(pou, reference)
+        .and_then(|it| index.get_const_expressions().maybe_get_constant_statement(&it.initial_value))
 }
 
 fn find_constant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstStatement> {
-    index.find_global_variable(reference).and_then(|it| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&it.initial_value)
-    })
+    index
+        .find_global_variable(reference)
+        .and_then(|it| index.get_const_expressions().maybe_get_constant_statement(&it.initial_value))
 }
 
 fn create_int_literal(v: i128) -> AstStatement {
-    AstStatement::LiteralInteger {
-        value: v,
-        id: 0,
-        location: SourceRange::undefined(),
-    }
+    AstStatement::LiteralInteger { value: v, id: 0, location: SourceRange::undefined() }
 }
 
 fn create_string_literal(v: &str, wide: bool) -> AstStatement {
@@ -61,19 +49,11 @@ fn create_string_literal(v: &str, wide: bool) -> AstStatement {
 }
 
 fn create_real_literal(v: f64) -> AstStatement {
-    AstStatement::LiteralReal {
-        value: format!("{:}", v),
-        id: 0,
-        location: SourceRange::undefined(),
-    }
+    AstStatement::LiteralReal { value: format!("{:}", v), id: 0, location: SourceRange::undefined() }
 }
 
 fn create_bool_literal(v: bool) -> AstStatement {
-    AstStatement::LiteralBool {
-        value: v,
-        id: 0,
-        location: SourceRange::undefined(),
-    }
+    AstStatement::LiteralBool { value: v, id: 0, location: SourceRange::undefined() }
 }
 
 #[test]
@@ -105,30 +85,12 @@ fn const_references_to_int_compile_time_evaluation() {
 
     // THEN a to f got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "c").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.2),
-        find_constant_value(&index, "d").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.0),
-        find_constant_value(&index, "e").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.0),
-        find_constant_value(&index, "f").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_real_literal(4.2), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_real_literal(4.0), find_constant_value(&index, "e").unwrap());
+    debug_assert_eq!(&create_real_literal(4.0), find_constant_value(&index, "f").unwrap());
 }
 
 #[test]
@@ -193,14 +155,8 @@ fn local_const_references_to_int_compile_time_evaluation() {
 
     // THEN a to f got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.2),
-        find_constant_value(&index, "b").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_real_literal(4.2), find_constant_value(&index, "b").unwrap());
 }
 
 #[test]
@@ -234,20 +190,11 @@ fn local_const_references_to_int_compile_time_evaluation_uses_correct_scopes() {
     debug_assert_eq!(EMPTY, unresolvable);
 
     // THEN g should resolve its inital value to global 'a'
-    debug_assert_eq!(
-        &create_int_literal(5),
-        find_constant_value(&index, "g").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(5), find_constant_value(&index, "g").unwrap());
     // THEN h should resolve its inital value to 'prg.a'
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "h").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "h").unwrap());
     // AND prg.v should resolve its initial value to 'prg.a'
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_member_value(&index, "prg", "v").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(4), find_member_value(&index, "prg", "v").unwrap());
 }
 
 #[test]
@@ -279,10 +226,7 @@ fn non_const_references_to_int_compile_time_evaluation() {
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a to f got their correct initial-literals
-    debug_assert_eq!(
-        &create_int_literal(2),
-        find_constant_value(&index, "ok").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "ok").unwrap());
 
     debug_assert_eq!(
         vec![
@@ -324,18 +268,9 @@ fn prg_members_initials_compile_time_evaluation() {
     // THEN everything got resolved
     debug_assert_eq!(EMPTY, unresolvable);
     // AND the program-members got their correct initial-literals
-    debug_assert_eq!(
-        &create_int_literal(2),
-        find_member_value(&index, "plc_prg", "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(6),
-        find_member_value(&index, "plc_prg", "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(5),
-        find_member_value(&index, "plc_prg", "c").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(2), find_member_value(&index, "plc_prg", "a").unwrap());
+    debug_assert_eq!(&create_int_literal(6), find_member_value(&index, "plc_prg", "b").unwrap());
+    debug_assert_eq!(&create_int_literal(5), find_member_value(&index, "plc_prg", "c").unwrap());
     debug_assert_eq!(
         &create_string_literal("hello world", false),
         find_member_value(&index, "plc_prg", "str").unwrap()
@@ -364,18 +299,9 @@ fn const_references_to_negative_reference() {
 
     // THEN a,b,and c got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(
-        &create_int_literal(-4),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(-4.2),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(-5),
-        find_constant_value(&index, "c").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(-4), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_real_literal(-4.2), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(-5), find_constant_value(&index, "c").unwrap());
 }
 
 #[test]
@@ -407,30 +333,12 @@ fn const_references_to_int_additions_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(11),
-        find_constant_value(&index, "c").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.2),
-        find_constant_value(&index, "d").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.0),
-        find_constant_value(&index, "e").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(11.7),
-        find_constant_value(&index, "f").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(11), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_real_literal(4.2), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_real_literal(4.0), find_constant_value(&index, "e").unwrap());
+    debug_assert_eq!(&create_real_literal(11.7), find_constant_value(&index, "f").unwrap());
 }
 
 #[test]
@@ -462,30 +370,12 @@ fn const_references_to_int_subtractions_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(-3),
-        find_constant_value(&index, "c").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.2),
-        find_constant_value(&index, "d").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.0),
-        find_constant_value(&index, "e").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(-3.7),
-        find_constant_value(&index, "f").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(-3), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_real_literal(4.2), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_real_literal(4.0), find_constant_value(&index, "e").unwrap());
+    debug_assert_eq!(&create_real_literal(-3.7), find_constant_value(&index, "f").unwrap());
 }
 
 #[test]
@@ -517,30 +407,12 @@ fn const_references_to_int_multiplications_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(28),
-        find_constant_value(&index, "c").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.2),
-        find_constant_value(&index, "d").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(4.0),
-        find_constant_value(&index, "e").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(30.8),
-        find_constant_value(&index, "f").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(28), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_real_literal(4.2), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_real_literal(4.0), find_constant_value(&index, "e").unwrap());
+    debug_assert_eq!(&create_real_literal(30.8), find_constant_value(&index, "f").unwrap());
 }
 
 #[test]
@@ -572,30 +444,12 @@ fn const_references_to_int_division_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(
-        &create_int_literal(40),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(40),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(5),
-        find_constant_value(&index, "c").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(40.2),
-        find_constant_value(&index, "d").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(40.0),
-        find_constant_value(&index, "e").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(40_f64 / 7.7),
-        find_constant_value(&index, "f").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(40), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_int_literal(40), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(5), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_real_literal(40.2), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_real_literal(40.0), find_constant_value(&index, "e").unwrap());
+    debug_assert_eq!(&create_real_literal(40_f64 / 7.7), find_constant_value(&index, "f").unwrap());
 }
 
 #[test]
@@ -696,9 +550,8 @@ fn const_references_int_float_type_behavior_evaluation() {
         .get_globals()
         .values()
         .filter(|it| {
-            let const_expr = index
-                .get_const_expressions()
-                .find_const_expression(it.initial_value.as_ref().unwrap());
+            let const_expr =
+                index.get_const_expressions().find_const_expression(it.initial_value.as_ref().unwrap());
             matches!(const_expr, Some(ConstExpression::Unresolvable { .. }))
         })
         .map(|it| it.get_qualified_name())
@@ -708,130 +561,43 @@ fn const_references_int_float_type_behavior_evaluation() {
 
     //
     // INT - INT
-    debug_assert_eq!(
-        &create_int_literal(4),
-        find_constant_value(&index, "int_plus_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(2),
-        find_constant_value(&index, "int_minus_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(6),
-        find_constant_value(&index, "int_mul_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(2),
-        find_constant_value(&index, "int_div_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(5 % 2),
-        find_constant_value(&index, "int_mod_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(true),
-        find_constant_value(&index, "int_eq_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(false),
-        find_constant_value(&index, "int_neq_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(false),
-        find_constant_value(&index, "int_g_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(true),
-        find_constant_value(&index, "int_ge_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(false),
-        find_constant_value(&index, "int_l_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(true),
-        find_constant_value(&index, "int_le_int").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(4), find_constant_value(&index, "int_plus_int").unwrap());
+    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "int_minus_int").unwrap());
+    debug_assert_eq!(&create_int_literal(6), find_constant_value(&index, "int_mul_int").unwrap());
+    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "int_div_int").unwrap());
+    debug_assert_eq!(&create_int_literal(5 % 2), find_constant_value(&index, "int_mod_int").unwrap());
+    debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "int_eq_int").unwrap());
+    debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "int_neq_int").unwrap());
+    debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "int_g_int").unwrap());
+    debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "int_ge_int").unwrap());
+    debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "int_l_int").unwrap());
+    debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "int_le_int").unwrap());
     // INT - REAL
-    debug_assert_eq!(
-        &create_real_literal(4.1),
-        find_constant_value(&index, "int_plus_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(3.0 - 1.1),
-        find_constant_value(&index, "int_minus_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(3.0 * 1.1),
-        find_constant_value(&index, "int_mul_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(5.0 / 2.1),
-        find_constant_value(&index, "int_div_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(5.0 % 2.1),
-        find_constant_value(&index, "int_mod_real").unwrap()
-    );
+    debug_assert_eq!(&create_real_literal(4.1), find_constant_value(&index, "int_plus_real").unwrap());
+    debug_assert_eq!(&create_real_literal(3.0 - 1.1), find_constant_value(&index, "int_minus_real").unwrap());
+    debug_assert_eq!(&create_real_literal(3.0 * 1.1), find_constant_value(&index, "int_mul_real").unwrap());
+    debug_assert_eq!(&create_real_literal(5.0 / 2.1), find_constant_value(&index, "int_div_real").unwrap());
+    debug_assert_eq!(&create_real_literal(5.0 % 2.1), find_constant_value(&index, "int_mod_real").unwrap());
     // REAL - INT
-    debug_assert_eq!(
-        &create_real_literal(4.3),
-        find_constant_value(&index, "real_plus_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(2.3),
-        find_constant_value(&index, "real_minus_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(6.6),
-        find_constant_value(&index, "real_mul_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(5.2 / 2.0),
-        find_constant_value(&index, "real_div_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(5.2 % 2.0),
-        find_constant_value(&index, "real_mod_int").unwrap()
-    );
+    debug_assert_eq!(&create_real_literal(4.3), find_constant_value(&index, "real_plus_int").unwrap());
+    debug_assert_eq!(&create_real_literal(2.3), find_constant_value(&index, "real_minus_int").unwrap());
+    debug_assert_eq!(&create_real_literal(6.6), find_constant_value(&index, "real_mul_int").unwrap());
+    debug_assert_eq!(&create_real_literal(5.2 / 2.0), find_constant_value(&index, "real_div_int").unwrap());
+    debug_assert_eq!(&create_real_literal(5.2 % 2.0), find_constant_value(&index, "real_mod_int").unwrap());
     // REAL - REAL
-    debug_assert_eq!(
-        &create_real_literal(4.4),
-        find_constant_value(&index, "real_plus_real").unwrap()
-    );
+    debug_assert_eq!(&create_real_literal(4.4), find_constant_value(&index, "real_plus_real").unwrap());
     debug_assert_eq!(
         &create_real_literal(3.3 - 1.1),
         find_constant_value(&index, "real_minus_real").unwrap()
     );
-    debug_assert_eq!(
-        &create_real_literal(3.3 * 1.1),
-        find_constant_value(&index, "real_mul_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(5.3 / 2.1),
-        find_constant_value(&index, "real_div_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(5.3 % 2.1),
-        find_constant_value(&index, "real_mod_real").unwrap()
-    );
+    debug_assert_eq!(&create_real_literal(3.3 * 1.1), find_constant_value(&index, "real_mul_real").unwrap());
+    debug_assert_eq!(&create_real_literal(5.3 / 2.1), find_constant_value(&index, "real_div_real").unwrap());
+    debug_assert_eq!(&create_real_literal(5.3 % 2.1), find_constant_value(&index, "real_mod_real").unwrap());
     // BOOL - BOOL
-    debug_assert_eq!(
-        &create_bool_literal(true),
-        find_constant_value(&index, "bool_and_bool").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(true),
-        find_constant_value(&index, "bool_or_bool").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(false),
-        find_constant_value(&index, "bool_xor_bool").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(false),
-        find_constant_value(&index, "not_bool").unwrap()
-    );
+    debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "bool_and_bool").unwrap());
+    debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "bool_or_bool").unwrap());
+    debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "bool_xor_bool").unwrap());
+    debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "not_bool").unwrap());
 }
 
 #[test]
@@ -859,26 +625,11 @@ fn const_references_bool_bit_functions_behavior_evaluation() {
     // THEN everything got resolved
     debug_assert_eq!(EMPTY, unresolvable);
     // AND the index should have literal values
-    debug_assert_eq!(
-        &create_bool_literal(true),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(false),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(true),
-        find_constant_value(&index, "c").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(false),
-        find_constant_value(&index, "d").unwrap()
-    );
-    debug_assert_eq!(
-        &create_bool_literal(false),
-        find_constant_value(&index, "e").unwrap()
-    );
+    debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "e").unwrap());
 }
 
 #[test]
@@ -905,26 +656,11 @@ fn const_references_int_bit_functions_behavior_evaluation() {
     // THEN everything got resolved
     debug_assert_eq!(EMPTY, unresolvable);
     // AND the index should have literal values
-    debug_assert_eq!(
-        &create_int_literal(0xFFAB),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(0x00AB),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(0xFFFF),
-        find_constant_value(&index, "c").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(0xFF54),
-        find_constant_value(&index, "d").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(0x0054),
-        find_constant_value(&index, "e").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(0xFFAB), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_int_literal(0x00AB), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(0xFFFF), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_int_literal(0xFF54), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_int_literal(0x0054), find_constant_value(&index, "e").unwrap());
 }
 #[test]
 fn illegal_cast_should_not_be_resolved() {
@@ -990,14 +726,8 @@ fn division_by_0_should_fail() {
         unresolvable
     );
     // AND the real divisions are inf or nan
-    debug_assert_eq!(
-        &create_real_literal(f64::INFINITY),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal(f64::INFINITY),
-        find_constant_value(&index, "d").unwrap()
-    );
+    debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_real_literal(f64::INFINITY), find_constant_value(&index, "d").unwrap());
 
     if let AstStatement::LiteralReal { value, .. } = find_constant_value(&index, "bb").unwrap() {
         assert!(value.parse::<f64>().unwrap().is_nan());
@@ -1037,30 +767,12 @@ fn const_references_not_function_with_signed_ints() {
     // THEN everything got resolved
     debug_assert_eq!(EMPTY, unresolvable);
     // AND the index should have literal values
-    debug_assert_eq!(
-        &create_int_literal(-85),
-        find_constant_value(&index, "a").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(0x0000_ffab),
-        find_constant_value(&index, "aa").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(171),
-        find_constant_value(&index, "b").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(-1),
-        find_constant_value(&index, "c").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(-172),
-        find_constant_value(&index, "d").unwrap()
-    );
-    debug_assert_eq!(
-        &create_int_literal(84),
-        find_constant_value(&index, "e").unwrap()
-    );
+    debug_assert_eq!(&create_int_literal(-85), find_constant_value(&index, "a").unwrap());
+    debug_assert_eq!(&create_int_literal(0x0000_ffab), find_constant_value(&index, "aa").unwrap());
+    debug_assert_eq!(&create_int_literal(171), find_constant_value(&index, "b").unwrap());
+    debug_assert_eq!(&create_int_literal(-1), find_constant_value(&index, "c").unwrap());
+    debug_assert_eq!(&create_int_literal(-172), find_constant_value(&index, "d").unwrap());
+    debug_assert_eq!(&create_int_literal(84), find_constant_value(&index, "e").unwrap());
 }
 
 #[test]
@@ -1086,18 +798,9 @@ fn const_references_to_bool_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(
-        find_constant_value(&index, "a"),
-        Some(&create_bool_literal(true))
-    );
-    debug_assert_eq!(
-        find_constant_value(&index, "b"),
-        Some(&create_bool_literal(true))
-    );
-    debug_assert_eq!(
-        find_constant_value(&index, "c"),
-        Some(&create_bool_literal(false))
-    );
+    debug_assert_eq!(find_constant_value(&index, "a"), Some(&create_bool_literal(true)));
+    debug_assert_eq!(find_constant_value(&index, "b"), Some(&create_bool_literal(true)));
+    debug_assert_eq!(find_constant_value(&index, "c"), Some(&create_bool_literal(false)));
 }
 
 #[test]
@@ -1148,14 +851,8 @@ fn evaluating_constants_can_handle_recursion() {
         unresolvable
     );
     // AND aa and bb where resolved correctly
-    debug_assert_eq!(
-        find_constant_value(&index, "aa"),
-        Some(&create_int_literal(4))
-    );
-    debug_assert_eq!(
-        find_constant_value(&index, "bb"),
-        Some(&create_int_literal(4))
-    );
+    debug_assert_eq!(find_constant_value(&index, "aa"), Some(&create_int_literal(4)));
+    debug_assert_eq!(find_constant_value(&index, "bb"), Some(&create_int_literal(4)));
 }
 
 #[test]
@@ -1230,35 +927,15 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
     // AND the globals should have gotten their values
     debug_assert_eq!(
         find_constant_value(&index, "tau"),
-        Some(AstStatement::LiteralReal {
-            value: "6.283".into(),
-            id: 0,
-            location: SourceRange::undefined()
-        })
+        Some(AstStatement::LiteralReal { value: "6.283".into(), id: 0, location: SourceRange::undefined() })
     );
 
     //AND the type is correctly associated
-    let i = index
-        .find_global_variable("tau")
-        .unwrap()
-        .initial_value
-        .unwrap();
-    assert_eq!(
-        index
-            .get_const_expressions()
-            .find_expression_target_type(&i)
-            .unwrap(),
-        "LREAL"
-    );
+    let i = index.find_global_variable("tau").unwrap().initial_value.unwrap();
+    assert_eq!(index.get_const_expressions().find_expression_target_type(&i).unwrap(), "LREAL");
 
     assert_eq!(
-        annotations.get_type(
-            index
-                .get_const_expressions()
-                .get_constant_statement(&i)
-                .unwrap(),
-            &index
-        ),
+        annotations.get_type(index.get_const_expressions().get_constant_statement(&i).unwrap(), &index),
         index.find_effective_type_by_name("LREAL")
     );
 }
@@ -1315,27 +992,17 @@ fn array_literals_type_resolving() {
     let a = index.find_global_variable("a").unwrap();
     let i = a.initial_value.unwrap();
     assert_eq!(
-        index
-            .get_const_expressions()
-            .find_expression_target_type(&i),
+        index.get_const_expressions().find_expression_target_type(&i),
         Some(index.find_global_variable("a").unwrap().get_type_name())
     );
 
     // AND the array-literals types are associated correctly
-    if let AstStatement::LiteralArray {
-        elements: Some(elements),
-        ..
-    } = parse_result.global_vars[0].variables[0]
-        .initializer
-        .as_ref()
-        .unwrap()
+    if let AstStatement::LiteralArray { elements: Some(elements), .. } =
+        parse_result.global_vars[0].variables[0].initializer.as_ref().unwrap()
     {
         if let AstStatement::ExpressionList { expressions, .. } = elements.as_ref() {
             for ele in expressions.iter() {
-                assert_eq!(
-                    annotations.get_type_hint(ele, &index),
-                    index.find_effective_type_by_name("BYTE")
-                );
+                assert_eq!(annotations.get_type_hint(ele, &index), index.find_effective_type_by_name("BYTE"));
             }
         } else {
             unreachable!();
@@ -1345,13 +1012,7 @@ fn array_literals_type_resolving() {
     }
 
     assert_eq!(
-        annotations.get_type_hint(
-            index
-                .get_const_expressions()
-                .get_constant_statement(&i)
-                .unwrap(),
-            &index
-        ),
+        annotations.get_type_hint(index.get_const_expressions().get_constant_statement(&i).unwrap(), &index),
         index.find_effective_type_by_name(a.get_type_name())
     );
 }
@@ -1381,16 +1042,11 @@ fn nested_array_literals_type_resolving() {
     let a = index.find_global_variable("a").unwrap();
     let i = a.initial_value.unwrap();
     assert_eq!(
-        index
-            .get_const_expressions()
-            .find_expression_target_type(&i),
+        index.get_const_expressions().find_expression_target_type(&i),
         Some(index.find_global_variable("a").unwrap().get_type_name())
     );
     //check the initializer's type
-    let initializer = index
-        .get_const_expressions()
-        .get_constant_statement(&i)
-        .unwrap();
+    let initializer = index.get_const_expressions().get_constant_statement(&i).unwrap();
     assert_eq!(
         annotations.get_type_hint(initializer, &index),
         index.find_effective_type_by_name(a.get_type_name())
@@ -1399,15 +1055,9 @@ fn nested_array_literals_type_resolving() {
     println!("{:#?}", initializer);
 
     //check the initializer's array-element's types
-    if let AstStatement::LiteralArray {
-        elements: Some(e), ..
-    } = initializer
-    {
-        if let Some(DataTypeInformation::Array {
-            inner_type_name, ..
-        }) = index
-            .find_effective_type_by_name(a.get_type_name())
-            .map(|t| t.get_type_information())
+    if let AstStatement::LiteralArray { elements: Some(e), .. } = initializer {
+        if let Some(DataTypeInformation::Array { inner_type_name, .. }) =
+            index.find_effective_type_by_name(a.get_type_name()).map(|t| t.get_type_information())
         {
             //check the type of the expression-list has the same type as the variable itself
             /*assert_eq!(
@@ -1418,10 +1068,7 @@ fn nested_array_literals_type_resolving() {
             // check if the array's elements have the array's inner type
             for ele in AstStatement::get_as_list(e) {
                 let element_hint = annotations.get_type_hint(ele, &index).unwrap();
-                assert_eq!(
-                    Some(element_hint),
-                    index.find_effective_type_by_name(inner_type_name)
-                )
+                assert_eq!(Some(element_hint), index.find_effective_type_by_name(inner_type_name))
             }
         } else {
             unreachable!()
@@ -1456,16 +1103,11 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
     let a = index.find_global_variable("a").unwrap();
     let i = a.initial_value.unwrap();
     assert_eq!(
-        index
-            .get_const_expressions()
-            .find_expression_target_type(&i),
+        index.get_const_expressions().find_expression_target_type(&i),
         Some(index.find_global_variable("a").unwrap().get_type_name())
     );
     //check the initializer's type
-    let initializer = index
-        .get_const_expressions()
-        .get_constant_statement(&i)
-        .unwrap();
+    let initializer = index.get_const_expressions().get_constant_statement(&i).unwrap();
 
     assert_eq!(
         annotations.get_type_hint(initializer, &index),
@@ -1474,18 +1116,10 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
 
     //check the initializer's array-element's types
     // [[2(2)],[2(3)]]
-    if let AstStatement::LiteralArray {
-        elements: Some(outer_expresion_list),
-        ..
-    } = initializer
-    {
+    if let AstStatement::LiteralArray { elements: Some(outer_expresion_list), .. } = initializer {
         // outer_expression_list = [2(2)],[2(3)]
-        if let Some(DataTypeInformation::Array {
-            inner_type_name: array_of_byte,
-            ..
-        }) = index
-            .find_effective_type_by_name(a.get_type_name())
-            .map(|t| t.get_type_information())
+        if let Some(DataTypeInformation::Array { inner_type_name: array_of_byte, .. }) =
+            index.find_effective_type_by_name(a.get_type_name()).map(|t| t.get_type_information())
         {
             //check the type of the expression-list has the same type as the variable itself
             assert_eq!(
@@ -1497,23 +1131,15 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
             for inner_array in AstStatement::get_as_list(outer_expresion_list) {
                 // [2(2)]
                 let element_hint = annotations.get_type_hint(inner_array, &index).unwrap();
-                assert_eq!(
-                    Some(element_hint),
-                    index.find_effective_type_by_name(array_of_byte)
-                );
+                assert_eq!(Some(element_hint), index.find_effective_type_by_name(array_of_byte));
 
                 //check if the inner array statement's also got the type-annotations
-                if let AstStatement::LiteralArray {
-                    elements: Some(inner_multiplied_stmt),
-                    ..
-                } = inner_array
+                if let AstStatement::LiteralArray { elements: Some(inner_multiplied_stmt), .. } = inner_array
                 {
                     // inner_multiplied_stmt = 2(2)
                     for inner_multiplied_stmt in AstStatement::get_as_list(inner_multiplied_stmt) {
-                        if let AstStatement::MultipliedStatement {
-                            element: multiplied_element,
-                            ..
-                        } = inner_multiplied_stmt
+                        if let AstStatement::MultipliedStatement { element: multiplied_element, .. } =
+                            inner_multiplied_stmt
                         {
                             //check if the inner thing really got the BYTE hint
                             // multiplied-element = 2
