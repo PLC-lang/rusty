@@ -1772,14 +1772,13 @@ fn builtin_expt_with_literlals_without_explicit_type_annotation_does_not_report_
     let src = r"
     FUNCTION main : DINT
     VAR
-        i : DINT;
-        i2 : DINT;
-        i3 : DINT;
+        i : DINT := 2;
     END_VAR
-        // i := 2**DINT#3;
-        // i2 := 2**3;
-        i3 := 2**UDINT#3; // validation error
-        // i3 := 2**ULINT#3; // results in real
+        i := 2**i;
+        i := i**i;
+        i := 2**UDINT#3; // validation error
+        i := 2**ULINT#3;
+        i := 2**3;
     END_FUNCTION
     ";
 
