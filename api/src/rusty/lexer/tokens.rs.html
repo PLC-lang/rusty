@@ -387,15 +387,6 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">HardwareAccessType</span>};
@@ -756,25 +747,16 @@
     )]</span>
     <span class="ident">LiteralDateAndTime</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(
-        <span class="string">&quot;(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>,
-        <span class="ident">ignore</span>(<span class="ident">case</span>)
-    )]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTimeOfDay</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(
-        <span class="string">&quot;(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>,
-        <span class="ident">ignore</span>(<span class="ident">case</span>)
-    )]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTime</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;%(B|b|D|d|W|w|L|l|X|x)&quot;</span>, <span class="ident"><span class="kw">super</span>::parse_access_type</span>)]</span>
     <span class="ident">DirectAccess</span>(<span class="ident">DirectAccessType</span>),
 
-    <span class="attribute">#[<span class="ident">regex</span>(
-        <span class="string">r&quot;%(I|i|Q|q|M|m|G|g)(B|b|D|d|W|w|L|l|X|x|\*)&quot;</span>,
-        <span class="ident"><span class="kw">super</span>::parse_hardware_access_type</span>
-    )]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;%(I|i|Q|q|M|m|G|g)(B|b|D|d|W|w|L|l|X|x|\*)&quot;</span>, <span class="ident"><span class="kw">super</span>::parse_hardware_access_type</span>)]</span>
     <span class="ident">HardwareAccess</span>((<span class="ident">HardwareAccessType</span>, <span class="ident">DirectAccessType</span>)),
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;&#39;((\\$.)|[^$&#39;])*&#39;&quot;</span>)]</span>

@@ -459,83 +459,6 @@
 <span id="454">454</span>
 <span id="455">455</span>
 <span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>};
 <span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
 
@@ -592,13 +515,8 @@
     <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AstAnnotations</span>,
     <span class="ident">diagnostician</span>: <span class="kw-2">&amp;</span><span class="ident">Diagnostician</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">DataTypeGenerator</span> {
-        <span class="ident">llvm</span>,
-        <span class="ident">debug</span>,
-        <span class="ident">index</span>,
-        <span class="ident">annotations</span>,
-        <span class="ident">types_index</span>: <span class="ident">LlvmTypedIndex::default</span>(),
-    };
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator</span> <span class="op">=</span>
+        <span class="ident">DataTypeGenerator</span> { <span class="ident">llvm</span>, <span class="ident">debug</span>, <span class="ident">index</span>, <span class="ident">annotations</span>, <span class="ident">types_index</span>: <span class="ident">LlvmTypedIndex::default</span>() };
 
     <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="ident">generator</span>
         .<span class="ident">index</span>
@@ -620,24 +538,14 @@
     <span class="comment">// first create all STUBs for struct types (empty structs)</span>
     <span class="comment">// and associate them in the llvm index</span>
     <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">types</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> {
-            <span class="ident">name</span>: <span class="ident">struct_name</span>, ..
-        } <span class="op">=</span> <span class="ident">user_type</span>.<span class="ident">get_type_information</span>()
-        {
-            <span class="ident">generator</span>
-                .<span class="ident">types_index</span>
-                .<span class="ident">associate_type</span>(<span class="ident">name</span>, <span class="ident">llvm</span>.<span class="ident">create_struct_stub</span>(<span class="ident">struct_name</span>).<span class="ident">into</span>())<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> { <span class="ident">name</span>: <span class="ident">struct_name</span>, .. } <span class="op">=</span> <span class="ident">user_type</span>.<span class="ident">get_type_information</span>() {
+            <span class="ident">generator</span>.<span class="ident">types_index</span>.<span class="ident">associate_type</span>(<span class="ident">name</span>, <span class="ident">llvm</span>.<span class="ident">create_struct_stub</span>(<span class="ident">struct_name</span>).<span class="ident">into</span>())<span class="question-mark">?</span>;
         }
     }
     <span class="comment">// pou_types will always be struct</span>
     <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">pou_types</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> {
-            <span class="ident">name</span>: <span class="ident">struct_name</span>, ..
-        } <span class="op">=</span> <span class="ident">user_type</span>.<span class="ident">get_type_information</span>()
-        {
-            <span class="ident">generator</span>
-                .<span class="ident">types_index</span>
-                .<span class="ident">associate_pou_type</span>(<span class="ident">name</span>, <span class="ident">llvm</span>.<span class="ident">create_struct_stub</span>(<span class="ident">struct_name</span>).<span class="ident">into</span>())<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> { <span class="ident">name</span>: <span class="ident">struct_name</span>, .. } <span class="op">=</span> <span class="ident">user_type</span>.<span class="ident">get_type_information</span>() {
+            <span class="ident">generator</span>.<span class="ident">types_index</span>.<span class="ident">associate_pou_type</span>(<span class="ident">name</span>, <span class="ident">llvm</span>.<span class="ident">create_struct_stub</span>(<span class="ident">struct_name</span>).<span class="ident">into</span>())<span class="question-mark">?</span>;
         }
     }
 
@@ -680,10 +588,7 @@
                 }
                 <span class="prelude-val">Ok</span>(<span class="ident">init_value</span>) =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init_value</span>) <span class="op">=</span> <span class="ident">init_value</span> {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">generator</span>
-                            .<span class="ident">types_index</span>
-                            .<span class="ident">associate_initial_value</span>(<span class="ident">name</span>, <span class="ident">init_value</span>)
-                        {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">types_index</span>.<span class="ident">associate_initial_value</span>(<span class="ident">name</span>, <span class="ident">init_value</span>) {
                             <span class="comment">//If it fails, push it back into the list</span>
                             <span class="ident">tries</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                             <span class="ident">types_to_init</span>.<span class="ident">push_back</span>((<span class="ident">name</span>, <span class="ident">user_type</span>));
@@ -706,10 +611,7 @@
                     .<span class="ident">get</span>(<span class="ident">name</span>)
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">diag</span><span class="op">|</span> <span class="ident">diag</span>.<span class="ident">with_extra_ranges</span>(<span class="kw-2">&amp;</span>[<span class="ident">ty</span>.<span class="ident">location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>()]))
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">Diagnostic::cannot_generate_initializer</span>(
-                            <span class="ident">name</span>,
-                            <span class="ident">ty</span>.<span class="ident">location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
-                        )
+                        <span class="ident">Diagnostic::cannot_generate_initializer</span>(<span class="ident">name</span>, <span class="ident">ty</span>.<span class="ident">location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>())
                     })
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
@@ -737,9 +639,7 @@
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">struct_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source</span> {
-                <span class="ident">StructSource::Pou</span>(..) =&gt; <span class="self">self</span>
-                    .<span class="ident">types_index</span>
-                    .<span class="ident">get_associated_pou_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>()),
+                <span class="ident">StructSource::Pou</span>(..) =&gt; <span class="self">self</span>.<span class="ident">types_index</span>.<span class="ident">get_associated_pou_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>()),
                 <span class="ident">StructSource::OriginalDeclaration</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">types_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>())
                 }
@@ -754,28 +654,17 @@
     <span class="doccomment">/// Creates an llvm type to be associated with the given data type.</span>
     <span class="doccomment">/// Generates only an opaque type for structs.</span>
     <span class="doccomment">/// Eagerly generates but does not associate nested array and referenced aliased types</span>
-    <span class="kw">fn</span> <span class="ident">create_type</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">debug</span>
-            .<span class="ident">register_debug_type</span>(<span class="ident">name</span>, <span class="ident">data_type</span>, <span class="self">self</span>.<span class="ident">index</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn</span> <span class="ident">create_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">debug</span>.<span class="ident">register_debug_type</span>(<span class="ident">name</span>, <span class="ident">data_type</span>, <span class="self">self</span>.<span class="ident">index</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">information</span> <span class="op">=</span> <span class="ident">data_type</span>.<span class="ident">get_type_information</span>();
         <span class="kw">match</span> <span class="ident">information</span> {
             <span class="ident">DataTypeInformation::Struct</span> { <span class="ident">source</span>, .. } =&gt; <span class="kw">match</span> <span class="ident">source</span> {
-                <span class="ident">StructSource::Pou</span>(..) =&gt; <span class="self">self</span>
-                    .<span class="ident">types_index</span>
-                    .<span class="ident">get_associated_pou_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>()),
+                <span class="ident">StructSource::Pou</span>(..) =&gt; <span class="self">self</span>.<span class="ident">types_index</span>.<span class="ident">get_associated_pou_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>()),
                 <span class="ident">StructSource::OriginalDeclaration</span> =&gt; {
                     <span class="self">self</span>.<span class="ident">types_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>())
                 }
             },
-            <span class="ident">DataTypeInformation::Array</span> {
-                <span class="ident">inner_type_name</span>,
-                <span class="ident">dimensions</span>,
-                ..
-            } =&gt; <span class="self">self</span>
+            <span class="ident">DataTypeInformation::Array</span> { <span class="ident">inner_type_name</span>, <span class="ident">dimensions</span>, .. } =&gt; <span class="self">self</span>
                 .<span class="ident">index</span>
                 .<span class="ident">get_effective_type_by_name</span>(<span class="ident">inner_type_name</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">inner_type</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">create_type</span>(<span class="ident">inner_type_name</span>, <span class="ident">inner_type</span>))
@@ -784,14 +673,8 @@
             <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">size</span>, .. } =&gt; {
                 <span class="ident">get_llvm_int_type</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">size</span>, <span class="ident">name</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">into</span>())
             }
-            <span class="ident">DataTypeInformation::Enum</span> {
-                <span class="ident">name</span>,
-                <span class="ident">referenced_type</span>,
-                ..
-            } =&gt; {
-                <span class="kw">let</span> <span class="ident">effective_type</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">index</span>
-                    .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">referenced_type</span>);
+            <span class="ident">DataTypeInformation::Enum</span> { <span class="ident">name</span>, <span class="ident">referenced_type</span>, .. } =&gt; {
+                <span class="kw">let</span> <span class="ident">effective_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">referenced_type</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Integer</span> { .. } <span class="op">=</span> <span class="ident">effective_type</span>.<span class="ident">get_type_information</span>() {
                     <span class="self">self</span>.<span class="ident">create_type</span>(<span class="ident">name</span>, <span class="ident">effective_type</span>)
                 } <span class="kw">else</span> {
@@ -812,28 +695,20 @@
                     <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i16_type</span>()
                 };
 
-                <span class="kw">let</span> <span class="ident">string_size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">as_int_value</span>(<span class="self">self</span>.<span class="ident">index</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
-                    <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">it</span>.<span class="ident">as_str</span>(), <span class="ident">SourceRange::undefined</span>())
-                })<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u32</span>;
+                <span class="kw">let</span> <span class="ident">string_size</span> <span class="op">=</span> <span class="ident">size</span>
+                    .<span class="ident">as_int_value</span>(<span class="self">self</span>.<span class="ident">index</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">it</span>.<span class="ident">as_str</span>(), <span class="ident">SourceRange::undefined</span>()))<span class="question-mark">?</span>
+                    <span class="kw">as</span> <span class="ident">u32</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">base_type</span>.<span class="ident">array_type</span>(<span class="ident">string_size</span>).<span class="ident">into</span>())
             }
-            <span class="ident">DataTypeInformation::SubRange</span> {
-                <span class="ident">referenced_type</span>, ..
-            }
-            <span class="op">|</span> <span class="ident">DataTypeInformation::Alias</span> {
-                <span class="ident">referenced_type</span>, ..
-            } =&gt; <span class="self">self</span>
+            <span class="ident">DataTypeInformation::SubRange</span> { <span class="ident">referenced_type</span>, .. }
+            <span class="op">|</span> <span class="ident">DataTypeInformation::Alias</span> { <span class="ident">referenced_type</span>, .. } =&gt; <span class="self">self</span>
                 .<span class="ident">index</span>
                 .<span class="ident">get_effective_type_by_name</span>(<span class="ident">referenced_type</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">data_type</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">create_type</span>(<span class="ident">name</span>, <span class="ident">data_type</span>)),
-            <span class="ident">DataTypeInformation::Void</span> =&gt; {
-                <span class="ident">get_llvm_int_type</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="number">32</span>, <span class="string">&quot;Void&quot;</span>).<span class="ident">map</span>(<span class="ident">Into::into</span>)
-            }
-            <span class="ident">DataTypeInformation::Pointer</span> {
-                <span class="ident">inner_type_name</span>, ..
-            } =&gt; {
-                <span class="kw">let</span> <span class="ident">inner_type</span> <span class="op">=</span>
-                    <span class="self">self</span>.<span class="ident">create_type</span>(<span class="ident">inner_type_name</span>, <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">inner_type_name</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+            <span class="ident">DataTypeInformation::Void</span> =&gt; <span class="ident">get_llvm_int_type</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="number">32</span>, <span class="string">&quot;Void&quot;</span>).<span class="ident">map</span>(<span class="ident">Into::into</span>),
+            <span class="ident">DataTypeInformation::Pointer</span> { <span class="ident">inner_type_name</span>, .. } =&gt; {
+                <span class="kw">let</span> <span class="ident">inner_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_type</span>(<span class="ident">inner_type_name</span>, <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">inner_type_name</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">inner_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>).<span class="ident">into</span>())
             }
             <span class="ident">DataTypeInformation::Generic</span> { .. } =&gt; {
@@ -854,15 +729,14 @@
                     .<span class="ident">iter</span>()
                     .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_variable_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">VariableType::Temp</span>)
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
-                        <span class="self">self</span>.<span class="ident">generate_initial_value_for_variable</span>(<span class="ident">it</span>)
-                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">v</span> {
-                                <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">it</span>.<span class="ident">get_qualified_name</span>(), <span class="ident">v</span>)),
-                                <span class="prelude-val">None</span> =&gt; <span class="self">self</span>
-                                    .<span class="ident">types_index</span>
-                                    .<span class="ident">get_associated_type</span>(<span class="ident">it</span>.<span class="ident">get_type_name</span>())
-                                    .<span class="ident">map</span>(<span class="ident">get_default_for</span>)
-                                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">it</span>.<span class="ident">get_qualified_name</span>(), <span class="ident">v</span>)),
-                            })
+                        <span class="self">self</span>.<span class="ident">generate_initial_value_for_variable</span>(<span class="ident">it</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">v</span> {
+                            <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">it</span>.<span class="ident">get_qualified_name</span>(), <span class="ident">v</span>)),
+                            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>
+                                .<span class="ident">types_index</span>
+                                .<span class="ident">get_associated_type</span>(<span class="ident">it</span>.<span class="ident">get_type_name</span>())
+                                .<span class="ident">map</span>(<span class="ident">get_default_for</span>)
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">it</span>.<span class="ident">get_qualified_name</span>(), <span class="ident">v</span>)),
+                        })
                     })
                     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">BasicValueEnum</span>)<span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
@@ -873,20 +747,14 @@
                 }
 
                 <span class="kw">let</span> <span class="ident">struct_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">source</span> {
-                    <span class="ident">StructSource::Pou</span>(..) =&gt; <span class="self">self</span>
-                        .<span class="ident">types_index</span>
-                        .<span class="ident">get_associated_pou_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>()),
+                    <span class="ident">StructSource::Pou</span>(..) =&gt; <span class="self">self</span>.<span class="ident">types_index</span>.<span class="ident">get_associated_pou_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>()),
                     <span class="ident">StructSource::OriginalDeclaration</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">types_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>())
                     }
                 }<span class="question-mark">?</span>
                 .<span class="ident">into_struct_type</span>();
 
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
-                    <span class="ident">struct_type</span>
-                        .<span class="ident">const_named_struct</span>(<span class="kw-2">&amp;</span><span class="ident">member_values</span>)
-                        .<span class="ident">as_basic_value_enum</span>(),
-                ))
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">struct_type</span>.<span class="ident">const_named_struct</span>(<span class="kw-2">&amp;</span><span class="ident">member_values</span>).<span class="ident">as_basic_value_enum</span>()))
             }
             <span class="ident">DataTypeInformation::Array</span> { .. } =&gt; <span class="self">self</span>.<span class="ident">generate_array_initializer</span>(
                 <span class="ident">data_type</span>,
@@ -898,12 +766,12 @@
                 <span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">stmt</span>, <span class="ident">AstStatement::LiteralString</span> { .. }),
                 <span class="string">&quot;LiteralString&quot;</span>,
             ),
-            <span class="ident">DataTypeInformation::SubRange</span> {
-                <span class="ident">referenced_type</span>, ..
-            } =&gt; <span class="self">self</span>.<span class="ident">generate_initial_value_for_type</span>(<span class="ident">data_type</span>, <span class="ident">referenced_type</span>),
-            <span class="ident">DataTypeInformation::Alias</span> {
-                <span class="ident">referenced_type</span>, ..
-            } =&gt; <span class="self">self</span>.<span class="ident">generate_initial_value_for_type</span>(<span class="ident">data_type</span>, <span class="ident">referenced_type</span>),
+            <span class="ident">DataTypeInformation::SubRange</span> { <span class="ident">referenced_type</span>, .. } =&gt; {
+                <span class="self">self</span>.<span class="ident">generate_initial_value_for_type</span>(<span class="ident">data_type</span>, <span class="ident">referenced_type</span>)
+            }
+            <span class="ident">DataTypeInformation::Alias</span> { <span class="ident">referenced_type</span>, .. } =&gt; {
+                <span class="self">self</span>.<span class="ident">generate_initial_value_for_type</span>(<span class="ident">data_type</span>, <span class="ident">referenced_type</span>)
+            }
             <span class="comment">//all other types (scalars, pointer and void)</span>
             <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -916,16 +784,10 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">variable</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">initializer</span> <span class="op">=</span> <span class="ident">variable</span>.<span class="ident">initial_value</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
-            <span class="self">self</span>.<span class="ident">index</span>
-                .<span class="ident">get_const_expressions</span>()
-                .<span class="ident">get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">it</span>)
-        });
-        <span class="self">self</span>.<span class="ident">generate_initializer</span>(
-            <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
-            <span class="ident">initializer</span>,
-            <span class="ident">variable</span>.<span class="ident">get_type_name</span>(),
-        )
+        <span class="kw">let</span> <span class="ident">initializer</span> <span class="op">=</span> <span class="ident">variable</span>
+            .<span class="ident">initial_value</span>
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_const_expressions</span>().<span class="ident">get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">it</span>));
+        <span class="self">self</span>.<span class="ident">generate_initializer</span>(<span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(), <span class="ident">initializer</span>, <span class="ident">variable</span>.<span class="ident">get_type_name</span>())
     }
 
     <span class="doccomment">/// generates and returns an optional inital value at the given dataType</span>
@@ -938,9 +800,7 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">generate_initializer</span>(
             <span class="ident">data_type</span>.<span class="ident">get_name</span>(),
-            <span class="self">self</span>.<span class="ident">index</span>
-                .<span class="ident">get_const_expressions</span>()
-                .<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">data_type</span>.<span class="ident">initial_value</span>),
+            <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_const_expressions</span>().<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">data_type</span>.<span class="ident">initial_value</span>),
             <span class="ident">referenced_type</span>,
         )
     }
@@ -962,15 +822,9 @@
                 <span class="self">self</span>.<span class="ident">annotations</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">types_index</span>,
             );
-            <span class="ident">generator</span>
-                .<span class="ident">generate_expression</span>(<span class="ident">initializer</span>)
-                .<span class="ident">map</span>(<span class="prelude-val">Some</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident">Diagnostic::cannot_generate_initializer</span>(
-                        <span class="ident">qualified_name</span>,
-                        <span class="ident">initializer</span>.<span class="ident">get_location</span>(),
-                    )
-                })
+            <span class="ident">generator</span>.<span class="ident">generate_expression</span>(<span class="ident">initializer</span>).<span class="ident">map</span>(<span class="prelude-val">Some</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                <span class="ident">Diagnostic::cannot_generate_initializer</span>(<span class="ident">qualified_name</span>, <span class="ident">initializer</span>.<span class="ident">get_location</span>())
+            })
         } <span class="kw">else</span> {
             <span class="comment">// if there&#39;s no initializer defined for this alias, we go and check the aliased type for an initial value</span>
             <span class="self">self</span>.<span class="ident">index</span>
@@ -986,10 +840,8 @@
         <span class="ident">predicate</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) -&gt; <span class="ident">bool</span>,
         <span class="ident">expected_ast</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">initializer</span>) <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">index</span>
-            .<span class="ident">get_const_expressions</span>()
-            .<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">data_type</span>.<span class="ident">initial_value</span>)
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">initializer</span>) <span class="op">=</span>
+            <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_const_expressions</span>().<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">data_type</span>.<span class="ident">initial_value</span>)
         {
             <span class="kw">if</span> <span class="ident">predicate</span>(<span class="ident">initializer</span>) {
                 <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">ExpressionCodeGenerator::new_context_free</span>(
@@ -998,11 +850,7 @@
                     <span class="self">self</span>.<span class="ident">annotations</span>,
                     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">types_index</span>,
                 );
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
-                    <span class="ident">generator</span>
-                        .<span class="ident">generate_literal</span>(<span class="ident">initializer</span>)<span class="question-mark">?</span>
-                        .<span class="ident">get_basic_value_enum</span>(),
-                ))
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">generator</span>.<span class="ident">generate_literal</span>(<span class="ident">initializer</span>)<span class="question-mark">?</span>.<span class="ident">get_basic_value_enum</span>()))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
                     <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Expected {} but found {:?}&quot;</span>, <span class="ident">expected_ast</span>, <span class="ident">initializer</span>),
@@ -1035,9 +883,7 @@
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
             .<span class="ident">into_iter</span>()
             .<span class="ident">reduce</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">a</span> <span class="op">*</span> <span class="ident">b</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;Invalid array dimensions&quot;</span>, <span class="ident">SourceRange::undefined</span>())
-            })<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;Invalid array dimensions&quot;</span>, <span class="ident">SourceRange::undefined</span>()))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">inner_type</span> {
             <span class="ident">BasicTypeEnum::IntType</span>(..) =&gt; <span class="ident">inner_type</span>.<span class="ident">into_int_type</span>().<span class="ident">array_type</span>(<span class="ident">len</span>),

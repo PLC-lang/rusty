@@ -224,44 +224,6 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::<span class="kw-2">*</span>,
@@ -291,28 +253,19 @@
 <span class="kw">fn</span> <span class="ident">parse_return_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="ident">AstStatement::ReturnStatement</span> {
-        <span class="ident">location</span>,
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="ident">AstStatement::ReturnStatement</span> { <span class="ident">location</span>, <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>() }
 }
 
 <span class="kw">fn</span> <span class="ident">parse_exit_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="ident">AstStatement::ExitStatement</span> {
-        <span class="ident">location</span>,
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="ident">AstStatement::ExitStatement</span> { <span class="ident">location</span>, <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>() }
 }
 
 <span class="kw">fn</span> <span class="ident">parse_continue_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="ident">AstStatement::ContinueStatement</span> {
-        <span class="ident">location</span>,
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="ident">AstStatement::ContinueStatement</span> { <span class="ident">location</span>, <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>() }
 }
 
 <span class="kw">fn</span> <span class="ident">parse_if_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ParseSession</span>) -&gt; <span class="ident">AstStatement</span> {
@@ -325,10 +278,7 @@
         <span class="macro">expect_token!</span>(
             <span class="ident">lexer</span>,
             <span class="ident">KeywordThen</span>,
-            <span class="ident">AstStatement::EmptyStatement</span> {
-                <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
-                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-            }
+            <span class="ident">AstStatement::EmptyStatement</span> { <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(), <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>() }
         );
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
@@ -364,10 +314,7 @@
     <span class="macro">expect_token!</span>(
         <span class="ident">lexer</span>,
         <span class="ident">KeywordAssignment</span>,
-        <span class="ident">AstStatement::EmptyStatement</span> {
-            <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
-            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>()
-        }
+        <span class="ident">AstStatement::EmptyStatement</span> { <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(), <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>() }
     );
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
@@ -375,10 +322,7 @@
     <span class="macro">expect_token!</span>(
         <span class="ident">lexer</span>,
         <span class="ident">KeywordTo</span>,
-        <span class="ident">AstStatement::EmptyStatement</span> {
-            <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
-            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-        }
+        <span class="ident">AstStatement::EmptyStatement</span> { <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(), <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>() }
     );
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="kw">let</span> <span class="ident">end_expression</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
@@ -398,9 +342,7 @@
         <span class="ident">end</span>: <span class="ident">Box::new</span>(<span class="ident">end_expression</span>),
         <span class="ident">by_step</span>: <span class="ident">step</span>,
         <span class="ident">body</span>: <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndFor</span>]),
-        <span class="ident">location</span>: <span class="ident">lexer</span>
-            .<span class="ident">source_range_factory</span>
-            .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">source_range_factory</span>.<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
@@ -415,9 +357,7 @@
     <span class="ident">AstStatement::WhileLoopStatement</span> {
         <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">condition</span>),
         <span class="ident">body</span>: <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndWhile</span>]),
-        <span class="ident">location</span>: <span class="ident">lexer</span>
-            .<span class="ident">source_range_factory</span>
-            .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">source_range_factory</span>.<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
@@ -428,22 +368,15 @@
 
     <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordUntil</span>, <span class="ident">KeywordEndRepeat</span>]); <span class="comment">//UNTIL</span>
     <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">last_token</span> <span class="op">==</span> <span class="ident">KeywordUntil</span> {
-        <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndRepeat</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
-            <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)
-        })
+        <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndRepeat</span>], <span class="ident">parse_expression</span>)
     } <span class="kw">else</span> {
-        <span class="ident">AstStatement::EmptyStatement</span> {
-            <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
-            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-        }
+        <span class="ident">AstStatement::EmptyStatement</span> { <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(), <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>() }
     };
 
     <span class="ident">AstStatement::RepeatLoopStatement</span> {
         <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">condition</span>),
         <span class="ident">body</span>,
-        <span class="ident">location</span>: <span class="ident">lexer</span>
-            .<span class="ident">source_range_factory</span>
-            .<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">source_range_factory</span>.<span class="ident">create_range</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
@@ -457,10 +390,7 @@
     <span class="macro">expect_token!</span>(
         <span class="ident">lexer</span>,
         <span class="ident">KeywordOf</span>,
-        <span class="ident">AstStatement::EmptyStatement</span> {
-            <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
-            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>()
-        }
+        <span class="ident">AstStatement::EmptyStatement</span> { <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(), <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>() }
     );
 
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
@@ -474,10 +404,7 @@
         <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="ident">body</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::CaseCondition</span> { <span class="ident">condition</span>, .. } <span class="op">=</span> <span class="ident">statement</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">current_condition</span> {
-                    <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">ConditionalBlock</span> {
-                        <span class="ident">condition</span>,
-                        <span class="ident">body</span>: <span class="ident">current_body</span>,
-                    };
+                    <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">ConditionalBlock</span> { <span class="ident">condition</span>, <span class="ident">body</span>: <span class="ident">current_body</span> };
                     <span class="ident">case_blocks</span>.<span class="ident">push</span>(<span class="ident">block</span>);
                     <span class="ident">current_body</span> <span class="op">=</span> <span class="macro">vec!</span>[];
                 }
@@ -498,10 +425,7 @@
             }
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">current_condition</span> {
-            <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">ConditionalBlock</span> {
-                <span class="ident">condition</span>,
-                <span class="ident">body</span>: <span class="ident">current_body</span>,
-            };
+            <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">ConditionalBlock</span> { <span class="ident">condition</span>, <span class="ident">body</span>: <span class="ident">current_body</span> };
             <span class="ident">case_blocks</span>.<span class="ident">push</span>(<span class="ident">block</span>);
         }
     }

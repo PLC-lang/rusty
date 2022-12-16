@@ -413,92 +413,12 @@
 <span id="408">408</span>
 <span id="409">409</span>
 <span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
-        <span class="self">self</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Pou</span>, <span class="ident">PouType</span>,
-        <span class="ident">SourceRange</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>,
+        <span class="self">self</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Pou</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>,
+        <span class="ident">UserTypeDeclaration</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>,
     },
     <span class="ident">codegen::generators::expression_generator::get_implicit_call_parameter</span>,
     <span class="ident">index</span>::{<span class="ident">ArgumentType</span>, <span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>},
@@ -508,8 +428,8 @@
 };
 
 <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">global_validator::GlobalValidator</span>, <span class="ident">pou_validator::PouValidator</span>,
-    <span class="ident">stmt_validator::StatementValidator</span>, <span class="ident">variable_validator::VariableValidator</span>,
+    <span class="ident">global_validator::GlobalValidator</span>, <span class="ident">pou_validator::PouValidator</span>, <span class="ident">stmt_validator::StatementValidator</span>,
+    <span class="ident">variable_validator::VariableValidator</span>,
 };
 
 <span class="kw">mod</span> <span class="ident">global_validator</span>;
@@ -592,28 +512,15 @@
         <span class="self">self</span>.<span class="ident">global_validator</span>.<span class="ident">validate_unique_symbols</span>(<span class="ident">index</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_unit</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AnnotationMapImpl</span>,
-        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
-        <span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="ident">CompilationUnit</span>,
-    ) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_unit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AnnotationMapImpl</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>, <span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="ident">CompilationUnit</span>) {
         <span class="kw">for</span> <span class="ident">pou</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">units</span> {
             <span class="self">self</span>.<span class="ident">visit_pou</span>(
                 <span class="ident">pou</span>,
-                <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span> {
-                    <span class="ident">ast_annotation</span>: <span class="ident">annotations</span>,
-                    <span class="ident">index</span>,
-                    <span class="ident">qualifier</span>: <span class="prelude-val">Some</span>(<span class="ident">pou</span>.<span class="ident">name</span>.<span class="ident">as_str</span>()),
-                },
+                <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span> { <span class="ident">ast_annotation</span>: <span class="ident">annotations</span>, <span class="ident">index</span>, <span class="ident">qualifier</span>: <span class="prelude-val">Some</span>(<span class="ident">pou</span>.<span class="ident">name</span>.<span class="ident">as_str</span>()) },
             );
         }
 
-        <span class="kw">let</span> <span class="ident">no_context</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span> {
-            <span class="ident">ast_annotation</span>: <span class="ident">annotations</span>,
-            <span class="ident">index</span>,
-            <span class="ident">qualifier</span>: <span class="prelude-val">None</span>,
-        };
+        <span class="kw">let</span> <span class="ident">no_context</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span> { <span class="ident">ast_annotation</span>: <span class="ident">annotations</span>, <span class="ident">index</span>, <span class="ident">qualifier</span>: <span class="prelude-val">None</span> };
         <span class="kw">for</span> <span class="ident">t</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">types</span> {
             <span class="self">self</span>.<span class="ident">visit_user_type_declaration</span>(<span class="ident">t</span>, <span class="ident">no_context</span>);
         }
@@ -623,19 +530,12 @@
         }
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">implementations</span> {
-            <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">ValidationContext</span> {
-                <span class="ident">ast_annotation</span>: <span class="ident">annotations</span>,
-                <span class="ident">index</span>,
-                <span class="ident">qualifier</span>: <span class="prelude-val">Some</span>(<span class="ident">i</span>.<span class="ident">name</span>.<span class="ident">as_str</span>()),
-            };
+            <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span>
+                <span class="ident">ValidationContext</span> { <span class="ident">ast_annotation</span>: <span class="ident">annotations</span>, <span class="ident">index</span>, <span class="ident">qualifier</span>: <span class="prelude-val">Some</span>(<span class="ident">i</span>.<span class="ident">name</span>.<span class="ident">as_str</span>()) };
             <span class="kw">if</span> <span class="ident">i</span>.<span class="ident">pou_type</span> <span class="op">==</span> <span class="ident">PouType::Action</span> <span class="op">&amp;&amp;</span> <span class="ident">i</span>.<span class="ident">type_name</span> <span class="op">==</span> <span class="string">&quot;__unknown__&quot;</span> {
-                <span class="self">self</span>.<span class="ident">pou_validator</span>
-                    .<span class="ident">diagnostics</span>
-                    .<span class="ident">push</span>(<span class="ident">Diagnostic::missing_action_container</span>(<span class="ident">i</span>.<span class="ident">location</span>.<span class="ident">clone</span>()));
+                <span class="self">self</span>.<span class="ident">pou_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::missing_action_container</span>(<span class="ident">i</span>.<span class="ident">location</span>.<span class="ident">clone</span>()));
             }
-            <span class="ident">i</span>.<span class="ident">statements</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="ident">context</span>));
+            <span class="ident">i</span>.<span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="ident">context</span>));
         }
     }
 
@@ -655,11 +555,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_variable_container</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>,
-        <span class="ident">container</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>,
-    ) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_variable_container</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>, <span class="ident">container</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>) {
         <span class="self">self</span>.<span class="ident">variable_validator</span>.<span class="ident">validate_variable_block</span>(<span class="ident">container</span>);
 
         <span class="kw">for</span> <span class="ident">variable</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">container</span>.<span class="ident">variables</span> {
@@ -678,15 +574,9 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>,
         <span class="ident">declaration</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeDeclaration</span>,
     ) {
-        <span class="self">self</span>.<span class="ident">variable_validator</span>
-            .<span class="ident">validate_data_type_declaration</span>(<span class="ident">declaration</span>);
+        <span class="self">self</span>.<span class="ident">variable_validator</span>.<span class="ident">validate_data_type_declaration</span>(<span class="ident">declaration</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
-            <span class="ident">data_type</span>,
-            <span class="ident">location</span>,
-            ..
-        } <span class="op">=</span> <span class="ident">declaration</span>
-        {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> { <span class="ident">data_type</span>, <span class="ident">location</span>, .. } <span class="op">=</span> <span class="ident">declaration</span> {
             <span class="self">self</span>.<span class="ident">visit_data_type</span>(<span class="ident">context</span>, <span class="ident">data_type</span>, <span class="ident">location</span>);
         }
     }
@@ -697,20 +587,16 @@
         <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>,
         <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
     ) {
-        <span class="self">self</span>.<span class="ident">variable_validator</span>
-            .<span class="ident">validate_data_type</span>(<span class="ident">data_type</span>, <span class="ident">location</span>);
+        <span class="self">self</span>.<span class="ident">variable_validator</span>.<span class="ident">validate_data_type</span>(<span class="ident">data_type</span>, <span class="ident">location</span>);
 
         <span class="kw">match</span> <span class="ident">data_type</span> {
-            <span class="ident">DataType::StructType</span> { <span class="ident">variables</span>, .. } =&gt; <span class="ident">variables</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_variable</span>(<span class="ident">context</span>, <span class="ident">v</span>)),
-            <span class="ident">DataType::ArrayType</span> {
-                <span class="ident">referenced_type</span>, ..
-            } =&gt; <span class="self">self</span>.<span class="ident">visit_data_type_declaration</span>(<span class="ident">context</span>, <span class="ident">referenced_type</span>),
-            <span class="ident">DataType::VarArgs</span> {
-                <span class="ident">referenced_type</span>: <span class="prelude-val">Some</span>(<span class="ident">referenced_type</span>),
-                ..
-            } =&gt; {
+            <span class="ident">DataType::StructType</span> { <span class="ident">variables</span>, .. } =&gt; {
+                <span class="ident">variables</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_variable</span>(<span class="ident">context</span>, <span class="ident">v</span>))
+            }
+            <span class="ident">DataType::ArrayType</span> { <span class="ident">referenced_type</span>, .. } =&gt; {
+                <span class="self">self</span>.<span class="ident">visit_data_type_declaration</span>(<span class="ident">context</span>, <span class="ident">referenced_type</span>)
+            }
+            <span class="ident">DataType::VarArgs</span> { <span class="ident">referenced_type</span>: <span class="prelude-val">Some</span>(<span class="ident">referenced_type</span>), .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_data_type_declaration</span>(<span class="ident">context</span>, <span class="ident">referenced_type</span>.<span class="ident">as_ref</span>());
             }
             <span class="kw">_</span> =&gt; {}
@@ -719,28 +605,23 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>) {
         <span class="kw">match</span> <span class="ident">statement</span> {
-            <span class="ident">AstStatement::LiteralArray</span> {
-                <span class="ident">elements</span>: <span class="prelude-val">Some</span>(<span class="ident">elements</span>),
-                ..
-            } =&gt; <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">elements</span>.<span class="ident">as_ref</span>(), <span class="ident">context</span>),
-            <span class="ident">AstStatement::MultipliedStatement</span> { <span class="ident">element</span>, .. } =&gt; {
-                <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">element</span>, <span class="ident">context</span>)
+            <span class="ident">AstStatement::LiteralArray</span> { <span class="ident">elements</span>: <span class="prelude-val">Some</span>(<span class="ident">elements</span>), .. } =&gt; {
+                <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">elements</span>.<span class="ident">as_ref</span>(), <span class="ident">context</span>)
             }
-            <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } =&gt; <span class="ident">elements</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">e</span>, <span class="ident">context</span>)),
-            <span class="ident">AstStatement::ArrayAccess</span> {
-                <span class="ident">reference</span>, <span class="ident">access</span>, ..
-            } =&gt; {
+            <span class="ident">AstStatement::MultipliedStatement</span> { <span class="ident">element</span>, .. } =&gt; <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">element</span>, <span class="ident">context</span>),
+            <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } =&gt; {
+                <span class="ident">elements</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">e</span>, <span class="ident">context</span>))
+            }
+            <span class="ident">AstStatement::ArrayAccess</span> { <span class="ident">reference</span>, <span class="ident">access</span>, .. } =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">context</span>, <span class="ident">reference</span>, <span class="ident">access</span>);
             }
             <span class="ident">AstStatement::BinaryExpression</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">context</span>, <span class="ident">left</span>, <span class="ident">right</span>);
             }
             <span class="ident">AstStatement::UnaryExpression</span> { <span class="ident">value</span>, .. } =&gt; <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">value</span>, <span class="ident">context</span>),
-            <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } =&gt; <span class="ident">expressions</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">e</span>, <span class="ident">context</span>)),
+            <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } =&gt; {
+                <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">e</span>, <span class="ident">context</span>))
+            }
             <span class="ident">AstStatement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span>, .. } =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">context</span>, <span class="ident">start</span>, <span class="ident">end</span>);
             }
@@ -752,21 +633,14 @@
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">left</span>, <span class="ident">context</span>);
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">right</span>, <span class="ident">context</span>);
             }
-            <span class="ident">AstStatement::CallStatement</span> {
-                <span class="ident">parameters</span>,
-                <span class="ident">operator</span>,
-                ..
-            } =&gt; {
+            <span class="ident">AstStatement::CallStatement</span> { <span class="ident">parameters</span>, <span class="ident">operator</span>, .. } =&gt; {
                 <span class="comment">// visit called pou</span>
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">operator</span>, <span class="ident">context</span>);
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pou</span>) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">find_pou</span>(<span class="ident">operator</span>) {
                     <span class="kw">let</span> <span class="ident">declared_parameters</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">index</span>.<span class="ident">get_declared_parameters</span>(<span class="ident">pou</span>.<span class="ident">get_name</span>());
-                    <span class="kw">let</span> <span class="ident">passed_parameters</span> <span class="op">=</span> <span class="ident">parameters</span>
-                        .<span class="ident">as_ref</span>()
-                        .<span class="ident">as_ref</span>()
-                        .<span class="ident">map</span>(<span class="ident">ast::flatten_expression_list</span>)
-                        .<span class="ident">unwrap_or_default</span>();
+                    <span class="kw">let</span> <span class="ident">passed_parameters</span> <span class="op">=</span>
+                        <span class="ident">parameters</span>.<span class="ident">as_ref</span>().<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">ast::flatten_expression_list</span>).<span class="ident">unwrap_or_default</span>();
 
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">passed_params_idx</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">are_implicit_parameters</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -780,9 +654,7 @@
 
                             <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">declared_parameters</span>.<span class="ident">get</span>(<span class="ident">location_in_parent</span>);
                             <span class="kw">let</span> <span class="ident">left_type</span> <span class="op">=</span> <span class="ident">left</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> {
-                                <span class="ident">context</span>
-                                    .<span class="ident">index</span>
-                                    .<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">param</span>.<span class="ident">get_type_name</span>())
+                                <span class="ident">context</span>.<span class="ident">index</span>.<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">param</span>.<span class="ident">get_type_name</span>())
                             });
                             <span class="kw">let</span> <span class="ident">right_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get_type</span>(<span class="ident">right</span>, <span class="ident">context</span>.<span class="ident">index</span>);
 
@@ -813,8 +685,7 @@
                     }
 
                     <span class="comment">// for PROGRAM/FB we need special inout validation</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PouIndexEntry::FunctionBlock</span> { .. } <span class="op">|</span> <span class="ident">PouIndexEntry::Program</span> { .. } <span class="op">=</span> <span class="ident">pou</span>
-                    {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PouIndexEntry::FunctionBlock</span> { .. } <span class="op">|</span> <span class="ident">PouIndexEntry::Program</span> { .. } <span class="op">=</span> <span class="ident">pou</span> {
                         <span class="kw">let</span> <span class="ident">inouts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&amp;&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">declared_parameters</span>
                             .<span class="ident">iter</span>()
                             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">VariableType::InOut</span> <span class="op">==</span> <span class="ident">p</span>.<span class="ident">get_variable_type</span>())
@@ -823,9 +694,7 @@
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">inouts</span>.<span class="ident">is_empty</span>() {
                             <span class="comment">// check if all inouts were passed to the pou call</span>
                             <span class="ident">inouts</span>.<span class="ident">into_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                                <span class="kw">if</span> <span class="op">!</span><span class="ident">passed_params_idx</span>
-                                    .<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="ident">p</span>.<span class="ident">get_location_in_parent</span>() <span class="kw">as</span> <span class="ident">usize</span>))
-                                {
+                                <span class="kw">if</span> <span class="op">!</span><span class="ident">passed_params_idx</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="ident">p</span>.<span class="ident">get_location_in_parent</span>() <span class="kw">as</span> <span class="ident">usize</span>)) {
                                     <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(
                                         <span class="ident">Diagnostic::missing_inout_parameter</span>(
                                             <span class="ident">p</span>.<span class="ident">get_name</span>(),
@@ -843,49 +712,29 @@
                     }
                 }
             }
-            <span class="ident">AstStatement::IfStatement</span> {
-                <span class="ident">blocks</span>, <span class="ident">else_block</span>, ..
-            } =&gt; {
+            <span class="ident">AstStatement::IfStatement</span> { <span class="ident">blocks</span>, <span class="ident">else_block</span>, .. } =&gt; {
                 <span class="ident">blocks</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> {
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">b</span>.<span class="ident">condition</span>.<span class="ident">as_ref</span>(), <span class="ident">context</span>);
                     <span class="ident">b</span>.<span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
                 });
-                <span class="ident">else_block</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">e</span>, <span class="ident">context</span>));
+                <span class="ident">else_block</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">e</span>, <span class="ident">context</span>));
             }
-            <span class="ident">AstStatement::ForLoopStatement</span> {
-                <span class="ident">counter</span>,
-                <span class="ident">start</span>,
-                <span class="ident">end</span>,
-                <span class="ident">by_step</span>,
-                <span class="ident">body</span>,
-                ..
-            } =&gt; {
+            <span class="ident">AstStatement::ForLoopStatement</span> { <span class="ident">counter</span>, <span class="ident">start</span>, <span class="ident">end</span>, <span class="ident">by_step</span>, <span class="ident">body</span>, .. } =&gt; {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">context</span>, <span class="ident">counter</span>, <span class="ident">start</span>, <span class="ident">end</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">by_step</span>) <span class="op">=</span> <span class="ident">by_step</span> {
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">by_step</span>, <span class="ident">context</span>);
                 }
                 <span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
             }
-            <span class="ident">AstStatement::WhileLoopStatement</span> {
-                <span class="ident">condition</span>, <span class="ident">body</span>, ..
-            } =&gt; {
+            <span class="ident">AstStatement::WhileLoopStatement</span> { <span class="ident">condition</span>, <span class="ident">body</span>, .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">condition</span>, <span class="ident">context</span>);
                 <span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
             }
-            <span class="ident">AstStatement::RepeatLoopStatement</span> {
-                <span class="ident">condition</span>, <span class="ident">body</span>, ..
-            } =&gt; {
+            <span class="ident">AstStatement::RepeatLoopStatement</span> { <span class="ident">condition</span>, <span class="ident">body</span>, .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">condition</span>, <span class="ident">context</span>);
                 <span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
             }
-            <span class="ident">AstStatement::CaseStatement</span> {
-                <span class="ident">selector</span>,
-                <span class="ident">case_blocks</span>,
-                <span class="ident">else_block</span>,
-                ..
-            } =&gt; {
+            <span class="ident">AstStatement::CaseStatement</span> { <span class="ident">selector</span>, <span class="ident">case_blocks</span>, <span class="ident">else_block</span>, .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">selector</span>, <span class="ident">context</span>);
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cases</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
@@ -907,12 +756,9 @@
                     <span class="ident">const_evaluator::evaluate</span>(<span class="ident">condition</span>, <span class="ident">context</span>.<span class="ident">qualifier</span>, <span class="ident">context</span>.<span class="ident">index</span>)
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                             <span class="comment">// value evaluation and validation not possible with non constants</span>
-                            <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(
-                                <span class="ident">Diagnostic::non_constant_case_condition</span>(
-                                    <span class="kw-2">&amp;</span><span class="ident">err</span>,
-                                    <span class="ident">condition</span>.<span class="ident">get_location</span>(),
-                                ),
-                            )
+                            <span class="self">self</span>.<span class="ident">stmt_validator</span>
+                                .<span class="ident">diagnostics</span>
+                                .<span class="ident">push</span>(<span class="ident">Diagnostic::non_constant_case_condition</span>(<span class="kw-2">&amp;</span><span class="ident">err</span>, <span class="ident">condition</span>.<span class="ident">get_location</span>()))
                         })
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
                             <span class="comment">// check for duplicates if we got a value</span>
@@ -933,19 +779,15 @@
                     <span class="ident">b</span>.<span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
                 });
 
-                <span class="ident">else_block</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
+                <span class="ident">else_block</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>, <span class="ident">context</span>));
             }
             <span class="ident">AstStatement::CaseCondition</span> { <span class="ident">condition</span>, .. } =&gt; {
                 <span class="comment">// if we get here, then a `CaseCondition` is used outside a `CaseStatement`</span>
                 <span class="comment">// `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`</span>
                 <span class="comment">// see `control_parser` `parse_case_statement()`</span>
-                <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(
-                    <span class="ident">Diagnostic::case_condition_used_outside_case_statement</span>(
-                        <span class="ident">condition</span>.<span class="ident">get_location</span>(),
-                    ),
-                );
+                <span class="self">self</span>.<span class="ident">stmt_validator</span>
+                    .<span class="ident">diagnostics</span>
+                    .<span class="ident">push</span>(<span class="ident">Diagnostic::case_condition_used_outside_case_statement</span>(<span class="ident">condition</span>.<span class="ident">get_location</span>()));
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">condition</span>, <span class="ident">context</span>)
             }
             <span class="kw">_</span> =&gt; {}
@@ -973,13 +815,11 @@
         <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">left_type_info</span>, <span class="ident">DataTypeInformation::Generic</span> { .. })
             <span class="op">&amp;</span> <span class="op">!</span><span class="ident">typesystem::is_same_type_class</span>(<span class="ident">left_type_info</span>, <span class="ident">right_type_info</span>, <span class="ident">index</span>)
         {
-            <span class="self">self</span>.<span class="ident">stmt_validator</span>
-                .<span class="ident">diagnostics</span>
-                .<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_assignment</span>(
-                    <span class="ident">right_type_info</span>.<span class="ident">get_name</span>(),
-                    <span class="ident">left_type_info</span>.<span class="ident">get_name</span>(),
-                    <span class="ident">location</span>,
-                ))
+            <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_assignment</span>(
+                <span class="ident">right_type_info</span>.<span class="ident">get_name</span>(),
+                <span class="ident">left_type_info</span>.<span class="ident">get_name</span>(),
+                <span class="ident">location</span>,
+            ))
         }
     }
 }

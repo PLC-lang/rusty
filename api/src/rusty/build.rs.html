@@ -197,10 +197,6 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostic</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resolve_environment_variables</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::FormatOption</span>;
@@ -248,11 +244,7 @@
                 .<span class="ident">libraries</span>
                 .<span class="ident">into_iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Libraries</span> {
-                    <span class="ident">path</span>: <span class="kw">if</span> <span class="ident">it</span>.<span class="ident">path</span>.<span class="ident">is_absolute</span>() {
-                        <span class="ident">it</span>.<span class="ident">path</span>
-                    } <span class="kw">else</span> {
-                        <span class="ident">root</span>.<span class="ident">join</span>(<span class="ident">it</span>.<span class="ident">path</span>)
-                    },
+                    <span class="ident">path</span>: <span class="kw">if</span> <span class="ident">it</span>.<span class="ident">path</span>.<span class="ident">is_absolute</span>() { <span class="ident">it</span>.<span class="ident">path</span> } <span class="kw">else</span> { <span class="ident">root</span>.<span class="ident">join</span>(<span class="ident">it</span>.<span class="ident">path</span>) },
                     <span class="ident">include_path</span>: <span class="ident">it</span>
                         .<span class="ident">include_path</span>
                         .<span class="ident">into_iter</span>()

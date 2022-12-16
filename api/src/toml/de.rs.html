@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.9/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.10/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../toml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2259,12 +2259,6 @@
 <span id="2254">2254</span>
 <span id="2255">2255</span>
 <span id="2256">2256</span>
-<span id="2257">2257</span>
-<span id="2258">2258</span>
-<span id="2259">2259</span>
-<span id="2260">2260</span>
-<span id="2261">2261</span>
-<span id="2262">2262</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Deserializing TOML into Rust structures.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains all the Serde support for deserializing TOML documents</span>
@@ -2327,17 +2321,15 @@
 <span class="doccomment">///     name: String,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let config: Config = toml::from_str(r#&quot;</span>
-<span class="doccomment">///         title = &#39;TOML Example&#39;</span>
+<span class="doccomment">/// let config: Config = toml::from_str(r#&quot;</span>
+<span class="doccomment">///     title = &#39;TOML Example&#39;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///         [owner]</span>
-<span class="doccomment">///         name = &#39;Lisa&#39;</span>
-<span class="doccomment">///     &quot;#).unwrap();</span>
+<span class="doccomment">///     [owner]</span>
+<span class="doccomment">///     name = &#39;Lisa&#39;</span>
+<span class="doccomment">/// &quot;#).unwrap();</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     assert_eq!(config.title, &quot;TOML Example&quot;);</span>
-<span class="doccomment">///     assert_eq!(config.owner.name, &quot;Lisa&quot;);</span>
-<span class="doccomment">/// }</span>
+<span class="doccomment">/// assert_eq!(config.title, &quot;TOML Example&quot;);</span>
+<span class="doccomment">/// assert_eq!(config.owner.name, &quot;Lisa&quot;);</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>
 <span class="kw">where</span>
@@ -2367,6 +2359,7 @@
 
 <span class="doccomment">/// Errors that can occur when deserializing a type.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">enum</span> <span class="ident">ErrorKind</span> {
     <span class="doccomment">/// EOF was reached when looking for a value</span>
     <span class="ident">UnexpectedEof</span>,
@@ -2460,9 +2453,6 @@
 
     <span class="doccomment">/// Unquoted string was found when quoted one was expected</span>
     <span class="ident">UnquotedString</span>,
-
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="ident">__Nonexhaustive</span>,
 }
 
 <span class="doccomment">/// Deserialization implementation for TOML.</span>
@@ -2595,7 +2585,7 @@
 <span class="comment">// by their index in the passed slice. We use a list as the implementation</span>
 <span class="comment">// uses this data structure for arrays as well as tables,</span>
 <span class="comment">// so if any top level [[name]] array contains multiple entries,</span>
-<span class="comment">// there are multiple entires in the list.</span>
+<span class="comment">// there are multiple entries in the list.</span>
 <span class="comment">// The lookup is performed in the `SeqAccess` implementation of `MapVisitor`.</span>
 <span class="comment">// The lists are ordered, which we exploit in the search code by using</span>
 <span class="comment">// bisection.</span>
@@ -2794,8 +2784,8 @@
             <span class="ident">cur</span>: <span class="number">0</span>,
             <span class="ident">max</span>: <span class="self">self</span>.<span class="ident">max</span>,
             <span class="ident">array</span>,
-            <span class="ident">table_indices</span>: <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">table_indices</span>,
-            <span class="ident">table_pindices</span>: <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">table_pindices</span>,
+            <span class="ident">table_indices</span>: <span class="self">self</span>.<span class="ident">table_indices</span>,
+            <span class="ident">table_pindices</span>: <span class="self">self</span>.<span class="ident">table_pindices</span>,
             <span class="ident">tables</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">tables</span>,
             <span class="ident">de</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">de</span>,
         });
@@ -2856,10 +2846,10 @@
             <span class="ident">max</span>: <span class="ident">next</span>,
             <span class="ident">cur</span>: <span class="number">0</span>,
             <span class="ident">array</span>: <span class="bool-val">false</span>,
-            <span class="ident">table_indices</span>: <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">table_indices</span>,
-            <span class="ident">table_pindices</span>: <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">table_pindices</span>,
-            <span class="ident">tables</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">tables</span>,
-            <span class="ident">de</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">de</span>,
+            <span class="ident">table_indices</span>: <span class="self">self</span>.<span class="ident">table_indices</span>,
+            <span class="ident">table_pindices</span>: <span class="self">self</span>.<span class="ident">table_pindices</span>,
+            <span class="ident">tables</span>: <span class="self">self</span>.<span class="ident">tables</span>,
+            <span class="ident">de</span>: <span class="self">self</span>.<span class="ident">de</span>,
         })<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">cur_parent</span> <span class="op">=</span> <span class="ident">next</span>;
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">ret</span>))
@@ -2911,7 +2901,7 @@
     {
         <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">spanned::NAME</span>
             <span class="op">&amp;&amp;</span> <span class="ident">fields</span> <span class="op">==</span> [<span class="ident">spanned::START</span>, <span class="ident">spanned::END</span>, <span class="ident">spanned::VALUE</span>]
-            <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="self">self</span>.<span class="ident">array</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">values</span>.<span class="ident">peek</span>().<span class="ident">is_none</span>())
+            <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="self">self</span>.<span class="ident">array</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">peek</span>().<span class="ident">is_some</span>())
         {
             <span class="comment">// TODO we can&#39;t actually emit spans here for the *entire* table/array</span>
             <span class="comment">// due to the format that toml uses. Setting the start and end to 0 is</span>
@@ -2988,7 +2978,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">de::IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">de::IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="self">Self</span>;
 
     <span class="kw">fn</span> <span class="ident">into_deserializer</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Deserializer</span> {
@@ -3803,7 +3793,7 @@
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">header</span>.<span class="number">1</span>.<span class="ident">len</span>());
                 <span class="prelude-val">Ok</span>((
                     <span class="ident">Value</span> {
-                        <span class="ident">e</span>: <span class="ident">E::DottedTable</span>(<span class="ident">table</span>.<span class="ident">values</span>.<span class="ident">unwrap_or_else</span>(<span class="ident">Vec::new</span>)),
+                        <span class="ident">e</span>: <span class="ident">E::DottedTable</span>(<span class="ident">table</span>.<span class="ident">values</span>.<span class="ident">unwrap_or_default</span>()),
                         <span class="ident">start</span>,
                         <span class="ident">end</span>,
                     },
@@ -3821,12 +3811,12 @@
             <span class="ident">start</span>,
             <span class="ident">end</span>,
         };
-        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0x&quot;</span>) {
-            <span class="self">self</span>.<span class="ident">integer</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">2</span>..], <span class="number">16</span>).<span class="ident">map</span>(<span class="ident">to_integer</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0o&quot;</span>) {
-            <span class="self">self</span>.<span class="ident">integer</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">2</span>..], <span class="number">8</span>).<span class="ident">map</span>(<span class="ident">to_integer</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0b&quot;</span>) {
-            <span class="self">self</span>.<span class="ident">integer</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">2</span>..], <span class="number">2</span>).<span class="ident">map</span>(<span class="ident">to_integer</span>)
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">strip_prefix</span>(<span class="string">&quot;0x&quot;</span>) {
+            <span class="self">self</span>.<span class="ident">integer</span>(<span class="ident">value</span>, <span class="number">16</span>).<span class="ident">map</span>(<span class="ident">to_integer</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">strip_prefix</span>(<span class="string">&quot;0o&quot;</span>) {
+            <span class="self">self</span>.<span class="ident">integer</span>(<span class="ident">value</span>, <span class="number">8</span>).<span class="ident">map</span>(<span class="ident">to_integer</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">strip_prefix</span>(<span class="string">&quot;0b&quot;</span>) {
+            <span class="self">self</span>.<span class="ident">integer</span>(<span class="ident">value</span>, <span class="number">2</span>).<span class="ident">map</span>(<span class="ident">to_integer</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">contains</span>(<span class="string">&#39;e&#39;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">contains</span>(<span class="string">&#39;E&#39;</span>) {
             <span class="self">self</span>.<span class="ident">float</span>(<span class="ident">s</span>, <span class="prelude-val">None</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">Value</span> {
                 <span class="ident">e</span>: <span class="ident">E::Float</span>(<span class="ident">f</span>),
@@ -3887,10 +3877,10 @@
         <span class="kw">let</span> <span class="ident">allow_leading_zeros</span> <span class="op">=</span> <span class="ident">radix</span> <span class="op">!</span><span class="op">=</span> <span class="number">10</span>;
         <span class="kw">let</span> (<span class="ident">prefix</span>, <span class="ident">suffix</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_integer</span>(<span class="ident">s</span>, <span class="ident">allow_sign</span>, <span class="ident">allow_leading_zeros</span>, <span class="ident">radix</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tokens</span>.<span class="ident">substr_offset</span>(<span class="ident">s</span>);
-        <span class="kw">if</span> <span class="ident">suffix</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;&quot;</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">suffix</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">start</span>, <span class="ident">ErrorKind::NumberInvalid</span>));
         }
-        <span class="ident">i64::from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">prefix</span>.<span class="ident">replace</span>(<span class="string">&quot;_&quot;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">trim_start_matches</span>(<span class="string">&#39;+&#39;</span>), <span class="ident">radix</span>)
+        <span class="ident">i64::from_str_radix</span>(<span class="ident">prefix</span>.<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">trim_start_matches</span>(<span class="string">&#39;+&#39;</span>), <span class="ident">radix</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">start</span>, <span class="ident">ErrorKind::NumberInvalid</span>))
     }
 
@@ -3942,7 +3932,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fraction</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">after</span>) <span class="op">=</span> <span class="ident">after_decimal</span> {
-            <span class="kw">if</span> <span class="ident">suffix</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;&quot;</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">suffix</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">start</span>, <span class="ident">ErrorKind::NumberInvalid</span>));
             }
             <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_integer</span>(<span class="ident">after</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="number">10</span>)<span class="question-mark">?</span>;
@@ -3961,7 +3951,7 @@
             } <span class="kw">else</span> {
                 <span class="self">self</span>.<span class="ident">parse_integer</span>(<span class="kw-2">&amp;</span><span class="ident">suffix</span>[<span class="number">1</span>..], <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="number">10</span>)<span class="question-mark">?</span>
             };
-            <span class="kw">if</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;&quot;</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">b</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">start</span>, <span class="ident">ErrorKind::NumberInvalid</span>));
             }
             <span class="ident">exponent</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">a</span>);
@@ -3975,11 +3965,11 @@
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">c</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;_&#39;</span>)
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fraction</span>) <span class="op">=</span> <span class="ident">fraction</span> {
-            <span class="ident">number</span>.<span class="ident">push_str</span>(<span class="string">&quot;.&quot;</span>);
+            <span class="ident">number</span>.<span class="ident">push</span>(<span class="string">&#39;.&#39;</span>);
             <span class="ident">number</span>.<span class="ident">extend</span>(<span class="ident">fraction</span>.<span class="ident">chars</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">c</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;_&#39;</span>));
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exponent</span>) <span class="op">=</span> <span class="ident">exponent</span> {
-            <span class="ident">number</span>.<span class="ident">push_str</span>(<span class="string">&quot;E&quot;</span>);
+            <span class="ident">number</span>.<span class="ident">push</span>(<span class="string">&#39;E&#39;</span>);
             <span class="ident">number</span>.<span class="ident">extend</span>(<span class="ident">exponent</span>.<span class="ident">chars</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">c</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;_&#39;</span>));
         }
         <span class="ident">number</span>
@@ -4121,8 +4111,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">dotted_key</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Span</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">str</span><span class="op">&gt;</span>)<span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">result</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">table_key</span>()<span class="question-mark">?</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="self">self</span>.<span class="ident">table_key</span>()<span class="question-mark">?</span>];
         <span class="self">self</span>.<span class="ident">eat_whitespace</span>()<span class="question-mark">?</span>;
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">eat</span>(<span class="ident">Token::Period</span>)<span class="question-mark">?</span> {
             <span class="self">self</span>.<span class="ident">eat_whitespace</span>()<span class="question-mark">?</span>;
@@ -4132,7 +4121,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
-    <span class="doccomment">/// Stores a value in the appropriate hierachical structure positioned based on the dotted key.</span>
+    <span class="doccomment">/// Stores a value in the appropriate hierarchical structure positioned based on the dotted key.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Given the following definition: `multi.part.key = &quot;value&quot;`, `multi` and `part` are</span>
     <span class="doccomment">/// intermediate parts which are mapped to the relevant fields in the deserialized type&#39;s data</span>
@@ -4416,7 +4405,6 @@
                 <span class="ident">f</span>,
                 <span class="string">&quot;invalid TOML value, did you mean to use a quoted string?&quot;</span>
             )<span class="question-mark">?</span>,
-            <span class="ident">ErrorKind::__Nonexhaustive</span> =&gt; <span class="macro">panic!</span>(),
         }
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">key</span>.<span class="ident">is_empty</span>() {
@@ -4478,7 +4466,7 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">first</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">tokens</span>.<span class="ident">eat</span>(<span class="ident">Token::Period</span>)<span class="question-mark">?</span> {
             <span class="self">self</span>.<span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="self">self</span>.<span class="ident">tokens</span>.<span class="ident">eat_whitespace</span>()<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">tokens</span>.<span class="ident">table_key</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
+            <span class="self">self</span>.<span class="ident">tokens</span>.<span class="ident">table_key</span>().<span class="ident">map</span>(<span class="prelude-val">Some</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">tokens</span>.<span class="ident">expect</span>(<span class="ident">Token::RightBracket</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">array</span> {

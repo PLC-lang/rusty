@@ -252,23 +252,6 @@
 <span id="247">247</span>
 <span id="248">248</span>
 <span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2022 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">NewLines</span>, <span class="ident">SourceRange</span>};
@@ -296,9 +279,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">SymbolMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner_map</span>: <span class="ident">Default::default</span>(),
-        }
+        <span class="self">Self</span> { <span class="ident">inner_map</span>: <span class="ident">Default::default</span>() }
     }
 }
 
@@ -325,10 +306,7 @@
     }
 
     <span class="doccomment">/// removes and returns all elements in the SymbolMap</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drain</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">range</span>: <span class="ident">std::ops::RangeFull</span>,
-    ) -&gt; <span class="ident">indexmap::map::Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">std::vec::Vec</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drain</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">std::ops::RangeFull</span>) -&gt; <span class="ident">indexmap::map::Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">std::vec::Vec</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner_map</span>.<span class="ident">drain</span>(<span class="ident">range</span>)
     }
 
@@ -341,9 +319,7 @@
     <span class="doccomment">/// keys with `n` associated elements will emit `n` key-value tuples in the returned</span>
     <span class="doccomment">/// iterator</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">elements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner_map</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">k</span>, <span class="ident">v</span>)))
+        <span class="self">self</span>.<span class="ident">inner_map</span>.<span class="ident">iter</span>().<span class="ident">flat_map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">k</span>, <span class="ident">v</span>)))
     }
 
     <span class="doccomment">/// returns an iterator over the keys in the map, in their order</span>
@@ -383,10 +359,7 @@
     <span class="doccomment">/// creates a SymbolLocation with undefined source_range used for</span>
     <span class="doccomment">/// symbols that are created by the compiler on-the-fly.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal</span>() -&gt; <span class="ident">SymbolLocation</span> {
-        <span class="ident">SymbolLocation</span> {
-            <span class="ident">line_number</span>: <span class="ident">SymbolLocation::INTERNAL_LINE</span>,
-            <span class="ident">source_range</span>: <span class="ident">SourceRange::undefined</span>(),
-        }
+        <span class="ident">SymbolLocation</span> { <span class="ident">line_number</span>: <span class="ident">SymbolLocation::INTERNAL_LINE</span>, <span class="ident">source_range</span>: <span class="ident">SourceRange::undefined</span>() }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_internal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
@@ -507,10 +480,7 @@
         <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">values</span>();
 
         <span class="comment">// THEN i expect all pairs in their order</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">iter</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-            <span class="macro">vec!</span>[<span class="kw-2">&amp;</span><span class="number">77</span>, <span class="kw-2">&amp;</span><span class="number">20</span>, <span class="kw-2">&amp;</span><span class="number">30</span>, <span class="kw-2">&amp;</span><span class="number">100</span>, <span class="kw-2">&amp;</span><span class="number">200</span>, <span class="kw-2">&amp;</span><span class="number">300</span>, <span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="number">2</span>, <span class="kw-2">&amp;</span><span class="number">3</span>,],
-        );
+        <span class="macro">assert_eq!</span>(<span class="ident">iter</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(), <span class="macro">vec!</span>[<span class="kw-2">&amp;</span><span class="number">77</span>, <span class="kw-2">&amp;</span><span class="number">20</span>, <span class="kw-2">&amp;</span><span class="number">30</span>, <span class="kw-2">&amp;</span><span class="number">100</span>, <span class="kw-2">&amp;</span><span class="number">200</span>, <span class="kw-2">&amp;</span><span class="number">300</span>, <span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="number">2</span>, <span class="kw-2">&amp;</span><span class="number">3</span>,],);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -527,11 +497,7 @@
         <span class="comment">// THEN i expect all pairs in their order</span>
         <span class="macro">assert_eq!</span>(
             <span class="ident">iter</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-            <span class="macro">vec!</span>[
-                (<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="number">77</span>, <span class="number">20</span>, <span class="number">30</span>]),
-                (<span class="kw-2">&amp;</span><span class="number">2</span>, <span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="number">100</span>, <span class="number">200</span>, <span class="number">300</span>]),
-                (<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])
-            ],
+            <span class="macro">vec!</span>[(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="number">77</span>, <span class="number">20</span>, <span class="number">30</span>]), (<span class="kw-2">&amp;</span><span class="number">2</span>, <span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="number">100</span>, <span class="number">200</span>, <span class="number">300</span>]), (<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])],
         );
     }
 }

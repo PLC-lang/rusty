@@ -341,44 +341,6 @@
 <span id="336">336</span>
 <span id="337">337</span>
 <span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">builder::Builder</span>,
@@ -412,9 +374,7 @@
     <span class="comment">//Expand current type to target type</span>
 
     <span class="kw">match</span> <span class="ident">target_type</span> {
-        <span class="ident">DataTypeInformation::Integer</span> {
-            <span class="ident">size</span>: <span class="ident">target_size</span>, ..
-        } =&gt; {
+        <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">size</span>: <span class="ident">target_size</span>, .. } =&gt; {
             <span class="comment">// INT --&gt; INT</span>
             <span class="kw">let</span> <span class="ident">int_value</span> <span class="op">=</span> <span class="ident">lvalue</span>.<span class="ident">into_int_value</span>();
             <span class="kw">if</span> <span class="ident">int_value</span>.<span class="ident">get_type</span>().<span class="ident">get_bit_width</span>() <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">target_size</span> {
@@ -429,9 +389,7 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">lvalue</span>)
             }
         }
-        <span class="ident">DataTypeInformation::Float</span> {
-            <span class="ident">size</span>: <span class="ident">target_size</span>, ..
-        } =&gt; {
+        <span class="ident">DataTypeInformation::Float</span> { <span class="ident">size</span>: <span class="ident">target_size</span>, .. } =&gt; {
             <span class="kw">if</span> <span class="ident">lvalue</span>.<span class="ident">is_int_value</span>() {
                 <span class="comment">// INT --&gt; FLOAT</span>
                 <span class="kw">let</span> <span class="ident">int_value</span> <span class="op">=</span> <span class="ident">lvalue</span>.<span class="ident">into_int_value</span>();
@@ -515,13 +473,9 @@
     <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>;
-    <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">index</span>
-        .<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">target_type</span>.<span class="ident">get_name</span>())
-        .<span class="ident">get_type_information</span>();
+    <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">target_type</span>.<span class="ident">get_name</span>()).<span class="ident">get_type_information</span>();
 
-    <span class="kw">let</span> <span class="ident">value_type</span> <span class="op">=</span> <span class="ident">index</span>
-        .<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">value_type</span>.<span class="ident">get_name</span>())
-        .<span class="ident">get_type_information</span>();
+    <span class="kw">let</span> <span class="ident">value_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">value_type</span>.<span class="ident">get_name</span>()).<span class="ident">get_type_information</span>();
 
     <span class="comment">// if the current or target type are generic (unresolved or builtin)</span>
     <span class="comment">// return the value without modification</span>
@@ -530,11 +484,7 @@
     }
 
     <span class="kw">match</span> <span class="ident">target_type</span> {
-        <span class="ident">DataTypeInformation::Integer</span> {
-            <span class="ident">signed</span>,
-            <span class="ident">size</span>: <span class="ident">lsize</span>,
-            ..
-        } =&gt; {
+        <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">signed</span>, <span class="ident">size</span>: <span class="ident">lsize</span>, .. } =&gt; {
             <span class="kw">match</span> <span class="ident">value_type</span> {
                 <span class="ident">DataTypeInformation::Integer</span> { .. } =&gt; {
                     <span class="comment">//its important to use the real type&#39;s size here, because we may bot an i1 which is annotated as BOOL (8 bit)</span>
@@ -551,14 +501,8 @@
                             .<span class="ident">into</span>())
                     } <span class="kw">else</span> {
                         <span class="comment">//Expand</span>
-                        <span class="ident">promote_value_if_needed</span>(
-                            <span class="ident">llvm</span>.<span class="ident">context</span>,
-                            <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>,
-                            <span class="ident">value</span>,
-                            <span class="ident">value_type</span>,
-                            <span class="ident">target_type</span>,
-                        )
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::relocate</span>(<span class="ident">it</span>, <span class="ident">statement</span>.<span class="ident">get_location</span>()))
+                        <span class="ident">promote_value_if_needed</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>, <span class="ident">value</span>, <span class="ident">value_type</span>, <span class="ident">target_type</span>)
+                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::relocate</span>(<span class="ident">it</span>, <span class="ident">statement</span>.<span class="ident">get_location</span>()))
                     }
                 }
                 <span class="ident">DataTypeInformation::Float</span> { <span class="ident">size</span>: <span class="ident">_rsize</span>, .. } =&gt; {
@@ -600,9 +544,7 @@
                         )
                         .<span class="ident">into</span>())
                 }
-                <span class="ident">DataTypeInformation::Pointer</span> {
-                    <span class="ident">auto_deref</span>: <span class="bool-val">false</span>, ..
-                } =&gt; <span class="prelude-val">Ok</span>(<span class="ident">llvm</span>
+                <span class="ident">DataTypeInformation::Pointer</span> { <span class="ident">auto_deref</span>: <span class="bool-val">false</span>, .. } =&gt; <span class="prelude-val">Ok</span>(<span class="ident">llvm</span>
                     .<span class="ident">builder</span>
                     .<span class="ident">build_ptr_to_int</span>(
                         <span class="ident">value</span>.<span class="ident">into_pointer_value</span>(),
@@ -652,14 +594,8 @@
                         )
                         .<span class="ident">into</span>())
                 } <span class="kw">else</span> {
-                    <span class="ident">promote_value_if_needed</span>(
-                        <span class="ident">llvm</span>.<span class="ident">context</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>,
-                        <span class="ident">value</span>,
-                        <span class="ident">value_type</span>,
-                        <span class="ident">target_type</span>,
-                    )
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::relocate</span>(<span class="ident">it</span>, <span class="ident">statement</span>.<span class="ident">get_location</span>()))
+                    <span class="ident">promote_value_if_needed</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>, <span class="ident">value</span>, <span class="ident">value_type</span>, <span class="ident">target_type</span>)
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::relocate</span>(<span class="ident">it</span>, <span class="ident">statement</span>.<span class="ident">get_location</span>()))
                 }
             }
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::casting_error</span>(
@@ -669,10 +605,7 @@
             )),
         },
         <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } =&gt; <span class="kw">match</span> <span class="ident">value_type</span> {
-            <span class="ident">DataTypeInformation::String</span> {
-                <span class="ident">encoding</span>: <span class="ident">value_encoding</span>,
-                ..
-            } =&gt; {
+            <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>: <span class="ident">value_encoding</span>, .. } =&gt; {
                 <span class="kw">if</span> <span class="ident">encoding</span> <span class="op">!</span><span class="op">=</span> <span class="ident">value_encoding</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::casting_error</span>(
                         <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
@@ -688,22 +621,17 @@
                 <span class="ident">statement</span>.<span class="ident">get_location</span>(),
             )),
         },
-        <span class="ident">DataTypeInformation::Pointer</span> {
-            <span class="ident">auto_deref</span>: <span class="bool-val">false</span>, ..
-        } =&gt; <span class="kw">match</span> <span class="ident">value_type</span> {
+        <span class="ident">DataTypeInformation::Pointer</span> { <span class="ident">auto_deref</span>: <span class="bool-val">false</span>, .. } =&gt; <span class="kw">match</span> <span class="ident">value_type</span> {
             <span class="ident">DataTypeInformation::Integer</span> { .. } =&gt; <span class="prelude-val">Ok</span>(<span class="ident">llvm</span>
                 .<span class="ident">builder</span>
                 .<span class="ident">build_int_to_ptr</span>(
                     <span class="ident">value</span>.<span class="ident">into_int_value</span>(),
-                    <span class="ident">llvm_type_index</span>
-                        .<span class="ident">get_associated_type</span>(<span class="ident">target_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>
-                        .<span class="ident">into_pointer_type</span>(),
+                    <span class="ident">llvm_type_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">target_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>.<span class="ident">into_pointer_type</span>(),
                     <span class="string">&quot;&quot;</span>,
                 )
                 .<span class="ident">into</span>()),
             <span class="ident">DataTypeInformation::Pointer</span> { .. } <span class="op">|</span> <span class="ident">DataTypeInformation::Void</span> { .. } =&gt; {
-                <span class="kw">let</span> <span class="ident">target_ptr_type</span> <span class="op">=</span>
-                    <span class="ident">llvm_type_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">target_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">target_ptr_type</span> <span class="op">=</span> <span class="ident">llvm_type_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">target_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">target_ptr_type</span> {
                     <span class="comment">// bit-cast necessary</span>
                     <span class="prelude-val">Ok</span>(<span class="ident">builder</span>.<span class="ident">build_bitcast</span>(<span class="ident">value</span>, <span class="ident">target_ptr_type</span>, <span class="string">&quot;&quot;</span>))
@@ -722,11 +650,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_llvm_int_type</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Context</span>,
-    <span class="ident">size</span>: <span class="ident">u32</span>,
-    <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_llvm_int_type</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Context</span>, <span class="ident">size</span>: <span class="ident">u32</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">size</span> {
         <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">context</span>.<span class="ident">bool_type</span>()),
         <span class="number">8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">context</span>.<span class="ident">i8_type</span>()),
