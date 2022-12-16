@@ -630,7 +630,7 @@ fn repeat_loop_no_entry() {
     REPEAT
         i := i+1;
         main := main + 10;
-    UNTIL i < 0 
+    UNTIL i > 0 
     END_REPEAT
     main := main + (i * 1000);
     END_FUNCTION
@@ -678,7 +678,7 @@ fn repeat_loop_10_times() {
     REPEAT
         i := i+1;
         main := main + 10;
-    UNTIL i < 10
+    UNTIL i > 10
     END_REPEAT
     main := main + (i * 1000);
     END_FUNCTION
@@ -688,7 +688,36 @@ fn repeat_loop_10_times() {
         function.to_string(),
         &mut rusty::runner::MainType::default(),
     );
-    assert_eq!(res, 10101);
+
+    assert_eq!(res, 11111);
+}
+
+#[test]
+fn repeat_loop_reference() {
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : DINT;
+        b : BOOL;
+    END_VAR
+    main := 1;
+    i := 0;
+    REPEAT
+        i := i+1;
+        main := main + 10;
+        b := i > 10;
+    UNTIL b
+    END_REPEAT
+    main := main + (i * 1000);
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(
+        function.to_string(),
+        &mut rusty::runner::MainType::default(),
+    );
+
+    assert_eq!(res, 11111);
 }
 
 #[test]
