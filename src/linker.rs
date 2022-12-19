@@ -30,16 +30,22 @@ trait LinkerInterface {
 impl Linker {
     pub fn new(target: &str, linker: Option<&str>) -> Result<Linker, LinkerError> {
         let target_os = target.split('-').collect::<Vec<&str>>()[2];
-        let linker: Box<dyn LinkerInterface> = if let Some(linker) = linker {
-            Box::new(CcLinker::new(linker))
-        } else {
-            match target_os {
-                "linux" | "gnu" => Ok(Box::new(LdLinker::new())),
-                // "win32" | "windows" => Ok(Box::new(CcLinker::new("clang".to_string()))),
-                _ => Err(LinkerError::Target(target_os.into())),
-            }?
-        };
-        Ok(Linker { errors: Vec::default(), linker })
+
+        Ok(Linker {
+            errors: Vec::default(),
+            linker: match linker {
+                Some(linker) => Box::new(CcLinker::new(linker)),
+
+                // TODO: We should probably replace this match statement with an if one, because we would
+                // otherwise need to match against every exact e.g. MacOS version
+                None => match target_os {
+                    "linux" | "gnu" => Box::new(LdLinker::new()),
+                    "darwin22.1.0" => Box::new(CcLinker::new("clang")),
+
+                    _ => return Err(LinkerError::Target(target_os.into())),
+                },
+            },
+        })
     }
 
     /// Add an object file or static library to linker input
