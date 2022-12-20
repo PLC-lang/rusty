@@ -1766,22 +1766,3 @@ fn any_date_allows_date() {
     let diagnostics = parse_and_validate(src);
     assert_eq!(diagnostics, vec![]);
 }
-
-#[test]
-fn builtin_expt_with_literlals_without_explicit_type_annotation_does_not_report_errors() {
-    let src = r"
-    FUNCTION main : DINT
-    VAR
-        i : DINT := 2;
-    END_VAR
-        i := 2**i;
-        i := i**i;
-        i := 2**UDINT#3; // validation error
-        i := 2**ULINT#3;
-        i := 2**3;
-    END_FUNCTION
-    ";
-
-    let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
-}
