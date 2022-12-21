@@ -253,6 +253,19 @@ impl Validator {
                                     p.get_location(),
                                     context.index,
                                 );
+
+                                if is_implicit && left.variable_type.is_by_ref() {
+                                    match p {
+                                        AstStatement::Reference { .. }
+                                        | AstStatement::LiteralString { .. }
+                                        | AstStatement::QualifiedReference { .. } => (),
+
+                                        _ => self
+                                            .stmt_validator
+                                            .diagnostics
+                                            .push(Diagnostic::invalid_argument_type(p.get_location())),
+                                    }
+                                }
                             }
 
                             // mixing implicit and explicit parameters is not allowed

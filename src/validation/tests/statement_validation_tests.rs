@@ -899,3 +899,68 @@ fn address_of_operations() {
         );
     }
 }
+
+#[test]
+fn temp() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION func : DINT 
+            VAR_INPUT {ref}
+                byRefInput : INT;
+            END_VAR 
+
+            VAR_IN_OUT
+                byRefInOut : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                byRefOutput : INT;
+            END_VAR
+
+            VAR_INPUT
+                byValInput : INT;
+            END_INPUT
+        END_FUNCTION
+
+        VAR_GLOBAL
+            x : INT := 1;
+        END_VAR
+
+        PROGRAM main
+            // The function `func` expects the first three arguments to be references, 
+            // in these calls we pass literals however which should be invalid and yield errors.
+            func(1, 2, 3, 4);
+            func(1, 2, 3, x);
+            func(1, 2, x, 4);
+            func(1, 2, x, x);
+            func(1, x, 3, 4);
+            func(1, x, 3, x);
+            func(1, x, x, 4);
+            func(1, x, x, x);
+            func(x, 2, 3, 4);
+            func(x, 2, 3, x);
+            func(x, 2, x, 4);
+            func(x, 2, x, x);
+            func(x, x, 3, 4);
+            func(x, x, 3, x);
+
+            // Contrary to the previous calls we actually pass references here, 
+            // hence these calls should work. 
+            func(x, x, x, 4);
+            func(x, x, x, x);
+        END_PROGRAM
+        ",
+    );
+
+    #[rustfmt::skip]
+    let ranges = vec![
+        (657..658), (660..661), (663..664), (687..688), (690..691), (693..694), (717..718), (720..721), 
+        (747..748), (750..751), (777..778), (783..784), (807..808), (813..814), (837..838), (867..868), 
+        (900..901), (903..904), (930..931), (933..934), (960..961), (990..991), (1023..1024), (1053..1054)
+    ];
+
+    assert_eq!(diagnostics.len(), 24);
+    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+        assert_eq!(diagnostic, &Diagnostic::invalid_argument_type(ranges[idx].to_owned().into()));
+    }
+}

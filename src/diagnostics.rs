@@ -623,6 +623,14 @@ impl Diagnostic {
         }
     }
 
+    pub fn invalid_argument_type(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Cannot pass a literal where a reference was expected".into(),
+            range: vec![range],
+            err_no: ErrNo::call__invalid_parameter_type,
+        }
+    }
+
     pub fn duplicate_pou(name: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Duplicate POU {}", name),
