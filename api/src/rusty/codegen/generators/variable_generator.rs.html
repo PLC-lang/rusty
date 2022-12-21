@@ -133,15 +133,22 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">/// offers operations to generate global variables</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast::SourceRange</span>,
-    <span class="ident">codegen::debug::Debug</span>,
+    <span class="ident">codegen</span>::{<span class="ident">debug::Debug</span>, <span class="ident">llvm_typesystem::cast_if_needed</span>},
     <span class="ident">diagnostics</span>::{<span class="ident">Diagnostic</span>, <span class="ident">ErrNo</span>},
     <span class="ident">index</span>::{<span class="ident">Index</span>, <span class="ident">PouIndexEntry</span>},
-    <span class="ident">resolver::AstAnnotations</span>,
+    <span class="ident">resolver</span>::{<span class="ident">AnnotationMap</span>, <span class="ident">AstAnnotations</span>},
 };
 <span class="kw">use</span> <span class="ident">inkwell</span>::{<span class="ident">module::Module</span>, <span class="ident">values::GlobalValue</span>};
 
@@ -234,7 +241,14 @@
             <span class="prelude-val">Some</span>(<span class="ident">value</span>)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">expr_generator</span>.<span class="ident">generate_expression</span>(<span class="ident">initializer</span>)<span class="question-mark">?</span>;
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>)
+            <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_effective_type_or_void_by_name</span>(<span class="ident">type_name</span>);
+            <span class="kw">let</span> <span class="ident">value_type</span> <span class="op">=</span> <span class="ident">annotations</span>.<span class="ident">get_type_or_void</span>(<span class="ident">initializer</span>, <span class="ident">global_index</span>);
+            <span class="prelude-val">Some</span>(
+                <span class="kw">match</span> <span class="ident">cast_if_needed</span>(<span class="ident">llvm</span>, <span class="ident">global_index</span>, <span class="ident">index</span>, <span class="ident">target_type</span>, <span class="ident">value</span>, <span class="ident">value_type</span>, <span class="ident">initializer</span>) {
+                    <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">value</span>,
+                },
+            )
         }
     } <span class="kw">else</span> {
         <span class="prelude-val">None</span>
