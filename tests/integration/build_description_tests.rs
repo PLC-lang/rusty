@@ -158,7 +158,7 @@ fn build_with_cc_linker() {
 
 #[test]
 #[serial]
-#[cfg_attr(target_os = "linux", ignore)]
+#[cfg_attr(not(target_os = "windows"), ignore)]
 fn build_with_clang_linker_windows() {
     let dir = tempfile::tempdir().unwrap();
 
