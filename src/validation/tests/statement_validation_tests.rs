@@ -927,39 +927,39 @@ fn temp() {
         END_VAR
 
         PROGRAM main
-            // The function `func` expects the first three arguments to be references, 
-            // in these calls we pass literals however which should be invalid and yield errors.
+            // Expect for 4 function calls marked with a 'Valid' comment everything should be
+            // invalid and generate error message. The reasoning here is that the second and third 
+            // function parameters are expected to be references but literal arguments are passed.
+            // Note: Although the first parameter (VAR_INPUT) expects a reference, we make an exception for it
             func(1, 2, 3, 4);
             func(1, 2, 3, x);
             func(1, 2, x, 4);
             func(1, 2, x, x);
             func(1, x, 3, 4);
             func(1, x, 3, x);
-            func(1, x, x, 4);
-            func(1, x, x, x);
+            func(1, x, x, 4); // Valid
+            func(1, x, x, x); // Valid
             func(x, 2, 3, 4);
             func(x, 2, 3, x);
             func(x, 2, x, 4);
             func(x, 2, x, x);
             func(x, x, 3, 4);
             func(x, x, 3, x);
-
-            // Contrary to the previous calls we actually pass references here, 
-            // hence these calls should work. 
-            func(x, x, x, 4);
-            func(x, x, x, x);
+            func(x, x, x, 4); // Valid
+            func(x, x, x, x); // Valid
         END_PROGRAM
         ",
     );
 
     #[rustfmt::skip]
     let ranges = vec![
-        (657..658), (660..661), (663..664), (687..688), (690..691), (693..694), (717..718), (720..721), 
-        (747..748), (750..751), (777..778), (783..784), (807..808), (813..814), (837..838), (867..868), 
-        (900..901), (903..904), (930..931), (933..934), (960..961), (990..991), (1023..1024), (1053..1054)
+        (879..880), (882..883), (909..910), (912..913), 
+        (939..940), (969..970), (1002..1003), (1032..1033), 
+        (1137..1138), (1140..1141), (1167..1168), (1170..1171), 
+        (1197..1198), (1227..1228), (1260..1261), (1290..1291), 
     ];
 
-    assert_eq!(diagnostics.len(), 24);
+    assert_eq!(diagnostics.len(), 16);
     for (idx, diagnostic) in diagnostics.iter().enumerate() {
         assert_eq!(diagnostic, &Diagnostic::invalid_argument_type(ranges[idx].to_owned().into()));
     }

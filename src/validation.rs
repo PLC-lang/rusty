@@ -254,7 +254,10 @@ impl Validator {
                                     context.index,
                                 );
 
-                                if is_implicit && left.variable_type.is_by_ref() {
+                                if is_implicit
+                                    && left.variable_type.is_by_ref()
+                                    && left.variable_type.get_variable_type() != VariableType::Input
+                                {
                                     match p {
                                         AstStatement::Reference { .. }
                                         | AstStatement::LiteralString { .. }

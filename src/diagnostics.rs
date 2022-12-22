@@ -625,7 +625,7 @@ impl Diagnostic {
 
     pub fn invalid_argument_type(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: "Cannot pass a literal where a reference was expected".into(),
+            message: format!("Expected a reference here but found a literal"),
             range: vec![range],
             err_no: ErrNo::call__invalid_parameter_type,
         }
