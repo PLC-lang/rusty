@@ -254,9 +254,7 @@ impl Validator {
                                     context.index,
                                 );
 
-                                if is_implicit {
-                                    self.validate_call_by_ref(left, p);
-                                }
+                                self.validate_call_by_ref(left, p);
                             }
 
                             // mixing implicit and explicit parameters is not allowed
@@ -387,17 +385,23 @@ impl Validator {
 
     /// Checks if a function argument can be passed as a reference and if not generates a diagnostic.
     fn validate_call_by_ref(&mut self, param: &VariableIndexEntry, arg: &AstStatement) {
-        // Functions with `Input` variables can be both called by ref and val, thus exclude from check
-        if param.variable_type.is_by_ref() && param.variable_type.get_variable_type() != VariableType::Input {
-            match arg {
-                AstStatement::Reference { .. }
-                | AstStatement::QualifiedReference { .. }
-                | AstStatement::LiteralString { .. } => (),
+        if matches!(param.variable_type.get_variable_type(), VariableType::Output | VariableType::InOut) {
+            let valid = match arg {
+                AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. } => true,
 
-                _ => self
-                    .stmt_validator
-                    .diagnostics
-                    .push(Diagnostic::invalid_argument_type(arg.get_location())),
+                // Check if the left side of e.g. `foo := bar` is a reference
+                AstStatement::Assignment { left, .. } | AstStatement::OutputAssignment { left, .. } => {
+                    matches!(
+                        left.as_ref(),
+                        AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. }
+                    )
+                }
+
+                _ => false,
+            };
+
+            if !valid {
+                self.stmt_validator.diagnostics.push(Diagnostic::invalid_argument_type(arg.get_location()));
             }
         }
     }

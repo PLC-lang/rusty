@@ -901,7 +901,7 @@ fn address_of_operations() {
 }
 
 #[test]
-fn call_by_ref_and_val_for_input_inout_and_output() {
+fn by_ref_and_val_for_input_inout_and_output() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
         FUNCTION func : DINT 
@@ -919,7 +919,7 @@ fn call_by_ref_and_val_for_input_inout_and_output() {
 
             VAR_INPUT
                 byValInput : INT;
-            END_INPUT
+            END_VAR
         END_FUNCTION
 
         VAR_GLOBAL
@@ -947,16 +947,19 @@ fn call_by_ref_and_val_for_input_inout_and_output() {
             func(x, x, 3, x);
             func(x, x, x, 4); // Valid
             func(x, x, x, x); // Valid
+
+            // Also valid for explicit assignments
+            func(byRefInput := 1, byRefInOut := 2, byRefOutput => 3, byValInput := 4);
         END_PROGRAM
         ",
     );
 
     #[rustfmt::skip]
     let ranges = vec![
-        (916..917), (919..920), (946..947), (949..950),
-        (976..977), (1006..1007), (1039..1040), (1069..1070),
-        (1174..1175), (1177..1178), (1204..1205), (1207..1208),
-        (1234..1235), (1264..1265), (1297..1298), (1327..1328),
+        (914..915), (917..918), (944..945), (947..948),
+        (974..975), (1004..1005), (1037..1038), (1067..1068),
+        (1172..1173), (1175..1176), (1202..1203), (1205..1206),
+        (1232..1233), (1262..1263), (1295..1296), (1325..1326),
     ];
 
     assert_eq!(diagnostics.len(), 16);
