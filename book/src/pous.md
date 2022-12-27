@@ -33,7 +33,7 @@ VAR_INPUT
 END_VAR
 ```
 
-In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see {External Functions}(libraries/external_functions.md)) it is more efficient to avoid copying the variable values and just use a pointer to the required input. This can be done either using the in/out variables or by specifying a special property `ref` on the input block 
+In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see [External Functions](libraries/external_functions.md)) it is more efficient to avoid copying the variable values and just use a pointer to the required input. This can be done either using the in/out variables or by specifying a special property `ref` on the input block 
 
 Example : 
 
