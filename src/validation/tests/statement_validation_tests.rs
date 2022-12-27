@@ -901,7 +901,7 @@ fn address_of_operations() {
 }
 
 #[test]
-fn temp() {
+fn call_by_ref_and_val_for_input_inout_and_output() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
         FUNCTION func : DINT 
@@ -927,10 +927,10 @@ fn temp() {
         END_VAR
 
         PROGRAM main
-            // Expect for 4 function calls marked with a 'Valid' comment everything should be
-            // invalid and generate error message. The reasoning here is that the second and third 
-            // function parameters are expected to be references but literal arguments are passed.
-            // Note: Although the first parameter (VAR_INPUT) expects a reference, we make an exception for it
+            // Expect for 4 function calls flagged with a 'Valid' comment everything else should be invalid
+            // and generate error messages. The reasoning here is that the second and third function parameters
+            // are expected to be references but literal arguments are passed. Note that the first function
+            // parameter also expects a reference, but we decided that `VAR_INPUT` can be called by ref and val.
             func(1, 2, 3, 4);
             func(1, 2, 3, x);
             func(1, 2, x, 4);
@@ -953,10 +953,10 @@ fn temp() {
 
     #[rustfmt::skip]
     let ranges = vec![
-        (879..880), (882..883), (909..910), (912..913), 
-        (939..940), (969..970), (1002..1003), (1032..1033), 
-        (1137..1138), (1140..1141), (1167..1168), (1170..1171), 
-        (1197..1198), (1227..1228), (1260..1261), (1290..1291), 
+        (916..917), (919..920), (946..947), (949..950),
+        (976..977), (1006..1007), (1039..1040), (1069..1070),
+        (1174..1175), (1177..1178), (1204..1205), (1207..1208),
+        (1234..1235), (1264..1265), (1297..1298), (1327..1328),
     ];
 
     assert_eq!(diagnostics.len(), 16);

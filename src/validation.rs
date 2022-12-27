@@ -254,20 +254,8 @@ impl Validator {
                                     context.index,
                                 );
 
-                                if is_implicit
-                                    && left.variable_type.is_by_ref()
-                                    && left.variable_type.get_variable_type() != VariableType::Input
-                                {
-                                    match p {
-                                        AstStatement::Reference { .. }
-                                        | AstStatement::LiteralString { .. }
-                                        | AstStatement::QualifiedReference { .. } => (),
-
-                                        _ => self
-                                            .stmt_validator
-                                            .diagnostics
-                                            .push(Diagnostic::invalid_argument_type(p.get_location())),
-                                    }
+                                if is_implicit {
+                                    self.validate_call_by_ref(left, p);
                                 }
                             }
 
@@ -395,6 +383,23 @@ impl Validator {
         }
 
         self.stmt_validator.validate_statement(statement, context);
+    }
+
+    /// Checks if a function argument can be passed as a reference and if not generates a diagnostic.
+    fn validate_call_by_ref(&mut self, param: &VariableIndexEntry, arg: &AstStatement) {
+        // Functions with `Input` variables can be both called by ref and val, thus exclude from check
+        if param.variable_type.is_by_ref() && param.variable_type.get_variable_type() != VariableType::Input {
+            match arg {
+                AstStatement::Reference { .. }
+                | AstStatement::QualifiedReference { .. }
+                | AstStatement::LiteralString { .. } => (),
+
+                _ => self
+                    .stmt_validator
+                    .diagnostics
+                    .push(Diagnostic::invalid_argument_type(arg.get_location())),
+            }
+        }
     }
 
     fn validate_call_parameter_assignment(
