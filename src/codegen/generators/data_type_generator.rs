@@ -30,6 +30,7 @@ use inkwell::{
     AddressSpace,
 };
 
+use super::ADDRESS_SPACE_GENERIC;
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 
 pub struct DataTypeGenerator<'ink, 'b> {
@@ -248,7 +249,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Void => get_llvm_int_type(self.llvm.context, 32, "Void").map(Into::into),
             DataTypeInformation::Pointer { inner_type_name, .. } => {
                 let inner_type = self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?;
-                Ok(inner_type.ptr_type(AddressSpace::Generic).into())
+                Ok(inner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())
             }
             DataTypeInformation::Generic { .. } => {
                 unreachable!("Generic types should not be generated")

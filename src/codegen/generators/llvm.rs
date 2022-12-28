@@ -12,6 +12,8 @@ use inkwell::{
     AddressSpace,
 };
 
+use super::ADDRESS_SPACE_GENERIC;
+
 /// Holds dependencies required to generate IR-code
 pub struct Llvm<'a> {
     pub context: &'a Context,
@@ -190,7 +192,7 @@ impl<'a> Llvm<'a> {
 
     /// create a null pointer
     pub fn create_null_ptr(&self) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let itype = self.context.i32_type().ptr_type(AddressSpace::Generic);
+        let itype = self.context.i32_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
         let value = itype.const_null();
         Ok(value.into())
     }
