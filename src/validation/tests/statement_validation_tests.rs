@@ -901,69 +901,76 @@ fn address_of_operations() {
 }
 
 #[test]
-fn by_ref_and_val_for_input_inout_and_output() {
-    let diagnostics: Vec<Diagnostic> = parse_and_validate(
-        "
-        FUNCTION func : DINT 
-            VAR_INPUT {ref}
-                byRefInput : INT;
-            END_VAR 
-
-            VAR_IN_OUT
-                byRefInOut : INT;
-            END_VAR
-
-            VAR_OUTPUT
-                byRefOutput : INT;
-            END_VAR
-
+fn validate_by_ref_for_output_and_inout() {
+    for (type_idx, pou) in vec!["PROGRAM", "FUNCTION", "FUNCTION_BLOCK"].iter().enumerate() {
+        let mut src = "
+        <POU_TYPE> func <RET_TYPE>
             VAR_INPUT
                 byValInput : INT;
             END_VAR
-        END_FUNCTION
-
-        VAR_GLOBAL
-            x : INT := 1;
-        END_VAR
-
+        
+            VAR_IN_OUT
+                byRefInOut : INT;
+            END_VAR
+        
+            VAR_OUTPUT
+                byRefOutput : INT;
+            END_VAR
+        END_<POU_TYPE>
+    
         PROGRAM main
-            // Expect for 4 function calls flagged with a 'Valid' comment everything else should be invalid
-            // and generate error messages. The reasoning here is that the second and third function parameters
-            // are expected to be references but literal arguments are passed. Note that the first function
-            // parameter also expects a reference, but we decided that `VAR_INPUT` can be called by ref and val.
-            func(1, 2, 3, 4);
-            func(1, 2, 3, x);
-            func(1, 2, x, 4);
-            func(1, 2, x, x);
-            func(1, x, 3, 4);
-            func(1, x, 3, x);
-            func(1, x, x, 4); // Valid
-            func(1, x, x, x); // Valid
-            func(x, 2, 3, 4);
-            func(x, 2, 3, x);
-            func(x, 2, x, 4);
-            func(x, 2, x, x);
-            func(x, x, 3, 4);
-            func(x, x, 3, x);
-            func(x, x, x, 4); // Valid
-            func(x, x, x, x); // Valid
-
-            // Also valid for explicit assignments
-            func(byRefInput := 1, byRefInOut := 2, byRefOutput => 3, byValInput := 4);
+            VAR
+                x : INT := 1;
+            END_VAR
+        
+            // The second and third arguments are expected to be references, as such
+            // any call to `func` where these two arguments are literals will fail
+            func(1, 2, 3);
+            func(1, 2, x);
+            func(1, x, 3);
+            func(1, x, x); // Valid 
+            func(x, 2, 3);
+            func(x, 2, x);
+            func(x, x, 3);
+            func(x, x, x); // Valid
         END_PROGRAM
-        ",
-    );
+        "
+        .to_string();
 
-    #[rustfmt::skip]
-    let ranges = vec![
-        (914..915), (917..918), (944..945), (947..948),
-        (974..975), (1004..1005), (1037..1038), (1067..1068),
-        (1172..1173), (1175..1176), (1202..1203), (1205..1206),
-        (1232..1233), (1262..1263), (1295..1296), (1325..1326),
-    ];
+        // Prepare test for different POU types
+        src = src.replace("<POU_TYPE>", pou);
+        src = match pou.as_ref() {
+            "FUNCTION" => src.replace("<RET_TYPE>", ": DINT"),
+            _ => src.replace("<RET_TYPE>", ""),
+        };
 
-    assert_eq!(diagnostics.len(), 16);
-    for (idx, diagnostic) in diagnostics.iter().enumerate() {
-        assert_eq!(diagnostic, &Diagnostic::invalid_argument_type(ranges[idx].to_owned().into()));
+        let diagnostics: Vec<Diagnostic> = parse_and_validate(&src);
+
+        #[rustfmt::skip]
+        let ranges = vec![
+            // PROGRAM
+            vec![
+                (581..582), (584..585), (608..609), (638..639), 
+                (699..700), (702..703), (726..727), (756..757), 
+            ],
+            // FUNCTION
+            vec![
+                (589..590), (592..593), (616..617), (646..647),
+                (707..708), (710..711), (734..735), (764..765), 
+            ],
+            // FUNCTION_BLOCK
+            vec![
+                (595..596), (598..599), (622..623), (652..653),
+                (713..714), (716..717), (740..741), (770..771),
+            ],
+        ];
+
+        assert_eq!(diagnostics.len(), 8);
+        for (idx, diagnostic) in diagnostics.iter().enumerate() {
+            assert_eq!(
+                diagnostic,
+                &Diagnostic::invalid_argument_type(ranges[type_idx][idx].to_owned().into()),
+            );
+        }
     }
 }
