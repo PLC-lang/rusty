@@ -167,7 +167,7 @@ A definition for input parameters is as follows : </p>
     a : INT;
 END_VAR
 </code></pre>
-<p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see {External Functions}(libraries/external_functions.md)) it is more efficient to avoid copying the variable values and just use a pointer to the required input. This can be done either using the in/out variables or by specifying a special property <code>ref</code> on the input block </p>
+<p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see <a href="libraries/external_functions.html">External Functions</a>) it is more efficient to avoid copying the variable values and just use a pointer to the required input. This can be done either using the in/out variables or by specifying a special property <code>ref</code> on the input block </p>
 <p>Example : </p>
 <pre><code class="language-iecst">VAR_INPUT {ref}
     a : STRING;
