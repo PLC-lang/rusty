@@ -1,3 +1,4 @@
+use crate::index::VariableType;
 use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
@@ -902,9 +903,9 @@ fn address_of_operations() {
 
 #[test]
 fn validate_by_ref_for_output_and_inout() {
-    for (type_idx, pou) in vec!["PROGRAM", "FUNCTION", "FUNCTION_BLOCK"].iter().enumerate() {
-        let mut src = "
-        <POU_TYPE> func <RET_TYPE>
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION func : DINT
             VAR_INPUT
                 byValInput : INT;
             END_VAR
@@ -916,7 +917,7 @@ fn validate_by_ref_for_output_and_inout() {
             VAR_OUTPUT
                 byRefOutput : INT;
             END_VAR
-        END_<POU_TYPE>
+        END_FUNCTION
     
         PROGRAM main
             VAR
@@ -928,49 +929,32 @@ fn validate_by_ref_for_output_and_inout() {
             func(1, 2, 3);
             func(1, 2, x);
             func(1, x, 3);
-            func(1, x, x); // Valid 
+            func(1, x, x); // Valid
             func(x, 2, 3);
             func(x, 2, x);
             func(x, x, 3);
             func(x, x, x); // Valid
+            
+            // Explicit argument assignments are also valid
+            func(byValInput := 1, byRefInOut := 2, byRefOutput =>  );
+            func(byValInput := 1, byRefInOut := 2, byRefOutput => x);
         END_PROGRAM
-        "
-        .to_string();
+        ",
+    );
 
-        // Prepare test for different POU types
-        src = src.replace("<POU_TYPE>", pou);
-        src = match pou.as_ref() {
-            "FUNCTION" => src.replace("<RET_TYPE>", ": DINT"),
-            _ => src.replace("<RET_TYPE>", ""),
-        };
+    #[rustfmt::skip]
+    let ranges = vec![
+        ("byRefInOut", VariableType::InOut, (589..590)), ("byRefOutput", VariableType::Output, (592..593)),
+        ("byRefInOut", VariableType::InOut, (616..617)), ("byRefOutput", VariableType::Output, (646..647)),
+        ("byRefInOut", VariableType::InOut, (706..707)), ("byRefOutput", VariableType::Output, (709..710)),
+        ("byRefInOut", VariableType::InOut, (733..734)), ("byRefOutput", VariableType::Output, (763..764)),
+    ];
 
-        let diagnostics: Vec<Diagnostic> = parse_and_validate(&src);
-
-        #[rustfmt::skip]
-        let ranges = vec![
-            // PROGRAM
-            vec![
-                (581..582), (584..585), (608..609), (638..639), 
-                (699..700), (702..703), (726..727), (756..757), 
-            ],
-            // FUNCTION
-            vec![
-                (589..590), (592..593), (616..617), (646..647),
-                (707..708), (710..711), (734..735), (764..765), 
-            ],
-            // FUNCTION_BLOCK
-            vec![
-                (595..596), (598..599), (622..623), (652..653),
-                (713..714), (716..717), (740..741), (770..771),
-            ],
-        ];
-
-        assert_eq!(diagnostics.len(), 8);
-        for (idx, diagnostic) in diagnostics.iter().enumerate() {
-            assert_eq!(
-                diagnostic,
-                &Diagnostic::invalid_argument_type(ranges[type_idx][idx].to_owned().into()),
-            );
-        }
+    assert_eq!(diagnostics.len(), 8);
+    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::invalid_argument_type(ranges[idx].0, ranges[idx].1, ranges[idx].2.to_owned().into()),
+        );
     }
 }

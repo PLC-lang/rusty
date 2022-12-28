@@ -383,25 +383,23 @@ impl Validator {
         self.stmt_validator.validate_statement(statement, context);
     }
 
-    /// Checks if a function argument can be passed as a reference and if not generates a diagnostic.
+    /// Validates if an argument can be passed to a function with [`VariableType::Output`] and
+    /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
+    /// an assignment (e.g. `foo(x := 1)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
     fn validate_call_by_ref(&mut self, param: &VariableIndexEntry, arg: &AstStatement) {
         if matches!(param.variable_type.get_variable_type(), VariableType::Output | VariableType::InOut) {
-            let valid = match arg {
-                AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. } => true,
-
-                // Check if the left side of e.g. `foo := bar` is a reference
-                AstStatement::Assignment { left, .. } | AstStatement::OutputAssignment { left, .. } => {
-                    matches!(
-                        left.as_ref(),
-                        AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. }
-                    )
-                }
-
-                _ => false,
-            };
-
-            if !valid {
-                self.stmt_validator.diagnostics.push(Diagnostic::invalid_argument_type(arg.get_location()));
+            if !matches!(
+                arg,
+                AstStatement::Reference { .. }
+                    | AstStatement::QualifiedReference { .. }
+                    | AstStatement::Assignment { .. }
+                    | AstStatement::OutputAssignment { .. }
+            ) {
+                self.stmt_validator.diagnostics.push(Diagnostic::invalid_argument_type(
+                    param.get_name(),
+                    param.get_variable_type(),
+                    arg.get_location(),
+                ));
             }
         }
     }
