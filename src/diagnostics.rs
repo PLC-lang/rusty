@@ -635,8 +635,7 @@ impl Diagnostic {
             message: format!(
                 "Expected a reference for parameter {} because their type is {:?}",
                 parameter_name, parameter_type,
-            )
-            .into(),
+            ),
             range: vec![range],
             err_no: ErrNo::call__invalid_parameter_type,
         }
