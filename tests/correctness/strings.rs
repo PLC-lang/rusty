@@ -857,3 +857,29 @@ fn program_string_output() {
     assert_eq!("string\0".as_bytes(), &main_type.x);
     assert_eq!("wstring", String::from_utf16_lossy(&main_type.y[..7]));
 }
+
+#[test]
+fn global_constant_string_assignment() {
+    let src = r#"
+		VAR_GLOBAL CONSTANT
+			global_const : STRING := 'hello';
+		END_VAR
+
+        PROGRAM main
+		VAR 
+			x : STRING[5]; 
+		END_VAR
+			x := global_const;
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x: [u8; 6],
+    }
+    let mut main_type = MainType { x: [0; 6] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("hello\0".as_bytes(), &main_type.x);
+}

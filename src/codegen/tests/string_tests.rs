@@ -417,3 +417,23 @@ fn using_a_constant_var_string_should_be_memcpyable() {
     // THEN
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn assigning_const_string_variable() {
+    let result = codegen(
+        r#"
+        PROGRAM main
+		VAR
+			str : STRING;
+		END_VAR
+			str := glob_const;
+		END_PROGRAM
+
+		VAR_GLOBAL CONSTANT
+			glob_const : STRING := 'global constant string';
+		END_VAR
+    "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
