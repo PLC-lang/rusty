@@ -1087,6 +1087,24 @@
 <span id="1082">1082</span>
 <span id="1083">1083</span>
 <span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections::HashMap</span>,
     <span class="ident">error::Error</span>,
@@ -1101,7 +1119,10 @@
 };
 <span class="kw">use</span> <span class="ident">inkwell::support::LLVMString</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">DataTypeDeclaration</span>, <span class="ident">DiagnosticInfo</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">ast</span>::{<span class="ident">DataTypeDeclaration</span>, <span class="ident">DiagnosticInfo</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>},
+    <span class="ident">index::VariableType</span>,
+};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INTERNAL_LLVM_ERROR</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;internal llvm codegen error&quot;</span>;
 
@@ -1707,6 +1728,21 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalid_parameter_type</span>(<span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
         <span class="ident">Diagnostic::SyntaxError</span> {
             <span class="ident">message</span>: <span class="string">&quot;Cannot mix implicit and explicit call parameters!&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">range</span>: <span class="macro">vec!</span>[<span class="ident">range</span>],
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::call__invalid_parameter_type</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalid_argument_type</span>(
+        <span class="ident">parameter_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">parameter_type</span>: <span class="ident">VariableType</span>,
+        <span class="ident">range</span>: <span class="ident">SourceRange</span>,
+    ) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="macro">format!</span>(
+                <span class="string">&quot;Expected a reference for parameter {} because their type is {:?}&quot;</span>,
+                <span class="ident">parameter_name</span>, <span class="ident">parameter_type</span>,
+            ),
             <span class="ident">range</span>: <span class="macro">vec!</span>[<span class="ident">range</span>],
             <span class="ident">err_no</span>: <span class="ident">ErrNo::call__invalid_parameter_type</span>,
         }

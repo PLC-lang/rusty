@@ -413,6 +413,30 @@
 <span id="408">408</span>
 <span id="409">409</span>
 <span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -668,6 +692,8 @@
                                     <span class="ident">p</span>.<span class="ident">get_location</span>(),
                                     <span class="ident">context</span>.<span class="ident">index</span>,
                                 );
+
+                                <span class="self">self</span>.<span class="ident">validate_call_by_ref</span>(<span class="ident">left</span>, <span class="ident">p</span>);
                             }
 
                             <span class="comment">// mixing implicit and explicit parameters is not allowed</span>
@@ -794,6 +820,28 @@
         }
 
         <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">validate_statement</span>(<span class="ident">statement</span>, <span class="ident">context</span>);
+    }
+
+    <span class="doccomment">/// Validates if an argument can be passed to a function with [`VariableType::Output`] and</span>
+    <span class="doccomment">/// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or</span>
+    <span class="doccomment">/// an assignment (e.g. `foo(x := y)`, `foo(x =&gt; y)`). If neither is the case a diagnostic is generated.</span>
+    <span class="kw">fn</span> <span class="ident">validate_call_by_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">param</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) {
+        <span class="macro">dbg!</span>((<span class="ident">param</span>, <span class="ident">arg</span>));
+        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">param</span>.<span class="ident">variable_type</span>.<span class="ident">get_variable_type</span>(), <span class="ident">VariableType::Output</span> <span class="op">|</span> <span class="ident">VariableType::InOut</span>) {
+            <span class="kw">match</span> <span class="ident">arg</span> {
+                <span class="ident">AstStatement::Reference</span> { .. } <span class="op">|</span> <span class="ident">AstStatement::QualifiedReference</span> { .. } =&gt; (),
+
+                <span class="ident">AstStatement::Assignment</span> { <span class="ident">right</span>, .. } <span class="op">|</span> <span class="ident">AstStatement::OutputAssignment</span> { <span class="ident">right</span>, .. } =&gt; {
+                    <span class="self">self</span>.<span class="ident">validate_call_by_ref</span>(<span class="ident">param</span>, <span class="ident">right</span>);
+                }
+
+                <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_argument_type</span>(
+                    <span class="ident">param</span>.<span class="ident">get_name</span>(),
+                    <span class="ident">param</span>.<span class="ident">get_variable_type</span>(),
+                    <span class="ident">arg</span>.<span class="ident">get_location</span>(),
+                )),
+            }
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">validate_call_parameter_assignment</span>(
