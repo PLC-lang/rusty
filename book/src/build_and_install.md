@@ -27,7 +27,7 @@ brew install llvm@13
 ````
 After the installation you have to add `/opt/homebrew/opt/llvm@13/bin` to your `$PATH` environment variable, e.g. with the following command
 ```bash
-echo 'export PATH="/opt/homebrew/opt/llvm@13/bin:$PATH"' >> ~/.bashrc
+echo 'export PATH="/opt/homebrew/opt/llvm@13/bin:$PATH"' >> ~/.zshrc
 ```
 
 ## Windows
