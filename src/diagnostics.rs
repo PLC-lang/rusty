@@ -12,7 +12,10 @@ use codespan_reporting::{
 };
 use inkwell::support::LLVMString;
 
-use crate::ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange};
+use crate::{
+    ast::{DataTypeDeclaration, DiagnosticInfo, PouType, SourceRange},
+    index::VariableType,
+};
 
 pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
@@ -618,6 +621,21 @@ impl Diagnostic {
     pub fn invalid_parameter_type(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Cannot mix implicit and explicit call parameters!".into(),
+            range: vec![range],
+            err_no: ErrNo::call__invalid_parameter_type,
+        }
+    }
+
+    pub fn invalid_argument_type(
+        parameter_name: &str,
+        parameter_type: VariableType,
+        range: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Expected a reference for parameter {} because their type is {:?}",
+                parameter_name, parameter_type,
+            ),
             range: vec![range],
             err_no: ErrNo::call__invalid_parameter_type,
         }
