@@ -387,7 +387,6 @@ impl Validator {
     /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
     /// an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
     fn validate_call_by_ref(&mut self, param: &VariableIndexEntry, arg: &AstStatement) {
-        dbg!((param, arg));
         if matches!(param.variable_type.get_variable_type(), VariableType::Output | VariableType::InOut) {
             match arg {
                 AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. } => (),
