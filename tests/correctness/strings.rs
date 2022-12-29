@@ -432,7 +432,6 @@ fn string_as_function_parameters() {
     exec_engine.add_global_mapping(&fn_value, string_id as usize);
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
-    dbg!(main_type);
     let res = CStr::from_bytes_with_nul(&main_type[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
 }
