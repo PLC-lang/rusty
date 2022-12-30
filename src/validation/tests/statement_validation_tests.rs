@@ -971,30 +971,3 @@ fn validate_call_by_ref() {
         );
     }
 }
-
-#[test]
-fn validate_call_by_ref_in_printf() {
-    let diagnostics = parse_and_validate(
-        "
-        {external}
-        FUNCTION printf : DINT
-            VAR_IN_OUT
-                format : STRING;
-            END_VAR
-            VAR_INPUT
-                args : ...;
-            END_VAR
-        END_FUNCTION
-
-        PROGRAM main
-            VAR
-                var1 : STRING := 'works';
-            END_VAR
-
-            printf('This test just %d', var1);
-        END_PROGRAM
-        ",
-    );
-
-    assert_eq!(diagnostics.len(), 0);
-}
