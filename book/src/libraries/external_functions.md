@@ -103,7 +103,7 @@ An `ST` program called `ExternalFunctions.st` with the following code can be dec
  *)
 {external}
 FUNCTION printf : DINT
-VAR_IN_OUT
+VAR_INPUT {ref}
     format : STRING;
 END_VAR
 VAR_INPUT
