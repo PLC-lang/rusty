@@ -1,17 +1,3 @@
-// TODOs:
-// - [x] Include ranges in reports (first node in path)
-// - [x] Correctly report tail-end cycles (where the first node is not part of a cycle; mathias' example)
-// - [x] Fix naming of tests ;)
-// - [ ] Include ranges in unit tests
-// - [x] Improve error message
-// - [x] Structs
-// - [?] Arrays
-// - [x] Function blocks
-
-// - [ ] Discuss aborting codegen for specific errors with team, specifically:
-// We try to generate the LLVM IR which results in a stack overflow because of recursion
-// Specifically this line in `lib.rs` panics:
-// let llvm_index = code_generator.generate_llvm_index(&annotations, index.all_literals, &full_index, &diagnostician)?;
 use indexmap::{IndexMap, IndexSet};
 
 use crate::{
@@ -77,7 +63,6 @@ impl RecursiveValidator {
     fn find_cycle<'idx>(&mut self, index: &'idx Index, mut nodes: IndexMap<&'idx str, Status>) {
         let mut path = IndexSet::new();
 
-        // TODO: Runtime of the iterator?
         while let Some(node) = nodes.iter_mut().find(|x| x.1 == &Status::Unvisited) {
             self.dfs(index, node.0, &mut nodes, &mut path);
         }
@@ -86,7 +71,8 @@ impl RecursiveValidator {
     /// In DFS manner recursively visits a node and all its child nodes while simultaneously creating a path
     /// of it. Ends either by detecting a cycle, i.e. re-visting a node that is already present in our path,
     /// or by reaching a node with no further child nodes. In the former case the cycle is added to the
-    /// diagnostician.
+    /// diagnostician. In the latter case the function goes back one recursion re-doing the mentioned steps
+    /// until either again a cycle is found or all nodes have been visited.
     fn dfs<'idx>(
         &mut self,
         index: &'idx Index,
@@ -420,7 +406,6 @@ mod tests {
             assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
         }
 
-        // TODO: Doesn't currently work
         #[test]
         fn one_cycle_aba_output() {
             let diagnostics = parse_and_validate(
