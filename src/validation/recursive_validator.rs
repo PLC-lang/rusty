@@ -27,7 +27,7 @@ pub struct RecursiveValidator {
 }
 
 /// Status of whether a node has been visited or not.
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Hash, PartialEq, Eq)]
 pub enum Status {
     Visited,
     Unvisited,
@@ -101,21 +101,18 @@ impl RecursiveValidator {
     /// until a cycle, e.g. `A -> B -> C -> B`. We are only interested in `B -> C -> B` as such this method
     /// finds the first occurence of `B` to create a vector slice of `B -> C -> B` for the diagnostician.
     fn report<'idx>(&mut self, index: &'idx Index, path: &mut IndexSet<&'idx str>, node: &'idx str) {
-        // _Convert_ path to vector and append cyclic node to get `A -> B -> C -> B` instead of `A -> B -> C`
-        let mut path = path.iter().copied().collect::<Vec<_>>();
-        path.push(node);
-
-        match path.iter().position(|x| x == &node) {
+        match path.get_index_of(node) {
             Some(idx) => {
-                let path = &path[idx..];
-                let ranges = path
-                    .iter()
-                    .map(|node| index.get_type(node).unwrap().location.source_range.to_owned())
-                    .collect();
+                // Extract the cycle from the full path and append the cyclic node to the tail for the report
+                let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
+                slice.push(node);
 
                 self.diagnostics.push(Diagnostic::SyntaxError {
-                    message: format!("Found recursive data structure in the form of `{}`", path.join(" -> ")),
-                    range: ranges,
+                    message: format!("Recursive data structure `{}` has infinite size", slice.join(" -> ")),
+                    range: slice
+                        .iter()
+                        .map(|node| index.get_type(node).unwrap().location.source_range.to_owned())
+                        .collect::<Vec<_>>(),
                     err_no: ErrNo::pou__recursive_data_structure,
                 });
             }
@@ -129,7 +126,7 @@ impl RecursiveValidator {
 #[cfg(test)]
 mod tests {
     fn generate_message(path: &'static str) -> String {
-        format!("Found recursive data structure in the form of `{path}`")
+        format!("Recursive data structure `{path}` has infinite size")
     }
 
     mod structs {
@@ -137,6 +134,220 @@ mod tests {
             diagnostics::ErrNo, test_utils::tests::parse_and_validate,
             validation::recursive_validator::tests::generate_message,
         };
+
+        #[test]
+        fn pointers_should_not_be_considered_as_cycle() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT
+                b : B;
+            END_STRUCT END_TYPE
+
+            TYPE B : STRUCT
+                a : REF_TO A;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 0);
+        }
+
+        #[test]
+        fn one_cycle_abca() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT
+                b : B;
+            END_STRUCT END_TYPE
+
+            TYPE B : STRUCT
+                c : C;
+            END_STRUCT END_TYPE
+
+            TYPE C : STRUCT
+                a : A;
+                e : e;
+            END_STRUCT END_TYPE
+            
+            TYPE E : STRUCT
+                a_int: INT;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 1);
+            assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> C -> A"));
+            assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![(18..19).into(), (102..103).into(), (186..187).into(), (18..19).into()]
+            );
+        }
+
+        #[test]
+        fn one_cycle_self_a() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT
+                a : A;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 1);
+            assert_eq!(diagnostics[0].get_message(), generate_message("A -> A"));
+            assert_eq!(diagnostics[0].get_affected_ranges(), vec![(18..19).into(), (18..19).into()]);
+        }
+
+        #[test]
+        fn one_cycle_multiple_self_a() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT
+                a1 : A;
+                a2 : A;
+                a3 : A;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 1);
+            assert_eq!(diagnostics[0].get_message(), generate_message("A -> A"));
+            assert_eq!(diagnostics[0].get_affected_ranges(), vec![(18..19).into(), (18..19).into()]);
+        }
+
+        #[test]
+        fn one_cycle_aba() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT
+                b : B;
+            END_STRUCT END_TYPE
+
+            TYPE B : STRUCT
+                a : A;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 1);
+            assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> A"));
+            assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![(18..19).into(), (102..103).into(), (18..19).into()]
+            );
+        }
+
+        #[test]
+        fn one_cycle_bcb() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT
+                b : B;
+            END_STRUCT END_TYPE
+            
+            TYPE B : STRUCT
+                c : C;
+            END_STRUCT END_TYPE
+            
+            TYPE C : STRUCT
+                b : B;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 1);
+            assert_eq!(diagnostics[0].get_message(), generate_message("B -> C -> B"));
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![(114..115).into(), (210..211).into(), (114..115).into()]
+            );
+        }
+
+        #[test]
+        fn one_cycle_with_multiple_identical_members_aba() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT 
+                b1 : B;
+                b2 : B;
+                b3 : B;
+            END_STRUCT END_TYPE
+
+            TYPE B : STRUCT 
+                a : A;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 1);
+            assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> A"));
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![(18..19).into(), (152..153).into(), (18..19).into()]
+            );
+        }
+
+        #[test]
+        fn two_cycles_aa_and_aba() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT
+                a : A;
+                b : B;
+            END_STRUCT END_TYPE
+            
+            TYPE B : STRUCT
+                a : A;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 2);
+            assert_eq!(diagnostics[0].get_message(), generate_message("A -> A"));
+            assert_eq!(diagnostics[0].get_affected_ranges(), vec![(18..19).into(), (18..19).into()]);
+
+            assert_eq!(diagnostics[1].get_message(), generate_message("A -> B -> A"));
+            assert_eq!(
+                diagnostics[1].get_affected_ranges(),
+                vec![(18..19).into(), (137..138).into(), (18..19).into()]
+            );
+        }
+
+        #[test]
+        fn two_cycles_branch_cc_and_cec() {
+            let diagnostics = parse_and_validate(
+                "
+            TYPE A : STRUCT
+                b : B;
+            END_STRUCT END_TYPE
+            
+            TYPE B : STRUCT
+                c : C;
+            END_STRUCT END_TYPE
+            
+            TYPE C : STRUCT
+                c : C;
+                e : E;
+            END_STRUCT END_TYPE
+            
+            TYPE E : STRUCT
+                c : C;
+            END_STRUCT END_TYPE
+            ",
+            );
+
+            assert_eq!(diagnostics.len(), 2);
+            assert_eq!(diagnostics[0].get_message(), generate_message("C -> C"));
+            assert_eq!(diagnostics[0].get_affected_ranges(), vec![(210..211).into(), (210..211).into()]);
+
+            assert_eq!(diagnostics[1].get_message(), generate_message("C -> E -> C"));
+            assert_eq!(
+                diagnostics[1].get_affected_ranges(),
+                vec![(210..211).into(), (329..330).into(), (210..211).into()]
+            );
+        }
 
         #[test]
         fn two_cycles_with_branch() {
@@ -181,197 +392,29 @@ mod tests {
 
             assert_eq!(diagnostics[0].get_message(), generate_message("F -> G -> H -> I -> F"),);
             assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![
+                    (354..355).into(),
+                    (461..462).into(),
+                    (545..546).into(),
+                    (629..630).into(),
+                    (354..355).into()
+                ]
+            );
 
             assert_eq!(diagnostics[1].get_message(), generate_message("B -> C -> E -> F -> B"),);
             assert_eq!(diagnostics[1].get_type(), &ErrNo::pou__recursive_data_structure);
-        }
-
-        #[test]
-        fn one_cycle_abca() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT
-                b : B;
-            END_STRUCT END_TYPE
-
-            TYPE B : STRUCT
-                c : C;
-            END_STRUCT END_TYPE
-
-            TYPE C : STRUCT
-                a : A;
-                e : e;
-            END_STRUCT END_TYPE
-            
-            TYPE E : STRUCT
-                a_int: INT;
-            END_STRUCT END_TYPE
-            ",
+            assert_eq!(
+                diagnostics[1].get_affected_ranges(),
+                vec![
+                    (102..103).into(),
+                    (186..187).into(),
+                    (270..271).into(),
+                    (354..355).into(),
+                    (102..103).into()
+                ]
             );
-
-            assert_eq!(diagnostics.len(), 1);
-            assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> C -> A"));
-            assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
-        }
-
-        #[test]
-        fn pointers_should_not_be_considered_as_cycle() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT
-                b : B;
-            END_STRUCT END_TYPE
-
-            TYPE B : STRUCT
-                a : REF_TO A;
-            END_STRUCT END_TYPE
-            ",
-            );
-
-            assert_eq!(diagnostics.len(), 0);
-        }
-
-        #[test]
-        fn one_cycle_self_a() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT
-                a : A;
-            END_STRUCT END_TYPE
-            ",
-            );
-
-            assert_eq!(diagnostics.len(), 1);
-            assert_eq!(diagnostics[0].get_message(), generate_message("A -> A"));
-        }
-
-        #[test]
-        fn one_cycle_multiple_self_a() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT
-                a1 : A;
-                a2 : A;
-                a3 : A;
-            END_STRUCT END_TYPE
-            ",
-            );
-
-            assert_eq!(diagnostics.len(), 1);
-            for idx in 0..diagnostics.len() {
-                assert_eq!(diagnostics[idx].get_message(), generate_message("A -> A"));
-            }
-        }
-
-        #[test]
-        fn one_cycle_aba() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT
-                b : B;
-            END_STRUCT END_TYPE
-
-            TYPE B : STRUCT
-                a : A;
-            END_STRUCT END_TYPE
-            ",
-            );
-
-            assert_eq!(diagnostics.len(), 1);
-            assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> A"));
-            assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
-        }
-
-        #[test]
-        fn one_cycle_bcb() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT
-                b : B;
-            END_STRUCT END_TYPE
-            
-            TYPE B : STRUCT
-                c : C;
-            END_STRUCT END_TYPE
-            
-            TYPE C : STRUCT
-                b : B;
-            END_STRUCT END_TYPE
-            ",
-            );
-
-            assert_eq!(diagnostics.len(), 1);
-            assert_eq!(diagnostics[0].get_message(), generate_message("B -> C -> B"));
-        }
-
-        #[test]
-        fn two_cycles_aa_and_aba() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT
-                a : A;
-                b : B;
-            END_STRUCT END_TYPE
-            
-            TYPE B : STRUCT
-                a : A;
-            END_STRUCT END_TYPE
-            ",
-            );
-
-            assert_eq!(diagnostics.len(), 2);
-            assert_eq!(diagnostics[0].get_message(), generate_message("A -> A"));
-            assert_eq!(diagnostics[1].get_message(), generate_message("A -> B -> A"));
-        }
-
-        #[test]
-        fn one_cycle_with_multiple_identical_members_aba() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT 
-                b1 : B;
-                b2 : B;
-                b3 : B;
-            END_STRUCT END_TYPE
-
-            TYPE B : STRUCT 
-                a : A;
-            END_STRUCT END_TYPE
-            ",
-            );
-
-            assert_eq!(diagnostics.len(), 1);
-            for idx in 0..diagnostics.len() {
-                assert_eq!(diagnostics[idx].get_message(), generate_message("A -> B -> A"));
-            }
-        }
-
-        #[test]
-        fn two_cycles_branch_cc_and_cec() {
-            let diagnostics = parse_and_validate(
-                "
-            TYPE A : STRUCT
-                b : B;
-            END_STRUCT END_TYPE
-            
-            TYPE B : STRUCT
-                c : C;
-            END_STRUCT END_TYPE
-            
-            TYPE C : STRUCT
-                c : C;
-                e : E;
-            END_STRUCT END_TYPE
-            
-            TYPE E : STRUCT
-                c : C;
-            END_STRUCT END_TYPE
-            ",
-            );
-
-            assert_eq!(diagnostics.len(), 2);
-            assert_eq!(diagnostics[0].get_message(), generate_message("C -> C"));
-            assert_eq!(diagnostics[1].get_message(), generate_message("C -> E -> C"));
         }
     }
 
@@ -404,6 +447,10 @@ mod tests {
 
             assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> A"));
             assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![(32..33).into(), (191..192).into(), (32..33).into(),]
+            );
         }
 
         #[test]
@@ -429,6 +476,10 @@ mod tests {
 
             assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> A"));
             assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![(32..33).into(), (192..193).into(), (32..33).into(),]
+            );
         }
 
         #[test]
@@ -454,6 +505,10 @@ mod tests {
 
             assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> A"));
             assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![(32..33).into(), (191..192).into(), (32..33).into(),]
+            );
         }
     }
 }
