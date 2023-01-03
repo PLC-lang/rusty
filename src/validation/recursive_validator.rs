@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, cell::Cell};
+use std::cell::Cell;
 
 use indexmap::{IndexMap, IndexSet};
 
@@ -30,7 +30,7 @@ pub struct RecursiveValidator {
 
 /// Status of whether a node has been visited or not.
 #[derive(Clone, Copy, Hash, PartialEq, Eq)]
-pub enum Status {
+enum Status {
     Visited,
     Unvisited,
 }
