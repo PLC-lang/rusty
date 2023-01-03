@@ -1,6 +1,6 @@
 use std::{convert::TryInto, mem::discriminant};
 
-use super::ValidationContext;
+use super::{ValidationContext, Validators};
 use crate::{
     ast::{AstStatement, DirectAccessType, Operator, SourceRange},
     index::{ArgumentType, VariableIndexEntry, VariableType},
@@ -23,7 +23,17 @@ macro_rules! is_covered_by {
 }
 
 pub struct StatementValidator {
-    pub diagnostics: Vec<Diagnostic>,
+    diagnostics: Vec<Diagnostic>,
+}
+
+impl Validators for StatementValidator {
+    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+
+    fn get_diagnostics(&mut self) -> &mut Vec<Diagnostic> {
+        &mut self.diagnostics
+    }
 }
 
 impl StatementValidator {
@@ -44,7 +54,7 @@ impl StatementValidator {
                         | AstStatement::QualifiedReference { .. }
                         | AstStatement::ArrayAccess { .. } => (),
 
-                        _ => self.diagnostics.push(Diagnostic::invalid_operation(
+                        _ => self.push_diagnostic(Diagnostic::invalid_operation(
                             "Invalid address-of operation",
                             location.to_owned(),
                         )),
@@ -68,7 +78,7 @@ impl StatementValidator {
                         self.validate_array_access(access.as_ref(), dimensions, 0, context);
                     }
                 } else {
-                    self.diagnostics.push(Diagnostic::incompatible_array_access_variable(
+                    self.push_diagnostic(Diagnostic::incompatible_array_access_variable(
                         target_type.get_name(),
                         access.get_location(),
                     ));
@@ -85,7 +95,7 @@ impl StatementValidator {
                         .get_type_information();
                     if target_type.is_int() {
                         if !access.is_compatible(target_type, context.index) {
-                            self.diagnostics.push(Diagnostic::incompatible_directaccess(
+                            self.push_diagnostic(Diagnostic::incompatible_directaccess(
                                 &format!("{:?}", access),
                                 access.get_bit_width(),
                                 location.clone(),
@@ -95,7 +105,7 @@ impl StatementValidator {
                         }
                     } else {
                         //Report incompatible type issue
-                        self.diagnostics.push(Diagnostic::incompatible_directaccess(
+                        self.push_diagnostic(Diagnostic::incompatible_directaccess(
                             &format!("{:?}", access),
                             access.get_bit_width(),
                             location.clone(),
@@ -113,7 +123,7 @@ impl StatementValidator {
                 {
                     // check if we assign to a constant variable
                     if *constant {
-                        self.diagnostics.push(Diagnostic::cannot_assign_to_constant(
+                        self.push_diagnostic(Diagnostic::cannot_assign_to_constant(
                             l_qualified_name.as_str(),
                             left.get_location(),
                         ));
@@ -131,7 +141,7 @@ impl StatementValidator {
                         && !l_effective_type.is_pointer()
                         && l_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
                     {
-                        self.diagnostics.push(Diagnostic::incompatible_type_size(
+                        self.push_diagnostic(Diagnostic::incompatible_type_size(
                             l_effective_type.get_name(),
                             l_effective_type.get_size_in_bits(context.index),
                             "hold a",
@@ -143,7 +153,7 @@ impl StatementValidator {
                         && !r_effective_type.is_pointer()
                         && r_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
                     {
-                        self.diagnostics.push(Diagnostic::incompatible_type_size(
+                        self.push_diagnostic(Diagnostic::incompatible_type_size(
                             r_effective_type.get_name(),
                             r_effective_type.get_size_in_bits(context.index),
                             "to be stored in a",
@@ -157,7 +167,7 @@ impl StatementValidator {
                         if let AstStatement::LiteralString { value, location, .. } = right.as_ref() {
                             // literalString may only be 1 character long
                             if value.len() > 1 {
-                                self.diagnostics.push(Diagnostic::syntax_error(
+                                self.push_diagnostic(Diagnostic::syntax_error(
                                     format!(
                                         "Value: '{}' exceeds length for type: {}",
                                         value, l_resulting_type
@@ -168,7 +178,7 @@ impl StatementValidator {
                             }
                         } else if l_effective_type != r_effective_type {
                             // invalid assignment
-                            self.diagnostics.push(Diagnostic::invalid_assignment(
+                            self.push_diagnostic(Diagnostic::invalid_assignment(
                                 r_effective_type.get_name(),
                                 l_effective_type.get_name(),
                                 statement.get_location(),
@@ -177,7 +187,7 @@ impl StatementValidator {
                     } else if r_effective_type.is_character() {
                         // if we try to assign a character variable -> .. := char
                         // and didn't match the first if, left and right won't have the same type -> invalid assignment
-                        self.diagnostics.push(Diagnostic::invalid_assignment(
+                        self.push_diagnostic(Diagnostic::invalid_assignment(
                             r_effective_type.get_name(),
                             l_effective_type.get_name(),
                             statement.get_location(),
@@ -219,7 +229,7 @@ impl StatementValidator {
             if let DataTypeInformation::Generic { generic_symbol, nature, .. } =
                 statement_type.get_type_information()
             {
-                self.diagnostics.push(Diagnostic::unresolved_generic_type(
+                self.push_diagnostic(Diagnostic::unresolved_generic_type(
                     generic_symbol,
                     &format!("{:?}", nature),
                     statement.get_location(),
@@ -233,7 +243,7 @@ impl StatementValidator {
 				// INT parameter for REAL is allowed
                     & !(statement_type.is_real() & actual_type.is_numerical())
                 {
-                    self.diagnostics.push(Diagnostic::invalid_type_nature(
+                    self.push_diagnostic(Diagnostic::invalid_type_nature(
                         actual_type.get_name(),
                         format!("{:?}", generic_nature).as_str(),
                         statement.get_location(),
@@ -255,7 +265,7 @@ impl StatementValidator {
             AstStatement::LiteralInteger { value, .. } => {
                 if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type, context.index)
                 {
-                    self.diagnostics.push(Diagnostic::incompatible_directaccess_range(
+                    self.push_diagnostic(Diagnostic::incompatible_directaccess_range(
                         &format!("{:?}", access_type),
                         target_type.get_name(),
                         access_type.get_range(target_type, context.index),
@@ -266,7 +276,7 @@ impl StatementValidator {
             AstStatement::Reference { .. } => {
                 let ref_type = context.ast_annotation.get_type_or_void(access_index, context.index);
                 if !ref_type.get_type_information().is_int() {
-                    self.diagnostics.push(Diagnostic::incompatible_directaccess_variable(
+                    self.push_diagnostic(Diagnostic::incompatible_directaccess_variable(
                         ref_type.get_name(),
                         location.clone(),
                     ))
@@ -298,7 +308,7 @@ impl StatementValidator {
             let type_info =
                 context.ast_annotation.get_type_or_void(access, context.index).get_type_information();
             if !type_info.is_int() {
-                self.diagnostics.push(Diagnostic::incompatible_array_access_type(
+                self.push_diagnostic(Diagnostic::incompatible_array_access_type(
                     type_info.get_name(),
                     access.get_location(),
                 ))
@@ -315,7 +325,7 @@ impl StatementValidator {
     ) {
         // unresolved reference
         if !context.ast_annotation.has_type_annotation(statement) {
-            self.diagnostics.push(Diagnostic::unresolved_reference(ref_name, location.clone()));
+            self.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
         } else if let Some(StatementAnnotation::Variable { qualified_name, variable_type, .. }) =
             context.ast_annotation.get(statement)
         {
@@ -330,7 +340,7 @@ impl StatementValidator {
                         !qualified_name.starts_with(it) && !qualified_name.starts_with(container)
                     })
             {
-                self.diagnostics.push(Diagnostic::illegal_access(qualified_name.as_str(), location.clone()));
+                self.push_diagnostic(Diagnostic::illegal_access(qualified_name.as_str(), location.clone()));
             }
         }
     }
@@ -365,9 +375,9 @@ impl StatementValidator {
             .unwrap_or_else(|| context.index.get_void_type().get_type_information());
 
         if !is_typable_literal(literal) {
-            self.diagnostics.push(Diagnostic::literal_expected(location.clone()))
+            self.push_diagnostic(Diagnostic::literal_expected(location.clone()))
         } else if is_date_or_time_type(cast_type) || is_date_or_time_type(literal_type) {
-            self.diagnostics.push(Diagnostic::incompatible_literal_cast(
+            self.push_diagnostic(Diagnostic::incompatible_literal_cast(
                 cast_type.get_name(),
                 literal_type.get_name(),
                 location.clone(),
@@ -376,7 +386,7 @@ impl StatementValidator {
         } else if cast_type.is_int() && literal_type.is_int() {
             //INTs with INTs
             if cast_type.get_semantic_size(context.index) < literal_type.get_semantic_size(context.index) {
-                self.diagnostics.push(Diagnostic::literal_out_of_range(
+                self.push_diagnostic(Diagnostic::literal_out_of_range(
                     StatementValidator::get_literal_value(literal).as_str(),
                     cast_type.get_name(),
                     location.clone(),
@@ -386,7 +396,7 @@ impl StatementValidator {
             let value = StatementValidator::get_literal_value(literal);
             // value contains "" / ''
             if value.len() > 3 {
-                self.diagnostics.push(Diagnostic::literal_out_of_range(
+                self.push_diagnostic(Diagnostic::literal_out_of_range(
                     value.as_str(),
                     cast_type.get_name(),
                     location.clone(),
@@ -396,7 +406,7 @@ impl StatementValidator {
             // different types
             // REAL#100 is fine, other differences are not
             if !(cast_type.is_float() && literal_type.is_int()) {
-                self.diagnostics.push(Diagnostic::incompatible_literal_cast(
+                self.push_diagnostic(Diagnostic::incompatible_literal_cast(
                     cast_type.get_name(),
                     StatementValidator::get_literal_value(literal).as_str(),
                     location.clone(),
@@ -471,7 +481,7 @@ impl StatementValidator {
             if operator.is_comparison_operator()
                 && !compare_function_exists(left_type.get_name(), operator, context)
             {
-                self.diagnostics.push(Diagnostic::missing_compare_function(
+                self.push_diagnostic(Diagnostic::missing_compare_function(
                     crate::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
                         .unwrap_or_default()
                         .as_str(),

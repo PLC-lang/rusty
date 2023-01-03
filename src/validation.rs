@@ -66,6 +66,13 @@ impl<'s> ValidationContext<'s> {
     }
 }
 
+/// This trait should be implemented by any validator used by `validation::Validator`
+pub trait Validators {
+    fn push_diagnostic(&mut self, diagnostic: Diagnostic);
+
+    fn get_diagnostics(&mut self) -> &mut Vec<Diagnostic>;
+}
+
 pub struct Validator {
     //context: ValidationContext<'s>,
     pou_validator: PouValidator,
@@ -86,10 +93,10 @@ impl Validator {
 
     pub fn diagnostics(&mut self) -> Vec<Diagnostic> {
         let mut all_diagnostics = Vec::new();
-        all_diagnostics.append(&mut self.pou_validator.diagnostics);
-        all_diagnostics.append(&mut self.variable_validator.diagnostics);
-        all_diagnostics.append(&mut self.stmt_validator.diagnostics);
-        all_diagnostics.append(&mut self.global_validator.diagnostics);
+        all_diagnostics.append(self.pou_validator.get_diagnostics());
+        all_diagnostics.append(self.variable_validator.get_diagnostics());
+        all_diagnostics.append(self.stmt_validator.get_diagnostics());
+        all_diagnostics.append(self.global_validator.get_diagnostics());
         all_diagnostics
     }
 
@@ -118,7 +125,7 @@ impl Validator {
             let context =
                 ValidationContext { ast_annotation: annotations, index, qualifier: Some(i.name.as_str()) };
             if i.pou_type == PouType::Action && i.type_name == "__unknown__" {
-                self.pou_validator.diagnostics.push(Diagnostic::missing_action_container(i.location.clone()));
+                self.pou_validator.push_diagnostic(Diagnostic::missing_action_container(i.location.clone()));
             }
             i.statements.iter().for_each(|s| self.visit_statement(s, &context));
         }
@@ -205,6 +212,8 @@ impl Validator {
             }
             AstStatement::UnaryExpression { value, .. } => self.visit_statement(value, context),
             AstStatement::ExpressionList { expressions, .. } => {
+                validate_for_array_assignment(&mut self.stmt_validator, expressions, context);
+
                 expressions.iter().for_each(|e| self.visit_statement(e, context))
             }
             AstStatement::RangeStatement { start, end, .. } => {
@@ -263,8 +272,7 @@ impl Validator {
                                 are_implicit_parameters = is_implicit;
                             } else if are_implicit_parameters != is_implicit {
                                 self.stmt_validator
-                                    .diagnostics
-                                    .push(Diagnostic::invalid_parameter_type(p.get_location()));
+                                    .push_diagnostic(Diagnostic::invalid_parameter_type(p.get_location()));
                             }
                         }
 
@@ -282,12 +290,10 @@ impl Validator {
                             // check if all inouts were passed to the pou call
                             inouts.into_iter().for_each(|p| {
                                 if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
-                                    self.stmt_validator.diagnostics.push(
-                                        Diagnostic::missing_inout_parameter(
-                                            p.get_name(),
-                                            operator.get_location(),
-                                        ),
-                                    );
+                                    self.stmt_validator.push_diagnostic(Diagnostic::missing_inout_parameter(
+                                        p.get_name(),
+                                        operator.get_location(),
+                                    ));
                                 }
                             });
                         }
@@ -334,8 +340,7 @@ impl Validator {
                         AstStatement::Assignment { .. } | AstStatement::CallStatement { .. }
                     ) {
                         self.stmt_validator
-                            .diagnostics
-                            .push(Diagnostic::invalid_case_condition(condition.get_location()));
+                            .push_diagnostic(Diagnostic::invalid_case_condition(condition.get_location()));
                     }
 
                     // validate for duplicate conditions
@@ -343,15 +348,16 @@ impl Validator {
                     const_evaluator::evaluate(condition, context.qualifier, context.index)
                         .map_err(|err| {
                             // value evaluation and validation not possible with non constants
-                            self.stmt_validator
-                                .diagnostics
-                                .push(Diagnostic::non_constant_case_condition(&err, condition.get_location()))
+                            self.stmt_validator.push_diagnostic(Diagnostic::non_constant_case_condition(
+                                &err,
+                                condition.get_location(),
+                            ))
                         })
                         .map(|v| {
                             // check for duplicates if we got a value
                             if let Some(AstStatement::LiteralInteger { value, .. }) = v {
                                 if !cases.insert(value) {
-                                    self.stmt_validator.diagnostics.push(
+                                    self.stmt_validator.push_diagnostic(
                                         Diagnostic::duplicate_case_condition(
                                             &value,
                                             condition.get_location(),
@@ -372,9 +378,9 @@ impl Validator {
                 // if we get here, then a `CaseCondition` is used outside a `CaseStatement`
                 // `CaseCondition` are used as a marker for `CaseStatements` and are not passed as such to the `CaseStatement.case_blocks`
                 // see `control_parser` `parse_case_statement()`
-                self.stmt_validator
-                    .diagnostics
-                    .push(Diagnostic::case_condition_used_outside_case_statement(condition.get_location()));
+                self.stmt_validator.push_diagnostic(Diagnostic::case_condition_used_outside_case_statement(
+                    condition.get_location(),
+                ));
                 self.visit_statement(condition, context)
             }
             _ => {}
@@ -395,7 +401,7 @@ impl Validator {
                     self.validate_call_by_ref(param, right);
                 }
 
-                _ => self.stmt_validator.diagnostics.push(Diagnostic::invalid_argument_type(
+                _ => self.stmt_validator.push_diagnostic(Diagnostic::invalid_argument_type(
                     param.get_name(),
                     param.get_variable_type(),
                     arg.get_location(),
@@ -423,11 +429,60 @@ impl Validator {
         if !matches!(left_type_info, DataTypeInformation::Generic { .. })
             & !typesystem::is_same_type_class(left_type_info, right_type_info, index)
         {
-            self.stmt_validator.diagnostics.push(Diagnostic::invalid_assignment(
+            self.stmt_validator.push_diagnostic(Diagnostic::invalid_assignment(
                 right_type_info.get_name(),
                 left_type_info.get_name(),
                 location,
             ))
         }
     }
+}
+
+/// `ARRAY` assignment without `()` is an error, leaving us with an invalid parse result.
+pub fn validate_for_array_assignment<V>(
+    validator: &mut V,
+    expressions: &[AstStatement],
+    context: &ValidationContext,
+) where
+    V: Validators,
+{
+    // Valid ARRAY assignment will result in
+    // Assignment { left: Reference {..}, right: ExpressionList {..}}, with the `ExpressionList` containing the values to initialize the ARRAY
+    // and the `Reference` being the ARRAY itself
+
+    // Invalid ARRAY assignment will result in
+    // ExpressionList { Assignment {..}, ...}, with the `Assignment` being the first value passed after `:=` and the `Reference` to the ARRAY
+    // and all other values as separate statements `...`
+
+    // for more details see: array_validation_test.rs/array_initialization_validation
+    let mut array_assignment = false;
+    expressions.iter().for_each(|e| {
+        if array_assignment {
+            // now we cannot be sure where the following values belong to
+            validator
+                .push_diagnostic(Diagnostic::array_expected_identifier_or_round_bracket(e.get_location()));
+        }
+        match e {
+            AstStatement::Assignment { left, right, .. } => {
+                if matches!(
+                    context.ast_annotation.get_type_or_void(left, context.index).get_type_information(),
+                    DataTypeInformation::Array { .. }
+                )
+				// if we try to assign an `ExpressionList` to an ARRAY
+				// we can expect that `()` were used and we got a valid parse result
+				 && !matches!(right.as_ref(), AstStatement::ExpressionList { .. })
+                {
+                    // otherwise we are definitely in an invalid assignment
+                    array_assignment = true;
+                    validator
+                        .push_diagnostic(Diagnostic::array_expected_initializer_list(left.get_location()));
+                }
+            }
+            AstStatement::ExpressionList { expressions, .. } => {
+                // e.g. ARRAY OF STRUCT can have multiple `ExpressionList`s
+                validate_for_array_assignment(validator, expressions, context);
+            }
+            _ => {} // do nothing
+        }
+    })
 }

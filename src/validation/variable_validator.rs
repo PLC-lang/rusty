@@ -8,12 +8,22 @@ use crate::{
     Diagnostic,
 };
 
-use super::ValidationContext;
+use super::{validate_for_array_assignment, ValidationContext, Validators};
 
 /// validates variables & datatypes
 
 pub struct VariableValidator {
-    pub diagnostics: Vec<Diagnostic>,
+    diagnostics: Vec<Diagnostic>,
+}
+
+impl Validators for VariableValidator {
+    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+
+    fn get_diagnostics(&mut self) -> &mut Vec<Diagnostic> {
+        &mut self.diagnostics
+    }
 }
 
 impl VariableValidator {
@@ -25,7 +35,7 @@ impl VariableValidator {
         if block.constant
             && !matches!(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
         {
-            self.diagnostics.push(Diagnostic::invalid_constant_block(block.location.clone()))
+            self.push_diagnostic(Diagnostic::invalid_constant_block(block.location.clone()))
         }
     }
 
@@ -35,25 +45,29 @@ impl VariableValidator {
             .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
             .or_else(|| context.index.find_global_variable(variable.name.as_str()))
         {
+            if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
+                validate_for_array_assignment(self, expressions, context);
+            }
+
             match v_entry.initial_value.and_then(|initial_id| {
                 context.index.get_const_expressions().find_const_expression(&initial_id)
             }) {
                 Some(ConstExpression::Unresolvable { reason, statement }) => {
-                    self.diagnostics.push(Diagnostic::unresolved_constant(
+                    self.push_diagnostic(Diagnostic::unresolved_constant(
                         variable.name.as_str(),
                         Some(reason),
                         statement.get_location(),
                     ));
                 }
                 Some(ConstExpression::Unresolved { statement, .. }) => {
-                    self.diagnostics.push(Diagnostic::unresolved_constant(
+                    self.push_diagnostic(Diagnostic::unresolved_constant(
                         variable.name.as_str(),
                         None,
                         statement.get_location(),
                     ));
                 }
                 None if v_entry.is_constant() => {
-                    self.diagnostics.push(Diagnostic::unresolved_constant(
+                    self.push_diagnostic(Diagnostic::unresolved_constant(
                         variable.name.as_str(),
                         None,
                         variable.location.clone(),
@@ -78,16 +92,16 @@ impl VariableValidator {
         match declaration {
             DataType::StructType { variables, .. } => {
                 if variables.is_empty() {
-                    self.diagnostics.push(Diagnostic::empty_variable_block(location.clone()));
+                    self.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));
                 }
             }
             DataType::EnumType { elements: AstStatement::ExpressionList { expressions, .. }, .. }
                 if expressions.is_empty() =>
             {
-                self.diagnostics.push(Diagnostic::empty_variable_block(location.clone()));
+                self.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));
             }
             DataType::VarArgs { referenced_type: None, sized: true } => {
-                self.diagnostics.push(Diagnostic::missing_datatype(
+                self.push_diagnostic(Diagnostic::missing_datatype(
                     Some(": Sized Variadics require a known datatype."),
                     location.clone(),
                 ))
