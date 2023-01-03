@@ -438,7 +438,13 @@ impl Validator {
     }
 }
 
-/// `ARRAY` assignment without `()` is an error, leaving us with an invalid parse result.
+/// Finds and reports invalid `ARRAY` assignments where parentheses are missing yielding invalid ASTs.
+/// Specifically an invalid assignment such as `x := (var1 := 1, var2 := 3, 4);` where `var2` is missing a
+/// `(` will generate `ExpressionList { Assignment {..}, ...}` as the AST where each item after
+/// the first one would be handled as a seperate statement whereas the correct AST should have been
+/// `Assignment { left: Reference {..}, right: ExpressionList {..}}`. See also
+/// - https://github.com/PLC-lang/rusty/issues/707 and
+/// - `array_validation_test.rs/array_initialization_validation`
 pub fn validate_for_array_assignment<V>(
     validator: &mut V,
     expressions: &[AstStatement],
@@ -446,15 +452,6 @@ pub fn validate_for_array_assignment<V>(
 ) where
     V: Validators,
 {
-    // Valid ARRAY assignment will result in
-    // Assignment { left: Reference {..}, right: ExpressionList {..}}, with the `ExpressionList` containing the values to initialize the ARRAY
-    // and the `Reference` being the ARRAY itself
-
-    // Invalid ARRAY assignment will result in
-    // ExpressionList { Assignment {..}, ...}, with the `Assignment` being the first value passed after `:=` and the `Reference` to the ARRAY
-    // and all other values as separate statements `...`
-
-    // for more details see: array_validation_test.rs/array_initialization_validation
     let mut array_assignment = false;
     expressions.iter().for_each(|e| {
         if array_assignment {
