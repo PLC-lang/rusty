@@ -429,6 +429,35 @@ mod tests {
         };
 
         #[test]
+        fn one_cycle_aba_var() {
+            let diagnostics = parse_and_validate(
+                "
+                FUNCTION_BLOCK A
+                    VAR
+                        b : B;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+
+                FUNCTION_BLOCK B
+                    VAR
+                        a : A;
+                    END_VAR
+                END_FUNCTION_BLOCK
+                ",
+            );
+
+            assert_eq!(diagnostics.len(), 1);
+
+            assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> A"));
+            assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
+            assert_eq!(
+                diagnostics[0].get_affected_ranges(),
+                vec![(32..33).into(), (191..192).into(), (32..33).into(),]
+            );
+        }
+
+        #[test]
         fn one_cycle_aba_input() {
             let diagnostics = parse_and_validate(
                 "
@@ -505,14 +534,7 @@ mod tests {
                 ",
             );
 
-            assert_eq!(diagnostics.len(), 1);
-
-            assert_eq!(diagnostics[0].get_message(), generate_message("A -> B -> A"));
-            assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
-            assert_eq!(
-                diagnostics[0].get_affected_ranges(),
-                vec![(32..33).into(), (191..192).into(), (32..33).into(),]
-            );
+            assert_eq!(diagnostics.len(), 0);
         }
     }
 }
