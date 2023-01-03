@@ -11,7 +11,7 @@ use crate::{
 /// Validator to find and report all recursive data structures using Depth-first search (DFS)[1].
 /// Such data structures consists of structs and function-blocks, for example the following code would be
 /// flagged as a recursive data structure:
-/// ```ignore
+/// ```st
 /// TYPE A : STRUCT
 ///     b : B;
 /// END_STRUCT END_TYPE
@@ -453,7 +453,7 @@ mod tests {
             assert_eq!(diagnostics[0].get_type(), &ErrNo::pou__recursive_data_structure);
             assert_eq!(
                 diagnostics[0].get_affected_ranges(),
-                vec![(32..33).into(), (191..192).into(), (32..33).into(),]
+                vec![(32..33).into(), (185..186).into(), (32..33).into(),]
             );
         }
 
