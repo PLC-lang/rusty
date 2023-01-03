@@ -1,3 +1,5 @@
+use std::{borrow::Borrow, cell::Cell};
+
 use indexmap::{IndexMap, IndexSet};
 
 use crate::{
@@ -27,7 +29,7 @@ pub struct RecursiveValidator {
 }
 
 /// Status of whether a node has been visited or not.
-#[derive(Hash, PartialEq, Eq)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Status {
     Visited,
     Unvisited,
@@ -44,14 +46,14 @@ impl RecursiveValidator {
             .get_types()
             .values()
             .filter(|x| x.get_type_information().is_struct())
-            .map(|x| (x.get_name(), Status::Unvisited))
+            .map(|x| (x.get_name(), Cell::new(Status::Unvisited)))
             .collect();
 
         let fbs = index
             .get_pous()
             .values()
             .filter(|x| x.is_function_block())
-            .map(|x| (x.get_name(), Status::Unvisited))
+            .map(|x| (x.get_name(), Cell::new(Status::Unvisited)))
             .collect();
 
         for nodes in vec![structs, fbs] {
@@ -60,11 +62,13 @@ impl RecursiveValidator {
     }
 
     /// Finds cycles for the given nodes.
-    fn find_cycle<'idx>(&mut self, index: &'idx Index, mut nodes: IndexMap<&'idx str, Status>) {
+    fn find_cycle<'idx>(&mut self, index: &'idx Index, nodes: IndexMap<&'idx str, Cell<Status>>) {
         let mut path = IndexSet::new();
 
-        while let Some(node) = nodes.iter_mut().find(|x| x.1 == &Status::Unvisited) {
-            self.dfs(index, node.0, &mut nodes, &mut path);
+        for node in &nodes {
+            if node.1.get() == Status::Unvisited {
+                self.dfs(index, node.0, &nodes, &mut path);
+            }
         }
     }
 
@@ -77,16 +81,16 @@ impl RecursiveValidator {
         &mut self,
         index: &'idx Index,
         curr_node: &'idx str,
-        nodes: &mut IndexMap<&'idx str, Status>,
+        nodes: &IndexMap<&'idx str, Cell<Status>>,
         path: &mut IndexSet<&'idx str>,
     ) {
-        nodes[curr_node] = Status::Visited;
+        nodes[curr_node].set(Status::Visited);
         path.insert(curr_node);
 
         if let Some(edges) = index.get_members(curr_node) {
             for node in edges.values().map(|x| x.get_type_name()).collect::<IndexSet<_>>() {
                 if let Some(status) = nodes.get(node) {
-                    match status {
+                    match status.get() {
                         Status::Visited if path.contains(node) => self.report(index, path, node),
                         Status::Visited | Status::Unvisited => self.dfs(index, node, nodes, path),
                     }
