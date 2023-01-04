@@ -871,18 +871,30 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.llvm.builder.build_store(ptr_value, value);
                 }
             }
-            Ok(ptr_value)
+            Ok(ptr_value).map(Into::into)
         } else {
-            self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
+            let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
                 //passed a literal to byref parameter?
                 //TODO: find more defensive solution - check early
                 let value = self.generate_expression(argument)?;
                 let argument = self.llvm.builder.build_alloca(value.get_type(), "");
                 self.llvm.builder.build_store(argument, value);
                 Ok(argument)
-            })
+            })?;
+            let value_type = self.annotations.get_type_or_void(argument, self.index);
+            let target_type = declared_parameter
+                .map(|p| self.index.get_effective_type_or_void_by_name(p.data_type_name.as_str()))
+                .unwrap_or_else(|| self.index.get_void_type());
+            llvm_typesystem::cast_if_needed(
+                self.llvm,
+                self.index,
+                self.llvm_index,
+                target_type,
+                inkwell::values::BasicValueEnum::PointerValue(value),
+                value_type,
+                argument,
+            )
         }
-        .map(Into::into)
     }
 
     pub fn generate_variadic_arguments_list(

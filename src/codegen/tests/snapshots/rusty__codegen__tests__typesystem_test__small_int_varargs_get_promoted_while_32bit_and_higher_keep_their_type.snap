@@ -27,12 +27,12 @@ entry:
   %load_out2 = load i32, i32* %out2, align 4
   %load_out3 = load i64, i64* %out3, align 4
   %load_out4 = load i32, i32* %out4, align 4
-  %call = call i32 ([81 x i8]*, ...) @printf([26 x i8]* @utf08_literal_0, i32 %0, i32 %load_out2, i64 %load_out3, i32 %load_out4)
+  %call = call i32 ([81 x i8]*, ...) @printf([81 x i8]* bitcast ([26 x i8]* @utf08_literal_0 to [81 x i8]*), i32 %0, i32 %load_out2, i64 %load_out3, i32 %load_out4)
   %load_out11 = load i16, i16* %out1, align 2
   %1 = sext i16 %load_out11 to i32
   %load_out22 = load i32, i32* %out2, align 4
   %load_out33 = load i64, i64* %out3, align 4
-  %call4 = call i32 ([81 x i8]*, ...) @printf([27 x i8]* @utf08_literal_1, i32 %1, i32 %load_out22, i64 %load_out33)
+  %call4 = call i32 ([81 x i8]*, ...) @printf([81 x i8]* bitcast ([27 x i8]* @utf08_literal_1 to [81 x i8]*), i32 %1, i32 %load_out22, i64 %load_out33)
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }

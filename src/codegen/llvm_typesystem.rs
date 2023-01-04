@@ -303,6 +303,18 @@ pub fn cast_if_needed<'ctx>(
                 statement.get_location(),
             )),
         },
+        DataTypeInformation::Pointer { auto_deref: true, .. } => match value_type {
+            DataTypeInformation::String { .. } => {
+                let target_ptr_type = llvm_type_index.get_associated_type(target_type.get_name())?;
+                let value_ptr_type = value.get_type();
+                if value_ptr_type != target_ptr_type {
+                    Ok(builder.build_bitcast(value, target_ptr_type, ""))
+                } else {
+                    Ok(value)
+                }
+            }
+            _ => Ok(value),
+        },
         _ => Ok(value),
     }
 }

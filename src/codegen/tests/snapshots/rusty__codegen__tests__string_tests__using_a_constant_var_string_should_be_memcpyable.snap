@@ -33,9 +33,11 @@ entry:
   %2 = bitcast [2 x i8]* %c to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
   store i64 0, i64* %FSTRING_TO_DT, align 4
-  %call = call i8 @STRING_EQUAL([2 x i8]* %c, [2 x i8]* %ignore)
-  %3 = icmp ne i8 %call, 0
-  br i1 %3, label %condition_body, label %continue
+  %3 = bitcast [2 x i8]* %c to [1025 x i8]*
+  %4 = bitcast [2 x i8]* %ignore to [1025 x i8]*
+  %call = call i8 @STRING_EQUAL([1025 x i8]* %3, [1025 x i8]* %4)
+  %5 = icmp ne i8 %call, 0
+  br i1 %5, label %condition_body, label %continue
 
 condition_body:                                   ; preds = %entry
   br label %continue
