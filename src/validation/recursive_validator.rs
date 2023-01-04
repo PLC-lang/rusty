@@ -85,11 +85,13 @@ impl RecursiveValidator {
 
         if let Some(edges) = index.get_members(curr_node) {
             for node in edges.values().map(|x| x.get_type_name()).collect::<IndexSet<_>>() {
-                // Only consider nodes which are structs or function-blocks
-                if nodes.get(node).is_some() {
-                    match path.contains(node) {
-                        true => self.report(index, node, path),
-                        false => self.dfs(index, node, nodes, path),
+                if let Some(status) = nodes.get(node) {
+                    // Check if we would enter a cycle and otherwise ONLY
+                    // visit the next node if we haven't already visited it.
+                    if path.contains(node) {
+                        self.report(index, node, path);
+                    } else if matches!(status.get(), Status::Unvisited) {
+                        self.dfs(index, node, nodes, path);
                     }
                 }
             }
