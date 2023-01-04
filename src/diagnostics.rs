@@ -691,6 +691,14 @@ impl Diagnostic {
             err_no: ErrNo::type__invalid_operation,
         }
     }
+
+    pub fn recursive_datastructure(path: &str, range: Vec<SourceRange>) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Recursive data structure `{path}` has infinite size"),
+            range,
+            err_no: ErrNo::pou__recursive_data_structure,
+        }
+    }
 }
 
 /// a diagnostics severity
