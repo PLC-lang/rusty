@@ -106,17 +106,15 @@ impl RecursiveValidator {
     fn report<'idx>(&mut self, index: &'idx Index, node: &'idx str, path: &mut IndexSet<&'idx str>) {
         match path.get_index_of(node) {
             Some(idx) => {
-                // Extract the cycle from the full path and append the cyclic node to the tail for the report
                 let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
-                slice.push(node);
+                let ranges = slice
+                    .iter()
+                    .map(|node| index.get_type(node).unwrap().location.source_range.to_owned())
+                    .collect();
 
-                self.diagnostics.push(Diagnostic::recursive_datastructure(
-                    slice.join(" -> ").as_str(),
-                    slice
-                        .iter()
-                        .map(|node| index.get_type(node).unwrap().location.source_range.to_owned())
-                        .collect::<Vec<_>>(),
-                ));
+                slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
+
+                self.diagnostics.push(Diagnostic::recursive_datastructure(&slice.join(" -> "), ranges));
             }
 
             None => unreachable!("Node has to be in the IndexSet"),

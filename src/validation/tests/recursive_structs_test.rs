@@ -45,7 +45,7 @@ fn one_cycle_abca() {
         diagnostics[0],
         Diagnostic::recursive_datastructure(
             "A -> B -> C -> A",
-            vec![(18..19).into(), (102..103).into(), (186..187).into(), (18..19).into()]
+            vec![(18..19).into(), (102..103).into(), (186..187).into()]
         )
     );
 }
@@ -61,10 +61,7 @@ fn one_cycle_self_a() {
     );
 
     assert_eq!(diagnostics.len(), 1);
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into(), (18..19).into()])
-    );
+    assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into()]));
 }
 
 #[test]
@@ -80,10 +77,7 @@ fn one_cycle_multiple_self_a() {
     );
 
     assert_eq!(diagnostics.len(), 1);
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into(), (18..19).into()])
-    );
+    assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into()]));
 }
 
 #[test]
@@ -103,10 +97,7 @@ fn one_cycle_aba() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::recursive_datastructure(
-            "A -> B -> A",
-            vec![(18..19).into(), (102..103).into(), (18..19).into()]
-        )
+        Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (102..103).into()])
     );
 }
 
@@ -131,10 +122,7 @@ fn one_cycle_bcb() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::recursive_datastructure(
-            "B -> C -> B",
-            vec![(114..115).into(), (210..211).into(), (114..115).into()]
-        )
+        Diagnostic::recursive_datastructure("B -> C -> B", vec![(114..115).into(), (210..211).into()])
     );
 }
 
@@ -157,10 +145,7 @@ fn one_cycle_with_multiple_identical_members_aba() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::recursive_datastructure(
-            "A -> B -> A",
-            vec![(18..19).into(), (152..153).into(), (18..19).into()]
-        )
+        Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (152..153).into()])
     );
 }
 
@@ -180,16 +165,10 @@ fn two_cycles_aa_and_aba() {
     );
 
     assert_eq!(diagnostics.len(), 2);
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into(), (18..19).into()])
-    );
+    assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into()]));
     assert_eq!(
         diagnostics[1],
-        Diagnostic::recursive_datastructure(
-            "A -> B -> A",
-            vec![(18..19).into(), (137..138).into(), (18..19).into()]
-        )
+        Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (137..138).into()])
     );
 }
 
@@ -217,16 +196,10 @@ fn two_cycles_branch_cc_and_cec() {
     );
 
     assert_eq!(diagnostics.len(), 2);
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::recursive_datastructure("C -> C", vec![(210..211).into(), (210..211).into()])
-    );
+    assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("C -> C", vec![(210..211).into()]));
     assert_eq!(
         diagnostics[1],
-        Diagnostic::recursive_datastructure(
-            "C -> E -> C",
-            vec![(210..211).into(), (329..330).into(), (210..211).into()]
-        )
+        Diagnostic::recursive_datastructure("C -> E -> C", vec![(210..211).into(), (329..330).into()])
     );
 }
 
@@ -274,26 +247,14 @@ fn two_cycles_with_branch() {
         diagnostics[0],
         Diagnostic::recursive_datastructure(
             "F -> G -> H -> I -> F",
-            vec![
-                (354..355).into(),
-                (461..462).into(),
-                (545..546).into(),
-                (629..630).into(),
-                (354..355).into()
-            ]
+            vec![(354..355).into(), (461..462).into(), (545..546).into(), (629..630).into(),]
         )
     );
     assert_eq!(
         diagnostics[1],
         Diagnostic::recursive_datastructure(
             "B -> C -> E -> F -> B",
-            vec![
-                (102..103).into(),
-                (186..187).into(),
-                (270..271).into(),
-                (354..355).into(),
-                (102..103).into()
-            ]
+            vec![(102..103).into(), (186..187).into(), (270..271).into(), (354..355).into(),]
         )
     );
 }

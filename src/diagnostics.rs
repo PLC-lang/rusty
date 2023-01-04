@@ -550,7 +550,9 @@ impl Diagnostic {
 
     pub fn get_secondary_locations(&self) -> Option<&[SourceRange]> {
         match self {
-            Diagnostic::SyntaxError { range, .. } | Diagnostic::ImprovementSuggestion { range, .. }
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::SemanticError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. }
                 if range.len() > 1 =>
             {
                 Some(&range[1..])

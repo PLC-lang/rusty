@@ -22,10 +22,7 @@ fn one_cycle_aba_var() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::recursive_datastructure(
-            "A -> B -> A",
-            vec![(32..33).into(), (185..186).into(), (32..33).into(),]
-        )
+        Diagnostic::recursive_datastructure("A -> B -> A", vec![(32..33).into(), (185..186).into()])
     );
 }
 
@@ -51,10 +48,7 @@ fn one_cycle_aba_input() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::recursive_datastructure(
-            "A -> B -> A",
-            vec![(32..33).into(), (191..192).into(), (32..33).into()]
-        )
+        Diagnostic::recursive_datastructure("A -> B -> A", vec![(32..33).into(), (191..192).into()])
     );
 }
 
@@ -80,10 +74,7 @@ fn one_cycle_aba_output() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::recursive_datastructure(
-            "A -> B -> A",
-            vec![(32..33).into(), (192..193).into(), (32..33).into()]
-        )
+        Diagnostic::recursive_datastructure("A -> B -> A", vec![(32..33).into(), (192..193).into()])
     );
 }
 
@@ -170,26 +161,14 @@ fn two_cycles_with_branch_input() {
         diagnostics[0],
         Diagnostic::recursive_datastructure(
             "F -> G -> H -> I -> F",
-            vec![
-                (592..593).into(),
-                (769..770).into(),
-                (919..920).into(),
-                (1057..1058).into(),
-                (592..593).into()
-            ]
+            vec![(592..593).into(), (769..770).into(), (919..920).into(), (1057..1058).into(),]
         )
     );
     assert_eq!(
         diagnostics[1],
         Diagnostic::recursive_datastructure(
             "B -> C -> E -> F -> B",
-            vec![
-                (166..167).into(),
-                (304..305).into(),
-                (442..443).into(),
-                (592..593).into(),
-                (166..167).into()
-            ]
+            vec![(166..167).into(), (304..305).into(), (442..443).into(), (592..593).into(),]
         )
     );
 }
