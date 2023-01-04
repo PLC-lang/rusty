@@ -139,9 +139,9 @@ dependencies = [
 
 [[package]]
 name = "console"
-version = "0.15.3"
+version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5556015fe3aad8b968e5d4124980fbe2f6aaee7aeec6b749de1faaa2ca5d0a4c"
+checksum = "c9b6515d269224923b26b5febea2ed42b2d5f2ce37284a4dd670fedd6cb8347a"
 dependencies = [
  "encode_unicode",
  "lazy_static",
@@ -445,9 +445,9 @@ dependencies = [
 
 [[package]]
 name = "insta"
-version = "1.23.0"
+version = "1.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e48b08a091dfe5b09a6a9688c468fdd5b4396e92ce09e2eb932f0884b02788a4"
+checksum = "e965b4a6e9d638d7af8e0bce7f650f4a31bc0f21f4ce891015822a81fac314a9"
 dependencies = [
  "console",
  "lazy_static",
@@ -510,7 +510,8 @@ checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
 [[package]]
 name = "lld_rs"
 version = "130.0.0"
-source = "git+https://github.com/mun-lang/lld-rs?branch=main#acc3ec6b53344417b4f87cd91c510582bfad4111"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8c316d43790955900afd21cb9ac9087d0a04722df8ef9439d481e97be488005"
 dependencies = [
  "cc",
  "lazy_static",
@@ -658,9 +659,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86f0b0d4bf799edbc74508c1e8bf170ff5f41238e5f8225603ca7caaae2b7860"
+checksum = "6f61fba1741ea2b3d6a1e3178721804bb716a68a6aeba1149b5d52e3d464ea66"
 
 [[package]]
 name = "os_str_bytes"
