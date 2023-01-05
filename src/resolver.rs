@@ -486,8 +486,6 @@ impl<'i> TypeAnnotator<'i> {
                 } else {
                     visitor.visit_statement(ctx, statement);
                 }
-                let enum_type = enum_element.get_type_name();
-                visitor.annotation_map.annotate_type_hint(statement, StatementAnnotation::value(enum_type))
             }
         }
 

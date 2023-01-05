@@ -16,7 +16,6 @@ pub struct Linker {
 }
 
 trait LinkerInterface {
-    fn get_platform(&self) -> String;
     fn add_obj(&mut self, path: &str);
     fn add_lib(&mut self, path: &str);
     fn add_lib_path(&mut self, path: &str);
@@ -30,16 +29,21 @@ trait LinkerInterface {
 impl Linker {
     pub fn new(target: &str, linker: Option<&str>) -> Result<Linker, LinkerError> {
         let target_os = target.split('-').collect::<Vec<&str>>()[2];
-        let linker: Box<dyn LinkerInterface> = if let Some(linker) = linker {
-            Box::new(CcLinker::new(linker))
-        } else {
-            match target_os {
-                "linux" | "gnu" => Ok(Box::new(LdLinker::new())),
-                // "win32" | "windows" => Ok(Box::new(CcLinker::new("clang".to_string()))),
-                _ => Err(LinkerError::Target(target_os.into())),
-            }?
-        };
-        Ok(Linker { errors: Vec::default(), linker })
+
+        Ok(Linker {
+            errors: Vec::default(),
+            linker: match linker {
+                Some(linker) => Box::new(CcLinker::new(linker)),
+
+                // TODO: Linker for Windows is missing, see also:
+                // https://github.com/PLC-lang/rusty/pull/702/files#r1052446296
+                None => match target_os {
+                    "win32" | "windows" => return Err(LinkerError::Target(target_os.into())),
+
+                    _ => Box::new(LdLinker::new()),
+                },
+            },
+        })
     }
 
     /// Add an object file or static library to linker input
@@ -115,10 +119,6 @@ impl CcLinker {
 }
 
 impl LinkerInterface for CcLinker {
-    fn get_platform(&self) -> String {
-        "Linux".into()
-    }
-
     fn add_obj(&mut self, path: &str) {
         self.args.push(path.into());
     }
@@ -179,10 +179,6 @@ impl LdLinker {
 }
 
 impl LinkerInterface for LdLinker {
-    fn get_platform(&self) -> String {
-        "Linux".into()
-    }
-
     fn add_obj(&mut self, path: &str) {
         self.args.push(path.into());
     }
@@ -224,38 +220,6 @@ impl LinkerInterface for LdLinker {
     }
 }
 
-/* TODO: Implement Windows linker
-
-struct MsvcLinker {
-    args: Vec<String>,
-}
-
-impl LinkerInterface for MsvcLinker {
-    fn get_platform(&self) -> String {
-
-    }
-
-    fn add_obj(&mut self, path: &str) {
-
-    }
-
-    fn add_lib_path(&mut self, path: &str) {
-
-    }
-
-    fn build_shared_object(&mut self, path: &Path) {
-
-    }
-
-    fn build_exectuable(&mut self, path: &Path) {
-
-    }
-
-    fn finalize(&mut self) -> Result<(), LinkerError>{
-
-    }
-}*/
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum LinkerError {
     /// Error emitted by the linker
@@ -289,13 +253,22 @@ impl<T: Error> From<T> for LinkerError {
 }
 
 #[test]
-fn creation_test() {
-    let linker = Linker::new("x86_64-pc-linux-gnu", None).unwrap();
-    assert_eq!(linker.linker.get_platform(), "Linux");
+fn windows_target_triple_should_result_in_error() {
+    for target in vec![
+        "x86_64-pc-windows-gnu",
+        "x86_64-pc-win32-gnu",
+        "aarch64-pc-windows-gnu",
+        "aarch64-pc-win32-gnu",
+        "i686-pc-windows-gnu",
+        "i686-pc-win32-gnu",
+    ] {
+        assert!(Linker::new(target, None).is_err());
+    }
+}
 
-    if let Err(tgt) = Linker::new("x86_64-pc-redox-abc", None) {
-        assert_eq!(tgt, LinkerError::Target("redox".into()));
-    } else {
-        panic!("Linker target should have returned an error!");
+#[test]
+fn non_windows_target_triple_should_result_in_ok() {
+    for target in vec!["x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"] {
+        assert!(Linker::new(target, None).is_ok());
     }
 }
