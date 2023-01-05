@@ -1,3 +1,4 @@
+use crate::index::VariableType;
 use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
@@ -896,6 +897,77 @@ fn address_of_operations() {
         assert_eq!(
             diagnostic,
             &Diagnostic::invalid_operation("Invalid address-of operation", ranges[idx].to_owned().into())
+        );
+    }
+}
+
+#[test]
+fn validate_call_by_ref() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION func : DINT
+            VAR_INPUT
+                byValInput : INT;
+            END_VAR
+        
+            VAR_IN_OUT
+                byRefInOut : INT;
+            END_VAR
+        
+            VAR_OUTPUT
+                byRefOutput : INT;
+            END_VAR
+        END_FUNCTION
+    
+        PROGRAM main
+            VAR
+                x : INT := 1;
+            END_VAR
+        
+            // The second and third arguments are expected to be references, as such
+            // any call to `func` where these two arguments are literals will fail
+            func(1, 2, 3);
+            func(1, 2, x);
+            func(1, x, 3);
+            func(1, x, x); // Valid
+            func(x, 2, 3);
+            func(x, 2, x);
+            func(x, x, 3);
+            func(x, x, x); // Valid
+            
+            // Explicit argument assignments are also valid, IF their right side is a LValue
+            func(byValInput := 1, byRefInOut := 2, byRefOutput =>  );
+            func(byValInput := 1, byRefInOut := x, byRefOutput =>  ); // Valid (Output assignments are optional)
+            func(byValInput := 1, byRefInOut := 2, byRefOutput => 3); 
+            func(byValInput := 1, byRefInOut := 2, byRefOutput => x);
+            func(byValInput := 1, byRefInOut := x, byRefOutput => 3);
+            func(byValInput := 1, byRefInOut := x, byRefOutput => x); // Valid
+
+        END_PROGRAM
+        ",
+    );
+
+    let ranges = vec![
+        ("byRefInOut", VariableType::InOut, (589..590)),
+        ("byRefOutput", VariableType::Output, (592..593)),
+        ("byRefInOut", VariableType::InOut, (616..617)),
+        ("byRefOutput", VariableType::Output, (646..647)),
+        ("byRefInOut", VariableType::InOut, (706..707)),
+        ("byRefOutput", VariableType::Output, (709..710)),
+        ("byRefInOut", VariableType::InOut, (733..734)),
+        ("byRefOutput", VariableType::Output, (763..764)),
+        ("byRefInOut", VariableType::InOut, (957..958)),
+        ("byRefInOut", VariableType::InOut, (1140..1141)),
+        ("byRefOutput", VariableType::Output, (1158..1159)),
+        ("byRefInOut", VariableType::InOut, (1211..1212)),
+        ("byRefOutput", VariableType::Output, (1299..1300)),
+    ];
+
+    assert_eq!(diagnostics.len(), 13);
+    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::invalid_argument_type(ranges[idx].0, ranges[idx].1, ranges[idx].2.to_owned().into()),
         );
     }
 }
