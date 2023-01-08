@@ -6,6 +6,7 @@ mod generic_validation_tests;
 mod literals_validation_tests;
 mod pou_validation_tests;
 mod recursive_function_block_tests;
+mod recursive_structs_and_function_blocks_tests;
 mod recursive_structs_test;
 mod reference_resolve_tests;
 mod statement_validation_tests;

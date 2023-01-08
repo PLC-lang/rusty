@@ -38,23 +38,27 @@ impl RecursiveValidator {
 
     /// Entry point of finding and reporting all recursive data structures.
     pub fn validate_recursion(&mut self, index: &Index) {
-        let structs = index
-            .get_types()
-            .values()
-            .filter(|x| x.get_type_information().is_struct())
-            .map(|x| (x.get_name(), Cell::new(Status::Unvisited)))
-            .collect();
+        let mut nodes: IndexMap<&str, Cell<Status>> = IndexMap::new();
 
-        let fbs = index
-            .get_pous()
-            .values()
-            .filter(|x| x.is_function_block())
-            .map(|x| (x.get_name(), Cell::new(Status::Unvisited)))
-            .collect();
+        // Structs
+        nodes.extend(
+            index
+                .get_types()
+                .values()
+                .filter(|x| x.get_type_information().is_struct())
+                .map(|x| (x.get_name(), Cell::new(Status::Unvisited))),
+        );
 
-        for nodes in vec![structs, fbs] {
-            self.find_cycle(index, nodes);
-        }
+        // Function Blocks
+        nodes.extend(
+            index
+                .get_pous()
+                .values()
+                .filter(|x| x.is_function_block())
+                .map(|x| (x.get_name(), Cell::new(Status::Unvisited))),
+        );
+
+        self.find_cycle(index, nodes);
     }
 
     /// Finds cycles for the given nodes.
@@ -90,7 +94,7 @@ impl RecursiveValidator {
                     // visit the next node if we haven't already visited it.
                     if path.contains(node) {
                         self.report(index, node, path);
-                    } else if matches!(status.get(), Status::Unvisited) {
+                    } else if status.get() == Status::Unvisited {
                         self.dfs(index, node, nodes, path);
                     }
                 }
@@ -113,7 +117,6 @@ impl RecursiveValidator {
                     .collect();
 
                 slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
-
                 self.diagnostics.push(Diagnostic::recursive_datastructure(&slice.join(" -> "), ranges));
             }
 
