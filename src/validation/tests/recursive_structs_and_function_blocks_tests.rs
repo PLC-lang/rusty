@@ -19,10 +19,7 @@ fn one_cycle_aba_output() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::recursive_datastructure(
-            "A -> B -> A",
-            vec![(18..19).into(), (112..113).into()]
-        )
+        Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (112..113).into()])
     );
 }
 
@@ -45,10 +42,7 @@ fn one_cycle_aba_input() {
     assert_eq!(diagnostics.len(), 1);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::recursive_datastructure(
-            "A -> B -> A",
-            vec![(18..19).into(), (112..113).into()]
-        )
+        Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (112..113).into()])
     );
 }
 
