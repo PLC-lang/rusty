@@ -154,6 +154,31 @@ fn passing_arguments_to_functions_by_ref_and_val() {
 }
 
 #[test]
+fn cast_if_needed_for_pointers_of_auto_deref() {
+    let result = codegen(
+        r#"FUNCTION func : DINT
+        VAR_INPUT {ref}
+            byInt1 : SINT;
+            byInt2 : INT;
+            byInt3 : DINT;
+            byInt4 : LINT;
+
+            byReal1 : REAL;
+            byReal2 : LREAL;
+        END_VAR
+            func := byInt1 * byInt2 * byInt3 * byInt4 + byReal1 * byReal2;
+        END_FUNCTION
+
+        PROGRAM main
+            func(DINT#1, DINT#2, SINT#3, DINT#4, LREAL#5.0, REAL#6.0); // Check if up- and downcasting works
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn function_with_varargs_called_in_program() {
     let result = codegen(
         "

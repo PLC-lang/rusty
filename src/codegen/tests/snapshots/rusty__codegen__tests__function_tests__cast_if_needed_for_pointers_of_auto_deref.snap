@@ -1,0 +1,73 @@
+---
+source: src/codegen/tests/function_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main = type {}
+
+@main_instance = global %main zeroinitializer
+
+define i32 @func(i8* %0, i16* %1, i32* %2, i64* %3, float* %4, double* %5) {
+entry:
+  %func = alloca i32, align 4
+  %byInt1 = alloca i8*, align 8
+  store i8* %0, i8** %byInt1, align 8
+  %byInt2 = alloca i16*, align 8
+  store i16* %1, i16** %byInt2, align 8
+  %byInt3 = alloca i32*, align 8
+  store i32* %2, i32** %byInt3, align 8
+  %byInt4 = alloca i64*, align 8
+  store i64* %3, i64** %byInt4, align 8
+  %byReal1 = alloca float*, align 8
+  store float* %4, float** %byReal1, align 8
+  %byReal2 = alloca double*, align 8
+  store double* %5, double** %byReal2, align 8
+  store i32 0, i32* %func, align 4
+  %deref = load i8*, i8** %byInt1, align 8
+  %load_byInt1 = load i8, i8* %deref, align 1
+  %6 = sext i8 %load_byInt1 to i32
+  %deref1 = load i16*, i16** %byInt2, align 8
+  %load_byInt2 = load i16, i16* %deref1, align 2
+  %7 = sext i16 %load_byInt2 to i32
+  %tmpVar = mul i32 %6, %7
+  %deref2 = load i32*, i32** %byInt3, align 8
+  %load_byInt3 = load i32, i32* %deref2, align 4
+  %tmpVar3 = mul i32 %tmpVar, %load_byInt3
+  %8 = sext i32 %tmpVar3 to i64
+  %deref4 = load i64*, i64** %byInt4, align 8
+  %load_byInt4 = load i64, i64* %deref4, align 4
+  %tmpVar5 = mul i64 %8, %load_byInt4
+  %9 = sitofp i64 %tmpVar5 to double
+  %deref6 = load float*, float** %byReal1, align 8
+  %load_byReal1 = load float, float* %deref6, align 4
+  %10 = fpext float %load_byReal1 to double
+  %deref7 = load double*, double** %byReal2, align 8
+  %load_byReal2 = load double, double* %deref7, align 8
+  %tmpVar8 = fmul double %10, %load_byReal2
+  %tmpVar9 = fadd double %9, %tmpVar8
+  %11 = fptosi double %tmpVar9 to i32
+  store i32 %11, i32* %func, align 4
+  %func_ret = load i32, i32* %func, align 4
+  ret i32 %func_ret
+}
+
+define void @main(%main* %0) {
+entry:
+  %1 = alloca i8, align 1
+  store i8 1, i8* %1, align 1
+  %2 = alloca i16, align 2
+  store i16 2, i16* %2, align 2
+  %3 = alloca i32, align 4
+  store i32 3, i32* %3, align 4
+  %4 = alloca i64, align 8
+  store i64 4, i64* %4, align 4
+  %5 = alloca float, align 4
+  store float 5.000000e+00, float* %5, align 4
+  %6 = alloca double, align 8
+  store double 6.000000e+00, double* %6, align 8
+  %call = call i32 @func(i8* %1, i16* %2, i32* %3, i64* %4, float* %5, double* %6)
+  ret void
+}
+
