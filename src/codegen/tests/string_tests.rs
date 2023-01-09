@@ -437,3 +437,54 @@ fn assigning_const_string_variable() {
 
     insta::assert_snapshot!(result);
 }
+
+/// TODO find better file for these tests!!!!
+
+#[test]
+fn assigning_const_array_variable() {
+    // GIVEN a const array assigned to a variable
+    let result = codegen(
+        r#"
+        PROGRAM main
+		VAR
+			str : ARRAY[0..3] OF INT;
+		END_VAR
+			str := const_arr;
+		END_PROGRAM
+
+		VAR_GLOBAL CONSTANT
+			const_arr : ARRAY[0..3] OF INT := (1,2,3,4);
+		END_VAR
+    "#,
+    );
+    // THEN we expect a memcopy for the assignment
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn assigning_const_struct_variable() {
+    //GIVEN a const struct assigned to a variable
+    let result = codegen(
+        r#"
+        TYPE Point :
+        STRUCT
+            x,y     : INT;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM main
+		VAR
+			str : Point;
+		END_VAR
+			str := const_strct;
+		END_PROGRAM
+
+		VAR_GLOBAL CONSTANT
+			const_strct : Point := (x := 1, y := 2);
+		END_VAR
+    "#,
+    );
+    // THEN we expect a memcopy for the assignment
+    insta::assert_snapshot!(result);
+}
+
