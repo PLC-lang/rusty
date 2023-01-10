@@ -196,3 +196,95 @@ fn constant_expressions_used_in_array_declaration() {
     //THEN we expect that the array had 10 elements and was filled accordingly
     assert_eq!(main.i, [10, 11, 30, 31, 50, 51, 70, 71, 90, 91]);
 }
+
+#[test]
+fn global_constant_string_assignment() {
+    let src = r#"
+		VAR_GLOBAL CONSTANT
+			const_string : STRING := 'hello';
+		END_VAR
+
+        PROGRAM main
+		VAR 
+			str : STRING[5]; 
+		END_VAR
+			str := const_string;
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        arr: [u8; 6],
+    }
+    let mut main_type = MainType { arr: [0; 6] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("hello\0".as_bytes(), &main_type.arr);
+}
+
+#[test]
+fn global_constant_array_assignment() {
+    let src = r#"
+		VAR_GLOBAL CONSTANT
+			const_arr : ARRAY[0..3] OF INT := (1,2,3,4);
+		END_VAR
+
+        PROGRAM main
+		VAR 
+			arr : ARRAY[0..3] OF INT; 
+		END_VAR
+			arr := const_arr;
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str: [u16; 4],
+    }
+    let mut main_type = MainType { str: [0; 4] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!(vec![1, 2, 3, 4], main_type.str);
+}
+
+#[test]
+fn global_constant_struct_assignment() {
+    let src = r#"
+		TYPE Point :
+			STRUCT
+				x,y : INT;
+			END_STRUCT
+		END_TYPE
+
+		VAR_GLOBAL CONSTANT
+			const_strct : Point := (x := 1, y := 2);
+		END_VAR
+
+        PROGRAM main
+		VAR_TEMP
+			strct : Point;
+		END_VAR
+		VAR
+			x,y : INT;
+		END_VAR
+			strct := const_strct;
+			x := strct.x;
+			y := strct.y;
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    #[derive(Default)]
+    struct MainType {
+        x: u16,
+        y: u16,
+    }
+    let mut main_type = MainType::default();
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!(1, main_type.x);
+    assert_eq!(2, main_type.y);
+}
