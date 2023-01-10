@@ -35,7 +35,7 @@ use crate::{
     typesystem::{DataType, DataTypeInformation},
 };
 
-use super::{llvm::Llvm, statement_generator::FunctionContext};
+use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
 
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
@@ -563,8 +563,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let v = call.try_as_basic_value().either(Ok, |_| {
                 // we return an uninitialized int pointer for void methods :-/
                 // dont deref it!!
-                get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
-                    .map(|int| int.ptr_type(AddressSpace::Const).const_null().as_basic_value_enum())
+                get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE).map(|int| {
+                    int.ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST)).const_null().as_basic_value_enum()
+                })
             });
             v.map(ExpressionValue::RValue)
         });
@@ -630,7 +631,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expression, self.index).get_type_information();
 
-                let output = builder.build_struct_gep(parameter_struct, index as u32, "").map_err(|_| {
+                let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
                         &format!("Cannot build generate parameter: {:#?}", parameter),
                         parameter.source_location.source_range.clone(),
@@ -926,7 +927,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let llvm_type = self.llvm_index.get_associated_type(type_name)?;
                 // If the variadic argument is ByRef, wrap it in a pointer.
                 let llvm_type = if matches!(argument_type, ArgumentType::ByRef(_)) {
-                    llvm_type.ptr_type(AddressSpace::Generic).into()
+                    llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()
                 } else {
                     llvm_type
                 };
@@ -949,7 +950,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // bitcast the array to pointer so it matches the declared function signature
                 let arr_storage = self.llvm.builder.build_bitcast(
                     arr_storage,
-                    llvm_type.ptr_type(AddressSpace::Generic),
+                    llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                     "",
                 );
 
@@ -1116,17 +1117,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(None);
             }
 
-            let pointer_to_param =
-                builder.build_struct_gep(parameter_struct, index as u32, "").map_err(|_| {
-                    Diagnostic::codegen_error(
-                        &format!("Cannot build generate parameter: {:#?}", expression),
-                        expression.get_location(),
-                    )
-                })?;
+            let pointer_to_param = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
+                Diagnostic::codegen_error(
+                    &format!("Cannot build generate parameter: {:#?}", expression),
+                    expression.get_location(),
+                )
+            })?;
 
             let parameter = self
                 .index
-                .find_parameter(function_name, index as u32)
+                .find_parameter(function_name, index)
                 .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
@@ -2400,7 +2400,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         let target_size = self.get_string_size(left_type, left_location.clone())?;
         let value_size = self.get_string_size(right_type, right_location)?;
-        let size = std::cmp::min(target_size - 1, value_size) as i64;
+        let size = std::cmp::min(target_size - 1, value_size);
         let align_left = left_type.get_string_character_width(self.index).value();
         let align_right = right_type.get_string_character_width(self.index).value();
         //Multiply by the string alignment to copy enough for widestrings
