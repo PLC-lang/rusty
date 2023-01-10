@@ -135,23 +135,50 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         module: &Module<'ink>,
         debug: &mut DebugBuilderEnum<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
-        //generate a function that takes a instance-struct parameter
-        let parameters = self.collect_parameters_for_implementation(implementation)?;
+        let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
+
+        let parameters = self
+            .collect_parameters_for_implementation(implementation)?
+            .iter()
+            .enumerate()
+            .map(|(i, p)| match declared_parameters.get(i) {
+                Some(v)
+                    if v.is_in_parameter_by_ref() &&
+					// parameters by ref will always be a pointer
+					// for array types we will generate a pointer to the arrays element type
+				   p.into_pointer_type().get_element_type().is_array_type() =>
+                {
+                    // arrays passed by ref will be passed by a pointer to the arrays element type
+                    // not a pointer to array
+                    p.into_pointer_type()
+                        .get_element_type()
+                        .into_array_type()
+                        .get_element_type()
+                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                        .into()
+                }
+                _ => *p,
+            })
+            .collect::<Vec<BasicMetadataTypeEnum>>();
+
         let return_type = self
             .index
             .find_return_type(implementation.get_type_name())
             .and_then(|dt| self.index.find_effective_type(dt));
-
         // see if we need to adapt the parameters list
         let (return_type_llvm, parameters) = match return_type {
             // function with a aggrate-return type
             Some(r_type) if r_type.is_aggregate_type() => {
+                let mut params_with_inout = Vec::with_capacity(parameters.len() + 1);
+
                 // add the out pointer as an extra parameter in the beginning
                 let return_llvm_type = self.llvm_index.get_associated_type(r_type.get_name())?;
-                let mut params_with_inout = Vec::with_capacity(parameters.len() + 1);
                 params_with_inout
                     .push(return_llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()); //TODO: what is the correct address space?
+
+                // add the remaining parameters
                 params_with_inout.extend(parameters.iter().cloned());
+
                 // no return, adapted parameters
                 (None, params_with_inout)
             }
@@ -172,8 +199,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {
-            let parameters = self.index.get_declared_parameters(pou_name);
-            let parameter_types = parameters
+            // TODO: is this still valid ? do we need to consider the adjusted parameters list ?
+            let parameter_types = declared_parameters
                 .iter()
                 .map(|v| self.index.get_effective_type_or_void_by_name(v.get_type_name()))
                 .collect::<Vec<&DataType>>();

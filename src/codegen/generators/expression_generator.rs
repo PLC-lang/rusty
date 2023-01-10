@@ -690,7 +690,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {
-            //we're calling a function
+            // we're calling a function
 
             // foo(a,b,c)
             // foo(z:= a, x:=c, y := b);
@@ -708,7 +708,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     (Some(class_ptr), call_ptr)
                 }
                 PouIndexEntry::Action { .. } if matches!(operator, AstStatement::Reference { .. }) => {
-                    //Special handling for local actions, get the parameter from the function context
+                    // special handling for local actions, get the parameter from the function context
                     function_context
                         .function
                         .get_first_param()
@@ -721,7 +721,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             };
 
-            //Generate the pou call assignments
+            // generate the pou call assignments
             self.generate_stateful_pou_call_parameters(function_name, class_ptr, call_ptr, parameters)?
         };
         Ok(arguments_list)
@@ -741,11 +741,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let (location, param_statement, _) =
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
 
-            //None -> possibly variadic
             let param = declared_parameters
-                //get paremeter at location
+                // get paremeter at location
                 .get(location)
-                //find the parameter's type and name
+                // find the parameter's type and name
                 .map(|it| {
                     let name = it.get_type_name();
                     if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
@@ -756,25 +755,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         Some((it.get_declaration_type(), name))
                     }
                 })
-                //TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
+                // TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
                 .map(Ok)
+                // None -> possibly variadic
                 .unwrap_or_else(|| {
-                    //If we are dealing with a variadic function, we can accept all extra parameters
+                    // if we are dealing with a variadic function, we can accept all extra parameters
                     if pou.is_variadic() {
                         variadic_params.push(param_statement);
                         Ok(None)
                     } else {
-                        //We are not variadic, we have too many parameters here
+                        // we are not variadic, we have too many parameters here
                         Err(Diagnostic::codegen_error("Too many parameters", param_statement.get_location()))
                     }
                 })?;
 
             if let Some((declaration_type, type_name)) = param {
                 let argument: BasicValueEnum = if declaration_type.is_by_ref() {
+                    // parameter by ref
                     let declared_parameter = declared_parameters.get(location);
                     self.generate_argument_by_ref(param_statement, type_name, declared_parameter.copied())?
                 } else {
-                    //pass by val
+                    // parameter by val
                     self.generate_argument_by_val(type_name, param_statement)?
                 };
                 result.push((location, argument));
@@ -794,7 +795,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
-        //Push variadic collection and optionally the variadic size
+        // push variadic collection and optionally the variadic size
         if pou.is_variadic() {
             let last_location = result.len();
             let variadic_params = self.generate_variadic_arguments_list(pou, &variadic_params)?;
@@ -802,6 +803,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 result.push((i + last_location, param));
             }
         }
+
         result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
     }
