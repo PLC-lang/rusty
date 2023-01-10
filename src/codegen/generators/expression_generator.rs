@@ -213,7 +213,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     ..
                 }) = self.annotations.get(expression)
                 {
-                    if self.index.get_type_information_or_void(resulting_type).is_string() {
+                    if self.index.get_type_information_or_void(resulting_type).is_aggregate() {
                         self.generate_element_pointer(expression).map(ExpressionValue::LValue)
                     } else {
                         // constant propagation
