@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.16.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.17.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1381,6 +1381,12 @@
 <span id="1376">1376</span>
 <span id="1377">1377</span>
 <span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
 </pre><pre class="rust"><code><span class="doccomment">//! # Overview</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `once_cell` provides two new cell-like types, [`unsync::OnceCell`] and [`sync::OnceCell`]. A `OnceCell`</span>
@@ -1591,7 +1597,6 @@
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//! use once_cell::sync::OnceCell;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! #[derive(Debug)]</span>
 <span class="doccomment">//! pub struct LateInit&lt;T&gt; { cell: OnceCell&lt;T&gt; }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! impl&lt;T&gt; LateInit&lt;T&gt; {</span>
@@ -1611,22 +1616,24 @@
 <span class="doccomment">//!     }</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! #[derive(Default, Debug)]</span>
+<span class="doccomment">//! #[derive(Default)]</span>
 <span class="doccomment">//! struct A&lt;&#39;a&gt; {</span>
 <span class="doccomment">//!     b: LateInit&lt;&amp;&#39;a B&lt;&#39;a&gt;&gt;,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! #[derive(Default, Debug)]</span>
+<span class="doccomment">//! #[derive(Default)]</span>
 <span class="doccomment">//! struct B&lt;&#39;a&gt; {</span>
 <span class="doccomment">//!     a: LateInit&lt;&amp;&#39;a A&lt;&#39;a&gt;&gt;</span>
 <span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn build_cycle() {</span>
 <span class="doccomment">//!     let a = A::default();</span>
 <span class="doccomment">//!     let b = B::default();</span>
 <span class="doccomment">//!     a.b.init(&amp;b);</span>
 <span class="doccomment">//!     b.a.init(&amp;a);</span>
-<span class="doccomment">//!     println!(&quot;{:?}&quot;, a.b.a.b.a);</span>
+<span class="doccomment">//!     </span>
+<span class="doccomment">//!     let _a = &amp;a.b.a.b.a;</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1698,6 +1705,10 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! No, but you can use [`async_once_cell`](https://crates.io/crates/async_once_cell) instead.</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//! **Can I bring my own mutex?**</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! There is [generic_once_cell](https://crates.io/crates/generic_once_cell) to allow just that.</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! # Related crates</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * [double-checked-cell](https://github.com/niklasf/double-checked-cell)</span>
@@ -1706,6 +1717,7 @@
 <span class="doccomment">//! * [mitochondria](https://crates.io/crates/mitochondria)</span>
 <span class="doccomment">//! * [lazy_static](https://crates.io/crates/lazy_static)</span>
 <span class="doccomment">//! * [async_once_cell](https://crates.io/crates/async_once_cell)</span>
+<span class="doccomment">//! * [generic_once_cell](https://crates.io/crates/generic_once_cell) (bring your own mutex)</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Most of this crate&#39;s functionality is available in `std` in nightly Rust.</span>
 <span class="doccomment">//! See the [tracking issue](https://github.com/rust-lang/rust/issues/74465).</span>

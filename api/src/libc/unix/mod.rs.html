@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.138/src/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.139/src/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1556,6 +1556,59 @@
 <span id="1551">1551</span>
 <span id="1552">1552</span>
 <span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions found commonly among almost all Unix derivatives</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More functions and definitions can be found in the more specific modules</span>
@@ -1590,6 +1643,9 @@
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;espidf&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;horizon&quot;</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uid_t</span> <span class="op">=</span> <span class="ident">::c_ushort</span>;
         <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gid_t</span> <span class="op">=</span> <span class="ident">::c_ushort</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>)]</span> {
+        <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uid_t</span> <span class="op">=</span> <span class="ident">i32</span>;
+        <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gid_t</span> <span class="op">=</span> <span class="ident">i32</span>;
     } <span class="kw">else</span> {
         <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uid_t</span> <span class="op">=</span> <span class="ident">u32</span>;
         <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gid_t</span> <span class="op">=</span> <span class="ident">u32</span>;
@@ -1767,25 +1823,31 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIG_DFL</span>: <span class="ident">sighandler_t</span> <span class="op">=</span> <span class="number">0</span> <span class="kw">as</span> <span class="ident">sighandler_t</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIG_IGN</span>: <span class="ident">sighandler_t</span> <span class="op">=</span> <span class="number">1</span> <span class="kw">as</span> <span class="ident">sighandler_t</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIG_ERR</span>: <span class="ident">sighandler_t</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span> <span class="kw">as</span> <span class="ident">sighandler_t</span>;
-
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_UNKNOWN</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_FIFO</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_CHR</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">2</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_DIR</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">4</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_BLK</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">6</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_REG</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">8</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_LNK</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">10</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_SOCK</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">12</span>;
-
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>))]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_UNKNOWN</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_FIFO</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_CHR</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">2</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_DIR</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">4</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_BLK</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">6</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_REG</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">8</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_LNK</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">10</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_SOCK</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">12</span>;
+    }
+}
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FD_CLOEXEC</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x1</span>;
     }
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USRQUOTA</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GRPQUOTA</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">1</span>;
-
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>))]</span>
+    {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USRQUOTA</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GRPQUOTA</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">1</span>;
+    }
+}
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIGIOT</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">6</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">S_ISUID</span>: <span class="ident">::mode_t</span> <span class="op">=</span> <span class="number">0x800</span>;
@@ -1839,9 +1901,13 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_PRIMASK</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">7</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_FACMASK</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x3f8</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PRIO_MIN</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">20</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PRIO_MAX</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">20</span>;
-
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>))]</span>
+    {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PRIO_MIN</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">20</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PRIO_MAX</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">20</span>;
+    }
+}
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_ICMP</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_ICMPV6</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">58</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IPPROTO_TCP</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">6</span>;
@@ -1919,7 +1985,9 @@
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;tvos&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;watchos&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-                        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span> {
+                        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+                        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>,
+                    ))]</span> {
         <span class="attribute">#[<span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;c&quot;</span>)]</span>
         <span class="attribute">#[<span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;m&quot;</span>)]</span>
         <span class="kw">extern</span> {}
@@ -2011,8 +2079,6 @@
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;freopen$UNIX2003&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">freopen</span>(<span class="ident">filename</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">mode</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">file</span>: <span class="kw-2">*mut</span> <span class="ident">FILE</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">FILE</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fmemopen</span>(<span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="ident">size</span>: <span class="ident">size_t</span>, <span class="ident">mode</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">FILE</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_memstream</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">sizeloc</span>: <span class="kw-2">*mut</span> <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">FILE</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fflush</span>(<span class="ident">file</span>: <span class="kw-2">*mut</span> <span class="ident">FILE</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fclose</span>(<span class="ident">file</span>: <span class="kw-2">*mut</span> <span class="ident">FILE</span>) -&gt; <span class="ident">c_int</span>;
@@ -2050,7 +2116,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ferror</span>(<span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="ident">FILE</span>) -&gt; <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clearerr</span>(<span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="ident">FILE</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">perror</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">atof</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_double</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">atoi</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">atol</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_long</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">atoll</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_longlong</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;strtod$UNIX2003&quot;</span>
@@ -2058,7 +2127,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strtod</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">endp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_double</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strtof</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">endp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_float</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strtol</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">endp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">base</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_long</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strtoll</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">endp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">base</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_longlong</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strtoul</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">endp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">base</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_ulong</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strtoull</span>(<span class="ident">s</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">endp</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">base</span>: <span class="ident">c_int</span>) -&gt; <span class="ident">c_ulonglong</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calloc</span>(<span class="ident">nobj</span>: <span class="ident">size_t</span>, <span class="ident">size</span>: <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">malloc</span>(<span class="ident">size</span>: <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">realloc</span>(<span class="ident">p</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="ident">size</span>: <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
@@ -2066,7 +2137,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abort</span>() -&gt; <span class="op">!</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit</span>(<span class="ident">status</span>: <span class="ident">c_int</span>) -&gt; <span class="op">!</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_exit</span>(<span class="ident">status</span>: <span class="ident">c_int</span>) -&gt; <span class="op">!</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">atexit</span>(<span class="ident">cb</span>: <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>()) -&gt; <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;system$UNIX2003&quot;</span>
@@ -2720,8 +2790,6 @@
         <span class="ident">optlen</span>: <span class="kw-2">*mut</span> <span class="ident">::socklen_t</span>,
     ) -&gt; <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raise</span>(<span class="ident">signum</span>: <span class="ident">::c_int</span>) -&gt; <span class="ident">::c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__sigaction14&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sigaction</span>(<span class="ident">signum</span>: <span class="ident">::c_int</span>, <span class="ident">act</span>: <span class="kw-2">*const</span> <span class="ident">sigaction</span>, <span class="ident">oldact</span>: <span class="kw-2">*mut</span> <span class="ident">sigaction</span>) -&gt; <span class="ident">::c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__utimes50&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">utimes</span>(<span class="ident">filename</span>: <span class="kw-2">*const</span> <span class="ident">::c_char</span>, <span class="ident">times</span>: <span class="kw-2">*const</span> <span class="ident">::timeval</span>) -&gt; <span class="ident">::c_int</span>;
@@ -2883,8 +2951,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statvfs</span>(<span class="ident">path</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">statvfs</span>) -&gt; <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fstatvfs</span>(<span class="ident">fd</span>: <span class="ident">::c_int</span>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">statvfs</span>) -&gt; <span class="ident">::c_int</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readlink</span>(<span class="ident">path</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">bufsz</span>: <span class="ident">::size_t</span>) -&gt; <span class="ident">::ssize_t</span>;
-
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__sigemptyset14&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sigemptyset</span>(<span class="ident">set</span>: <span class="kw-2">*mut</span> <span class="ident">sigset_t</span>) -&gt; <span class="ident">::c_int</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__sigaddset14&quot;</span>)]</span>
@@ -2905,23 +2971,6 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mkfifo</span>(<span class="ident">path</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">mode</span>: <span class="ident">mode_t</span>) -&gt; <span class="ident">::c_int</span>;
 
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>),
-        <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;pselect$1050&quot;</span>
-    )]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
-        <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;pselect$UNIX2003&quot;</span>
-    )]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__pselect50&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pselect</span>(
-        <span class="ident">nfds</span>: <span class="ident">::c_int</span>,
-        <span class="ident">readfds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
-        <span class="ident">writefds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
-        <span class="ident">errorfds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
-        <span class="ident">timeout</span>: <span class="kw-2">*const</span> <span class="ident">timespec</span>,
-        <span class="ident">sigmask</span>: <span class="kw-2">*const</span> <span class="ident">sigset_t</span>,
-    ) -&gt; <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fseeko</span>(<span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="ident">::FILE</span>, <span class="ident">offset</span>: <span class="ident">::off_t</span>, <span class="ident">whence</span>: <span class="ident">::c_int</span>) -&gt; <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ftello</span>(<span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="ident">::FILE</span>) -&gt; <span class="ident">::off_t</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
@@ -2969,7 +3018,8 @@
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>)))]</span> {
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>,
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>)))]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">adjtime</span>(<span class="ident">delta</span>: <span class="kw-2">*const</span> <span class="ident">timeval</span>, <span class="ident">olddelta</span>: <span class="kw-2">*mut</span> <span class="ident">timeval</span>) -&gt; <span class="ident">::c_int</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stpncpy</span>(<span class="ident">dst</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">src</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">n</span>: <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
@@ -2978,7 +3028,7 @@
 }
 
 <span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>))]</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>)))]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_wmemstream</span>(
                 <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">wchar_t</span>,
@@ -2997,12 +3047,8 @@
                        <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;pause$UNIX2003&quot;</span>)]</span>
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>() -&gt; <span class="ident">::c_int</span>;
 
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readlinkat</span>(<span class="ident">dirfd</span>: <span class="ident">::c_int</span>,
-                              <span class="ident">pathname</span>: <span class="kw-2">*const</span> <span class="ident">::c_char</span>,
-                              <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">::c_char</span>,
-                              <span class="ident">bufsiz</span>: <span class="ident">::size_t</span>) -&gt; <span class="ident">::ssize_t</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mkdirat</span>(<span class="ident">dirfd</span>: <span class="ident">::c_int</span>, <span class="ident">pathname</span>: <span class="kw-2">*const</span> <span class="ident">::c_char</span>,
-                           <span class="ident">mode</span>: <span class="ident">::mode_t</span>) -&gt; <span class="ident">::c_int</span>;
+                          <span class="ident">mode</span>: <span class="ident">::mode_t</span>) -&gt; <span class="ident">::c_int</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">openat</span>(<span class="ident">dirfd</span>: <span class="ident">::c_int</span>, <span class="ident">pathname</span>: <span class="kw-2">*const</span> <span class="ident">::c_char</span>,
                           <span class="ident">flags</span>: <span class="ident">::c_int</span>, ...) -&gt; <span class="ident">::c_int</span>;
 
@@ -3033,7 +3079,64 @@
 }
 
 <span class="macro">cfg_if!</span> {
-   <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>)))]</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>)]</span> {
+        <span class="kw">extern</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readlinkat</span>(<span class="ident">dirfd</span>: <span class="ident">::c_int</span>,
+                <span class="ident">pathname</span>: <span class="kw-2">*const</span> <span class="ident">::c_char</span>,
+                <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">::c_char</span>,
+                <span class="ident">bufsiz</span>: <span class="ident">::size_t</span>) -&gt; <span class="ident">::c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readlink</span>(<span class="ident">path</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">bufsz</span>: <span class="ident">::size_t</span>) -&gt; <span class="ident">::c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pselect</span>(
+                <span class="ident">nfds</span>: <span class="ident">::c_int</span>,
+                <span class="ident">readfds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
+                <span class="ident">writefds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
+                <span class="ident">errorfds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
+                <span class="ident">timeout</span>: <span class="kw-2">*mut</span> <span class="ident">timespec</span>,
+                <span class="ident">sigmask</span>: <span class="kw-2">*const</span> <span class="ident">sigset_t</span>,
+            ) -&gt; <span class="ident">::c_int</span>;
+        }
+    } <span class="kw">else</span> {
+        <span class="kw">extern</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readlinkat</span>(<span class="ident">dirfd</span>: <span class="ident">::c_int</span>,
+                <span class="ident">pathname</span>: <span class="kw-2">*const</span> <span class="ident">::c_char</span>,
+                <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">::c_char</span>,
+                <span class="ident">bufsiz</span>: <span class="ident">::size_t</span>) -&gt; <span class="ident">::ssize_t</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fmemopen</span>(<span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="ident">size</span>: <span class="ident">size_t</span>, <span class="ident">mode</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">FILE</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_memstream</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">sizeloc</span>: <span class="kw-2">*mut</span> <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">FILE</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">atexit</span>(<span class="ident">cb</span>: <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>()) -&gt; <span class="ident">c_int</span>;
+            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__sigaction14&quot;</span>)]</span>
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sigaction</span>(
+                <span class="ident">signum</span>: <span class="ident">::c_int</span>,
+                <span class="ident">act</span>: <span class="kw-2">*const</span> <span class="ident">sigaction</span>,
+                <span class="ident">oldact</span>: <span class="kw-2">*mut</span> <span class="ident">sigaction</span>
+            ) -&gt; <span class="ident">::c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readlink</span>(<span class="ident">path</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">buf</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">bufsz</span>: <span class="ident">::size_t</span>) -&gt; <span class="ident">::ssize_t</span>;
+            <span class="attribute">#[<span class="ident">cfg_attr</span>(
+                <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>),
+                <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;pselect$1050&quot;</span>
+            )]</span>
+            <span class="attribute">#[<span class="ident">cfg_attr</span>(
+                <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
+                <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;pselect$UNIX2003&quot;</span>
+            )]</span>
+            <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__pselect50&quot;</span>)]</span>
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pselect</span>(
+                <span class="ident">nfds</span>: <span class="ident">::c_int</span>,
+                <span class="ident">readfds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
+                <span class="ident">writefds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
+                <span class="ident">errorfds</span>: <span class="kw-2">*mut</span> <span class="ident">fd_set</span>,
+                <span class="ident">timeout</span>: <span class="kw-2">*const</span> <span class="ident">timespec</span>,
+                <span class="ident">sigmask</span>: <span class="kw-2">*const</span> <span class="ident">sigset_t</span>,
+            ) -&gt; <span class="ident">::c_int</span>;
+        }
+    }
+}
+
+<span class="macro">cfg_if!</span> {
+   <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>,
+                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>,
+                )))]</span> {
         <span class="kw">extern</span> {
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cfmakeraw</span>(<span class="ident">termios</span>: <span class="kw-2">*mut</span> <span class="ident">::termios</span>);
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cfsetspeed</span>(<span class="ident">termios</span>: <span class="kw-2">*mut</span> <span class="ident">::termios</span>,
@@ -3075,6 +3178,9 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)]</span> {
         <span class="kw">mod</span> <span class="ident">redox</span>;
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::redox</span>::<span class="kw-2">*</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;nto&quot;</span>)]</span> {
+        <span class="kw">mod</span> <span class="ident">nto</span>;
+        <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::nto</span>::<span class="kw-2">*</span>;
     } <span class="kw">else</span> {
         <span class="comment">// Unknown target_os</span>
     }

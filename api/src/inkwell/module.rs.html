@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/9ee484b/src/module.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>module.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/3c5d770/src/module.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>module.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1610,7 +1610,6 @@
 <span id="1605">1605</span>
 <span id="1606">1606</span>
 <span id="1607">1607</span>
-<span id="1608">1608</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A `Module` represets a single code compilation unit.</span>
 
 <span class="kw">use</span> <span class="ident">llvm_sys::analysis</span>::{<span class="ident">LLVMVerifierFailureAction</span>, <span class="ident">LLVMVerifyModule</span>};
@@ -1619,7 +1618,6 @@
 <span class="kw">use</span> <span class="ident">llvm_sys::bit_writer</span>::{<span class="ident">LLVMWriteBitcodeToFile</span>, <span class="ident">LLVMWriteBitcodeToMemoryBuffer</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="number">14.0</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetTypeByName</span>;
-
 
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
     <span class="ident">LLVMAddFunction</span>, <span class="ident">LLVMAddGlobal</span>, <span class="ident">LLVMAddGlobalInAddressSpace</span>, <span class="ident">LLVMAddNamedMetadataOperand</span>, <span class="ident">LLVMCloneModule</span>,
@@ -2226,7 +2224,7 @@
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let module = context.create_module(&quot;mod&quot;);</span>
     <span class="doccomment">/// let i8_type = context.i8_type();</span>
-    <span class="doccomment">/// let global = module.add_global(i8_type, Some(AddressSpace::Const), &quot;my_global&quot;);</span>
+    <span class="doccomment">/// let global = module.add_global(i8_type, Some(AddressSpace::from(1u16)), &quot;my_global&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(module.get_first_global().unwrap(), global);</span>
     <span class="doccomment">/// assert_eq!(module.get_last_global().unwrap(), global);</span>
@@ -2245,7 +2243,7 @@
                     <span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(),
                     <span class="ident">type_</span>.<span class="ident">as_type_ref</span>(),
                     <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(),
-                    <span class="ident">address_space</span> <span class="kw">as</span> <span class="ident">u32</span>,
+                    <span class="ident">address_space</span>.<span class="number">0</span>,
                 ),
                 <span class="prelude-val">None</span> =&gt; <span class="ident">LLVMAddGlobal</span>(<span class="self">self</span>.<span class="ident">module</span>.<span class="ident">get</span>(), <span class="ident">type_</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()),
             }
@@ -2640,7 +2638,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(module.get_first_global().is_none());</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let global = module.add_global(i8_type, Some(AddressSpace::Const), &quot;my_global&quot;);</span>
+    <span class="doccomment">/// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), &quot;my_global&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(module.get_first_global().unwrap(), global);</span>
     <span class="doccomment">/// ```</span>
@@ -2668,7 +2666,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(module.get_last_global().is_none());</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let global = module.add_global(i8_type, Some(AddressSpace::Const), &quot;my_global&quot;);</span>
+    <span class="doccomment">/// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), &quot;my_global&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(module.get_last_global().unwrap(), global);</span>
     <span class="doccomment">/// ```</span>
@@ -2696,7 +2694,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(module.get_global(&quot;my_global&quot;).is_none());</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let global = module.add_global(i8_type, Some(AddressSpace::Const), &quot;my_global&quot;);</span>
+    <span class="doccomment">/// let global = module.add_global(i8_type, Some(AddressSpace::from(4u16)), &quot;my_global&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(module.get_global(&quot;my_global&quot;).unwrap(), global);</span>
     <span class="doccomment">/// ```</span>

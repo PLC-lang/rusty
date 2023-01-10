@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/9ee484b/src/types/ptr_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ptr_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/3c5d770/src/types/ptr_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ptr_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -348,7 +348,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_type_size = f32_ptr_type.size_of();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size_of</span>(<span class="self">self</span>) -&gt; <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -365,7 +365,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_type_alignment = f32_ptr_type.get_alignment();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_alignment</span>(<span class="self">self</span>) -&gt; <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -382,8 +382,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
-    <span class="doccomment">/// let f32_ptr_ptr_type = f32_ptr_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
+    <span class="doccomment">/// let f32_ptr_ptr_type = f32_ptr_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(f32_ptr_ptr_type.get_element_type().into_pointer_type(), f32_ptr_type);</span>
     <span class="doccomment">/// ```</span>
@@ -401,7 +401,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(f32_ptr_type.get_context(), context);</span>
     <span class="doccomment">/// ```</span>
@@ -420,7 +420,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let fn_type = f32_ptr_type.fn_type(&amp;[], false);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fn_type</span>(<span class="self">self</span>, <span class="ident">param_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicMetadataTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>], <span class="ident">is_var_args</span>: <span class="ident">bool</span>) -&gt; <span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -437,7 +437,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_array_type = f32_ptr_type.array_type(3);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(f32_ptr_array_type.len(), 3);</span>
@@ -457,14 +457,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(f32_ptr_type.get_address_space(), AddressSpace::Generic);</span>
+    <span class="doccomment">/// assert_eq!(f32_ptr_type.get_address_space(), AddressSpace::default());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_address_space</span>(<span class="self">self</span>) -&gt; <span class="ident">AddressSpace</span> {
         <span class="kw">let</span> <span class="ident">addr_space</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetPointerAddressSpace</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()) };
 
-        <span class="ident">AddressSpace::try_from</span>(<span class="ident">addr_space</span>).<span class="ident">expect</span>(<span class="string">&quot;Unexpectedly found invalid AddressSpace value&quot;</span>)
+        <span class="ident">AddressSpace</span>(<span class="ident">addr_space</span>)
     }
 
     <span class="doccomment">/// Print the definition of a `PointerType` to `LLVMString`.</span>
@@ -483,7 +483,7 @@
     <span class="doccomment">/// // Local Context</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_null = f32_ptr_type.const_null();</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(f32_ptr_null.is_null());</span>
@@ -505,7 +505,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_zero = f32_ptr_type.const_zero();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_zero</span>(<span class="self">self</span>) -&gt; <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -521,7 +521,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_undef = f32_ptr_type.get_undef();</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(f32_ptr_undef.is_undef());</span>
@@ -540,7 +540,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_vec_type = f32_ptr_type.vec_type(3);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(f32_ptr_vec_type.get_size(), 3);</span>
@@ -561,7 +561,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(f32_ptr_type.get_element_type().into_float_type(), f32_type);</span>
     <span class="doccomment">/// ```</span>
@@ -578,7 +578,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let f32_type = context.f32_type();</span>
-    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::Generic);</span>
+    <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_val = f32_ptr_type.const_null();</span>
     <span class="doccomment">/// let f32_ptr_array = f32_ptr_type.const_array(&amp;[f32_ptr_val, f32_ptr_val]);</span>
     <span class="doccomment">///</span>

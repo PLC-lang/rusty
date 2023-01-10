@@ -2515,7 +2515,7 @@
     <span class="ident">typesystem</span>::{<span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>},
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">llvm::Llvm</span>, <span class="ident">statement_generator::FunctionContext</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">llvm::Llvm</span>, <span class="ident">statement_generator::FunctionContext</span>, <span class="ident">ADDRESS_SPACE_CONST</span>, <span class="ident">ADDRESS_SPACE_GENERIC</span>};
 
 <span class="doccomment">/// the generator for expressions</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
@@ -3035,8 +3035,9 @@
             <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">call</span>.<span class="ident">try_as_basic_value</span>().<span class="ident">either</span>(<span class="prelude-val">Ok</span>, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                 <span class="comment">// we return an uninitialized int pointer for void methods :-/</span>
                 <span class="comment">// dont deref it!!</span>
-                <span class="ident">get_llvm_int_type</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="ident">INT_SIZE</span>, <span class="ident">INT_TYPE</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">int</span><span class="op">|</span> <span class="ident">int</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Const</span>).<span class="ident">const_null</span>().<span class="ident">as_basic_value_enum</span>())
+                <span class="ident">get_llvm_int_type</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="ident">INT_SIZE</span>, <span class="ident">INT_TYPE</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">int</span><span class="op">|</span> {
+                    <span class="ident">int</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::from</span>(<span class="ident">ADDRESS_SPACE_CONST</span>)).<span class="ident">const_null</span>().<span class="ident">as_basic_value_enum</span>()
+                })
             });
             <span class="ident">v</span>.<span class="ident">map</span>(<span class="ident">ExpressionValue::RValue</span>)
         });
@@ -3102,7 +3103,7 @@
                 <span class="kw">let</span> <span class="ident">assigned_output_type</span> <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_type_or_void</span>(<span class="ident">expression</span>, <span class="self">self</span>.<span class="ident">index</span>).<span class="ident">get_type_information</span>();
 
-                <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span>, <span class="string">&quot;&quot;</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                     <span class="ident">Diagnostic::codegen_error</span>(
                         <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {:#?}&quot;</span>, <span class="ident">parameter</span>),
                         <span class="ident">parameter</span>.<span class="ident">source_location</span>.<span class="ident">source_range</span>.<span class="ident">clone</span>(),
@@ -3398,7 +3399,7 @@
                 <span class="kw">let</span> <span class="ident">llvm_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">type_name</span>)<span class="question-mark">?</span>;
                 <span class="comment">// If the variadic argument is ByRef, wrap it in a pointer.</span>
                 <span class="kw">let</span> <span class="ident">llvm_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">argument_type</span>, <span class="ident">ArgumentType::ByRef</span>(<span class="kw">_</span>)) {
-                    <span class="ident">llvm_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>).<span class="ident">into</span>()
+                    <span class="ident">llvm_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::from</span>(<span class="ident">ADDRESS_SPACE_GENERIC</span>)).<span class="ident">into</span>()
                 } <span class="kw">else</span> {
                     <span class="ident">llvm_type</span>
                 };
@@ -3421,7 +3422,7 @@
                 <span class="comment">// bitcast the array to pointer so it matches the declared function signature</span>
                 <span class="kw">let</span> <span class="ident">arr_storage</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_bitcast</span>(
                     <span class="ident">arr_storage</span>,
-                    <span class="ident">llvm_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>),
+                    <span class="ident">llvm_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::from</span>(<span class="ident">ADDRESS_SPACE_GENERIC</span>)),
                     <span class="string">&quot;&quot;</span>,
                 );
 
@@ -3588,17 +3589,16 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
 
-            <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span>
-                <span class="ident">builder</span>.<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident">Diagnostic::codegen_error</span>(
-                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {:#?}&quot;</span>, <span class="ident">expression</span>),
-                        <span class="ident">expression</span>.<span class="ident">get_location</span>(),
-                    )
-                })<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span>, <span class="string">&quot;&quot;</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                <span class="ident">Diagnostic::codegen_error</span>(
+                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot build generate parameter: {:#?}&quot;</span>, <span class="ident">expression</span>),
+                    <span class="ident">expression</span>.<span class="ident">get_location</span>(),
+                )
+            })<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">index</span>
-                .<span class="ident">find_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>)
+                .<span class="ident">find_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">var</span>.<span class="ident">get_type_name</span>()))
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="ident">var</span>.<span class="ident">get_type_information</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_void_type</span>().<span class="ident">get_type_information</span>());
@@ -4872,7 +4872,7 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">target_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_string_size</span>(<span class="ident">left_type</span>, <span class="ident">left_location</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">value_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_string_size</span>(<span class="ident">right_type</span>, <span class="ident">right_location</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">target_size</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">value_size</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">target_size</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">value_size</span>);
         <span class="kw">let</span> <span class="ident">align_left</span> <span class="op">=</span> <span class="ident">left_type</span>.<span class="ident">get_string_character_width</span>(<span class="self">self</span>.<span class="ident">index</span>).<span class="ident">value</span>();
         <span class="kw">let</span> <span class="ident">align_right</span> <span class="op">=</span> <span class="ident">right_type</span>.<span class="ident">get_string_character_width</span>(<span class="self">self</span>.<span class="ident">index</span>).<span class="ident">value</span>();
         <span class="comment">//Multiply by the string alignment to copy enough for widestrings</span>

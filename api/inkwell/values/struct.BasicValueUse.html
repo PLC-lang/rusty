@@ -17,7 +17,7 @@
 <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">create_builder</span>();
 <span class="kw">let</span> <span class="ident">void_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">void_type</span>();
 <span class="kw">let</span> <span class="ident">f32_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">f32_type</span>();
-<span class="kw">let</span> <span class="ident">f32_ptr_type</span> <span class="op">=</span> <span class="ident">f32_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>);
+<span class="kw">let</span> <span class="ident">f32_ptr_type</span> <span class="op">=</span> <span class="ident">f32_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::default</span>());
 <span class="kw">let</span> <span class="ident">fn_type</span> <span class="op">=</span> <span class="ident">void_type</span>.<span class="ident">fn_type</span>(<span class="kw-2">&amp;</span>[<span class="ident">f32_ptr_type</span>.<span class="ident">into</span>()], <span class="bool-val">false</span>);
 
 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">module</span>.<span class="ident">add_function</span>(<span class="string">&quot;take_f32_ptr&quot;</span>, <span class="ident">fn_type</span>, <span class="prelude-val">None</span>);
@@ -63,7 +63,7 @@ declare void @free(i8*)</code></pre></div>
 <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">create_builder</span>();
 <span class="kw">let</span> <span class="ident">void_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">void_type</span>();
 <span class="kw">let</span> <span class="ident">f32_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">f32_type</span>();
-<span class="kw">let</span> <span class="ident">f32_ptr_type</span> <span class="op">=</span> <span class="ident">f32_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>);
+<span class="kw">let</span> <span class="ident">f32_ptr_type</span> <span class="op">=</span> <span class="ident">f32_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::default</span>());
 <span class="kw">let</span> <span class="ident">fn_type</span> <span class="op">=</span> <span class="ident">void_type</span>.<span class="ident">fn_type</span>(<span class="kw-2">&amp;</span>[<span class="ident">f32_ptr_type</span>.<span class="ident">into</span>()], <span class="bool-val">false</span>);
 
 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">module</span>.<span class="ident">add_function</span>(<span class="string">&quot;take_f32_ptr&quot;</span>, <span class="ident">fn_type</span>, <span class="prelude-val">None</span>);
@@ -93,7 +93,7 @@ declare void @free(i8*)</code></pre></div>
 <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">create_builder</span>();
 <span class="kw">let</span> <span class="ident">void_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">void_type</span>();
 <span class="kw">let</span> <span class="ident">f32_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">f32_type</span>();
-<span class="kw">let</span> <span class="ident">f32_ptr_type</span> <span class="op">=</span> <span class="ident">f32_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>);
+<span class="kw">let</span> <span class="ident">f32_ptr_type</span> <span class="op">=</span> <span class="ident">f32_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::default</span>());
 <span class="kw">let</span> <span class="ident">fn_type</span> <span class="op">=</span> <span class="ident">void_type</span>.<span class="ident">fn_type</span>(<span class="kw-2">&amp;</span>[<span class="ident">f32_ptr_type</span>.<span class="ident">into</span>()], <span class="bool-val">false</span>);
 
 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">module</span>.<span class="ident">add_function</span>(<span class="string">&quot;take_f32_ptr&quot;</span>, <span class="ident">fn_type</span>, <span class="prelude-val">None</span>);
