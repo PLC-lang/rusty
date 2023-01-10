@@ -2478,6 +2478,14 @@
 <span id="2473">2473</span>
 <span id="2474">2474</span>
 <span id="2475">2475</span>
+<span id="2476">2476</span>
+<span id="2477">2477</span>
+<span id="2478">2478</span>
+<span id="2479">2479</span>
+<span id="2480">2480</span>
+<span id="2481">2481</span>
+<span id="2482">2482</span>
+<span id="2483">2483</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -2686,11 +2694,19 @@
         <span class="comment">// generate the expression</span>
         <span class="kw">match</span> <span class="ident">expression</span> {
             <span class="ident">AstStatement::Reference</span> { .. } =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> { <span class="ident">qualified_name</span>, <span class="ident">constant</span>: <span class="bool-val">true</span>, .. }) <span class="op">=</span>
-                    <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">expression</span>)
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> {
+                    <span class="ident">qualified_name</span>,
+                    <span class="ident">resulting_type</span>,
+                    <span class="ident">constant</span>: <span class="bool-val">true</span>,
+                    ..
+                }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">expression</span>)
                 {
-                    <span class="comment">// constant propagation</span>
-                    <span class="self">self</span>.<span class="ident">generate_constant_expression</span>(<span class="ident">qualified_name</span>, <span class="ident">expression</span>)
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_information_or_void</span>(<span class="ident">resulting_type</span>).<span class="ident">is_aggregate</span>() {
+                        <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>).<span class="ident">map</span>(<span class="ident">ExpressionValue::LValue</span>)
+                    } <span class="kw">else</span> {
+                        <span class="comment">// constant propagation</span>
+                        <span class="self">self</span>.<span class="ident">generate_constant_expression</span>(<span class="ident">qualified_name</span>, <span class="ident">expression</span>)
+                    }
                 } <span class="kw">else</span> {
                     <span class="comment">// general reference generation</span>
                     <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>).<span class="ident">map</span>(<span class="ident">ExpressionValue::LValue</span>)

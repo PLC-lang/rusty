@@ -1196,7 +1196,7 @@
 
     <span class="doccomment">/// returns true if this type is an array, struct or string</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_aggregate_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get_type_information</span>().<span class="ident">is_agregate</span>()
+        <span class="self">self</span>.<span class="ident">get_type_information</span>().<span class="ident">is_aggregate</span>()
     }
 }
 
@@ -1527,7 +1527,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">is_agregate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_aggregate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
             <span class="ident">DataTypeInformation::Struct</span> { .. }
