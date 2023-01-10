@@ -128,7 +128,7 @@ impl DataType {
 
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
-        self.get_type_information().is_agregate()
+        self.get_type_information().is_aggregate()
     }
 }
 
@@ -459,7 +459,7 @@ impl DataTypeInformation {
         }
     }
 
-    fn is_agregate(&self) -> bool {
+    pub fn is_aggregate(&self) -> bool {
         matches!(
             self,
             DataTypeInformation::Struct { .. }
