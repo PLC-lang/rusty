@@ -873,14 +873,34 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             Ok(ptr_value)
         } else {
-            self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
+            let gep = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
                 //passed a literal to byref parameter?
                 //TODO: find more defensive solution - check early
                 let value = self.generate_expression(argument)?;
                 let argument = self.llvm.builder.build_alloca(value.get_type(), "");
                 self.llvm.builder.build_store(argument, value);
                 Ok(argument)
-            })
+            });
+
+            // TODO: move logic from here to generate_expression
+            // If a reference, check if the gep's value has to be bitcasted for a function call
+            dbg!(&argument);
+            if argument.is_reference() {
+                if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
+                    let actual_type = self.annotations.get_type_or_void(argument, self.index);
+                    let target_type = self.index.find_elementary_pointer_type(&hint.information);
+
+                    if target_type != actual_type.get_type_information() {
+                        return Ok(self.llvm.builder.build_bitcast(
+                            gep?,
+                            self.llvm_index.get_associated_type(hint.get_name())?,
+                            "",
+                        ));
+                    }
+                }
+            }
+
+            gep
         }
         .map(Into::into)
     }

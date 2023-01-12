@@ -1187,6 +1187,12 @@ impl AstStatement {
             false
         }
     }
+
+    /// Returns true if the current statement is either a [`AstStatement::Reference`] or
+    /// [`AstStatement::QualifiedReference`].
+    pub fn is_reference(&self) -> bool {
+        matches!(self, AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. })
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

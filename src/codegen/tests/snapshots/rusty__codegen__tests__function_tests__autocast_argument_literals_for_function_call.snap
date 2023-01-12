@@ -1,0 +1,50 @@
+---
+source: src/codegen/tests/function_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main = type {}
+
+@main_instance = global %main zeroinitializer
+
+define i32 @func(i8* %0, i16* %1, i32* %2, i64* %3, float* %4, double* %5) {
+entry:
+  %func = alloca i32, align 4
+  %byInt1 = alloca i8*, align 8
+  store i8* %0, i8** %byInt1, align 8
+  %byInt2 = alloca i16*, align 8
+  store i16* %1, i16** %byInt2, align 8
+  %byInt3 = alloca i32*, align 8
+  store i32* %2, i32** %byInt3, align 8
+  %byInt4 = alloca i64*, align 8
+  store i64* %3, i64** %byInt4, align 8
+  %byReal1 = alloca float*, align 8
+  store float* %4, float** %byReal1, align 8
+  %byReal2 = alloca double*, align 8
+  store double* %5, double** %byReal2, align 8
+  store i32 0, i32* %func, align 4
+  store i32 1, i32* %func, align 4
+  %func_ret = load i32, i32* %func, align 4
+  ret i32 %func_ret
+}
+
+define void @main(%main* %0) {
+entry:
+  %1 = alloca i8, align 1
+  store i8 1, i8* %1, align 1
+  %2 = alloca i16, align 2
+  store i16 2, i16* %2, align 2
+  %3 = alloca i32, align 4
+  store i32 3, i32* %3, align 4
+  %4 = alloca i64, align 8
+  store i64 4, i64* %4, align 4
+  %5 = alloca float, align 4
+  store float 5.000000e+00, float* %5, align 4
+  %6 = alloca double, align 8
+  store double 6.000000e+00, double* %6, align 8
+  %call = call i32 @func(i8* %1, i16* %2, i32* %3, i64* %4, float* %5, double* %6)
+  ret void
+}
+
