@@ -864,54 +864,60 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         type_name: &str,
         declared_parameter: Option<&VariableIndexEntry>,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        if matches!(argument, AstStatement::EmptyStatement { .. }) {
-            //uninitialized var_output/var_in_out
-            let v_type = self
-                .llvm_index
-                .find_associated_type(type_name)
-                .ok_or_else(|| Diagnostic::unknown_type(type_name, argument.get_location()))?;
+        match argument {
+            // Check for uninitialized var_output / var_in_out
+            AstStatement::EmptyStatement { .. } => {
+                let value_type = self
+                    .llvm_index
+                    .find_associated_type(type_name)
+                    .ok_or_else(|| Diagnostic::unknown_type(type_name, argument.get_location()))?;
 
-            let ptr_value = self.llvm.builder.build_alloca(v_type, "");
-            if let Some(p) = declared_parameter {
-                if let Some(initial_value) =
-                    self.get_initial_value(&p.initial_value, &self.get_parameter_type(p))
-                {
-                    let value = self.generate_expression(initial_value)?;
-                    self.llvm.builder.build_store(ptr_value, value);
+                let ptr_value = self.llvm.builder.build_alloca(value_type, "");
+                if let Some(parameter) = declared_parameter {
+                    if let Some(initial_value) =
+                        self.get_initial_value(&parameter.initial_value, &self.get_parameter_type(parameter))
+                    {
+                        let value = self.generate_expression(initial_value)?;
+                        self.llvm.builder.build_store(ptr_value, value);
+                    }
                 }
-            }
-            Ok(ptr_value)
-        } else {
-            let gep = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
-                //passed a literal to byref parameter?
-                //TODO: find more defensive solution - check early
-                let value = self.generate_expression(argument)?;
-                let argument = self.llvm.builder.build_alloca(value.get_type(), "");
-                self.llvm.builder.build_store(argument, value);
-                Ok(argument)
-            });
 
-            // TODO: move logic from here to generate_expression
-            // If a reference, check if the gep's value has to be bitcasted for a function call
-            dbg!(&argument);
-            if argument.is_reference() {
+                return Ok(ptr_value.into());
+            }
+
+            // Check if the passed reference can be bitcasted and if not return a `getelementptr` instruction
+            AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. } => {
+                let gep = self.generate_element_pointer(argument)?;
+
                 if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
                     let actual_type = self.annotations.get_type_or_void(argument, self.index);
                     let target_type = self.index.find_elementary_pointer_type(&hint.information);
 
                     if target_type != actual_type.get_type_information() {
                         return Ok(self.llvm.builder.build_bitcast(
-                            gep?,
+                            gep,
                             self.llvm_index.get_associated_type(hint.get_name())?,
                             "",
                         ));
                     }
                 }
+
+                return Ok(gep.into());
             }
 
-            gep
+            // ...otherwise try to generate a `getelementptr` instruction and if it fails we probably
+            // passed a literal to a parameter taking a reference
+            _ => self
+                .generate_element_pointer(argument)
+                .or_else::<Diagnostic, _>(|_| {
+                    //TODO: find more defensive solution - check early
+                    let value = self.generate_expression(argument)?;
+                    let argument = self.llvm.builder.build_alloca(value.get_type(), "");
+                    self.llvm.builder.build_store(argument, value);
+                    Ok(argument)
+                })
+                .map(Into::into),
         }
-        .map(Into::into)
     }
 
     pub fn generate_variadic_arguments_list(
