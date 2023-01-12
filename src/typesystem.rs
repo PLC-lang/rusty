@@ -33,15 +33,15 @@ pub type NativePointerType = usize;
 //TODO should we change this to usize?
 pub const U1_SIZE: u32 = 1;
 pub const BOOL_SIZE: u32 = BYTE_SIZE;
-pub const BYTE_SIZE: u32 = NativeSintType::BITS as u32;
-pub const SINT_SIZE: u32 = NativeSintType::BITS as u32;
-pub const INT_SIZE: u32 = NativeIntType::BITS as u32;
-pub const DINT_SIZE: u32 = NativeDintType::BITS as u32;
-pub const LINT_SIZE: u32 = NativeLintType::BITS as u32;
+pub const BYTE_SIZE: u32 = NativeSintType::BITS;
+pub const SINT_SIZE: u32 = NativeSintType::BITS;
+pub const INT_SIZE: u32 = NativeIntType::BITS;
+pub const DINT_SIZE: u32 = NativeDintType::BITS;
+pub const LINT_SIZE: u32 = NativeLintType::BITS;
 pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
 pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
 pub const DATE_TIME_SIZE: u32 = 64;
-pub const POINTER_SIZE: u32 = NativePointerType::BITS as u32;
+pub const POINTER_SIZE: u32 = NativePointerType::BITS;
 
 pub const U1_TYPE: &str = "__U1";
 /// used internally for forced casts to u1
@@ -128,7 +128,7 @@ impl DataType {
 
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
-        self.get_type_information().is_agregate()
+        self.get_type_information().is_aggregate()
     }
 }
 
@@ -459,7 +459,7 @@ impl DataTypeInformation {
         }
     }
 
-    fn is_agregate(&self) -> bool {
+    pub fn is_aggregate(&self) -> bool {
         matches!(
             self,
             DataTypeInformation::Struct { .. }
