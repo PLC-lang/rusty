@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{self, DirectAccessType, SourceRange},
+    ast::{self, DirectAccessType, SourceRange, TypeNature},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_typesystem,
@@ -882,7 +882,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
 
-                return Ok(ptr_value.into());
+                Ok(ptr_value.into())
             }
 
             // Check if the passed reference can be bitcasted and if not return a `getelementptr` instruction
@@ -890,6 +890,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let gep = self.generate_element_pointer(argument)?;
 
                 if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
+                    // TODO: Ignore Strings for now, as they'll be handled in a different issue.
+                    //       See https://github.com/PLC-lang/rusty/issues/725
+                    if hint.nature == TypeNature::String {
+                        return Ok(gep.into());
+                    }
+
                     let actual_type = self.annotations.get_type_or_void(argument, self.index);
                     let target_type = self.index.find_elementary_pointer_type(&hint.information);
 
@@ -902,7 +908,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
 
-                return Ok(gep.into());
+                Ok(gep.into())
             }
 
             // ...otherwise try to generate a `getelementptr` instruction and if it fails we probably
