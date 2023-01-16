@@ -206,11 +206,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // generate the expression
         match expression {
             AstStatement::Reference { .. } => {
-                if let Some(StatementAnnotation::Variable { qualified_name, constant: true, .. }) =
-                    self.annotations.get(expression)
+                if let Some(StatementAnnotation::Variable {
+                    qualified_name,
+                    resulting_type,
+                    constant: true,
+                    ..
+                }) = self.annotations.get(expression)
                 {
-                    // constant propagation
-                    self.generate_constant_expression(qualified_name, expression)
+                    if self.index.get_type_information_or_void(resulting_type).is_aggregate() {
+                        self.generate_element_pointer(expression).map(ExpressionValue::LValue)
+                    } else {
+                        // constant propagation
+                        self.generate_constant_expression(qualified_name, expression)
+                    }
                 } else {
                     // general reference generation
                     self.generate_element_pointer(expression).map(ExpressionValue::LValue)
