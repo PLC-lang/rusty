@@ -61,7 +61,8 @@ pub fn generate_implementation_stubs<'ink>(
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
     for (name, implementation) in index.get_implementations() {
         if !implementation.is_generic() {
-            let curr_f = pou_generator.generate_implementation_stub(implementation, module, debug)?;
+            let curr_f =
+                pou_generator.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
             llvm_index.associate_implementation(name, curr_f)?;
         }
     }
@@ -134,6 +135,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
         debug: &mut DebugBuilderEnum<'ink>,
+        new_llvm_index: &mut LlvmTypedIndex<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
         let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
 
@@ -150,12 +152,17 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 {
                     // arrays passed by ref will be passed by a pointer to the arrays element type
                     // not a pointer to array
-                    p.into_pointer_type()
+                    let ty = p
+                        .into_pointer_type()
                         .get_element_type()
                         .into_array_type()
                         .get_element_type()
-                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                        .into()
+                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+
+                    // set the new type for further codegen
+                    let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
+
+                    ty.into()
                 }
                 _ => *p,
             })

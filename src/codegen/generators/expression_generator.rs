@@ -884,14 +884,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             Ok(ptr_value)
         } else {
-            self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
+            let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
                 //passed a literal to byref parameter?
                 //TODO: find more defensive solution - check early
                 let value = self.generate_expression(argument)?;
                 let argument = self.llvm.builder.build_alloca(value.get_type(), "");
                 self.llvm.builder.build_store(argument, value);
                 Ok(argument)
-            })
+            })?;
+            // if we pass any array type by ref
+            // we need to pass a pointer to the array element type
+            // and not a pointer to array => [81 x i8]* -> i8*
+            if value.get_type().get_element_type().is_array_type() {
+                let res = self.llvm.builder.build_bitcast(
+                    value,
+                    value
+                        .get_type()
+                        .get_element_type()
+                        .into_array_type()
+                        .get_element_type()
+                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    "",
+                );
+                Ok(res.into_pointer_value())
+            } else {
+                Ok(value)
+            }
+            // Ok(value)
         }
         .map(Into::into)
     }

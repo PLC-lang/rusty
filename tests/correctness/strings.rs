@@ -856,3 +856,430 @@ fn program_string_output() {
     assert_eq!("string\0".as_bytes(), &main_type.x);
     assert_eq!("wstring", String::from_utf16_lossy(&main_type.y[..7]));
 }
+
+#[test]
+fn assigning_global_strings_in_function_by_passing_references() {
+    let src = r#"
+		FUNCTION foo : DINT
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+        VAR_INPUT {ref}
+            in_ref : STRING;
+        END_VAR
+        VAR_IN_OUT
+            inout : STRING;
+        END_VAR
+            glob_str_in     := in;
+            glob_str_in_ref := in_ref;
+            glob_str_inout  := inout;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            str_in      : STRING;
+            str_in_ref  : STRING;
+            str_inout   : STRING;
+        END_VAR
+        VAR_TEMP
+            a : STRING := 'input';
+            b : STRING := 'input ref';
+            c : STRING := 'input inout';
+        END_VAR
+            foo(a, b, c);
+
+            str_in      := glob_str_in;
+            str_in_ref  := glob_str_in_ref;
+            str_inout   := glob_str_inout;
+        END_PROGRAM
+
+        VAR_GLOBAL
+            glob_str_in     : STRING;
+            glob_str_in_ref : STRING;
+            glob_str_inout  : STRING;
+        END_VAR
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str_in: [u8; 81],
+        str_in_ref: [u8; 81],
+        str_inout: [u8; 81],
+    }
+    let mut main_type = MainType { str_in: [0; 81], str_in_ref: [0; 81], str_inout: [0; 81] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("input\0".as_bytes(), &main_type.str_in[0..6]);
+    assert_eq!("input ref\0".as_bytes(), &main_type.str_in_ref[0..10]);
+    assert_eq!("input inout\0".as_bytes(), &main_type.str_inout[0..12]);
+}
+
+#[test]
+fn assigning_global_strings_in_function_by_passing_sized_strigs() {
+    let src = r#"
+		FUNCTION foo : DINT
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+        VAR_INPUT {ref}
+            in_ref : STRING;
+        END_VAR
+        VAR_IN_OUT
+            inout : STRING;
+        END_VAR
+            glob_str_in     := in;
+            glob_str_in_ref := in_ref;
+            glob_str_inout  := inout;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            str_in      : STRING;
+            str_in_ref  : STRING;
+            str_inout   : STRING;
+        END_VAR
+        VAR_TEMP
+            a : STRING[5] := 'input';
+            b : STRING[9] := 'input ref';
+            c : STRING[11] := 'input inout';
+        END_VAR
+            foo(a, b, c);
+
+            str_in      := glob_str_in;
+            str_in_ref  := glob_str_in_ref;
+            str_inout   := glob_str_inout;
+        END_PROGRAM
+
+        VAR_GLOBAL
+            glob_str_in     : STRING;
+            glob_str_in_ref : STRING;
+            glob_str_inout  : STRING;
+        END_VAR
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str_in: [u8; 81],
+        str_in_ref: [u8; 81],
+        str_inout: [u8; 81],
+    }
+    let mut main_type = MainType { str_in: [0; 81], str_in_ref: [0; 81], str_inout: [0; 81] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("input\0".as_bytes(), &main_type.str_in[0..6]);
+    assert_eq!("input ref\0".as_bytes(), &main_type.str_in_ref[0..10]);
+    assert_eq!("input inout\0".as_bytes(), &main_type.str_inout[0..12]);
+}
+
+#[test]
+fn assigning_global_strings_in_function_by_passing_literals() {
+    let src = r#"
+		FUNCTION foo : DINT
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+        VAR_INPUT {ref}
+            in_ref : STRING;
+        END_VAR
+            glob_str_in     := in;
+            glob_str_in_ref := in_ref;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            str_in      : STRING;
+            str_in_ref  : STRING;
+        END_VAR
+            foo('in literal', STRING#'in ref literal');
+
+            str_in      := glob_str_in;
+            str_in_ref  := glob_str_in_ref;
+        END_PROGRAM
+
+        VAR_GLOBAL
+            glob_str_in     : STRING;
+            glob_str_in_ref : STRING;
+        END_VAR
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str_in: [u8; 81],
+        str_in_ref: [u8; 81],
+    }
+    let mut main_type = MainType { str_in: [0; 81], str_in_ref: [0; 81] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("in literal\0".as_bytes(), &main_type.str_in[0..11]);
+    assert_eq!("in ref literal\0".as_bytes(), &main_type.str_in_ref[0..15]);
+}
+
+#[test]
+fn assigning_by_ref_string_parameters_in_function() {
+    let src = r#"
+		FUNCTION foo : DINT
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+        VAR_INPUT {ref}
+            in_ref : STRING;
+        END_VAR
+        VAR_IN_OUT
+            inout : STRING;
+        END_VAR
+            in      := 'in assigned in function';
+            in_ref  := 'in ref assigned in function';
+            inout   := 'inout assigned in function';
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            str_in      : STRING;
+            str_in_ref  : STRING;
+            str_inout   : STRING;
+        END_VAR
+        VAR_TEMP
+            a : STRING := 'input';
+            b : STRING := 'input ref';
+            c : STRING := 'input inout';
+        END_VAR
+            foo(a, b, c);
+
+            str_in      := a;
+            str_in_ref  := b;
+            str_inout   := c;
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str_in: [u8; 81],
+        str_in_ref: [u8; 81],
+        str_inout: [u8; 81],
+    }
+    let mut main_type = MainType { str_in: [0; 81], str_in_ref: [0; 81], str_inout: [0; 81] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("input\0".as_bytes(), &main_type.str_in[0..6]);
+    assert_eq!("in ref assigned in function\0".as_bytes(), &main_type.str_in_ref[0..28]);
+    assert_eq!("inout assigned in function\0".as_bytes(), &main_type.str_inout[0..27]);
+}
+
+#[test]
+fn reassign_strings_after_function_call() {
+    let src = r#"
+		FUNCTION foo : DINT
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+        VAR_INPUT {ref}
+            in_ref : STRING;
+        END_VAR
+        VAR_IN_OUT
+            inout : STRING;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            str_in      : STRING;
+            str_in_ref  : STRING;
+            str_inout   : STRING;
+        END_VAR
+        VAR_TEMP
+            a : STRING := 'input';
+            b : STRING := 'input ref';
+            c : STRING := 'input inout';
+        END_VAR
+            foo(a, b, c);
+            a := 'a assigned after function call';
+            b := 'b assigned after function call';
+            c := 'c assigned after function call';
+
+            str_in      := a;
+            str_in_ref  := b;
+            str_inout   := c;
+        END_PROGRAM
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str_in: [u8; 81],
+        str_in_ref: [u8; 81],
+        str_inout: [u8; 81],
+    }
+    let mut main_type = MainType { str_in: [0; 81], str_in_ref: [0; 81], str_inout: [0; 81] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("a assigned after function call\0".as_bytes(), &main_type.str_in[0..31]);
+    assert_eq!("b assigned after function call\0".as_bytes(), &main_type.str_in_ref[0..31]);
+    assert_eq!("c assigned after function call\0".as_bytes(), &main_type.str_inout[0..31]);
+}
+
+#[test]
+fn assigning_global_strings_in_program_by_passing_references() {
+    let src = r#"
+		PROGRAM prog
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+        VAR_INPUT {ref}
+            in_ref : STRING;
+        END_VAR
+        VAR_IN_OUT
+            inout : STRING;
+        END_VAR
+            glob_str_in     := in;
+            glob_str_in_ref := in_ref;
+            glob_str_inout  := inout;
+        END_PROGRAM
+
+        PROGRAM main
+        VAR
+            str_in      : STRING;
+            str_in_ref  : STRING;
+            str_inout   : STRING;
+        END_VAR
+        VAR_TEMP
+            a : STRING := 'input';
+            b : STRING := 'input ref';
+            c : STRING := 'input inout';
+        END_VAR
+            prog(a, b, c);
+
+            str_in      := glob_str_in;
+            str_in_ref  := glob_str_in_ref;
+            str_inout   := glob_str_inout;
+        END_PROGRAM
+
+        VAR_GLOBAL
+            glob_str_in     : STRING;
+            glob_str_in_ref : STRING;
+            glob_str_inout  : STRING;
+        END_VAR
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str_in: [u8; 81],
+        str_in_ref: [u8; 81],
+        str_inout: [u8; 81],
+    }
+    let mut main_type = MainType { str_in: [0; 81], str_in_ref: [0; 81], str_inout: [0; 81] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("input\0".as_bytes(), &main_type.str_in[0..6]);
+    assert_eq!("input ref\0".as_bytes(), &main_type.str_in_ref[0..10]);
+    assert_eq!("input inout\0".as_bytes(), &main_type.str_inout[0..12]);
+}
+
+// TODO: module.verify() will fail
+// "Stored value type does not match pointer operand type!"
+#[test]
+fn assigning_global_strings_in_program_by_passing_sized_strigs() {
+    let src = r#"
+		PROGRAM prog
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+        VAR_INPUT {ref}
+            in_ref : STRING;
+        END_VAR
+        VAR_IN_OUT
+            inout : STRING;
+        END_VAR
+            glob_str_in     := in;
+            glob_str_in_ref := in_ref;
+            glob_str_inout  := inout;
+        END_PROGRAM
+
+        PROGRAM main
+        VAR
+            str_in      : STRING;
+            str_in_ref  : STRING;
+            str_inout   : STRING;
+        END_VAR
+        VAR_TEMP
+            a : STRING[5] := 'input';
+            b : STRING[9] := 'input ref';
+            c : STRING[11] := 'input inout';
+        END_VAR
+            prog(a, b, c);
+
+            str_in      := glob_str_in;
+            str_in_ref  := glob_str_in_ref;
+            str_inout   := glob_str_inout;
+        END_PROGRAM
+
+        VAR_GLOBAL
+            glob_str_in     : STRING;
+            glob_str_in_ref : STRING;
+            glob_str_inout  : STRING;
+        END_VAR
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str_in: [u8; 81],
+        str_in_ref: [u8; 81],
+        str_inout: [u8; 81],
+    }
+    let mut main_type = MainType { str_in: [0; 81], str_in_ref: [0; 81], str_inout: [0; 81] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("input\0".as_bytes(), &main_type.str_in[0..6]);
+    assert_eq!("input ref\0".as_bytes(), &main_type.str_in_ref[0..10]);
+    assert_eq!("input inout\0".as_bytes(), &main_type.str_inout[0..12]);
+}
+
+#[ignore = "Cannot generate a LValue for CastStatement fix in new issue"]
+#[test]
+fn assigning_global_strings_in_program_by_passing_literals() {
+    let src = r#"
+		PROGRAM prog
+        VAR_INPUT
+            in : STRING;
+        END_VAR
+        VAR_INPUT {ref}
+            in_ref : STRING;
+        END_VAR
+            glob_str_in     := in;
+            glob_str_in_ref := in_ref;
+        END_PROGRAM
+
+        PROGRAM main
+        VAR
+            str_in      : STRING;
+            str_in_ref  : STRING;
+        END_VAR
+            prog('in literal', STRING#'in ref literal');
+
+            str_in      := glob_str_in;
+            str_in_ref  := glob_str_in_ref;
+        END_PROGRAM
+
+        VAR_GLOBAL
+            glob_str_in     : STRING;
+            glob_str_in_ref : STRING;
+        END_VAR
+    "#;
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        str_in: [u8; 81],
+        str_in_ref: [u8; 81],
+    }
+    let mut main_type = MainType { str_in: [0; 81], str_in_ref: [0; 81] };
+
+    let _: i32 = compile_and_run(src, &mut main_type);
+    assert_eq!("in literal\0".as_bytes(), &main_type.str_in[0..11]);
+    assert_eq!("in ref literal\0".as_bytes(), &main_type.str_in_ref[0..15]);
+}
