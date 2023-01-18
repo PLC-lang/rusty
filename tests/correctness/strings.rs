@@ -916,7 +916,7 @@ fn assigning_global_strings_in_function_by_passing_references() {
 }
 
 #[test]
-fn assigning_global_strings_in_function_by_passing_sized_strigs() {
+fn assigning_global_strings_in_function_by_passing_sized_strings() {
     let src = r#"
 		FUNCTION foo : DINT
         VAR_INPUT
