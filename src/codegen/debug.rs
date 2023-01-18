@@ -595,7 +595,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
         let location = self.debug_info.create_debug_location(self.context, line + 1, column, scope, None);
-        llvm.builder.set_current_debug_location(llvm.context, location);
+        llvm.builder.set_current_debug_location(location);
     }
 
     fn register_function<'idx>(
