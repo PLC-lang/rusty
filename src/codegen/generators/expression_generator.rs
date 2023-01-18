@@ -1418,7 +1418,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //Load the reference
         self.do_generate_element_pointer(qualifier.cloned(), reference).and_then(|lvalue| {
             if let DataTypeInformation::Array { dimensions, .. } = self.get_type_hint_info_for(reference)? {
-                //Make sure dimensions match statement list
+                // make sure dimensions match statement list
                 let statements = access.get_as_list();
                 if statements.is_empty() || statements.len() != dimensions.len() {
                     return Err(Diagnostic::codegen_error("Invalid array access", access.get_location()));
@@ -1461,7 +1461,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             self.generate_access_for_dimension(dimension, statement))
                     .zip(dimension_portions);
 
-                //accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
+                // accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
                 let (index_access, _) = accessors_and_portions.fold(
                     (Ok(self.llvm.i32_type().const_zero().as_basic_value_enum()), 1),
                     |(accumulated_value, _), (current_v, current_portion)| {
@@ -1472,7 +1472,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                     .i32_type()
                                     .const_int(current_portion as u64, false)
                                     .as_basic_value_enum();
-                                //multiply the accessor with the dimension's portion
+                                // multiply the accessor with the dimension's portion
                                 let m_v = self.create_llvm_int_binary_expression(
                                     &Operator::Multiplication,
                                     current_portion_value,
@@ -1487,7 +1487,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     },
                 );
 
-                //make sure we got an int-value
+                // make sure we got an int-value
                 let index_access: IntValue = index_access.and_then(|it| {
                     it.try_into().map_err(|_| {
                         Diagnostic::codegen_error("non-numeric index-access", access.get_location())
@@ -1504,12 +1504,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     // only one index (index_access) is needed to access the element
 
                     // IGNORE the additional first index (0)
-                    // it would would point to -> i32
+                    // it would point to -> i32
                     // we can't access any element of i32
                     vec![index_access]
                 };
 
-                //Load the access from that array
+                // load the access from that array
                 let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
 
                 return Ok(pointer);

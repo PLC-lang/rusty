@@ -147,10 +147,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 Some(v)
                     if v.is_in_parameter_by_ref() &&
 					// parameters by ref will always be a pointer
-					// for array types we will generate a pointer to the arrays element type
-				   p.into_pointer_type().get_element_type().is_array_type() =>
+					p.into_pointer_type().get_element_type().is_array_type() =>
                 {
-                    // arrays passed by ref will be passed by a pointer to the arrays element type
+                    // for array types we will generate a pointer to the arrays element type
                     // not a pointer to array
                     let ty = p
                         .into_pointer_type()
@@ -206,7 +205,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {
-            // TODO: is this still valid ? do we need to consider the adjusted parameters list ?
             let parameter_types = declared_parameters
                 .iter()
                 .map(|v| self.index.get_effective_type_or_void_by_name(v.get_type_name()))
