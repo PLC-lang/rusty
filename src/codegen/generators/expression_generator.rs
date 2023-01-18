@@ -24,7 +24,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, vec};
 
 use crate::{
     ast::{flatten_expression_list, AstStatement, Operator},
@@ -1494,13 +1494,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     })
                 })?;
 
+                let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
+                    // e.g.: [81 x i32]*
+                    // the first index (0) will point to the array -> [81 x i32]
+                    // the second index (index_access) will point to the element in the array
+                    vec![self.llvm.i32_type().const_zero(), index_access]
+                } else {
+                    // lvalue is a pointer to type -> e.g.: i32*
+                    // only one index (index_access) is needed to access the element
+
+                    // IGNORE the additional first index (0)
+                    // it would would point to -> i32
+                    // we can't access any element of i32
+                    vec![index_access]
+                };
+
                 //Load the access from that array
-                //First 0 is to access the pointer, then we access the array
-                let pointer = self.llvm.load_array_element(
-                    lvalue,
-                    &[self.llvm.i32_type().const_zero(), index_access],
-                    "tmpVar",
-                )?;
+                let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
 
                 return Ok(pointer);
             }
