@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/glob-0.3.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/glob-0.3.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../glob/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1416,6 +1416,29 @@
 <span id="1409">1409</span>
 <span id="1410">1410</span>
 <span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
 <span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
@@ -1476,10 +1499,16 @@
 <span class="attribute">#![<span class="ident">doc</span>(
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://www.rust-lang.org/favicon.ico&quot;</span>,
-    <span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/glob/0.3.0&quot;</span>
+    <span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/glob/0.3.1&quot;</span>
 )]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">windows</span>), <span class="ident">feature</span>(<span class="ident">std_misc</span>))]</span>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">doc_comment</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="macro">doctest!</span>(<span class="string">&quot;../README.md&quot;</span>);
 
 <span class="kw">use</span> <span class="ident">std::cmp</span>;
 <span class="kw">use</span> <span class="ident">std::error::Error</span>;
@@ -1503,6 +1532,7 @@
 <span class="doccomment">/// `GlobError` is returned to express this.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the `glob` function for more details.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Paths</span> {
     <span class="ident">dir_patterns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pattern</span><span class="op">&gt;</span>,
     <span class="ident">require_dir</span>: <span class="ident">bool</span>,
@@ -1588,7 +1618,6 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">glob_with</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">options</span>: <span class="ident">MatchOptions</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Paths</span>, <span class="ident">PatternError</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
     <span class="kw">fn</span> <span class="ident">check_windows_verbatim</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">use</span> <span class="ident">std::path::Prefix</span>;
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">components</span>().<span class="ident">next</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">Component::Prefix</span>(<span class="kw-2">ref</span> <span class="ident">p</span>)) =&gt; <span class="ident">p</span>.<span class="ident">kind</span>().<span class="ident">is_verbatim</span>(),
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
@@ -1705,10 +1734,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">GlobError</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="self">self</span>.<span class="ident">error</span>.<span class="ident">description</span>()
     }
 
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unknown_lints</span>, <span class="ident">bare_trait_objects</span>)]</span>
     <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">error</span>)
     }
@@ -2006,11 +2037,12 @@
                             });
                         };
 
-                        <span class="kw">let</span> <span class="ident">tokens_len</span> <span class="op">=</span> <span class="ident">tokens</span>.<span class="ident">len</span>();
-
                         <span class="kw">if</span> <span class="ident">is_valid</span> {
                             <span class="comment">// collapse consecutive AnyRecursiveSequence to a</span>
                             <span class="comment">// single one</span>
+
+                            <span class="kw">let</span> <span class="ident">tokens_len</span> <span class="op">=</span> <span class="ident">tokens</span>.<span class="ident">len</span>();
+
                             <span class="kw">if</span> <span class="op">!</span>(<span class="ident">tokens_len</span> <span class="op">&gt;</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">tokens</span>[<span class="ident">tokens_len</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="ident">AnyRecursiveSequence</span>) {
                                 <span class="ident">is_recursive</span> <span class="op">=</span> <span class="bool-val">true</span>;
                                 <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">AnyRecursiveSequence</span>);
@@ -2379,7 +2411,7 @@
 
 <span class="doccomment">/// Configuration options to modify the behaviour of `Pattern::matches_with(..)`.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_copy_implementations</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MatchOptions</span> {
     <span class="doccomment">/// Whether or not patterns should be matched in a case-sensitive manner.</span>
     <span class="doccomment">/// This currently only considers upper/lower case relationships between</span>
@@ -2414,6 +2446,11 @@
     <span class="doccomment">///     require_literal_leading_dot: false</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Note</span>
+    <span class="doccomment">/// The behavior of this method doesn&#39;t match `default()`&#39;s. This returns</span>
+    <span class="doccomment">/// `case_sensitive` as `true` while `default()` does it as `false`.</span>
+    <span class="comment">// FIXME: Consider unity the behavior with `default()` in a next major release.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">case_sensitive</span>: <span class="bool-val">true</span>,
@@ -2496,12 +2533,21 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
         <span class="kw">fn</span> <span class="ident">win</span>() {
             <span class="kw">use</span> <span class="ident">std::env::current_dir</span>;
-            <span class="kw">use</span> <span class="ident">std::ffi::AsOsStr</span>;
+            <span class="kw">use</span> <span class="ident">std::path::Component</span>;
 
             <span class="comment">// check windows absolute paths with host/device components</span>
             <span class="kw">let</span> <span class="ident">root_with_device</span> <span class="op">=</span> <span class="ident">current_dir</span>()
                 .<span class="ident">ok</span>()
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">prefix</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">join</span>(<span class="string">&quot;*&quot;</span>)))
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
+                    <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">components</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>() {
+                        <span class="ident">Component::Prefix</span>(<span class="ident">prefix_component</span>) =&gt; {
+                            <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">prefix_component</span>.<span class="ident">as_os_str</span>());
+                            <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;*&quot;</span>);
+                            <span class="prelude-val">Some</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>())
+                        }
+                        <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;no prefix in this path&quot;</span>),
+                    }
+                })
                 .<span class="ident">unwrap</span>();
             <span class="comment">// FIXME (#9639): This needs to handle non-utf8 paths</span>
             <span class="macro">assert!</span>(<span class="ident">glob</span>(<span class="ident">root_with_device</span>.<span class="ident">as_os_str</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>())

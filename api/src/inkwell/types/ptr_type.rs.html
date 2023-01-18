@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/3c5d770/src/types/ptr_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ptr_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/c77d056/src/types/ptr_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ptr_type.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -305,18 +305,22 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMConstArray</span>, <span class="ident">LLVMGetPointerAddressSpace</span>};
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMTypeRef</span>, <span class="ident">LLVMValueRef</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::context::ContextRef</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::LLVMString</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::traits::AsTypeRef</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">AnyTypeEnum</span>, <span class="ident">ArrayType</span>, <span class="ident">FunctionType</span>, <span class="ident">Type</span>, <span class="ident">VectorType</span>};
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::AnyTypeEnum</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">ArrayType</span>, <span class="ident">FunctionType</span>, <span class="ident">Type</span>, <span class="ident">VectorType</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">ArrayValue</span>, <span class="ident">AsValueRef</span>, <span class="ident">IntValue</span>, <span class="ident">PointerValue</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::AddressSpace</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::enums::BasicMetadataTypeEnum</span>;
-<span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
 
 <span class="doccomment">/// A `PointerType` is the type of a pointer constant or variable.</span>
@@ -385,6 +389,7 @@
     <span class="doccomment">/// let f32_ptr_type = f32_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">/// let f32_ptr_ptr_type = f32_ptr_type.ptr_type(AddressSpace::default());</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// #[cfg(not(feature = &quot;llvm15-0&quot;))]</span>
     <span class="doccomment">/// assert_eq!(f32_ptr_ptr_type.get_element_type().into_pointer_type(), f32_ptr_type);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_type</span>(<span class="self">self</span>, <span class="ident">address_space</span>: <span class="ident">AddressSpace</span>) -&gt; <span class="ident">PointerType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -565,6 +570,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(f32_ptr_type.get_element_type().into_float_type(), f32_type);</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_element_type</span>(<span class="self">self</span>) -&gt; <span class="ident">AnyTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">ptr_type</span>.<span class="ident">get_element_type</span>()
     }

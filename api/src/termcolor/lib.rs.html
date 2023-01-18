@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/termcolor-1.1.3/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/termcolor-1.2.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../termcolor/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2263,6 +2263,96 @@
 <span id="2258">2258</span>
 <span id="2259">2259</span>
 <span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
+<span id="2278">2278</span>
+<span id="2279">2279</span>
+<span id="2280">2280</span>
+<span id="2281">2281</span>
+<span id="2282">2282</span>
+<span id="2283">2283</span>
+<span id="2284">2284</span>
+<span id="2285">2285</span>
+<span id="2286">2286</span>
+<span id="2287">2287</span>
+<span id="2288">2288</span>
+<span id="2289">2289</span>
+<span id="2290">2290</span>
+<span id="2291">2291</span>
+<span id="2292">2292</span>
+<span id="2293">2293</span>
+<span id="2294">2294</span>
+<span id="2295">2295</span>
+<span id="2296">2296</span>
+<span id="2297">2297</span>
+<span id="2298">2298</span>
+<span id="2299">2299</span>
+<span id="2300">2300</span>
+<span id="2301">2301</span>
+<span id="2302">2302</span>
+<span id="2303">2303</span>
+<span id="2304">2304</span>
+<span id="2305">2305</span>
+<span id="2306">2306</span>
+<span id="2307">2307</span>
+<span id="2308">2308</span>
+<span id="2309">2309</span>
+<span id="2310">2310</span>
+<span id="2311">2311</span>
+<span id="2312">2312</span>
+<span id="2313">2313</span>
+<span id="2314">2314</span>
+<span id="2315">2315</span>
+<span id="2316">2316</span>
+<span id="2317">2317</span>
+<span id="2318">2318</span>
+<span id="2319">2319</span>
+<span id="2320">2320</span>
+<span id="2321">2321</span>
+<span id="2322">2322</span>
+<span id="2323">2323</span>
+<span id="2324">2324</span>
+<span id="2325">2325</span>
+<span id="2326">2326</span>
+<span id="2327">2327</span>
+<span id="2328">2328</span>
+<span id="2329">2329</span>
+<span id="2330">2330</span>
+<span id="2331">2331</span>
+<span id="2332">2332</span>
+<span id="2333">2333</span>
+<span id="2334">2334</span>
+<span id="2335">2335</span>
+<span id="2336">2336</span>
+<span id="2337">2337</span>
+<span id="2338">2338</span>
+<span id="2339">2339</span>
+<span id="2340">2340</span>
+<span id="2341">2341</span>
+<span id="2342">2342</span>
+<span id="2343">2343</span>
+<span id="2344">2344</span>
+<span id="2345">2345</span>
+<span id="2346">2346</span>
+<span id="2347">2347</span>
+<span id="2348">2348</span>
+<span id="2349">2349</span>
+<span id="2350">2350</span>
 </pre><pre class="rust"><code><span class="doccomment">/*!
 This crate provides a cross platform abstraction for writing colored text to
 a terminal. Colors are written using either ANSI escape sequences or by
@@ -2363,18 +2453,10 @@ use atty;
 use termcolor::{ColorChoice, StandardStream};
 
 let preference = argv.get_flag(&quot;color&quot;).unwrap_or(&quot;auto&quot;);
-let choice = match preference {
-    &quot;always&quot; =&gt; ColorChoice::Always,
-    &quot;ansi&quot; =&gt; ColorChoice::AlwaysAnsi,
-    &quot;auto&quot; =&gt; {
-        if atty::is(atty::Stream::Stdout) {
-            ColorChoice::Auto
-        } else {
-            ColorChoice::Never
-        }
-    }
-    _ =&gt; ColorChoice::Never,
-};
+let mut choice = preference.parse::&lt;ColorChoice&gt;()?;
+if choice == ColorChoice::Auto &amp;&amp; !atty::is(atty::Stream::Stdout) {
+    choice = ColorChoice::Never;
+}
 let stdout = StandardStream::stdout(choice);
 // ... write to stdout
 ```
@@ -2382,7 +2464,7 @@ let stdout = StandardStream::stdout(choice);
 Currently, `termcolor` does not provide anything to do this for you.
 */</span>
 
-<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
+<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_debug_implementations</span>, <span class="ident">missing_docs</span>)]</span>
 
 <span class="comment">// #[cfg(doctest)]</span>
 <span class="comment">// use doc_comment::doctest;</span>
@@ -2468,6 +2550,13 @@ Currently, `termcolor` does not provide anything to do this for you.
 }
 
 <span class="doccomment">/// ColorChoice represents the color preferences of an end user.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The `Default` implementation for this type will select `Auto`, which tries</span>
+<span class="doccomment">/// to do the right thing based on the current environment.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The `FromStr` implementation for this type converts a lowercase kebab-case</span>
+<span class="doccomment">/// string of the variant name to the corresponding variant. Any other string</span>
+<span class="doccomment">/// results in an error.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ColorChoice</span> {
     <span class="doccomment">/// Try very hard to emit colors. This includes emitting ANSI colors</span>
@@ -2482,6 +2571,29 @@ Currently, `termcolor` does not provide anything to do this for you.
     <span class="ident">Auto</span>,
     <span class="doccomment">/// Never emit colors.</span>
     <span class="ident">Never</span>,
+}
+
+<span class="doccomment">/// The default is `Auto`.</span>
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ColorChoice</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">ColorChoice</span> {
+        <span class="ident">ColorChoice::Auto</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">ColorChoice</span> {
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">ColorChoiceParseError</span>;
+
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ColorChoice</span>, <span class="ident">ColorChoiceParseError</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">to_lowercase</span>().<span class="ident">as_str</span>() {
+            <span class="string">&quot;always&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ColorChoice::Always</span>),
+            <span class="string">&quot;always-ansi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ColorChoice::AlwaysAnsi</span>),
+            <span class="string">&quot;never&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ColorChoice::Never</span>),
+            <span class="string">&quot;auto&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ColorChoice::Auto</span>),
+            <span class="ident">unknown</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ColorChoiceParseError</span> {
+                <span class="ident">unknown_choice</span>: <span class="ident">unknown</span>.<span class="ident">to_string</span>(),
+            }),
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">ColorChoice</span> {
@@ -2556,6 +2668,25 @@ Currently, `termcolor` does not provide anything to do this for you.
     }
 }
 
+<span class="doccomment">/// An error that occurs when parsing a `ColorChoice` fails.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ColorChoiceParseError</span> {
+    <span class="ident">unknown_choice</span>: <span class="ident">String</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">ColorChoiceParseError</span> {}
+
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ColorChoiceParseError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="macro">write!</span>(
+            <span class="ident">f</span>,
+            <span class="string">&quot;unrecognized color choice &#39;{}&#39;: valid choices are: \
+             always, always-ansi, never, auto&quot;</span>,
+            <span class="self">self</span>.<span class="ident">unknown_choice</span>,
+        )
+    }
+}
+
 <span class="doccomment">/// `std::io` implements `Stdout` and `Stderr` (and their `Lock` variants) as</span>
 <span class="doccomment">/// separate types, which makes it difficult to abstract over them. We use</span>
 <span class="doccomment">/// some simple internal enum types to work around this.</span>
@@ -2567,6 +2698,7 @@ Currently, `termcolor` does not provide anything to do this for you.
     <span class="ident">StderrBuffered</span>,
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">IoStandardStream</span> {
     <span class="ident">Stdout</span>(<span class="ident">io::Stdout</span>),
     <span class="ident">Stderr</span>(<span class="ident">io::Stderr</span>),
@@ -2636,6 +2768,7 @@ Currently, `termcolor` does not provide anything to do this for you.
 
 <span class="comment">// Same rigmarole for the locked variants of the standard streams.</span>
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">IoStandardStreamLock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">StdoutLock</span>(<span class="ident">io::StdoutLock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>),
     <span class="ident">StderrLock</span>(<span class="ident">io::StderrLock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>),
@@ -2661,6 +2794,7 @@ Currently, `termcolor` does not provide anything to do this for you.
 
 <span class="doccomment">/// Satisfies `io::Write` and `WriteColor`, and supports optional coloring</span>
 <span class="doccomment">/// to either of the standard output streams, stdout and stderr.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StandardStream</span> {
     <span class="ident">wtr</span>: <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">WriterInner</span><span class="op">&lt;</span><span class="ident">IoStandardStream</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
@@ -2672,17 +2806,20 @@ Currently, `termcolor` does not provide anything to do this for you.
 <span class="doccomment">///</span>
 <span class="doccomment">/// The lifetime `&#39;a` refers to the lifetime of the corresponding</span>
 <span class="doccomment">/// `StandardStream`.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StandardStreamLock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">wtr</span>: <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">WriterInnerLock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">IoStandardStreamLock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Like `StandardStream`, but does buffered writing.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BufferedStandardStream</span> {
     <span class="ident">wtr</span>: <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">WriterInner</span><span class="op">&lt;</span><span class="ident">IoStandardStream</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// WriterInner is a (limited) generic representation of a writer. It is</span>
 <span class="doccomment">/// limited because W should only ever be stdout/stderr on Windows.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">WriterInner</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
     <span class="ident">NoColor</span>(<span class="ident">NoColor</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>),
     <span class="ident">Ansi</span>(<span class="ident">Ansi</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>),
@@ -2695,6 +2832,7 @@ Currently, `termcolor` does not provide anything to do this for you.
 
 <span class="doccomment">/// WriterInnerLock is a (limited) generic representation of a writer. It is</span>
 <span class="doccomment">/// limited because W should only ever be stdout/stderr on Windows.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">WriterInnerLock</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">W</span><span class="op">&gt;</span> {
     <span class="ident">NoColor</span>(<span class="ident">NoColor</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>),
     <span class="ident">Ansi</span>(<span class="ident">Ansi</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>),
@@ -3120,6 +3258,7 @@ Currently, `termcolor` does not provide anything to do this for you.
 <span class="doccomment">///</span>
 <span class="doccomment">/// It is intended for a `BufferWriter` to be put in an `Arc` and written to</span>
 <span class="doccomment">/// from multiple threads simultaneously.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BufferWriter</span> {
     <span class="ident">stream</span>: <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">IoStandardStream</span><span class="op">&gt;</span>,
     <span class="ident">printed</span>: <span class="ident">AtomicBool</span>,
@@ -3173,7 +3312,7 @@ Currently, `termcolor` does not provide anything to do this for you.
         }
         <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">LossyStandardStream::new</span>(<span class="ident">IoStandardStream::new</span>(<span class="ident">sty</span>));
         <span class="ident">BufferWriter</span> {
-            <span class="ident">stream</span>: <span class="ident">stream</span>,
+            <span class="ident">stream</span>,
             <span class="ident">printed</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
             <span class="ident">separator</span>: <span class="prelude-val">None</span>,
             <span class="ident">color_choice</span>: <span class="ident">choice</span>,
@@ -3278,9 +3417,11 @@ Currently, `termcolor` does not provide anything to do this for you.
 <span class="doccomment">/// method, which will take color preferences and the environment into</span>
 <span class="doccomment">/// account. However, buffers can also be manually created using `no_color`,</span>
 <span class="doccomment">/// `ansi` or `console` (on Windows).</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Buffer</span>(<span class="ident">BufferInner</span>);
 
 <span class="doccomment">/// BufferInner is an enumeration of different buffer types.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">BufferInner</span> {
     <span class="doccomment">/// No coloring information should be applied. This ignores all coloring</span>
     <span class="doccomment">/// directives.</span>
@@ -3460,6 +3601,7 @@ Currently, `termcolor` does not provide anything to do this for you.
 }
 
 <span class="doccomment">/// Satisfies `WriteColor` but ignores all color options.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoColor</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">W</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span> <span class="ident">NoColor</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
@@ -3520,6 +3662,7 @@ Currently, `termcolor` does not provide anything to do this for you.
 }
 
 <span class="doccomment">/// Satisfies `WriteColor` using standard ANSI escape sequences.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ansi</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">W</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span> <span class="ident">Ansi</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
@@ -3551,6 +3694,17 @@ Currently, `termcolor` does not provide anything to do this for you.
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">write</span>(<span class="ident">buf</span>)
     }
 
+    <span class="comment">// Adding this method here is not required because it has a default impl,</span>
+    <span class="comment">// but it seems to provide a perf improvement in some cases when using</span>
+    <span class="comment">// a `BufWriter` with lots of writes.</span>
+    <span class="comment">//</span>
+    <span class="comment">// See https://github.com/BurntSushi/termcolor/pull/56 for more details</span>
+    <span class="comment">// and a minimized example.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">write_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">write_all</span>(<span class="ident">buf</span>)
+    }
+
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">flush</span>()
@@ -3579,6 +3733,9 @@ Currently, `termcolor` does not provide anything to do this for you.
         }
         <span class="kw">if</span> <span class="ident">spec</span>.<span class="ident">underline</span> {
             <span class="self">self</span>.<span class="ident">write_str</span>(<span class="string">&quot;\x1B[4m&quot;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="kw">if</span> <span class="ident">spec</span>.<span class="ident">strikethrough</span> {
+            <span class="self">self</span>.<span class="ident">write_str</span>(<span class="string">&quot;\x1B[9m&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">c</span>) <span class="op">=</span> <span class="ident">spec</span>.<span class="ident">fg_color</span> {
             <span class="self">self</span>.<span class="ident">write_color</span>(<span class="bool-val">true</span>, <span class="ident">c</span>, <span class="ident">spec</span>.<span class="ident">intense</span>)<span class="question-mark">?</span>;
@@ -3851,6 +4008,7 @@ Currently, `termcolor` does not provide anything to do this for you.
     <span class="ident">dimmed</span>: <span class="ident">bool</span>,
     <span class="ident">italic</span>: <span class="ident">bool</span>,
     <span class="ident">reset</span>: <span class="ident">bool</span>,
+    <span class="ident">strikethrough</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ColorSpec</span> {
@@ -3864,6 +4022,7 @@ Currently, `termcolor` does not provide anything to do this for you.
             <span class="ident">dimmed</span>: <span class="bool-val">false</span>,
             <span class="ident">italic</span>: <span class="bool-val">false</span>,
             <span class="ident">reset</span>: <span class="bool-val">true</span>,
+            <span class="ident">strikethrough</span>: <span class="bool-val">false</span>,
         }
     }
 }
@@ -3956,6 +4115,21 @@ Currently, `termcolor` does not provide anything to do this for you.
         <span class="self">self</span>
     }
 
+    <span class="doccomment">/// Get whether this is strikethrough or not.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the strikethrough setting has no effect in a Windows console.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strikethrough</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">strikethrough</span>
+    }
+
+    <span class="doccomment">/// Set whether the text is strikethrough or not.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the strikethrough setting has no effect in a Windows console.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_strikethrough</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">ColorSpec</span> {
+        <span class="self">self</span>.<span class="ident">strikethrough</span> <span class="op">=</span> <span class="ident">yes</span>;
+        <span class="self">self</span>
+    }
+
     <span class="doccomment">/// Get whether reset is enabled or not.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// reset is enabled by default. When disabled and using ANSI escape</span>
@@ -4017,6 +4191,7 @@ Currently, `termcolor` does not provide anything to do this for you.
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dimmed</span>
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">italic</span>
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">intense</span>
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">strikethrough</span>
     }
 
     <span class="doccomment">/// Clears this color specification so that it has no color/style settings.</span>
@@ -4028,6 +4203,7 @@ Currently, `termcolor` does not provide anything to do this for you.
         <span class="self">self</span>.<span class="ident">intense</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="self">self</span>.<span class="ident">dimmed</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="self">self</span>.<span class="ident">italic</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="self">self</span>.<span class="ident">strikethrough</span> <span class="op">=</span> <span class="bool-val">false</span>;
     }
 
     <span class="doccomment">/// Writes this color spec to the given Windows console.</span>
@@ -4264,6 +4440,7 @@ Currently, `termcolor` does not provide anything to do this for you.
     }
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
     <span class="ident">wtr</span>: <span class="ident">W</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
@@ -4273,14 +4450,14 @@ Currently, `termcolor` does not provide anything to do this for you.
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">io::Write</span><span class="op">&gt;</span> <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">wtr</span>: <span class="ident">W</span>) -&gt; <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-        <span class="ident">LossyStandardStream</span> { <span class="ident">wtr</span>: <span class="ident">wtr</span> }
+        <span class="ident">LossyStandardStream</span> { <span class="ident">wtr</span> }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">wtr</span>: <span class="ident">W</span>) -&gt; <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">is_console</span> <span class="op">=</span> <span class="ident">wincon::Console::stdout</span>().<span class="ident">is_ok</span>()
             <span class="op">|</span><span class="op">|</span> <span class="ident">wincon::Console::stderr</span>().<span class="ident">is_ok</span>();
-        <span class="ident">LossyStandardStream</span> { <span class="ident">wtr</span>: <span class="ident">wtr</span>, <span class="ident">is_console</span>: <span class="ident">is_console</span> }
+        <span class="ident">LossyStandardStream</span> { <span class="ident">wtr</span>, <span class="ident">is_console</span> }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">windows</span>))]</span>
@@ -4290,7 +4467,7 @@ Currently, `termcolor` does not provide anything to do this for you.
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
     <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="ident">io::Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">wtr</span>: <span class="ident">Q</span>) -&gt; <span class="ident">LossyStandardStream</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span> {
-        <span class="ident">LossyStandardStream</span> { <span class="ident">wtr</span>: <span class="ident">wtr</span>, <span class="ident">is_console</span>: <span class="self">self</span>.<span class="ident">is_console</span> }
+        <span class="ident">LossyStandardStream</span> { <span class="ident">wtr</span>, <span class="ident">is_console</span>: <span class="self">self</span>.<span class="ident">is_console</span> }
     }
 
     <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">W</span> {
@@ -4481,16 +4658,19 @@ Currently, `termcolor` does not provide anything to do this for you.
                     <span class="kw">for</span> <span class="ident">underline</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="bool-val">false</span>, <span class="bool-val">true</span>] {
                         <span class="kw">for</span> <span class="ident">intense</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="bool-val">false</span>, <span class="bool-val">true</span>] {
                             <span class="kw">for</span> <span class="ident">italic</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="bool-val">false</span>, <span class="bool-val">true</span>] {
-                                <span class="kw">for</span> <span class="ident">dimmed</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="bool-val">false</span>, <span class="bool-val">true</span>] {
-                                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">color</span> <span class="op">=</span> <span class="ident">ColorSpec::new</span>();
-                                    <span class="ident">color</span>.<span class="ident">set_fg</span>(<span class="ident">fg</span>);
-                                    <span class="ident">color</span>.<span class="ident">set_bg</span>(<span class="ident">bg</span>);
-                                    <span class="ident">color</span>.<span class="ident">set_bold</span>(<span class="ident">bold</span>);
-                                    <span class="ident">color</span>.<span class="ident">set_underline</span>(<span class="ident">underline</span>);
-                                    <span class="ident">color</span>.<span class="ident">set_intense</span>(<span class="ident">intense</span>);
-                                    <span class="ident">color</span>.<span class="ident">set_dimmed</span>(<span class="ident">dimmed</span>);
-                                    <span class="ident">color</span>.<span class="ident">set_italic</span>(<span class="ident">italic</span>);
-                                    <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">color</span>);
+                                <span class="kw">for</span> <span class="ident">strikethrough</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="bool-val">false</span>, <span class="bool-val">true</span>] {
+                                    <span class="kw">for</span> <span class="ident">dimmed</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="bool-val">false</span>, <span class="bool-val">true</span>] {
+                                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">color</span> <span class="op">=</span> <span class="ident">ColorSpec::new</span>();
+                                        <span class="ident">color</span>.<span class="ident">set_fg</span>(<span class="ident">fg</span>);
+                                        <span class="ident">color</span>.<span class="ident">set_bg</span>(<span class="ident">bg</span>);
+                                        <span class="ident">color</span>.<span class="ident">set_bold</span>(<span class="ident">bold</span>);
+                                        <span class="ident">color</span>.<span class="ident">set_underline</span>(<span class="ident">underline</span>);
+                                        <span class="ident">color</span>.<span class="ident">set_intense</span>(<span class="ident">intense</span>);
+                                        <span class="ident">color</span>.<span class="ident">set_italic</span>(<span class="ident">italic</span>);
+                                        <span class="ident">color</span>.<span class="ident">set_dimmed</span>(<span class="ident">dimmed</span>);
+                                        <span class="ident">color</span>.<span class="ident">set_strikethrough</span>(<span class="ident">strikethrough</span>);
+                                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">color</span>);
+                                    }
                                 }
                             }
                         }

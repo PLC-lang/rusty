@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/3c5d770/src/values/float_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>float_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/c77d056/src/values/float_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>float_value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -185,9 +185,24 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
-    <span class="ident">LLVMConstFAdd</span>, <span class="ident">LLVMConstFCmp</span>, <span class="ident">LLVMConstFDiv</span>, <span class="ident">LLVMConstFMul</span>, <span class="ident">LLVMConstFNeg</span>, <span class="ident">LLVMConstFPCast</span>, <span class="ident">LLVMConstFPExt</span>,
-    <span class="ident">LLVMConstFPToSI</span>, <span class="ident">LLVMConstFPToUI</span>, <span class="ident">LLVMConstFPTrunc</span>, <span class="ident">LLVMConstFRem</span>, <span class="ident">LLVMConstFSub</span>, <span class="ident">LLVMConstRealGetDouble</span>,
+    <span class="ident">LLVMConstFCmp</span>, <span class="ident">LLVMConstFNeg</span>, <span class="ident">LLVMConstFPCast</span>, <span class="ident">LLVMConstFPExt</span>, <span class="ident">LLVMConstFPToSI</span>, <span class="ident">LLVMConstFPToUI</span>, <span class="ident">LLVMConstFPTrunc</span>,
+    <span class="ident">LLVMConstRealGetDouble</span>,
 };
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMValueRef</span>;
 
@@ -251,23 +266,38 @@
         <span class="kw">unsafe</span> { <span class="ident">FloatValue::new</span>(<span class="ident">LLVMConstFNeg</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())) }
     }
 
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMConstFAdd</span>;
+
         <span class="kw">unsafe</span> { <span class="ident">FloatValue::new</span>(<span class="ident">LLVMConstFAdd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())) }
     }
 
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMConstFSub</span>;
+
         <span class="kw">unsafe</span> { <span class="ident">FloatValue::new</span>(<span class="ident">LLVMConstFSub</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())) }
     }
 
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMConstFMul</span>;
+
         <span class="kw">unsafe</span> { <span class="ident">FloatValue::new</span>(<span class="ident">LLVMConstFMul</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())) }
     }
 
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMConstFDiv</span>;
+
         <span class="kw">unsafe</span> { <span class="ident">FloatValue::new</span>(<span class="ident">LLVMConstFDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())) }
     }
 
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_remainder</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMConstFRem</span>;
+
         <span class="kw">unsafe</span> { <span class="ident">FloatValue::new</span>(<span class="ident">LLVMConstFRem</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())) }
     }
 

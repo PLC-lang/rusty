@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/3c5d770/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/c77d056/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2115,18 +2115,34 @@
 <span id="2110">2110</span>
 <span id="2111">2111</span>
 <span id="2112">2112</span>
+<span id="2113">2113</span>
+<span id="2114">2114</span>
+<span id="2115">2115</span>
+<span id="2116">2116</span>
+<span id="2117">2117</span>
+<span id="2118">2118</span>
+<span id="2119">2119</span>
+<span id="2120">2120</span>
+<span id="2121">2121</span>
+<span id="2122">2122</span>
+<span id="2123">2123</span>
+<span id="2124">2124</span>
+<span id="2125">2125</span>
+<span id="2126">2126</span>
+<span id="2127">2127</span>
+<span id="2128">2128</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A `Context` is an opaque owner and manager of core global data.</span>
 
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::InlineAsmDialect</span>;
 <span class="kw">use</span> <span class="ident">libc::c_void</span>;
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="number">7.0</span>)]</span>
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">6.0</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMConstInlineAsm</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">12.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMCreateTypeAttribute</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetInlineAsm</span>;
-<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="number">12.0</span>)]</span>
+<span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">11.0</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetTypeByName</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">12.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetTypeByName2</span>;
@@ -2136,9 +2152,9 @@
     <span class="ident">LLVMAppendBasicBlockInContext</span>, <span class="ident">LLVMConstStringInContext</span>, <span class="ident">LLVMConstStructInContext</span>, <span class="ident">LLVMContextCreate</span>,
     <span class="ident">LLVMContextDispose</span>, <span class="ident">LLVMContextSetDiagnosticHandler</span>, <span class="ident">LLVMCreateBuilderInContext</span>, <span class="ident">LLVMCreateEnumAttribute</span>,
     <span class="ident">LLVMCreateStringAttribute</span>, <span class="ident">LLVMDoubleTypeInContext</span>, <span class="ident">LLVMFP128TypeInContext</span>, <span class="ident">LLVMFloatTypeInContext</span>,
-    <span class="ident">LLVMGetGlobalContext</span>, <span class="ident">LLVMGetMDKindIDInContext</span>, <span class="ident">LLVMGetTypeKind</span>, <span class="ident">LLVMHalfTypeInContext</span>,
-    <span class="ident">LLVMInsertBasicBlockInContext</span>, <span class="ident">LLVMInt16TypeInContext</span>, <span class="ident">LLVMInt1TypeInContext</span>, <span class="ident">LLVMInt32TypeInContext</span>,
-    <span class="ident">LLVMInt64TypeInContext</span>, <span class="ident">LLVMInt8TypeInContext</span>, <span class="ident">LLVMIntTypeInContext</span>, <span class="ident">LLVMMDNodeInContext</span>, <span class="ident">LLVMMDStringInContext</span>,
+    <span class="ident">LLVMGetGlobalContext</span>, <span class="ident">LLVMGetMDKindIDInContext</span>, <span class="ident">LLVMHalfTypeInContext</span>, <span class="ident">LLVMInsertBasicBlockInContext</span>,
+    <span class="ident">LLVMInt16TypeInContext</span>, <span class="ident">LLVMInt1TypeInContext</span>, <span class="ident">LLVMInt32TypeInContext</span>, <span class="ident">LLVMInt64TypeInContext</span>,
+    <span class="ident">LLVMInt8TypeInContext</span>, <span class="ident">LLVMIntTypeInContext</span>, <span class="ident">LLVMMDNodeInContext</span>, <span class="ident">LLVMMDStringInContext</span>,
     <span class="ident">LLVMModuleCreateWithNameInContext</span>, <span class="ident">LLVMPPCFP128TypeInContext</span>, <span class="ident">LLVMStructCreateNamed</span>, <span class="ident">LLVMStructTypeInContext</span>,
     <span class="ident">LLVMVoidTypeInContext</span>, <span class="ident">LLVMX86FP80TypeInContext</span>,
 };
@@ -2171,7 +2187,6 @@
 
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std::mem::forget</span>;
-
 <span class="kw">use</span> <span class="ident">std::ptr</span>;
 <span class="kw">use</span> <span class="ident">std::thread_local</span>;
 
@@ -2640,7 +2655,6 @@
     <span class="doccomment">/// ```no_run</span>
     <span class="doccomment">/// use std::convert::TryFrom;</span>
     <span class="doccomment">/// use inkwell::context::Context;</span>
-    <span class="doccomment">/// use inkwell::values::CallableValue;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let module = context.create_module(&quot;my_module&quot;);</span>
@@ -2673,8 +2687,17 @@
     <span class="doccomment">///     false,</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// let params = &amp;[context.i64_type().const_int(60, false).into(), context.i64_type().const_int(1, false).into()];</span>
-    <span class="doccomment">/// let callable_value = CallableValue::try_from(asm).unwrap();</span>
-    <span class="doccomment">/// builder.build_call(callable_value, params, &quot;exit&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #[cfg(not(any(feature = &quot;llvm15-0&quot;)))]</span>
+    <span class="doccomment">/// {</span>
+    <span class="doccomment">///     use inkwell::values::CallableValue;</span>
+    <span class="doccomment">///     let callable_value = CallableValue::try_from(asm).unwrap();</span>
+    <span class="doccomment">///     builder.build_call(callable_value, params, &quot;exit&quot;);</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #[cfg(any(feature = &quot;llvm15-0&quot;))]</span>
+    <span class="doccomment">/// builder.build_indirect_call(asm_fn, asm, params, &quot;exit&quot;);</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// builder.build_return(None);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3367,6 +3390,7 @@
         <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">const_string</span>(<span class="ident">string</span>, <span class="ident">null_terminated</span>)
     }
 
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_diagnostic_handler</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -3474,7 +3498,6 @@
     <span class="doccomment">/// ```no_run</span>
     <span class="doccomment">/// use std::convert::TryFrom;</span>
     <span class="doccomment">/// use inkwell::context::Context;</span>
-    <span class="doccomment">/// use inkwell::values::CallableValue;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let context = Context::create();</span>
     <span class="doccomment">/// let module = context.create_module(&quot;my_module&quot;);</span>
@@ -3507,8 +3530,17 @@
     <span class="doccomment">///     false,</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// let params = &amp;[context.i64_type().const_int(60, false).into(), context.i64_type().const_int(1, false).into()];</span>
-    <span class="doccomment">/// let callable_value = CallableValue::try_from(asm).unwrap();</span>
-    <span class="doccomment">/// builder.build_call(callable_value, params, &quot;exit&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #[cfg(not(any(feature = &quot;llvm15-0&quot;)))]</span>
+    <span class="doccomment">/// {</span>
+    <span class="doccomment">///     use inkwell::values::CallableValue;</span>
+    <span class="doccomment">///     let callable_value = CallableValue::try_from(asm).unwrap();</span>
+    <span class="doccomment">///     builder.build_call(callable_value, params, &quot;exit&quot;);</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #[cfg(any(feature = &quot;llvm15-0&quot;))]</span>
+    <span class="doccomment">/// builder.build_indirect_call(asm_fn, asm, params, &quot;exit&quot;);</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// builder.build_return(None);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>

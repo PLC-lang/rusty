@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/3c5d770/src/basic_block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>basic_block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/c77d056/src/basic_block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>basic_block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -559,6 +559,18 @@
 <span id="554">554</span>
 <span id="555">555</span>
 <span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A `BasicBlock` is a container of instructions.</span>
 
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
@@ -566,7 +578,7 @@
     <span class="ident">LLVMGetBasicBlockTerminator</span>, <span class="ident">LLVMGetFirstInstruction</span>, <span class="ident">LLVMGetFirstUse</span>, <span class="ident">LLVMGetLastInstruction</span>,
     <span class="ident">LLVMGetNextBasicBlock</span>, <span class="ident">LLVMGetPreviousBasicBlock</span>, <span class="ident">LLVMGetTypeContext</span>, <span class="ident">LLVMIsABasicBlock</span>, <span class="ident">LLVMIsConstant</span>,
     <span class="ident">LLVMMoveBasicBlockAfter</span>, <span class="ident">LLVMMoveBasicBlockBefore</span>, <span class="ident">LLVMPrintTypeToString</span>, <span class="ident">LLVMPrintValueToString</span>,
-    <span class="ident">LLVMRemoveBasicBlockFromParent</span>, <span class="ident">LLVMReplaceAllUsesWith</span>, <span class="ident">LLVMSetValueName</span>, <span class="ident">LLVMTypeOf</span>,
+    <span class="ident">LLVMRemoveBasicBlockFromParent</span>, <span class="ident">LLVMReplaceAllUsesWith</span>, <span class="ident">LLVMTypeOf</span>,
 };
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMBasicBlockRef</span>, <span class="ident">LLVMValueRef</span>};
 
@@ -985,7 +997,19 @@
     <span class="doccomment">/// Set name of the `BasicBlock`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
-        <span class="kw">unsafe</span> { <span class="ident">LLVMSetValueName</span>(<span class="ident">LLVMBasicBlockAsValue</span>(<span class="self">self</span>.<span class="ident">basic_block</span>), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>))]</span>
+        {
+            <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetValueName</span>;
+
+            <span class="kw">unsafe</span> { <span class="ident">LLVMSetValueName</span>(<span class="ident">LLVMBasicBlockAsValue</span>(<span class="self">self</span>.<span class="ident">basic_block</span>), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
+        }
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>)))]</span>
+        {
+            <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetValueName2</span>;
+
+            <span class="kw">unsafe</span> { <span class="ident">LLVMSetValueName2</span>(<span class="ident">LLVMBasicBlockAsValue</span>(<span class="self">self</span>.<span class="ident">basic_block</span>), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(), <span class="ident">name</span>.<span class="ident">len</span>()) };
+        }
     }
 
     <span class="doccomment">/// Replaces all uses of this basic block with another.</span>

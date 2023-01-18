@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/3c5d770/src/passes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>passes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/c77d056/src/passes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>passes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1245,6 +1245,13 @@
 <span id="1240">1240</span>
 <span id="1241">1241</span>
 <span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{
     <span class="ident">LLVMCreateFunctionPassManagerForModule</span>, <span class="ident">LLVMCreatePassManager</span>, <span class="ident">LLVMDisposePassManager</span>,
     <span class="ident">LLVMFinalizeFunctionPassManager</span>, <span class="ident">LLVMGetGlobalPassRegistry</span>, <span class="ident">LLVMInitializeFunctionPassManager</span>,
@@ -1259,17 +1266,15 @@
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">10.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::transforms::ipo::LLVMAddMergeFunctionsPass</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::transforms::ipo</span>::{
-    <span class="ident">LLVMAddAlwaysInlinerPass</span>, <span class="ident">LLVMAddArgumentPromotionPass</span>, <span class="ident">LLVMAddConstantMergePass</span>, <span class="ident">LLVMAddDeadArgEliminationPass</span>,
-    <span class="ident">LLVMAddFunctionAttrsPass</span>, <span class="ident">LLVMAddFunctionInliningPass</span>, <span class="ident">LLVMAddGlobalDCEPass</span>, <span class="ident">LLVMAddGlobalOptimizerPass</span>,
-    <span class="ident">LLVMAddIPSCCPPass</span>, <span class="ident">LLVMAddInternalizePass</span>, <span class="ident">LLVMAddPruneEHPass</span>, <span class="ident">LLVMAddStripDeadPrototypesPass</span>,
-    <span class="ident">LLVMAddStripSymbolsPass</span>,
+    <span class="ident">LLVMAddAlwaysInlinerPass</span>, <span class="ident">LLVMAddConstantMergePass</span>, <span class="ident">LLVMAddDeadArgEliminationPass</span>, <span class="ident">LLVMAddFunctionAttrsPass</span>,
+    <span class="ident">LLVMAddFunctionInliningPass</span>, <span class="ident">LLVMAddGlobalDCEPass</span>, <span class="ident">LLVMAddGlobalOptimizerPass</span>, <span class="ident">LLVMAddIPSCCPPass</span>,
+    <span class="ident">LLVMAddInternalizePass</span>, <span class="ident">LLVMAddPruneEHPass</span>, <span class="ident">LLVMAddStripDeadPrototypesPass</span>, <span class="ident">LLVMAddStripSymbolsPass</span>,
 };
 <span class="kw">use</span> <span class="ident">llvm_sys::transforms::pass_manager_builder</span>::{
     <span class="ident">LLVMPassManagerBuilderCreate</span>, <span class="ident">LLVMPassManagerBuilderDispose</span>, <span class="ident">LLVMPassManagerBuilderPopulateFunctionPassManager</span>,
-    <span class="ident">LLVMPassManagerBuilderPopulateLTOPassManager</span>, <span class="ident">LLVMPassManagerBuilderPopulateModulePassManager</span>,
-    <span class="ident">LLVMPassManagerBuilderRef</span>, <span class="ident">LLVMPassManagerBuilderSetDisableSimplifyLibCalls</span>,
-    <span class="ident">LLVMPassManagerBuilderSetDisableUnitAtATime</span>, <span class="ident">LLVMPassManagerBuilderSetDisableUnrollLoops</span>,
-    <span class="ident">LLVMPassManagerBuilderSetOptLevel</span>, <span class="ident">LLVMPassManagerBuilderSetSizeLevel</span>,
+    <span class="ident">LLVMPassManagerBuilderPopulateModulePassManager</span>, <span class="ident">LLVMPassManagerBuilderRef</span>,
+    <span class="ident">LLVMPassManagerBuilderSetDisableSimplifyLibCalls</span>, <span class="ident">LLVMPassManagerBuilderSetDisableUnitAtATime</span>,
+    <span class="ident">LLVMPassManagerBuilderSetDisableUnrollLoops</span>, <span class="ident">LLVMPassManagerBuilderSetOptLevel</span>, <span class="ident">LLVMPassManagerBuilderSetSizeLevel</span>,
     <span class="ident">LLVMPassManagerBuilderUseInlinerWithThreshold</span>,
 };
 <span class="kw">use</span> <span class="ident">llvm_sys::transforms::scalar</span>::{
@@ -1278,7 +1283,7 @@
     <span class="ident">LLVMAddDeadStoreEliminationPass</span>, <span class="ident">LLVMAddDemoteMemoryToRegisterPass</span>, <span class="ident">LLVMAddEarlyCSEPass</span>, <span class="ident">LLVMAddGVNPass</span>,
     <span class="ident">LLVMAddIndVarSimplifyPass</span>, <span class="ident">LLVMAddInstructionCombiningPass</span>, <span class="ident">LLVMAddJumpThreadingPass</span>, <span class="ident">LLVMAddLICMPass</span>,
     <span class="ident">LLVMAddLoopDeletionPass</span>, <span class="ident">LLVMAddLoopIdiomPass</span>, <span class="ident">LLVMAddLoopRerollPass</span>, <span class="ident">LLVMAddLoopRotatePass</span>, <span class="ident">LLVMAddLoopUnrollPass</span>,
-    <span class="ident">LLVMAddLoopUnswitchPass</span>, <span class="ident">LLVMAddLowerExpectIntrinsicPass</span>, <span class="ident">LLVMAddMemCpyOptPass</span>, <span class="ident">LLVMAddMergedLoadStoreMotionPass</span>,
+    <span class="ident">LLVMAddLowerExpectIntrinsicPass</span>, <span class="ident">LLVMAddMemCpyOptPass</span>, <span class="ident">LLVMAddMergedLoadStoreMotionPass</span>,
     <span class="ident">LLVMAddPartiallyInlineLibCallsPass</span>, <span class="ident">LLVMAddReassociatePass</span>, <span class="ident">LLVMAddSCCPPass</span>, <span class="ident">LLVMAddScalarReplAggregatesPass</span>,
     <span class="ident">LLVMAddScalarReplAggregatesPassSSA</span>, <span class="ident">LLVMAddScalarReplAggregatesPassWithThreshold</span>, <span class="ident">LLVMAddScalarizerPass</span>,
     <span class="ident">LLVMAddScopedNoAliasAAPass</span>, <span class="ident">LLVMAddSimplifyLibCallsPass</span>, <span class="ident">LLVMAddTailCallEliminationPass</span>,
@@ -1430,7 +1435,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// pass_manager_builder.populate_lto_pass_manager(&amp;lpm, false, false);</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">populate_lto_pass_manager</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pass_manager</span>: <span class="kw-2">&amp;</span><span class="ident">PassManager</span><span class="op">&lt;</span><span class="ident">Module</span><span class="op">&gt;</span>, <span class="ident">internalize</span>: <span class="ident">bool</span>, <span class="ident">run_inliner</span>: <span class="ident">bool</span>) {
+        <span class="kw">use</span> <span class="ident">llvm_sys::transforms::pass_manager_builder::LLVMPassManagerBuilderPopulateLTOPassManager</span>;
+
         <span class="kw">unsafe</span> {
             <span class="ident">LLVMPassManagerBuilderPopulateLTOPassManager</span>(
                 <span class="self">self</span>.<span class="ident">pass_manager_builder</span>,
@@ -1547,7 +1555,10 @@
     <span class="doccomment">/// only stored to (returning the value instead), but does not currently.</span>
     <span class="doccomment">/// This case would be best handled when and if LLVM starts supporting multiple</span>
     <span class="doccomment">/// return values from functions.</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_argument_promotion_pass</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">use</span> <span class="ident">llvm_sys::transforms::ipo::LLVMAddArgumentPromotionPass</span>;
+
         <span class="kw">unsafe</span> { <span class="ident">LLVMAddArgumentPromotionPass</span>(<span class="self">self</span>.<span class="ident">pass_manager</span>) }
     }
 
@@ -1968,7 +1979,10 @@
     <span class="doccomment">/// to be run before it to hoist invariant conditions</span>
     <span class="doccomment">/// out of the loop, to make the unswitching opportunity</span>
     <span class="doccomment">/// obvious.</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">14.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_loop_unswitch_pass</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">use</span> <span class="ident">llvm_sys::transforms::scalar::LLVMAddLoopUnswitchPass</span>;
+
         <span class="kw">unsafe</span> { <span class="ident">LLVMAddLoopUnswitchPass</span>(<span class="self">self</span>.<span class="ident">pass_manager</span>) }
     }
 
@@ -2004,7 +2018,7 @@
     <span class="doccomment">/// order to rewrite loads and stores as appropriate. This is just</span>
     <span class="doccomment">/// the standard SSA construction algorithm to construct &quot;pruned&quot; SSA form.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_promote_memory_to_register_pass</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="number">7.0</span>)]</span>
+        <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="number">6.0</span>)]</span>
         <span class="kw">use</span> <span class="ident">llvm_sys::transforms::scalar::LLVMAddPromoteMemoryToRegisterPass</span>;
         <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
         <span class="kw">use</span> <span class="ident">llvm_sys::transforms::util::LLVMAddPromoteMemoryToRegisterPass</span>;
@@ -2255,28 +2269,28 @@
         <span class="kw">unsafe</span> { <span class="ident">LLVMAddLoopUnrollAndJamPass</span>(<span class="self">self</span>.<span class="ident">pass_manager</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="number">15.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_coroutine_early_pass</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::transforms::coroutines::LLVMAddCoroEarlyPass</span>;
 
         <span class="kw">unsafe</span> { <span class="ident">LLVMAddCoroEarlyPass</span>(<span class="self">self</span>.<span class="ident">pass_manager</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="number">15.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_coroutine_split_pass</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::transforms::coroutines::LLVMAddCoroSplitPass</span>;
 
         <span class="kw">unsafe</span> { <span class="ident">LLVMAddCoroSplitPass</span>(<span class="self">self</span>.<span class="ident">pass_manager</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="number">15.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_coroutine_elide_pass</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::transforms::coroutines::LLVMAddCoroElidePass</span>;
 
         <span class="kw">unsafe</span> { <span class="ident">LLVMAddCoroElidePass</span>(<span class="self">self</span>.<span class="ident">pass_manager</span>) }
     }
 
-    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="number">15.0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_coroutine_cleanup_pass</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">use</span> <span class="ident">llvm_sys::transforms::coroutines::LLVMAddCoroCleanupPass</span>;
 

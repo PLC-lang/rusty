@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/3c5d770/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/c77d056/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -457,6 +457,18 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Inkwell documentation is a work in progress.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! If you have any LLVM knowledge that could be used to improve these docs, we would greatly appreciate you opening an issue and/or a pull request on our [GitHub page](https://github.com/TheDan64/inkwell).</span>
@@ -510,6 +522,8 @@
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_130</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm14-0&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_140</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm15-0&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_150</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">llvm_sys_40</span> <span class="kw">as</span> <span class="ident">llvm_sys</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>)]</span>
@@ -562,7 +576,7 @@
     }
 }
 
-<span class="macro">assert_unique_used_features!</span> {<span class="string">&quot;llvm4-0&quot;</span>, <span class="string">&quot;llvm5-0&quot;</span>, <span class="string">&quot;llvm6-0&quot;</span>, <span class="string">&quot;llvm7-0&quot;</span>, <span class="string">&quot;llvm8-0&quot;</span>, <span class="string">&quot;llvm9-0&quot;</span>, <span class="string">&quot;llvm10-0&quot;</span>, <span class="string">&quot;llvm11-0&quot;</span>, <span class="string">&quot;llvm12-0&quot;</span>, <span class="string">&quot;llvm13-0&quot;</span>, <span class="string">&quot;llvm14-0&quot;</span>}
+<span class="macro">assert_unique_used_features!</span> {<span class="string">&quot;llvm4-0&quot;</span>, <span class="string">&quot;llvm5-0&quot;</span>, <span class="string">&quot;llvm6-0&quot;</span>, <span class="string">&quot;llvm7-0&quot;</span>, <span class="string">&quot;llvm8-0&quot;</span>, <span class="string">&quot;llvm9-0&quot;</span>, <span class="string">&quot;llvm10-0&quot;</span>, <span class="string">&quot;llvm11-0&quot;</span>, <span class="string">&quot;llvm12-0&quot;</span>, <span class="string">&quot;llvm13-0&quot;</span>, <span class="string">&quot;llvm14-0&quot;</span>, <span class="string">&quot;llvm15-0&quot;</span>}
 
 <span class="doccomment">/// Defines the address space in which a global will be inserted.</span>
 <span class="doccomment">///</span>
@@ -803,6 +817,16 @@
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">10.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="attribute">#[<span class="ident">llvm_variant</span>(<span class="ident">LLVMAtomicRMWBinOpFSub</span>)]</span>
     <span class="ident">FSub</span>,
+
+    <span class="doccomment">/// Sets memory to the greater of the two float-typed values, one provided and one from memory. Returns the value that was in memory.</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">15.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+    <span class="attribute">#[<span class="ident">llvm_variant</span>(<span class="ident">LLVMAtomicRMWBinOpFMax</span>)]</span>
+    <span class="ident">FMax</span>,
+
+    <span class="doccomment">/// Sets memory to the lesser of the two float-typed values, one provided and one from memory. Returns the value that was in memory.</span>
+    <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">15.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
+    <span class="attribute">#[<span class="ident">llvm_variant</span>(<span class="ident">LLVMAtomicRMWBinOpFMin</span>)]</span>
+    <span class="ident">FMin</span>,
 }
 
 <span class="doccomment">/// Defines the optimization level used to compile a `Module`.</span>
