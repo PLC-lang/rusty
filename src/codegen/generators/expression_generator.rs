@@ -204,7 +204,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // generate the expression
-        match expression {
+        match dbg!(expression) {
             AstStatement::Reference { .. } => {
                 if let Some(StatementAnnotation::Variable { qualified_name, constant: true, .. }) =
                     self.annotations.get(expression)
@@ -503,6 +503,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .map(ExpressionValue::RValue);
         }
 
+        dbg!(&operator);
         let function_name = implementation.get_call_name();
         let mut arguments_list = self.generate_pou_call_arguments_list(
             pou,

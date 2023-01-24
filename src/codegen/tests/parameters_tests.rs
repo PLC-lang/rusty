@@ -551,3 +551,24 @@ fn program_missing_output_assignment() {
     // THEN
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn program_accepts_empty_statement_as_param() {
+    // GIVEN
+    let result = codegen(
+        "
+		PROGRAM prog
+		VAR_INPUT
+			in1: DINT;
+		END_VAR
+		END_PROGRAM
+
+		PROGRAM main
+			prog(in1 := );
+		END_PROGRAM
+		",
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
