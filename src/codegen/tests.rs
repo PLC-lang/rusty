@@ -2,6 +2,7 @@
 mod code_gen_tests;
 mod codegen_error_messages_tests;
 mod compare_instructions_tests;
+mod constants_tests;
 mod debug_tests;
 mod directaccess_test;
 mod expression_tests;

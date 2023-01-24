@@ -4,6 +4,7 @@ use super::{
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
     statement_generator::{FunctionContext, StatementCodeGenerator},
+    ADDRESS_SPACE_GENERIC,
 };
 use crate::{
     ast::{AstStatement, NewLines},
@@ -148,7 +149,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 // add the out pointer as an extra parameter in the beginning
                 let return_llvm_type = self.llvm_index.get_associated_type(r_type.get_name())?;
                 let mut params_with_inout = Vec::with_capacity(parameters.len() + 1);
-                params_with_inout.push(return_llvm_type.ptr_type(AddressSpace::Generic).into()); //TODO: what is the correct address space?
+                params_with_inout
+                    .push(return_llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()); //TODO: what is the correct address space?
                 params_with_inout.extend(parameters.iter().cloned());
                 // no return, adapted parameters
                 (None, params_with_inout)
@@ -182,7 +184,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 pou,
                 return_type,
                 parameter_types.as_slice(),
-                implementation.get_location().line_number as u32,
+                implementation.get_location().line_number,
             );
         }
         Ok(curr_f)
@@ -202,13 +204,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     implementation.get_associated_class_name().expect("Method needs to have a class-name");
                 let instance_members_struct_type: StructType =
                     self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
-                parameters.push(instance_members_struct_type.ptr_type(AddressSpace::Generic).into());
+                parameters.push(
+                    instance_members_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
+                );
             }
             let instance_struct_type: StructType = self
                 .llvm_index
                 .get_associated_pou_type(implementation.get_type_name())
                 .map(|it| it.into_struct_type())?;
-            parameters.push(instance_struct_type.ptr_type(AddressSpace::Generic).into());
+            parameters.push(instance_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
 
             Ok(parameters)
         } else {
@@ -409,7 +413,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 // generate special accessor for aggrate function output (out-ptr)
                 let accessor = self.llvm.create_local_variable(
                     ret_v.get_name(),
-                    &return_type.ptr_type(AddressSpace::Generic).as_basic_type_enum(),
+                    &return_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).as_basic_type_enum(),
                 );
                 self.llvm.builder.build_store(accessor, parameter);
                 accessor
@@ -714,7 +718,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let ptr_param = self
                 .llvm_index
                 .find_associated_type(type_name)
-                .map(|it| it.ptr_type(AddressSpace::Generic).into())?;
+                .map(|it| it.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())?;
             Some([size_param, ptr_param])
         } else {
             None

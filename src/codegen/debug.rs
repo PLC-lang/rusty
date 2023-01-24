@@ -21,7 +21,7 @@ use crate::{
     DebugLevel, OptimizationLevel,
 };
 
-use super::generators::llvm::Llvm;
+use super::generators::{llvm::Llvm, ADDRESS_SPACE_GLOBAL};
 
 #[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -355,7 +355,7 @@ impl<'ink> DebugBuilder<'ink> {
             inner_type.into(),
             size.bits().into(),
             alignment.bits(),
-            inkwell::AddressSpace::Global,
+            inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
         self.register_concrete_type(name, DebugType::Derived(pointer_type));
         Ok(())
@@ -551,7 +551,7 @@ impl<'ink> DebugBuilder<'ink> {
             original_type,
             data_layout.p64.bits().into(),
             data_layout.p64.bits(),
-            inkwell::AddressSpace::Global,
+            inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
         let location = &variable.source_location;
         let file = location
@@ -594,14 +594,8 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        let location = self.debug_info.create_debug_location(
-            self.context,
-            (line + 1) as u32,
-            column as u32,
-            scope,
-            None,
-        );
-        llvm.builder.set_current_debug_location(llvm.context, location);
+        let location = self.debug_info.create_debug_location(self.context, line + 1, column, scope, None);
+        llvm.builder.set_current_debug_location(location);
     }
 
     fn register_function<'idx>(
@@ -736,7 +730,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 (*debug_type).into(),
                 false,
                 DIFlagsConstants::ZERO,
-                alignment as u32,
+                alignment,
             );
 
             self.variables.insert(variable.get_qualified_name().to_string(), debug_variable);
@@ -819,13 +813,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| self.compile_unit.as_debug_info_scope());
-        let location = self.debug_info.create_debug_location(
-            self.context,
-            (line + 1) as u32,
-            column as u32,
-            scope,
-            None,
-        );
+        let location = self.debug_info.create_debug_location(self.context, line + 1, column, scope, None);
         self.debug_info.insert_declare_at_end(
             value,
             self.variables.get(name).copied(),
