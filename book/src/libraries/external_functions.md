@@ -15,33 +15,29 @@ END_VAR
 END_FUNCTION
 ```
 
-At compilation time, the function `log` will be defined as an externally available function,
-and can be called from `ST` code.
+At compilation time, the function `log` will be defined as an externally available function, and can be called from `ST` code.
 
 > Note : At linking time, a `log` function with a compatible signature must be available on the system.
 
 ## Calling C functions
 
 `ST` code can call into foreign functions natively.
-To achieve this, the called function must be defined in a `C` compatible API,
-e.g. `extern "C"` blocks.
+To achieve this, the called function must be defined in a `C` compatible API, e.g. `extern "C"` blocks.
 
-The interface of the function has to:
+The interface of the function has to :
 - either be included with the `-i` flag
 - or be declared in `ST` using the `{external}` keyword
 
 ### Example
 
-Given a `min` function defined in `C` as follows
-
+Given a `min` function defined in `C` as follows :
 ```C
 int min(int a, int b) {
 //...
 }
 ```
 
-an interface of that function in `ST` can be defined as
-
+an interface of that function in `ST` can be defined as :
 ```iecst
 {external}
 FUNCTION min : DINT
@@ -54,31 +50,26 @@ END_FUNCTION
 
 ### Variadic arguments
 
-Some foreign functions, especially ones defined in `C`,
-could be [variadic functions](https://en.cppreference.com/w/c/variadic).
+Some foreign functions, especially ones defined in `C`, could be [variadic functions](https://en.cppreference.com/w/c/variadic).
 
-These functions are usually defined with the last parameter `...`, and signify
-that a function can be called with unlimited parameters.
+These functions are usually defined with the last parameter `...`, and signify that a function can be called with unlimited parameters.
 
 An example of a variadic function is `printf`.
 
-Calling a variadic function is supported in `ST`. To mark an external function
-as variadic, you can add a parameter of type `...` to the `VAR_INPUT` block.
+Calling a variadic function is supported in `ST`. To mark an external function as variadic, you can add a parameter of type `...` to the `VAR_INPUT` block.
 
 #### Variadic function example
 
-Given the `printf` function defined as
-
+Given the `printf` function defined as :
 ```C
 int printf( const char *restrict format, ... );
 ```
 
-the `ST` interface can be defined as
-
+the `ST` interface can be defined as :
 ```iecst
 {external}
 FUNCTION printf : DINT
-VAR_IN_OUT
+VAR_INPUT {ref}
   format : STRING;
 END_VAR
 VAR_INPUT
@@ -92,8 +83,7 @@ END_FUNCTION
 With the `printf` function available on the system, there is no need to declare
 the C function.
 
-An `ST` program called `ExternalFunctions.st` with the following code can be declared:
-
+An `ST` program called `ExternalFunctions.st` with the following code can be declared :
 ```iecst
 (*ExternalFunctions.st*)
 
@@ -127,8 +117,7 @@ END_VAR
 END_FUNCTION
 ```
 
-Compiling the previous code with the following command: 
-
+Compiling the previous code with the following command :
 ```sh
 rustyc ExternalFunctions.st -o ExternalFunctions --linker=clang
 ```
@@ -139,4 +128,3 @@ will yield an executable called `ExternalFunctions`.
 > since the embedded linker cannot generate executable files.
 
 The executable can then be started with `./ExternalFunctions`.
-

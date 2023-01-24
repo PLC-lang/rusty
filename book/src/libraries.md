@@ -10,7 +10,7 @@ System functions can also be added using [External Function](libraries/external_
 
 ## Library Structure
 
-A library is defined by : 
+A library is defined by :
 - A set of `st` interfaces, each interface represents a function that has been precompiled.
 	> In a POU, the interface is the definition and variable section e.g:
 	> ```iecst
@@ -25,7 +25,6 @@ A library is defined by :
 	>	END_PROGRAM
 	> ```
 - A binary file for each architecture the library has been built for (`x86_64-linux-gnu`, `aarch64-linux-gnu`, ..)
-
 
 ## Linking libraries using the `rustyc` command line
 
@@ -58,12 +57,10 @@ If the application is being compiled with the `--static` flag (or no shared libr
 
 ### Command line example
 
-To compile a file called `input.st` including a header and linking a library called `libiec.so` from `/lib` : 
-
+To compile a file called `input.st` including a header and linking a library called `libiec.so` from `/lib` :
 ```sh
 rustyc input.st -i iec/header.st -L/lib/ -liec
 ```
-
 
 ## Linking libraries using the Build Description File `plc.json`
 
@@ -95,7 +92,8 @@ POUs and Global variables included in the list are marked as external, the imple
 
 ### Library Location
 
-Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](using_rusty/build_description_file.md#--lib-location). By default this is the same as the [Build Location](using_rusty/build_description_file.md#--build-location) unless overridden by the `--lib-location` parameter.
+Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](using_rusty/build_description_file.md#--lib-location).
+By default this is the same as the [Build Location](using_rusty/build_description_file.md#--build-location) unless overridden by the `--lib-location` parameter.
 
 ### Using environment variables
 
@@ -107,8 +105,7 @@ Since libraries can be compiled for multiple targets, the lib path can contain e
 
 ### Configuration Example (`plc.json`)
 
-A configuration example for a `Copy` library called _mylib_ and a `System` library called _std_
-
+A configuration example for a `Copy` library called _mylib_ and a `System` library called _std_ :
 ```json
 "libraries" : [
     {
@@ -129,4 +126,3 @@ A configuration example for a `Copy` library called _mylib_ and a `System` libra
     }
 ]
 ```
-

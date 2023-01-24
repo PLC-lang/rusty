@@ -1,11 +1,16 @@
 # Indexer
 
-The indexing step is responsible of building and maintaining the Symbol-Table (also called *Index*). The *Index* contains all known referable objects such as *variables*, *data-types*, *POUs*, *Functions*, etc. The Symbol-Table also maintains additional information about every referable object such as: the object's type, the objects' datatype, etc.
+The indexing step is responsible of building and maintaining the Symbol-Table (also called *Index*).
+The *Index* contains all known referable objects such as *variables*, *data-types*, *POUs*, *Functions*, etc.
+The Symbol-Table also maintains additional information about every referable object such as: the object's type, the objects' datatype, etc.
 
-Indexing is performed by the *index* module. It contains the index itself (a.k.a. Symbol Table), the *visitor* which collects all global names and their additional information as well as a data structure that handles compile time constant expressions (*constant_expressions*).
+Indexing is performed by the *index* module.
+It contains the index itself (a.k.a. Symbol Table), the *visitor* which collects all global names and their additional information as well as a data structure that handles compile time constant expressions (*constant_expressions*).
 
 ## The Index (Symbol Table)
-The index stores information about all referable elements of the program. Depending on the type of element, we store different meta-information alongside the name of the element.
+
+The index stores information about all referable elements of the program.
+Depending on the type of element, we store different meta-information alongside the name of the element.
 
 | Index Field               |  Description                             | 
 |---------------------------|------------------------------------------|
@@ -49,7 +54,8 @@ The VariableIndexEntry holds information about every *Variable* in the source co
 ```
 
 - **PouIndexEntry**
-The PouIndexEntry offers information about all Program-Organization-Units. The index entry offers information like the name of an instance-struct, the name of the registered implementation, etc.
+The PouIndexEntry offers information about all Program-Organization-Units.
+The index entry offers information like the name of an instance-struct, the name of the registered implementation, etc.
 
 ```ignore
 ┌──────────────────────────┐
@@ -105,7 +111,8 @@ The PouIndexEntry offers information about all Program-Organization-Units. The i
 ```
 
 - **ImplementationIndexEntry**
-The ImplementationIndexEntry offers information about any callable implementation (Program, Functionblock, Function, etc.). It also offers metadata about the implementation type, the name of the method to call and the name of the parameter-struct (this-struct) to pass to the function.
+The ImplementationIndexEntry offers information about any callable implementation (Program, Functionblock, Function, etc.).
+It also offers metadata about the implementation type, the name of the method to call and the name of the parameter-struct (this-struct) to pass to the function.
 
 ```ignore
                                                   ┌───────────────────────┐
@@ -124,7 +131,8 @@ The ImplementationIndexEntry offers information about any callable implementatio
 ```
 
 - **DataType**
-The entry for a DataType offers information about any data-type supported by the program to be compiled (internal data types as well as user defined data types). For each data-type we offer additional information such as it's initial value, its type-nature (in terms of generic functions - e.g: ANY_INT) and some additional information about the type's internal structure and size (e.g. is it a number/array/struct/etc).
+The entry for a DataType offers information about any data-type supported by the program to be compiled (internal data types as well as user defined data types).
+For each data-type we offer additional information such as it's initial value, its type-nature (in terms of generic functions - e.g: ANY_INT) and some additional information about the type's internal structure and size (e.g. is it a number/array/struct/etc).
 
 ```ignore
                       ┌─────────────┐                   ┌────────────────────┐
