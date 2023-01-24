@@ -557,16 +557,27 @@ fn program_accepts_empty_statement_as_param() {
     // GIVEN
     let result = codegen(
         "
-		PROGRAM prog
+		FUNCTION prog
 		VAR_INPUT
 			in1: DINT;
+			in2: DINT := 2;
+		END_VAR
+		VAR_OUTPUT
+			out1 : DINT;
+			out2 : DINT;
 		END_VAR
 		END_PROGRAM
 
 		PROGRAM main
-			prog(in1 := );
+		VAR_TEMP
+			x: DINT;
+		END_VAR
+			prog(in1 := 1, out1 => x);
 		END_PROGRAM
 		",
+
+		// TODO: in assignments for stateless POUs (x := ), see how omitting the parameter is handled and copy
+		// out assignments for stateful POUs: skip assignment, similar to empty input statements
     );
 
     // THEN

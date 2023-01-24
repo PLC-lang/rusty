@@ -1164,13 +1164,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .index
                 .find_member(function_name, name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
+            dbg!(&parameter);
             let index = parameter.get_location_in_parent();
-            self.generate_call_struct_argument_assignment(&CallParameterAssignment {
-                assignment_statement: right,
-                function_name,
-                index,
-                parameter_struct,
-            })?;
+            // FIXME: right is empty statement here
+            if !matches!(right, AstStatement::EmptyStatement { .. }) {
+                self.generate_call_struct_argument_assignment(&CallParameterAssignment {
+                    assignment_statement: right,
+                    function_name,
+                    index,
+                    parameter_struct,
+                })?;
+            };           
         };
         Ok(())
     }
