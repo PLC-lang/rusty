@@ -12,18 +12,19 @@ It contains the index itself (a.k.a. Symbol Table), the *visitor* which collects
 The index stores information about all referable elements of the program.
 Depending on the type of element, we store different meta-information alongside the name of the element.
 
-| Index Field               |  Description                             | 
+| Index Field               |  Description                             |
 |---------------------------|------------------------------------------|
-| global_variables          |  All global variables accessible via their name.  | 
-| enum_global_variables     |  All enum elements accessible via their name (as if they were global variables, e.g. 'RED')  | 
-| enum_qualified_variables  |  All enum elements accessible via their qualified name (e.g. 'COLOR.RED').                             | 
-| member_variables          |  Member variables of structured types (Structs,Functionblocks, etc. This map allows to query all members of a container by name.) | 
-| implementations           |  All callable implementations (Programs, Functions, Actions, Functionblocks) accessible by their name.    | 
-| pous                      |  All pous (Programs, Functions, Functionblocks) with additional information.    | 
-| type_index                |  All data-types (intrinsic and complex) accessible via their name  | 
-| constant_expressions      |  The results of constant expressions that can be evaluated at compile time (e.g. the initializer of a constant: `VAR_GLOBAL CONST TAU := 3.1415 * 2; END_VAR`) | 
+| global_variables          |  All global variables accessible via their name.  |
+| enum_global_variables     |  All enum elements accessible via their name (as if they were global variables, e.g. 'RED')  |
+| enum_qualified_variables  |  All enum elements accessible via their qualified name (e.g. 'COLOR.RED').                             |
+| member_variables          |  Member variables of structured types (Structs,Functionblocks, etc. This map allows to query all members of a container by name.) |
+| implementations           |  All callable implementations (Programs, Functions, Actions, Functionblocks) accessible by their name.    |
+| pous                      |  All pous (Programs, Functions, Functionblocks) with additional information.    |
+| type_index                |  All data-types (intrinsic and complex) accessible via their name  |
+| constant_expressions      |  The results of constant expressions that can be evaluated at compile time (e.g. the initializer of a constant: `VAR_GLOBAL CONST TAU := 3.1415 * 2; END_VAR`) |
 
 There are 3 different type of entries in the index:
+
 - **VariableIndexEntry**
 The VariableIndexEntry holds information about every *Variable* in the source code and offers additional information relevant for linking, validation and code-generation.
 

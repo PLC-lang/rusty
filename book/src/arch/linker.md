@@ -2,6 +2,7 @@
 
 The linker's task is to decide where all references in the source code point to.
 There are different references in Structured Text :
+
 - variable references  
 `x := 4` where *x* is a reference to the variable x.  
 - type references  
@@ -12,6 +13,7 @@ There are different references in Structured Text :
 `max(a, b)` where *max* is a reference to a Function-POU called *max*.
 
 So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference's name :
+
 ```iecst
         PROGRAM PLC_PRG
              VAR
@@ -47,6 +49,7 @@ So the first step is that we need a way to uniquely identify every single AST-no
 The parser assigns a unique ID to every Statement-Tree-Node (Note that we only assign IDs to Statements, not every AST-Node).
 
 So the expression `a + 3` now looks like this :
+
 ```ignore
                       ┌─────────────────┐
                       │ BinaryOperation │
@@ -69,6 +72,7 @@ So the expression `a + 3` now looks like this :
 ```
 
 The AnnotationMap stores 5 different types of annotation:
+
 - `Value`  
 The Value-annotation indicates that this AST-Element resolves to a value with the given resulting datatype.
 So for Example the LiteralInteger(3) node gets a Value-Annotation with a resulting type of `DINT`.
@@ -193,11 +197,13 @@ So the example expression from above `a + 3* will be annotated like this:
 
 Another example where the annotated AST carries a lot of useful information is with complex expressions like array-expressions or qualified references.
 Lets consider the following statement :
+
 ```iecst
 PLC_PRG.a.b[2]
 ```
 
 It is annotated in the following way :
+
 ```ignore
                 ┌────────────────────┐
                 │ QualifiedReference │
@@ -274,6 +280,7 @@ It is annotated in the following way :
 The AnnotationMap not only offers annotations regarding the AST-node's type, but it also offers a second type of annotation.
 
 Consider the following snippet :
+
 ```iecst
 PROGRAM PLC_PRG
    VAR
@@ -288,6 +295,7 @@ END_PROGRAM
 ```
 
 The assignment `z := x + y` is loaded with different types :
+
 - `x` is annotated as *Variable* of type *SINT* and will be auto-upgraded to *DINT*.
 - `y` is annotated as *Variable* of type *INT* and will be auto-upgraded to *DINT*.
 - `z` is annotated as *Variable* of type *BYTE*.

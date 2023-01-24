@@ -4,8 +4,7 @@
 
 RuSTy is a Compiler for Structured Text.
 It utilizes the llvm compiler infrastructurue and contributes a [Structured Text](https://en.wikipedia.org/wiki/Structured_text) Frontend that translates Structured Text into llvm's language independent intermediate representation (IR).
-The Further optimization and native code generation is performed by the existing LLVM infrastructure, namely llvm's common optimizer and the platform specific backend (see [here](https://www.aosabook.org/en/llvm.html)). 
-
+The Further optimization and native code generation is performed by the existing LLVM infrastructure, namely llvm's common optimizer and the platform specific backend (see [here](https://www.aosabook.org/en/llvm.html)).
 
 ```ignore
     ┌──────────────────┐    ┌───────────────┐    ┌────────────────┐

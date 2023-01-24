@@ -1,4 +1,4 @@
-# Build Configuration 
+# Build Configuration
 
 In addition to the comprehensive help, `rustyc` offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
@@ -16,13 +16,14 @@ The command for building with an additional path looks like this :
 ## Build description file (plc.json)
 
 For the build description file to work, it must be written in the [json](https://en.wikipedia.org/wiki/JavaScript_Object_Notation) format.
-All the keys used in the build description file are described in the following sections. 
+All the keys used in the build description file are described in the following sections.
 
 ### files
 
 The keyword `files` is the equivalent to the `input` parameter, which adds all the `ST` files that need to be compiled.
 
 The value of `files` is an array of strings, definied as follows :
+
 ```json
 "files" : [
     "examples/hello_world.st",
@@ -57,6 +58,7 @@ Similarly to specifying an output file via the `-o` or `--output` option using t
 ### compile_type
 
 The following options can be used for the `compile_type` :
+
 - `Static` specifies that linking/binding must be done at compile time.
 - `Shared` (dynamic) specifies that linking/bingind must be done dynamically (at runtime).
 - `PIC` Position Independent Code (Choosing this option implies that the linking will be done dynamically).
@@ -108,7 +110,7 @@ The `package_commands` keyword is optional.
 
 ## Build Parameters
 
-The `build` subcommand exposes the following optional parameters : 
+The `build` subcommand exposes the following optional parameters :
 
 ### `--build-location`
 
@@ -121,7 +123,6 @@ This can be overriden with the `--build-location` command line parameter.
 The lib location is where all libraries marked with `Copy` will be copied. </br>
 By default it is the same as the `build-location`.</br>
 This can be overriden with the `--lib-location` command line parameter.
-
 
 ## Environment Variables
 
@@ -156,13 +157,14 @@ This is the value of either the [`--lib-location`](#lib-location) parameter or t
 To reference an environment variable in the description file, reference the variables with a preceding `$`.
 
 **Example:**
+
 ```json
 {
-	"name" : "mylib",
-	"path" : "$ARCH/lib",
-	"package" : "System",
-	"include_path" : [
-		"examples/hello_world.st"
-	]
+ "name" : "mylib",
+ "path" : "$ARCH/lib",
+ "package" : "System",
+ "include_path" : [
+  "examples/hello_world.st"
+ ]
 }
 ```

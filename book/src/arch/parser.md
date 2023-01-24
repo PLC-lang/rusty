@@ -1,8 +1,8 @@
 # Parser
- 
+
  The role of the parser is to turn source-code which is fed as a string (in the form of files) into a tree-representation of that source-code.
  This tree is typically called the *Abstract Syntax Tree (AST)*.
- The step of parsing consists of two distinct stages. 
+ The step of parsing consists of two distinct stages.
  The first one is the *lexical analysis (Lexer)* which is performed by a lexer.
  After lexing we perform the *syntactical analysis (Parser)* to construct the syntax tree.
 
@@ -51,6 +51,7 @@ The number of tokens identified by the RuSTy-lexer is quite high, so as of janua
 The tokens identified by the lexer follow the formal definition provided by the IEC61131-3 (2013) standard.
 
 Following strategies increase the number of tokens and should be reconsidered :
+
 - case insensitivity
 - optional underscores in keywords (e.g. `END_IF` == `ENDIF`)
 - unrolled tokens instead of grouping tokens (e.g. `KEYWORD_TRUE` & `KEYWORD_FALSE` instead of `KEYWORD_BOOL`)
@@ -70,13 +71,14 @@ These nodes usually have dynamic properties like a type and an optional value an
 While this approach needs very little source code we decided to favour a less flexible approach.
 The RuSTy-AST models every single ast-node as its own *struct* with all necessary fields including the possible child-nodes.
 While this approach needs much more code and hand-written changes, its benefits lie in the clearness and simplicity of the data-structure.
-Every element of the AST is easily identified, debugged and understood. 
+Every element of the AST is easily identified, debugged and understood.
 E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
 It is impossible to construct it differently.
 
 #### Example
 
 So an assignment `a := 3;` will be parsed with the help of the following Structures :
+
 ```rs
 struct Reference {
    name: string
@@ -90,7 +92,7 @@ struct Assignment {
    left: Box<AstStatement>,
    right: Box<AstStatement>
 }
-``` 
+```
 
 ### Recursive Descent Parser
 
@@ -99,9 +101,10 @@ While they generate highly optimized parsers we felt we wanted more control and 
 The fact that at that point in time we were pretty new to rust itself, writing the parser by hand also gave us more practice and a stronger feeling of control and understanding.
 Using a parser-generator framework will definitely be an option for future improvements.
 
-As for now, the parser is a hand-written [recursive descent parser](https://en.wikipedia.org/wiki/Recursive_descent_parser) inside the `parser`-module. 
+As for now, the parser is a hand-written [recursive descent parser](https://en.wikipedia.org/wiki/Recursive_descent_parser) inside the `parser`-module.
 
-As the parser reads the token stream `Reference`, `KeywordEquals`, `Number`, `Semicolon` it instantiates the corresponding syntax tree: 
+As the parser reads the token stream `Reference`, `KeywordEquals`, `Number`, `Semicolon` it instantiates the corresponding syntax tree:
+
 ```ignore
                       ┌─────────────────┐
                       │   Assignment    │

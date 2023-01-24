@@ -20,6 +20,6 @@ There are 3 types of *Diagnostics* :
 | ------------ | ----------------- |
 | SyntaxError  | A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language's grammar. |
 | GeneralError | General errors are problems that occured during the compilation process, that cannot be linked to a malformed input (e.g. file-I/O problems, internal LLVM errors, etc.). |
-| Improvement  | Problems that may not prevent successful compilation but are still considered a flaw in the source-code. (e.g. use proprietary *POINTER TO* instead of the norm-compliant *REF_TO*). | 
+| Improvement  | Problems that may not prevent successful compilation but are still considered a flaw in the source-code. (e.g. use proprietary *POINTER TO* instead of the norm-compliant *REF_TO*). |
 
 [^1]: :(i): The diagnostics are subject to change since they don't elegantly represent the different types of problems (e.g. semantic problems).

@@ -17,7 +17,7 @@ To access a bit sequence in a variable, a direct access instruction `%<Type><Val
 
 > _For `Bit` access, the `%X` is optional._
 
-### Example 
+### Example
 
 ```st
 FUNCTION main : DINT
@@ -43,7 +43,7 @@ END_FUNCTION
 
 ## Varirable based Direct Access
 
-While the IEC61131-3 Standard only defines variable access using constant int literals, 
+While the IEC61131-3 Standard only defines variable access using constant int literals,
 RuSTy additionally supports access using Variables.
 The Syntax for a variable based access is `%<Type><Variable>`.
 The provided varibale has to be a direct Reference variable (non Qualified).
