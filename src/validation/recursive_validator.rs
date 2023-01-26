@@ -1,19 +1,10 @@
-use std::cell::Cell;
-
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexSet;
 
 use crate::{
     diagnostics::Diagnostic,
     index::{Index, VariableIndexEntry},
     typesystem::DataTypeInformationProvider,
 };
-
-/// Status of whether a node has been visited or not.
-#[derive(Clone, Copy, Hash, PartialEq, Eq)]
-enum Status {
-    Visited,
-    Unvisited,
-}
 
 /// Validator to find and report all recursive data structures using Depth-first search (DFS)[1].
 /// Such data structures consists of structs and function-blocks, for example the following code would be
@@ -42,36 +33,32 @@ impl RecursiveValidator {
 
     /// Entry point of finding and reporting all recursive data structures.
     pub fn validate_recursion(&mut self, index: &Index) {
-        let mut nodes: IndexMap<&str, Cell<Status>> = IndexMap::new();
+        let mut nodes_all: IndexSet<&str> = IndexSet::new();
+        let mut nodes_visited = IndexSet::new();
 
-        // Structs
-        nodes.extend(
-            index
-                .get_types()
-                .values()
-                .filter(|x| x.get_type_information().is_struct())
-                .map(|x| (x.get_name(), Cell::new(Status::Unvisited))),
+        // Structs (includes arrays defined in structs)
+        nodes_all.extend(
+            index.get_types().values().filter(|x| x.get_type_information().is_struct()).map(|x| x.get_name()),
         );
 
         // Function Blocks
-        nodes.extend(
-            index
-                .get_pous()
-                .values()
-                .filter(|x| x.is_function_block())
-                .map(|x| (x.get_name(), Cell::new(Status::Unvisited))),
-        );
+        nodes_all.extend(index.get_pous().values().filter(|x| x.is_function_block()).map(|x| x.get_name()));
 
-        self.find_cycle(index, nodes);
+        self.find_cycle(index, nodes_all, &mut nodes_visited);
     }
 
     /// Finds cycles for the given nodes.
-    fn find_cycle<'idx>(&mut self, index: &'idx Index, nodes: IndexMap<&'idx str, Cell<Status>>) {
+    fn find_cycle<'idx>(
+        &mut self,
+        index: &'idx Index,
+        nodes_all: IndexSet<&'idx str>,
+        nodes_visited: &mut IndexSet<&'idx str>,
+    ) {
         let mut path = IndexSet::new();
 
-        for node in &nodes {
-            if node.1.get() == Status::Unvisited {
-                self.dfs(index, node.0, &nodes, &mut path);
+        for node in &nodes_all {
+            if !nodes_visited.contains(node) {
+                self.dfs(index, &mut path, node, nodes_visited);
             }
         }
     }
@@ -84,23 +71,19 @@ impl RecursiveValidator {
     fn dfs<'idx>(
         &mut self,
         index: &'idx Index,
-        curr_node: &'idx str,
-        nodes: &IndexMap<&'idx str, Cell<Status>>,
         path: &mut IndexSet<&'idx str>,
+        node_curr: &'idx str,
+        nodes_visited: &mut IndexSet<&'idx str>,
     ) {
-        nodes[curr_node].set(Status::Visited);
-        path.insert(curr_node);
+        nodes_visited.insert(node_curr);
+        path.insert(node_curr);
 
-        if let Some(edges) = index.get_members(curr_node) {
+        if let Some(edges) = index.get_members(node_curr) {
             for node in edges.values().map(|x| self.get_type_name(index, x)).collect::<IndexSet<_>>() {
-                if let Some(status) = nodes.get(node) {
-                    // Check if we would enter a cycle and otherwise ONLY
-                    // visit the next node if we haven't already visited it.
-                    if path.contains(node) {
-                        self.report(index, node, path);
-                    } else if status.get() == Status::Unvisited {
-                        self.dfs(index, node, nodes, path);
-                    }
+                if path.contains(node) {
+                    self.report(index, node, path);
+                } else if !nodes_visited.contains(node) {
+                    self.dfs(index, path, node, nodes_visited);
                 }
             }
         }
