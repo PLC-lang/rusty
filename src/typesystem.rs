@@ -126,6 +126,11 @@ impl DataType {
         self.location.is_internal()
     }
 
+    /// returns true if this type is an array
+    pub fn is_array(&self) -> bool {
+        self.get_type_information().is_array()
+    }
+
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
@@ -349,6 +354,16 @@ impl DataTypeInformation {
             _ => false,
         }
     }
+
+    pub fn is_aggregate(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct { .. }
+                | DataTypeInformation::Array { .. }
+                | DataTypeInformation::String { .. }
+        )
+    }
+
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
     pub fn get_semantic_size(&self, index: &Index) -> u32 {
         if let DataTypeInformation::Integer { semantic_size: Some(s), .. } = self {
@@ -459,13 +474,11 @@ impl DataTypeInformation {
         }
     }
 
-    pub fn is_aggregate(&self) -> bool {
-        matches!(
-            self,
-            DataTypeInformation::Struct { .. }
-                | DataTypeInformation::Array { .. }
-                | DataTypeInformation::String { .. }
-        )
+    pub fn get_inner_array_type_name(&self) -> Option<&str> {
+        match self {
+            DataTypeInformation::Array { inner_type_name, .. } => Some(&inner_type_name),
+            _ => None,
+        }
     }
 }
 

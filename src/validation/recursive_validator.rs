@@ -2,7 +2,11 @@ use std::cell::Cell;
 
 use indexmap::{IndexMap, IndexSet};
 
-use crate::{diagnostics::Diagnostic, index::Index, typesystem::DataTypeInformationProvider};
+use crate::{
+    diagnostics::Diagnostic,
+    index::{Index, VariableIndexEntry},
+    typesystem::DataTypeInformationProvider,
+};
 
 /// Status of whether a node has been visited or not.
 #[derive(Clone, Copy, Hash, PartialEq, Eq)]
@@ -88,7 +92,7 @@ impl RecursiveValidator {
         path.insert(curr_node);
 
         if let Some(edges) = index.get_members(curr_node) {
-            for node in edges.values().map(|x| x.get_type_name()).collect::<IndexSet<_>>() {
+            for node in edges.values().map(|x| self.get_type_name(index, x)).collect::<IndexSet<_>>() {
                 if let Some(status) = nodes.get(node) {
                     // Check if we would enter a cycle and otherwise ONLY
                     // visit the next node if we haven't already visited it.
@@ -121,6 +125,21 @@ impl RecursiveValidator {
             }
 
             None => unreachable!("Node has to be in the IndexSet"),
+        }
+    }
+
+    /// Returns the type name of `entry` distinguishing between two cases,
+    /// 1. If the entry is any type but array its data-type name is returned
+    /// 2. If the entry is an arrary, its inner type name is returned because their data-type name would
+    /// be `A.b` for an array named `b` inside a struct named `A` which the `dfs` method would not correctly
+    /// recognize as a cycle.
+    #[inline(always)]
+    fn get_type_name<'idx>(&self, index: &'idx Index, entry: &'idx VariableIndexEntry) -> &'idx str {
+        dbg!(&entry);
+        let type_name = entry.get_type_name();
+        match index.get_type_information_or_void(type_name).get_inner_array_type_name() {
+            Some(inner_type_name) => inner_type_name,
+            None => type_name,
         }
     }
 }
