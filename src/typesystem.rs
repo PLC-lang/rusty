@@ -476,7 +476,7 @@ impl DataTypeInformation {
 
     pub fn get_inner_array_type_name(&self) -> Option<&str> {
         match self {
-            DataTypeInformation::Array { inner_type_name, .. } => Some(&inner_type_name),
+            DataTypeInformation::Array { inner_type_name, .. } => Some(inner_type_name),
             _ => None,
         }
     }

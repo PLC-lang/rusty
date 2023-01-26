@@ -135,7 +135,6 @@ impl RecursiveValidator {
     /// recognize as a cycle.
     #[inline(always)]
     fn get_type_name<'idx>(&self, index: &'idx Index, entry: &'idx VariableIndexEntry) -> &'idx str {
-        dbg!(&entry);
         let type_name = entry.get_type_name();
         match index.get_type_information_or_void(type_name).get_inner_array_type_name() {
             Some(inner_type_name) => inner_type_name,

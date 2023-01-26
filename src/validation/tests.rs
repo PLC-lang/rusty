@@ -5,6 +5,7 @@ mod duplicates_validation_test;
 mod generic_validation_tests;
 mod literals_validation_tests;
 mod pou_validation_tests;
+mod recursive_array_tests;
 mod recursive_function_block_tests;
 mod recursive_structs_and_function_blocks_tests;
 mod recursive_structs_test;
