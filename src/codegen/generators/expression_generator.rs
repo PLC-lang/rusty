@@ -791,10 +791,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     if !matches!(param_statement, AstStatement::EmptyStatement { .. }) {
                         self.generate_argument_by_val(type_name, param_statement)?
                     } else {
-                        let Some(param) = declared_parameters.get(location) else {
+                        if let Some(param) = declared_parameters.get(location) {
+                            self.generate_empty_expression(param)?
+                        } else {
                             unreachable!("Empty statement param must have an index entry.");
-                        };
-                        self.generate_empty_expression(param)?
+                        }
                     }
                 };
                 result.push((location, argument));
