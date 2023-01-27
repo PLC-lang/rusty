@@ -254,7 +254,7 @@ impl<T: Error> From<T> for LinkerError {
 
 #[test]
 fn windows_target_triple_should_result_in_error() {
-    for target in vec![
+    for target in &[
         "x86_64-pc-windows-gnu",
         "x86_64-pc-win32-gnu",
         "aarch64-pc-windows-gnu",
@@ -268,7 +268,7 @@ fn windows_target_triple_should_result_in_error() {
 
 #[test]
 fn non_windows_target_triple_should_result_in_ok() {
-    for target in vec!["x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"] {
+    for target in &["x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"] {
         assert!(Linker::new(target, None).is_ok());
     }
 }
