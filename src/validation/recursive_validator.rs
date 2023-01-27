@@ -111,11 +111,18 @@ impl RecursiveValidator {
         }
     }
 
-    /// Returns the type name of `entry` distinguishing between two cases,
-    /// 1. If the entry is any type but array its data-type name is returned
-    /// 2. If the entry is an arrary, its inner type name is returned because their data-type name would
-    /// be `A.b` for an array named `b` inside a struct named `A` which the `dfs` method would not correctly
-    /// recognize as a cycle.
+    /// Returns the type name of `entry` distinguishing between two cases:
+    /// 1. If the entry is any type but an array its datatype is returned (as usual)
+    /// 2. If the entry is an array their inner type name is returned. For example calling the 
+    /// [`index::VariableIndexEntry::get_type_name`] method on the following code snippet
+    /// ```ST
+    /// TYPE A : STRUCT
+    ///     b : ARRAY[0..1] OF B;
+    /// END_STRUCT END_TYPE
+    /// ```
+    /// would return `__A_b` as the datatype for `b` whereas it should have been `B`, i.e. their inner type
+    /// name. This is important for the `dfs` method as it otherwise wouldn't correctly recognize cycles since
+    /// it operate on these "normalized" type names.
     #[inline(always)]
     fn get_type_name<'idx>(&self, index: &'idx Index, entry: &'idx VariableIndexEntry) -> &'idx str {
         let type_name = entry.get_type_name();
