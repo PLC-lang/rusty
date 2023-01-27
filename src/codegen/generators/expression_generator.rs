@@ -204,7 +204,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // generate the expression
-        match dbg!(expression) {
+        match expression {
             AstStatement::Reference { .. } => {
                 if let Some(StatementAnnotation::Variable { qualified_name, constant: true, .. }) =
                     self.annotations.get(expression)
@@ -503,7 +503,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .map(ExpressionValue::RValue);
         }
 
-        dbg!(&operator);
         let function_name = implementation.get_call_name();
         let mut arguments_list = self.generate_pou_call_arguments_list(
             pou,
@@ -617,37 +616,43 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let function_name = param_context.function_name;
         let index = param_context.index;
         if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
-            if matches!(parameter.get_variable_type(), VariableType::Output) {
-                let assigned_output = self.generate_element_pointer(expression)?;
-
-                let assigned_output_type =
-                    self.annotations.get_type_or_void(expression, self.index).get_type_information();
-
-                let output = builder.build_struct_gep(parameter_struct, index as u32, "").map_err(|_| {
-                    Diagnostic::codegen_error(
-                        &format!("Cannot build generate parameter: {:#?}", parameter),
-                        parameter.source_location.source_range.clone(),
-                    )
-                })?;
-
-                let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
-
-                //Special string handling
-                if (assigned_output_type.is_string() && output_value_type.is_string())
-                    || (assigned_output_type.is_struct() && output_value_type.is_struct())
-                    || (assigned_output_type.is_array() && output_value_type.is_array())
+            if matches!(parameter.get_variable_type(), VariableType::Output)
+                && !matches!(expression, AstStatement::EmptyStatement { .. })
+            {
                 {
-                    self.generate_string_store(
-                        assigned_output,
-                        assigned_output_type,
-                        expression.get_location(),
-                        output,
-                        output_value_type,
-                        parameter.source_location.source_range.clone(),
-                    )?;
-                } else {
-                    let output_value = builder.build_load(output, "");
-                    builder.build_store(assigned_output, output_value);
+                    let assigned_output = self.generate_element_pointer(expression)?;
+
+                    let assigned_output_type =
+                        self.annotations.get_type_or_void(expression, self.index).get_type_information();
+
+                    let output =
+                        builder.build_struct_gep(parameter_struct, index as u32, "").map_err(|_| {
+                            Diagnostic::codegen_error(
+                                &format!("Cannot build generate parameter: {:#?}", parameter),
+                                parameter.source_location.source_range.clone(),
+                            )
+                        })?;
+
+                    let output_value_type =
+                        self.index.get_type_information_or_void(parameter.get_type_name());
+
+                    //Special string handling
+                    if (assigned_output_type.is_string() && output_value_type.is_string())
+                        || (assigned_output_type.is_struct() && output_value_type.is_struct())
+                        || (assigned_output_type.is_array() && output_value_type.is_array())
+                    {
+                        self.generate_string_store(
+                            assigned_output,
+                            assigned_output_type,
+                            expression.get_location(),
+                            output,
+                            output_value_type,
+                            parameter.source_location.source_range.clone(),
+                        )?;
+                    } else {
+                        let output_value = builder.build_load(output, "");
+                        builder.build_store(assigned_output, output_value);
+                    }
                 }
             }
         }
@@ -775,7 +780,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_argument_by_ref(param_statement, type_name, declared_parameter.copied())?
                 } else {
                     //pass by val
-                    self.generate_argument_by_val(type_name, param_statement)?
+                    if !matches!(param_statement, AstStatement::EmptyStatement { .. }) {
+                        self.generate_argument_by_val(type_name, param_statement)?
+                    } else {
+                        let Some(param) = declared_parameters.get(location) else {
+                            unreachable!("Empty statement param must have an index entry.");
+                        };
+                        self.generate_empty_expression(param)?
+                    }
                 };
                 result.push((location, argument));
             }
@@ -1164,17 +1176,25 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .index
                 .find_member(function_name, name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
-            dbg!(&parameter);
             let index = parameter.get_location_in_parent();
-            // FIXME: right is empty statement here
-            if !matches!(right, AstStatement::EmptyStatement { .. }) {
+
+            // don't generate param assignments for empty statements, with the exception
+            // of VAR_IN_OUT params - they need an address to point to
+            let is_auto_deref = matches!(
+                self.index
+                    .find_effective_type_by_name(parameter.get_type_name())
+                    .map(|var| var.get_type_information())
+                    .unwrap_or_else(|| self.index.get_void_type().get_type_information()),
+                DataTypeInformation::Pointer { auto_deref: true, .. }
+            );
+            if !matches!(right, AstStatement::EmptyStatement { .. }) || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment_statement: right,
                     function_name,
                     index,
                     parameter_struct,
                 })?;
-            };           
+            };
         };
         Ok(())
     }
