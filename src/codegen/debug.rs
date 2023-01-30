@@ -54,7 +54,7 @@ impl From<DebugLevel> for DWARFEmissionKind {
 }
 
 /// A trait that represents a Debug builder
-/// An implementor of this trais will be called during various codegen phases to generate debug
+/// An implementor of this trait will be called during various codegen phases to generate debug
 /// information
 pub trait Debug<'ink> {
     /// Set the debug info source location of the instruction currently pointed at by the builder
@@ -67,7 +67,7 @@ pub trait Debug<'ink> {
         column: u32,
     );
 
-    /// Reginsters a new function for debugging, this method is responsible for registering a
+    /// Registers a new function for debugging, this method is responsible for registering a
     /// function's stub as well as its interface (variables/parameters)
     fn register_function<'idx>(
         &mut self,

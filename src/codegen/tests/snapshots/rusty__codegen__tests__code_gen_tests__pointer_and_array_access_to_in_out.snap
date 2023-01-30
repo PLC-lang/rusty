@@ -5,13 +5,13 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i16 @main(i16** %0, [2 x i16]* %1) {
+define i16 @main(i16** %0, i16* %1) {
 entry:
   %main = alloca i16, align 2
   %a = alloca i16**, align 8
   store i16** %0, i16*** %a, align 8
-  %b = alloca [2 x i16]*, align 8
-  store [2 x i16]* %1, [2 x i16]** %b, align 8
+  %b = alloca i16*, align 8
+  store i16* %1, i16** %b, align 8
   %c = alloca i16, align 2
   store i16 0, i16* %c, align 2
   store i16 0, i16* %main, align 2
@@ -19,8 +19,8 @@ entry:
   %deref1 = load i16*, i16** %deref, align 8
   %load_tmpVar = load i16, i16* %deref1, align 2
   store i16 %load_tmpVar, i16* %c, align 2
-  %deref2 = load [2 x i16]*, [2 x i16]** %b, align 8
-  %tmpVar = getelementptr inbounds [2 x i16], [2 x i16]* %deref2, i32 0, i32 0
+  %deref2 = load i16*, i16** %b, align 8
+  %tmpVar = getelementptr inbounds i16, i16* %deref2, i32 0
   %load_tmpVar3 = load i16, i16* %tmpVar, align 2
   store i16 %load_tmpVar3, i16* %c, align 2
   %main_ret = load i16, i16* %main, align 2
