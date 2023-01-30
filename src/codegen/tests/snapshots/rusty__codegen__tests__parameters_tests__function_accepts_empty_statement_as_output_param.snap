@@ -1,0 +1,28 @@
+---
+source: src/codegen/tests/parameters_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main = type { i32 }
+
+@main_instance = global %main zeroinitializer
+
+define void @foo(i32* %0, i32* %1) {
+entry:
+  %out1 = alloca i32*, align 8
+  store i32* %0, i32** %out1, align 8
+  %out2 = alloca i32*, align 8
+  store i32* %1, i32** %out2, align 8
+  ret void
+}
+
+define void @main(%main* %0) {
+entry:
+  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %1 = alloca i32, align 4
+  call void @foo(i32* %x, i32* %1)
+  ret void
+}
+
