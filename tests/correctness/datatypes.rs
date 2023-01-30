@@ -572,7 +572,7 @@ fn assign_short_string_to_long_string_variable() {
     let _: i32 = compile_and_run(program, &mut maintype);
 
     let t: [u8; 81] = maintype.text;
-    assert_eq!(t[0] as u8, b'a');
+    assert_eq!(t[0], b'a');
     assert_eq!(t[1], b'b');
     assert_eq!(t[2], b'c');
     (3..81).for_each(|i| {
@@ -580,7 +580,7 @@ fn assign_short_string_to_long_string_variable() {
     });
 
     let t: [u8; 81] = maintype.text2;
-    assert_eq!(t[0] as u8, b'x');
+    assert_eq!(t[0], b'x');
     assert_eq!(t[1], b'y');
     assert_eq!(t[2], b'z');
     assert_eq!(t[3], 0);
@@ -619,7 +619,7 @@ fn assign_string_to_string() {
     let _: i32 = compile_and_run(program, &mut maintype);
 
     let t: [u8; 81] = maintype.text2;
-    assert_eq!(t[0] as u8, b'a');
+    assert_eq!(t[0], b'a');
     assert_eq!(t[1], b'b');
     assert_eq!(t[2], b'c');
     (3..81).for_each(|i| {
@@ -627,7 +627,7 @@ fn assign_string_to_string() {
     });
 
     let t: [u8; 81] = maintype.text;
-    assert_eq!(t[0] as u8, b'd');
+    assert_eq!(t[0], b'd');
     assert_eq!(t[1], b'e');
     assert_eq!(t[2], b'f');
     (8..81).for_each(|i| {
