@@ -10,7 +10,7 @@ source_filename = "main"
 @main_instance = global %main zeroinitializer
 @__main.s__init = unnamed_addr constant [81 x i8] c"\0A numbers: %f %f %f %d \0A \0A\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-declare i32 @printf([81 x i8]*, ...)
+declare i32 @printf(i8*, ...)
 
 define void @main(%main* %0) {
 entry:
@@ -23,12 +23,13 @@ entry:
   store float 3.000000e+00, float* %float, align 4
   store double 3.000000e+00, double* %double, align 8
   store i16 3, i16* %integer, align 2
+  %2 = bitcast [81 x i8]* %s to i8*
   %load_float = load float, float* %float, align 4
-  %2 = fpext float %load_float to double
+  %3 = fpext float %load_float to double
   %load_double = load double, double* %double, align 8
   %load_integer = load i16, i16* %integer, align 2
-  %3 = sext i16 %load_integer to i32
-  %call = call i32 ([81 x i8]*, ...) @printf([81 x i8]* %s, double 3.000000e+00, double %2, double %load_double, i32 %3)
+  %4 = sext i16 %load_integer to i32
+  %call = call i32 (i8*, ...) @printf(i8* %2, double 3.000000e+00, double %3, double %load_double, i32 %4)
   ret void
 }
 

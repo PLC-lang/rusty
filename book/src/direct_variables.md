@@ -4,19 +4,21 @@ The IEC61131-3 Standard allows reading specific `Bits`, `Bytes`, `Words` or `DWo
 RuSTy supports this functionalty and extends it to support all `INT` types.
 
 ## Constant based Direct Access
-To access a bit sequence in a variable, a direct access instruction `%<Type><Value>` is used.
-`Type` is the bit sequence size required and is described as follows : 
 
+To access a bit sequence in a variable, a direct access instruction `%<Type><Value>` is used.
+
+`Type` is the bit sequence size required and is described as follows :
 | Type | Size | Example |
-|----- |------|---------|
-| X    | 1    | `%X1    |  
-| B    | 8    | `%B1    |  
-| W    | 16   | `%W1    |  
-| D    | 32   | `%D1    |  
+| ---- | ---- | ------- |
+| X    | 1    | `%X1    |
+| B    | 8    | `%B1    |
+| W    | 16   | `%W1    |
+| D    | 32   | `%D1    |
 
 > _For `Bit` access, the `%X` is optional._
 
-### Example 
+### Example
+
 ```st
 FUNCTION main : DINT
 VAR 
@@ -41,14 +43,15 @@ END_FUNCTION
 
 ## Varirable based Direct Access
 
-While the IEC61131-3 Standard only defines variable access using constant int literals, 
-RuSTy additionally supports access using Variables
-The Syntax for a variable based access is `%<Type><Variable>`
-The provided varibale has to be a direct Reference variable (non Qualified)
+While the IEC61131-3 Standard only defines variable access using constant int literals,
+RuSTy additionally supports access using Variables.
+The Syntax for a variable based access is `%<Type><Variable>`.
+The provided varibale has to be a direct Reference variable (non Qualified).
 
 > _Short hand access for Bit (Without the `%X` modifier) is not allowed._
 
-### Example 
+### Example
+
 ```st
 FUNCTION main : DINT
 VAR 
