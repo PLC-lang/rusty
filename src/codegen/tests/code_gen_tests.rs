@@ -266,7 +266,7 @@ END_PROGRAM
 fn min_max_real_and_lreal_values_do_not_result_in_an_under_or_overflow() {
     // See relevant issue https://github.com/PLC-lang/rusty/issues/732
     // TL;DR: The given code snippet should NOT result in under- or overflows as they're the MIN and MAX
-    //        values for (l)reals. F64_MIN however yields an underflow despite not exceeding the limit.
+    //        values for (l)reals.
     let result = codegen(
         r#"
         PROGRAM main
