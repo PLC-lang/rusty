@@ -220,7 +220,7 @@ fn value_behind_function_block_pointer_is_assigned_to_correctly() {
             FileOpen : REF_TO file_t;
         END_VAR
 			FileOpen := &file;
-        	FileOpen^(var2:=TRUE, out1 => a, out2 => b);
+        	FileOpen^(var1 := FALSE, var2:=TRUE, out1 => a, out2 => b);
         END_PROGRAM
 		"#;
 
