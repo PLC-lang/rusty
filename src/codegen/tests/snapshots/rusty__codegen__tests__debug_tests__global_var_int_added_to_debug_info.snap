@@ -41,7 +41,6 @@ source_filename = "main"
 !22 = !DIGlobalVariableExpression(var: !23, expr: !DIExpression())
 !23 = distinct !DIGlobalVariable(name: "h", scope: !2, file: !2, line: 10, type: !24, isLocal: false, isDefinition: true)
 !24 = !DIBasicType(name: "ulint", size: 64, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
-!25 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !26, globals: !27, splitDebugInlining: false)
-!26 = !{}
-!27 = !{!0, !4, !7, !10, !13, !16, !19, !22}
+!25 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !26, splitDebugInlining: false)
+!26 = !{!0, !4, !7, !10, !13, !16, !19, !22}
 

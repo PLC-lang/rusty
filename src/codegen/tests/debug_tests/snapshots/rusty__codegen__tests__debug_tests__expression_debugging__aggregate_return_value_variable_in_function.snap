@@ -7,7 +7,7 @@ source_filename = "main"
 
 @utf08_literal_0 = unnamed_addr constant [6 x i8] c"hello\00"
 
-define void @myFunc([81 x i8]* %0) !dbg !3 {
+define void @myFunc([81 x i8]* %0) !dbg !2 {
 entry:
   %myFunc = alloca [81 x i8]*, align 8, !dbg !6
   store [81 x i8]* %0, [81 x i8]** %myFunc, align 8, !dbg !6
@@ -36,18 +36,18 @@ attributes #2 = { argmemonly nofree nounwind willreturn }
 
 !llvm.dbg.cu = !{!0}
 
-!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, splitDebugInlining: false)
+!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
 !1 = !DIFile(filename: "main", directory: "")
-!2 = !{}
-!3 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !1, file: !1, line: 2, type: !4, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !2)
-!4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
-!5 = !{null}
-!6 = !DILocation(line: 3, column: 12, scope: !3)
-!7 = !DILocalVariable(name: "myFunc", scope: !3, file: !1, line: 2, type: !8)
+!2 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !1, file: !1, line: 2, type: !3, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !5)
+!3 = !DISubroutineType(flags: DIFlagPublic, types: !4)
+!4 = !{null}
+!5 = !{}
+!6 = !DILocation(line: 3, column: 12, scope: !2)
+!7 = !DILocalVariable(name: "myFunc", scope: !2, file: !1, line: 2, type: !8)
 !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__ref_to_STRING", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
 !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 80, align: 64, elements: !11)
 !10 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
 !11 = !{!12}
 !12 = !DISubrange(count: 80, lowerBound: 0)
-!13 = !DILocation(line: 2, column: 17, scope: !3)
+!13 = !DILocation(line: 2, column: 17, scope: !2)
 

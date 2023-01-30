@@ -5,7 +5,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @myFunc(i16* %0) !dbg !3 {
+define i32 @myFunc(i16* %0) !dbg !2 {
 entry:
   %myFunc = alloca i32, align 4, !dbg !8
   %x = alloca i16*, align 8, !dbg !8
@@ -29,18 +29,18 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.dbg.cu = !{!0}
 
-!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, splitDebugInlining: false)
+!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
 !1 = !DIFile(filename: "main", directory: "")
-!2 = !{}
-!3 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !1, file: !1, line: 2, type: !4, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !2)
-!4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
-!5 = !{null, !6}
-!6 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_INT", baseType: !7, size: 64, align: 64, dwarfAddressSpace: 1)
-!7 = !DIBasicType(name: "int", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!8 = !DILocation(line: 6, column: 12, scope: !3)
-!9 = !DILocalVariable(name: "x", scope: !3, file: !1, line: 4, type: !6)
-!10 = !DILocation(line: 4, column: 12, scope: !3)
-!11 = !DILocalVariable(name: "myFunc", scope: !3, file: !1, line: 2, type: !12, align: 32)
+!2 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !1, file: !1, line: 2, type: !3, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !7)
+!3 = !DISubroutineType(flags: DIFlagPublic, types: !4)
+!4 = !{null, !5}
+!5 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_INT", baseType: !6, size: 64, align: 64, dwarfAddressSpace: 1)
+!6 = !DIBasicType(name: "int", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !{}
+!8 = !DILocation(line: 6, column: 12, scope: !2)
+!9 = !DILocalVariable(name: "x", scope: !2, file: !1, line: 4, type: !5)
+!10 = !DILocation(line: 4, column: 12, scope: !2)
+!11 = !DILocalVariable(name: "myFunc", scope: !2, file: !1, line: 2, type: !12, align: 32)
 !12 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!13 = !DILocation(line: 2, column: 17, scope: !3)
+!13 = !DILocation(line: 2, column: 17, scope: !2)
 
