@@ -661,6 +661,11 @@ impl<'i> TypeAnnotator<'i> {
                         .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()))
                 }
             }
+
+            AstStatement::UnaryExpression { value, .. } => self
+                .annotation_map
+                .annotate_type_hint(value, StatementAnnotation::value(expected_type.get_name())),
+
             _ => {
                 //annotate the statement, whatever it is
                 self.annotation_map
