@@ -1,7 +1,4 @@
-use crate::{
-    diagnostics::Diagnostic,
-    test_utils::tests::{codegen, codegen_without_unwrap},
-};
+use crate::test_utils::tests::codegen;
 
 #[test]
 fn function_all_parameters_assigned() {
@@ -37,7 +34,7 @@ fn function_all_parameters_assigned() {
 #[test]
 fn function_empty_input_assignment() {
     // GIVEN
-    let result = codegen_without_unwrap(
+    let result = codegen(
         "
 		FUNCTION foo : DINT
 		VAR_INPUT
@@ -60,14 +57,7 @@ fn function_empty_input_assignment() {
 		",
     );
     // THEN
-    if let Err(msg) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Cannot generate Literal for EmptyStatement", (238..239).into(),),
-            msg
-        )
-    } else {
-        panic!("expected code-gen error but got none")
-    }
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -394,78 +384,6 @@ fn program_all_parameters_assigned_implicit() {
 }
 
 #[test]
-fn program_empty_input_assignment() {
-    // GIVEN
-    let result = codegen_without_unwrap(
-        "
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		END_PROGRAM
-
-		PROGRAM main
-		VAR
-			var1, var2, var3 : DINT;
-		END_VAR
-			prog(input1 := , output1 => var2, inout1 := var3);
-		END_PROGRAM
-		",
-    );
-    // THEN
-    if let Err(msg) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Cannot generate Literal for EmptyStatement", (231..232).into(),),
-            msg
-        )
-    } else {
-        panic!("expected code-gen error but got none")
-    }
-}
-
-#[test]
-fn program_empty_output_assignment() {
-    // GIVEN
-    let result = codegen_without_unwrap(
-        "
-		PROGRAM prog
-		VAR_INPUT
-			input1 : DINT;
-		END_VAR
-		VAR_OUTPUT
-			output1 : DINT;
-		END_VAR
-		VAR_IN_OUT
-			inout1 : DINT;
-		END_VAR
-		END_PROGRAM
-
-		PROGRAM main
-		VAR
-			var1, var2, var3 : DINT;
-		END_VAR
-			prog(input1 := var1, output1 => , inout1 := var3);
-		END_PROGRAM
-		",
-    );
-    // THEN
-    if let Err(msg) = result {
-        assert_eq!(
-            Diagnostic::codegen_error("Cannot generate a LValue for EmptyStatement", (248..249).into(),),
-            msg
-        )
-    } else {
-        panic!("expected code-gen error but got none")
-    }
-}
-
-#[test]
 fn program_empty_inout_assignment() {
     // GIVEN
     let result = codegen(
@@ -553,6 +471,153 @@ fn program_missing_output_assignment() {
 }
 
 #[test]
+fn program_accepts_empty_statement_as_input_param() {
+    // GIVEN
+    let result = codegen(
+        "
+		PROGRAM prog
+		VAR_INPUT
+			in1: DINT;
+			in2: DINT;
+		END_VAR
+		END_PROGRAM
+
+		PROGRAM main
+			prog(in1 := 1, in2 := );
+		END_PROGRAM
+		",
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn program_accepts_empty_statement_as_output_param() {
+    // GIVEN
+    let result = codegen(
+        "
+		PROGRAM prog
+		VAR_OUTPUT
+			out1 : DINT;
+			out2 : DINT;
+		END_VAR
+			out1 := 1;
+			out2 := 2;
+		END_PROGRAM
+
+		PROGRAM main
+		VAR
+			x : DINT;
+		END_VAR
+			prog( out1 => x, out2 => );
+		END_PROGRAM
+		",
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn fb_accepts_empty_statement_as_input_param() {
+    // GIVEN
+    let result = codegen(
+        "
+		FUNCTION_BLOCK fb_t
+		VAR_INPUT
+			in1: DINT;
+			in2: DINT;
+		END_VAR
+		END_FUNCTION_BLOCK
+
+		PROGRAM main
+		VAR
+			fb : fb_t;
+		END_VAR
+			fb(in1 := 1, in2 := );
+		END_PROGRAM
+		",
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn fb_accepts_empty_statement_as_output_param() {
+    // GIVEN
+    let result = codegen(
+        "
+		FUNCTION_BLOCK fb_t
+		VAR_OUTPUT
+			out1 : DINT;
+			out2 : DINT;
+		END_VAR
+		END_FUNCTION_BLOCK
+
+		PROGRAM main
+		VAR
+			fb : fb_t;
+			x : DINT;
+		END_VAR
+			fb( out1 => x, out2 => );
+		END_PROGRAM
+		",
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn function_accepts_empty_statement_as_input_param() {
+    // GIVEN
+    let result = codegen(
+        "
+		FUNCTION foo
+		VAR_INPUT
+			in1: DINT;
+			in2: DINT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+			foo(in1 := 1, in2 := );
+		END_PROGRAM
+		",
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn function_accepts_empty_statement_as_output_param() {
+    // GIVEN
+    let result = codegen(
+        "
+		FUNCTION foo
+		VAR_OUTPUT
+			out1 : DINT;
+			out2 : DINT;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM main
+		VAR
+			x: DINT;
+		END_VAR
+			foo( out1 => x, out2 => );
+		END_PROGRAM
+		",
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn parameters_behind_function_block_pointer_are_assigned_to() {
     // GIVEN
     let result = codegen(
@@ -574,6 +639,7 @@ fn parameters_behind_function_block_pointer_are_assigned_to() {
         END_FUNCTION_BLOCK
 		",
     );
+
     // THEN
     insta::assert_snapshot!(result);
 }
