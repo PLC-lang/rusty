@@ -24,7 +24,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, vec};
 
 use crate::{
     ast::{flatten_expression_list, AstStatement, Operator},
@@ -698,7 +698,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {
-            //we're calling a function
+            // we're calling a function
 
             // foo(a,b,c)
             // foo(z:= a, x:=c, y := b);
@@ -716,7 +716,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     (Some(class_ptr), call_ptr)
                 }
                 PouIndexEntry::Action { .. } if matches!(operator, AstStatement::Reference { .. }) => {
-                    //Special handling for local actions, get the parameter from the function context
+                    // special handling for local actions, get the parameter from the function context
                     function_context
                         .function
                         .get_first_param()
@@ -729,7 +729,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             };
 
-            //Generate the pou call assignments
+            // generate the pou call assignments
             self.generate_stateful_pou_call_parameters(function_name, class_ptr, call_ptr, parameters)?
         };
         Ok(arguments_list)
@@ -749,11 +749,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let (location, param_statement, _) =
                 get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
 
-            //None -> possibly variadic
             let param = declared_parameters
-                //get paremeter at location
+                // get paremeter at location
                 .get(location)
-                //find the parameter's type and name
+                // find the parameter's type and name
                 .map(|it| {
                     let name = it.get_type_name();
                     if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
@@ -764,25 +763,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         Some((it.get_declaration_type(), name))
                     }
                 })
-                //TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
+                // TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
                 .map(Ok)
+                // None -> possibly variadic
                 .unwrap_or_else(|| {
-                    //If we are dealing with a variadic function, we can accept all extra parameters
+                    // if we are dealing with a variadic function, we can accept all extra parameters
                     if pou.is_variadic() {
                         variadic_params.push(param_statement);
                         Ok(None)
                     } else {
-                        //We are not variadic, we have too many parameters here
+                        // we are not variadic, we have too many parameters here
                         Err(Diagnostic::codegen_error("Too many parameters", param_statement.get_location()))
                     }
                 })?;
 
             if let Some((declaration_type, type_name)) = param {
                 let argument: BasicValueEnum = if declaration_type.is_by_ref() {
+                    // parameter by ref
                     let declared_parameter = declared_parameters.get(location);
                     self.generate_argument_by_ref(param_statement, type_name, declared_parameter.copied())?
                 } else {
-                    //pass by val
+                    // parameter by val
                     self.generate_argument_by_val(type_name, param_statement)?
                 };
                 result.push((location, argument));
@@ -802,7 +803,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
-        //Push variadic collection and optionally the variadic size
+        // push variadic collection and optionally the variadic size
         if pou.is_variadic() {
             let last_location = result.len();
             let variadic_params = self.generate_variadic_arguments_list(pou, &variadic_params)?;
@@ -810,6 +811,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 result.push((i + last_location, param));
             }
         }
+
         result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
     }
@@ -882,14 +884,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             Ok(ptr_value)
         } else {
-            self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
+            let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
                 //passed a literal to byref parameter?
                 //TODO: find more defensive solution - check early
                 let value = self.generate_expression(argument)?;
                 let argument = self.llvm.builder.build_alloca(value.get_type(), "");
                 self.llvm.builder.build_store(argument, value);
                 Ok(argument)
-            })
+            })?;
+            // if we pass any array type by ref
+            // we need to pass a pointer to the array element type
+            // and not a pointer to array => [81 x i8]* -> i8*
+            if value.get_type().get_element_type().is_array_type() {
+                let res = self.llvm.builder.build_bitcast(
+                    value,
+                    value
+                        .get_type()
+                        .get_element_type()
+                        .into_array_type()
+                        .get_element_type()
+                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    "",
+                );
+                Ok(res.into_pointer_value())
+            } else {
+                Ok(value)
+            }
+            // Ok(value)
         }
         .map(Into::into)
     }
@@ -1397,7 +1418,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //Load the reference
         self.do_generate_element_pointer(qualifier.cloned(), reference).and_then(|lvalue| {
             if let DataTypeInformation::Array { dimensions, .. } = self.get_type_hint_info_for(reference)? {
-                //Make sure dimensions match statement list
+                // make sure dimensions match statement list
                 let statements = access.get_as_list();
                 if statements.is_empty() || statements.len() != dimensions.len() {
                     return Err(Diagnostic::codegen_error("Invalid array access", access.get_location()));
@@ -1440,7 +1461,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             self.generate_access_for_dimension(dimension, statement))
                     .zip(dimension_portions);
 
-                //accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
+                // accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
                 let (index_access, _) = accessors_and_portions.fold(
                     (Ok(self.llvm.i32_type().const_zero().as_basic_value_enum()), 1),
                     |(accumulated_value, _), (current_v, current_portion)| {
@@ -1451,7 +1472,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                     .i32_type()
                                     .const_int(current_portion as u64, false)
                                     .as_basic_value_enum();
-                                //multiply the accessor with the dimension's portion
+                                // multiply the accessor with the dimension's portion
                                 let m_v = self.create_llvm_int_binary_expression(
                                     &Operator::Multiplication,
                                     current_portion_value,
@@ -1466,20 +1487,30 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     },
                 );
 
-                //make sure we got an int-value
+                // make sure we got an int-value
                 let index_access: IntValue = index_access.and_then(|it| {
                     it.try_into().map_err(|_| {
                         Diagnostic::codegen_error("non-numeric index-access", access.get_location())
                     })
                 })?;
 
-                //Load the access from that array
-                //First 0 is to access the pointer, then we access the array
-                let pointer = self.llvm.load_array_element(
-                    lvalue,
-                    &[self.llvm.i32_type().const_zero(), index_access],
-                    "tmpVar",
-                )?;
+                let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
+                    // e.g.: [81 x i32]*
+                    // the first index (0) will point to the array -> [81 x i32]
+                    // the second index (index_access) will point to the element in the array
+                    vec![self.llvm.i32_type().const_zero(), index_access]
+                } else {
+                    // lvalue is a pointer to type -> e.g.: i32*
+                    // only one index (index_access) is needed to access the element
+
+                    // IGNORE the additional first index (0)
+                    // it would point to -> i32
+                    // we can't access any element of i32
+                    vec![index_access]
+                };
+
+                // load the access from that array
+                let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
 
                 return Ok(pointer);
             }

@@ -238,6 +238,14 @@ impl VariableIndexEntry {
         matches!(self.get_variable_type(), VariableType::Input | VariableType::Output | VariableType::InOut)
     }
 
+    /// returns `true` for `VAR_INPUT {ref}` and `VAR_IN_OUT`
+    pub fn is_in_parameter_by_ref(&self) -> bool {
+        matches!(
+            self.get_declaration_type(),
+            ArgumentType::ByRef(VariableType::Input) | ArgumentType::ByRef(VariableType::InOut)
+        )
+    }
+
     pub fn is_variadic(&self) -> bool {
         self.varargs.is_some()
     }
