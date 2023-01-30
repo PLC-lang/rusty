@@ -2486,6 +2486,37 @@
 <span id="2481">2481</span>
 <span id="2482">2482</span>
 <span id="2483">2483</span>
+<span id="2484">2484</span>
+<span id="2485">2485</span>
+<span id="2486">2486</span>
+<span id="2487">2487</span>
+<span id="2488">2488</span>
+<span id="2489">2489</span>
+<span id="2490">2490</span>
+<span id="2491">2491</span>
+<span id="2492">2492</span>
+<span id="2493">2493</span>
+<span id="2494">2494</span>
+<span id="2495">2495</span>
+<span id="2496">2496</span>
+<span id="2497">2497</span>
+<span id="2498">2498</span>
+<span id="2499">2499</span>
+<span id="2500">2500</span>
+<span id="2501">2501</span>
+<span id="2502">2502</span>
+<span id="2503">2503</span>
+<span id="2504">2504</span>
+<span id="2505">2505</span>
+<span id="2506">2506</span>
+<span id="2507">2507</span>
+<span id="2508">2508</span>
+<span id="2509">2509</span>
+<span id="2510">2510</span>
+<span id="2511">2511</span>
+<span id="2512">2512</span>
+<span id="2513">2513</span>
+<span id="2514">2514</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -2512,7 +2543,7 @@
     },
     <span class="ident">AddressSpace</span>, <span class="ident">FloatPredicate</span>, <span class="ident">IntPredicate</span>,
 };
-<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">vec</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">AstStatement</span>, <span class="ident">Operator</span>},
@@ -3186,7 +3217,7 @@
         <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">arguments_list</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">pou</span>, <span class="ident">PouIndexEntry::Function</span> { .. }) {
-            <span class="comment">//we&#39;re calling a function</span>
+            <span class="comment">// we&#39;re calling a function</span>
 
             <span class="comment">// foo(a,b,c)</span>
             <span class="comment">// foo(z:= a, x:=c, y := b);</span>
@@ -3204,7 +3235,7 @@
                     (<span class="prelude-val">Some</span>(<span class="ident">class_ptr</span>), <span class="ident">call_ptr</span>)
                 }
                 <span class="ident">PouIndexEntry::Action</span> { .. } <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">operator</span>, <span class="ident">AstStatement::Reference</span> { .. }) =&gt; {
-                    <span class="comment">//Special handling for local actions, get the parameter from the function context</span>
+                    <span class="comment">// special handling for local actions, get the parameter from the function context</span>
                     <span class="ident">function_context</span>
                         .<span class="ident">function</span>
                         .<span class="ident">get_first_param</span>()
@@ -3217,7 +3248,7 @@
                 }
             };
 
-            <span class="comment">//Generate the pou call assignments</span>
+            <span class="comment">// generate the pou call assignments</span>
             <span class="self">self</span>.<span class="ident">generate_stateful_pou_call_parameters</span>(<span class="ident">function_name</span>, <span class="ident">class_ptr</span>, <span class="ident">call_ptr</span>, <span class="ident">parameters</span>)<span class="question-mark">?</span>
         };
         <span class="prelude-val">Ok</span>(<span class="ident">arguments_list</span>)
@@ -3237,11 +3268,10 @@
             <span class="kw">let</span> (<span class="ident">location</span>, <span class="ident">param_statement</span>, <span class="kw">_</span>) <span class="op">=</span>
                 <span class="ident">get_implicit_call_parameter</span>(<span class="ident">param_statement</span>, <span class="kw-2">&amp;</span><span class="ident">declared_parameters</span>, <span class="ident">idx</span>)<span class="question-mark">?</span>;
 
-            <span class="comment">//None -&gt; possibly variadic</span>
             <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">declared_parameters</span>
-                <span class="comment">//get paremeter at location</span>
+                <span class="comment">// get paremeter at location</span>
                 .<span class="ident">get</span>(<span class="ident">location</span>)
-                <span class="comment">//find the parameter&#39;s type and name</span>
+                <span class="comment">// find the parameter&#39;s type and name</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
                     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">get_type_name</span>();
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">DataTypeInformation::Pointer</span> { <span class="ident">inner_type_name</span>, <span class="ident">auto_deref</span>: <span class="bool-val">true</span>, .. }) <span class="op">=</span>
@@ -3252,25 +3282,27 @@
                         <span class="prelude-val">Some</span>((<span class="ident">it</span>.<span class="ident">get_declaration_type</span>(), <span class="ident">name</span>))
                     }
                 })
-                <span class="comment">//TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail</span>
+                <span class="comment">// TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail</span>
                 .<span class="ident">map</span>(<span class="prelude-val">Ok</span>)
+                <span class="comment">// None -&gt; possibly variadic</span>
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="comment">//If we are dealing with a variadic function, we can accept all extra parameters</span>
+                    <span class="comment">// if we are dealing with a variadic function, we can accept all extra parameters</span>
                     <span class="kw">if</span> <span class="ident">pou</span>.<span class="ident">is_variadic</span>() {
                         <span class="ident">variadic_params</span>.<span class="ident">push</span>(<span class="ident">param_statement</span>);
                         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
                     } <span class="kw">else</span> {
-                        <span class="comment">//We are not variadic, we have too many parameters here</span>
+                        <span class="comment">// we are not variadic, we have too many parameters here</span>
                         <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;Too many parameters&quot;</span>, <span class="ident">param_statement</span>.<span class="ident">get_location</span>()))
                     }
                 })<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">declaration_type</span>, <span class="ident">type_name</span>)) <span class="op">=</span> <span class="ident">param</span> {
                 <span class="kw">let</span> <span class="ident">argument</span>: <span class="ident">BasicValueEnum</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">declaration_type</span>.<span class="ident">is_by_ref</span>() {
+                    <span class="comment">// parameter by ref</span>
                     <span class="kw">let</span> <span class="ident">declared_parameter</span> <span class="op">=</span> <span class="ident">declared_parameters</span>.<span class="ident">get</span>(<span class="ident">location</span>);
                     <span class="self">self</span>.<span class="ident">generate_argument_by_ref</span>(<span class="ident">param_statement</span>, <span class="ident">type_name</span>, <span class="ident">declared_parameter</span>.<span class="ident">copied</span>())<span class="question-mark">?</span>
                 } <span class="kw">else</span> {
-                    <span class="comment">//pass by val</span>
+                    <span class="comment">// parameter by val</span>
                     <span class="self">self</span>.<span class="ident">generate_argument_by_val</span>(<span class="ident">type_name</span>, <span class="ident">param_statement</span>)<span class="question-mark">?</span>
                 };
                 <span class="ident">result</span>.<span class="ident">push</span>((<span class="ident">location</span>, <span class="ident">argument</span>));
@@ -3290,7 +3322,7 @@
             }
         }
 
-        <span class="comment">//Push variadic collection and optionally the variadic size</span>
+        <span class="comment">// push variadic collection and optionally the variadic size</span>
         <span class="kw">if</span> <span class="ident">pou</span>.<span class="ident">is_variadic</span>() {
             <span class="kw">let</span> <span class="ident">last_location</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">len</span>();
             <span class="kw">let</span> <span class="ident">variadic_params</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_variadic_arguments_list</span>(<span class="ident">pou</span>, <span class="kw-2">&amp;</span><span class="ident">variadic_params</span>)<span class="question-mark">?</span>;
@@ -3298,6 +3330,7 @@
                 <span class="ident">result</span>.<span class="ident">push</span>((<span class="ident">i</span> <span class="op">+</span> <span class="ident">last_location</span>, <span class="ident">param</span>));
             }
         }
+
         <span class="ident">result</span>.<span class="ident">sort_by</span>(<span class="op">|</span>(<span class="ident">idx_a</span>, <span class="kw">_</span>), (<span class="ident">idx_b</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">idx_a</span>.<span class="ident">cmp</span>(<span class="ident">idx_b</span>));
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>.<span class="ident">into</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataValueEnum</span><span class="op">&gt;</span><span class="op">&gt;</span>())
     }
@@ -3370,14 +3403,33 @@
             }
             <span class="prelude-val">Ok</span>(<span class="ident">ptr_value</span>)
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">argument</span>).<span class="ident">or_else</span>::<span class="op">&lt;</span><span class="ident">Diagnostic</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">argument</span>).<span class="ident">or_else</span>::<span class="op">&lt;</span><span class="ident">Diagnostic</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                 <span class="comment">//passed a literal to byref parameter?</span>
                 <span class="comment">//TODO: find more defensive solution - check early</span>
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">argument</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">argument</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_alloca</span>(<span class="ident">value</span>.<span class="ident">get_type</span>(), <span class="string">&quot;&quot;</span>);
                 <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">argument</span>, <span class="ident">value</span>);
                 <span class="prelude-val">Ok</span>(<span class="ident">argument</span>)
-            })
+            })<span class="question-mark">?</span>;
+            <span class="comment">// if we pass any array type by ref</span>
+            <span class="comment">// we need to pass a pointer to the array element type</span>
+            <span class="comment">// and not a pointer to array =&gt; [81 x i8]* -&gt; i8*</span>
+            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">is_array_type</span>() {
+                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_bitcast</span>(
+                    <span class="ident">value</span>,
+                    <span class="ident">value</span>
+                        .<span class="ident">get_type</span>()
+                        .<span class="ident">get_element_type</span>()
+                        .<span class="ident">into_array_type</span>()
+                        .<span class="ident">get_element_type</span>()
+                        .<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::from</span>(<span class="ident">ADDRESS_SPACE_GENERIC</span>)),
+                    <span class="string">&quot;&quot;</span>,
+                );
+                <span class="prelude-val">Ok</span>(<span class="ident">res</span>.<span class="ident">into_pointer_value</span>())
+            } <span class="kw">else</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
+            }
+            <span class="comment">// Ok(value)</span>
         }
         .<span class="ident">map</span>(<span class="ident">Into::into</span>)
     }
@@ -3885,7 +3937,7 @@
         <span class="comment">//Load the reference</span>
         <span class="self">self</span>.<span class="ident">do_generate_element_pointer</span>(<span class="ident">qualifier</span>.<span class="ident">cloned</span>(), <span class="ident">reference</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">lvalue</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Array</span> { <span class="ident">dimensions</span>, .. } <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">reference</span>)<span class="question-mark">?</span> {
-                <span class="comment">//Make sure dimensions match statement list</span>
+                <span class="comment">// make sure dimensions match statement list</span>
                 <span class="kw">let</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">access</span>.<span class="ident">get_as_list</span>();
                 <span class="kw">if</span> <span class="ident">statements</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">statements</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">dimensions</span>.<span class="ident">len</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;Invalid array access&quot;</span>, <span class="ident">access</span>.<span class="ident">get_location</span>()));
@@ -3928,7 +3980,7 @@
                             <span class="self">self</span>.<span class="ident">generate_access_for_dimension</span>(<span class="ident">dimension</span>, <span class="ident">statement</span>))
                     .<span class="ident">zip</span>(<span class="ident">dimension_portions</span>);
 
-                <span class="comment">//accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12</span>
+                <span class="comment">// accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12</span>
                 <span class="kw">let</span> (<span class="ident">index_access</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">accessors_and_portions</span>.<span class="ident">fold</span>(
                     (<span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i32_type</span>().<span class="ident">const_zero</span>().<span class="ident">as_basic_value_enum</span>()), <span class="number">1</span>),
                     <span class="op">|</span>(<span class="ident">accumulated_value</span>, <span class="kw">_</span>), (<span class="ident">current_v</span>, <span class="ident">current_portion</span>)<span class="op">|</span> {
@@ -3939,7 +3991,7 @@
                                     .<span class="ident">i32_type</span>()
                                     .<span class="ident">const_int</span>(<span class="ident">current_portion</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="bool-val">false</span>)
                                     .<span class="ident">as_basic_value_enum</span>();
-                                <span class="comment">//multiply the accessor with the dimension&#39;s portion</span>
+                                <span class="comment">// multiply the accessor with the dimension&#39;s portion</span>
                                 <span class="kw">let</span> <span class="ident">m_v</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_llvm_int_binary_expression</span>(
                                     <span class="kw-2">&amp;</span><span class="ident">Operator::Multiplication</span>,
                                     <span class="ident">current_portion_value</span>,
@@ -3954,20 +4006,30 @@
                     },
                 );
 
-                <span class="comment">//make sure we got an int-value</span>
+                <span class="comment">// make sure we got an int-value</span>
                 <span class="kw">let</span> <span class="ident">index_access</span>: <span class="ident">IntValue</span> <span class="op">=</span> <span class="ident">index_access</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
                     <span class="ident">it</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                         <span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;non-numeric index-access&quot;</span>, <span class="ident">access</span>.<span class="ident">get_location</span>())
                     })
                 })<span class="question-mark">?</span>;
 
-                <span class="comment">//Load the access from that array</span>
-                <span class="comment">//First 0 is to access the pointer, then we access the array</span>
-                <span class="kw">let</span> <span class="ident">pointer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">load_array_element</span>(
-                    <span class="ident">lvalue</span>,
-                    <span class="kw-2">&amp;</span>[<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i32_type</span>().<span class="ident">const_zero</span>(), <span class="ident">index_access</span>],
-                    <span class="string">&quot;tmpVar&quot;</span>,
-                )<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">accessor_sequence</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lvalue</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">is_array_type</span>() {
+                    <span class="comment">// e.g.: [81 x i32]*</span>
+                    <span class="comment">// the first index (0) will point to the array -&gt; [81 x i32]</span>
+                    <span class="comment">// the second index (index_access) will point to the element in the array</span>
+                    <span class="macro">vec!</span>[<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i32_type</span>().<span class="ident">const_zero</span>(), <span class="ident">index_access</span>]
+                } <span class="kw">else</span> {
+                    <span class="comment">// lvalue is a pointer to type -&gt; e.g.: i32*</span>
+                    <span class="comment">// only one index (index_access) is needed to access the element</span>
+
+                    <span class="comment">// IGNORE the additional first index (0)</span>
+                    <span class="comment">// it would point to -&gt; i32</span>
+                    <span class="comment">// we can&#39;t access any element of i32</span>
+                    <span class="macro">vec!</span>[<span class="ident">index_access</span>]
+                };
+
+                <span class="comment">// load the access from that array</span>
+                <span class="kw">let</span> <span class="ident">pointer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">load_array_element</span>(<span class="ident">lvalue</span>, <span class="kw-2">&amp;</span><span class="ident">accessor_sequence</span>, <span class="string">&quot;tmpVar&quot;</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">pointer</span>);
             }

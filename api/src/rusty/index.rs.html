@@ -1490,6 +1490,14 @@
 <span id="1485">1485</span>
 <span id="1486">1486</span>
 <span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1728,6 +1736,14 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">get_variable_type</span>(), <span class="ident">VariableType::Input</span> <span class="op">|</span> <span class="ident">VariableType::Output</span> <span class="op">|</span> <span class="ident">VariableType::InOut</span>)
+    }
+
+    <span class="doccomment">/// returns `true` for `VAR_INPUT {ref}` and `VAR_IN_OUT`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_in_parameter_by_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">get_declaration_type</span>(),
+            <span class="ident">ArgumentType::ByRef</span>(<span class="ident">VariableType::Input</span>) <span class="op">|</span> <span class="ident">ArgumentType::ByRef</span>(<span class="ident">VariableType::InOut</span>)
+        )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_variadic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
