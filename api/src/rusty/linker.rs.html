@@ -533,7 +533,7 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">windows_target_triple_should_result_in_error</span>() {
-    <span class="kw">for</span> <span class="ident">target</span> <span class="kw">in</span> <span class="macro">vec!</span>[
+    <span class="kw">for</span> <span class="ident">target</span> <span class="kw">in</span> <span class="kw-2">&amp;</span>[
         <span class="string">&quot;x86_64-pc-windows-gnu&quot;</span>,
         <span class="string">&quot;x86_64-pc-win32-gnu&quot;</span>,
         <span class="string">&quot;aarch64-pc-windows-gnu&quot;</span>,
@@ -547,7 +547,7 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">non_windows_target_triple_should_result_in_ok</span>() {
-    <span class="kw">for</span> <span class="ident">target</span> <span class="kw">in</span> <span class="macro">vec!</span>[<span class="string">&quot;x86_64-pc-linux-gnu&quot;</span>, <span class="string">&quot;x86_64-unknown-linux-gnu&quot;</span>, <span class="string">&quot;aarch64-apple-darwin&quot;</span>] {
+    <span class="kw">for</span> <span class="ident">target</span> <span class="kw">in</span> <span class="kw-2">&amp;</span>[<span class="string">&quot;x86_64-pc-linux-gnu&quot;</span>, <span class="string">&quot;x86_64-unknown-linux-gnu&quot;</span>, <span class="string">&quot;aarch64-apple-darwin&quot;</span>] {
         <span class="macro">assert!</span>(<span class="ident">Linker::new</span>(<span class="ident">target</span>, <span class="prelude-val">None</span>).<span class="ident">is_ok</span>());
     }
 }
