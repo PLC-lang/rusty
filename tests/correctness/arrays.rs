@@ -434,3 +434,168 @@ fn bool_array_assignments() {
     assert_eq!(maintype.y, 222);
     assert_eq!(maintype.z, 333);
 }
+
+#[test]
+fn assigning_global_arrays_in_function_by_passing_references() {
+    #[repr(C)]
+    struct MainType {
+        arr_in: [u16; 4],
+        arr_in_ref: [u16; 4],
+        arr_inout: [u16; 4],
+    }
+    let function = r#"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            in : ARRAY[0..3] OF INT;
+        END_VAR 
+        VAR_INPUT {ref}
+            in_ref : ARRAY[0..3] OF INT;
+        END_VAR
+        VAR_IN_OUT
+            inout : ARRAY[0..3] OF INT;
+        END_VAR
+            glob_arr_in     := in;
+            glob_arr_in_ref := in_ref;
+            glob_arr_inout  := inout;
+        END_FUNCTION
+        
+        PROGRAM main
+        VAR
+            arr_in      : ARRAY[0..3] OF INT;
+            arr_in_ref  : ARRAY[0..3] OF INT;
+            arr_inout   : ARRAY[0..3] OF INT;
+        END_VAR
+        VAR_TEMP
+            a : ARRAY[0..3] OF INT := (1, 2, 3, 4);
+            b : ARRAY[0..3] OF INT := (5, 6, 7, 8);
+            c : ARRAY[0..3] OF INT := (9, 10, 11, 12);
+        END_VAR
+            foo(a, b, c);
+        
+            arr_in      := glob_arr_in;
+            arr_in_ref  := glob_arr_in_ref;
+            arr_inout   := glob_arr_inout;
+        END_PROGRAM
+        
+        VAR_GLOBAL
+            glob_arr_in     : ARRAY[0..3] OF INT;
+            glob_arr_in_ref : ARRAY[0..3] OF INT;
+            glob_arr_inout  : ARRAY[0..3] OF INT;
+        END_VAR
+    "#;
+
+    let mut maintype = MainType { arr_in: [0; 4], arr_in_ref: [0; 4], arr_inout: [0; 4] };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(maintype.arr_in, [1, 2, 3, 4]);
+    assert_eq!(maintype.arr_in_ref, [5, 6, 7, 8]);
+    assert_eq!(maintype.arr_inout, [9, 10, 11, 12]);
+}
+
+#[test]
+fn assigning_global_arrays_in_program_by_passing_references() {
+    #[repr(C)]
+    struct MainType {
+        arr_in: [u16; 4],
+        arr_in_ref: [u16; 4],
+        arr_inout: [u16; 4],
+    }
+    let function = r#"
+        PROGRAM prog
+        VAR_INPUT
+            in : ARRAY[0..3] OF INT;
+        END_VAR 
+        VAR_INPUT {ref}
+            in_ref : ARRAY[0..3] OF INT;
+        END_VAR
+        VAR_IN_OUT
+            inout : ARRAY[0..3] OF INT;
+        END_VAR
+            glob_arr_in     := in;
+            glob_arr_in_ref := in_ref;
+            glob_arr_inout  := inout;
+        END_PROGRAM
+        
+        PROGRAM main
+        VAR
+            arr_in      : ARRAY[0..3] OF INT;
+            arr_in_ref  : ARRAY[0..3] OF INT;
+            arr_inout   : ARRAY[0..3] OF INT;
+        END_VAR
+        VAR_TEMP
+            a : ARRAY[0..3] OF INT := (1, 2, 3, 4);
+            b : ARRAY[0..3] OF INT := (5, 6, 7, 8);
+            c : ARRAY[0..3] OF INT := (9, 10, 11, 12);
+        END_VAR
+            prog(a, b, c);
+        
+            arr_in      := glob_arr_in;
+            arr_in_ref  := glob_arr_in_ref;
+            arr_inout   := glob_arr_inout;
+        END_PROGRAM
+        
+        VAR_GLOBAL
+            glob_arr_in     : ARRAY[0..3] OF INT;
+            glob_arr_in_ref : ARRAY[0..3] OF INT;
+            glob_arr_inout  : ARRAY[0..3] OF INT;
+        END_VAR
+    "#;
+
+    let mut maintype = MainType { arr_in: [0; 4], arr_in_ref: [0; 4], arr_inout: [0; 4] };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(maintype.arr_in, [1, 2, 3, 4]);
+    assert_eq!(maintype.arr_in_ref, [5, 6, 7, 8]);
+    assert_eq!(maintype.arr_inout, [9, 10, 11, 12]);
+}
+
+#[test]
+fn access_arrays_by_ref() {
+    #[repr(C)]
+    #[derive(Default)]
+    struct MainType {
+        a0: u16,
+        a1: u16,
+        b0: u16,
+        b1: u16,
+    }
+    let function = r#"
+        FUNCTION foo : DINT
+        VAR_INPUT {ref}
+            in_ref : ARRAY[0..1] OF INT;
+        END_VAR
+        VAR_IN_OUT
+            inout : ARRAY[0..1] OF INT;
+        END_VAR
+			glob_a0 := in_ref[0];
+			glob_a1 := in_ref[1];
+			glob_b0 := inout[0];
+			glob_b1 := inout[1];
+        END_FUNCTION
+        
+        PROGRAM main
+        VAR
+			a0, a1, b0, b1 : INT;
+        END_VAR
+        VAR_TEMP
+            a : ARRAY[0..1] OF INT := (1, 2);
+            b : ARRAY[0..1] OF INT := (5, 6);
+        END_VAR
+            foo(a, b);
+        
+			a0 := glob_a0;
+			a1 := glob_a1;
+			b0 := glob_b0;
+			b1 := glob_b1;
+        END_PROGRAM
+        
+        VAR_GLOBAL
+			glob_a0, glob_a1, glob_b0, glob_b1 : INT;
+        END_VAR
+    "#;
+
+    let mut maintype = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(maintype.a0, 1);
+    assert_eq!(maintype.a1, 2);
+    assert_eq!(maintype.b0, 5);
+    assert_eq!(maintype.b1, 6);
+}
