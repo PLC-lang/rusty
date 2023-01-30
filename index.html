@@ -143,13 +143,10 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="rusty"><a class="header" href="#rusty">RuSTy</a></h1>
-<p>RuSTy is a <a href="https://en.wikipedia.org/wiki/Structured_text">structured text (ST)</a>
-compiler written in Rust and based on the
-LLVM compiler backend. We use the <a href="https://crates.io/crates/logos/0.8.0"><em>logos</em></a>
-crate library to perform lexical analysis before the custom parser runs. RuSTy
-puts out static or shared objects as well as LLVM IR or bitcode by the flip of
-a command line flag. We are aiming towards an open-source industry-grade ST compiler
-supporting at least the features in 2nd edition IEC 61131 standard. </p>
+<p>RuSTy is a <a href="https://en.wikipedia.org/wiki/Structured_text">structured text (ST)</a> compiler written in Rust and based on the LLVM compiler backend.
+We use the <a href="https://crates.io/crates/logos/0.8.0"><em>logos</em></a> crate library to perform lexical analysis before the custom parser runs.
+RuSTy puts out static or shared objects as well as LLVM IR or bitcode by the flip of a command line flag.
+We are aiming towards an open-source industry-grade ST compiler supporting at least the features in 2nd edition IEC 61131 standard.</p>
 <p>You might also want to refer to the <a href="api/rusty/">API documentation</a>.</p>
 <h2 id="supported-language-concepts"><a class="header" href="#supported-language-concepts">Supported Language Concepts</a></h2>
 <h3 id="pous"><a class="header" href="#pous">POUs</a></h3>
@@ -178,6 +175,7 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <ul>
 <li>✔ VAR</li>
 <li>✔ VAR_INPUT</li>
+<li>✔ VAR_INPUT {ref}</li>
 <li>✔ VAR_OUTPUT</li>
 <li>✔ VAR_IN_OUT</li>
 </ul>

@@ -143,10 +143,14 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="indexer"><a class="header" href="#indexer">Indexer</a></h1>
-<p>The indexing step is responsible of building and maintaining the Symbol-Table (also called <em>Index</em>). The <em>Index</em> contains all known referable objects such as <em>variables</em>, <em>data-types</em>, <em>POUs</em>, <em>Functions</em>, etc. The Symbol-Table also maintains additional information about every referable object such as: the object's type, the objects' datatype, etc.</p>
-<p>Indexing is performed by the <em>index</em> module. It contains the index itself (a.k.a. Symbol Table), the <em>visitor</em> which collects all global names and their additional information as well as a data structure that handles compile time constant expressions (<em>constant_expressions</em>).</p>
+<p>The indexing step is responsible of building and maintaining the Symbol-Table (also called <em>Index</em>).
+The <em>Index</em> contains all known referable objects such as <em>variables</em>, <em>data-types</em>, <em>POUs</em>, <em>Functions</em>, etc.
+The Symbol-Table also maintains additional information about every referable object such as: the object's type, the objects' datatype, etc.</p>
+<p>Indexing is performed by the <em>index</em> module.
+It contains the index itself (a.k.a. Symbol Table), the <em>visitor</em> which collects all global names and their additional information as well as a data structure that handles compile time constant expressions (<em>constant_expressions</em>).</p>
 <h2 id="the-index-symbol-table"><a class="header" href="#the-index-symbol-table">The Index (Symbol Table)</a></h2>
-<p>The index stores information about all referable elements of the program. Depending on the type of element, we store different meta-information alongside the name of the element.</p>
+<p>The index stores information about all referable elements of the program.
+Depending on the type of element, we store different meta-information alongside the name of the element.</p>
 <table><thead><tr><th>Index Field</th><th>Description</th></tr></thead><tbody>
 <tr><td>global_variables</td><td>All global variables accessible via their name.</td></tr>
 <tr><td>enum_global_variables</td><td>All enum elements accessible via their name (as if they were global variables, e.g. 'RED')</td></tr>
@@ -188,7 +192,8 @@ The VariableIndexEntry holds information about every <em>Variable</em> in the so
 </code></pre>
 <ul>
 <li><strong>PouIndexEntry</strong>
-The PouIndexEntry offers information about all Program-Organization-Units. The index entry offers information like the name of an instance-struct, the name of the registered implementation, etc.</li>
+The PouIndexEntry offers information about all Program-Organization-Units.
+The index entry offers information like the name of an instance-struct, the name of the registered implementation, etc.</li>
 </ul>
 <pre><code class="language-ignore">┌──────────────────────────┐
 │       &lt;abstract&gt;         │
@@ -243,7 +248,8 @@ The PouIndexEntry offers information about all Program-Organization-Units. The i
 </code></pre>
 <ul>
 <li><strong>ImplementationIndexEntry</strong>
-The ImplementationIndexEntry offers information about any callable implementation (Program, Functionblock, Function, etc.). It also offers metadata about the implementation type, the name of the method to call and the name of the parameter-struct (this-struct) to pass to the function.</li>
+The ImplementationIndexEntry offers information about any callable implementation (Program, Functionblock, Function, etc.).
+It also offers metadata about the implementation type, the name of the method to call and the name of the parameter-struct (this-struct) to pass to the function.</li>
 </ul>
 <pre><code class="language-ignore">                                                  ┌───────────────────────┐
         ┌──────────────────────────┐              │       &lt;enum&gt;          │
@@ -261,7 +267,8 @@ The ImplementationIndexEntry offers information about any callable implementatio
 </code></pre>
 <ul>
 <li><strong>DataType</strong>
-The entry for a DataType offers information about any data-type supported by the program to be compiled (internal data types as well as user defined data types). For each data-type we offer additional information such as it's initial value, its type-nature (in terms of generic functions - e.g: ANY_INT) and some additional information about the type's internal structure and size (e.g. is it a number/array/struct/etc).</li>
+The entry for a DataType offers information about any data-type supported by the program to be compiled (internal data types as well as user defined data types).
+For each data-type we offer additional information such as it's initial value, its type-nature (in terms of generic functions - e.g: ANY_INT) and some additional information about the type's internal structure and size (e.g. is it a number/array/struct/etc).</li>
 </ul>
 <pre><code class="language-ignore">                      ┌─────────────┐                   ┌────────────────────┐
                       │  DataType   │                   │ ConstantExpression │

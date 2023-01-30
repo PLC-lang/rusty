@@ -144,13 +144,10 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="rusty"><a class="header" href="#rusty">RuSTy</a></h1>
-<p>RuSTy is a <a href="https://en.wikipedia.org/wiki/Structured_text">structured text (ST)</a>
-compiler written in Rust and based on the
-LLVM compiler backend. We use the <a href="https://crates.io/crates/logos/0.8.0"><em>logos</em></a>
-crate library to perform lexical analysis before the custom parser runs. RuSTy
-puts out static or shared objects as well as LLVM IR or bitcode by the flip of
-a command line flag. We are aiming towards an open-source industry-grade ST compiler
-supporting at least the features in 2nd edition IEC 61131 standard. </p>
+<p>RuSTy is a <a href="https://en.wikipedia.org/wiki/Structured_text">structured text (ST)</a> compiler written in Rust and based on the LLVM compiler backend.
+We use the <a href="https://crates.io/crates/logos/0.8.0"><em>logos</em></a> crate library to perform lexical analysis before the custom parser runs.
+RuSTy puts out static or shared objects as well as LLVM IR or bitcode by the flip of a command line flag.
+We are aiming towards an open-source industry-grade ST compiler supporting at least the features in 2nd edition IEC 61131 standard.</p>
 <p>You might also want to refer to the <a href="api/rusty/">API documentation</a>.</p>
 <h2 id="supported-language-concepts"><a class="header" href="#supported-language-concepts">Supported Language Concepts</a></h2>
 <h3 id="pous"><a class="header" href="#pous">POUs</a></h3>
@@ -179,6 +176,7 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <ul>
 <li>✔ VAR</li>
 <li>✔ VAR_INPUT</li>
+<li>✔ VAR_INPUT {ref}</li>
 <li>✔ VAR_OUTPUT</li>
 <li>✔ VAR_IN_OUT</li>
 </ul>
@@ -207,7 +205,9 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <li>✔ Bitwise Operators</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="building-and-installing"><a class="header" href="#building-and-installing">Building and Installing</a></h1>
-<p>RuSTys code can be found on <a href="https://github.com/PLC-lang/rusty">GitHub</a>. By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided. If you wish to develop natively however, you will need some additional dependencies namely</p>
+<p>RuSTys code can be found on <a href="https://github.com/PLC-lang/rusty">GitHub</a>.
+By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided.</p>
+<p>If you wish to develop natively however, you will need some additional dependencies namely :</p>
 <ul>
 <li><a href="https://www.rust-lang.org/tools/install">Rust</a></li>
 <li>LLVM 13</li>
@@ -217,7 +217,7 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 </ul>
 <p>The next sections will cover how to install these dependencies on different platforms.</p>
 <h2 id="ubuntu"><a class="header" href="#ubuntu">Ubuntu</a></h2>
-<p>The specified dependencies can be installed with the following command on Ubuntu</p>
+<p>The specified dependencies can be installed with the following command on Ubuntu :</p>
 <pre><code class="language-bash">sudo apt install                \
     build-essential             \
     llvm-13-dev liblld-13-dev   \
@@ -225,12 +225,14 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
     libclang-common-13-dev 
 </code></pre>
 <h2 id="debian"><a class="header" href="#debian">Debian</a></h2>
-<p>Same as Ubuntu with the exception of adding additional repository sources since Debian 11 only includes LLVM packages up to version 11. To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.</p>
+<p>Same as Ubuntu with the exception of adding additional repository sources since Debian 11 only includes LLVM packages up to version 11.
+To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.</p>
 <h2 id="macos"><a class="header" href="#macos">MacOS</a></h2>
-<p>On MacOS you need to install the <a href="https://developer.apple.com/downloads/"><code>Xcode Command Line Tools</code></a>. Furthermore LLVM 13 is needed, which can be easily installed with <a href="https://brew.sh">homebrew</a></p>
+<p>On MacOS you need to install the <a href="https://developer.apple.com/downloads/"><code>Xcode Command Line Tools</code></a>.</p>
+<p>Furthermore LLVM 13 is needed, which can be easily installed with <a href="https://brew.sh">homebrew</a> :</p>
 <pre><code class="language-bash">brew install llvm@13
 </code></pre>
-<p>After the installation you have to add <code>/opt/homebrew/opt/llvm@13/bin</code> to your <code>$PATH</code> environment variable, e.g. with the following command</p>
+<p>After the installation you have to add <code>/opt/homebrew/opt/llvm@13/bin</code> to your <code>$PATH</code> environment variable, e.g. with the following command :</p>
 <pre><code class="language-bash">echo 'export PATH=&quot;/opt/homebrew/opt/llvm@13/bin:$PATH&quot;' &gt;&gt; ~/.zshrc
 </code></pre>
 <h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
@@ -238,7 +240,7 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
 <ul>
 <li>Because of weak compatibility guarantees of the LLVM API, the LLVM installation must exactly match the
-major version of the <code>llvm-sys</code> crate. Currently you will need to install LLVM 13 to satisfy this constraint.
+major version of the <code>llvm-sys</code> crate.Currently you will need to install LLVM 13 to satisfy this constraint.
 <a href="https://crates.io/crates/llvm-sys">Read more</a></li>
 <li>To avoid installation conflicts on Linux/Ubuntu, make sure you don't have a default installation available
 (like you get by just installing <code>llvm-dev</code>), which may break things. If you do, make sure you have set
@@ -246,24 +248,29 @@ the appropriate environment variable (<code>LLVM_SYS_130_PREFIX=/usr/lib/llvm-13
 the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
 </ul>
 <h2 id="building"><a class="header" href="#building">Building</a></h2>
-<p>Just like any Rust project, binaries can be built with <code>cargo build</code>. For release builds, i.e. faster and smaller binaries, you have to pass the <code>--release</code> flag, like so <code>cargo build --release</code>. The resulting binaries can be found at <code>target/release/rustyc</code></p>
+<p>Just like any Rust project, binaries can be built with <code>cargo build</code>.
+For release builds, i.e. faster and smaller binaries, you have to pass the <code>--release</code> flag, like so <code>cargo build --release</code>.
+The resulting binaries can be found at <code>target/release/rustyc</code>.</p>
 <h2 id="improving-compile-times"><a class="header" href="#improving-compile-times">Improving Compile Times</a></h2>
-<p>By default Rust uses the GNU Linker on Linux which compared to <a href="https://lld.llvm.org/">lld</a> is slower by a margin of <a href="https://llvm.org/devmtg/2016-10/slides/Ueyama-lld.pdf">~2x - 4x</a>. To improve compile times we can therefore use <code>lld</code>. To do so you will need to run the <code>rusty/scripts/lld.sh</code> script inside the <code>rusty</code> root folder, i.e. by executing <code>./scripts/lld.sh</code>. <strong>Note</strong> that the script was only tested on Ubuntu based distributions thus far.</p>
+<p>By default Rust uses the GNU Linker on Linux which compared to <a href="https://lld.llvm.org/">lld</a> is slower by a margin of <a href="https://llvm.org/devmtg/2016-10/slides/Ueyama-lld.pdf">~2x - 4x</a>.
+To improve compile times we can therefore use <code>lld</code>.
+To do so you will need to run the <code>rusty/scripts/lld.sh</code> script inside the <code>rusty</code> root folder, i.e. by executing <code>./scripts/lld.sh</code>.
+<strong>Note</strong> that the script was only tested on Ubuntu based distributions thus far.</p>
 <h2 id="installing"><a class="header" href="#installing">Installing</a></h2>
 <p><em>TODO</em></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
-<p><code>rustyc</code> offers a comprehensive help via the -h (--help) option. <code>rustyc</code> takes 
-one output-format parameter and any number of input-files. The input files can also be
-written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
+<p><code>rustyc</code> offers a comprehensive help via the -h (--help) option.
+<code>rustyc</code> takes one output-format parameter and any number of input-files.
+The input files can also be written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
 <p><code>rustyc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
-<p>Note that you can only specify at most one output format. In the case that no output
-format switch has been specified, the compiler will select <code>--static</code> by default.</p>
+<p>Note that you can only specify at most one output format.
+In the case that no output format switch has been specified, the compiler will select <code>--static</code> by default.</p>
 <p>Similarly, if you do not specify an output filename via the <code>-o</code> or <code>--output</code> options,
 the output filename will consist of the first input filename, but with an appropriate
-file extension depending on the output file format. A minimal invocation looks like this:</p>
-<p><code>rustyc input.st</code> ... this will take in the file input.st and compile it into a static object
-that will be written to a file named input.o.</p>
-<p>More examples:</p>
+file extension depending on the output file format.</p>
+<p>A minimal invocation looks like this :
+<code>rustyc input.st</code> ... this will take in the file input.st and compile it into a static object that will be written to a file named input.o.</p>
+<p>More examples :</p>
 <ul>
 <li><code>rustyc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
 <li><code>rustyc --ir src/*.st</code> will compile all st files in the src-folder.</li>
@@ -271,12 +278,11 @@ that will be written to a file named input.o.</p>
 </ul>
 <h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
 <h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
-<p>We want to print something to the terminal, so we're going to declare external functions
-for that.
-This example is available under <code>examples/hello_world.st</code> in the main ruSTy repository</p>
+<p>We want to print something to the terminal, so we're going to declare external functions for that.
+This example is available under <code>examples/hello_world.st</code> in the main RuSTy repository.</p>
 <ul>
 <li><code>main</code> is our entry point to the program.</li>
-<li>To link the program, we are going to use the system's linker using the <code>--linker=cc</code> argument. </li>
+<li>To link the program, we are going to use the system's linker using the <code>--linker=cc</code> argument.</li>
 <li>On windows, replace this with --linker=clang as cc is usually not available.</li>
 </ul>
 <pre><code class="language-iecst">{external} 
@@ -290,14 +296,14 @@ FUNCTION main : DINT
     puts('hello, world!$N');
 END_FUNCTION
 </code></pre>
-<h3 id="compiling-with-rusty"><a class="header" href="#compiling-with-rusty">Compiling with rusty</a></h3>
-<p>The rusty command line interface is similar to that of other compilers.
-If you just want to build an object file, then do this:</p>
+<h3 id="compiling-with-rusty"><a class="header" href="#compiling-with-rusty">Compiling with RuSTy</a></h3>
+<p>The RuSTy command line interface is similar to that of other compilers.</p>
+<p>If you just want to build an object file, then do this :</p>
 <pre><code class="language-bash">rustyc -c hello_world.st -o hello_world.o
 </code></pre>
 <h3 id="optimization"><a class="header" href="#optimization">Optimization</a></h3>
-<p><code>rustyc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>aggressive</code>, respectively <code>-O0</code> to <code>-O3</code>). </p>
-<p>To use an optimization, the flag <code>-O</code> or <code>--optimization</code> is required:</p>
+<p><code>rustyc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>aggressive</code>, respectively <code>-O0</code> to <code>-O3</code>).</p>
+<p>To use an optimization, the flag <code>-O</code> or <code>--optimization</code> is required :</p>
 <ul>
 <li><code>rustyc -c &quot;**/*.st&quot; -O none</code></li>
 <li><code>rustyc -c &quot;**/*.st&quot; -O less</code></li>
@@ -306,30 +312,30 @@ If you just want to build an object file, then do this:</p>
 </ul>
 <p>By default <code>rustyc</code> will use <code>default</code> which corresponds to clang's <code>-O2</code>.</p>
 <h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
-<p>Instead, you can also compile this into an executable and run it:</p>
+<p>Instead, you can also compile this into an executable and run it :</p>
 <pre><code class="language-bash">rustyc hello_world.st -o hello_world --linker=cc
 ./hello_world
 </code></pre>
-<p>Please note that RuSTy will attempt to link the generated object file by default to generate
-an executable if you didn't specify something else (option <code>-c</code>).</p>
+<p>Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn't specify something else (option <code>-c</code>).</p>
 <ul>
-<li>The <code>--linker=cc</code> flag tells the rusty that it should link with the system's compiler driver 
-instead of the built in linker. This provides support to create executables.</li>
+<li>The <code>--linker=cc</code> flag tells RuSTy that it should link with the system's compiler driver  instead of the built in linker. This provides support to create executables.</li>
 <li>Additional libraries can be linked using the <code>-l</code> flag, additial library pathes can be added with <code>-L</code></li>
-<li>You add library search pathes by providing additional <code>-L /path/...</code> options. By default, this will be
-the current directory.</li>
+<li>You add library search pathes by providing additional <code>-L /path/...</code> options. By default, this will be the current directory.</li>
 <li>The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
 </ul>
 <h3 id="building-for-separate-targets"><a class="header" href="#building-for-separate-targets">Building for separate targets</a></h3>
 <p>RuSTy supports building for multiple targets by specifing the <code>--target</code> and optionally the <code>--sysroot</code> command.</p>
 <ul>
-<li>Multiple targets and sysroot can be specified for the compilation simply by adding additional
-<code>--target</code> and <code>--sysroot</code> entries.</li>
+<li>Multiple targets and sysroot can be specified for the compilation simply by adding additional <code>--target</code> and <code>--sysroot</code> entries.</li>
 </ul>
 <h3 id="--target"><a class="header" href="#--target">--target</a></h3>
-<p>To build and compile <a href="https://en.wikipedia.org/wiki/Structured_text">structured text</a> for the rigth platform we need to specify the <code>target</code>. As <code>rustyc</code> is using <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> a target-tripple supported by LLVM needs to be selected. The default <code>target</code> is the host machine's target. So if a dev container on an <code>x86_64-docker</code> is used the target is <code>x86_64-linux-gnu</code>.</p>
+<p>To build and compile <a href="https://en.wikipedia.org/wiki/Structured_text">structured text</a> for the rigth platform we need to specify the <code>target</code>.
+As <code>rustyc</code> is using <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> a target-tripple supported by LLVM needs to be selected.
+The default <code>target</code> is the host machine's target.
+So if a dev container on an <code>x86_64-docker</code> is used the target is <code>x86_64-linux-gnu</code>.</p>
 <h3 id="--sysroot"><a class="header" href="#--sysroot">--sysroot</a></h3>
-<p><code>rustyc</code> use the <code>sysroot</code> option for linking purposes. It is considered to be the root directory for the purpose of locating headers and libraries.</p>
+<p><code>rustyc</code> use the <code>sysroot</code> option for linking purposes.
+It is considered to be the root directory for the purpose of locating headers and libraries.</p>
 <ul>
 <li>If a target and sysroot are provided, the output will always be stored in a folder with the target name (e.g. an <code>x86_64-linux-gnu</code> target will have the output strored in a folder called <code>x86_64-linux-gnu</code>)</li>
 <li><code>--sysroot</code> parameters have to always match target parameters, there can be no <code>sysroot</code> without a target.</li>
@@ -338,14 +344,18 @@ the current directory.</li>
 <p>In addition to the comprehensive help, <code>rustyc</code> offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
 The build description file needs to be saved in the <a href="https://en.wikipedia.org/wiki/JSON">json</a> format.</p>
-<p>Usage: </p>
-<p><code>rustyc build</code></p>
-<p>Note that if <code>rustyc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path. The default location for the build file is the current directory. The command for building with an additional path looks like this:</p>
-<p><code>rustyc build src/plc.json</code></p>
+<p>Usage :
+<code>rustyc build</code></p>
+<p>Note that if <code>rustyc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path.
+The default location for the build file is the current directory.</p>
+<p>The command for building with an additional path looks like this :
+<code>rustyc build src/plc.json</code></p>
 <h2 id="build-description-file-plcjson"><a class="header" href="#build-description-file-plcjson">Build description file (plc.json)</a></h2>
-<p>For the build description file to work, it must be written in the <a href="https://en.wikipedia.org/wiki/JavaScript_Object_Notation">json</a> format. All the keys used in the build description file are described in the following sections. </p>
+<p>For the build description file to work, it must be written in the <a href="https://en.wikipedia.org/wiki/JavaScript_Object_Notation">json</a> format.
+All the keys used in the build description file are described in the following sections.</p>
 <h3 id="files"><a class="header" href="#files">files</a></h3>
-<p>The keyword <code>files</code> is the equivalent to the <code>input</code> parameter, which adds all the <code>ST</code> files that need to be compiled. The value of <code>files</code> is an array of strings, definied as follows:</p>
+<p>The keyword <code>files</code> is the equivalent to the <code>input</code> parameter, which adds all the <code>ST</code> files that need to be compiled.</p>
+<p>The value of <code>files</code> is an array of strings, definied as follows :</p>
 <pre><code class="language-json">&quot;files&quot; : [
     &quot;examples/hello_world.st&quot;,
     &quot;examples/hw.st&quot;
@@ -368,16 +378,16 @@ The <code>libraries</code> keyword is optional.</p>
 ]
 </code></pre>
 <h3 id="output"><a class="header" href="#output">output</a></h3>
-<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>&quot;output&quot; : &quot;output.so&quot;</code> to define the output file. The default location is the current build directory. (see <a href="using_rusty/build_configuration.html#build-location">Build Location</a>) </p>
+<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>&quot;output&quot; : &quot;output.so&quot;</code> to define the output file. The default location is the current build directory. (see <a href="using_rusty/build_configuration.html#build-location">Build Location</a>).</p>
 <h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
-<p>The following options can be used for the <code>compile_type</code>:</p>
+<p>The following options can be used for the <code>compile_type</code> :</p>
 <ul>
-<li><code>Static</code> specifies that linking/binding must be done at compile time</li>
-<li><code>Shared</code> (dynamic) specifies that linking/bingind must be done dynamically (at runtime)</li>
-<li><code>PIC</code> Position Independent Code (Choosing this option implies that the linking will be done dynamically)</li>
-<li><code>Relocatable</code> generates relocatable object code (for combining with other object code)</li>
-<li><code>Bitcode</code> adds bitcode alongside machine code in executable file</li>
-<li><code>IR</code> intermediate <code>llvm</code> representation</li>
+<li><code>Static</code> specifies that linking/binding must be done at compile time.</li>
+<li><code>Shared</code> (dynamic) specifies that linking/bingind must be done dynamically (at runtime).</li>
+<li><code>PIC</code> Position Independent Code (Choosing this option implies that the linking will be done dynamically).</li>
+<li><code>Relocatable</code> generates relocatable object code (for combining with other object code).</li>
+<li><code>Bitcode</code> adds bitcode alongside machine code in executable file.</li>
+<li><code>IR</code> intermediate <code>llvm</code> representation.</li>
 </ul>
 <p>The compile format is specified in the build description file as follows:  <code>&quot;compile_type&quot; : &quot;Shared&quot;</code>.
 The <code>compile_type</code> keyword is optional.</p>
@@ -417,7 +427,7 @@ The <code>compile_type</code> keyword is optional.</p>
 }
 </code></pre>
 <h2 id="build-parameters"><a class="header" href="#build-parameters">Build Parameters</a></h2>
-<p>The <code>build</code> subcommand exposes the following optional parameters: </p>
+<p>The <code>build</code> subcommand exposes the following optional parameters :</p>
 <h3 id="--build-location"><a class="header" href="#--build-location"><code>--build-location</code></a></h3>
 <p>The build location is the location all build files will be copied to. </br>
 By default the build location is the <code>build</code> folder in the root of the project (the location of the <code>plc.json</code>).</br>
@@ -428,26 +438,30 @@ By default it is the same as the <code>build-location</code>.</br>
 This can be overriden with the <code>--lib-location</code> command line parameter.</p>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
 <p>Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.</p>
-<p>In addition to externally defined variables, the build exports variables that can be referenced in the description file:</p>
+<p>In addition to externally defined variables, the build exports variables that can be referenced in the description file :</p>
 <h3 id="project_root"><a class="header" href="#project_root"><code>PROJECT_ROOT</code></a></h3>
 <p>The folder containing the <code>plc.json</code> file, i.e. the root of the project.</p>
 <h3 id="arch"><a class="header" href="#arch"><code>ARCH</code></a></h3>
-<p>The target architecture currently being built, for a multi architecture build. The value for <code>ARCH</code> will be updated for every target.
-Example targets are: <code>x86_64-pc-linux-gnu</code>, <code>x86_64-pc-windows-msvc</code>, <code>aarch64-pc-linux-musl</code></p>
+<p>The target architecture currently being built, for a multi architecture build.
+The value for <code>ARCH</code> will be updated for every target.</p>
+<p>Example targets are :
+<code>x86_64-pc-linux-gnu</code>, <code>x86_64-pc-windows-msvc</code>, <code>aarch64-pc-linux-musl</code></p>
 <h3 id="build_location"><a class="header" href="#build_location"><code>BUILD_LOCATION</code></a></h3>
-<p><code>BUILD_LOCATION</code> is the folder where the build will be saved. This is the value of either the <a href="using_rusty/build_configuration.html#build-location"><code>--build-location</code></a> parameter or the default build location.</p>
+<p><code>BUILD_LOCATION</code> is the folder where the build will be saved.
+This is the value of either the <a href="using_rusty/build_configuration.html#build-location"><code>--build-location</code></a> parameter or the default build location.</p>
 <h3 id="lib_location"><a class="header" href="#lib_location"><code>LIB_LOCATION</code></a></h3>
-<p><code>LIB_LOCATION</code> is the folder where the lib will be saved. This is the value of either the <a href="using_rusty/build_configuration.html#lib-location"><code>--lib-location</code></a> parameter or the <a href="using_rusty/build_configuration.html#build-location">build location</a>.</p>
+<p><code>LIB_LOCATION</code> is the folder where the lib will be saved.
+This is the value of either the <a href="using_rusty/build_configuration.html#lib-location"><code>--lib-location</code></a> parameter or the <a href="using_rusty/build_configuration.html#build-location">build location</a>.</p>
 <h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
-<p>To reference an environment variable in the description file, reference the variables with a preceding <code>$</code></p>
+<p>To reference an environment variable in the description file, reference the variables with a preceding <code>$</code>.</p>
 <p><strong>Example:</strong></p>
 <pre><code class="language-json">{
-	&quot;name&quot; : &quot;mylib&quot;,
-	&quot;path&quot; : &quot;$ARCH/lib&quot;,
-	&quot;package&quot; : &quot;System&quot;,
-	&quot;include_path&quot; : [
-		&quot;examples/hello_world.st&quot;
-	]
+ &quot;name&quot; : &quot;mylib&quot;,
+ &quot;path&quot; : &quot;$ARCH/lib&quot;,
+ &quot;package&quot; : &quot;System&quot;,
+ &quot;include_path&quot; : [
+  &quot;examples/hello_world.st&quot;
+ ]
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
@@ -456,23 +470,24 @@ Example targets are: <code>x86_64-pc-linux-gnu</code>, <code>x86_64-pc-windows-m
 <p>Precompiled libraries or system functions can be added using compilation flags or an entry in the <code>plc.json</code> file.</p>
 <p>System functions can also be added using <a href="libraries/external_functions.html">External Function</a> for each POU in that library.</p>
 <h2 id="library-structure"><a class="header" href="#library-structure">Library Structure</a></h2>
-<p>A library is defined by : </p>
+<p>A library is defined by :</p>
 <ul>
-<li>A set of <code>st</code> interfaces, each interface represents a function that has been precompiled.
+<li>A set of <code>st</code> interfaces, each interface represents a function that has been precompiled.</li>
+</ul>
 <blockquote>
 <p>In a POU, the interface is the definition and variable section e.g:</p>
-<pre><code class="language-iecst">  (*Interface for program example *)
-  PROGRAM example
-  VAR_INPUT
-  	a,b,c : DINT
-  END_VAR 
+<pre><code class="language-iecst">(*Interface for program example *)
+PROGRAM example
+VAR_INPUT
+ a,b,c : DINT
+END_VAR 
 (* End of interface *)
 
-  (* Implementation *)
-  END_PROGRAM
+(* Implementation *)
+END_PROGRAM
 </code></pre>
 </blockquote>
-</li>
+<ul>
 <li>A binary file for each architecture the library has been built for (<code>x86_64-linux-gnu</code>, <code>aarch64-linux-gnu</code>, ..)</li>
 </ul>
 <h2 id="linking-libraries-using-the-rustyc-command-line"><a class="header" href="#linking-libraries-using-the-rustyc-command-line">Linking libraries using the <code>rustyc</code> command line</a></h2>
@@ -491,13 +506,13 @@ Additional library locations can be provided by supplying additional <code>-L</c
 Additionally, the environment variable <code>LD_LIBRARY_PATH</code> can be defined to append entries to the linker's search location. More information can be found <a href="https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html">here</a>.</p>
 <h3 id="static-libraries"><a class="header" href="#static-libraries">Static Libraries</a></h3>
 <p>Static libraries compiled as object files can be linked by simply passing the object file (i.e. extension <code>.o</code>) as an input (simlar to other <code>.st</code> files).</p>
-<p>Archive files (i.e. extension <code>.a</code>) can be linked similarly to <a href="libraries.html#shared-libraries">Shared Libraries</a> using the <code>-l</code> flag. 
+<p>Archive files (i.e. extension <code>.a</code>) can be linked similarly to <a href="libraries.html#shared-libraries">Shared Libraries</a> using the <code>-l</code> flag.
 If the application is being compiled with the <code>--static</code> flag (or no shared library (<code>.so</code>) is found), the linker will use the archive file.</br></p>
 <blockquote>
 <p>If neither a shared object (<code>.so</code>) or an archive file (<code>.a</code>) is found, compilation will fail.</p>
 </blockquote>
 <h3 id="command-line-example"><a class="header" href="#command-line-example">Command line example</a></h3>
-<p>To compile a file called <code>input.st</code> including a header and linking a library called <code>libiec.so</code> from <code>/lib</code> : </p>
+<p>To compile a file called <code>input.st</code> including a header and linking a library called <code>libiec.so</code> from <code>/lib</code> :</p>
 <pre><code class="language-sh">rustyc input.st -i iec/header.st -L/lib/ -liec
 </code></pre>
 <h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
@@ -521,16 +536,17 @@ The value <a name="system"><code>&quot;System&quot;</code></a> indicates that th
 Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
 POUs and Global variables included in the list are marked as external, the implementation part of a POU is ignored.</p>
 <h3 id="library-location"><a class="header" href="#library-location">Library Location</a></h3>
-<p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="using_rusty/build_description_file.html#--lib-location">Library Location</a>. By default this is the same as the <a href="using_rusty/build_description_file.html#--build-location">Build Location</a> unless overridden by the <code>--lib-location</code> parameter.</p>
+<p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="using_rusty/build_description_file.html#--lib-location">Library Location</a>.
+By default this is the same as the <a href="using_rusty/build_description_file.html#--build-location">Build Location</a> unless overridden by the <code>--lib-location</code> parameter.</p>
 <h3 id="using-environment-variables"><a class="header" href="#using-environment-variables">Using environment variables</a></h3>
-<p>Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location. 
+<p>Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location.
 <code>$ARCH</code> can be used as placeholder in the path to indicate the the currently compiled target.
 </br></br></br></p>
 <blockquote>
 <p>During linking, if no <code>.so</code> file with name <a href="libraries.html#name"><code>lib&lt;name&gt;.so</code></a> is found, the compilation will fail.</p>
 </blockquote>
 <h3 id="configuration-example-plcjson"><a class="header" href="#configuration-example-plcjson">Configuration Example (<code>plc.json</code>)</a></h3>
-<p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em></p>
+<p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em> :</p>
 <pre><code class="language-json">&quot;libraries&quot; : [
     {
         &quot;name&quot; : &quot;mylib&quot;,
@@ -563,27 +579,25 @@ VAR_INPUT
 END_VAR
 END_FUNCTION
 </code></pre>
-<p>At compilation time, the function <code>log</code> will be defined as an externally available function,
-and can be called from <code>ST</code> code.</p>
+<p>At compilation time, the function <code>log</code> will be defined as an externally available function, and can be called from <code>ST</code> code.</p>
 <blockquote>
 <p>Note : At linking time, a <code>log</code> function with a compatible signature must be available on the system.</p>
 </blockquote>
 <h2 id="calling-c-functions"><a class="header" href="#calling-c-functions">Calling C functions</a></h2>
 <p><code>ST</code> code can call into foreign functions natively.
-To achieve this, the called function must be defined in a <code>C</code> compatible API,
-e.g. <code>extern &quot;C&quot;</code> blocks.</p>
-<p>The interface of the function has to:</p>
+To achieve this, the called function must be defined in a <code>C</code> compatible API, e.g. <code>extern &quot;C&quot;</code> blocks.</p>
+<p>The interface of the function has to :</p>
 <ul>
 <li>either be included with the <code>-i</code> flag</li>
 <li>or be declared in <code>ST</code> using the <code>{external}</code> keyword</li>
 </ul>
 <h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
-<p>Given a <code>min</code> function defined in <code>C</code> as follows</p>
+<p>Given a <code>min</code> function defined in <code>C</code> as follows :</p>
 <pre><code class="language-C">int min(int a, int b) {
 //...
 }
 </code></pre>
-<p>an interface of that function in <code>ST</code> can be defined as</p>
+<p>an interface of that function in <code>ST</code> can be defined as :</p>
 <pre><code class="language-iecst">{external}
 FUNCTION min : DINT
 VAR_INPUT
@@ -593,21 +607,18 @@ END_VAR
 END_FUNCTION
 </code></pre>
 <h3 id="variadic-arguments"><a class="header" href="#variadic-arguments">Variadic arguments</a></h3>
-<p>Some foreign functions, especially ones defined in <code>C</code>,
-could be <a href="https://en.cppreference.com/w/c/variadic">variadic functions</a>.</p>
-<p>These functions are usually defined with the last parameter <code>...</code>, and signify
-that a function can be called with unlimited parameters.</p>
+<p>Some foreign functions, especially ones defined in <code>C</code>, could be <a href="https://en.cppreference.com/w/c/variadic">variadic functions</a>.</p>
+<p>These functions are usually defined with the last parameter <code>...</code>, and signify that a function can be called with unlimited parameters.</p>
 <p>An example of a variadic function is <code>printf</code>.</p>
-<p>Calling a variadic function is supported in <code>ST</code>. To mark an external function
-as variadic, you can add a parameter of type <code>...</code> to the <code>VAR_INPUT</code> block.</p>
+<p>Calling a variadic function is supported in <code>ST</code>. To mark an external function as variadic, you can add a parameter of type <code>...</code> to the <code>VAR_INPUT</code> block.</p>
 <h4 id="variadic-function-example"><a class="header" href="#variadic-function-example">Variadic function example</a></h4>
-<p>Given the <code>printf</code> function defined as</p>
+<p>Given the <code>printf</code> function defined as :</p>
 <pre><code class="language-C">int printf( const char *restrict format, ... );
 </code></pre>
-<p>the <code>ST</code> interface can be defined as</p>
+<p>the <code>ST</code> interface can be defined as :</p>
 <pre><code class="language-iecst">{external}
 FUNCTION printf : DINT
-VAR_IN_OUT
+VAR_INPUT {ref}
   format : STRING;
 END_VAR
 VAR_INPUT
@@ -618,7 +629,7 @@ END_FUNCTION
 <h4 id="runnable-example"><a class="header" href="#runnable-example">Runnable example</a></h4>
 <p>With the <code>printf</code> function available on the system, there is no need to declare
 the C function.</p>
-<p>An <code>ST</code> program called <code>ExternalFunctions.st</code> with the following code can be declared:</p>
+<p>An <code>ST</code> program called <code>ExternalFunctions.st</code> with the following code can be declared :</p>
 <pre><code class="language-iecst">(*ExternalFunctions.st*)
 
 (**
@@ -650,7 +661,7 @@ END_VAR
   main := tmp;
 END_FUNCTION
 </code></pre>
-<p>Compiling the previous code with the following command: </p>
+<p>Compiling the previous code with the following command :</p>
 <pre><code class="language-sh">rustyc ExternalFunctions.st -o ExternalFunctions --linker=clang
 </code></pre>
 <p>will yield an executable called <code>ExternalFunctions</code>.</p>
@@ -662,11 +673,11 @@ since the embedded linker cannot generate executable files.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="program-organization-unit-pou"><a class="header" href="#program-organization-unit-pou">Program Organization Unit (POU)</a></h1>
 <h2 id="definition"><a class="header" href="#definition">Definition</a></h2>
 <p>A POU is a executable unit available in an IEC61131-3 application.
-It can be defined as either a Program, a Function, a Function Block, or an Action</p>
+It can be defined as either a Program, a Function, a Function Block, or an Action.</p>
 <blockquote>
 <p>Methods on classes are also considered POUs but are not covered by this document</p>
 </blockquote>
-<p>A POU is defined as </p>
+<p>A POU is defined as :</p>
 <pre><code class="language-iecst">&lt;POU Type&gt; name 
 (* parameters *)
 
@@ -674,48 +685,50 @@ It can be defined as either a Program, a Function, a Function Block, or an Actio
 END_&lt;POU Type&gt;
 </code></pre>
 <h3 id="parameters"><a class="header" href="#parameters">Parameters</a></h3>
-<p>POUs can use input, output, or in/out parameters to pass data to the outside
+<p>POUs can use input, output, or in/out parameters to pass data to the outside.
 Such parameters are defined in a <em>variable block</em>  delimeted by <code>VAR_&lt;TYPE&gt;</code> and <code>END_VAR</code>
-Supported parameter types are <code>VAR_INPUT</code>, <code>VAR_OUTPUT</code> and <code>VAR_IN_OUT</code></p>
+Supported parameter types are <code>VAR_INPUT</code>, <code>VAR_INPUT {ref}</code>, <code>VAR_OUTPUT</code> and <code>VAR_IN_OUT</code></p>
 <h4 id="input"><a class="header" href="#input">Input</a></h4>
-<p>Input parameters are typically copied into the target POU to be stored and read for later references.
-A definition for input parameters is as follows : </p>
+<p>Input parameters are typically copied into the target POU to be stored and read for later references.</p>
+<p>A definition for input parameters is as follows :</p>
 <pre><code class="language-iecst">VAR_INPUT
     a : INT;
 END_VAR
 </code></pre>
-<p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see <a href="libraries/external_functions.html">External Functions</a>) it is more efficient to avoid copying the variable values and just use a pointer to the required input. This can be done either using the in/out variables or by specifying a special property <code>ref</code> on the input block </p>
-<p>Example : </p>
+<p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see <a href="libraries/external_functions.html">External Functions</a>) it is more efficient to avoid copying the variable values and just use a pointer to the required input.
+This can be done either using the in/out variables or by specifying a special property <code>ref</code> on the input block.</p>
+<p>Example :</p>
 <pre><code class="language-iecst">VAR_INPUT {ref}
     a : STRING;
 END_VAR
 </code></pre>
 <p>Note that passing the ref property will convert all variables in that block to pointers, and should only be used in Functions.</p>
 <h4 id="in-out"><a class="header" href="#in-out">In Out</a></h4>
-<p>In/Out parameters are required parameters that are always passed by reference. They can be modified by the POU the call, and the changes are applied directly to the passed variable.
+<p>In/Out parameters are required parameters that are always passed by reference.
+They can be modified by the POU the call, and the changes are applied directly to the passed variable.
 An In/Out parameter must always be passed in a POU call and cannot be stored.</p>
 <h4 id="output-1"><a class="header" href="#output-1">Output</a></h4>
-<p>Output parameters are used to return the result(s) of the POU call. 
+<p>Output parameters are used to return the result(s) of the POU call.
 They are passed by reference, but are optional.
-If an output parameter is not passed in a call, its value is not persisted</p>
+If an output parameter is not passed in a call, its value is not persisted.</p>
 <h3 id="variables"><a class="header" href="#variables">Variables</a></h3>
 <p>In addition to parameters, a POU contains local variables, these can either be stored in the POU for later reference (<code>VAR</code>) or only created for a single call (<code>VAR_TEMP</code>)
-In a function, all local variables are temporary</p>
+In a function, all local variables are temporary.</p>
 <h2 id="specialization"><a class="header" href="#specialization">Specialization</a></h2>
-<p>In addition to the default behavior, each type of POU has some special cases</p>
+<p>In addition to the default behavior, each type of POU has some special cases.</p>
 <h3 id="function"><a class="header" href="#function">Function</a></h3>
 <p>Functions are <em>stateless</em> sequences of callable code. They are not backed by any structs, and cannot hold any state accross multiple calls.
-A function's input parameter can be passed by value, or by reference.
-Functions also support a return type, the resulting definition is : </p>
+A function's input parameter can be passed by value, or by reference.</p>
+<p>Functions also support a return type, the resulting definition is :</p>
 <pre><code class="language-iecst">    FUNCTION fnName : &lt;TYPE&gt;
-    (*parameters*)
+    (* parameters *)
     VAR_INPUT (* by value *)
         x : INT;
     END_VAR
     VAR_INPUT {ref} (* by reference *)
         x : INT;
     END_VAR
-    (*Temporary Variables*)
+    (* temporary variables *)
     VAR
         y : INT;
     END_VAR
@@ -727,20 +740,20 @@ Functions also support a return type, the resulting definition is : </p>
     END_FUNCTION
 </code></pre>
 <h3 id="program"><a class="header" href="#program">Program</a></h3>
-<p>Programs are a static (i.e. <code>GLOBAL</code>) <code>STRUCT</code> that holds its state accross multiple calls
+<p>Programs are a static (i.e. <code>GLOBAL</code>) <code>STRUCT</code> that holds its state accross multiple calls.
 A Program exists once, and only once in an application, and subsequent calls to a program will change and store the passed parameters as well as internal variables.
 A program does not support passing input parameters by reference.</p>
-<p>Example : </p>
+<p>Example :</p>
 <pre><code class="language-iecst">PROGRAM prg 
-(*parameters*)
+(* parameters *)
 VAR_INPUT
     x : INT;
 END_VAR
-(*persisted variables*)
+(* persisted variables *)
 VAR
     y : INT;
 END_VAR
-(*Temporary Variables*)
+(* temporary variables *)
 VAR_TEMP
     z : INT;
 END_VAR
@@ -748,19 +761,19 @@ END_VAR
 END_PROGRAM
 </code></pre>
 <h3 id="function-block"><a class="header" href="#function-block">Function Block</a></h3>
-<p>A function block is a <code>STRUCT</code> that can be initialized multiple times using different variables (i.e <code>instance</code>s)
+<p>A function block is a <code>STRUCT</code> that can be initialized multiple times using different variables (i.e <code>instance</code>s).
 A function block instance can hold its state (including input parameters) across multiple calls, but does not share any state with different instances.
 A function block does not support passing input parameters by reference.</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK fb
-(*parameters*)
+(* parameters *)
 VAR_INPUT
     x : INT;
 END_VAR
-(*persisted variables*)
+(* persisted variables *)
 VAR
     y : INT;
 END_VAR
-(*Temporary Variables*)
+(* temporary variables *)
 VAR_TEMP
     z : INT;
 END_VAR
@@ -769,49 +782,53 @@ END_FUNCTION_BLOCK
 </code></pre>
 <h3 id="action"><a class="header" href="#action">Action</a></h3>
 <p>An action is represented by a parent struct, and does not define its own interface (VAR blocks).
-An action can only be defined for Programs and Function Blocks</p>
+An action can only be defined for Programs and Function Blocks.</p>
 <p>An action is defined in 3 different ways, either in a container (<code>ACTIONS</code>) directly below the POU, in a named <code>ACTIONS</code> container, or using a qualified name on the action.</p>
-<p>Example : </p>
+<p>Example :</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK fb
-(*parameters*)
+(* parameters *)
 VAR_INPUT
     x : INT;
 END_VAR
-(*persisted variables*)
+(* persisted variables *)
 VAR
     y : INT;
 END_VAR
-(*Temporary Variables*)
+(* temporary variables *)
 VAR_TEMP
     z : INT;
 END_VAR
 (* code *)
 END_FUNCTION_BLOCK
-ACTIONS //implicitly belongs to FB
+
+ACTIONS (* implicitly belongs to FB *)
     ACTION act
     (* code *)
     END_ACTION
 END_ACTIONS
-ACTIONS fb //explicitly belongs to FB
+
+ACTIONS fb (* explicitly belongs to FB *)
     ACTION act2
     (* code *)
     END_ACTION
 END_ACTIONS
-ACTION fb.act3 //linked to FB with name definition
+
+ACTION fb.act3 (* linked to FB with name definition *)
 (* code *)
 END_ACTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="variables-1"><a class="header" href="#variables-1">Variables</a></h1>
 <h1 id="constants"><a class="header" href="#constants">Constants</a></h1>
-<p>Variable declaration blocks can be delcared as CONSTANT. All variables 
-of a constant declaration block become constants. Constant variables can not be changed and need to be initialized.</p>
+<p>Variable declaration blocks can be delcared as CONSTANT.
+All variables of a constant declaration block become constants.
+Constant variables can not be changed and need to be initialized.</p>
 <h2 id="example-2"><a class="header" href="#example-2">Example</a></h2>
 <pre><code class="language-iecst">TYPE OneInt : INT := 1; END_TYPE
 
 VAR_GLOBAL CONSTANT
     MAX_SIZE : INT := 99;
     MIN_LEN : INT := 1;
-    counter : OneInt;  // 1
+    counter : OneInt;  (* 1 *)
 END_VAR
 
 PROGRAM PLC_PRG
@@ -821,16 +838,13 @@ PROGRAM PLC_PRG
 END_PROGRAM
 </code></pre>
 <h2 id="variable-initialization"><a class="header" href="#variable-initialization">Variable Initialization</a></h2>
-<p>Initializers of variables are evaluated at compile time. Therefore 
-they can only consist of literals, other constants or expressions
-consisting of a combination of them. Note that initializers must not contain
-recursive definitions.</p>
-<p>If a variable has no initializer, the variable may be initialized with it's datatype's default value
-or else with <code>0</code>.</p>
+<p>Initializers of variables are evaluated at compile time.
+Therefore they can only consist of literals, other constants or expressions consisting of a combination of them.
+Note that initializers must not contain recursive definitions.</p>
+<p>If a variable has no initializer, the variable may be initialized with it's datatype's default value or else with <code>0</code>.</p>
 <h3 id="array-initialization"><a class="header" href="#array-initialization">Array Initialization</a></h3>
 <p>Arrays can be initialized using array literals.
-If the array-initial value does not contain all required elements, the array's inner type's default value
-will be used to fill the missing values.</p>
+If the array-initial value does not contain all required elements, the array's inner type's default value will be used to fill the missing values.</p>
 <h2 id="example-3"><a class="header" href="#example-3">Example</a></h2>
 <pre><code class="language-iecst">TYPE SignalValue : INT := -1; END_TYPE
 
@@ -843,7 +857,7 @@ END_VAR
 
 PROGRAM PLC_PRG
     VAR_INPUT
-        signals: ARRAY[0..SIZE] OF SignalValue := [99, 99]; // rest is -1
+        signals: ARRAY[0..SIZE] OF SignalValue := [99, 99]; (* rest is -1 *)
     END_VAR
 
     ...
@@ -851,8 +865,7 @@ END_PROGRAM
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="datatypes-1"><a class="header" href="#datatypes-1">Datatypes</a></h1>
 <h2 id="numeric-types"><a class="header" href="#numeric-types">Numeric types</a></h2>
-<p>A variety of numeric types exist with different sizes and properties complying
-with IEC61131.</p>
+<p>A variety of numeric types exist with different sizes and properties complying with IEC61131.</p>
 <h3 id="overview"><a class="header" href="#overview">Overview</a></h3>
 <table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
 <tr><td>SINT</td><td>8 bit</td><td>signed</td></tr>
@@ -869,9 +882,9 @@ with IEC61131.</p>
 <p>When such a variable is declared without being initialized, it will
 be default-initialized with a value of <code>0</code> or <code>0.0</code> respectively.</p>
 <h3 id="a-word-on-integer-literals"><a class="header" href="#a-word-on-integer-literals">A word on integer literals</a></h3>
-<p>Integer literals can be prefixed with either <code>2#</code> (binary), <code>8#</code> (octal) or
-<code>16#</code> (hexadecimal). They will then be treated with regard to the respective number system.</p>
-<p>Examples:</p>
+<p>Integer literals can be prefixed with either <code>2#</code> (binary), <code>8#</code> (octal) or <code>16#</code> (hexadecimal).
+They will then be treated with regard to the respective number system.</p>
+<p>Examples :</p>
 <ul>
 <li><code>i1 : DINT := 42;</code> - declares and initializes a 32bit signed integer with value 42.</li>
 <li><code>i1 : DINT := 2#101010;</code> - declares and initializes a 32bit signed integer with value 42.</li>
@@ -887,29 +900,32 @@ be default-initialized with a value of <code>0</code> or <code>0.0</code> respec
 <p>When such a variable is declared without being initialized, it will
 be default-initialized with a value of '' or &quot;&quot; respectively (empty strings).</p>
 <h3 id="string"><a class="header" href="#string">STRING</a></h3>
-<p>rusty treats <code>STRING</code>s as byte-arrays storing UTF-8 character bytes with a Null-terminator (0-byte) at the end. 
+<p>RuSTy treats <code>STRING</code>s as byte-arrays storing UTF-8 character bytes with a Null-terminator (0-byte) at the end.
 So a String of size n requres n+1 bytes to account for the Null-terminator.
 A <code>STRING</code> literal is surrounded by single-ticks <code>'</code>.</p>
-<p>A String has a well defined length which can be defined similar to the array-syntax. A String-variable 
-<code>myVariable: STRING[20]</code> declares a byte array of length 21, to store 20 utf8 character bytes. When 
-declaring a <code>STRING</code>, the length-attribute is optional. The default length is 80.</p>
-<p>Examples</p>
+<p>A String has a well defined length which can be defined similar to the array-syntax.
+A String-variable <code>myVariable: STRING[20]</code> declares a byte array of length 21, to store 20 utf8 character bytes.
+When declaring a <code>STRING</code>, the length-attribute is optional. The default length is 80.</p>
+<p>Examples :</p>
 <ul>
-<li><code>s1 : STRING;</code> - declares a String of length 80</li>
-<li><code>s2 : STRING[20];</code> - declares a String of length 20</li>
-<li><code>s3 : STRING := 'Hello World';</code> - declares and initializes a String of length 80, and initializes it with the utf8 characters and a null-terminator at the end</li>
+<li><code>s1 : STRING;</code> - declares a String of length 80.</li>
+<li><code>s2 : STRING[20];</code> - declares a String of length 20.</li>
+<li><code>s3 : STRING := 'Hello World';</code> - declares and initializes a String of length 80, and initializes it with the utf8 characters and a null-terminator at the end.</li>
 <li><code>s4 : STRING[55] := 'Foo Baz';</code> - declares and initializes a String of length 55 and initializes it with the utf8 characters and a null-terminator at the end.</li>
 </ul>
 <h3 id="wstring-wide-strings"><a class="header" href="#wstring-wide-strings">WSTRING (Wide Strings)</a></h3>
-<p>rusty treats <code>WSTRING</code>s as byte-arrays storing UTF-16 character bytes with two Null-terminator bytes at the end. The bytes are stored in Little Endian encoding. A Wide-String of size n requres 2 * (n+1) bytes to account for the 2 byes per utf16 character and the Null-terminators. A <code>WSTRING</code> literal is surrounded by doubly-ticks <code>&quot;</code>.</p>
-<p>A <code>WSTRING</code> has a well defined length which can be defined similar to the array-syntax. A <code>WSTRING</code>-variable 
-<code>myVariable: WSTRING[20]</code> declares a byte array of length 42, to store 20 utf16 character bytes. When 
-declaring a <code>WSTRING</code>, the length-attribute is optional. The default length is 80.</p>
-<p>Examples</p>
+<p>RuSTy treats <code>WSTRING</code>s as byte-arrays storing UTF-16 character bytes with two Null-terminator bytes at the end.
+The bytes are stored in Little Endian encoding.
+A Wide-String of size n requres 2 * (n+1) bytes to account for the 2 byes per utf16 character and the Null-terminators.
+A <code>WSTRING</code> literal is surrounded by doubly-ticks <code>&quot;</code>.</p>
+<p>A <code>WSTRING</code> has a well defined length which can be defined similar to the array-syntax.
+A <code>WSTRING</code>-variable <code>myVariable: WSTRING[20]</code> declares a byte array of length 42, to store 20 utf16 character bytes.
+When declaring a <code>WSTRING</code>, the length-attribute is optional. The default length is 80.</p>
+<p>Examples :</p>
 <ul>
-<li><code>ws1 : WSTRING;</code> - declares a Wide-String of length 80</li>
-<li><code>ws2 : WSTRING[20];</code> - declares a Wide-String of length 20</li>
-<li><code>ws3 : WSTRING := &quot;Hello World&quot;;</code> - declares and initializes a Wide-String of length 80, and initializes it with the utf16 characters and a utf16-null-terminator at the end</li>
+<li><code>ws1 : WSTRING;</code> - declares a Wide-String of length 80.</li>
+<li><code>ws2 : WSTRING[20];</code> - declares a Wide-String of length 20.</li>
+<li><code>ws3 : WSTRING := &quot;Hello World&quot;;</code> - declares and initializes a Wide-String of length 80, and initializes it with the utf16 characters and a utf16-null-terminator at the end.</li>
 <li><code>ws4 : WSTRING[55] := &quot;Foo Baz&quot;;</code> - declares and initializes a Wide-String of length 55 and initializes it with the utf8 characters and a utf16-null-terminator at the end.</li>
 </ul>
 <h2 id="date-and-time"><a class="header" href="#date-and-time">Date and Time</a></h2>
@@ -920,13 +936,14 @@ declaring a <code>WSTRING</code>, the length-attribute is optional. The default 
 <tr><td>DATE</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 <tr><td>DATE_AND_TIME</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 </tbody></table>
-<p>Note that rusty already treats <code>TIME</code>, <code>TIME_OF_DAY</code>, <code>DATE</code> and <code>DATE_AND_TIME</code> as 64 bit numbers. Therefore the long pendants <code>LTIME</code>, <code>LTOD</code>, <code>LDATE</code> and <code>LDT</code> are mere aliases to the original types.</p>
+<p>Note that RuSTy already treats <code>TIME</code>, <code>TIME_OF_DAY</code>, <code>DATE</code> and <code>DATE_AND_TIME</code> as 64 bit numbers.
+Therefore the long pendants <code>LTIME</code>, <code>LTOD</code>, <code>LDATE</code> and <code>LDT</code> are mere aliases to the original types.</p>
 <h3 id="date"><a class="header" href="#date">DATE</a></h3>
-<p>The <code>DATE</code> datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
-stored as an i64 with a precision in nanoseconds and denotes the number of nanoseconds 
-that have elapsed since January 1, 1970 UTC not counting leap seconds. DATE literals start 
-with <code>DATE#</code> or <code>D#</code> followed by a date in the format of <code>yyyy-mm-dd</code>.</p>
-<p>Examples</p>
+<p>The <code>DATE</code> datatype is used to represent a Date in the Gregorian Calendar.
+Such a value is stored as an i64 with a precision in nanoseconds and denotes the number of nanoseconds
+that have elapsed since January 1, 1970 UTC not counting leap seconds.
+DATE literals start with <code>DATE#</code> or <code>D#</code> followed by a date in the format of <code>yyyy-mm-dd</code>.</p>
+<p>Examples :</p>
 <ul>
 <li><code>d1 : DATE := DATE#2021-05-02;</code></li>
 <li><code>d2 : DATE := DATE#1-12-24;</code></li>
@@ -939,7 +956,7 @@ number of nanoseconds that have elapsed since January 1, 1970 UTC not counting l
 DATE_AND_TIME literals start with <code>DATE_AND_TIME#</code> or <code>DT#</code> followed by a date and time in the
 format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
 <p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
-<p>Examples</p>
+<p>Examples :</p>
 <ul>
 <li><code>d1 : DATE_AND_TIME := DATE_AND_TIME#2021-05-02-14:20:10.25;</code></li>
 <li><code>d2 : DATE_AND_TIME := DATE_AND_TIME#1-12-24-00:00:1;</code></li>
@@ -953,16 +970,17 @@ Hence this value is stored as a <code>DATE_AND_TIME</code> with the day fixed to
 <code>TIME_OF_DAY</code> literals start with <code>TIME_OF_DAY#</code> or <code>TOD#</code> followed by a time in the
 format of <code>hh:mm:ss</code>.</p>
 <p>Note that only the seconeds-segment can have a fraction denoting the milliseconds.</p>
-<p>Examples</p>
+<p>Examples :</p>
 <ul>
 <li><code>t1 : TIME_OF_DAY := TIME_OF_DAY#14:20:10.25;</code></li>
 <li><code>t2 : TIME_OF_DAY := TIME_OF_DY#0:00:1;</code></li>
 <li><code>t3 : TIME_OF_DAY := TOD#23:59:59.999;</code></li>
 </ul>
 <h3 id="time"><a class="header" href="#time">TIME</a></h3>
-<p>The <code>TIME</code> datatype is used to represent a time-span. A <code>TIME</code> value is stored as an
-<code>i64</code> value with a precision in nanoseconds.
-TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <code>TIME</code> segements. Supported segements are:</p>
+<p>The <code>TIME</code> datatype is used to represent a time-span.
+A <code>TIME</code> value is stored as an <code>i64</code> value with a precision in nanoseconds.
+TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <code>TIME</code> segements.</p>
+<p>Supported segements are :</p>
 <ul>
 <li><code>d</code> ... <code>f64</code> days</li>
 <li><code>h</code> ... <code>f64</code> hours</li>
@@ -973,15 +991,15 @@ TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <
 <li><code>ns</code> ... <code>u32</code> nanaoseconds</li>
 </ul>
 <p>Note that only the last segment of a <code>TIME</code> literal can have a fraction.</p>
-<p>Examples</p>
+<p>Examples :</p>
 <ul>
 <li><code>t1 : TIME := TIME#2d4h6m8s10ms;</code></li>
 <li><code>t2 : TIME := T#2d4.2h;</code></li>
 <li><code>t3 : TIME := T#-10s4ms16ns;</code></li>
 </ul>
 <h2 id="other-types"><a class="header" href="#other-types">Other types</a></h2>
-<p>The <code>BOOL</code> type can either be assigned <code>TRUE</code> or <code>FALSE</code>. The type <code>__VOID</code> is the
-empty type and has an undefined size.</p>
+<p>The <code>BOOL</code> type can either be assigned <code>TRUE</code> or <code>FALSE</code>.
+The type <code>__VOID</code> is the empty type and has an undefined size.</p>
 <table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
 <tr><td>BOOL</td><td>8 bit</td><td>signed</td></tr>
 <tr><td>__VOID</td><td>undefined</td><td></td></tr>
@@ -997,14 +1015,12 @@ empty type and has an undefined size.</p>
 <p>The IEC61131-3 Standard allows reading specific <code>Bits</code>, <code>Bytes</code>, <code>Words</code> or <code>DWords</code> from an <code>ANY_BIT</code> type.
 RuSTy supports this functionalty and extends it to support all <code>INT</code> types.</p>
 <h2 id="constant-based-direct-access"><a class="header" href="#constant-based-direct-access">Constant based Direct Access</a></h2>
-<p>To access a bit sequence in a variable, a direct access instruction <code>%&lt;Type&gt;&lt;Value&gt;</code> is used.
-<code>Type</code> is the bit sequence size required and is described as follows : </p>
-<table><thead><tr><th>Type</th><th>Size</th><th>Example</th></tr></thead><tbody>
-<tr><td>X</td><td>1</td><td>`%X1</td></tr>
-<tr><td>B</td><td>8</td><td>`%B1</td></tr>
-<tr><td>W</td><td>16</td><td>`%W1</td></tr>
-<tr><td>D</td><td>32</td><td>`%D1</td></tr>
-</tbody></table>
+<p>To access a bit sequence in a variable, a direct access instruction <code>%&lt;Type&gt;&lt;Value&gt;</code> is used.</p>
+<p><code>Type</code> is the bit sequence size required and is described as follows :
+| Type | Size | Example |
+| ---- | ---- | ------- |
+| X    | 1    | <code>%X1    | | B    | 8    | </code>%B1    |
+| W    | 16   | <code>%W1    | | D    | 32   | </code>%D1    |</p>
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>
@@ -1030,10 +1046,10 @@ bitTarget2  := variable.%D1.%W1.%B1.%X1;
 END_FUNCTION
 </code></pre>
 <h2 id="varirable-based-direct-access"><a class="header" href="#varirable-based-direct-access">Varirable based Direct Access</a></h2>
-<p>While the IEC61131-3 Standard only defines variable access using constant int literals, 
-RuSTy additionally supports access using Variables
-The Syntax for a variable based access is <code>%&lt;Type&gt;&lt;Variable&gt;</code>
-The provided varibale has to be a direct Reference variable (non Qualified)</p>
+<p>While the IEC61131-3 Standard only defines variable access using constant int literals,
+RuSTy additionally supports access using Variables.
+The Syntax for a variable based access is <code>%&lt;Type&gt;&lt;Variable&gt;</code>.
+The provided varibale has to be a direct Reference variable (non Qualified).</p>
 <blockquote>
 <p><em>Short hand access for Bit (Without the <code>%X</code> modifier) is not allowed.</em></p>
 </blockquote>
@@ -1063,18 +1079,23 @@ END_FUNCTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
 <h2 id="overview-3"><a class="header" href="#overview-3">Overview</a></h2>
-<p>Rusty is a Compiler for Structured Text. It utilizes the llvm compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> Frontend that translates Structured Text into llvm's language independent intermediate representation (IR). The Further optimization and native code generation is performed by the existing LLVM infrastructure, namely llvm's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>). </p>
+<p>RuSTy is a Compiler for Structured Text.
+It utilizes the llvm compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> Frontend that translates Structured Text into llvm's language independent intermediate representation (IR).
+The Further optimization and native code generation is performed by the existing LLVM infrastructure, namely llvm's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>).</p>
 <pre><code class="language-ignore">    ┌──────────────────┐    ┌───────────────┐    ┌────────────────┐
     │                  │    │               │    │                │
-    │      Rusty       │    │  LLVM Common  │    │  LLVM Backend  │
+    │      RuSTy       │    │  LLVM Common  │    │  LLVM Backend  │
     │                  ├───►│               ├───►│                │
     │  LLVM Frontend   │    │   Optimizer   │    │   (e.g Clang)  │
     │                  │    │               │    │                │
     └──────────────────┘    └───────────────┘    └────────────────┘
 </code></pre>
-<p>So Rusty consists of the frontend part of the llvm compiler-infrastructure. This means that this compiler can benefit from llvm's existing compiler-optimizations, as well as all backend target platforms available.</p>
+<p>So RuSTy consists of the frontend part of the llvm compiler-infrastructure.
+This means that this compiler can benefit from llvm's existing compiler-optimizations, as well as all backend target platforms available.</p>
 <h2 id="rusty-frontend-architecture"><a class="header" href="#rusty-frontend-architecture">Rusty Frontend Architecture</a></h2>
-<p>Ultimately the goal of a compiler frontend, is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>). Rusty treats this task as a compilation step of its own. While a fully fledged compiler generates machine code as a last step, rusty generates LLVM IR assembly code.</p>
+<p>Ultimately the goal of a compiler frontend, is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>).
+RuSTy treats this task as a compilation step of its own.
+While a fully fledged compiler generates machine code as a last step, RuSTy generates LLVM IR assembly code.</p>
 <pre><code class="language-ignore">      ┌────────┐                                                          ┌────────┐
       │ Source │                                                          │  LLVM  │
       │        │                                                          │   IR   │
@@ -1091,8 +1112,11 @@ END_FUNCTION
     └────────────┘   └────────────┘   └────────────┘   └────────────┘   └────────────┘
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="parser"><a class="header" href="#parser">Parser</a></h1>
-<p>The role of the parser is to turn source-code which is fed as a string (in the form of files) into a tree-representation of that source-code. This tree is typically called the <em>Abstract Syntax Tree (AST)</em>. The step of parsing consists of two distinct stages. 
-The first one is the <em>lexical analysis (Lexer)</em> which is performed by a lexer. After lexing we perform the <em>syntactical analysis (Parser)</em> to construct the syntax tree.</p>
+<p>The role of the parser is to turn source-code which is fed as a string (in the form of files) into a tree-representation of that source-code.
+This tree is typically called the <em>Abstract Syntax Tree (AST)</em>.
+The step of parsing consists of two distinct stages.
+The first one is the <em>lexical analysis (Lexer)</em> which is performed by a lexer.
+After lexing we perform the <em>syntactical analysis (Parser)</em> to construct the syntax tree.</p>
 <pre><code class="language-ignore">                                                                   ┌──┐
        ┌──────────────┐                                            │  │
        │              │                                            └──┘
@@ -1115,12 +1139,21 @@ The first one is the <em>lexical analysis (Lexer)</em> which is performed by a l
                                  Token-Stream
 </code></pre>
 <h2 id="lexer"><a class="header" href="#lexer">Lexer</a></h2>
-<p>The lexer performs the lexical analysis. This step turns the source-string into a sequence of well known tokens. The Lexer (or sometimes also called <em>tokenizer</em>) splits the source-string into <em>tokens</em> (or <em>words</em>). Each token has a distinct type which corresponds to a grammar's element. Typical token-types are keywords, numbers, identifiers, brackets, dots, etc. So with the help of this token-stream it is much easier for the parser to spot certain patterns. E.g. a floating-point number consists of the token-sequence: <em>number</em>, <em>dot</em>, <em>number</em>.</p>
-<p>The lexer is implemented in the <code>lexer</code>-module. It uses the <a href="https://github.com/maciejhirsz/logos">logos</a> crate to create a lexer that is able to identify all different terminal-symbols. Compared to other languages, Structured Text has a quite high number of keywords and other tokens, so Rusty's lexer identifies a quite large number of different tokens.</p>
-<h3 id="discussion-rusty-lexer"><a class="header" href="#discussion-rusty-lexer">Discussion: Rusty-Lexer</a></h3>
-<p>The logos crate uses <a href="https://doc.rust-lang.org/reference/procedural-macros.html">procedural macros</a> to generate the code required to  lex the source-string. The number of tokens identified by the rusty-lexer is quite high, so as of january 2022 the rust sdk for vs-code (rust-analyzer) reports problem with the number of macro-generated tokens (<em>macro invocation exceeds token limit...</em>).</p>
+<p>The lexer performs the lexical analysis.
+This step turns the source-string into a sequence of well known tokens.
+The Lexer (or sometimes also called <em>tokenizer</em>) splits the source-string into <em>tokens</em> (or <em>words</em>).
+Each token has a distinct type which corresponds to a grammar's element.
+Typical token-types are keywords, numbers, identifiers, brackets, dots, etc.
+So with the help of this token-stream it is much easier for the parser to spot certain patterns.
+E.g. a floating-point number consists of the token-sequence: <em>number</em>, <em>dot</em>, <em>number</em>.</p>
+<p>The lexer is implemented in the <code>lexer</code>-module.
+It uses the <a href="https://github.com/maciejhirsz/logos">logos</a> crate to create a lexer that is able to identify all different terminal-symbols.
+Compared to other languages, Structured Text has a quite high number of keywords and other tokens, so RuSTy's lexer identifies a quite large number of different tokens.</p>
+<h3 id="discussion-rusty-lexer"><a class="header" href="#discussion-rusty-lexer">Discussion: RuSTy-Lexer</a></h3>
+<p>The logos crate uses <a href="https://doc.rust-lang.org/reference/procedural-macros.html">procedural macros</a> to generate the code required to  lex the source-string.
+The number of tokens identified by the RuSTy-lexer is quite high, so as of january 2022 the rust sdk for vs-code (rust-analyzer) reports problem with the number of macro-generated tokens (<em>macro invocation exceeds token limit...</em>).</p>
 <p>The tokens identified by the lexer follow the formal definition provided by the IEC61131-3 (2013) standard.</p>
-<p>Following strategies increase the number of tokens and should be reconsidered:</p>
+<p>Following strategies increase the number of tokens and should be reconsidered :</p>
 <ul>
 <li>case insensitivity</li>
 <li>optional underscores in keywords (e.g. <code>END_IF</code> == <code>ENDIF</code>)</li>
@@ -1128,12 +1161,20 @@ The first one is the <em>lexical analysis (Lexer)</em> which is performed by a l
 <li>etc.</li>
 </ul>
 <h2 id="parser-1"><a class="header" href="#parser-1">Parser</a></h2>
-<p>The parser takes the token stream and creates the corresponding AST that represents the source code in a structured, hierarchical way. The parser is implemented in the <code>parser</code> module whereas the model for the AST is implemented in the <code>ast</code> module.</p>
+<p>The parser takes the token stream and creates the corresponding AST that represents the source code in a structured, hierarchical way.
+The parser is implemented in the <code>parser</code> module whereas the model for the AST is implemented in the <code>ast</code> module.</p>
 <h3 id="ast---abstract-syntax-tree"><a class="header" href="#ast---abstract-syntax-tree">AST - Abstract Syntax Tree</a></h3>
-<p>The abstract syntax tree is a tree representation of the source code. Some parser implementations use a generic tree-data-structure consisting of <code>Nodes</code> which can have an arbitrary number of children. These nodes usually have dynamic properties like a type and an optional value and sometimes they even have dynamic properties stored in a map to make this representation even more flexible.</p>
-<p>While this approach needs very little source code we decided to favour a less flexible approach. The rusty-AST models every single ast-node as its own <em>struct</em> with all necessary fields including the possible child-nodes. While this approach needs much more code and hand-written changes, its benefits lie in the clearness and simplicity of the data-structure. Every element of the AST is easily identified, debugged and understood. (e.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the rusty-AST enforces the structure of every node. So the rusty-Binary-Statement has exactly two children. It is impossible to construct it differently.).</p>
+<p>The abstract syntax tree is a tree representation of the source code.
+Some parser implementations use a generic tree-data-structure consisting of <code>Nodes</code> which can have an arbitrary number of children.
+These nodes usually have dynamic properties like a type and an optional value and sometimes they even have dynamic properties stored in a map to make this representation even more flexible.</p>
+<p>While this approach needs very little source code we decided to favour a less flexible approach.
+The RuSTy-AST models every single ast-node as its own <em>struct</em> with all necessary fields including the possible child-nodes.
+While this approach needs much more code and hand-written changes, its benefits lie in the clearness and simplicity of the data-structure.
+Every element of the AST is easily identified, debugged and understood.
+E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
+It is impossible to construct it differently.</p>
 <h4 id="example-6"><a class="header" href="#example-6">Example</a></h4>
-<p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
+<p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures :</p>
 <pre><code class="language-rs">struct Reference {
    name: string
 }
@@ -1148,9 +1189,12 @@ struct Assignment {
 }
 </code></pre>
 <h3 id="recursive-descent-parser"><a class="header" href="#recursive-descent-parser">Recursive Descent Parser</a></h3>
-<p>There are a lot of different frameworks to generate parsers from formal grammars. While they generate highly optimized parsers we felt we wanted more control and more understanding of the parsing process and the resulting AST. The fact that at that point in time we were pretty new to rust itself, writing the parser by hand also gave us more practice and a stronger feeling of control and understanding. Using a parser-generator framework will definitely be an option for future improvements.</p>
-<p>As for now, the parser is a hand-written <a href="https://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parser</a> inside the <code>parser</code>-module. </p>
-<p>As the parser reads the token stream <code>Reference</code>, <code>KeywordEquals</code>, <code>Number</code>, <code>Semicolon</code> it instantiates the corresponding syntax tree: </p>
+<p>There are a lot of different frameworks to generate parsers from formal grammars.
+While they generate highly optimized parsers we felt we wanted more control and more understanding of the parsing process and the resulting AST.
+The fact that at that point in time we were pretty new to rust itself, writing the parser by hand also gave us more practice and a stronger feeling of control and understanding.
+Using a parser-generator framework will definitely be an option for future improvements.</p>
+<p>As for now, the parser is a hand-written <a href="https://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parser</a> inside the <code>parser</code>-module.</p>
+<p>As the parser reads the token stream <code>Reference</code>, <code>KeywordEquals</code>, <code>Number</code>, <code>Semicolon</code> it instantiates the corresponding syntax tree:</p>
 <pre><code class="language-ignore">                      ┌─────────────────┐
                       │   Assignment    │
                       └──────┬──┬───────┘
@@ -1164,10 +1208,14 @@ struct Assignment {
         └──────────────────┘     └──────────────────┘
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="indexer"><a class="header" href="#indexer">Indexer</a></h1>
-<p>The indexing step is responsible of building and maintaining the Symbol-Table (also called <em>Index</em>). The <em>Index</em> contains all known referable objects such as <em>variables</em>, <em>data-types</em>, <em>POUs</em>, <em>Functions</em>, etc. The Symbol-Table also maintains additional information about every referable object such as: the object's type, the objects' datatype, etc.</p>
-<p>Indexing is performed by the <em>index</em> module. It contains the index itself (a.k.a. Symbol Table), the <em>visitor</em> which collects all global names and their additional information as well as a data structure that handles compile time constant expressions (<em>constant_expressions</em>).</p>
+<p>The indexing step is responsible of building and maintaining the Symbol-Table (also called <em>Index</em>).
+The <em>Index</em> contains all known referable objects such as <em>variables</em>, <em>data-types</em>, <em>POUs</em>, <em>Functions</em>, etc.
+The Symbol-Table also maintains additional information about every referable object such as: the object's type, the objects' datatype, etc.</p>
+<p>Indexing is performed by the <em>index</em> module.
+It contains the index itself (a.k.a. Symbol Table), the <em>visitor</em> which collects all global names and their additional information as well as a data structure that handles compile time constant expressions (<em>constant_expressions</em>).</p>
 <h2 id="the-index-symbol-table"><a class="header" href="#the-index-symbol-table">The Index (Symbol Table)</a></h2>
-<p>The index stores information about all referable elements of the program. Depending on the type of element, we store different meta-information alongside the name of the element.</p>
+<p>The index stores information about all referable elements of the program.
+Depending on the type of element, we store different meta-information alongside the name of the element.</p>
 <table><thead><tr><th>Index Field</th><th>Description</th></tr></thead><tbody>
 <tr><td>global_variables</td><td>All global variables accessible via their name.</td></tr>
 <tr><td>enum_global_variables</td><td>All enum elements accessible via their name (as if they were global variables, e.g. 'RED')</td></tr>
@@ -1209,7 +1257,8 @@ The VariableIndexEntry holds information about every <em>Variable</em> in the so
 </code></pre>
 <ul>
 <li><strong>PouIndexEntry</strong>
-The PouIndexEntry offers information about all Program-Organization-Units. The index entry offers information like the name of an instance-struct, the name of the registered implementation, etc.</li>
+The PouIndexEntry offers information about all Program-Organization-Units.
+The index entry offers information like the name of an instance-struct, the name of the registered implementation, etc.</li>
 </ul>
 <pre><code class="language-ignore">┌──────────────────────────┐
 │       &lt;abstract&gt;         │
@@ -1264,7 +1313,8 @@ The PouIndexEntry offers information about all Program-Organization-Units. The i
 </code></pre>
 <ul>
 <li><strong>ImplementationIndexEntry</strong>
-The ImplementationIndexEntry offers information about any callable implementation (Program, Functionblock, Function, etc.). It also offers metadata about the implementation type, the name of the method to call and the name of the parameter-struct (this-struct) to pass to the function.</li>
+The ImplementationIndexEntry offers information about any callable implementation (Program, Functionblock, Function, etc.).
+It also offers metadata about the implementation type, the name of the method to call and the name of the parameter-struct (this-struct) to pass to the function.</li>
 </ul>
 <pre><code class="language-ignore">                                                  ┌───────────────────────┐
         ┌──────────────────────────┐              │       &lt;enum&gt;          │
@@ -1282,7 +1332,8 @@ The ImplementationIndexEntry offers information about any callable implementatio
 </code></pre>
 <ul>
 <li><strong>DataType</strong>
-The entry for a DataType offers information about any data-type supported by the program to be compiled (internal data types as well as user defined data types). For each data-type we offer additional information such as it's initial value, its type-nature (in terms of generic functions - e.g: ANY_INT) and some additional information about the type's internal structure and size (e.g. is it a number/array/struct/etc).</li>
+The entry for a DataType offers information about any data-type supported by the program to be compiled (internal data types as well as user defined data types).
+For each data-type we offer additional information such as it's initial value, its type-nature (in terms of generic functions - e.g: ANY_INT) and some additional information about the type's internal structure and size (e.g. is it a number/array/struct/etc).</li>
 </ul>
 <pre><code class="language-ignore">                      ┌─────────────┐                   ┌────────────────────┐
                       │  DataType   │                   │ ConstantExpression │
@@ -1321,18 +1372,19 @@ The entry for a DataType offers information about any data-type supported by the
 └────────────────┘ └─────────────┘ └────────────┘  └────────────┘  └──────────┘
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="linker"><a class="header" href="#linker">Linker</a></h1>
-<p>The linker's task is to decide where all references in the source code point to. There are different references in Structured Text:</p>
+<p>The linker's task is to decide where all references in the source code point to.
+There are different references in Structured Text :</p>
 <ul>
 <li>variable references<br />
 <code>x := 4</code> where <em>x</em> is a reference to the variable x.</li>
 <li>type references<br />
-<code>i : MyFunctionBlock</code> where <em>MyFunctionBlock</em> is a reference to the declared FunctionBlock</li>
+<code>i : MyFunctionBlock</code> where <em>MyFunctionBlock</em> is a reference to the declared FunctionBlock.</li>
 <li>Program references<br />
-<code>PLC_PRG.x := 4</code> where <em>PLC_PRG</em> is a reference to a Program-POU called <em>PLC_PRG</em></li>
+<code>PLC_PRG.x := 4</code> where <em>PLC_PRG</em> is a reference to a Program-POU called <em>PLC_PRG</em>.</li>
 <li>Function references<br />
 <code>max(a, b)</code> where <em>max</em> is a reference to a Function-POU called <em>max</em>.</li>
 </ul>
-<p>So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference's name:</p>
+<p>So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference's name :</p>
 <pre><code class="language-iecst">        PROGRAM PLC_PRG
              VAR
 
@@ -1345,13 +1397,21 @@ The entry for a DataType offers information about any data-type supported by the
              x := 3;
         END_PROGRAM
 </code></pre>
-<p>The linker's results will be used by the semantic validation step and by the code-generation. </p>
-<p>The validator decides whether the name you put at a certain location is valid or not. In order to decide whether a certain reference is valid or not, we need to know where it is pointing to, so whether we expect a variable, a datatype or something different.</p>
+<p>The linker's results will be used by the semantic validation step and by the code-generation.</p>
+<p>The validator decides whether the name you put at a certain location is valid or not.
+In order to decide whether a certain reference is valid or not, we need to know where it is pointing to, so whether we expect a variable, a datatype or something different.</p>
 <p>The code-generation needs to know what certain names mean, in order to successfully generate the IR-code that reflects the behavior of your program.</p>
 <h2 id="annotated-syntax-tree"><a class="header" href="#annotated-syntax-tree">Annotated Syntax Tree</a></h2>
-<p>The AST generated by the parser is a pretty static data-structure. So where should we store the linking information for a reference? Even if we would add fields for potential linking-information to the AST, the ownership concepts of Rust would give us a hard time to fill this information piece by piece during linking. So what we end up doing, is to use the <a href="https://en.wikipedia.org/wiki/Region-based_memory_management">arena-pattern</a> to handle the different lifetimes of the parts of an AST (the AST itself is constructed very early in the compilation process, where the linking information is allocated later). We don't store the linking information directly in the AST, but we store it inside the mentioned arena-data-structure and link it with certain AST-elements.</p>
-<p>The rusty linker stores the linking information in an arena called AnnotationMap. The AnnotationMap can store two type of annotations for any AST-element. So the first step is that we need a way to uniquely identify every single AST-node so we can use this ID as a key for the annotations stored in the AnnotationMap to automatically associate it with the given AST-Node. The parser assigns a unique ID to every Statement-Tree-Node (Note that we only assign IDs to Statements, not every AST-Node).</p>
-<p>So the expression <code>a + 3</code> now looks like this:</p>
+<p>The AST generated by the parser is a pretty static data-structure.
+So where should we store the linking information for a reference?
+Even if we would add fields for potential linking-information to the AST, the ownership concepts of Rust would give us a hard time to fill this information piece by piece during linking.
+So what we end up doing, is to use the <a href="https://en.wikipedia.org/wiki/Region-based_memory_management">arena-pattern</a> to handle the different lifetimes of the parts of an AST (the AST itself is constructed very early in the compilation process, where the linking information is allocated later).
+We don't store the linking information directly in the AST, but we store it inside the mentioned arena-data-structure and link it with certain AST-elements.</p>
+<p>The RuSTy linker stores the linking information in an arena called AnnotationMap.
+The AnnotationMap can store two type of annotations for any AST-element.
+So the first step is that we need a way to uniquely identify every single AST-node so we can use this ID as a key for the annotations stored in the AnnotationMap to automatically associate it with the given AST-Node.
+The parser assigns a unique ID to every Statement-Tree-Node (Note that we only assign IDs to Statements, not every AST-Node).</p>
+<p>So the expression <code>a + 3</code> now looks like this :</p>
 <pre><code class="language-ignore">                      ┌─────────────────┐
                       │ BinaryOperation │
                       ├─────────────────┤
@@ -1374,7 +1434,8 @@ The entry for a DataType offers information about any data-type supported by the
 <p>The AnnotationMap stores 5 different types of annotation:</p>
 <ul>
 <li><code>Value</code><br />
-The Value-annotation indicates that this AST-Element resolves to a value with the given resulting datatype. So for Example the LiteralInteger(3) node gets a Value-Annotation with a resulting type of <code>DINT</code>.</li>
+The Value-annotation indicates that this AST-Element resolves to a value with the given resulting datatype.
+So for Example the LiteralInteger(3) node gets a Value-Annotation with a resulting type of <code>DINT</code>.</li>
 </ul>
 <pre><code class="language-ignore">        ┌─────────────────────────┐
         │   Value                 │
@@ -1386,7 +1447,8 @@ The Value-annotation indicates that this AST-Element resolves to a value with th
 </code></pre>
 <ul>
 <li><code>Variable</code>
-The Variable-annotation indicates that this AST-Element resolves to a variable with the given qualified name (and some comfort-information like whether it is a constant and whether it is an auto-deref pointer). Similar to the value-Annotation it also saves the resulting datatype.</li>
+The Variable-annotation indicates that this AST-Element resolves to a variable with the given qualified name (and some comfort-information like whether it is a constant and whether it is an auto-deref pointer).
+Similar to the value-Annotation it also saves the resulting datatype.</li>
 </ul>
 <pre><code class="language-ignore">        ┌─────────────────────────┐
         │   Variable              │
@@ -1401,7 +1463,8 @@ The Variable-annotation indicates that this AST-Element resolves to a variable w
 </code></pre>
 <ul>
 <li><code>Function</code>
-The Function-annotation indicates that this AST-Element resolves to a Function-POU (a call-statement) with the given qualified name. Similar to the value-Annotation it also saves the resulting datatype but this time as the function's return type (<em>return_type</em>).</li>
+The Function-annotation indicates that this AST-Element resolves to a Function-POU (a call-statement) with the given qualified name.
+Similar to the value-Annotation it also saves the resulting datatype but this time as the function's return type (<em>return_type</em>).</li>
 </ul>
 <pre><code class="language-ignore">        ┌─────────────────────────┐
         │   Function              │
@@ -1426,7 +1489,8 @@ The Type-annotation indicates that this AST-Element resolves to a DataType (e.g.
 </code></pre>
 <ul>
 <li><code>Program</code>
-The Program-annotation is very similar to the Function-annotation. Since a Program has no return-value it also offers no return-type information.</li>
+The Program-annotation is very similar to the Function-annotation.
+Since a Program has no return-value it also offers no return-type information.</li>
 </ul>
 <pre><code class="language-ignore">        ┌─────────────────────────┐
         │   Program               │
@@ -1436,7 +1500,8 @@ The Program-annotation is very similar to the Function-annotation. Since a Progr
         │                         │
         └─────────────────────────┘
 </code></pre>
-<p>So the example expression from above `a + 3* will be annotated like this: Note that the resulting type of the Binary-Operation must be calculated by the linker by determining the bigger of both types.</p>
+<p>So the example expression from above `a + 3* will be annotated like this:
+(Note that the resulting type of the Binary-Operation must be calculated by the linker by determining the bigger of both types.)</p>
 <pre><code class="language-ignore">                  ┌─────────────────┐
                   │ BinaryOperation │
                   ├─────────────────┤
@@ -1481,10 +1546,11 @@ The Program-annotation is very similar to the Function-annotation. Since a Progr
                              │                            │
                              └────────────────────────────┘
 </code></pre>
-<p>Another example where the annotated AST carries a lot of useful information is with complex expressions like array-expressions or qualified references. Lets consider the following statement:</p>
+<p>Another example where the annotated AST carries a lot of useful information is with complex expressions like array-expressions or qualified references.
+Lets consider the following statement :</p>
 <pre><code class="language-iecst">PLC_PRG.a.b[2]
 </code></pre>
-<p>It is annotated in the following way:</p>
+<p>It is annotated in the following way :</p>
 <pre><code class="language-ignore">                ┌────────────────────┐
                 │ QualifiedReference │
                 ├────────────────────┤
@@ -1556,7 +1622,7 @@ The Program-annotation is very similar to the Function-annotation. Since a Progr
 </code></pre>
 <h2 id="type-vs-type-hint"><a class="header" href="#type-vs-type-hint">Type vs. Type-Hint</a></h2>
 <p>The AnnotationMap not only offers annotations regarding the AST-node's type, but it also offers a second type of annotation.</p>
-<p>Consider the following snippet:</p>
+<p>Consider the following snippet :</p>
 <pre><code class="language-iecst">PROGRAM PLC_PRG
    VAR
       x : SINT;
@@ -1568,53 +1634,65 @@ The Program-annotation is very similar to the Function-annotation. Since a Progr
 
 END_PROGRAM
 </code></pre>
-<p>The assignment <code>z := x + y</code> is loaded with different types:</p>
+<p>The assignment <code>z := x + y</code> is loaded with different types :</p>
 <ul>
-<li><code>x</code> is annotated as <em>Variable</em> of type <em>SINT</em> and will be auto-upgraded to <em>DINT</em></li>
-<li><code>y</code> is annotated as <em>Variable</em> of type <em>INT</em> and will be auto-upgraded to <em>DINT</em></li>
-<li><code>z</code> is annotated as <em>Variable</em> of type <em>BYTE</em></li>
-<li><code>x + y</code> is annotated as <em>Value</em> of type <em>DINT</em> (the bigger of both)</li>
+<li><code>x</code> is annotated as <em>Variable</em> of type <em>SINT</em> and will be auto-upgraded to <em>DINT</em>.</li>
+<li><code>y</code> is annotated as <em>Variable</em> of type <em>INT</em> and will be auto-upgraded to <em>DINT</em>.</li>
+<li><code>z</code> is annotated as <em>Variable</em> of type <em>BYTE</em>.</li>
+<li><code>x + y</code> is annotated as <em>Value</em> of type <em>DINT</em> (the bigger of both).</li>
 </ul>
-<p>In order to make life easier for validation and code-generation we add an additional annotation to <code>x + y</code> to indicate, that while it technically results in a <em>DINT</em>, it should rather be treated as a <em>BYTE</em> since it is going to be assigned to <code>z</code>. This second annotation is called the <em>type-hint</em>. It indicates that while it technically is not the real type of this expression, the program's semantic wants the compiler to treat it as this type.</p>
-<p>The expression <code>z := x + y</code> is annotated like this:</p>
-<table><thead><tr><th>expression</th><th>type annotation</th><th>type-hint annotation</th><th>explanation</th></tr></thead><tbody>
-<tr><td><code>x</code></td><td>SINT</td><td>DINT</td><td>auto-upgraded to DINT</td></tr>
-<tr><td><code>y</code></td><td>INT</td><td>DINT</td><td>auto-upgraded to DINT</td></tr>
-<tr><td><code>z</code></td><td>BYTE</td><td>-</td><td></td></tr>
-<tr><td><code>x + y</code></td><td>DINT</td><td>BYTE</td><td>type-hint indicates that the resulting DINT needs to be cast to BYTE</td></tr>
-</tbody></table>
-<p>With the help of the type-hint annotations the validation can decide whether certain type-cast operations are valid very easily. The code-generation steps can easily decide when to generate casts, by simply comparing a node's type annotation and it's type-hint annotation.</p>
+<p>In order to make life easier for validation and code-generation we add an additional annotation to <code>x + y</code> to indicate, that while it technically results in a <em>DINT</em>, it should rather be treated as a <em>BYTE</em> since it is going to be assigned to <code>z</code>.
+This second annotation is called the <em>type-hint</em>. It indicates that while it technically is not the real type of this expression, the program's semantic wants the compiler to treat it as this type.</p>
+<p>The expression <code>z := x + y</code> is annotated like this :
+| expression | type annotation | type-hint annotation | explanation                                                          |
+| ---------- | --------------- | -------------------- | -------------------------------------------------------------------- |
+| <code>x</code>        | SINT            | DINT                 | auto-upgraded to DINT                                                |
+| <code>y</code>        | INT             | DINT                 | auto-upgraded to DINT                                                |
+| <code>z</code>        | BYTE            | -                    |                                                                      |
+| <code>x + y</code>    | DINT            | BYTE                 | type-hint indicates that the resulting DINT needs to be cast to BYTE |</p>
+<p>With the help of the type-hint annotations the validation can decide whether certain type-cast operations are valid very easily.
+The code-generation steps can easily decide when to generate casts, by simply comparing a node's type annotation and it's type-hint annotation.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="validation"><a class="header" href="#validation">Validation</a></h1>
-<p>The validation module implements the semantic validation step of the compiler. The validator is a hand-written visitor that offers a callback when visiting the single AST-nodes to then perform the different validation tasks. The validation rules are implemented in dedicated validator-structs:</p>
-<table><thead><tr><th>Validator</th><th>Responsibilities</th></tr></thead><tbody>
-<tr><td>pou_validator</td><td>Semantic rules on the level of Programs, Functionblocks and Functions</td></tr>
-<tr><td>variable_validator</td><td>Semantic rules on the level of variable declarations (e.g. empty var-blocks, empty structs, etc. )</td></tr>
-<tr><td>stmt_validator</td><td>Semantic rules on the level of statements (e.g. invalid type-casts )</td></tr>
-</tbody></table>
+<p>The validation module implements the semantic validation step of the compiler.
+The validator is a hand-written visitor that offers a callback when visiting the single AST-nodes to then perform the different validation tasks.</p>
+<p>The validation rules are implemented in dedicated validator-structs :
+| Validator          | Responsibilities                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| pou_validator      | Semantic rules on the level of Programs, Functionblocks and Functions.                             |
+| variable_validator | Semantic rules on the level of variable declarations (e.g. empty var-blocks, empty structs, etc.). |
+| stmt_validator     | Semantic rules on the level of statements (e.g. invalid type-casts).                               |</p>
 <h2 id="diagnostics"><a class="header" href="#diagnostics">Diagnostics</a></h2>
-<p>Problems (semantic or syntactic) are represented as <em>Diagnostics</em> <sup class="footnote-reference"><a href="#1">1</a></sup>. Diagnostics carry information on the exact location inside the source-string (start- &amp; end-offset), a custom message and a unique error-number to identify the problem. There are 3 types of <em>Diagnostics</em>:</p>
-<table><thead><tr><th>Diagnostic</th><th>Description</th></tr></thead><tbody>
-<tr><td>SyntaxError</td><td>A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language's grammar.</td></tr>
-<tr><td>GeneralError</td><td>General errors are problems that occured during the compilation process, that cannot be linked to a malformed input (e.g. file-I/O problems, internal LLVM errors, etc.)</td></tr>
-<tr><td>Improvement</td><td>Problems that may not prevent successful compilation but are still considered a flaw in the source-code. (e.g. use proprietary <em>POINTER TO</em> instead of the norm-compliant <em>REF_TO</em>)</td></tr>
-</tbody></table>
+<p>Problems (semantic or syntactic) are represented as <em>Diagnostics</em> <sup class="footnote-reference"><a href="#1">1</a></sup>.
+Diagnostics carry information on the exact location inside the source-string (start- &amp; end-offset), a custom message and a unique error-number to identify the problem.</p>
+<p>There are 3 types of <em>Diagnostics</em> :
+| Diagnostic   | Description |
+| ------------ | ----------------- |
+| SyntaxError  | A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language's grammar. |
+| GeneralError | General errors are problems that occured during the compilation process, that cannot be linked to a malformed input (e.g. file-I/O problems, internal LLVM errors, etc.). |
+| Improvement  | Problems that may not prevent successful compilation but are still considered a flaw in the source-code. (e.g. use proprietary <em>POINTER TO</em> instead of the norm-compliant <em>REF_TO</em>). |</p>
 <div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
 <p>:(i): The diagnostics are subject to change since they don't elegantly represent the different types of problems (e.g. semantic problems).</p>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="code-generation"><a class="header" href="#code-generation">Code-Generation</a></h1>
-<p>The codegen module contains all code that turns the parsed and verified code represented as an AST into <a href="https://llvm.org/docs/LangRef.html">llvm-ir</a> code. To generate the <em>IR</em> we use a crate that wraps the native llvm <a href="https://github.com/TheDan64/inkwell">C-API</a>.</p>
-<p>The code-generator is basically a transformation from the ST-AST into an IR-Tree representation. Therefore the AST is traversed in a visitor-like way and transformed simultaneously. The code generation is split into specialized sub-generators for different tasks:</p>
-<table><thead><tr><th>Generator</th><th>Responsibilities</th></tr></thead><tbody>
-<tr><td>pou_generator</td><td>The pou-generator takes care of generating the programming organization units (Programs, FunctionBlocks, Functions) including their signature and body. More specialized tasks are delegated to other generators.</td></tr>
-<tr><td>data_type_generator</td><td>Generates complex datatypes like Structs, Arrays, Enums, Strings, etc.</td></tr>
-<tr><td>variable_generator</td><td>Generates global variables and their initialization</td></tr>
-<tr><td>statement_generator</td><td>Generates everything of the body of a POU except expressions. Non-expressions include: IFs, Loops, Assignments, etc.</td></tr>
-<tr><td>expression_generator</td><td>Generates expressions (everything that <em>possibly</em> resolves to a value) including: call-statements, references, array-access, etc.</td></tr>
-</tbody></table>
+<p>The codegen module contains all code that turns the parsed and verified code represented as an AST into <a href="https://llvm.org/docs/LangRef.html">llvm-ir</a> code.
+To generate the <em>IR</em> we use a crate that wraps the native llvm <a href="https://github.com/TheDan64/inkwell">C-API</a>.</p>
+<p>The code-generator is basically a transformation from the ST-AST into an IR-Tree representation.
+Therefore the AST is traversed in a visitor-like way and transformed simultaneously.</p>
+<p>The code generation is split into specialized sub-generators for different tasks :
+| Generator            | Responsibilities |
+| -------------------- | ---------------- |
+| pou_generator        | The pou-generator takes care of generating the programming organization units (Programs, FunctionBlocks, Functions) including their signature and body. More specialized tasks are delegated to other generators.  |
+| data_type_generator  | Generates complex datatypes like Structs, Arrays, Enums, Strings, etc. |
+| variable_generator   | Generates global variables and their initialization. |
+| statement_generator  | Generates everything of the body of a POU except expressions. Non-expressions include: IFs, Loops, Assignments, etc. |
+| expression_generator | Generates expressions (everything that <em>possibly</em> resolves to a value) including: call-statements, references, array-access, etc. |</p>
 <h2 id="generating-pous"><a class="header" href="#generating-pous">Generating POUs</a></h2>
-<p>Generating POUs (Programs, Function-Blocks, Functions) must generate the POU's body itself, as well as the POU's interface (or state) variables. In this segment we focus on generating the interface for a POU. Further information about generating a POU's body can be found [here].</p>
+<p>Generating POUs (Programs, Function-Blocks, Functions) must generate the POU's body itself, as well as the POU's interface (or state) variables.
+In this segment we focus on generating the interface for a POU.
+Further information about generating a POU's body can be found [here].</p>
 <h3 id="programs"><a class="header" href="#programs">Programs</a></h3>
-<p>A program is <em>static</em> POU with some code attached. This means that there is exactly one instance. So wherever from it is called, every caller uses the exact same instance which means that you may see the residuals of the laster caller in the program's variables when you call it yourself. </p>
+<p>A program is <em>static</em> POU with some code attached.
+This means that there is exactly one instance. So wherever from it is called, every caller uses the exact same instance which means that you may see the residuals of the laster caller in the program's variables when you call it yourself.</p>
 <pre><code class="language-iecst">PROGRAM prg
     VAR
         x : DINT;
@@ -1623,7 +1701,10 @@ END_PROGRAM
 
 END_PROGRAM
 </code></pre>
-<p>The program's interface is persistent across calls, so we store it in a global variable. Therefore the code-generator creates a dedicated struct-type called <code>prg_interface</code>. A global variable called <code>prg_instance</code> is generated to store the program's state across calls. This global instance variable is passed as a <code>this</code> pointer to calls to the <code>prg</code> function. </p>
+<p>The program's interface is persistent across calls, so we store it in a global variable.
+Therefore the code-generator creates a dedicated struct-type called <code>prg_interface</code>.
+A global variable called <code>prg_instance</code> is generated to store the program's state across calls.
+This global instance variable is passed as a <code>this</code> pointer to calls to the <code>prg</code> function.</p>
 <pre><code class="language-llvm">%prg_interface = type { i32, i32 }
 
 @prg_instance = global %prg_interface zeroinitializer
@@ -1634,7 +1715,11 @@ entry:
 }
 </code></pre>
 <h3 id="functionblocks"><a class="header" href="#functionblocks">FunctionBlocks</a></h3>
-<p>A FunctionBlock is an POU that is instantiated in a declaration. So in contrast to Programs, a FunctionBlock can have multiple instances. Nevertheless the code-generator uses a very similar strategy. A struct-type for the FunctionBlock's interface is created but no global instance-variable is allocated. Instead the function block can be used as a DataType to declare instances like in the following example:</p>
+<p>A FunctionBlock is an POU that is instantiated in a declaration.
+So in contrast to Programs, a FunctionBlock can have multiple instances.
+Nevertheless the code-generator uses a very similar strategy.
+A struct-type for the FunctionBlock's interface is created but no global instance-variable is allocated.
+Instead the function block can be used as a DataType to declare instances like in the following example :</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK foo
   VAR_INPUT
     x, y : INT;
@@ -1647,7 +1732,8 @@ PROGRAM prg
   END_VAR
 END_PROGRAM
 </code></pre>
-<p>So for the given example, we see the code-generator creating a type for the FunctionBlock's state (<code>foo_interface</code>). The declared instance of foo, in <code>prg's</code> interface is seen in the program's generated interface struct-type (<code>prg_interface</code>).</p>
+<p>So for the given example, we see the code-generator creating a type for the FunctionBlock's state (<code>foo_interface</code>).
+The declared instance of foo, in <code>prg's</code> interface is seen in the program's generated interface struct-type (<code>prg_interface</code>).</p>
 <pre><code class="language-llvm">; ModuleID = 'main'
 source_filename = &quot;main&quot;
 
@@ -1667,15 +1753,22 @@ entry:
 }
 </code></pre>
 <h3 id="functions"><a class="header" href="#functions">Functions</a></h3>
-<p>Functions generate very similar to program's and function_block's. The main difference is, that no instance-global is allocated and the function's interface-type cannot be used as a datatype to declare your own instances. Instances of the program's interface-type are allocated whenever the function is called for the lifetime of a single call. Otherwise the code generated for functions is comparable to the code presented above for programs and function-blocks.</p>
+<p>Functions generate very similar to program's and function_block's.
+The main difference is, that no instance-global is allocated and the function's interface-type cannot be used as a datatype to declare your own instances.
+Instances of the program's interface-type are allocated whenever the function is called for the lifetime of a single call.
+Otherwise the code generated for functions is comparable to the code presented above for programs and function-blocks.</p>
 <h2 id="generating-data-types"><a class="header" href="#generating-data-types">Generating Data Types</a></h2>
-<p>IEC61131-3 languages offer a wide range of data types. Next to the built-in intrinsic data types, we support following user defined data types:</p>
+<p>IEC61131-3 languages offer a wide range of data types.
+Next to the built-in intrinsic data types, we support following user defined data types:</p>
 <h3 id="range-types"><a class="header" href="#range-types">Range Types</a></h3>
-<p>For range types we don't generate special code. Internally the new data type just becomes an alias for the derived type.</p>
+<p>For range types we don't generate special code.
+Internally the new data type just becomes an alias for the derived type.</p>
 <h3 id="pointer-types"><a class="header" href="#pointer-types">Pointer Types</a></h3>
-<p>For pointer types we don't generate special code. Internally the new data type just becomes an alias for the pointer-type.</p>
+<p>For pointer types we don't generate special code.
+Internally the new data type just becomes an alias for the pointer-type.</p>
 <h3 id="struct-types"><a class="header" href="#struct-types">Struct Types</a></h3>
-<p>Struct types translate direclty to llvm struct datatypes. We generate a new datatype with the user-type's name for the struct.</p>
+<p>Struct types translate direclty to llvm struct datatypes.
+We generate a new datatype with the user-type's name for the struct.</p>
 <pre><code class="language-iecst">TYPE MyStruct: 
   STRUCT
     a: DINT;
@@ -1683,11 +1776,11 @@ entry:
   END_STRUCT
 END_TYPE
 </code></pre>
-<p>This struct simply generates a llvm struct type:</p>
+<p>This struct simply generates a llvm struct type :</p>
 <pre><code class="language-llvm">%MyStruct = type { i32, i16 }
 </code></pre>
 <h3 id="enum-types"><a class="header" href="#enum-types">Enum Types</a></h3>
-<p>Enumerations are represented as <code>DINT</code>. </p>
+<p>Enumerations are represented as <code>DINT</code>.</p>
 <pre><code class="language-iecst">TYPE MyEnum: (red, yellow, green);
 END_TYPE
 </code></pre>
@@ -1697,7 +1790,7 @@ END_TYPE
 @green = global i32 2
 </code></pre>
 <h3 id="array-types"><a class="header" href="#array-types">Array Types</a></h3>
-<p>Array types are generated as fixed sized llvm vector types - note that Array types must be fixed sized in <em>ST</em>:</p>
+<p>Array types are generated as fixed sized llvm vector types - note that Array types must be fixed sized in <em>ST</em> :</p>
 <pre><code class="language-iecst">TYPE MyArray: ARRAY[0..9] OF INT; 
 END_TYPE
 
@@ -1711,20 +1804,20 @@ END_VAR
 @y = global [6 x float] zeroinitializer
 </code></pre>
 <h4 id="multi-dimensional-arrays"><a class="header" href="#multi-dimensional-arrays">Multi dimensional arrays</a></h4>
-<p>Arrays can be declared as multi-dimensional:</p>
+<p>Arrays can be declared as multi-dimensional :</p>
 <pre><code class="language-iecst">VAR_GLOBAL
   x : ARRAY[0..5, 2..5, 0..1] OF INT;
 END_VAR
 </code></pre>
 <p>The compiler will flatten these type of arrays to a single-dimension. To accomplish that, it calculates the total
-length by mulitplying the sizes of all dimensions:</p>
+length by mulitplying the sizes of all dimensions :</p>
 <pre><code class="language-ignore">    0..5 x 2..5 x 0..1
       6  x   4  x   2  = 64
 </code></pre>
-<p>So the array <code>x : ARRAY[0..5, 2..5, 0..1] OF INT;</code> will be generated as:</p>
+<p>So the array <code>x : ARRAY[0..5, 2..5, 0..1] OF INT;</code> will be generated as :</p>
 <pre><code class="language-llvm">@x = global [64 x i16] zeroinitializer
 </code></pre>
-<p>This means that such a multidimensional array must be initialized like a single-dimensional array:</p>
+<p>This means that such a multidimensional array must be initialized like a single-dimensional array :</p>
 <ul>
 <li><em>wrong</em></li>
 </ul>
@@ -1745,8 +1838,8 @@ END_VAR
 </code></pre>
 <blockquote>
 <p><em>Nested Arrays</em></p>
-<p>Note that arrays declared as <code>x : ARRAY[0..2] OF ARRAY[0..2] OF INT</code> are different from mutli-dimensional 
-arrays discussed in this section. Nested arrays are represented as multi-dimensional arrays on the LLVM-IR 
+<p>Note that arrays declared as <code>x : ARRAY[0..2] OF ARRAY[0..2] OF INT</code> are different from mutli-dimensional
+arrays discussed in this section. Nested arrays are represented as multi-dimensional arrays on the LLVM-IR
 level and must also be initialized using nested array-literals!</p>
 </blockquote>
 <h3 id="string-types"><a class="header" href="#string-types">String Types</a></h3>
@@ -1756,7 +1849,7 @@ level and must also be initialized using nested array-literals!</p>
     wstr : WSTRING[20];
 END_VAR
 </code></pre>
-<p>Strings can be represented in two different encodings: <em>UTF-8 (STRING)</em> or <em>UTF-16 (WSTRING)</em>. </p>
+<p>Strings can be represented in two different encodings: <em>UTF-8 (STRING)</em> or <em>UTF-16 (WSTRING)</em>.</p>
 <pre><code class="language-llvm">@str = global [21 x i8] zeroinitializer
 @wstr = global [21 x i16] zeroinitializer
 </code></pre>

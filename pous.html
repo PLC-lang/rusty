@@ -145,11 +145,11 @@
                         <h1 id="program-organization-unit-pou"><a class="header" href="#program-organization-unit-pou">Program Organization Unit (POU)</a></h1>
 <h2 id="definition"><a class="header" href="#definition">Definition</a></h2>
 <p>A POU is a executable unit available in an IEC61131-3 application.
-It can be defined as either a Program, a Function, a Function Block, or an Action</p>
+It can be defined as either a Program, a Function, a Function Block, or an Action.</p>
 <blockquote>
 <p>Methods on classes are also considered POUs but are not covered by this document</p>
 </blockquote>
-<p>A POU is defined as </p>
+<p>A POU is defined as :</p>
 <pre><code class="language-iecst">&lt;POU Type&gt; name 
 (* parameters *)
 
@@ -157,48 +157,50 @@ It can be defined as either a Program, a Function, a Function Block, or an Actio
 END_&lt;POU Type&gt;
 </code></pre>
 <h3 id="parameters"><a class="header" href="#parameters">Parameters</a></h3>
-<p>POUs can use input, output, or in/out parameters to pass data to the outside
+<p>POUs can use input, output, or in/out parameters to pass data to the outside.
 Such parameters are defined in a <em>variable block</em>  delimeted by <code>VAR_&lt;TYPE&gt;</code> and <code>END_VAR</code>
-Supported parameter types are <code>VAR_INPUT</code>, <code>VAR_OUTPUT</code> and <code>VAR_IN_OUT</code></p>
+Supported parameter types are <code>VAR_INPUT</code>, <code>VAR_INPUT {ref}</code>, <code>VAR_OUTPUT</code> and <code>VAR_IN_OUT</code></p>
 <h4 id="input"><a class="header" href="#input">Input</a></h4>
-<p>Input parameters are typically copied into the target POU to be stored and read for later references.
-A definition for input parameters is as follows : </p>
+<p>Input parameters are typically copied into the target POU to be stored and read for later references.</p>
+<p>A definition for input parameters is as follows :</p>
 <pre><code class="language-iecst">VAR_INPUT
     a : INT;
 END_VAR
 </code></pre>
-<p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see <a href="libraries/external_functions.html">External Functions</a>) it is more efficient to avoid copying the variable values and just use a pointer to the required input. This can be done either using the in/out variables or by specifying a special property <code>ref</code> on the input block </p>
-<p>Example : </p>
+<p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see <a href="libraries/external_functions.html">External Functions</a>) it is more efficient to avoid copying the variable values and just use a pointer to the required input.
+This can be done either using the in/out variables or by specifying a special property <code>ref</code> on the input block.</p>
+<p>Example :</p>
 <pre><code class="language-iecst">VAR_INPUT {ref}
     a : STRING;
 END_VAR
 </code></pre>
 <p>Note that passing the ref property will convert all variables in that block to pointers, and should only be used in Functions.</p>
 <h4 id="in-out"><a class="header" href="#in-out">In Out</a></h4>
-<p>In/Out parameters are required parameters that are always passed by reference. They can be modified by the POU the call, and the changes are applied directly to the passed variable.
+<p>In/Out parameters are required parameters that are always passed by reference.
+They can be modified by the POU the call, and the changes are applied directly to the passed variable.
 An In/Out parameter must always be passed in a POU call and cannot be stored.</p>
 <h4 id="output"><a class="header" href="#output">Output</a></h4>
-<p>Output parameters are used to return the result(s) of the POU call. 
+<p>Output parameters are used to return the result(s) of the POU call.
 They are passed by reference, but are optional.
-If an output parameter is not passed in a call, its value is not persisted</p>
+If an output parameter is not passed in a call, its value is not persisted.</p>
 <h3 id="variables"><a class="header" href="#variables">Variables</a></h3>
 <p>In addition to parameters, a POU contains local variables, these can either be stored in the POU for later reference (<code>VAR</code>) or only created for a single call (<code>VAR_TEMP</code>)
-In a function, all local variables are temporary</p>
+In a function, all local variables are temporary.</p>
 <h2 id="specialization"><a class="header" href="#specialization">Specialization</a></h2>
-<p>In addition to the default behavior, each type of POU has some special cases</p>
+<p>In addition to the default behavior, each type of POU has some special cases.</p>
 <h3 id="function"><a class="header" href="#function">Function</a></h3>
 <p>Functions are <em>stateless</em> sequences of callable code. They are not backed by any structs, and cannot hold any state accross multiple calls.
-A function's input parameter can be passed by value, or by reference.
-Functions also support a return type, the resulting definition is : </p>
+A function's input parameter can be passed by value, or by reference.</p>
+<p>Functions also support a return type, the resulting definition is :</p>
 <pre><code class="language-iecst">    FUNCTION fnName : &lt;TYPE&gt;
-    (*parameters*)
+    (* parameters *)
     VAR_INPUT (* by value *)
         x : INT;
     END_VAR
     VAR_INPUT {ref} (* by reference *)
         x : INT;
     END_VAR
-    (*Temporary Variables*)
+    (* temporary variables *)
     VAR
         y : INT;
     END_VAR
@@ -210,20 +212,20 @@ Functions also support a return type, the resulting definition is : </p>
     END_FUNCTION
 </code></pre>
 <h3 id="program"><a class="header" href="#program">Program</a></h3>
-<p>Programs are a static (i.e. <code>GLOBAL</code>) <code>STRUCT</code> that holds its state accross multiple calls
+<p>Programs are a static (i.e. <code>GLOBAL</code>) <code>STRUCT</code> that holds its state accross multiple calls.
 A Program exists once, and only once in an application, and subsequent calls to a program will change and store the passed parameters as well as internal variables.
 A program does not support passing input parameters by reference.</p>
-<p>Example : </p>
+<p>Example :</p>
 <pre><code class="language-iecst">PROGRAM prg 
-(*parameters*)
+(* parameters *)
 VAR_INPUT
     x : INT;
 END_VAR
-(*persisted variables*)
+(* persisted variables *)
 VAR
     y : INT;
 END_VAR
-(*Temporary Variables*)
+(* temporary variables *)
 VAR_TEMP
     z : INT;
 END_VAR
@@ -231,19 +233,19 @@ END_VAR
 END_PROGRAM
 </code></pre>
 <h3 id="function-block"><a class="header" href="#function-block">Function Block</a></h3>
-<p>A function block is a <code>STRUCT</code> that can be initialized multiple times using different variables (i.e <code>instance</code>s)
+<p>A function block is a <code>STRUCT</code> that can be initialized multiple times using different variables (i.e <code>instance</code>s).
 A function block instance can hold its state (including input parameters) across multiple calls, but does not share any state with different instances.
 A function block does not support passing input parameters by reference.</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK fb
-(*parameters*)
+(* parameters *)
 VAR_INPUT
     x : INT;
 END_VAR
-(*persisted variables*)
+(* persisted variables *)
 VAR
     y : INT;
 END_VAR
-(*Temporary Variables*)
+(* temporary variables *)
 VAR_TEMP
     z : INT;
 END_VAR
@@ -252,35 +254,38 @@ END_FUNCTION_BLOCK
 </code></pre>
 <h3 id="action"><a class="header" href="#action">Action</a></h3>
 <p>An action is represented by a parent struct, and does not define its own interface (VAR blocks).
-An action can only be defined for Programs and Function Blocks</p>
+An action can only be defined for Programs and Function Blocks.</p>
 <p>An action is defined in 3 different ways, either in a container (<code>ACTIONS</code>) directly below the POU, in a named <code>ACTIONS</code> container, or using a qualified name on the action.</p>
-<p>Example : </p>
+<p>Example :</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK fb
-(*parameters*)
+(* parameters *)
 VAR_INPUT
     x : INT;
 END_VAR
-(*persisted variables*)
+(* persisted variables *)
 VAR
     y : INT;
 END_VAR
-(*Temporary Variables*)
+(* temporary variables *)
 VAR_TEMP
     z : INT;
 END_VAR
 (* code *)
 END_FUNCTION_BLOCK
-ACTIONS //implicitly belongs to FB
+
+ACTIONS (* implicitly belongs to FB *)
     ACTION act
     (* code *)
     END_ACTION
 END_ACTIONS
-ACTIONS fb //explicitly belongs to FB
+
+ACTIONS fb (* explicitly belongs to FB *)
     ACTION act2
     (* code *)
     END_ACTION
 END_ACTIONS
-ACTION fb.act3 //linked to FB with name definition
+
+ACTION fb.act3 (* linked to FB with name definition *)
 (* code *)
 END_ACTION
 </code></pre>
