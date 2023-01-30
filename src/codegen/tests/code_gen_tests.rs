@@ -263,6 +263,27 @@ END_PROGRAM
 }
 
 #[test]
+fn min_max_real_and_lreal_values_do_not_result_in_an_under_or_overflow() {
+    // See relevant issue https://github.com/PLC-lang/rusty/issues/732
+    // TL;DR: The given code snippet should NOT result in under- or overflows as they're the MIN and MAX
+    //        values for (l)reals. F64_MIN however yields an underflow despite not exceeding the limit.
+    let result = codegen(
+        r#"
+        PROGRAM main
+            VAR
+                F32_MIN : REAL  := -3.40282347E+38;
+                F32_MAX : REAL  :=  3.40282347E+38;
+                F64_MIN : LREAL := -1.7976931348623157E+308;
+                F64_MAX : LREAL :=  1.7976931348623157E+308;
+            END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn casted_literals_bool_code_gen_test() {
     let result = codegen(
         r#"PROGRAM prg
