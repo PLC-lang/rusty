@@ -10,22 +10,25 @@ System functions can also be added using [External Function](libraries/external_
 
 ## Library Structure
 
-A library is defined by : 
-- A set of `st` interfaces, each interface represents a function that has been precompiled.
-	> In a POU, the interface is the definition and variable section e.g:
-	> ```iecst
-	>	(*Interface for program example *)
-	>	PROGRAM example
-	>	VAR_INPUT
-	>		a,b,c : DINT
-	>	END_VAR 
-	> (* End of interface *)
-	>
-	>	(* Implementation *)
-	>	END_PROGRAM
-	> ```
-- A binary file for each architecture the library has been built for (`x86_64-linux-gnu`, `aarch64-linux-gnu`, ..)
+A library is defined by :
 
+- A set of `st` interfaces, each interface represents a function that has been precompiled.
+
+ > In a POU, the interface is the definition and variable section e.g:
+>
+ > ```iecst
+ > (*Interface for program example *)
+ > PROGRAM example
+ > VAR_INPUT
+ >  a,b,c : DINT
+ > END_VAR 
+ > (* End of interface *)
+ >
+ > (* Implementation *)
+ > END_PROGRAM
+ > ```
+>
+- A binary file for each architecture the library has been built for (`x86_64-linux-gnu`, `aarch64-linux-gnu`, ..)
 
 ## Linking libraries using the `rustyc` command line
 
@@ -51,19 +54,18 @@ Additionally, the environment variable `LD_LIBRARY_PATH` can be defined to appen
 
 Static libraries compiled as object files can be linked by simply passing the object file (i.e. extension `.o`) as an input (simlar to other `.st` files).
 
-Archive files (i.e. extension `.a`) can be linked similarly to [Shared Libraries](#shared-libraries) using the `-l` flag. 
+Archive files (i.e. extension `.a`) can be linked similarly to [Shared Libraries](#shared-libraries) using the `-l` flag.
 If the application is being compiled with the `--static` flag (or no shared library (`.so`) is found), the linker will use the archive file.</br>
 
 > If neither a shared object (`.so`) or an archive file (`.a`) is found, compilation will fail.
 
 ### Command line example
 
-To compile a file called `input.st` including a header and linking a library called `libiec.so` from `/lib` : 
+To compile a file called `input.st` including a header and linking a library called `libiec.so` from `/lib` :
 
 ```sh
 rustyc input.st -i iec/header.st -L/lib/ -liec
 ```
-
 
 ## Linking libraries using the Build Description File `plc.json`
 
@@ -95,11 +97,12 @@ POUs and Global variables included in the list are marked as external, the imple
 
 ### Library Location
 
-Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](using_rusty/build_description_file.md#--lib-location). By default this is the same as the [Build Location](using_rusty/build_description_file.md#--build-location) unless overridden by the `--lib-location` parameter.
+Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](using_rusty/build_description_file.md#--lib-location).
+By default this is the same as the [Build Location](using_rusty/build_description_file.md#--build-location) unless overridden by the `--lib-location` parameter.
 
 ### Using environment variables
 
-Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location. 
+Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location.
 `$ARCH` can be used as placeholder in the path to indicate the the currently compiled target.
 </br></br></br>
 
@@ -107,7 +110,7 @@ Since libraries can be compiled for multiple targets, the lib path can contain e
 
 ### Configuration Example (`plc.json`)
 
-A configuration example for a `Copy` library called _mylib_ and a `System` library called _std_
+A configuration example for a `Copy` library called _mylib_ and a `System` library called _std_ :
 
 ```json
 "libraries" : [
@@ -129,4 +132,3 @@ A configuration example for a `Copy` library called _mylib_ and a `System` libra
     }
 ]
 ```
-
