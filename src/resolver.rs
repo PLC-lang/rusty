@@ -1329,7 +1329,7 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
                 StatementAnnotation::Value { resulting_type } => {
-                    // // make sure we come from an array or function_block access
+                    // make sure we come from an array or function_block access
                     match operator {
                         AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
                         AstStatement::PointerAccess { .. } => self
