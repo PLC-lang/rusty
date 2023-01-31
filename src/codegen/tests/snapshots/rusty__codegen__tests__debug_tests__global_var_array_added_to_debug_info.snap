@@ -9,7 +9,8 @@ source_filename = "main"
 @b = global [110 x i32] zeroinitializer, !dbg !7
 @c = global [11 x [10 x i32]] zeroinitializer, !dbg !12
 
-!llvm.dbg.cu = !{!17}
+!llvm.module.flags = !{!17}
+!llvm.dbg.cu = !{!18}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
@@ -28,7 +29,8 @@ source_filename = "main"
 !14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: 3520, align: 64, elements: !5)
 !15 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 320, align: 64, elements: !16)
 !16 = !{!11}
-!17 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !18, globals: !19, splitDebugInlining: false)
-!18 = !{}
-!19 = !{!0, !7, !12}
+!17 = !{i32 2, !"Dwarf Version", i32 5}
+!18 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !19, globals: !20, splitDebugInlining: false)
+!19 = !{}
+!20 = !{!0, !7, !12}
 
