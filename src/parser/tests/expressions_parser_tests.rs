@@ -1202,6 +1202,7 @@ fn literal_real_test() {
         1.2e3;
         1.2e-4;
         -1.5;
+        -1.5e3;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -1224,6 +1225,12 @@ fn literal_real_test() {
         operator: Minus,
         value: LiteralReal {
             value: "1.5",
+        },
+    },
+    UnaryExpression {
+        operator: Minus,
+        value: LiteralReal {
+            value: "1.5e3",
         },
     },
 ]"#;
