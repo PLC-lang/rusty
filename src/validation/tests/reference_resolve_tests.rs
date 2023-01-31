@@ -312,3 +312,30 @@ fn program_vars_are_allowed_in_their_actions() {
 
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn fb_pointer_access_call_statement_resolves_without_validation_errors() {
+    let diagnostics = parse_and_validate(
+        "
+		PROGRAM main
+        VAR
+            FileOpen : REF_TO file;
+        END_VAR
+            FileOpen^(var2:=TRUE);
+        END_PROGRAM
+
+        FUNCTION_BLOCK file
+        VAR_INPUT
+            var1 : BOOL;
+            var2 : BOOL;
+        END_VAR
+        VAR_OUTPUT
+        END_VAR
+        VAR
+        END_VAR
+        END_FUNCTION_BLOCK
+       ",
+    );
+
+    assert_eq!(diagnostics, vec![]);
+}

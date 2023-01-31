@@ -616,3 +616,30 @@ fn function_accepts_empty_statement_as_output_param() {
     // THEN
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn parameters_behind_function_block_pointer_are_assigned_to() {
+    // GIVEN
+    let result = codegen(
+        "
+		PROGRAM main
+        VAR
+			file : file_t;
+            FileOpen : REF_TO file_t;
+        END_VAR
+			FileOpen := &file;
+            FileOpen^(var2:=TRUE);
+        END_PROGRAM
+
+        FUNCTION_BLOCK file_t
+        VAR_INPUT
+            var1 : BOOL;
+            var2 : BOOL;
+        END_VAR
+        END_FUNCTION_BLOCK
+		",
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
