@@ -1566,6 +1566,9 @@
 <span id="1561">1561</span>
 <span id="1562">1562</span>
 <span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2898,11 +2901,14 @@
                 }
                 <span class="comment">// call statements on array access &quot;arr[1]()&quot; will return a StatementAnnotation::Value</span>
                 <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } =&gt; {
-                    <span class="comment">// make sure we come from an array access</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::ArrayAccess</span> { .. } <span class="op">=</span> <span class="ident">operator</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">clone</span>());
+                    <span class="comment">// make sure we come from an array or function_block access</span>
+                    <span class="kw">match</span> <span class="ident">operator</span> {
+                        <span class="ident">AstStatement::ArrayAccess</span> { .. } =&gt; <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">clone</span>()),
+                        <span class="ident">AstStatement::PointerAccess</span> { .. } =&gt; {
+                            <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_pou</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_name</span>().<span class="ident">to_string</span>())
+                        }
+                        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
                     }
-                    <span class="prelude-val">None</span>
                 }
                 <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
             })
