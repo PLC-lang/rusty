@@ -129,7 +129,7 @@ impl RecursiveValidator {
         let info = index.get_type_information_or_void(name);
 
         if info.is_array() {
-            return info.get_inner_array_type_name().unwrap_or(name);
+            return info.get_inner_array_type_name().unwrap_or(name); // the `unwrap_or` _should_ never trigger
         }
 
         name
