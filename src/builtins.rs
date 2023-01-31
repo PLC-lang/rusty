@@ -208,7 +208,7 @@ lazy_static! {
         (
             "SIZEOF",
             BuiltIn {
-                decl : "FUNCTION SIZEOF<U: ANY> : DINT
+                decl : "FUNCTION SIZEOF<U: ANY> : ULINT
                 VAR_INPUT
                     in : U;
                 END_VAR
