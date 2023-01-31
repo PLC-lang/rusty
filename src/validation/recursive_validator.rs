@@ -2,7 +2,7 @@ use indexmap::IndexSet;
 
 use crate::{
     diagnostics::Diagnostic,
-    index::{Index, VariableIndexEntry},
+    index::{symbol::SymbolMap, Index, VariableIndexEntry},
     typesystem::DataTypeInformationProvider,
 };
 
@@ -58,7 +58,7 @@ impl RecursiveValidator {
 
         for node in &nodes_all {
             if !nodes_visited.contains(node) {
-                self.dfs(index, &mut path, node, nodes_visited);
+                self.dfs(index, &mut path, node, nodes_visited, &nodes_all);
             }
         }
     }
@@ -74,16 +74,17 @@ impl RecursiveValidator {
         path: &mut IndexSet<&'idx str>,
         node_curr: &'idx str,
         nodes_visited: &mut IndexSet<&'idx str>,
+        nodes_all: &IndexSet<&'idx str>,
     ) {
         nodes_visited.insert(node_curr);
         path.insert(node_curr);
 
         if let Some(edges) = index.get_members(node_curr) {
-            for node in edges.values().map(|x| self.get_type_name(index, x)).collect::<IndexSet<_>>() {
+            for node in self.filter_members(index, edges, nodes_all) {
                 if path.contains(node) {
                     self.report(index, node, path);
                 } else if !nodes_visited.contains(node) {
-                    self.dfs(index, path, node, nodes_visited);
+                    self.dfs(index, path, node, nodes_visited, nodes_all);
                 }
             }
         }
@@ -109,6 +110,22 @@ impl RecursiveValidator {
 
             None => unreachable!("Node has to be in the IndexSet"),
         }
+    }
+
+    /// Filters all members of a node to only contain nodes we're interested in, i.e. structs and
+    /// functions blocks. For example a node `A` may contain a member variable `b` of type `DINT` and `c`
+    /// of type `C` (= Struct). Calling `filter_members` will return an IndexSet consisting of only type `C`.
+    fn filter_members<'idx>(
+        &self,
+        index: &'idx Index,
+        members: &'idx SymbolMap<String, VariableIndexEntry>,
+        nodes_all: &IndexSet<&'idx str>,
+    ) -> IndexSet<&'idx str> {
+        return members
+            .values()
+            .map(|entry| self.get_type_name(index, entry))
+            .filter(|name| nodes_all.contains(name))
+            .collect::<IndexSet<_>>();
     }
 
     /// Returns the type name of `entry` distinguishing between two cases:
