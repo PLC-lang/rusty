@@ -13,12 +13,13 @@ use crate::{
 };
 
 use self::{
-    global_validator::GlobalValidator, pou_validator::PouValidator, stmt_validator::StatementValidator,
-    variable_validator::VariableValidator,
+    global_validator::GlobalValidator, pou_validator::PouValidator, recursive_validator::RecursiveValidator,
+    stmt_validator::StatementValidator, variable_validator::VariableValidator,
 };
 
 mod global_validator;
 mod pou_validator;
+mod recursive_validator;
 mod stmt_validator;
 mod variable_validator;
 
@@ -72,6 +73,7 @@ pub struct Validator {
     variable_validator: VariableValidator,
     stmt_validator: StatementValidator,
     global_validator: GlobalValidator,
+    recursive_validator: RecursiveValidator,
 }
 
 impl Validator {
@@ -81,6 +83,7 @@ impl Validator {
             variable_validator: VariableValidator::new(),
             stmt_validator: StatementValidator::new(),
             global_validator: GlobalValidator::new(),
+            recursive_validator: RecursiveValidator::new(),
         }
     }
 
@@ -90,11 +93,13 @@ impl Validator {
         all_diagnostics.append(&mut self.variable_validator.diagnostics);
         all_diagnostics.append(&mut self.stmt_validator.diagnostics);
         all_diagnostics.append(&mut self.global_validator.diagnostics);
+        all_diagnostics.append(&mut self.recursive_validator.diagnostics);
         all_diagnostics
     }
 
     pub fn perform_global_validation(&mut self, index: &Index) {
         self.global_validator.validate_unique_symbols(index);
+        self.recursive_validator.validate_recursion(index);
     }
 
     pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
