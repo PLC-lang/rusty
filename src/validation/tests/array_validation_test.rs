@@ -58,3 +58,44 @@ fn array_access_validation() {
         ]
     );
 }
+
+#[test]
+fn array_initialization_validation() {
+    let diagnostics = parse_and_validate(
+        "
+		FUNCTION main : DINT
+		VAR
+			arr	 : ARRAY[1..2] OF DINT;
+			arr2 : ARRAY[1..2] OF DINT := 1, 2; // our parser can handle this, should we validate this ?
+			arr3 : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2))); // valid
+			arr4 : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2)); // var2 missing `(`
+			x	 : myStruct;
+			y	 : myStruct := (var1 := 1, var2 := 3, 4); // var2 missing `(`
+		END_VAR
+			arr := 1, 2; // missing `(`
+			arr := (1, 2); // valid
+			x := (var1 := 1, var2 := 3, 4); // var2 missing `(`
+		END_FUNCTION
+		
+		TYPE myStruct : STRUCT
+				var1 : DINT;
+				var2 : ARRAY[1..2] OF DINT;
+			END_STRUCT
+		END_TYPE
+       ",
+    );
+
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::array_expected_initializer_list((310..314).into()),
+            Diagnostic::array_expected_identifier_or_round_bracket((321..322).into()),
+            Diagnostic::array_expected_initializer_list((396..400).into()),
+            Diagnostic::array_expected_identifier_or_round_bracket((407..408).into()),
+            Diagnostic::array_expected_initializer_list((444..447).into()),
+            Diagnostic::array_expected_identifier_or_round_bracket((454..455).into()),
+            Diagnostic::array_expected_initializer_list((519..523).into()),
+            Diagnostic::array_expected_identifier_or_round_bracket((530..531).into()),
+        ]
+    );
+}
