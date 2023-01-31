@@ -9,7 +9,7 @@ use inkwell::{
         DebugInfoBuilder,
     },
     module::Module,
-    values::{FunctionValue, GlobalValue, PointerValue},
+    values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
 
 use crate::{
@@ -176,9 +176,15 @@ impl<'ink> DebugBuilderEnum<'ink> {
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> Self {
+        let dwarf_version: BasicMetadataValueEnum<'ink> = context.i32_type().const_int(5, false).into();
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
             DebugLevel::VariablesOnly | DebugLevel::Full => {
+                module.add_metadata_flag(
+                    "Dwarf Version",
+                    inkwell::module::FlagBehavior::Warning,
+                    context.metadata_node(&[dwarf_version]),
+                );
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
                 let directory = path.parent().and_then(|it| it.to_str()).unwrap_or("");
                 let filename = path.file_name().and_then(|it| it.to_str()).unwrap_or("");

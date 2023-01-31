@@ -16,7 +16,8 @@ source_filename = "main"
 @b.2 = unnamed_addr constant i64 1, !dbg !23
 @c.3 = unnamed_addr constant i64 2, !dbg !25
 
-!llvm.dbg.cu = !{!27}
+!llvm.module.flags = !{!27}
+!llvm.dbg.cu = !{!28}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
@@ -45,7 +46,8 @@ source_filename = "main"
 !24 = distinct !DIGlobalVariable(name: "__global_en3.b", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
 !25 = !DIGlobalVariableExpression(var: !26, expr: !DIExpression())
 !26 = distinct !DIGlobalVariable(name: "__global_en3.c", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
-!27 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !28, globals: !29, splitDebugInlining: false)
-!28 = !{}
-!29 = !{!0, !5, !9, !11, !13, !17, !19, !21, !23, !25}
+!27 = !{i32 2, !"Dwarf Version", i32 5}
+!28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !29, globals: !30, splitDebugInlining: false)
+!29 = !{}
+!30 = !{!0, !5, !9, !11, !13, !17, !19, !21, !23, !25}
 
