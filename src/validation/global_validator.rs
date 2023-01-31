@@ -5,13 +5,26 @@ use crate::{
     typesystem::{DataTypeInformation, StructSource},
 };
 
+use super::Validators;
+
 /// Validator that does not check a dedicated file but rather
 /// uses the index to validate the project as a whole.
 /// It performs validations including:
 ///  - naming-conflicts
 ///  - <tbc>
+#[derive(Default)]
 pub struct GlobalValidator {
-    pub diagnostics: Vec<Diagnostic>,
+    diagnostics: Vec<Diagnostic>,
+}
+
+impl Validators for GlobalValidator {
+    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
+    }
 }
 
 impl GlobalValidator {
@@ -37,14 +50,14 @@ impl GlobalValidator {
                 .collect::<Vec<_>>();
 
             if let Some(additional_text) = additional_text {
-                self.diagnostics.push(Diagnostic::global_name_conflict_with_text(
+                self.push_diagnostic(Diagnostic::global_name_conflict_with_text(
                     name,
                     (*v).clone(),
                     others,
                     additional_text,
                 ));
             } else {
-                self.diagnostics.push(Diagnostic::global_name_conflict(name, (*v).clone(), others));
+                self.push_diagnostic(Diagnostic::global_name_conflict(name, (*v).clone(), others));
             }
         }
     }
