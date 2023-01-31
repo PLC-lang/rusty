@@ -556,9 +556,20 @@
 <span id="551">551</span>
 <span id="552">552</span>
 <span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::discriminant</span>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ValidationContext</span>;
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ValidationContext</span>, <span class="ident">Validators</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">DirectAccessType</span>, <span class="ident">Operator</span>, <span class="ident">SourceRange</span>},
     <span class="ident">index</span>::{<span class="ident">ArgumentType</span>, <span class="ident">VariableIndexEntry</span>, <span class="ident">VariableType</span>},
@@ -580,8 +591,19 @@
     };
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatementValidator</span> {
-    <span class="kw">pub</span> <span class="ident">diagnostics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>,
+    <span class="ident">diagnostics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Validators</span> <span class="kw">for</span> <span class="ident">StatementValidator</span> {
+    <span class="kw">fn</span> <span class="ident">push_diagnostic</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">diagnostic</span>: <span class="ident">Diagnostic</span>) {
+        <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">diagnostic</span>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">take_diagnostics</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">diagnostics</span>)
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">StatementValidator</span> {
@@ -602,7 +624,7 @@
                         <span class="op">|</span> <span class="ident">AstStatement::QualifiedReference</span> { .. }
                         <span class="op">|</span> <span class="ident">AstStatement::ArrayAccess</span> { .. } =&gt; (),
 
-                        <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_operation</span>(
+                        <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::invalid_operation</span>(
                             <span class="string">&quot;Invalid address-of operation&quot;</span>,
                             <span class="ident">location</span>.<span class="ident">to_owned</span>(),
                         )),
@@ -626,7 +648,7 @@
                         <span class="self">self</span>.<span class="ident">validate_array_access</span>(<span class="ident">access</span>.<span class="ident">as_ref</span>(), <span class="ident">dimensions</span>, <span class="number">0</span>, <span class="ident">context</span>);
                     }
                 } <span class="kw">else</span> {
-                    <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_array_access_variable</span>(
+                    <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_array_access_variable</span>(
                         <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
                         <span class="ident">access</span>.<span class="ident">get_location</span>(),
                     ));
@@ -643,7 +665,7 @@
                         .<span class="ident">get_type_information</span>();
                     <span class="kw">if</span> <span class="ident">target_type</span>.<span class="ident">is_int</span>() {
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">access</span>.<span class="ident">is_compatible</span>(<span class="ident">target_type</span>, <span class="ident">context</span>.<span class="ident">index</span>) {
-                            <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_directaccess</span>(
+                            <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_directaccess</span>(
                                 <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">access</span>),
                                 <span class="ident">access</span>.<span class="ident">get_bit_width</span>(),
                                 <span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -653,7 +675,7 @@
                         }
                     } <span class="kw">else</span> {
                         <span class="comment">//Report incompatible type issue</span>
-                        <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_directaccess</span>(
+                        <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_directaccess</span>(
                             <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">access</span>),
                             <span class="ident">access</span>.<span class="ident">get_bit_width</span>(),
                             <span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -671,7 +693,7 @@
                 {
                     <span class="comment">// check if we assign to a constant variable</span>
                     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">constant</span> {
-                        <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::cannot_assign_to_constant</span>(
+                        <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::cannot_assign_to_constant</span>(
                             <span class="ident">l_qualified_name</span>.<span class="ident">as_str</span>(),
                             <span class="ident">left</span>.<span class="ident">get_location</span>(),
                         ));
@@ -689,7 +711,7 @@
                         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">l_effective_type</span>.<span class="ident">is_pointer</span>()
                         <span class="op">&amp;&amp;</span> <span class="ident">l_effective_type</span>.<span class="ident">get_size_in_bits</span>(<span class="ident">context</span>.<span class="ident">index</span>) <span class="op">&lt;</span> <span class="ident">POINTER_SIZE</span>
                     {
-                        <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_type_size</span>(
+                        <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_type_size</span>(
                             <span class="ident">l_effective_type</span>.<span class="ident">get_name</span>(),
                             <span class="ident">l_effective_type</span>.<span class="ident">get_size_in_bits</span>(<span class="ident">context</span>.<span class="ident">index</span>),
                             <span class="string">&quot;hold a&quot;</span>,
@@ -701,7 +723,7 @@
                         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">r_effective_type</span>.<span class="ident">is_pointer</span>()
                         <span class="op">&amp;&amp;</span> <span class="ident">r_effective_type</span>.<span class="ident">get_size_in_bits</span>(<span class="ident">context</span>.<span class="ident">index</span>) <span class="op">&lt;</span> <span class="ident">POINTER_SIZE</span>
                     {
-                        <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_type_size</span>(
+                        <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_type_size</span>(
                             <span class="ident">r_effective_type</span>.<span class="ident">get_name</span>(),
                             <span class="ident">r_effective_type</span>.<span class="ident">get_size_in_bits</span>(<span class="ident">context</span>.<span class="ident">index</span>),
                             <span class="string">&quot;to be stored in a&quot;</span>,
@@ -715,7 +737,7 @@
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::LiteralString</span> { <span class="ident">value</span>, <span class="ident">location</span>, .. } <span class="op">=</span> <span class="ident">right</span>.<span class="ident">as_ref</span>() {
                             <span class="comment">// literalString may only be 1 character long</span>
                             <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
-                                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::syntax_error</span>(
+                                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::syntax_error</span>(
                                     <span class="macro">format!</span>(
                                         <span class="string">&quot;Value: &#39;{}&#39; exceeds length for type: {}&quot;</span>,
                                         <span class="ident">value</span>, <span class="ident">l_resulting_type</span>
@@ -726,7 +748,7 @@
                             }
                         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">l_effective_type</span> <span class="op">!</span><span class="op">=</span> <span class="ident">r_effective_type</span> {
                             <span class="comment">// invalid assignment</span>
-                            <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_assignment</span>(
+                            <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::invalid_assignment</span>(
                                 <span class="ident">r_effective_type</span>.<span class="ident">get_name</span>(),
                                 <span class="ident">l_effective_type</span>.<span class="ident">get_name</span>(),
                                 <span class="ident">statement</span>.<span class="ident">get_location</span>(),
@@ -735,7 +757,7 @@
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">r_effective_type</span>.<span class="ident">is_character</span>() {
                         <span class="comment">// if we try to assign a character variable -&gt; .. := char</span>
                         <span class="comment">// and didn&#39;t match the first if, left and right won&#39;t have the same type -&gt; invalid assignment</span>
-                        <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_assignment</span>(
+                        <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::invalid_assignment</span>(
                             <span class="ident">r_effective_type</span>.<span class="ident">get_name</span>(),
                             <span class="ident">l_effective_type</span>.<span class="ident">get_name</span>(),
                             <span class="ident">statement</span>.<span class="ident">get_location</span>(),
@@ -777,7 +799,7 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Generic</span> { <span class="ident">generic_symbol</span>, <span class="ident">nature</span>, .. } <span class="op">=</span>
                 <span class="ident">statement_type</span>.<span class="ident">get_type_information</span>()
             {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::unresolved_generic_type</span>(
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::unresolved_generic_type</span>(
                     <span class="ident">generic_symbol</span>,
                     <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">nature</span>),
                     <span class="ident">statement</span>.<span class="ident">get_location</span>(),
@@ -791,7 +813,7 @@
 				<span class="comment">// INT parameter for REAL is allowed</span>
                     <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">statement_type</span>.<span class="ident">is_real</span>() <span class="op">&amp;</span> <span class="ident">actual_type</span>.<span class="ident">is_numerical</span>())
                 {
-                    <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_type_nature</span>(
+                    <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::invalid_type_nature</span>(
                         <span class="ident">actual_type</span>.<span class="ident">get_name</span>(),
                         <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">generic_nature</span>).<span class="ident">as_str</span>(),
                         <span class="ident">statement</span>.<span class="ident">get_location</span>(),
@@ -813,7 +835,7 @@
             <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">access_type</span>.<span class="ident">is_in_range</span>(<span class="ident">value</span>.<span class="ident">try_into</span>().<span class="ident">unwrap_or_default</span>(), <span class="ident">target_type</span>, <span class="ident">context</span>.<span class="ident">index</span>)
                 {
-                    <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_directaccess_range</span>(
+                    <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_directaccess_range</span>(
                         <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">access_type</span>),
                         <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
                         <span class="ident">access_type</span>.<span class="ident">get_range</span>(<span class="ident">target_type</span>, <span class="ident">context</span>.<span class="ident">index</span>),
@@ -824,7 +846,7 @@
             <span class="ident">AstStatement::Reference</span> { .. } =&gt; {
                 <span class="kw">let</span> <span class="ident">ref_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get_type_or_void</span>(<span class="ident">access_index</span>, <span class="ident">context</span>.<span class="ident">index</span>);
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">ref_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_int</span>() {
-                    <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_directaccess_variable</span>(
+                    <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_directaccess_variable</span>(
                         <span class="ident">ref_type</span>.<span class="ident">get_name</span>(),
                         <span class="ident">location</span>.<span class="ident">clone</span>(),
                     ))
@@ -856,7 +878,7 @@
             <span class="kw">let</span> <span class="ident">type_info</span> <span class="op">=</span>
                 <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get_type_or_void</span>(<span class="ident">access</span>, <span class="ident">context</span>.<span class="ident">index</span>).<span class="ident">get_type_information</span>();
             <span class="kw">if</span> <span class="op">!</span><span class="ident">type_info</span>.<span class="ident">is_int</span>() {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_array_access_type</span>(
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_array_access_type</span>(
                     <span class="ident">type_info</span>.<span class="ident">get_name</span>(),
                     <span class="ident">access</span>.<span class="ident">get_location</span>(),
                 ))
@@ -873,7 +895,7 @@
     ) {
         <span class="comment">// unresolved reference</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">has_type_annotation</span>(<span class="ident">statement</span>) {
-            <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::unresolved_reference</span>(<span class="ident">ref_name</span>, <span class="ident">location</span>.<span class="ident">clone</span>()));
+            <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::unresolved_reference</span>(<span class="ident">ref_name</span>, <span class="ident">location</span>.<span class="ident">clone</span>()));
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> { <span class="ident">qualified_name</span>, <span class="ident">variable_type</span>, .. }) <span class="op">=</span>
             <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get</span>(<span class="ident">statement</span>)
         {
@@ -888,7 +910,7 @@
                         <span class="op">!</span><span class="ident">qualified_name</span>.<span class="ident">starts_with</span>(<span class="ident">it</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">qualified_name</span>.<span class="ident">starts_with</span>(<span class="ident">container</span>)
                     })
             {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::illegal_access</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>(), <span class="ident">location</span>.<span class="ident">clone</span>()));
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::illegal_access</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>(), <span class="ident">location</span>.<span class="ident">clone</span>()));
             }
         }
     }
@@ -923,9 +945,9 @@
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">index</span>.<span class="ident">get_void_type</span>().<span class="ident">get_type_information</span>());
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">is_typable_literal</span>(<span class="ident">literal</span>) {
-            <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::literal_expected</span>(<span class="ident">location</span>.<span class="ident">clone</span>()))
+            <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::literal_expected</span>(<span class="ident">location</span>.<span class="ident">clone</span>()))
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_date_or_time_type</span>(<span class="ident">cast_type</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">is_date_or_time_type</span>(<span class="ident">literal_type</span>) {
-            <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_literal_cast</span>(
+            <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_literal_cast</span>(
                 <span class="ident">cast_type</span>.<span class="ident">get_name</span>(),
                 <span class="ident">literal_type</span>.<span class="ident">get_name</span>(),
                 <span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -934,7 +956,7 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">cast_type</span>.<span class="ident">is_int</span>() <span class="op">&amp;&amp;</span> <span class="ident">literal_type</span>.<span class="ident">is_int</span>() {
             <span class="comment">//INTs with INTs</span>
             <span class="kw">if</span> <span class="ident">cast_type</span>.<span class="ident">get_semantic_size</span>(<span class="ident">context</span>.<span class="ident">index</span>) <span class="op">&lt;</span> <span class="ident">literal_type</span>.<span class="ident">get_semantic_size</span>(<span class="ident">context</span>.<span class="ident">index</span>) {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::literal_out_of_range</span>(
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::literal_out_of_range</span>(
                     <span class="ident">StatementValidator::get_literal_value</span>(<span class="ident">literal</span>).<span class="ident">as_str</span>(),
                     <span class="ident">cast_type</span>.<span class="ident">get_name</span>(),
                     <span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -944,7 +966,7 @@
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">StatementValidator::get_literal_value</span>(<span class="ident">literal</span>);
             <span class="comment">// value contains &quot;&quot; / &#39;&#39;</span>
             <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">3</span> {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::literal_out_of_range</span>(
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::literal_out_of_range</span>(
                     <span class="ident">value</span>.<span class="ident">as_str</span>(),
                     <span class="ident">cast_type</span>.<span class="ident">get_name</span>(),
                     <span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -954,7 +976,7 @@
             <span class="comment">// different types</span>
             <span class="comment">// REAL#100 is fine, other differences are not</span>
             <span class="kw">if</span> <span class="op">!</span>(<span class="ident">cast_type</span>.<span class="ident">is_float</span>() <span class="op">&amp;&amp;</span> <span class="ident">literal_type</span>.<span class="ident">is_int</span>()) {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::incompatible_literal_cast</span>(
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::incompatible_literal_cast</span>(
                     <span class="ident">cast_type</span>.<span class="ident">get_name</span>(),
                     <span class="ident">StatementValidator::get_literal_value</span>(<span class="ident">literal</span>).<span class="ident">as_str</span>(),
                     <span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -1029,7 +1051,7 @@
             <span class="kw">if</span> <span class="ident">operator</span>.<span class="ident">is_comparison_operator</span>()
                 <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">compare_function_exists</span>(<span class="ident">left_type</span>.<span class="ident">get_name</span>(), <span class="ident">operator</span>, <span class="ident">context</span>)
             {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::missing_compare_function</span>(
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::missing_compare_function</span>(
                     <span class="ident"><span class="kw">crate</span>::typesystem::get_equals_function_name_for</span>(<span class="ident">left_type</span>.<span class="ident">get_name</span>(), <span class="ident">operator</span>)
                         .<span class="ident">unwrap_or_default</span>()
                         .<span class="ident">as_str</span>(),

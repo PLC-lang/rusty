@@ -204,6 +204,19 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">PouType</span>, <span class="ident">SourceRange</span>},
     <span class="ident">diagnostics::Diagnostic</span>,
@@ -211,13 +224,26 @@
     <span class="ident">typesystem</span>::{<span class="ident">DataTypeInformation</span>, <span class="ident">StructSource</span>},
 };
 
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Validators</span>;
+
 <span class="doccomment">/// Validator that does not check a dedicated file but rather</span>
 <span class="doccomment">/// uses the index to validate the project as a whole.</span>
 <span class="doccomment">/// It performs validations including:</span>
 <span class="doccomment">///  - naming-conflicts</span>
 <span class="doccomment">///  - &lt;tbc&gt;</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GlobalValidator</span> {
-    <span class="kw">pub</span> <span class="ident">diagnostics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>,
+    <span class="ident">diagnostics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Validators</span> <span class="kw">for</span> <span class="ident">GlobalValidator</span> {
+    <span class="kw">fn</span> <span class="ident">push_diagnostic</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">diagnostic</span>: <span class="ident">Diagnostic</span>) {
+        <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">diagnostic</span>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">take_diagnostics</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">diagnostics</span>)
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">GlobalValidator</span> {
@@ -243,14 +269,14 @@
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">additional_text</span>) <span class="op">=</span> <span class="ident">additional_text</span> {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::global_name_conflict_with_text</span>(
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::global_name_conflict_with_text</span>(
                     <span class="ident">name</span>,
                     (<span class="kw-2">*</span><span class="ident">v</span>).<span class="ident">clone</span>(),
                     <span class="ident">others</span>,
                     <span class="ident">additional_text</span>,
                 ));
             } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::global_name_conflict</span>(<span class="ident">name</span>, (<span class="kw-2">*</span><span class="ident">v</span>).<span class="ident">clone</span>(), <span class="ident">others</span>));
+                <span class="self">self</span>.<span class="ident">push_diagnostic</span>(<span class="ident">Diagnostic::global_name_conflict</span>(<span class="ident">name</span>, (<span class="kw-2">*</span><span class="ident">v</span>).<span class="ident">clone</span>(), <span class="ident">others</span>));
             }
         }
     }

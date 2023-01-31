@@ -140,6 +140,19 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">indexmap::IndexSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -147,6 +160,8 @@
     <span class="ident">index</span>::{<span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>},
     <span class="ident">typesystem::DataTypeInformationProvider</span>,
 };
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Validators</span>;
 
 <span class="doccomment">/// Validator to find and report all recursive data structures using Depth-first search (DFS)[1].</span>
 <span class="doccomment">/// Such data structures consists of structs and function-blocks, for example the following code would be</span>
@@ -164,8 +179,19 @@
 <span class="doccomment">/// overflows the stack.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [1] https://en.wikipedia.org/wiki/Depth-first_search</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RecursiveValidator</span> {
     <span class="kw">pub</span> <span class="ident">diagnostics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Validators</span> <span class="kw">for</span> <span class="ident">RecursiveValidator</span> {
+    <span class="kw">fn</span> <span class="ident">push_diagnostic</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">diagnostic</span>: <span class="ident">Diagnostic</span>) {
+        <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">diagnostic</span>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">take_diagnostics</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">diagnostics</span>)
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">RecursiveValidator</span> {

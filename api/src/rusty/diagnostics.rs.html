@@ -1127,6 +1127,25 @@
 <span id="1122">1122</span>
 <span id="1123">1123</span>
 <span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections::HashMap</span>,
     <span class="ident">error::Error</span>,
@@ -1190,6 +1209,9 @@
     <span class="ident">var__cannot_assign_to_const</span>,
     <span class="ident">var__invalid_assignment</span>,
     <span class="ident">var__missing_type</span>,
+
+    <span class="comment">//array related</span>
+    <span class="ident">arr__invalid_array_assignment</span>,
 
     <span class="comment">//reference related</span>
     <span class="ident">reference__unresolved</span>,
@@ -1820,6 +1842,22 @@
             <span class="ident">message</span>: <span class="ident">message</span>.<span class="ident">to_string</span>(),
             <span class="ident">range</span>: <span class="macro">vec!</span>[<span class="ident">range</span>],
             <span class="ident">err_no</span>: <span class="ident">ErrNo::type__invalid_operation</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_expected_initializer_list</span>(<span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="string">&quot;Array initializer must be an initializer list!&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">range</span>: <span class="macro">vec!</span>[<span class="ident">range</span>],
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::arr__invalid_array_assignment</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_expected_identifier_or_round_bracket</span>(<span class="ident">range</span>: <span class="ident">SourceRange</span>) -&gt; <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="string">&quot;Expected identifier or &#39;(&#39;&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">range</span>: <span class="macro">vec!</span>[<span class="ident">range</span>],
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::arr__invalid_array_assignment</span>,
         }
     }
 
