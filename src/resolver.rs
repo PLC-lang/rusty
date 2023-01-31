@@ -1330,11 +1330,14 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
                 StatementAnnotation::Value { resulting_type } => {
-                    // make sure we come from an array access
-                    if let AstStatement::ArrayAccess { .. } = operator {
-                        return Some(resulting_type.clone());
+                    // make sure we come from an array or function_block access
+                    match operator {
+                        AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
+                        AstStatement::PointerAccess { .. } => {
+                            self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string())
+                        }
+                        _ => None,
                     }
-                    None
                 }
                 _ => None,
             })
