@@ -1332,10 +1332,9 @@ impl<'i> TypeAnnotator<'i> {
                     // make sure we come from an array or function_block access
                     match operator {
                         AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
-                        AstStatement::PointerAccess { .. } => self
-                            .index
-                            .find_pou(resulting_type.as_str())
-                            .map(|it| it.get_name().to_string()),
+                        AstStatement::PointerAccess { .. } => {
+                            self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string())
+                        }
                         _ => None,
                     }
                 }
