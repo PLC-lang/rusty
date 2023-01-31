@@ -258,3 +258,28 @@ fn two_cycles_with_branch() {
         )
     );
 }
+
+// From https://github.com/PLC-lang/rusty/pull/748:
+// Running cargo r -- ../standardfunctions/iec61131-st/*.st previously returned a weird TIME -> TIME
+// recursion which shouldn't happen. Instead of spending time debugging that one edge-case we now
+// explicitly filter for nodes within the dfs method. As a nice-to-have this is probably also more performant.
+//
+// This test covers the above edge-case
+#[test]
+fn external_function_should_not_trigger() {
+    let diagnostics = parse_and_validate(
+        "
+        @{external}
+        FUNCTION TIME : TIME
+        END_FUNCTION
+
+        TYPE niceTimes : STRUCT
+            x : TIME;
+            y : DATE_AND_TIME;
+        END_STRUCT
+        END_TYPE
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 0);
+}
