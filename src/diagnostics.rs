@@ -62,6 +62,9 @@ pub enum ErrNo {
     var__invalid_assignment,
     var__missing_type,
 
+    //array related
+    arr__invalid_array_assignment,
+
     //reference related
     reference__unresolved,
     reference__illegal_access,
@@ -691,6 +694,22 @@ impl Diagnostic {
             message: message.to_string(),
             range: vec![range],
             err_no: ErrNo::type__invalid_operation,
+        }
+    }
+
+    pub fn array_expected_initializer_list(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Array initializer must be an initializer list!".to_string(),
+            range: vec![range],
+            err_no: ErrNo::arr__invalid_array_assignment,
+        }
+    }
+
+    pub fn array_expected_identifier_or_round_bracket(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Expected identifier or '('".to_string(),
+            range: vec![range],
+            err_no: ErrNo::arr__invalid_array_assignment,
         }
     }
 

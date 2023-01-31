@@ -6,6 +6,8 @@ use crate::{
     typesystem::DataTypeInformationProvider,
 };
 
+use super::Validators;
+
 /// Validator to find and report all recursive data structures using Depth-first search (DFS)[1].
 /// Such data structures consists of structs and function-blocks, for example the following code would be
 /// flagged as a recursive data structure:
@@ -22,8 +24,19 @@ use crate::{
 /// overflows the stack.
 ///
 /// [1] https://en.wikipedia.org/wiki/Depth-first_search
+#[derive(Default)]
 pub struct RecursiveValidator {
     pub diagnostics: Vec<Diagnostic>,
+}
+
+impl Validators for RecursiveValidator {
+    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
+    }
 }
 
 impl RecursiveValidator {
