@@ -260,6 +260,13 @@ impl Validator {
                                 );
 
                                 self.validate_call_by_ref(left, p);
+
+                                self.validate_passed_call_parameter_size(
+                                    left_type,
+                                    right_type,
+                                    p.get_location(),
+                                    context.index,
+                                );
                             }
 
                             // mixing implicit and explicit parameters is not allowed
@@ -431,6 +438,41 @@ impl Validator {
             self.stmt_validator.diagnostics.push(Diagnostic::invalid_assignment(
                 right_type_info.get_name(),
                 left_type_info.get_name(),
+                location,
+            ))
+        }
+    }
+
+    fn validate_passed_call_parameter_size(
+        &mut self,
+        declared_type: &typesystem::DataType,
+        passed_type: &typesystem::DataType,
+        location: SourceRange,
+        index: &Index,
+    ) {
+        let passed_type_info = passed_type.get_type_information();
+        let declared_type_info = declared_type.get_type_information();
+
+        let (declared_size, declared_name) = if let DataTypeInformation::Pointer { inner_type_name, .. } =
+            declared_type_info
+        {
+            (index.get_type_information_or_void(inner_type_name).get_size(index), inner_type_name.as_str())
+        } else {
+            (declared_type_info.get_size(index), declared_type_info.get_name())
+        };
+
+        let (passed_size, passed_name) = if let DataTypeInformation::Pointer { inner_type_name, .. } =
+            passed_type_info
+        {
+            (index.get_type_information_or_void(inner_type_name).get_size(index), inner_type_name.as_str())
+        } else {
+            (passed_type_info.get_size(index), passed_type_info.get_name())
+        };
+
+        if declared_size < passed_size {
+            self.stmt_validator.diagnostics.push(Diagnostic::implicit_truncation(
+                declared_name,
+                passed_name,
                 location,
             ))
         }

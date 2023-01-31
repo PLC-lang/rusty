@@ -971,3 +971,40 @@ fn validate_call_by_ref() {
         );
     }
 }
+
+#[test]
+fn implicit_param_truncation_in_function_call() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION fn_int : INT
+        VAR_INPUT {ref}
+            in_ref : INT;
+        END_VAR
+        VAR_INPUT
+            in : INT;
+        END_VAR
+        VAR_IN_OUT
+            in_out : INT;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            var1_lint, var2_lint : LINT := 4;
+        END_VAR
+            fn_int(var1_lint, DINT#var1_lint, var2_lint);
+        END_PROGRAM
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 3);
+
+    let ranges = &[(350..359), (361..375), (377..386)];
+    let types = &["LINT", "DINT", "LINT"];
+    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::implicit_truncation("INT", types[idx], ranges[idx].to_owned().into())
+        );
+    }
+}

@@ -640,6 +640,20 @@ impl Diagnostic {
         }
     }
 
+    pub fn implicit_truncation(
+        declared_parameter_name: &str,
+        passed_parameter_name: &str,
+        range: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!(
+                "Potential loss of information due to passing '{}' to parameter of type '{}'.",
+                passed_parameter_name, declared_parameter_name,
+            ),
+            range: vec![range],
+        }
+    }
+
     pub fn invalid_argument_type(
         parameter_name: &str,
         parameter_type: VariableType,
