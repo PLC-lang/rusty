@@ -1,0 +1,27 @@
+---
+source: src/codegen/tests/parameters_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prog = type { i32, i32 }
+%main = type {}
+
+@prog_instance = global %prog zeroinitializer
+@main_instance = global %main zeroinitializer
+
+define void @prog(%prog* %0) {
+entry:
+  %in1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+  %in2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
+  ret void
+}
+
+define void @main(%main* %0) {
+entry:
+  store i32 1, i32* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 4
+  call void @prog(%prog* @prog_instance)
+  ret void
+}
+
