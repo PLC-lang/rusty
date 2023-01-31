@@ -782,9 +782,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())?
                 } else {
                     // by val
-                    if !matches!(param_statement, AstStatement::EmptyStatement { .. }) {
-                        self.generate_argument_by_val(type_name, param_statement)?
-                    } else if let Some(param) = declared_parameters.get(location) {
+                    if !matches!(parameter, AstStatement::EmptyStatement { .. }) {
+                        self.generate_argument_by_val(type_name, parameter)?
+                    } else if let Some(param) = declared_parameters.get(i) {
                         self.generate_empty_expression(param)?
                     } else {
                         unreachable!("Statement param must have an index entry at this point.");
