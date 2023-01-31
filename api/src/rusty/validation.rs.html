@@ -436,6 +436,11 @@
 <span id="431">431</span>
 <span id="432">432</span>
 <span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -451,12 +456,13 @@
 };
 
 <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">global_validator::GlobalValidator</span>, <span class="ident">pou_validator::PouValidator</span>, <span class="ident">stmt_validator::StatementValidator</span>,
-    <span class="ident">variable_validator::VariableValidator</span>,
+    <span class="ident">global_validator::GlobalValidator</span>, <span class="ident">pou_validator::PouValidator</span>, <span class="ident">recursive_validator::RecursiveValidator</span>,
+    <span class="ident">stmt_validator::StatementValidator</span>, <span class="ident">variable_validator::VariableValidator</span>,
 };
 
 <span class="kw">mod</span> <span class="ident">global_validator</span>;
 <span class="kw">mod</span> <span class="ident">pou_validator</span>;
+<span class="kw">mod</span> <span class="ident">recursive_validator</span>;
 <span class="kw">mod</span> <span class="ident">stmt_validator</span>;
 <span class="kw">mod</span> <span class="ident">variable_validator</span>;
 
@@ -510,6 +516,7 @@
     <span class="ident">variable_validator</span>: <span class="ident">VariableValidator</span>,
     <span class="ident">stmt_validator</span>: <span class="ident">StatementValidator</span>,
     <span class="ident">global_validator</span>: <span class="ident">GlobalValidator</span>,
+    <span class="ident">recursive_validator</span>: <span class="ident">RecursiveValidator</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Validator</span> {
@@ -519,6 +526,7 @@
             <span class="ident">variable_validator</span>: <span class="ident">VariableValidator::new</span>(),
             <span class="ident">stmt_validator</span>: <span class="ident">StatementValidator::new</span>(),
             <span class="ident">global_validator</span>: <span class="ident">GlobalValidator::new</span>(),
+            <span class="ident">recursive_validator</span>: <span class="ident">RecursiveValidator::new</span>(),
         }
     }
 
@@ -528,11 +536,13 @@
         <span class="ident">all_diagnostics</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">variable_validator</span>.<span class="ident">diagnostics</span>);
         <span class="ident">all_diagnostics</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">stmt_validator</span>.<span class="ident">diagnostics</span>);
         <span class="ident">all_diagnostics</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">global_validator</span>.<span class="ident">diagnostics</span>);
+        <span class="ident">all_diagnostics</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">recursive_validator</span>.<span class="ident">diagnostics</span>);
         <span class="ident">all_diagnostics</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">perform_global_validation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) {
         <span class="self">self</span>.<span class="ident">global_validator</span>.<span class="ident">validate_unique_symbols</span>(<span class="ident">index</span>);
+        <span class="self">self</span>.<span class="ident">recursive_validator</span>.<span class="ident">validate_recursion</span>(<span class="ident">index</span>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_unit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AnnotationMapImpl</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>, <span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="ident">CompilationUnit</span>) {
