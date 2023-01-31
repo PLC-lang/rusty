@@ -125,10 +125,13 @@ impl RecursiveValidator {
     /// it operate on these "normalized" type names.
     #[inline(always)]
     fn get_type_name<'idx>(&self, index: &'idx Index, entry: &'idx VariableIndexEntry) -> &'idx str {
-        let type_name = entry.get_type_name();
-        match index.get_type_information_or_void(type_name).get_inner_array_type_name() {
-            Some(inner_type_name) => inner_type_name,
-            None => type_name,
+        let name = entry.get_type_name();
+        let info = index.get_type_information_or_void(name);
+
+        if info.is_array() {
+            return info.get_inner_array_type_name().unwrap_or(name);
         }
+
+        name
     }
 }
