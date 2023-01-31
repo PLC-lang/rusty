@@ -70,7 +70,7 @@ impl<'s> ValidationContext<'s> {
 pub trait Validators {
     fn push_diagnostic(&mut self, diagnostic: Diagnostic);
 
-    fn get_diagnostics(&mut self) -> &mut Vec<Diagnostic>;
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic>;
 }
 
 pub struct Validator {
@@ -93,10 +93,10 @@ impl Validator {
 
     pub fn diagnostics(&mut self) -> Vec<Diagnostic> {
         let mut all_diagnostics = Vec::new();
-        all_diagnostics.append(self.pou_validator.get_diagnostics());
-        all_diagnostics.append(self.variable_validator.get_diagnostics());
-        all_diagnostics.append(self.stmt_validator.get_diagnostics());
-        all_diagnostics.append(self.global_validator.get_diagnostics());
+        all_diagnostics.append(&mut self.pou_validator.take_diagnostics());
+        all_diagnostics.append(&mut self.variable_validator.take_diagnostics());
+        all_diagnostics.append(&mut self.stmt_validator.take_diagnostics());
+        all_diagnostics.append(&mut self.global_validator.take_diagnostics());
         all_diagnostics
     }
 

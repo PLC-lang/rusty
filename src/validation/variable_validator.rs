@@ -11,7 +11,7 @@ use crate::{
 use super::{validate_for_array_assignment, ValidationContext, Validators};
 
 /// validates variables & datatypes
-
+#[derive(Default)]
 pub struct VariableValidator {
     diagnostics: Vec<Diagnostic>,
 }
@@ -21,8 +21,8 @@ impl Validators for VariableValidator {
         self.diagnostics.push(diagnostic);
     }
 
-    fn get_diagnostics(&mut self) -> &mut Vec<Diagnostic> {
-        &mut self.diagnostics
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
     }
 }
 

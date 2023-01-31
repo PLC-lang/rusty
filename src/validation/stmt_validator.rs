@@ -22,6 +22,7 @@ macro_rules! is_covered_by {
     };
 }
 
+#[derive(Default)]
 pub struct StatementValidator {
     diagnostics: Vec<Diagnostic>,
 }
@@ -31,8 +32,8 @@ impl Validators for StatementValidator {
         self.diagnostics.push(diagnostic);
     }
 
-    fn get_diagnostics(&mut self) -> &mut Vec<Diagnostic> {
-        &mut self.diagnostics
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
     }
 }
 

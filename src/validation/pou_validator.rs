@@ -2,6 +2,7 @@ use super::{ValidationContext, Validators};
 use crate::{ast::Pou, Diagnostic, PouType};
 
 /// validates POUs
+#[derive(Default)]
 pub struct PouValidator {
     diagnostics: Vec<Diagnostic>,
 }
@@ -11,8 +12,8 @@ impl Validators for PouValidator {
         self.diagnostics.push(diagnostic);
     }
 
-    fn get_diagnostics(&mut self) -> &mut Vec<Diagnostic> {
-        &mut self.diagnostics
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
     }
 }
 
