@@ -1536,6 +1536,36 @@
 <span id="1531">1531</span>
 <span id="1532">1532</span>
 <span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2199,6 +2229,7 @@
                         .<span class="ident">annotate_type_hint</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>()))
                 }
             }
+
             <span class="kw">_</span> =&gt; {
                 <span class="comment">//annotate the statement, whatever it is</span>
                 <span class="self">self</span>.<span class="ident">annotation_map</span>
@@ -2926,9 +2957,9 @@
             <span class="ident">AstStatement::LiteralDateAndTime</span> { .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">DATE_AND_TIME_TYPE</span>));
             }
-            <span class="ident">AstStatement::LiteralReal</span> { .. } =&gt; {
-                <span class="comment">//TODO when do we need a LREAL literal?</span>
-                <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">REAL_TYPE</span>));
+            <span class="ident">AstStatement::LiteralReal</span> { <span class="ident">value</span>, .. } =&gt; {
+                <span class="self">self</span>.<span class="ident">annotation_map</span>
+                    .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">get_real_type_name_for</span>(<span class="ident">value</span>)));
             }
             <span class="ident">AstStatement::LiteralArray</span> { <span class="ident">elements</span>: <span class="prelude-val">Some</span>(<span class="ident">elements</span>), .. } =&gt; {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">elements</span>.<span class="ident">as_ref</span>());
@@ -3052,12 +3083,21 @@
     }
 }
 
+<span class="kw">fn</span> <span class="ident">get_real_type_name_for</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>().<span class="ident">unwrap_or</span>(<span class="ident">f32::INFINITY</span>);
+    <span class="kw">if</span> <span class="ident">parsed</span> <span class="op">==</span> <span class="ident">f32::INFINITY</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parsed</span> <span class="op">==</span> <span class="ident">f32::NEG_INFINITY</span> {
+        <span class="kw">return</span> <span class="ident">LREAL_TYPE</span>;
+    }
+
+    <span class="ident">REAL_TYPE</span>
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">resolver_tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::get_int_type_name_for</span>;
+    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">get_int_type_name_for</span>, <span class="ident">get_real_type_name_for</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">correct_int_types_name_for_numbers</span>() {
+    <span class="kw">fn</span> <span class="ident">correct_int_type_names_for_numbers</span>() {
         <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="number">0</span>), <span class="string">&quot;DINT&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">8</span>) <span class="op">-</span> <span class="number">1</span>), <span class="string">&quot;DINT&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">8</span>)), <span class="string">&quot;DINT&quot;</span>);
@@ -3067,6 +3107,26 @@
         <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">31</span>)), <span class="string">&quot;LINT&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">32</span>)), <span class="string">&quot;LINT&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::MAX</span> <span class="kw">as</span> <span class="ident">i128</span>), <span class="string">&quot;LINT&quot;</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">correct_real_type_names_for_numbers</span>() {
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="kw-2">&amp;</span><span class="ident">f32::MIN</span>.<span class="ident">to_string</span>()), <span class="string">&quot;REAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="kw-2">&amp;</span><span class="ident">f32::MAX</span>.<span class="ident">to_string</span>()), <span class="string">&quot;REAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="kw-2">&amp;</span><span class="ident">f64::MIN</span>.<span class="ident">to_string</span>()), <span class="string">&quot;LREAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="kw-2">&amp;</span><span class="ident">f64::MAX</span>.<span class="ident">to_string</span>()), <span class="string">&quot;LREAL&quot;</span>);
+
+        <span class="comment">// f32 under- and overflows (MIN == -3.40282347E+38, MAX == 3.40282347E+38)</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="string">&quot; 3.50282347E+38&quot;</span>), <span class="string">&quot;LREAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="string">&quot;-3.50282347E+38&quot;</span>), <span class="string">&quot;LREAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="string">&quot; 3.40282347E+39&quot;</span>), <span class="string">&quot;LREAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="string">&quot;-3.40282347E+39&quot;</span>), <span class="string">&quot;LREAL&quot;</span>);
+
+        <span class="comment">// f64 under- and overflows (MIN == -1.7976931348623157E+308, MAX == 1.7976931348623157E+308)</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="string">&quot; 1.8976931348623157E+308&quot;</span>), <span class="string">&quot;LREAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="string">&quot;-1.8976931348623157E+308&quot;</span>), <span class="string">&quot;LREAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="string">&quot; 1.7976931348623157E+309&quot;</span>), <span class="string">&quot;LREAL&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_real_type_name_for</span>(<span class="string">&quot;-1.7976931348623157E+309&quot;</span>), <span class="string">&quot;LREAL&quot;</span>);
     }
 }
 </code></pre></div>
