@@ -1335,7 +1335,6 @@ impl<'i> TypeAnnotator<'i> {
                         AstStatement::PointerAccess { .. } => self
                             .index
                             .find_pou(resulting_type.as_str())
-                            .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. }))
                             .map(|it| it.get_name().to_string()),
                         _ => None,
                     }
