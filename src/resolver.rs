@@ -661,6 +661,7 @@ impl<'i> TypeAnnotator<'i> {
                         .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()))
                 }
             }
+
             _ => {
                 //annotate the statement, whatever it is
                 self.annotation_map
@@ -1391,9 +1392,9 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::LiteralDateAndTime { .. } => {
                 self.annotation_map.annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
             }
-            AstStatement::LiteralReal { .. } => {
-                //TODO when do we need a LREAL literal?
-                self.annotation_map.annotate(statement, StatementAnnotation::value(REAL_TYPE));
+            AstStatement::LiteralReal { value, .. } => {
+                self.annotation_map
+                    .annotate(statement, StatementAnnotation::value(get_real_type_name_for(value)));
             }
             AstStatement::LiteralArray { elements: Some(elements), .. } => {
                 self.visit_statement(ctx, elements.as_ref());
@@ -1517,12 +1518,21 @@ fn get_int_type_name_for(value: i128) -> &'static str {
     }
 }
 
+fn get_real_type_name_for(value: &str) -> &'static str {
+    let parsed = value.parse::<f32>().unwrap_or(f32::INFINITY);
+    if parsed == f32::INFINITY || parsed == f32::NEG_INFINITY {
+        return LREAL_TYPE;
+    }
+
+    REAL_TYPE
+}
+
 #[cfg(test)]
 mod resolver_tests {
-    use super::get_int_type_name_for;
+    use super::{get_int_type_name_for, get_real_type_name_for};
 
     #[test]
-    fn correct_int_types_name_for_numbers() {
+    fn correct_int_type_names_for_numbers() {
         assert_eq!(get_int_type_name_for(0), "DINT");
         assert_eq!(get_int_type_name_for(i128::pow(2, 8) - 1), "DINT");
         assert_eq!(get_int_type_name_for(i128::pow(2, 8)), "DINT");
@@ -1532,5 +1542,25 @@ mod resolver_tests {
         assert_eq!(get_int_type_name_for(i128::pow(2, 31)), "LINT");
         assert_eq!(get_int_type_name_for(i128::pow(2, 32)), "LINT");
         assert_eq!(get_int_type_name_for(i64::MAX as i128), "LINT");
+    }
+
+    #[test]
+    fn correct_real_type_names_for_numbers() {
+        assert_eq!(get_real_type_name_for(&f32::MIN.to_string()), "REAL");
+        assert_eq!(get_real_type_name_for(&f32::MAX.to_string()), "REAL");
+        assert_eq!(get_real_type_name_for(&f64::MIN.to_string()), "LREAL");
+        assert_eq!(get_real_type_name_for(&f64::MAX.to_string()), "LREAL");
+
+        // f32 under- and overflows (MIN == -3.40282347E+38, MAX == 3.40282347E+38)
+        assert_eq!(get_real_type_name_for(" 3.50282347E+38"), "LREAL");
+        assert_eq!(get_real_type_name_for("-3.50282347E+38"), "LREAL");
+        assert_eq!(get_real_type_name_for(" 3.40282347E+39"), "LREAL");
+        assert_eq!(get_real_type_name_for("-3.40282347E+39"), "LREAL");
+
+        // f64 under- and overflows (MIN == -1.7976931348623157E+308, MAX == 1.7976931348623157E+308)
+        assert_eq!(get_real_type_name_for(" 1.8976931348623157E+308"), "LREAL");
+        assert_eq!(get_real_type_name_for("-1.8976931348623157E+308"), "LREAL");
+        assert_eq!(get_real_type_name_for(" 1.7976931348623157E+309"), "LREAL");
+        assert_eq!(get_real_type_name_for("-1.7976931348623157E+309"), "LREAL");
     }
 }
