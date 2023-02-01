@@ -719,8 +719,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?
                 }
                 _ => {
-                    let class_ptr = self.generate_element_pointer(operator)?;
-                    (None, class_ptr)
+                    let call_ptr = self.generate_element_pointer(operator)?;
+                    (None, call_ptr)
                 }
             };
 
@@ -1026,7 +1026,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ///
     /// - `pou_name` the name of the pou we're calling
     /// - `parameter_struct` a pointer to a struct-instance that holds all pou-parameters
-    /// - `parameters` a vec of all passed parameters to the pou-call
+    /// - `passed_parameters` a vec of all passed parameters to the pou-call
     fn generate_stateful_pou_arguments(
         &self,
         pou_name: &str,

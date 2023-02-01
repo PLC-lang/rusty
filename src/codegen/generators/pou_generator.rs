@@ -754,6 +754,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .find_associated_type(type_name)
                 .map(|it| {
                     if it.is_array_type() && var.get_declaration_type().is_by_ref() {
+                        // the declaration for array types passed by ref are generatad as pointer to element type
+                        // we need to match the declaration
                         it.into_array_type().get_element_type()
                     } else {
                         it
