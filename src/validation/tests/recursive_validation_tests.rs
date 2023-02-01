@@ -42,6 +42,28 @@ mod edgecases {
 
         assert_eq!(diagnostics.len(), 0);
     }
+
+    #[test]
+    fn struct_and_function_with_same_name() {
+        let diagnostics = parse_and_validate(
+            "
+            FUNCTION TM : TM
+            END_FUNCTION
+
+            TYPE TM : STRUCT
+                hours,minutes,seconds : DINT;
+            END_STRUCT
+            END_TYPE
+
+            TYPE niceTimes : STRUCT
+                x : TM;
+            END_STRUCT
+            END_TYPE
+            ",
+        );
+
+        assert_eq!(diagnostics.len(), 0);
+    }
 }
 
 mod structs {
