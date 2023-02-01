@@ -489,7 +489,7 @@ impl Validator {
         let (passed_size, passed_name) = (passed_type_info.get_size(index), passed_type_info.get_name());
 
         if declared_size < passed_size {
-            self.stmt_validator.diagnostics.push(Diagnostic::implicit_downcast(
+            self.stmt_validator.push_diagnostic(Diagnostic::implicit_downcast(
                 declared_name,
                 passed_name,
                 location,
