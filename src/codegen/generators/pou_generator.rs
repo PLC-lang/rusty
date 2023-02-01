@@ -194,10 +194,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             None => (None, parameters),
         };
 
-        let variadic = self
-            .index
-            .get_variadic_member(implementation.get_type_name())
-            .and_then(VariableIndexEntry::get_varargs);
+        let variadic = self.index.get_variadic_member(implementation.get_type_name());
 
         let function_declaration = self.create_llvm_function_type(parameters, variadic, return_type_llvm)?;
 
@@ -380,14 +377,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn create_llvm_function_type(
         &self,
         parameters: Vec<BasicMetadataTypeEnum<'ink>>,
-        variadic: Option<&'cg VarArgs>,
+        variadic: Option<&'cg VariableIndexEntry>,
         return_type: Option<BasicTypeEnum<'ink>>,
     ) -> Result<FunctionType<'ink>, Diagnostic> {
-        //Sized variadic is not considered a variadic function, but receives 2 extra parameters, size and a pointer
-        let is_var_args = variadic.map(|it| !it.is_sized()).unwrap_or_default();
-        let size_and_pointer = self.get_size_and_pointer(variadic);
+        // sized variadic is not considered a variadic function, but receives 2 extra parameters, size and a pointer
+        let is_var_args = variadic
+            .map(|it| it.get_varargs().map(|it| !it.is_sized()).unwrap_or_default())
+            .unwrap_or_default();
+        let size_and_type = self.get_variadic_size_and_pointer(variadic);
         let mut params = parameters;
-        if let Some(sized_variadics) = size_and_pointer {
+        if let Some(sized_variadics) = size_and_type {
             params.extend_from_slice(&sized_variadics);
         };
 
@@ -740,18 +739,40 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(())
     }
 
-    fn get_size_and_pointer(
+    fn get_variadic_size_and_pointer(
         &self,
-        variadic: Option<&'cg VarArgs>,
+        variadic: Option<&'cg VariableIndexEntry>,
     ) -> Option<[BasicMetadataTypeEnum<'ink>; 2]> {
-        if let Some(VarArgs::Sized(Some(type_name))) = variadic {
+        if let (Some(var), Some(VarArgs::Sized(Some(type_name)))) =
+            (variadic, variadic.and_then(VariableIndexEntry::get_varargs))
+        {
             //Create a size parameter of type i32 (DINT)
-            let size_param = self.llvm_index.find_associated_type(typesystem::DINT_TYPE).map(Into::into)?;
-            let ptr_param = self
+            let size = self.llvm_index.find_associated_type(typesystem::DINT_TYPE).map(Into::into)?;
+
+            let ty = self
                 .llvm_index
                 .find_associated_type(type_name)
-                .map(|it| it.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())?;
-            Some([size_param, ptr_param])
+                .map(|it| {
+                    if it.is_array_type() && var.get_declaration_type().is_by_ref() {
+                        // the declaration for array types passed by ref are generatad as pointer to element type
+                        // we need to match the declaration
+                        it.into_array_type().get_element_type()
+                    } else {
+                        it
+                    }
+                })
+                .map(|it| {
+                    if var.get_declaration_type().is_by_ref() {
+                        // variadic by ref will result in a double pointer
+                        it.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).as_basic_type_enum()
+                    } else {
+                        it
+                    }
+                })?
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                .into();
+
+            Some([size, ty])
         } else {
             None
         }
