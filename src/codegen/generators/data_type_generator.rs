@@ -11,7 +11,7 @@ use std::convert::TryInto;
 use crate::ast::SourceRange;
 use crate::codegen::debug::Debug;
 use crate::diagnostics::Diagnostician;
-use crate::index::{Index, VariableIndexEntry, VariableType};
+use crate::index::{Index, VariableIndexEntry};
 use crate::resolver::AstAnnotations;
 use crate::typesystem::{Dimension, StringEncoding, StructSource};
 use crate::Diagnostic;
@@ -172,9 +172,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         if let DataTypeInformation::Struct { source, .. } = information {
             let members = self
                 .index
-                .get_container_members(data_type.get_name())
+                .get_container_members_filtered(data_type.get_name())
                 .into_iter()
-                .filter(|it| !it.is_temp() && !it.is_return())
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
                 .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
 
@@ -264,10 +263,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, .. } => {
-                let members = self.index.get_container_members(data_type.get_name());
+                let members = self.index.get_container_members_filtered(data_type.get_name());
                 let member_names_and_initializers = members
                     .iter()
-                    .filter(|it| it.get_variable_type() != VariableType::Temp)
                     .map(|it| {
                         self.generate_initial_value_for_variable(it).and_then(|v| match v {
                             Some(v) => Ok((it.get_qualified_name(), v)),

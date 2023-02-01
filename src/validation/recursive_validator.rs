@@ -2,7 +2,7 @@ use indexmap::IndexSet;
 
 use crate::{
     diagnostics::Diagnostic,
-    index::{symbol::SymbolMap, Index, VariableIndexEntry},
+    index::{Index, VariableIndexEntry},
     typesystem::DataTypeInformationProvider,
 };
 
@@ -92,13 +92,12 @@ impl RecursiveValidator {
         nodes_visited.insert(node_curr);
         path.insert(node_curr);
 
-        if let Some(edges) = index.get_members(node_curr) {
-            for node in self.filter_members(index, edges, nodes_all) {
-                if path.contains(node) {
-                    self.report(index, node, path);
-                } else if !nodes_visited.contains(node) {
-                    self.dfs(index, path, node, nodes_visited, nodes_all);
-                }
+        let edges = index.get_container_members_filtered(node_curr);
+        for node in self.filter_members(index, edges, nodes_all) {
+            if path.contains(node) {
+                self.report(index, node, path);
+            } else if !nodes_visited.contains(node) {
+                self.dfs(index, path, node, nodes_visited, nodes_all);
             }
         }
 
@@ -132,11 +131,11 @@ impl RecursiveValidator {
     fn filter_members<'idx>(
         &self,
         index: &'idx Index,
-        members: &'idx SymbolMap<String, VariableIndexEntry>,
+        members: Vec<&'idx VariableIndexEntry>,
         nodes_all: &IndexSet<&'idx str>,
     ) -> IndexSet<&'idx str> {
         return members
-            .values()
+            .iter()
             .map(|entry| self.get_type_name(index, entry))
             .filter(|name| nodes_all.contains(name))
             .collect::<IndexSet<_>>();

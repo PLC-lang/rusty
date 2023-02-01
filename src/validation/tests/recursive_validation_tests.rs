@@ -51,12 +51,7 @@ mod edgecases {
             END_FUNCTION
 
             TYPE TM : STRUCT
-                hours,minutes,seconds : DINT;
-            END_STRUCT
-            END_TYPE
-
-            TYPE niceTimes : STRUCT
-                x : TM;
+                hours, minutes, seconds : DINT;
             END_STRUCT
             END_TYPE
             ",

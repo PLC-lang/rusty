@@ -1041,6 +1041,33 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
+    /// Returns all member variables of the given container excluding variables of type [`VariableType::Temp`]
+    /// and [`VariableType::Return`].
+    /// You should always prefer to use the [`Index::get_container_members`] method but for rare occasions
+    /// this method is needed, especially in the codegen. Specifically this method was introduced because for
+    /// ```ST
+    /// FUNCTION FOO : FOO
+    /// END_FUNCTION
+    ///
+    /// TYPE FOO : STRUCT
+    ///     bar : DINT;
+    /// END_TYPE
+    /// ```
+    /// [`Index::get_container_members`] returns `["foo", "bar"]` as its member variables because it can not
+    /// distinguish between the function `FOO`, which contains struct `foo` as a member variable, and the
+    /// struct `FOO`, which contains DINT `bar` as a member variable, merging both into one. In the codegen
+    /// this would result into a infinite-loop within the [`DataTypeGenerator::generate_initial_value`] function
+    /// yielding a stackoverflow error.
+    /// This described behaviour also becomes an issue in the [`recursive_validator::RecursiveValidator`]
+    /// function, generating incorrect warnings.
+    /// TODO: ^ is there better solution for this
+    pub fn get_container_members_filtered(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
+        self.get_container_members(container_name)
+            .into_iter()
+            .filter(|it| !it.is_temp() && !it.is_return())
+            .collect()
+    }
+
     pub fn get_declared_parameters(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
         self.member_variables
             .get(&container_name.to_lowercase())

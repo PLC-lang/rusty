@@ -3205,3 +3205,22 @@ fn sizeof_works_in_binary_expression_with_different_size() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn function_and_struct_with_same_names() {
+    // See description of [`index::get_container_members_filtered`]
+    // for reasoning why this test case exists.
+    let result = codegen(
+        "
+        FUNCTION FOO : FOO
+        END_FUNCTION
+
+        TYPE FOO : STRUCT
+            bar : DINT;
+        END_STRUCT
+        END_TYPE
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
