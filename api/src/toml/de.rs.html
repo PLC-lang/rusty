@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.10/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/toml-0.5.11/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../toml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2249,16 +2249,6 @@
 <span id="2244">2244</span>
 <span id="2245">2245</span>
 <span id="2246">2246</span>
-<span id="2247">2247</span>
-<span id="2248">2248</span>
-<span id="2249">2249</span>
-<span id="2250">2250</span>
-<span id="2251">2251</span>
-<span id="2252">2252</span>
-<span id="2253">2253</span>
-<span id="2254">2254</span>
-<span id="2255">2255</span>
-<span id="2256">2256</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Deserializing TOML into Rust structures.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains all the Serde support for deserializing TOML documents</span>
@@ -3532,30 +3522,20 @@
         }
     }
 
-    <span class="doccomment">/// The `Deserializer::end` method should be called after a value has been</span>
-    <span class="doccomment">/// fully deserialized.  This allows the `Deserializer` to validate that the</span>
-    <span class="doccomment">/// input stream is at the end or that it only has trailing</span>
-    <span class="doccomment">/// whitespace/comments.</span>
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.11&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Historical versions of toml-rs accidentally allowed a newline after a</span>
-    <span class="doccomment">/// table definition, but the TOML spec requires a newline after a table</span>
-    <span class="doccomment">/// definition header.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This option can be set to `false` (the default is `true`) to emulate</span>
-    <span class="doccomment">/// this behavior for backwards compatibility with older toml-rs versions.</span>
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.11&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_require_newline_after_table</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">require</span>: <span class="ident">bool</span>) {
         <span class="self">self</span>.<span class="ident">require_newline_after_table</span> <span class="op">=</span> <span class="ident">require</span>;
     }
 
-    <span class="doccomment">/// Historical versions of toml-rs accidentally allowed a duplicate table</span>
-    <span class="doccomment">/// header after a longer table header was previously defined. This is</span>
-    <span class="doccomment">/// invalid according to the TOML spec, however.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This option can be set to `true` (the default is `false`) to emulate</span>
-    <span class="doccomment">/// this behavior for backwards compatibility with older toml-rs versions.</span>
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.11&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_allow_duplicate_after_longer_table</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">allow</span>: <span class="ident">bool</span>) {
         <span class="self">self</span>.<span class="ident">allow_duplciate_after_longer_table</span> <span class="op">=</span> <span class="ident">allow</span>;
     }

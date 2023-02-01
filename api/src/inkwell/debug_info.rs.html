@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/c77d056/src/debug_info.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debug_info.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/4683209/src/debug_info.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debug_info.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1484,6 +1484,80 @@
 <span id="1479">1479</span>
 <span id="1480">1480</span>
 <span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Debug symbols - `DebugInfoBuilder` interface</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Example usage</span>
@@ -1593,8 +1667,6 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">InstructionValue</span>, <span class="ident">MetadataValue</span>, <span class="ident">PointerValue</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::AddressSpace</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LLVMReference</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMMetadataAsValue</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
 <span class="kw">use</span> <span class="ident">llvm_sys::debuginfo::LLVMDIBuilderCreateTypedef</span>;
@@ -1643,6 +1715,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DIScope</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="ident">metadata_ref</span>: <span class="ident">LLVMMetadataRef</span>,
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">Context</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DIScope</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIScope` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
 }
 
 <span class="doccomment">/// Specific scopes (i.e. `DILexicalBlock`) can be turned into a `DIScope` with the</span>
@@ -1730,6 +1809,11 @@
         );
 
         (<span class="ident">builder</span>, <span class="ident">cu</span>)
+    }
+
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DebugInfoBuilder` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMDIBuilderRef</span> {
+        <span class="self">self</span>.<span class="ident">builder</span>
     }
 
     <span class="doccomment">/// A DICompileUnit provides an anchor for all debugging information generated during this instance of compilation.</span>
@@ -2514,6 +2598,13 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DIFile</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIFile` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
+}
+
 <span class="doccomment">/// Compilation unit scope for debug info</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DICompileUnit</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -2525,6 +2616,11 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DICompileUnit</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DIFile</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">file</span>
+    }
+
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DICompileUnit` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
     }
 }
 
@@ -2542,6 +2638,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DINamespace</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">metadata_ref</span>: <span class="ident">LLVMMetadataRef</span>,
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">Context</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DINamespace</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DINamespace` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">AsDIScope</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DINamespace</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -2569,6 +2672,13 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DISubprogram</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DISubprogram` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
+}
+
 <span class="doccomment">/// Any kind of debug info type</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DIType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -2587,6 +2697,11 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_offset_in_bits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">unsafe</span> { <span class="ident">LLVMDITypeGetOffsetInBits</span>(<span class="self">self</span>.<span class="ident">metadata_ref</span>) }
+    }
+
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIType` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
     }
 }
 
@@ -2615,6 +2730,12 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DIDerivedType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">AsDIScope</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DIDerivedType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">as_debug_info_scope</span>(<span class="self">self</span>) -&gt; <span class="ident">DIScope</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="ident">DIScope</span> {
@@ -2637,6 +2758,11 @@
             <span class="ident">metadata_ref</span>: <span class="self">self</span>.<span class="ident">metadata_ref</span>,
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
+    }
+
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIBasicType` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
     }
 }
 
@@ -2661,6 +2787,11 @@
             <span class="ident">metadata_ref</span>: <span class="self">self</span>.<span class="ident">metadata_ref</span>,
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
+    }
+
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DICompositType` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
     }
 }
 
@@ -2696,6 +2827,13 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DILexicalBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DILexicalBlock` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
+}
+
 <span class="doccomment">/// A debug location within the source code. Contains the following information:</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// - line, column</span>
@@ -2725,6 +2863,11 @@
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
     }
+
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DILocation` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
 }
 
 <span class="doccomment">/// Metadata representing a variable inside a scope</span>
@@ -2732,6 +2875,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DILocalVariable</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">metadata_ref</span>: <span class="ident">LLVMMetadataRef</span>,
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">Context</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DILocalVariable</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DILocalVariable` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
@@ -2744,6 +2894,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_metadata_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw">impl</span> <span class="ident">AsContextRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) -&gt; <span class="ident">MetadataValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">MetadataValue::new</span>(<span class="ident">LLVMMetadataAsValue</span>(<span class="ident">context</span>.<span class="ident">as_ctx_ref</span>(), <span class="self">self</span>.<span class="ident">metadata_ref</span>)) }
     }
+
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIGlobalVariableExpression` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
 }
 
 <span class="doccomment">/// https://llvm.org/docs/LangRef.html#diexpression</span>
@@ -2751,6 +2906,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DIExpression</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">metadata_ref</span>: <span class="ident">LLVMMetadataRef</span>,
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">Context</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">DIExpression</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `DIExpression` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
+        <span class="self">self</span>.<span class="ident">metadata_ref</span>
+    }
 }
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">flags</span>::<span class="kw-2">*</span>;
@@ -2949,20 +3111,6 @@
         <span class="ident">GOOGLERenderScript</span>,
         <span class="attribute">#[<span class="ident">llvm_variant</span>(<span class="ident">LLVMDWARFSourceLanguageBORLAND_Delphi</span>)]</span>
         <span class="ident">BORLANDDelphi</span>,
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">LLVMReference</span><span class="op">&lt;</span><span class="ident">LLVMMetadataRef</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DIType</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMMetadataRef</span> {
-        <span class="self">self</span>.<span class="ident">metadata_ref</span>
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">LLVMReference</span><span class="op">&lt;</span><span class="ident">LLVMDIBuilderRef</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugInfoBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMDIBuilderRef</span> {
-        <span class="self">self</span>.<span class="ident">builder</span>
     }
 }
 </code></pre></div>

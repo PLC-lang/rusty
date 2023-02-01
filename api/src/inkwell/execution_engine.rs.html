@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/c77d056/src/execution_engine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>execution_engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/git/checkouts/inkwell-946411d814d2c9f8/4683209/src/execution_engine.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>execution_engine.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../inkwell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -685,6 +685,19 @@
 <span id="680">680</span>
 <span id="681">681</span>
 <span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc::c_int</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::execution_engine</span>::{
     <span class="ident">LLVMAddGlobalMapping</span>, <span class="ident">LLVMAddModule</span>, <span class="ident">LLVMDisposeExecutionEngine</span>, <span class="ident">LLVMExecutionEngineRef</span>, <span class="ident">LLVMFindFunction</span>,
@@ -705,9 +718,6 @@
 <span class="kw">use</span> <span class="ident">std::mem</span>::{<span class="ident">forget</span>, <span class="ident">size_of</span>, <span class="ident">transmute_copy</span>, <span class="ident">MaybeUninit</span>};
 <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LLVMReference</span>;
 
 <span class="kw">static</span> <span class="ident">EE_INNER_PANIC</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ExecutionEngineInner should exist until Drop&quot;</span>;
 
@@ -785,7 +795,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">ExecutionEngine</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">execution_engine</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LLVMExecutionEngineRef</span><span class="op">&gt;</span>, <span class="ident">jit_mode</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">execution_engine</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LLVMExecutionEngineRef</span><span class="op">&gt;</span>, <span class="ident">jit_mode</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">execution_engine</span>.<span class="ident">is_null</span>());
 
         <span class="comment">// REVIEW: Will we have to do this for LLVMGetExecutionEngineTargetMachine too?</span>
@@ -796,6 +806,11 @@
             <span class="ident">target_data</span>: <span class="prelude-val">Some</span>(<span class="ident">TargetData::new</span>(<span class="ident">target_data</span>)),
             <span class="ident">jit_mode</span>,
         }
+    }
+
+    <span class="doccomment">/// Acquires the underlying raw pointer belonging to this `ExecutionEngine` type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMExecutionEngineRef</span> {
+        <span class="self">self</span>.<span class="ident">execution_engine_inner</span>()
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">execution_engine_rc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">LLVMExecutionEngineRef</span><span class="op">&gt;</span> {
@@ -1172,6 +1187,24 @@
     <span class="ident">inner</span>: <span class="ident">F</span>,
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span>, <span class="ident">F</span>: <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">JitFunction</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span>, <span class="ident">F</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Returns the raw function pointer, consuming self in the process.</span>
+    <span class="doccomment">/// This function is unsafe because the function pointer may dangle</span>
+    <span class="doccomment">/// if the ExecutionEngine it came from is dropped. The caller is</span>
+    <span class="doccomment">/// thus responsible for ensuring the ExecutionEngine remains valid.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">F</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>
+    }
+
+    <span class="doccomment">/// Returns the raw function pointer.</span>
+    <span class="doccomment">/// This function is unsafe because the function pointer may dangle</span>
+    <span class="doccomment">/// if the ExecutionEngine it came from is dropped. The caller is</span>
+    <span class="doccomment">/// thus responsible for ensuring the ExecutionEngine remains valid.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">F</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>
+    }
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">JitFunction</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">F</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;JitFunction&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="string">&quot;&lt;unnamed&gt;&quot;</span>).<span class="ident">finish</span>()
@@ -1358,13 +1391,6 @@
 
         <span class="comment">// REVIEW: This doesn&#39;t seem very mangled...</span>
         <span class="macro">assert_eq!</span>(<span class="ident">mangled_symbol</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;MyStructName&quot;</span>);
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;internal-getters&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">LLVMReference</span><span class="op">&lt;</span><span class="ident">LLVMExecutionEngineRef</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExecutionEngine</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LLVMExecutionEngineRef</span> {
-        <span class="self">self</span>.<span class="ident">execution_engine_inner</span>()
     }
 }
 </code></pre></div>
