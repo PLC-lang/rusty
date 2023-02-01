@@ -973,38 +973,69 @@ fn validate_call_by_ref() {
 }
 
 #[test]
-fn implicit_param_truncation_in_function_call() {
+fn implicit_param_downcast_in_function_call() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
-        FUNCTION fn_int : INT
-        VAR_INPUT {ref}
-            in_ref : INT;
-        END_VAR
-        VAR_INPUT
-            in : INT;
-        END_VAR
-        VAR_IN_OUT
-            in_out : INT;
-        END_VAR
-        END_FUNCTION
-
         PROGRAM main
         VAR
-            var1_lint, var2_lint : LINT := 4;
+            var1_lint, var2_lint : LINT;
+            var_lreal            : LREAL;
+            var_lword            : LWORD;
+            // trying to implicitly cast arrays gives an invalid assignment error, it shouldn't also give a downcast warning
+            var_ref_arr          : ARRAY[1..3] OF LTIME;
+            var_in_out_arr       : ARRAY[1..3] OF LTIME;
+            var_arr              : ARRAY[1..3] OF LINT;
         END_VAR
-            fn_int(var1_lint, DINT#var1_lint, var2_lint);
+            foo(
+                var1_lint, 
+                var_lword, 
+                var_ref_arr,
+                var_lreal, 
+                INT#var1_lint, 
+                var_arr,
+                var2_lint, 
+                var_in_out_arr,
+                var1_lint
+            );
         END_PROGRAM
+
+        FUNCTION foo : DINT
+        VAR_INPUT {ref}
+            in_ref_int      : INT;
+            in_ref_dword    : DWORD;
+            in_ref_arr      : ARRAY[1..3] OF TIME;
+        END_VAR
+        VAR_INPUT
+            in_real         : REAL;
+            in_sint         : SINT;
+            in_arr          : ARRAY[1..3] OF TIME;
+        END_VAR
+        VAR_IN_OUT
+            in_out          : INT;
+            in_out_arr      : ARRAY[1..3] OF INT;
+        END_VAR
+        VAR_OUTPUT
+            out_var         : DINT;
+        END_VAR
+        END_FUNCTION
         ",
     );
-
-    assert_eq!(diagnostics.len(), 3);
-
-    let ranges = &[(350..359), (361..375), (377..386)];
-    let types = &["LINT", "DINT", "LINT"];
-    for (idx, diagnostic) in diagnostics.iter().enumerate() {
+    // we are expecting 6 implicit downcast warnings and 3 invalid assignment
+    assert_eq!(diagnostics.len(), 9);
+    let ranges = &[(503..512), (531..540), (588..597), (616..629), (673..682), (733..742)];
+    let passed_types = &["LINT", "LWORD", "LREAL", "INT", "LINT", "LINT"];
+    let expected_types = &["INT", "DWORD", "REAL", "SINT", "INT", "DINT"];
+    for (idx, diagnostic) in
+        diagnostics.iter().filter(|it| matches!(it, Diagnostic::ImprovementSuggestion { .. })).enumerate()
+    {
         assert_eq!(
             diagnostic,
-            &Diagnostic::implicit_truncation("INT", types[idx], ranges[idx].to_owned().into())
+            &Diagnostic::implicit_downcast(
+                expected_types[idx],
+                passed_types[idx],
+                ranges[idx].to_owned().into()
+            )
         );
     }
+    assert_eq!(diagnostics.iter().filter(|it| matches!(it, Diagnostic::SyntaxError { .. })).count(), 3);
 }

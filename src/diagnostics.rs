@@ -640,7 +640,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn implicit_truncation(
+    pub fn implicit_downcast(
         declared_parameter_name: &str,
         passed_parameter_name: &str,
         range: SourceRange,

@@ -453,24 +453,27 @@ impl Validator {
         let passed_type_info = passed_type.get_type_information();
         let declared_type_info = declared_type.get_type_information();
 
-        let (declared_size, declared_name) = if let DataTypeInformation::Pointer { inner_type_name, .. } =
-            declared_type_info
+        // check if declared variable type is auto-deref
+        let (declared_size, declared_name) = if let DataTypeInformation::Pointer {
+            inner_type_name,
+            auto_deref: true,
+            ..
+        } = declared_type_info
         {
-            (index.get_type_information_or_void(inner_type_name).get_size(index), inner_type_name.as_str())
+            let type_info = index.get_type_information_or_void(inner_type_name);
+            // if the declared type is an array, we do not check for downcasts because a mismatch will be an invalid assignment
+            if type_info.is_array() {
+                return;
+            }
+            (type_info.get_size(index), inner_type_name.as_str())
         } else {
             (declared_type_info.get_size(index), declared_type_info.get_name())
         };
 
-        let (passed_size, passed_name) = if let DataTypeInformation::Pointer { inner_type_name, .. } =
-            passed_type_info
-        {
-            (index.get_type_information_or_void(inner_type_name).get_size(index), inner_type_name.as_str())
-        } else {
-            (passed_type_info.get_size(index), passed_type_info.get_name())
-        };
+        let (passed_size, passed_name) = (passed_type_info.get_size(index), passed_type_info.get_name());
 
         if declared_size < passed_size {
-            self.stmt_validator.diagnostics.push(Diagnostic::implicit_truncation(
+            self.stmt_validator.diagnostics.push(Diagnostic::implicit_downcast(
                 declared_name,
                 passed_name,
                 location,
