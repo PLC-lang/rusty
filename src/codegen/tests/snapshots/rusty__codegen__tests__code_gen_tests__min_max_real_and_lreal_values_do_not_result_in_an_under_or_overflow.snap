@@ -1,0 +1,20 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main = type { float, float, double, double }
+
+@main_instance = global %main { float 0xC7EFFFFFE0000000, float 0x47EFFFFFE0000000, double 0xFFEFFFFFFFFFFFFF, double 0x7FEFFFFFFFFFFFFF }
+
+define void @main(%main* %0) {
+entry:
+  %F32_MIN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %F32_MAX = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %F64_MIN = getelementptr inbounds %main, %main* %0, i32 0, i32 2
+  %F64_MAX = getelementptr inbounds %main, %main* %0, i32 0, i32 3
+  ret void
+}
+

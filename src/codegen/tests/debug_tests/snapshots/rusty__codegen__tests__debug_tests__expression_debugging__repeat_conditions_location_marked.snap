@@ -5,27 +5,27 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @myFunc() !dbg !2 {
+define i32 @myFunc() !dbg !3 {
 entry:
-  %myFunc = alloca i32, align 4, !dbg !6
-  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !7, metadata !DIExpression()), !dbg !9
-  store i32 0, i32* %myFunc, align 4, !dbg !6
-  br label %while_body, !dbg !10
+  %myFunc = alloca i32, align 4, !dbg !7
+  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !8, metadata !DIExpression()), !dbg !10
+  store i32 0, i32* %myFunc, align 4, !dbg !7
+  br label %while_body, !dbg !11
 
 condition_check:                                  ; preds = %while_body
-  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !11
-  %tmpVar = icmp sgt i32 %load_myFunc, 10, !dbg !11
-  %tmpVar1 = xor i1 %tmpVar, true, !dbg !11
-  br i1 %tmpVar1, label %while_body, label %continue, !dbg !11
+  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !12
+  %tmpVar = icmp sgt i32 %load_myFunc, 10, !dbg !12
+  %tmpVar1 = xor i1 %tmpVar, true, !dbg !12
+  br i1 %tmpVar1, label %while_body, label %continue, !dbg !12
 
 while_body:                                       ; preds = %entry, %condition_check
-  store i32 1, i32* %myFunc, align 4, !dbg !10
-  br label %condition_check, !dbg !10
+  store i32 1, i32* %myFunc, align 4, !dbg !11
+  br label %condition_check, !dbg !11
 
 continue:                                         ; preds = %condition_check
-  store i32 1, i32* %myFunc, align 4, !dbg !12
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !12
-  ret i32 %myFunc_ret, !dbg !12
+  store i32 1, i32* %myFunc, align 4, !dbg !13
+  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !13
+  ret i32 %myFunc_ret, !dbg !13
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -33,19 +33,21 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!0}
+!llvm.dbg.cu = !{!1}
 
-!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-!1 = !DIFile(filename: "main", directory: "")
-!2 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !1, file: !1, line: 2, type: !3, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !5)
-!3 = !DISubroutineType(flags: DIFlagPublic, types: !4)
-!4 = !{null}
-!5 = !{}
-!6 = !DILocation(line: 3, column: 12, scope: !2)
-!7 = !DILocalVariable(name: "myFunc", scope: !2, file: !1, line: 2, type: !8, align: 32)
-!8 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!9 = !DILocation(line: 2, column: 17, scope: !2)
-!10 = !DILocation(line: 4, column: 16, scope: !2)
-!11 = !DILocation(line: 5, column: 18, scope: !2)
-!12 = !DILocation(line: 6, column: 12, scope: !2)
+!0 = !{i32 2, !"Dwarf Version", i32 5}
+!1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+!2 = !DIFile(filename: "main", directory: "")
+!3 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 2, type: !4, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !1, retainedNodes: !6)
+!4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
+!5 = !{null}
+!6 = !{}
+!7 = !DILocation(line: 3, column: 12, scope: !3)
+!8 = !DILocalVariable(name: "myFunc", scope: !3, file: !2, line: 2, type: !9, align: 32)
+!9 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!10 = !DILocation(line: 2, column: 17, scope: !3)
+!11 = !DILocation(line: 4, column: 16, scope: !3)
+!12 = !DILocation(line: 5, column: 18, scope: !3)
+!13 = !DILocation(line: 6, column: 12, scope: !3)
 

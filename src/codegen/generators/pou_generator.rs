@@ -61,7 +61,8 @@ pub fn generate_implementation_stubs<'ink>(
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
     for (name, implementation) in index.get_implementations() {
         if !implementation.is_generic() {
-            let curr_f = pou_generator.generate_implementation_stub(implementation, module, debug)?;
+            let curr_f =
+                pou_generator.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
             llvm_index.associate_implementation(name, curr_f)?;
         }
     }
@@ -134,24 +135,56 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
         debug: &mut DebugBuilderEnum<'ink>,
+        new_llvm_index: &mut LlvmTypedIndex<'ink>,
     ) -> Result<FunctionValue<'ink>, Diagnostic> {
-        //generate a function that takes a instance-struct parameter
-        let parameters = self.collect_parameters_for_implementation(implementation)?;
+        let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
+
+        let parameters = self
+            .collect_parameters_for_implementation(implementation)?
+            .iter()
+            .enumerate()
+            .map(|(i, p)| match declared_parameters.get(i) {
+                Some(v)
+                    if v.is_in_parameter_by_ref() &&
+					// parameters by ref will always be a pointer
+					p.into_pointer_type().get_element_type().is_array_type() =>
+                {
+                    // for array types we will generate a pointer to the arrays element type
+                    // not a pointer to array
+                    let ty = p
+                        .into_pointer_type()
+                        .get_element_type()
+                        .into_array_type()
+                        .get_element_type()
+                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+
+                    // set the new type for further codegen
+                    let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
+
+                    ty.into()
+                }
+                _ => *p,
+            })
+            .collect::<Vec<BasicMetadataTypeEnum>>();
+
         let return_type = self
             .index
             .find_return_type(implementation.get_type_name())
             .and_then(|dt| self.index.find_effective_type(dt));
-
         // see if we need to adapt the parameters list
         let (return_type_llvm, parameters) = match return_type {
             // function with a aggrate-return type
             Some(r_type) if r_type.is_aggregate_type() => {
+                let mut params_with_inout = Vec::with_capacity(parameters.len() + 1);
+
                 // add the out pointer as an extra parameter in the beginning
                 let return_llvm_type = self.llvm_index.get_associated_type(r_type.get_name())?;
-                let mut params_with_inout = Vec::with_capacity(parameters.len() + 1);
                 params_with_inout
                     .push(return_llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()); //TODO: what is the correct address space?
+
+                // add the remaining parameters
                 params_with_inout.extend(parameters.iter().cloned());
+
                 // no return, adapted parameters
                 (None, params_with_inout)
             }
@@ -161,10 +194,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             None => (None, parameters),
         };
 
-        let variadic = self
-            .index
-            .get_variadic_member(implementation.get_type_name())
-            .and_then(VariableIndexEntry::get_varargs);
+        let variadic = self.index.get_variadic_member(implementation.get_type_name());
 
         let function_declaration = self.create_llvm_function_type(parameters, variadic, return_type_llvm)?;
 
@@ -172,8 +202,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let pou_name = implementation.get_call_name();
         if let Some(pou) = self.index.find_pou(pou_name) {
-            let parameters = self.index.get_declared_parameters(pou_name);
-            let parameter_types = parameters
+            let parameter_types = declared_parameters
                 .iter()
                 .map(|v| self.index.get_effective_type_or_void_by_name(v.get_type_name()))
                 .collect::<Vec<&DataType>>();
@@ -348,14 +377,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn create_llvm_function_type(
         &self,
         parameters: Vec<BasicMetadataTypeEnum<'ink>>,
-        variadic: Option<&'cg VarArgs>,
+        variadic: Option<&'cg VariableIndexEntry>,
         return_type: Option<BasicTypeEnum<'ink>>,
     ) -> Result<FunctionType<'ink>, Diagnostic> {
-        //Sized variadic is not considered a variadic function, but receives 2 extra parameters, size and a pointer
-        let is_var_args = variadic.map(|it| !it.is_sized()).unwrap_or_default();
-        let size_and_pointer = self.get_size_and_pointer(variadic);
+        // sized variadic is not considered a variadic function, but receives 2 extra parameters, size and a pointer
+        let is_var_args = variadic
+            .map(|it| it.get_varargs().map(|it| !it.is_sized()).unwrap_or_default())
+            .unwrap_or_default();
+        let size_and_type = self.get_variadic_size_and_pointer(variadic);
         let mut params = parameters;
-        if let Some(sized_variadics) = size_and_pointer {
+        if let Some(sized_variadics) = size_and_type {
             params.extend_from_slice(&sized_variadics);
         };
 
@@ -708,18 +739,40 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(())
     }
 
-    fn get_size_and_pointer(
+    fn get_variadic_size_and_pointer(
         &self,
-        variadic: Option<&'cg VarArgs>,
+        variadic: Option<&'cg VariableIndexEntry>,
     ) -> Option<[BasicMetadataTypeEnum<'ink>; 2]> {
-        if let Some(VarArgs::Sized(Some(type_name))) = variadic {
+        if let (Some(var), Some(VarArgs::Sized(Some(type_name)))) =
+            (variadic, variadic.and_then(VariableIndexEntry::get_varargs))
+        {
             //Create a size parameter of type i32 (DINT)
-            let size_param = self.llvm_index.find_associated_type(typesystem::DINT_TYPE).map(Into::into)?;
-            let ptr_param = self
+            let size = self.llvm_index.find_associated_type(typesystem::DINT_TYPE).map(Into::into)?;
+
+            let ty = self
                 .llvm_index
                 .find_associated_type(type_name)
-                .map(|it| it.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())?;
-            Some([size_param, ptr_param])
+                .map(|it| {
+                    if it.is_array_type() && var.get_declaration_type().is_by_ref() {
+                        // the declaration for array types passed by ref are generatad as pointer to element type
+                        // we need to match the declaration
+                        it.into_array_type().get_element_type()
+                    } else {
+                        it
+                    }
+                })
+                .map(|it| {
+                    if var.get_declaration_type().is_by_ref() {
+                        // variadic by ref will result in a double pointer
+                        it.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).as_basic_type_enum()
+                    } else {
+                        it
+                    }
+                })?
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                .into();
+
+            Some([size, ty])
         } else {
             None
         }

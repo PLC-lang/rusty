@@ -1,26 +1,29 @@
-# Build Configuration 
+# Build Configuration
 
 In addition to the comprehensive help, `rustyc` offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
 The build description file needs to be saved in the [json](https://en.wikipedia.org/wiki/JSON) format.
 
-Usage: 
-
+Usage :
 `rustyc build`
 
-Note that if `rustyc` cannot find the `plc.json` file, it will throw an error and request the path. The default location for the build file is the current directory. The command for building with an additional path looks like this:
+Note that if `rustyc` cannot find the `plc.json` file, it will throw an error and request the path.
+The default location for the build file is the current directory.
 
+The command for building with an additional path looks like this :
 `rustyc build src/plc.json`
-
 
 ## Build description file (plc.json)
 
-For the build description file to work, it must be written in the [json](https://en.wikipedia.org/wiki/JavaScript_Object_Notation) format. All the keys used in the build description file are described in the following sections. 
-
+For the build description file to work, it must be written in the [json](https://en.wikipedia.org/wiki/JavaScript_Object_Notation) format.
+All the keys used in the build description file are described in the following sections.
 
 ### files
 
-The keyword `files` is the equivalent to the `input` parameter, which adds all the `ST` files that need to be compiled. The value of `files` is an array of strings, definied as follows:
+The keyword `files` is the equivalent to the `input` parameter, which adds all the `ST` files that need to be compiled.
+
+The value of `files` is an array of strings, definied as follows :
+
 ```json
 "files" : [
     "examples/hello_world.st",
@@ -28,7 +31,6 @@ The keyword `files` is the equivalent to the `input` parameter, which adds all t
     "examples/*.gvl"
 ]
 ```
-
 
 ### libraries
 
@@ -49,27 +51,26 @@ The `libraries` keyword is optional.
 ]
 ```
 
-
 ### output
 
-Similarly to specifying an output file via the `-o` or `--output` option using the command line, in the build file we use `"output" : "output.so"` to define the output file. The default location is the current build directory. (see [Build Location](#build-location)) 
-
+Similarly to specifying an output file via the `-o` or `--output` option using the command line, in the build file we use `"output" : "output.so"` to define the output file. The default location is the current build directory. (see [Build Location](#build-location)).
 
 ### compile_type
 
-The following options can be used for the `compile_type`:
-- `Static` specifies that linking/binding must be done at compile time
-- `Shared` (dynamic) specifies that linking/bingind must be done dynamically (at runtime)
-- `PIC` Position Independent Code (Choosing this option implies that the linking will be done dynamically)
-- `Relocatable` generates relocatable object code (for combining with other object code)
-- `Bitcode` adds bitcode alongside machine code in executable file
-- `IR` intermediate `llvm` representation
+The following options can be used for the `compile_type` :
+
+- `Static` specifies that linking/binding must be done at compile time.
+- `Shared` (dynamic) specifies that linking/bingind must be done dynamically (at runtime).
+- `PIC` Position Independent Code (Choosing this option implies that the linking will be done dynamically).
+- `Relocatable` generates relocatable object code (for combining with other object code).
+- `Bitcode` adds bitcode alongside machine code in executable file.
+- `IR` intermediate `llvm` representation.
 
 The compile format is specified in the build description file as follows:  `"compile_type" : "Shared"`.
 The `compile_type` keyword is optional.
 
-
 ### package_commands
+
 The `package_commands` keyword is optional.
 
 > TODO
@@ -109,7 +110,7 @@ The `package_commands` keyword is optional.
 
 ## Build Parameters
 
-The `build` subcommand exposes the following optional parameters: 
+The `build` subcommand exposes the following optional parameters :
 
 ### `--build-location`
 
@@ -123,12 +124,11 @@ The lib location is where all libraries marked with `Copy` will be copied. </br>
 By default it is the same as the `build-location`.</br>
 This can be overriden with the `--lib-location` command line parameter.
 
-
 ## Environment Variables
 
 Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.
 
-In addition to externally defined variables, the build exports variables that can be referenced in the description file:
+In addition to externally defined variables, the build exports variables that can be referenced in the description file :
 
 ### `PROJECT_ROOT`
 
@@ -136,31 +136,35 @@ The folder containing the `plc.json` file, i.e. the root of the project.
 
 ### `ARCH`
 
-The target architecture currently being built, for a multi architecture build. The value for `ARCH` will be updated for every target.
-Example targets are: `x86_64-pc-linux-gnu`, `x86_64-pc-windows-msvc`, `aarch64-pc-linux-musl`
+The target architecture currently being built, for a multi architecture build.
+The value for `ARCH` will be updated for every target.
+
+Example targets are :
+`x86_64-pc-linux-gnu`, `x86_64-pc-windows-msvc`, `aarch64-pc-linux-musl`
 
 ### `BUILD_LOCATION`
 
-`BUILD_LOCATION` is the folder where the build will be saved. This is the value of either the [`--build-location`](#build-location) parameter or the default build location.
+`BUILD_LOCATION` is the folder where the build will be saved.
+This is the value of either the [`--build-location`](#build-location) parameter or the default build location.
 
 ### `LIB_LOCATION`
 
-`LIB_LOCATION` is the folder where the lib will be saved. This is the value of either the [`--lib-location`](#lib-location) parameter or the [build location](#build-location).
+`LIB_LOCATION` is the folder where the lib will be saved.
+This is the value of either the [`--lib-location`](#lib-location) parameter or the [build location](#build-location).
 
 ### Usage
 
-To reference an environment variable in the description file, reference the variables with a preceding `$`
+To reference an environment variable in the description file, reference the variables with a preceding `$`.
 
 **Example:**
+
 ```json
 {
-	"name" : "mylib",
-	"path" : "$ARCH/lib",
-	"package" : "System",
-	"include_path" : [
-		"examples/hello_world.st"
-	]
+ "name" : "mylib",
+ "path" : "$ARCH/lib",
+ "package" : "System",
+ "include_path" : [
+  "examples/hello_world.st"
+ ]
 }
 ```
-
-

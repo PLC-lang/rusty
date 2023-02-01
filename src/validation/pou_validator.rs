@@ -1,9 +1,20 @@
-use super::ValidationContext;
+use super::{ValidationContext, Validators};
 use crate::{ast::Pou, Diagnostic, PouType};
 
 /// validates POUs
+#[derive(Default)]
 pub struct PouValidator {
-    pub diagnostics: Vec<Diagnostic>,
+    diagnostics: Vec<Diagnostic>,
+}
+
+impl Validators for PouValidator {
+    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
+    }
 }
 
 impl PouValidator {
@@ -21,7 +32,7 @@ impl PouValidator {
         let return_type = context.index.find_return_type(&pou.name);
         // functions must have a return type
         if return_type.is_none() {
-            self.diagnostics.push(Diagnostic::function_return_missing(pou.name_location.to_owned()));
+            self.push_diagnostic(Diagnostic::function_return_missing(pou.name_location.to_owned()));
         }
     }
 }

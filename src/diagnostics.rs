@@ -22,6 +22,7 @@ pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum Diagnostic {
     SyntaxError { message: String, range: Vec<SourceRange>, err_no: ErrNo },
+    SemanticError { message: String, range: Vec<SourceRange>, err_no: ErrNo },
     GeneralError { message: String, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: Vec<SourceRange> },
 }
@@ -48,6 +49,7 @@ pub enum ErrNo {
     pou__unsupported_return_type,
     pou__empty_variable_block,
     pou__missing_action_container,
+    pou__recursive_data_structure,
 
     // call
     call__invalid_parameter_type,
@@ -59,6 +61,9 @@ pub enum ErrNo {
     var__cannot_assign_to_const,
     var__invalid_assignment,
     var__missing_type,
+
+    //array related
+    arr__invalid_array_assignment,
 
     //reference related
     reference__unresolved,
@@ -114,6 +119,11 @@ impl Diagnostic {
                 range.extend_from_slice(ranges);
                 Diagnostic::SyntaxError { message: message.to_string(), range, err_no: *err_no }
             }
+            Diagnostic::SemanticError { message, range, err_no } => {
+                let mut range = range.to_vec();
+                range.extend_from_slice(ranges);
+                Diagnostic::SyntaxError { message: message.to_string(), range, err_no: *err_no }
+            }
             Diagnostic::ImprovementSuggestion { message, range } => {
                 let mut range = range.to_vec();
                 range.extend_from_slice(ranges);
@@ -125,9 +135,9 @@ impl Diagnostic {
 
     pub fn get_affected_ranges(&self) -> &[SourceRange] {
         match self {
-            Diagnostic::SyntaxError { range, .. } | Diagnostic::ImprovementSuggestion { range, .. } => {
-                range.as_slice()
-            }
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::SemanticError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. } => range.as_slice(),
             Diagnostic::GeneralError { .. } => &[],
         }
     }
@@ -524,6 +534,7 @@ impl Diagnostic {
     pub fn get_message(&self) -> &str {
         match self {
             Diagnostic::SyntaxError { message, .. }
+            | Diagnostic::SemanticError { message, .. }
             | Diagnostic::ImprovementSuggestion { message, .. }
             | Diagnostic::GeneralError { message, .. } => message.as_str(),
         }
@@ -531,7 +542,9 @@ impl Diagnostic {
 
     pub fn get_location(&self) -> SourceRange {
         match self {
-            Diagnostic::SyntaxError { range, .. } | Diagnostic::ImprovementSuggestion { range, .. } => {
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::SemanticError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. } => {
                 range.get(0).cloned().unwrap_or_else(SourceRange::undefined)
             }
             Diagnostic::GeneralError { .. } => SourceRange::undefined(),
@@ -540,7 +553,9 @@ impl Diagnostic {
 
     pub fn get_secondary_locations(&self) -> Option<&[SourceRange]> {
         match self {
-            Diagnostic::SyntaxError { range, .. } | Diagnostic::ImprovementSuggestion { range, .. }
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::SemanticError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. }
                 if range.len() > 1 =>
             {
                 Some(&range[1..])
@@ -551,7 +566,9 @@ impl Diagnostic {
 
     pub fn get_type(&self) -> &ErrNo {
         match self {
-            Diagnostic::SyntaxError { err_no, .. } | Diagnostic::GeneralError { err_no, .. } => err_no,
+            Diagnostic::SyntaxError { err_no, .. }
+            | Diagnostic::SemanticError { err_no, .. }
+            | Diagnostic::GeneralError { err_no, .. } => err_no,
             Diagnostic::ImprovementSuggestion { .. } => &ErrNo::undefined,
         }
     }
@@ -677,6 +694,30 @@ impl Diagnostic {
             message: message.to_string(),
             range: vec![range],
             err_no: ErrNo::type__invalid_operation,
+        }
+    }
+
+    pub fn array_expected_initializer_list(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Array initializer must be an initializer list!".to_string(),
+            range: vec![range],
+            err_no: ErrNo::arr__invalid_array_assignment,
+        }
+    }
+
+    pub fn array_expected_identifier_or_round_bracket(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Expected identifier or '('".to_string(),
+            range: vec![range],
+            err_no: ErrNo::arr__invalid_array_assignment,
+        }
+    }
+
+    pub fn recursive_datastructure(path: &str, range: Vec<SourceRange>) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Recursive data structure `{path}` has infinite size"),
+            range,
+            err_no: ErrNo::pou__recursive_data_structure,
         }
     }
 }

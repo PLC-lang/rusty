@@ -9,7 +9,7 @@ use inkwell::{
         DebugInfoBuilder,
     },
     module::Module,
-    values::{FunctionValue, GlobalValue, PointerValue},
+    values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
 
 use crate::{
@@ -54,7 +54,7 @@ impl From<DebugLevel> for DWARFEmissionKind {
 }
 
 /// A trait that represents a Debug builder
-/// An implementor of this trais will be called during various codegen phases to generate debug
+/// An implementor of this trait will be called during various codegen phases to generate debug
 /// information
 pub trait Debug<'ink> {
     /// Set the debug info source location of the instruction currently pointed at by the builder
@@ -67,7 +67,7 @@ pub trait Debug<'ink> {
         column: u32,
     );
 
-    /// Reginsters a new function for debugging, this method is responsible for registering a
+    /// Registers a new function for debugging, this method is responsible for registering a
     /// function's stub as well as its interface (variables/parameters)
     fn register_function<'idx>(
         &mut self,
@@ -176,9 +176,15 @@ impl<'ink> DebugBuilderEnum<'ink> {
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> Self {
+        let dwarf_version: BasicMetadataValueEnum<'ink> = context.i32_type().const_int(5, false).into();
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
             DebugLevel::VariablesOnly | DebugLevel::Full => {
+                module.add_metadata_flag(
+                    "Dwarf Version",
+                    inkwell::module::FlagBehavior::Warning,
+                    context.metadata_node(&[dwarf_version]),
+                );
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
                 let directory = path.parent().and_then(|it| it.to_str()).unwrap_or("");
                 let filename = path.file_name().and_then(|it| it.to_str()).unwrap_or("");

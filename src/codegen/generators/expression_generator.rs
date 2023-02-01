@@ -24,7 +24,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, vec};
 
 use crate::{
     ast::{flatten_expression_list, AstStatement, Operator},
@@ -480,12 +480,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstStatement,
         parameters: &Option<AstStatement>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-        let function_context = self.get_function_context(operator)?;
-
-        //find the pou we're calling
+        // find the pou we're calling
         let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
             .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)
-            //For some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
+            // for some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
             .or_else(|| self.index.find_pou(qualified_name)))
             .or_else(||
                 // some rare situations have a callstatement that's not properly annotated (e.g. checkRange-call of ranged datatypes)
@@ -502,48 +500,46 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
         let parameters_list = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
-
-        //If the function is builtin, generate a basic value enum for it
-        if let Some(builtin) = self.index.get_builtin_function(implementation.get_call_name()) {
-            //adr, ref, etc.
+        let implementation_name = implementation.get_call_name();
+        // if the function is builtin, generate a basic value enum for it
+        if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
+            // adr, ref, etc.
             return builtin
                 .codegen(self, parameters_list.as_slice(), operator.get_location())
                 .map(ExpressionValue::RValue);
         }
 
-        let function_name = implementation.get_call_name();
         let mut arguments_list = self.generate_pou_call_arguments_list(
             pou,
             parameters_list.as_slice(),
             implementation,
             operator,
-            function_context,
-            function_name,
+            self.get_function_context(operator)?,
         )?;
 
-        let builder = &self.llvm.builder;
         let function = self
             .llvm_index
-            .find_associated_implementation(function_name) //using the non error option to control the output error
+            .find_associated_implementation(implementation_name) // using the non error option to control the output error
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    &format!("No callable implementation associated to {:?}", function_name),
+                    &format!("No callable implementation associated to {:?}", implementation_name),
                     operator.get_location(),
                 )
             })?;
-        //Generate the debug statetment for a call
+
+        // generate the debug statetment for a call
         self.register_debug_location(operator);
 
         // if this is a function that returns an aggregate type we need to allocate an out.pointer
         let by_ref_func_out: Option<PointerValue> = if let PouIndexEntry::Function { return_type, .. } = pou {
-            let dt = self.index.get_effective_type_or_void_by_name(return_type);
-            if dt.is_aggregate_type() {
+            let data_type = self.index.get_effective_type_or_void_by_name(return_type);
+            if data_type.is_aggregate_type() {
                 // this is a function call with a return variable fed as an out-pointer
-                let llvm_type = self.llvm_index.get_associated_type(dt.get_name())?;
-                let out_var = self.llvm.create_local_variable("", &llvm_type);
+                let llvm_type = self.llvm_index.get_associated_type(data_type.get_name())?;
+                let out_pointer = self.llvm.create_local_variable("", &llvm_type);
                 // add the out-ptr as its first parameter
-                arguments_list.insert(0, out_var.into());
-                Some(out_var)
+                arguments_list.insert(0, out_pointer.into());
+                Some(out_pointer)
             } else {
                 None
             }
@@ -551,9 +547,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             None
         };
 
-        //If the target is a function, declare the struct locally
-        //Assign all parameters into the struct values
-        let call = builder.build_call(function, &arguments_list, "call");
+        // if the target is a function, declare the struct locally
+        // assign all parameters into the struct values
+        let call = &self.llvm.builder.build_call(function, &arguments_list, "call");
 
         // so grab either:
         // - the out-pointer if we generated one in by_ref_func_out
@@ -578,7 +574,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 Some(v) => v.into_pointer_value(),
                 None => self.generate_element_pointer(operator)?,
             };
-            self.assign_output_values(parameter_struct, function_name, parameters_list)?
+            self.assign_output_values(parameter_struct, implementation_name, parameters_list)?
         }
 
         value
@@ -625,37 +621,42 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let function_name = param_context.function_name;
         let index = param_context.index;
         if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
-            if matches!(parameter.get_variable_type(), VariableType::Output) {
-                let assigned_output = self.generate_element_pointer(expression)?;
-
-                let assigned_output_type =
-                    self.annotations.get_type_or_void(expression, self.index).get_type_information();
-
-                let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
-                    Diagnostic::codegen_error(
-                        &format!("Cannot build generate parameter: {:#?}", parameter),
-                        parameter.source_location.source_range.clone(),
-                    )
-                })?;
-
-                let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
-
-                //Special string handling
-                if (assigned_output_type.is_string() && output_value_type.is_string())
-                    || (assigned_output_type.is_struct() && output_value_type.is_struct())
-                    || (assigned_output_type.is_array() && output_value_type.is_array())
+            if matches!(parameter.get_variable_type(), VariableType::Output)
+                && !matches!(expression, AstStatement::EmptyStatement { .. })
+            {
                 {
-                    self.generate_string_store(
-                        assigned_output,
-                        assigned_output_type,
-                        expression.get_location(),
-                        output,
-                        output_value_type,
-                        parameter.source_location.source_range.clone(),
-                    )?;
-                } else {
-                    let output_value = builder.build_load(output, "");
-                    builder.build_store(assigned_output, output_value);
+                    let assigned_output = self.generate_element_pointer(expression)?;
+
+                    let assigned_output_type =
+                        self.annotations.get_type_or_void(expression, self.index).get_type_information();
+
+                    let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
+                        Diagnostic::codegen_error(
+                            &format!("Cannot build generate parameter: {:#?}", parameter),
+                            parameter.source_location.source_range.clone(),
+                        )
+                    })?;
+
+                    let output_value_type =
+                        self.index.get_type_information_or_void(parameter.get_type_name());
+
+                    //Special string handling
+                    if (assigned_output_type.is_string() && output_value_type.is_string())
+                        || (assigned_output_type.is_struct() && output_value_type.is_struct())
+                        || (assigned_output_type.is_array() && output_value_type.is_array())
+                    {
+                        self.generate_string_store(
+                            assigned_output,
+                            assigned_output_type,
+                            expression.get_location(),
+                            output,
+                            output_value_type,
+                            parameter.source_location.source_range.clone(),
+                        )?;
+                    } else {
+                        let output_value = builder.build_load(output, "");
+                        builder.build_store(assigned_output, output_value);
+                    }
                 }
             }
         }
@@ -691,21 +692,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_pou_call_arguments_list(
         &self,
         pou: &PouIndexEntry,
-        parameters: &[&AstStatement],
+        passed_parameters: &[&AstStatement],
         implementation: &ImplementationIndexEntry,
         operator: &AstStatement,
         function_context: &'b FunctionContext<'ink, 'b>,
-        function_name: &str,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let arguments_list = if matches!(pou, PouIndexEntry::Function { .. }) {
-            //we're calling a function
-
-            // foo(a,b,c)
-            // foo(z:= a, x:=c, y := b);
+            // we're calling a function
             let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
-
-            // the parameters to be passed to the function call
-            self.generate_function_arguments(pou, parameters, declared_parameters)?
+            self.generate_function_arguments(pou, passed_parameters, declared_parameters)?
         } else {
             // no function
             let (class_ptr, call_ptr) = match pou {
@@ -716,7 +711,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     (Some(class_ptr), call_ptr)
                 }
                 PouIndexEntry::Action { .. } if matches!(operator, AstStatement::Reference { .. }) => {
-                    //Special handling for local actions, get the parameter from the function context
+                    // special handling for local actions, get the parameter from the function context
                     function_context
                         .function
                         .get_first_param()
@@ -724,13 +719,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?
                 }
                 _ => {
-                    let class_ptr = self.generate_element_pointer(operator)?;
-                    (None, class_ptr)
+                    let call_ptr = self.generate_element_pointer(operator)?;
+                    (None, call_ptr)
                 }
             };
 
-            //Generate the pou call assignments
-            self.generate_stateful_pou_call_parameters(function_name, class_ptr, call_ptr, parameters)?
+            // generate the pou call assignments
+            self.generate_stateful_pou_arguments(
+                implementation.get_call_name(),
+                class_ptr,
+                call_ptr,
+                passed_parameters,
+            )?
         };
         Ok(arguments_list)
     }
@@ -738,78 +738,84 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_function_arguments(
         &self,
         pou: &PouIndexEntry,
-        arguments: &[&AstStatement],
+        passed_parameters: &[&AstStatement],
         declared_parameters: Vec<&VariableIndexEntry>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = Vec::new();
-        let mut variadic_params = Vec::new();
+        let mut variadic_parameters = Vec::new();
+        let mut passed_param_indices = Vec::new();
+        for (i, parameter) in passed_parameters.iter().enumerate() {
+            let (i, parameter, _) = get_implicit_call_parameter(parameter, &declared_parameters, i)?;
 
-        let mut passed_args = Vec::new();
-        for (idx, param_statement) in arguments.iter().enumerate() {
-            let (location, param_statement, _) =
-                get_implicit_call_parameter(param_statement, &declared_parameters, idx)?;
-
-            //None -> possibly variadic
-            let param = declared_parameters
-                //get paremeter at location
-                .get(location)
-                //find the parameter's type and name
+            // parameter_info includes the declaration type and type name
+            let parameter_info = declared_parameters
+                .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
                     if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. }) =
                         self.index.find_effective_type_info(name)
                     {
+                        // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
+                        // we need the inner_type and not pointer to type otherwise we would generate a double pointer
                         Some((it.get_declaration_type(), inner_type_name.as_str()))
                     } else {
                         Some((it.get_declaration_type(), name))
                     }
                 })
-                //TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
+                // TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
                 .map(Ok)
+                // None -> possibly variadic
                 .unwrap_or_else(|| {
-                    //If we are dealing with a variadic function, we can accept all extra parameters
+                    // if we are dealing with a variadic function, we can accept all extra parameters
                     if pou.is_variadic() {
-                        variadic_params.push(param_statement);
+                        variadic_parameters.push(parameter);
                         Ok(None)
                     } else {
-                        //We are not variadic, we have too many parameters here
-                        Err(Diagnostic::codegen_error("Too many parameters", param_statement.get_location()))
+                        // we are not variadic, we have too many parameters here
+                        Err(Diagnostic::codegen_error("Too many parameters", parameter.get_location()))
                     }
                 })?;
 
-            if let Some((declaration_type, type_name)) = param {
+            if let Some((declaration_type, type_name)) = parameter_info {
                 let argument: BasicValueEnum = if declaration_type.is_by_ref() {
-                    let declared_parameter = declared_parameters.get(location);
-                    self.generate_argument_by_ref(param_statement, type_name, declared_parameter.copied())?
+                    let declared_parameter = declared_parameters.get(i);
+                    self.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())?
                 } else {
-                    //pass by val
-                    self.generate_argument_by_val(type_name, param_statement)?
+                    // by val
+                    if !matches!(parameter, AstStatement::EmptyStatement { .. }) {
+                        self.generate_argument_by_val(type_name, parameter)?
+                    } else if let Some(param) = declared_parameters.get(i) {
+                        self.generate_empty_expression(param)?
+                    } else {
+                        unreachable!("Statement param must have an index entry at this point.");
+                    }
                 };
-                result.push((location, argument));
+                result.push((i, argument));
             }
 
-            passed_args.push(location);
+            passed_param_indices.push(i);
         }
 
-        // handle missing declared parameters
-        if declared_parameters.len() > passed_args.len() {
+        // handle missing parameters, generate empty expression
+        if declared_parameters.len() > passed_param_indices.len() {
             for (i, param) in declared_parameters.into_iter().enumerate() {
-                if !passed_args.contains(&i) {
+                if !passed_param_indices.contains(&i) {
                     let generated_exp = self.generate_empty_expression(param)?;
-
                     result.push((i, generated_exp));
                 }
             }
         }
 
-        //Push variadic collection and optionally the variadic size
+        // push variadic collection and optionally the variadic size
         if pou.is_variadic() {
             let last_location = result.len();
-            let variadic_params = self.generate_variadic_arguments_list(pou, &variadic_params)?;
-            for (i, param) in variadic_params.into_iter().enumerate() {
-                result.push((i + last_location, param));
+            for (i, parameter) in
+                self.generate_variadic_arguments_list(pou, &variadic_parameters)?.into_iter().enumerate()
+            {
+                result.push((i + last_location, parameter));
             }
         }
+
         result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
     }
@@ -882,14 +888,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             Ok(ptr_value)
         } else {
-            self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
+            let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
                 //passed a literal to byref parameter?
                 //TODO: find more defensive solution - check early
                 let value = self.generate_expression(argument)?;
                 let argument = self.llvm.builder.build_alloca(value.get_type(), "");
                 self.llvm.builder.build_store(argument, value);
                 Ok(argument)
-            })
+            })?;
+            // if we pass any array type by ref
+            // we need to pass a pointer to the array element type
+            // and not a pointer to array => [81 x i8]* -> i8*
+            if value.get_type().get_element_type().is_array_type() {
+                let res = self.llvm.builder.build_bitcast(
+                    value,
+                    value
+                        .get_type()
+                        .get_element_type()
+                        .into_array_type()
+                        .get_element_type()
+                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    "",
+                );
+                Ok(res.into_pointer_value())
+            } else {
+                Ok(value)
+            }
+            // Ok(value)
         }
         .map(Into::into)
     }
@@ -899,7 +924,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         pou: &PouIndexEntry,
         variadic_params: &[&AstStatement],
     ) -> Result<Vec<BasicValueEnum<'ink>>, Diagnostic> {
-        //get the real varargs from the index
+        // get the real varargs from the index
         if let Some((var_args, argument_type)) = self
             .index
             .get_variadic_member(pou.get_name())
@@ -909,31 +934,40 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .iter()
                 .map(|param_statement| {
                     self.get_type_hint_for(param_statement).map(|it| it.get_name()).and_then(|type_name| {
-                        // If the variadic is defined in a by_ref block, we need to pass the argument as reference
-                        if let ArgumentType::ByVal(_) = argument_type {
-                            self.generate_argument_by_val(type_name, param_statement)
-                        } else {
+                        // if the variadic is defined in a by_ref block, we need to pass the argument as reference
+                        if argument_type.is_by_ref() {
                             self.generate_argument_by_ref(
                                 param_statement,
                                 type_name,
                                 self.index.get_variadic_member(pou.get_name()),
                             )
+                        } else {
+                            self.generate_argument_by_val(type_name, param_statement)
                         }
                     })
                 })
                 .collect::<Result<Vec<_>, _>>()?;
-            // For sized variadics we create an array and store all the arguments in that array
+
+            // for sized variadics we create an array and store all the arguments in that array
             if let VarArgs::Sized(Some(type_name)) = var_args {
-                let llvm_type = self.llvm_index.get_associated_type(type_name)?;
-                // If the variadic argument is ByRef, wrap it in a pointer.
-                let llvm_type = if matches!(argument_type, ArgumentType::ByRef(_)) {
-                    llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()
+                let ty = self.llvm_index.get_associated_type(type_name).map(|it| {
+                    if argument_type.is_by_ref() && it.is_array_type() {
+                        it.into_array_type().get_element_type()
+                    } else {
+                        it
+                    }
+                })?;
+                // if the variadic argument is ByRef, wrap it in a pointer.
+                let ty = if argument_type.is_by_ref() {
+                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()
                 } else {
-                    llvm_type
+                    ty
                 };
+
                 let size = generated_params.len();
                 let size_param = self.llvm.i32_type().const_int(size as u64, true);
-                let arr = Llvm::get_array_type(llvm_type, size as u32);
+
+                let arr = ty.array_type(size as u32);
                 let arr_storage = self.llvm.builder.build_alloca(arr, "");
                 for (i, ele) in generated_params.iter().enumerate() {
                     let ele_ptr = self.llvm.load_array_element(
@@ -950,7 +984,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // bitcast the array to pointer so it matches the declared function signature
                 let arr_storage = self.llvm.builder.build_bitcast(
                     arr_storage,
-                    llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                     "",
                 );
 
@@ -992,13 +1026,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ///
     /// - `pou_name` the name of the pou we're calling
     /// - `parameter_struct` a pointer to a struct-instance that holds all pou-parameters
-    /// - `parameters` a vec of all passed parameters to the pou-call
-    fn generate_stateful_pou_call_parameters(
+    /// - `passed_parameters` a vec of all passed parameters to the pou-call
+    fn generate_stateful_pou_arguments(
         &self,
         pou_name: &str,
         class_struct: Option<PointerValue<'ink>>,
         parameter_struct: PointerValue<'ink>,
-        parameters: &[&AstStatement],
+        passed_parameters: &[&AstStatement],
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = class_struct
             .map(|class_struct| {
@@ -1006,11 +1040,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             })
             .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
 
-        for (index, exp) in parameters.iter().enumerate() {
+        for (i, stmt) in passed_parameters.iter().enumerate() {
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
-                assignment_statement: exp,
+                assignment_statement: stmt,
                 function_name: pou_name,
-                index: index as u32,
+                index: i as u32,
                 parameter_struct,
             })?;
             if let Some(parameter) = parameter {
@@ -1172,12 +1206,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .find_member(function_name, name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
-            self.generate_call_struct_argument_assignment(&CallParameterAssignment {
-                assignment_statement: right,
-                function_name,
-                index,
-                parameter_struct,
-            })?;
+
+            // don't generate param assignments for empty statements, with the exception
+            // of VAR_IN_OUT params - they need an address to point to
+            let is_auto_deref = matches!(
+                self.index
+                    .find_effective_type_by_name(parameter.get_type_name())
+                    .map(|var| var.get_type_information())
+                    .unwrap_or_else(|| self.index.get_void_type().get_type_information()),
+                DataTypeInformation::Pointer { auto_deref: true, .. }
+            );
+            if !matches!(right, AstStatement::EmptyStatement { .. }) || is_auto_deref {
+                self.generate_call_struct_argument_assignment(&CallParameterAssignment {
+                    assignment_statement: right,
+                    function_name,
+                    index,
+                    parameter_struct,
+                })?;
+            };
         };
         Ok(())
     }
@@ -1397,7 +1443,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //Load the reference
         self.do_generate_element_pointer(qualifier.cloned(), reference).and_then(|lvalue| {
             if let DataTypeInformation::Array { dimensions, .. } = self.get_type_hint_info_for(reference)? {
-                //Make sure dimensions match statement list
+                // make sure dimensions match statement list
                 let statements = access.get_as_list();
                 if statements.is_empty() || statements.len() != dimensions.len() {
                     return Err(Diagnostic::codegen_error("Invalid array access", access.get_location()));
@@ -1440,7 +1486,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             self.generate_access_for_dimension(dimension, statement))
                     .zip(dimension_portions);
 
-                //accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
+                // accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
                 let (index_access, _) = accessors_and_portions.fold(
                     (Ok(self.llvm.i32_type().const_zero().as_basic_value_enum()), 1),
                     |(accumulated_value, _), (current_v, current_portion)| {
@@ -1451,7 +1497,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                     .i32_type()
                                     .const_int(current_portion as u64, false)
                                     .as_basic_value_enum();
-                                //multiply the accessor with the dimension's portion
+                                // multiply the accessor with the dimension's portion
                                 let m_v = self.create_llvm_int_binary_expression(
                                     &Operator::Multiplication,
                                     current_portion_value,
@@ -1466,20 +1512,30 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     },
                 );
 
-                //make sure we got an int-value
+                // make sure we got an int-value
                 let index_access: IntValue = index_access.and_then(|it| {
                     it.try_into().map_err(|_| {
                         Diagnostic::codegen_error("non-numeric index-access", access.get_location())
                     })
                 })?;
 
-                //Load the access from that array
-                //First 0 is to access the pointer, then we access the array
-                let pointer = self.llvm.load_array_element(
-                    lvalue,
-                    &[self.llvm.i32_type().const_zero(), index_access],
-                    "tmpVar",
-                )?;
+                let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
+                    // e.g.: [81 x i32]*
+                    // the first index (0) will point to the array -> [81 x i32]
+                    // the second index (index_access) will point to the element in the array
+                    vec![self.llvm.i32_type().const_zero(), index_access]
+                } else {
+                    // lvalue is a pointer to type -> e.g.: i32*
+                    // only one index (index_access) is needed to access the element
+
+                    // IGNORE the additional first index (0)
+                    // it would point to -> i32
+                    // we can't access any element of i32
+                    vec![index_access]
+                };
+
+                // load the access from that array
+                let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
 
                 return Ok(pointer);
             }
