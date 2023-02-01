@@ -159,7 +159,7 @@ jobs:
           ./scripts/build.sh --container --container-name=$IMAGE_ID --coverage
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
             files: lcov.info 
 

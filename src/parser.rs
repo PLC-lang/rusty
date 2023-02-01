@@ -218,7 +218,7 @@ fn parse_pou(
     //check if we ended on the right end-keyword
     if closing_tokens.contains(&lexer.last_token) && lexer.last_token != expected_end_token {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            format!("{:?}", expected_end_token).as_str(),
+            format!("{expected_end_token:?}").as_str(),
             lexer.slice_region(lexer.last_range.clone()),
             lexer.source_range_factory.create_range(lexer.last_range.clone()),
         ));
@@ -365,7 +365,7 @@ fn parse_method(
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
-        let call_name = format!("{}.{}", class_name, name);
+        let call_name = format!("{class_name}.{name}");
         let implementation = parse_implementation(
             lexer,
             linkage,
@@ -493,7 +493,7 @@ fn parse_action(
         //lets see if we ended on the right END_ keyword
         if closing_tokens.contains(&lexer.last_token) && lexer.last_token != KeywordEndAction {
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                format!("{:?}", KeywordEndAction).as_str(),
+                format!("{KeywordEndAction:?}").as_str(),
                 lexer.slice(),
                 lexer.location(),
             ))
@@ -945,7 +945,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         if !lexer.allow(&KeywordComma) {
             let next_token_start = lexer.location().get_start();
             lexer.accept_diagnostic(Diagnostic::missing_token(
-                format!("{:?} or {:?}", KeywordColon, KeywordComma).as_str(),
+                format!("{KeywordColon:?} or {KeywordColon:?}").as_str(),
                 lexer.source_range_factory.create_range(identifier_end..next_token_start),
             ));
         }
@@ -973,7 +973,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     // colon has to come before the data type
     if !lexer.allow(&KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
-            format!("{:?}", KeywordColon).as_str(),
+            format!("{KeywordColon:?}").as_str(),
             lexer.location(),
         ));
     }

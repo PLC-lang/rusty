@@ -169,7 +169,7 @@ impl FromStr for ConfigFormat {
         match s {
             "json" => Ok(ConfigFormat::JSON),
             "toml" => Ok(ConfigFormat::TOML),
-            _ => Err(format!("Invalid option {}", s)),
+            _ => Err(format!("Invalid option {s}")),
         }
     }
 }
@@ -367,7 +367,7 @@ fn create_source_code<T: Read>(
 ) -> Result<String, String> {
     let mut buffer = String::new();
     let mut decoder = DecodeReaderBytesBuilder::new().encoding(encoding).build(reader);
-    decoder.read_to_string(&mut buffer).map_err(|err| format!("{:}", err))?;
+    decoder.read_to_string(&mut buffer).map_err(|err| format!("{err}"))?;
     Ok(buffer)
 }
 
@@ -386,7 +386,7 @@ fn persist_to_obj(
 
     let target = inkwell::targets::Target::from_triple(triple).map_err(|it| {
         Diagnostic::codegen_error(
-            &format!("Invalid target-tripple '{:}' - {:?}", triple, it),
+            &format!("Invalid target-tripple '{triple}' - {it:?}"),
             SourceRange::undefined(),
         )
     })?;
@@ -656,11 +656,11 @@ fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
     let mut sources = Vec::new();
     for input in inputs {
         let paths = glob(input).map_err(|e| {
-            Diagnostic::param_error(&format!("Failed to read glob pattern: {}, ({})", input, e))
+            Diagnostic::param_error(&format!("Failed to read glob pattern: {input}, ({e})"))
         })?;
 
         for p in paths {
-            let path = p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {:}", err)))?;
+            let path = p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {err}")))?;
             sources.push(FilePath { path: path.to_string_lossy().to_string() });
         }
     }

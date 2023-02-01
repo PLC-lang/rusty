@@ -48,7 +48,7 @@ fn math_mixed_decimals() {
     assert!(approx_equal(res, 35.0f32, 4));
     let expected: f32 = (6f32 * 5.5f32) + (1.2f32 / 2f32) - 0.2 + (5.5f32 / 2f32) - 1.15;
     assert_eq!(res, expected);
-    print!("{}", res);
+    print!("{res}");
 }
 
 #[test]

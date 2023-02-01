@@ -97,7 +97,7 @@ impl StatementValidator {
                     if target_type.is_int() {
                         if !access.is_compatible(target_type, context.index) {
                             self.push_diagnostic(Diagnostic::incompatible_directaccess(
-                                &format!("{:?}", access),
+                                &format!("{access:?}"),
                                 access.get_bit_width(),
                                 location.clone(),
                             ))
@@ -107,7 +107,7 @@ impl StatementValidator {
                     } else {
                         //Report incompatible type issue
                         self.push_diagnostic(Diagnostic::incompatible_directaccess(
-                            &format!("{:?}", access),
+                            &format!("{access:?}"),
                             access.get_bit_width(),
                             location.clone(),
                         ))
@@ -170,8 +170,7 @@ impl StatementValidator {
                             if value.len() > 1 {
                                 self.push_diagnostic(Diagnostic::syntax_error(
                                     format!(
-                                        "Value: '{}' exceeds length for type: {}",
-                                        value, l_resulting_type
+                                        "Value: '{value}' exceeds length for type: {l_resulting_type}",
                                     )
                                     .as_str(),
                                     location.clone(),
@@ -232,7 +231,7 @@ impl StatementValidator {
             {
                 self.push_diagnostic(Diagnostic::unresolved_generic_type(
                     generic_symbol,
-                    &format!("{:?}", nature),
+                    &format!("{nature:?}"),
                     statement.get_location(),
                 ))
             } else if let Some((actual_type, generic_nature)) = context
@@ -246,7 +245,7 @@ impl StatementValidator {
                 {
                     self.push_diagnostic(Diagnostic::invalid_type_nature(
                         actual_type.get_name(),
-                        format!("{:?}", generic_nature).as_str(),
+                        format!("{generic_nature:?}").as_str(),
                         statement.get_location(),
                     ));
                 }
@@ -267,7 +266,7 @@ impl StatementValidator {
                 if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type, context.index)
                 {
                     self.push_diagnostic(Diagnostic::incompatible_directaccess_range(
-                        &format!("{:?}", access_type),
+                        &format!("{access_type:?}"),
                         target_type.get_name(),
                         access_type.get_range(target_type, context.index),
                         location.clone(),
@@ -418,17 +417,17 @@ impl StatementValidator {
 
     fn get_literal_value(literal: &AstStatement) -> String {
         match literal {
-            AstStatement::LiteralString { value, is_wide: true, .. } => format!(r#""{:}""#, value),
-            AstStatement::LiteralString { value, is_wide: false, .. } => format!(r#"'{:}'"#, value),
+            AstStatement::LiteralString { value, is_wide: true, .. } => format!(r#""{value}""#),
+            AstStatement::LiteralString { value, is_wide: false, .. } => format!(r#"'{value}'"#),
             AstStatement::LiteralBool { value, .. } => {
-                format!("{}", value)
+                format!("{value}")
             }
             AstStatement::LiteralInteger { value, .. } => {
-                format!("{}", value)
+                format!("{value}")
             }
             AstStatement::LiteralReal { value, .. } => value.clone(),
             _ => {
-                format!("{:#?}", literal)
+                format!("{literal:#?}")
             }
         }
     }

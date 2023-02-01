@@ -254,7 +254,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     )
                 } else {
                     Err(Diagnostic::syntax_error(
-                        &format!("{:?} not a direct access", element),
+                        &format!("{element:?} not a direct access"),
                         element.get_location(),
                     ))
                 }?;
@@ -268,7 +268,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         )
                     } else {
                         Err(Diagnostic::syntax_error(
-                            &format!("{:?} not a direct access", element),
+                            &format!("{element:?} not a direct access"),
                             element.get_location(),
                         ))
                     }?;

@@ -124,15 +124,15 @@ impl LinkerInterface for CcLinker {
     }
 
     fn add_lib_path(&mut self, path: &str) {
-        self.args.push(format!("-L{}", path));
+        self.args.push(format!("-L{path}"));
     }
 
     fn add_lib(&mut self, path: &str) {
-        self.args.push(format!("-l{}", path));
+        self.args.push(format!("-l{path}"));
     }
 
     fn add_sysroot(&mut self, path: &str) {
-        self.args.push(format!("--sysroot={}", path));
+        self.args.push(format!("--sysroot={path}"));
     }
 
     fn build_shared_object(&mut self, path: &str) {
@@ -154,7 +154,7 @@ impl LinkerInterface for CcLinker {
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
         let linker_location = which(&self.linker)
-            .map_err(|e| LinkerError::Link(format!("{} for linker: {}", e, &self.linker)))?;
+            .map_err(|e| LinkerError::Link(format!("{e} for linker: {}", &self.linker)))?;
 
         #[cfg(feature = "debug")]
         println!("Linker command : {} {}", linker_location.to_string_lossy(), self.args.join(" "));
@@ -184,15 +184,15 @@ impl LinkerInterface for LdLinker {
     }
 
     fn add_lib_path(&mut self, path: &str) {
-        self.args.push(format!("-L{}", path));
+        self.args.push(format!("-L{path}"));
     }
 
     fn add_lib(&mut self, path: &str) {
-        self.args.push(format!("-l{}", path));
+        self.args.push(format!("-l{path}"));
     }
 
     fn add_sysroot(&mut self, path: &str) {
-        self.args.push(format!("--sysroot={}", path));
+        self.args.push(format!("--sysroot={path}"));
     }
 
     fn build_shared_object(&mut self, path: &str) {
@@ -240,7 +240,7 @@ impl From<LinkerError> for Diagnostic {
                 Diagnostic::link_error(&format!("path contains invalid UTF-8 characters: {}", path.display()))
             }
             LinkerError::Target(tgt) => {
-                Diagnostic::link_error(&format!("linker not available for target platform: {}", tgt))
+                Diagnostic::link_error(&format!("linker not available for target platform: {tgt}"))
             }
         }
     }
