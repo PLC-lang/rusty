@@ -11,7 +11,7 @@ on:
   
 env:
   IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: v13-1.60
+  IMAGE_VERSION: 13-1.60
 
 jobs:
   check: 
