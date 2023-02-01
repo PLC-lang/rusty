@@ -924,7 +924,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         pou: &PouIndexEntry,
         variadic_params: &[&AstStatement],
     ) -> Result<Vec<BasicValueEnum<'ink>>, Diagnostic> {
-        //get the real varargs from the index
+        // get the real varargs from the index
         if let Some((var_args, argument_type)) = self
             .index
             .get_variadic_member(pou.get_name())
@@ -934,31 +934,40 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .iter()
                 .map(|param_statement| {
                     self.get_type_hint_for(param_statement).map(|it| it.get_name()).and_then(|type_name| {
-                        // If the variadic is defined in a by_ref block, we need to pass the argument as reference
-                        if let ArgumentType::ByVal(_) = argument_type {
-                            self.generate_argument_by_val(type_name, param_statement)
-                        } else {
+                        // if the variadic is defined in a by_ref block, we need to pass the argument as reference
+                        if argument_type.is_by_ref() {
                             self.generate_argument_by_ref(
                                 param_statement,
                                 type_name,
                                 self.index.get_variadic_member(pou.get_name()),
                             )
+                        } else {
+                            self.generate_argument_by_val(type_name, param_statement)
                         }
                     })
                 })
                 .collect::<Result<Vec<_>, _>>()?;
-            // For sized variadics we create an array and store all the arguments in that array
+
+            // for sized variadics we create an array and store all the arguments in that array
             if let VarArgs::Sized(Some(type_name)) = var_args {
-                let llvm_type = self.llvm_index.get_associated_type(type_name)?;
-                // If the variadic argument is ByRef, wrap it in a pointer.
-                let llvm_type = if matches!(argument_type, ArgumentType::ByRef(_)) {
-                    llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()
+                let ty = self.llvm_index.get_associated_type(type_name).map(|it| {
+                    if argument_type.is_by_ref() && it.is_array_type() {
+                        it.into_array_type().get_element_type()
+                    } else {
+                        it
+                    }
+                })?;
+                // if the variadic argument is ByRef, wrap it in a pointer.
+                let ty = if argument_type.is_by_ref() {
+                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()
                 } else {
-                    llvm_type
+                    ty
                 };
+
                 let size = generated_params.len();
                 let size_param = self.llvm.i32_type().const_int(size as u64, true);
-                let arr = Llvm::get_array_type(llvm_type, size as u32);
+
+                let arr = ty.array_type(size as u32);
                 let arr_storage = self.llvm.builder.build_alloca(arr, "");
                 for (i, ele) in generated_params.iter().enumerate() {
                     let ele_ptr = self.llvm.load_array_element(
@@ -975,7 +984,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // bitcast the array to pointer so it matches the declared function signature
                 let arr_storage = self.llvm.builder.build_bitcast(
                     arr_storage,
-                    llvm_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                     "",
                 );
 
