@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{self, DirectAccessType, SourceRange, TypeNature},
+    ast::{self, DirectAccessType, SourceRange},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_typesystem,
@@ -911,10 +911,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     "",
                 );
 
-                return Ok(res.into_pointer_value().into());
+                Ok(res.into_pointer_value().into())
             }
 
-            // ...check if we need to bitcast because the actual and target types are not equal
+            // ...check if we need to bitcast the `gep` value to a hinted type before returning it
             Ok(gep) => {
                 if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
                     let actual_type = self.annotations.get_type_or_void(argument, self.index);
