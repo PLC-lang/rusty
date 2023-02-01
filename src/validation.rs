@@ -63,7 +63,16 @@ impl<'s> ValidationContext<'s> {
             }
             _ => None,
         }
-        .and_then(|pou_name| self.index.find_pou(pou_name))
+        .and_then(|pou_name| {
+            let name = self
+                .index
+                .find_callable_instance_variable(self.qualifier, &[pou_name])
+                .and_then(|it| Some(it.get_type_name()))
+                .or_else(|| Some(&pou_name))
+                .unwrap();
+
+            self.index.find_pou(name)
+        })
     }
 }
 
@@ -227,7 +236,7 @@ impl Validator {
                 // visit called pou
                 self.visit_statement(operator, context);
 
-                if let Some(pou) = context.find_pou(operator) {
+                if let Some(pou) = context.find_pou(&operator) {
                     let declared_parameters = context.index.get_declared_parameters(pou.get_name());
                     let passed_parameters =
                         parameters.as_ref().as_ref().map(ast::flatten_expression_list).unwrap_or_default();
@@ -239,7 +248,7 @@ impl Validator {
                         if let Ok((location_in_parent, right, is_implicit)) =
                             get_implicit_call_parameter(p, &declared_parameters, i)
                         {
-                            // safe index of passed parameter
+                            // save index of passed parameter
                             passed_params_idx.push(location_in_parent);
 
                             let left = declared_parameters.get(location_in_parent);
@@ -261,6 +270,7 @@ impl Validator {
 
                                 self.validate_call_by_ref(left, p);
 
+                                // check for implicit downcasts
                                 self.validate_passed_call_parameter_size(
                                     left_type,
                                     right_type,
@@ -461,8 +471,8 @@ impl Validator {
         } = declared_type_info
         {
             let type_info = index.get_type_information_or_void(inner_type_name);
-            // if the declared type is an array, we do not check for downcasts because a mismatch will be an invalid assignment
-            if type_info.is_array() {
+            // if the declared type is an array or string, we do not check for downcasts because a mismatch will be an invalid assignment
+            if type_info.is_array() || type_info.is_string() {
                 return;
             }
             (type_info.get_size(index), inner_type_name.as_str())
