@@ -125,9 +125,9 @@ impl RecursiveValidator {
         }
     }
 
-    /// Filters all members of a node to only contain nodes we're interested in, i.e. structs and
+    /// Filters all member variables of a node to only contain members we're interested in, i.e. structs and
     /// functions blocks. For example a node `A` may contain a member variable `b` of type `DINT` and `c`
-    /// of type `C` (= Struct). Calling `filter_members` will return an IndexSet consisting of only type `C`.
+    /// of type struct `C`. Calling `filter_members` will return an IndexSet consisting of only type `C`.
     #[inline(always)]
     fn filter_members<'idx>(
         &self,
