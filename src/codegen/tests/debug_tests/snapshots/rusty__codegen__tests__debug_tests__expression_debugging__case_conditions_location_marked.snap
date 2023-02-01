@@ -5,33 +5,33 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @myFunc() !dbg !3 {
+define i32 @myFunc() !dbg !4 {
 entry:
-  %myFunc = alloca i32, align 4, !dbg !6
-  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !7, metadata !DIExpression()), !dbg !9
-  store i32 0, i32* %myFunc, align 4, !dbg !6
-  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !10
+  %myFunc = alloca i32, align 4, !dbg !7
+  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !8, metadata !DIExpression()), !dbg !10
+  store i32 0, i32* %myFunc, align 4, !dbg !7
+  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !11
   switch i32 %load_myFunc, label %else [
     i32 1, label %case
     i32 2, label %case1
-  ], !dbg !11
+  ], !dbg !12
 
 case:                                             ; preds = %entry
-  store i32 1, i32* %myFunc, align 4, !dbg !12
-  br label %continue, !dbg !12
-
-case1:                                            ; preds = %entry
   store i32 1, i32* %myFunc, align 4, !dbg !13
   br label %continue, !dbg !13
 
+case1:                                            ; preds = %entry
+  store i32 1, i32* %myFunc, align 4, !dbg !14
+  br label %continue, !dbg !14
+
 else:                                             ; preds = %entry
-  store i32 1, i32* %myFunc, align 4, !dbg !11
-  br label %continue, !dbg !11
+  store i32 1, i32* %myFunc, align 4, !dbg !12
+  br label %continue, !dbg !12
 
 continue:                                         ; preds = %else, %case1, %case
-  store i32 1, i32* %myFunc, align 4, !dbg !14
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !14
-  ret i32 %myFunc_ret, !dbg !14
+  store i32 1, i32* %myFunc, align 4, !dbg !15
+  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !15
+  ret i32 %myFunc_ret, !dbg !15
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -39,21 +39,23 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!0}
+!llvm.dbg.cu = !{!1}
 
-!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, splitDebugInlining: false)
-!1 = !DIFile(filename: "main", directory: "")
-!2 = !{}
-!3 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !1, file: !1, line: 2, type: !4, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !2)
-!4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
-!5 = !{null}
-!6 = !DILocation(line: 3, column: 12, scope: !3)
-!7 = !DILocalVariable(name: "myFunc", scope: !3, file: !1, line: 2, type: !8, align: 32)
-!8 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!9 = !DILocation(line: 2, column: 17, scope: !3)
-!10 = !DILocation(line: 3, column: 17, scope: !3)
-!11 = !DILocation(line: 9, column: 16, scope: !3)
-!12 = !DILocation(line: 5, column: 16, scope: !3)
-!13 = !DILocation(line: 7, column: 16, scope: !3)
-!14 = !DILocation(line: 11, column: 12, scope: !3)
+!0 = !{i32 2, !"Dwarf Version", i32 5}
+!1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !3, splitDebugInlining: false)
+!2 = !DIFile(filename: "main", directory: "")
+!3 = !{}
+!4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 2, type: !5, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !1, retainedNodes: !3)
+!5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+!6 = !{null}
+!7 = !DILocation(line: 3, column: 12, scope: !4)
+!8 = !DILocalVariable(name: "myFunc", scope: !4, file: !2, line: 2, type: !9, align: 32)
+!9 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!10 = !DILocation(line: 2, column: 17, scope: !4)
+!11 = !DILocation(line: 3, column: 17, scope: !4)
+!12 = !DILocation(line: 9, column: 16, scope: !4)
+!13 = !DILocation(line: 5, column: 16, scope: !4)
+!14 = !DILocation(line: 7, column: 16, scope: !4)
+!15 = !DILocation(line: 11, column: 12, scope: !4)
 
