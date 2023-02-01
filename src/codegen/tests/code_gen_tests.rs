@@ -3187,3 +3187,21 @@ fn reference_to_reference_assignments_in_function_arguments() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn sizeof_works_in_binary_expression_with_different_size() {
+    let result = codegen(
+        r#"    
+        FUNCTION main : DINT
+        VAR
+            i : DINT;
+            j : UINT;
+            arr_ptr : REF_TO ARRAY[1..3] OF REAL;
+        END_VAR
+            i := j - SIZEOF(arr_ptr);
+        END_FUNCTION
+    "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
