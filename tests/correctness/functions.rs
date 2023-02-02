@@ -902,6 +902,120 @@ fn sel_expression_test() {
 }
 
 #[test]
+fn sel_struct_ref() {
+    #[repr(C)]
+    #[derive(Default)]
+    struct MainType {
+        res: myStruct,
+    }
+
+    #[repr(C)]
+    #[derive(Default)]
+    struct myStruct {
+        a: bool,
+        b: bool,
+    }
+
+    let function = r#"
+	PROGRAM main
+	VAR
+		struct1 : myStruct;
+	END_VAR
+	VAR_TEMP
+		struct2 : myStruct := (a := TRUE, b := FALSE);
+		struct3 : myStruct := (a := FALSE, b := TRUE);
+	END_VAR
+		struct1 := SEL(TRUE, struct2, struct3); // struct3
+	END_PROGRAM
+
+	TYPE myStruct : STRUCT
+		a : BOOL;
+		b : BOOL;
+	END_STRUCT
+	END_TYPE
+	"#;
+
+    let mut main = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert!(!main.res.a);
+    assert!(main.res.b);
+}
+
+#[test]
+fn sel_array_ref() {
+    #[repr(C)]
+    #[derive(Default)]
+    struct MainType {
+        res: [i32; 3],
+    }
+
+    let function = r#"
+	PROGRAM main
+	VAR
+		arr1 : ARRAY[0..2] OF DINT;
+	END_VAR
+	VAR_TEMP
+		arr2 : ARRAY[0..2] OF DINT := (0, 1, 2);
+		arr3 : ARRAY[0..2] OF DINT := (3, 4, 5);
+	END_VAR
+		arr1 := SEL(TRUE, arr2, arr3); // arr3
+	END_PROGRAM
+	"#;
+
+    let mut main = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.res, [3, 4, 5]);
+}
+
+#[test]
+fn sel_string_ref() {
+    #[repr(C)]
+    #[derive(Default)]
+    struct MainType {
+        res: [u8; 6],
+    }
+
+    let function = r#"
+	PROGRAM main
+	VAR
+		str1 : STRING;
+	END_VAR
+	VAR_TEMP
+		str2 : STRING := 'hello';
+		str3 : STRING := 'world';
+	END_VAR
+		str1 := SEL(TRUE, str2, str3); // str3
+	END_PROGRAM
+	"#;
+
+    let mut main = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.res, "world\0".as_bytes());
+}
+
+#[test]
+fn sel_string_literal() {
+    #[repr(C)]
+    #[derive(Default)]
+    struct MainType {
+        res: [u8; 6],
+    }
+
+    let function = r#"
+	PROGRAM main
+	VAR
+		str1 : STRING;
+	END_VAR
+		str1 := SEL(TRUE, 'hello', 'world'); // world
+	END_PROGRAM
+	"#;
+
+    let mut main = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.res, "world\0".as_bytes());
+}
+
+#[test]
 fn move_test() {
     let function = r#"
         FUNCTION main : DINT
