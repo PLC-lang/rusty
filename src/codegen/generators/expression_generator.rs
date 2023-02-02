@@ -870,8 +870,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         type_name: &str,
         declared_parameter: Option<&VariableIndexEntry>,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        // Check for uninitialized var_output / var_in_out's...
         if matches!(argument, AstStatement::EmptyStatement { .. }) {
-            //uninitialized var_output/var_in_out
             let v_type = self
                 .llvm_index
                 .find_associated_type(type_name)
@@ -886,37 +886,55 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.llvm.builder.build_store(ptr_value, value);
                 }
             }
-            Ok(ptr_value)
-        } else {
-            let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
-                //passed a literal to byref parameter?
-                //TODO: find more defensive solution - check early
-                let value = self.generate_expression(argument)?;
-                let argument = self.llvm.builder.build_alloca(value.get_type(), "");
-                self.llvm.builder.build_store(argument, value);
-                Ok(argument)
-            })?;
-            // if we pass any array type by ref
-            // we need to pass a pointer to the array element type
-            // and not a pointer to array => [81 x i8]* -> i8*
-            if value.get_type().get_element_type().is_array_type() {
+
+            return Ok(ptr_value.into());
+        }
+
+        // ...else...
+        match self.generate_element_pointer(argument) {
+            // ...check if we work with an array type, such that we can bitcast the array to a pointer
+            Ok(gep) if gep.get_type().get_element_type().is_array_type() => {
                 let res = self.llvm.builder.build_bitcast(
-                    value,
-                    value
-                        .get_type()
+                    gep,
+                    gep.get_type()
                         .get_element_type()
                         .into_array_type()
                         .get_element_type()
                         .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                     "",
                 );
-                Ok(res.into_pointer_value())
-            } else {
-                Ok(value)
+
+                Ok(res.into_pointer_value().into())
             }
-            // Ok(value)
+
+            // ...check if we need to bitcast the `gep` value to a hinted type before returning it
+            Ok(gep) => {
+                if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
+                    let actual_type = self.annotations.get_type_or_void(argument, self.index);
+                    let target_type = self.index.find_elementary_pointer_type(&hint.information);
+
+                    if target_type != actual_type.get_type_information() {
+                        return Ok(self.llvm.builder.build_bitcast(
+                            gep,
+                            self.llvm_index.get_associated_type(hint.get_name())?,
+                            "",
+                        ));
+                    }
+                }
+
+                Ok(gep.into())
+            }
+
+            // ...otherwise we _probably_ passed a literal to a byref parameter
+            Err(_) => {
+                // TODO: find more defensive solution - check early
+                let value = self.generate_expression(argument)?;
+                let argument = self.llvm.builder.build_alloca(value.get_type(), "");
+                self.llvm.builder.build_store(argument, value);
+
+                Ok(argument.into())
+            }
         }
-        .map(Into::into)
     }
 
     pub fn generate_variadic_arguments_list(
