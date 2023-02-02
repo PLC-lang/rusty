@@ -976,7 +976,7 @@ fn validate_call_by_ref() {
 fn validate_call_by_ref_arrays() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
-        PROGRAM func
+        FUNCTION func : DINT
             VAR_IN_OUT
                 byRefInOut : INT;
             END_VAR
@@ -984,7 +984,7 @@ fn validate_call_by_ref_arrays() {
             VAR_OUTPUT
                 byRefOutput : INT;
             END_VAR
-        END_PROGRAM
+        END_FUNCTION
 
         PROGRAM main
             VAR
