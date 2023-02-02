@@ -1000,8 +1000,8 @@ fn validate_call_by_ref_arrays() {
 
     assert_eq!(diagnostics.len(), 2);
     assert_eq!(diagnostics[0].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
-    assert_eq!(diagnostics[0].get_affected_ranges(), &[(314..315).into()]);
+    assert_eq!(diagnostics[0].get_affected_ranges(), &[(323..324).into()]);
 
     assert_eq!(diagnostics[1].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
-    assert_eq!(diagnostics[1].get_affected_ranges(), &[(317..318).into()]);
+    assert_eq!(diagnostics[1].get_affected_ranges(), &[(326..327).into()]);
 }
