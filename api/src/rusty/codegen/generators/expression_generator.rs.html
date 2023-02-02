@@ -2542,6 +2542,24 @@
 <span id="2537">2537</span>
 <span id="2538">2538</span>
 <span id="2539">2539</span>
+<span id="2540">2540</span>
+<span id="2541">2541</span>
+<span id="2542">2542</span>
+<span id="2543">2543</span>
+<span id="2544">2544</span>
+<span id="2545">2545</span>
+<span id="2546">2546</span>
+<span id="2547">2547</span>
+<span id="2548">2548</span>
+<span id="2549">2549</span>
+<span id="2550">2550</span>
+<span id="2551">2551</span>
+<span id="2552">2552</span>
+<span id="2553">2553</span>
+<span id="2554">2554</span>
+<span id="2555">2555</span>
+<span id="2556">2556</span>
+<span id="2557">2557</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -3414,8 +3432,8 @@
         <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">declared_parameter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="comment">// Check for uninitialized var_output / var_in_out&#39;s...</span>
         <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">argument</span>, <span class="ident">AstStatement::EmptyStatement</span> { .. }) {
-            <span class="comment">//uninitialized var_output/var_in_out</span>
             <span class="kw">let</span> <span class="ident">v_type</span> <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">llvm_index</span>
                 .<span class="ident">find_associated_type</span>(<span class="ident">type_name</span>)
@@ -3430,37 +3448,55 @@
                     <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">ptr_value</span>, <span class="ident">value</span>);
                 }
             }
-            <span class="prelude-val">Ok</span>(<span class="ident">ptr_value</span>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">argument</span>).<span class="ident">or_else</span>::<span class="op">&lt;</span><span class="ident">Diagnostic</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                <span class="comment">//passed a literal to byref parameter?</span>
-                <span class="comment">//TODO: find more defensive solution - check early</span>
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">argument</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">argument</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_alloca</span>(<span class="ident">value</span>.<span class="ident">get_type</span>(), <span class="string">&quot;&quot;</span>);
-                <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">argument</span>, <span class="ident">value</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">argument</span>)
-            })<span class="question-mark">?</span>;
-            <span class="comment">// if we pass any array type by ref</span>
-            <span class="comment">// we need to pass a pointer to the array element type</span>
-            <span class="comment">// and not a pointer to array =&gt; [81 x i8]* -&gt; i8*</span>
-            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">is_array_type</span>() {
+
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ptr_value</span>.<span class="ident">into</span>());
+        }
+
+        <span class="comment">// ...else...</span>
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">argument</span>) {
+            <span class="comment">// ...check if we work with an array type, such that we can bitcast the array to a pointer</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">gep</span>) <span class="kw">if</span> <span class="ident">gep</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">is_array_type</span>() =&gt; {
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_bitcast</span>(
-                    <span class="ident">value</span>,
-                    <span class="ident">value</span>
-                        .<span class="ident">get_type</span>()
+                    <span class="ident">gep</span>,
+                    <span class="ident">gep</span>.<span class="ident">get_type</span>()
                         .<span class="ident">get_element_type</span>()
                         .<span class="ident">into_array_type</span>()
                         .<span class="ident">get_element_type</span>()
                         .<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::from</span>(<span class="ident">ADDRESS_SPACE_GENERIC</span>)),
                     <span class="string">&quot;&quot;</span>,
                 );
-                <span class="prelude-val">Ok</span>(<span class="ident">res</span>.<span class="ident">into_pointer_value</span>())
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
+
+                <span class="prelude-val">Ok</span>(<span class="ident">res</span>.<span class="ident">into_pointer_value</span>().<span class="ident">into</span>())
             }
-            <span class="comment">// Ok(value)</span>
+
+            <span class="comment">// ...check if we need to bitcast the `gep` value to a hinted type before returning it</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">gep</span>) =&gt; {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">hint</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_type_hint</span>(<span class="ident">argument</span>, <span class="self">self</span>.<span class="ident">index</span>) {
+                    <span class="kw">let</span> <span class="ident">actual_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_type_or_void</span>(<span class="ident">argument</span>, <span class="self">self</span>.<span class="ident">index</span>);
+                    <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_elementary_pointer_type</span>(<span class="kw-2">&amp;</span><span class="ident">hint</span>.<span class="ident">information</span>);
+
+                    <span class="kw">if</span> <span class="ident">target_type</span> <span class="op">!</span><span class="op">=</span> <span class="ident">actual_type</span>.<span class="ident">get_type_information</span>() {
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_bitcast</span>(
+                            <span class="ident">gep</span>,
+                            <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">hint</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>,
+                            <span class="string">&quot;&quot;</span>,
+                        ));
+                    }
+                }
+
+                <span class="prelude-val">Ok</span>(<span class="ident">gep</span>.<span class="ident">into</span>())
+            }
+
+            <span class="comment">// ...otherwise we _probably_ passed a literal to a byref parameter</span>
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="comment">// TODO: find more defensive solution - check early</span>
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">argument</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">argument</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_alloca</span>(<span class="ident">value</span>.<span class="ident">get_type</span>(), <span class="string">&quot;&quot;</span>);
+                <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">argument</span>, <span class="ident">value</span>);
+
+                <span class="prelude-val">Ok</span>(<span class="ident">argument</span>.<span class="ident">into</span>())
+            }
         }
-        .<span class="ident">map</span>(<span class="ident">Into::into</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_variadic_arguments_list</span>(

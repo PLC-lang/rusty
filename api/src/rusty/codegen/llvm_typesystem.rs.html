@@ -341,6 +341,15 @@
 <span id="336">336</span>
 <span id="337">337</span>
 <span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">builder::Builder</span>,
@@ -621,6 +630,15 @@
                 <span class="ident">statement</span>.<span class="ident">get_location</span>(),
             )),
         },
+
+        <span class="ident">DataTypeInformation::Pointer</span> { <span class="ident">auto_deref</span>: <span class="bool-val">true</span>, <span class="ident">inner_type_name</span>, .. } =&gt; {
+            <span class="comment">// Call `cast_if_needed` again, this time with more information regarding the pointers type</span>
+            <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">inner_type_name</span>);
+            <span class="kw">let</span> <span class="ident">value_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">value_type</span>.<span class="ident">get_name</span>());
+
+            <span class="ident">cast_if_needed</span>(<span class="ident">llvm</span>, <span class="ident">index</span>, <span class="ident">llvm_type_index</span>, <span class="ident">target_type</span>, <span class="ident">value</span>, <span class="ident">value_type</span>, <span class="ident">statement</span>)
+        }
+
         <span class="ident">DataTypeInformation::Pointer</span> { <span class="ident">auto_deref</span>: <span class="bool-val">false</span>, .. } =&gt; <span class="kw">match</span> <span class="ident">value_type</span> {
             <span class="ident">DataTypeInformation::Integer</span> { .. } =&gt; <span class="prelude-val">Ok</span>(<span class="ident">llvm</span>
                 .<span class="ident">builder</span>
