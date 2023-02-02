@@ -175,8 +175,16 @@ lazy_static! {
                     if let &[g,in0,in1] = params {
                         //Evaluate the parameters
                         let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder);
-                        let in0 = generator.generate_expression(in0)?;
-                        let in1 = generator.generate_expression(in1)?;
+                        let in0 = if generator.annotations.get_type(in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(in0)?.get_basic_value_enum()
+                        } else {
+                            generator.generate_expression(in0)?
+                        };
+                        let in1 = if generator.annotations.get_type(in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(in1)?.get_basic_value_enum()
+                        } else {
+                            generator.generate_expression(in1)?
+                        };
                         //Generate an llvm select instruction
                         Ok(generator.llvm.builder.build_select(cond, in1, in0, ""))
                     } else {
