@@ -173,8 +173,11 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
-                        //Evaluate the parameters
+                        // evaluate the parameters
                         let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder);
+                        // for aggregate types we need a ptr to perform memcpy
+                        // use generate_expression_value(), this will return a gep
+                        // generate_expression() would load the ptr
                         let in0 = if generator.annotations.get_type(in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
                             generator.generate_expression_value(in0)?.get_basic_value_enum()
                         } else {
@@ -185,7 +188,7 @@ lazy_static! {
                         } else {
                             generator.generate_expression(in1)?
                         };
-                        //Generate an llvm select instruction
+                        // generate an llvm select instruction
                         Ok(generator.llvm.builder.build_select(cond, in1, in0, ""))
                     } else {
                         Err(Diagnostic::codegen_error("Invalid signature for SEL", location))
