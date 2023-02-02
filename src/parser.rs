@@ -945,7 +945,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         if !lexer.allow(&KeywordComma) {
             let next_token_start = lexer.location().get_start();
             lexer.accept_diagnostic(Diagnostic::missing_token(
-                format!("{KeywordColon:?} or {KeywordColon:?}").as_str(),
+                format!("{KeywordColon:?} or {KeywordComma:?}").as_str(),
                 lexer.source_range_factory.create_range(identifier_end..next_token_start),
             ));
         }
