@@ -24,7 +24,6 @@ use super::Validators;
 /// overflows the stack.
 ///
 /// [1] https://en.wikipedia.org/wiki/Depth-first_search
-#[derive(Default)]
 pub struct RecursiveValidator {
     pub diagnostics: Vec<Diagnostic>,
 }
@@ -117,7 +116,7 @@ impl RecursiveValidator {
                     .collect();
 
                 slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
-                self.diagnostics.push(Diagnostic::recursive_datastructure(&slice.join(" -> "), ranges));
+                self.push_diagnostic(Diagnostic::recursive_datastructure(&slice.join(" -> "), ranges));
             }
 
             None => unreachable!("Node has to be in the IndexSet"),
