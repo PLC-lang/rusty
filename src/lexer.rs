@@ -103,10 +103,7 @@ impl<'a> ParseSession<'a> {
 
     pub fn consume_or_report(&mut self, token: Token) {
         if !self.allow(&token) {
-            self.accept_diagnostic(Diagnostic::missing_token(
-                format!("{token:?}").as_str(),
-                self.location(),
-            ));
+            self.accept_diagnostic(Diagnostic::missing_token(format!("{token:?}").as_str(), self.location()));
         }
     }
 

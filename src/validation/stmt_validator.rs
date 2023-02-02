@@ -169,10 +169,8 @@ impl StatementValidator {
                             // literalString may only be 1 character long
                             if value.len() > 1 {
                                 self.push_diagnostic(Diagnostic::syntax_error(
-                                    format!(
-                                        "Value: '{value}' exceeds length for type: {l_resulting_type}",
-                                    )
-                                    .as_str(),
+                                    format!("Value: '{value}' exceeds length for type: {l_resulting_type}",)
+                                        .as_str(),
                                     location.clone(),
                                 ));
                             }

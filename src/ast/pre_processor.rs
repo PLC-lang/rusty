@@ -220,10 +220,8 @@ fn pre_process_variable_data_type(
     variable: &mut Variable,
     types: &mut Vec<UserTypeDeclaration>,
 ) {
-    let new_type_name = typesystem::create_internal_type_name(
-        format!("{container_name}_").as_str(),
-        variable.name.as_str(),
-    );
+    let new_type_name =
+        typesystem::create_internal_type_name(format!("{container_name}_").as_str(), variable.name.as_str());
     if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location, scope } =
         variable.replace_data_type_with_reference_to(new_type_name.clone())
     {

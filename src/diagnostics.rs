@@ -379,7 +379,7 @@ impl Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
                 "Unresolved constant '{constant_name:}' variable{:}",
-                reason.map(|it| format!(": {it}", )).unwrap_or_else(|| "".into()),
+                reason.map(|it| format!(": {it}",)).unwrap_or_else(|| "".into()),
             ),
             range: vec![location],
             err_no: ErrNo::pou__empty_variable_block,

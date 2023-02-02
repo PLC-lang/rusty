@@ -655,9 +655,8 @@ fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
 ) -> Result<Vec<FilePath>, Diagnostic> {
     let mut sources = Vec::new();
     for input in inputs {
-        let paths = glob(input).map_err(|e| {
-            Diagnostic::param_error(&format!("Failed to read glob pattern: {input}, ({e})"))
-        })?;
+        let paths = glob(input)
+            .map_err(|e| Diagnostic::param_error(&format!("Failed to read glob pattern: {input}, ({e})")))?;
 
         for p in paths {
             let path = p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {err}")))?;
