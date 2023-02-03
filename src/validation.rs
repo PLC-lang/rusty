@@ -422,6 +422,10 @@ impl Validator {
             match arg {
                 AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. } => (),
 
+                // See https://github.com/PLC-lang/rusty/issues/752
+                // In general we want ArrayAccess to be handled the same as References
+                AstStatement::ArrayAccess { .. } => (),
+
                 AstStatement::Assignment { right, .. } | AstStatement::OutputAssignment { right, .. } => {
                     self.validate_call_by_ref(param, right);
                 }

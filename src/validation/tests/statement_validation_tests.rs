@@ -1258,3 +1258,37 @@ fn method_implicit_downcast() {
     dbg!(&diagnostics);
     assert_eq!(diagnostics.len(), 2);
 }
+
+#[test]
+fn validate_call_by_ref_arrays() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION func : DINT
+            VAR_IN_OUT
+                byRefInOut : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                byRefOutput : INT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                x : ARRAY[0..1] OF INT;
+            END_VAR
+
+            func(x, x);                                    // Invalid because we pass a whole array
+            func(x[0], x[1]);                              // Valid because we pass a variable by array access 
+            func(byRefInOut := x[0], byRefOutput := x[1]); // Valid because we pass a variable by array access 
+        END_PROGRAM
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 2);
+    assert_eq!(diagnostics[0].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
+    assert_eq!(diagnostics[0].get_affected_ranges(), &[(323..324).into()]);
+
+    assert_eq!(diagnostics[1].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
+    assert_eq!(diagnostics[1].get_affected_ranges(), &[(326..327).into()]);
+}
