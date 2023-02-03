@@ -278,15 +278,6 @@ pub fn cast_if_needed<'ctx>(
                 statement.get_location(),
             )),
         },
-
-        DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } => {
-            // Call `cast_if_needed` again, this time with more information regarding the pointers type
-            let target_type = index.get_intrinsic_type_by_name(inner_type_name);
-            let value_type = index.get_intrinsic_type_by_name(value_type.get_name());
-
-            cast_if_needed(llvm, index, llvm_type_index, target_type, value, value_type, statement)
-        }
-
         DataTypeInformation::Pointer { auto_deref: false, .. } => match value_type {
             DataTypeInformation::Integer { .. } => Ok(llvm
                 .builder
