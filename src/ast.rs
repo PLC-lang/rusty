@@ -1187,6 +1187,23 @@ impl AstStatement {
             false
         }
     }
+
+    /// Returns true if the current statement is a literal
+    pub fn is_literal(&self) -> bool {
+        matches!(
+            self,
+            AstStatement::LiteralNull { .. }
+                | AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralDate { .. }
+                | AstStatement::LiteralDateAndTime { .. }
+                | AstStatement::LiteralTimeOfDay { .. }
+                | AstStatement::LiteralTime { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::LiteralBool { .. }
+                | AstStatement::LiteralString { .. }
+                | AstStatement::LiteralArray { .. }
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

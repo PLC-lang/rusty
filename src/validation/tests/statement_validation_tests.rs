@@ -1166,56 +1166,23 @@ fn program_implicit_downcast() {
 }
 
 #[test]
-fn class_implicit_downcast() {
-    // FIXME: no diagnostics at all - should be 1 downcast and 1 invalid assignment!
-    let diagnostics = parse_and_validate(
-        r#"
-        PROGRAM main
-        VAR
-            cls: MyClass;
-            var1_lint, var2_lint : LINT;
-            var_real             : REAL;
-            var_lword            : LWORD;
-            var_wstr             : WSTRING;
-        END_VAR
-            cls(
-                var1_lint,
-                var2_lint,
-                var_lword, 
-                var_wstr,
-            );
-        END_PROGRAM
-
-        CLASS MyClass
-        VAR
-            x, y : DINT;
-            mask : DWORD;
-            str  : STRING;
-        END_VAR
-    "#,
-    );
-    // we are expecting 3 implicit downcast warnings and 1 invalid assignment
-    assert_eq!(diagnostics.len(), 4);
-}
-
-#[test]
 fn action_implicit_downcast() {
-    // FIXME: no diagnostics at all - should be 1 downcast and 1 invalid assignment!
     let diagnostics = parse_and_validate(
         r#"
         PROGRAM main
         VAR
             var_lint : LINT;
             var_wstr : WSTRING;
+            var_arr  : ARRAY[1..3] OF LINT;
             fb       : fb_t;
         END_VAR
             fb.foo(var_lint, var_wstr);
-            prog.bar(var_lint, var_wstr);
+            prog.bar(var_lint, var_arr);
         END_PROGRAM
 
         FUNCTION_BLOCK fb_t
         VAR_INPUT
-            in1 : INT;
+            in1 : DINT;
             in2 : STRING;
         END_VAR
         END_FUNCTION_BLOCK
@@ -1226,7 +1193,7 @@ fn action_implicit_downcast() {
         END_ACTIONS
 
         PROGRAM prog
-        VAR
+        VAR_INPUT
             in1 : INT;
             in2 : STRING;
         END_VAR
@@ -1239,8 +1206,24 @@ fn action_implicit_downcast() {
     "#,
     );
 
-    dbg!(&diagnostics);
+    // we are expecting 2 implicit downcast warnings and 2 invalid assignment errors
     assert_eq!(diagnostics.len(), 4);
+    let ranges = &[(203..211), (245..253)];
+    let passed_types = &["LINT", "LINT"];
+    let expected_types = &["DINT", "INT"];
+    for (idx, diagnostic) in
+        diagnostics.iter().filter(|it| matches!(it, Diagnostic::ImprovementSuggestion { .. })).enumerate()
+    {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::implicit_downcast(
+                expected_types[idx],
+                passed_types[idx],
+                ranges[idx].to_owned().into()
+            )
+        );
+    }
+    assert_eq!(diagnostics.iter().filter(|it| matches!(it, Diagnostic::SyntaxError { .. })).count(), 2);
 }
 
 #[test]

@@ -50,12 +50,11 @@ impl<'s> ValidationContext<'s> {
             AstStatement::Reference { name, .. } => Some(name),
             AstStatement::QualifiedReference { elements, .. } => {
                 if let Some(stmt) = elements.last() {
-                    if let Some(StatementAnnotation::Variable { resulting_type, .. }) =
-                        self.ast_annotation.get(stmt)
-                    {
-                        Some(resulting_type)
-                    } else {
-                        None
+                    match self.ast_annotation.get(stmt) {
+                        Some(StatementAnnotation::Variable { resulting_type, .. }) => Some(resulting_type),
+                        Some(StatementAnnotation::Program { qualified_name }) => Some(qualified_name),
+                        Some(StatementAnnotation::Function { qualified_name, .. }) => Some(qualified_name),
+                        _ => None,
                     }
                 } else {
                     None
@@ -64,14 +63,15 @@ impl<'s> ValidationContext<'s> {
             _ => None,
         }
         .and_then(|pou_name| {
-            let name = self
-                .index
+            self.index
+                // check if this is an instance of a function block and get the type name
                 .find_callable_instance_variable(self.qualifier, &[pou_name])
-                .and_then(|it| Some(it.get_type_name()))
-                .or_else(|| Some(&pou_name))
-                .unwrap();
-
-            self.index.find_pou(name)
+                .map(|it| it.get_type_name())
+                // if it is not an instance, check if we are dealing with an action and get the base POU name
+                .or_else(|| self.index.find_implementation_by_name(pou_name).map(|it| it.get_type_name()))
+                // we didn't encounter an instance or action call, keep initial name
+                .or(Some(pou_name))
+                .and_then(|name| self.index.find_pou(name))
         })
     }
 }
@@ -245,7 +245,7 @@ impl Validator {
                 // visit called pou
                 self.visit_statement(operator, context);
 
-                if let Some(pou) = context.find_pou(&operator) {
+                if let Some(pou) = context.find_pou(operator) {
                     let declared_parameters = context.index.get_declared_parameters(pou.get_name());
                     let passed_parameters =
                         parameters.as_ref().as_ref().map(ast::flatten_expression_list).unwrap_or_default();
@@ -280,12 +280,15 @@ impl Validator {
                                 self.validate_call_by_ref(left, p);
 
                                 // check for implicit downcasts
-                                self.validate_passed_call_parameter_size(
-                                    left_type,
-                                    right_type,
-                                    p.get_location(),
-                                    context.index,
-                                );
+                                if !(pou.is_generic() || right.is_literal()) {
+                                    self.validate_passed_call_parameter_size(
+                                        left,
+                                        left_type,
+                                        right_type,
+                                        p.get_location(),
+                                        context.index,
+                                    );
+                                }
                             }
 
                             // mixing implicit and explicit parameters is not allowed
@@ -461,6 +464,7 @@ impl Validator {
 
     fn validate_passed_call_parameter_size(
         &mut self,
+        idx_entry: &VariableIndexEntry,
         declared_type: &typesystem::DataType,
         passed_type: &typesystem::DataType,
         location: SourceRange,
@@ -469,29 +473,29 @@ impl Validator {
         let passed_type_info = passed_type.get_type_information();
         let declared_type_info = declared_type.get_type_information();
 
-        // check if declared variable type is auto-deref
-        let (declared_size, declared_name) = if let DataTypeInformation::Pointer {
-            inner_type_name,
-            auto_deref: true,
-            ..
-        } = declared_type_info
-        {
-            let type_info = index.get_type_information_or_void(inner_type_name);
-            // if the declared type is an array or string, we do not check for downcasts because a mismatch will be an invalid assignment
-            if type_info.is_array() || type_info.is_string() {
-                return;
-            }
-            (type_info.get_size(index), inner_type_name.as_str())
+        // if the parameter is declared as by_ref, get the type behind it
+        let declared_type_info = if matches!(idx_entry.variable_type, ArgumentType::ByRef(..)) {
+            index.find_elementary_pointer_type(declared_type_info)
         } else {
-            (declared_type_info.get_size(index), declared_type_info.get_name())
+            index.find_intrinsic_type(declared_type_info)
         };
 
-        let (passed_size, passed_name) = (passed_type_info.get_size(index), passed_type_info.get_name());
+        // if we are passing a pointer, get the type behind it
+        let passed_type_info = if passed_type_info.is_pointer() {
+            index.find_elementary_pointer_type(passed_type_info)
+        } else {
+            index.find_intrinsic_type(passed_type_info)
+        };
 
-        if declared_size < passed_size {
+        // if either type is an aggregate type, we do not check for downcasts because a size mismatch will be an invalid assignment
+        if declared_type_info.is_aggregate() || passed_type_info.is_aggregate() {
+            return;
+        }
+
+        if declared_type_info.get_size(index) < passed_type_info.get_size(index) {
             self.stmt_validator.push_diagnostic(Diagnostic::implicit_downcast(
-                declared_name,
-                passed_name,
+                declared_type_info.get_name(),
+                passed_type_info.get_name(),
                 location,
             ))
         }
