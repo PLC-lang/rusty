@@ -1228,7 +1228,6 @@ fn action_implicit_downcast() {
 
 #[test]
 fn method_implicit_downcast() {
-    // FIXME: no diagnostics at all - should be 1 downcast and 1 invalid assignment!
     let diagnostics = parse_and_validate(
         r#"
     PROGRAM main
@@ -1237,7 +1236,7 @@ fn method_implicit_downcast() {
         var_lint : LINT;
         var_arr : ARRAY[1..3] OF DINT;
     END_VAR
-        cl.testMethod(var_lint, var_arr)
+        cl.testMethod(var_lint, var_arr, ADR(var_arr));
     END_PROGRAM
 
     CLASS MyClass
@@ -1249,14 +1248,30 @@ fn method_implicit_downcast() {
     VAR_INPUT 
         val : INT; 
         arr : ARRAY[1..3] OF SINT;
+        ref : REF_TO ARRAY[1..3] OF DINT;
     END_VAR
     END_METHOD
     END_CLASS    
     "#,
     );
 
-    dbg!(&diagnostics);
     assert_eq!(diagnostics.len(), 2);
+    let ranges = &[(146..154)];
+    let passed_types = &["LINT"];
+    let expected_types = &["INT"];
+    for (idx, diagnostic) in
+        diagnostics.iter().filter(|it| matches!(it, Diagnostic::ImprovementSuggestion { .. })).enumerate()
+    {
+        assert_eq!(
+            diagnostic,
+            &Diagnostic::implicit_downcast(
+                expected_types[idx],
+                passed_types[idx],
+                ranges[idx].to_owned().into()
+            )
+        );
+    }
+    assert_eq!(diagnostics.iter().filter(|it| matches!(it, Diagnostic::SyntaxError { .. })).count(), 1);
 }
 
 #[test]
