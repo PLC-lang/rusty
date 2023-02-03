@@ -493,6 +493,10 @@
 <span id="488">488</span>
 <span id="489">489</span>
 <span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -896,6 +900,10 @@
         <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">param</span>.<span class="ident">variable_type</span>.<span class="ident">get_variable_type</span>(), <span class="ident">VariableType::Output</span> <span class="op">|</span> <span class="ident">VariableType::InOut</span>) {
             <span class="kw">match</span> <span class="ident">arg</span> {
                 <span class="ident">AstStatement::Reference</span> { .. } <span class="op">|</span> <span class="ident">AstStatement::QualifiedReference</span> { .. } =&gt; (),
+
+                <span class="comment">// See https://github.com/PLC-lang/rusty/issues/752</span>
+                <span class="comment">// In general we want ArrayAccess to be handled the same as References</span>
+                <span class="ident">AstStatement::ArrayAccess</span> { .. } =&gt; (),
 
                 <span class="ident">AstStatement::Assignment</span> { <span class="ident">right</span>, .. } <span class="op">|</span> <span class="ident">AstStatement::OutputAssignment</span> { <span class="ident">right</span>, .. } =&gt; {
                     <span class="self">self</span>.<span class="ident">validate_call_by_ref</span>(<span class="ident">param</span>, <span class="ident">right</span>);
