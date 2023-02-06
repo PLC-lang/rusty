@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["LLVMAddLoopVectorizePass",""],["LLVMAddSLPVectorizePass",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["LLVMAddLoopVectorizePass",""],["LLVMAddSLPVectorizePass",""]]};

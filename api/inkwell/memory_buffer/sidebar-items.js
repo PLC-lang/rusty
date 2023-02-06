@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["MemoryBuffer",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["MemoryBuffer",""]]};

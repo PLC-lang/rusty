@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ExpressionPathElement",""]],"struct":[["ExpressionPath",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["ExpressionPathElement",""]],"struct":[["ExpressionPath",""]]};

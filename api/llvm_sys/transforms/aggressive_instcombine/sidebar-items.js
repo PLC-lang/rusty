@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["LLVMAddAggressiveInstCombinerPass",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["LLVMAddAggressiveInstCombinerPass",""]]};

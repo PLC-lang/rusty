@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["LLVMAddInstructionCombiningPass",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["LLVMAddInstructionCombiningPass",""]]};

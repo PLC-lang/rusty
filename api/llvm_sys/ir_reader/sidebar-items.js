@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["LLVMParseIRInContext","Read LLVM IR from a memory buffer and convert it to an in-memory Module."]]});
+window.SIDEBAR_ITEMS = {"fn":[["LLVMParseIRInContext","Read LLVM IR from a memory buffer and convert it to an in-memory Module."]]};

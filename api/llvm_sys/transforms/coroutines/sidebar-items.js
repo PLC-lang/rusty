@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["LLVMAddCoroCleanupPass",""],["LLVMAddCoroEarlyPass",""],["LLVMAddCoroElidePass",""],["LLVMAddCoroSplitPass",""],["LLVMPassManagerBuilderAddCoroutinePassesToExtensionPoints",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["LLVMAddCoroCleanupPass",""],["LLVMAddCoroEarlyPass",""],["LLVMAddCoroElidePass",""],["LLVMAddCoroSplitPass",""],["LLVMPassManagerBuilderAddCoroutinePassesToExtensionPoints",""]]};

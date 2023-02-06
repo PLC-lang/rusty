@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["DataLayout",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["DataLayout",""]]};

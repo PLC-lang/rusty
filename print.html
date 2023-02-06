@@ -9,7 +9,6 @@
 
         <!-- Custom HTML head -->
         
-        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
@@ -35,13 +34,13 @@
     </head>
     <body>
         <!-- Provide site root to javascript -->
-        <script type="text/javascript">
+        <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
-        <script type="text/javascript">
+        <script>
             try {
                 var theme = localStorage.getItem('mdbook-theme');
                 var sidebar = localStorage.getItem('mdbook-sidebar');
@@ -57,7 +56,7 @@
         </script>
 
         <!-- Set the theme before any content is loaded, prevents flash -->
-        <script type="text/javascript">
+        <script>
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
@@ -69,7 +68,7 @@
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
-        <script type="text/javascript">
+        <script>
             var html = document.querySelector('html');
             var sidebar = 'hidden';
             if (document.body.clientWidth >= 1080) {
@@ -82,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer &amp; Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -100,7 +99,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
@@ -133,7 +132,7 @@
                 </div>
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
-                <script type="text/javascript">
+                <script>
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
                     document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
                     Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
@@ -210,7 +209,7 @@ By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file a
 <p>If you wish to develop natively however, you will need some additional dependencies namely :</p>
 <ul>
 <li><a href="https://www.rust-lang.org/tools/install">Rust</a></li>
-<li>LLVM 13</li>
+<li>LLVM 14</li>
 <li>LLVM Polly</li>
 <li>Build Tools (e.g. <code>build-essential</code> on Ubuntu)</li>
 <li>zlib</li>
@@ -220,31 +219,31 @@ By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file a
 <p>The specified dependencies can be installed with the following command on Ubuntu :</p>
 <pre><code class="language-bash">sudo apt install                \
     build-essential             \
-    llvm-13-dev liblld-13-dev   \
+    llvm-14-dev liblld-14-dev   \
     libz-dev                    \
-    libclang-common-13-dev 
+    libclang-common-14-dev 
 </code></pre>
 <h2 id="debian"><a class="header" href="#debian">Debian</a></h2>
 <p>Same as Ubuntu with the exception of adding additional repository sources since Debian 11 only includes LLVM packages up to version 11.
 To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.</p>
 <h2 id="macos"><a class="header" href="#macos">MacOS</a></h2>
 <p>On MacOS you need to install the <a href="https://developer.apple.com/downloads/"><code>Xcode Command Line Tools</code></a>.</p>
-<p>Furthermore LLVM 13 is needed, which can be easily installed with <a href="https://brew.sh">homebrew</a> :</p>
-<pre><code class="language-bash">brew install llvm@13
+<p>Furthermore LLVM 14 is needed, which can be easily installed with <a href="https://brew.sh">homebrew</a> :</p>
+<pre><code class="language-bash">brew install llvm@14
 </code></pre>
-<p>After the installation you have to add <code>/opt/homebrew/opt/llvm@13/bin</code> to your <code>$PATH</code> environment variable, e.g. with the following command :</p>
-<pre><code class="language-bash">echo 'export PATH=&quot;/opt/homebrew/opt/llvm@13/bin:$PATH&quot;' &gt;&gt; ~/.zshrc
+<p>After the installation you have to add <code>/opt/homebrew/opt/llvm@14/bin</code> to your <code>$PATH</code> environment variable, e.g. with the following command :</p>
+<pre><code class="language-bash">echo 'export PATH=&quot;/opt/homebrew/opt/llvm@14/bin:$PATH&quot;' &gt;&gt; ~/.zshrc
 </code></pre>
 <h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
-<p>For Windows you will need a <a href="https://github.com/plc-lang/llvm-package-windows/releases/tag/v13.0.0">custom build</a>.</p>
+<p>For Windows you will need a <a href="https://github.com/plc-lang/llvm-package-windows/releases/tag/v14.0.6">custom build</a>.</p>
 <h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
 <ul>
 <li>Because of weak compatibility guarantees of the LLVM API, the LLVM installation must exactly match the
-major version of the <code>llvm-sys</code> crate.Currently you will need to install LLVM 13 to satisfy this constraint.
+major version of the <code>llvm-sys</code> crate.Currently you will need to install LLVM 14 to satisfy this constraint.
 <a href="https://crates.io/crates/llvm-sys">Read more</a></li>
 <li>To avoid installation conflicts on Linux/Ubuntu, make sure you don't have a default installation available
 (like you get by just installing <code>llvm-dev</code>), which may break things. If you do, make sure you have set
-the appropriate environment variable (<code>LLVM_SYS_130_PREFIX=/usr/lib/llvm-13</code> for LLVM 13), so
+the appropriate environment variable (<code>LLVM_SYS_140_PREFIX=/usr/lib/llvm-14</code> for LLVM 14), so
 the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
 </ul>
 <h2 id="building"><a class="header" href="#building">Building</a></h2>
@@ -867,7 +866,7 @@ END_PROGRAM
 <h2 id="numeric-types"><a class="header" href="#numeric-types">Numeric types</a></h2>
 <p>A variety of numeric types exist with different sizes and properties complying with IEC61131.</p>
 <h3 id="overview"><a class="header" href="#overview">Overview</a></h3>
-<table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
 <tr><td>SINT</td><td>8 bit</td><td>signed</td></tr>
 <tr><td>USINT</td><td>8 bit</td><td>unsigned</td></tr>
 <tr><td>INT</td><td>16 bit</td><td>signed</td></tr>
@@ -879,6 +878,7 @@ END_PROGRAM
 <tr><td>REAL</td><td>32 bit</td><td>float</td></tr>
 <tr><td>LREAL</td><td>64 bit</td><td>float</td></tr>
 </tbody></table>
+</div>
 <p>When such a variable is declared without being initialized, it will
 be default-initialized with a value of <code>0</code> or <code>0.0</code> respectively.</p>
 <h3 id="a-word-on-integer-literals"><a class="header" href="#a-word-on-integer-literals">A word on integer literals</a></h3>
@@ -893,10 +893,11 @@ They will then be treated with regard to the respective number system.</p>
 </ul>
 <h2 id="strings"><a class="header" href="#strings">Strings</a></h2>
 <h3 id="overview-1"><a class="header" href="#overview-1">Overview</a></h3>
-<table><thead><tr><th>Type name</th><th>Size</th><th>Encoding</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Encoding</th></tr></thead><tbody>
 <tr><td>STRING</td><td>n+1</td><td>UTF-8</td></tr>
 <tr><td>WSTRING</td><td>2n+2</td><td>UTF-16</td></tr>
 </tbody></table>
+</div>
 <p>When such a variable is declared without being initialized, it will
 be default-initialized with a value of '' or &quot;&quot; respectively (empty strings).</p>
 <h3 id="string"><a class="header" href="#string">STRING</a></h3>
@@ -930,12 +931,13 @@ When declaring a <code>WSTRING</code>, the length-attribute is optional. The def
 </ul>
 <h2 id="date-and-time"><a class="header" href="#date-and-time">Date and Time</a></h2>
 <h3 id="overview-2"><a class="header" href="#overview-2">Overview</a></h3>
-<table><thead><tr><th>Type name</th><th>Size</th><th>Internally stored as</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Internally stored as</th></tr></thead><tbody>
 <tr><td>TIME</td><td>64 bit</td><td>Timespan in nanoseconds</td></tr>
 <tr><td>TIME_OF_DAY</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 <tr><td>DATE</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 <tr><td>DATE_AND_TIME</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 </tbody></table>
+</div>
 <p>Note that RuSTy already treats <code>TIME</code>, <code>TIME_OF_DAY</code>, <code>DATE</code> and <code>DATE_AND_TIME</code> as 64 bit numbers.
 Therefore the long pendants <code>LTIME</code>, <code>LTOD</code>, <code>LDATE</code> and <code>LDT</code> are mere aliases to the original types.</p>
 <h3 id="date"><a class="header" href="#date">DATE</a></h3>
@@ -1000,18 +1002,19 @@ TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <
 <h2 id="other-types"><a class="header" href="#other-types">Other types</a></h2>
 <p>The <code>BOOL</code> type can either be assigned <code>TRUE</code> or <code>FALSE</code>.
 The type <code>__VOID</code> is the empty type and has an undefined size.</p>
-<table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
 <tr><td>BOOL</td><td>8 bit</td><td>signed</td></tr>
 <tr><td>__VOID</td><td>undefined</td><td></td></tr>
 </tbody></table>
+</div>
 <p>Bit datatypes are defined as follows:</p>
-<table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
 <tr><td>BYTE</td><td>8 bit</td><td>unsigned</td></tr>
 <tr><td>WORD</td><td>16 bit</td><td>unsigned</td></tr>
 <tr><td>DWORD</td><td>32 bit</td><td>unsigned</td></tr>
 <tr><td>LWORD</td><td>64 bit</td><td>unsigned</td></tr>
 </tbody></table>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="direct-bit-access-on-variables"><a class="header" href="#direct-bit-access-on-variables">Direct (Bit) Access on Variables</a></h1>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="direct-bit-access-on-variables"><a class="header" href="#direct-bit-access-on-variables">Direct (Bit) Access on Variables</a></h1>
 <p>The IEC61131-3 Standard allows reading specific <code>Bits</code>, <code>Bytes</code>, <code>Words</code> or <code>DWords</code> from an <code>ANY_BIT</code> type.
 RuSTy supports this functionalty and extends it to support all <code>INT</code> types.</p>
 <h2 id="constant-based-direct-access"><a class="header" href="#constant-based-direct-access">Constant based Direct Access</a></h2>
@@ -1216,7 +1219,7 @@ It contains the index itself (a.k.a. Symbol Table), the <em>visitor</em> which c
 <h2 id="the-index-symbol-table"><a class="header" href="#the-index-symbol-table">The Index (Symbol Table)</a></h2>
 <p>The index stores information about all referable elements of the program.
 Depending on the type of element, we store different meta-information alongside the name of the element.</p>
-<table><thead><tr><th>Index Field</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Index Field</th><th>Description</th></tr></thead><tbody>
 <tr><td>global_variables</td><td>All global variables accessible via their name.</td></tr>
 <tr><td>enum_global_variables</td><td>All enum elements accessible via their name (as if they were global variables, e.g. 'RED')</td></tr>
 <tr><td>enum_qualified_variables</td><td>All enum elements accessible via their qualified name (e.g. 'COLOR.RED').</td></tr>
@@ -1226,6 +1229,7 @@ Depending on the type of element, we store different meta-information alongside 
 <tr><td>type_index</td><td>All data-types (intrinsic and complex) accessible via their name</td></tr>
 <tr><td>constant_expressions</td><td>The results of constant expressions that can be evaluated at compile time (e.g. the initializer of a constant: <code>VAR_GLOBAL CONST TAU := 3.1415 * 2; END_VAR</code>)</td></tr>
 </tbody></table>
+</div>
 <p>There are 3 different type of entries in the index:</p>
 <ul>
 <li><strong>VariableIndexEntry</strong>
@@ -1874,26 +1878,26 @@ END_VAR
 
 
 
-        <script type="text/javascript">
+        <script>
             window.playground_copyable = true;
         </script>
 
 
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
 
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
 
         <!-- Custom JS scripts -->
-        <script type="text/javascript" src="iecst.min.js"></script>
-        <script type="text/javascript" src="llvm.min.js"></script>
-        <script type="text/javascript" src="custom.js"></script>
-        <script type="text/javascript" src="highlight.js"></script>
+        <script src="iecst.min.js"></script>
+        <script src="llvm.min.js"></script>
+        <script src="custom.js"></script>
+        <script src="highlight.js"></script>
 
-        <script type="text/javascript">
+        <script>
         window.addEventListener('load', function() {
             window.setTimeout(window.print, 100);
         });

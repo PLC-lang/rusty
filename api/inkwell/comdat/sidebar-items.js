@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ComdatSelectionKind","Determines how linker conflicts are to be resolved."]],"struct":[["Comdat","A `Comdat` determines how to resolve duplicate sections when linking."]]});
+window.SIDEBAR_ITEMS = {"enum":[["ComdatSelectionKind","Determines how linker conflicts are to be resolved."]],"struct":[["Comdat","A `Comdat` determines how to resolve duplicate sections when linking."]]};

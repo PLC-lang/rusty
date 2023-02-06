@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["SubCommands",""]],"fn":[["get_config_format",""]],"struct":[["CompileParameters",""]],"type":[["ParameterError",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["SubCommands",""]],"fn":[["get_config_format",""]],"struct":[["CompileParameters",""]],"type":[["ParameterError",""]]};
