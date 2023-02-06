@@ -323,7 +323,7 @@ pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> Res
         64 => Ok(context.i64_type()),
         128 => Ok(context.i128_type()),
         _ => Err(Diagnostic::codegen_error(
-            &format!("Invalid size for type : '{}' at {}", name, size),
+            &format!("Invalid size for type : '{name}' at {size}"),
             SourceRange::undefined(),
         )),
     }
@@ -338,7 +338,7 @@ pub fn get_llvm_float_type<'a>(
         32 => Ok(context.f32_type()),
         64 => Ok(context.f64_type()),
         _ => Err(Diagnostic::codegen_error(
-            &format!("Invalid size for type : '{}' at {}", name, size),
+            &format!("Invalid size for type : '{name}' at {size}"),
             SourceRange::undefined(),
         )),
     }

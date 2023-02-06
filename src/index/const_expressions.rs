@@ -132,7 +132,7 @@ impl ConstExpressions {
         let wrapper = self
             .expressions
             .get_mut(*id)
-            .ok_or_else(|| format!("Cannot find constant expression with id: {:?}", id))?;
+            .ok_or_else(|| format!("Cannot find constant expression with id: {id:?}"))?;
 
         wrapper.expr = ConstExpression::Resolved(new_statement);
         Ok(())
@@ -144,7 +144,7 @@ impl ConstExpressions {
         let wrapper = self
             .expressions
             .get_mut(*id)
-            .ok_or_else(|| format!("Cannot find constant expression with id: {:?}", id))?;
+            .ok_or_else(|| format!("Cannot find constant expression with id: {id:?}"))?;
 
         wrapper.expr = ConstExpression::Unresolvable {
             statement: wrapper.get_statement().clone(),
@@ -205,7 +205,7 @@ impl ConstExpressions {
         self.get_constant_statement(id).ok_or_else(|| "Cannot find constant expression".into()).and_then(
             |it| match it {
                 AstStatement::LiteralInteger { value, .. } => Ok(*value),
-                _ => Err(format!("Cannot extract int constant from {:#?}", it)),
+                _ => Err(format!("Cannot extract int constant from {it:#?}")),
             },
         )
     }

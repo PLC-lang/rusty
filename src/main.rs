@@ -29,11 +29,11 @@ fn main() {
         Ok(cp) => {
             if cp.commands.is_some() {
                 if let Err(msg) = build_with_subcommand(cp) {
-                    eprintln!("Error: {:?}", msg);
+                    eprintln!("Error: {msg:?}");
                     std::process::exit(1);
                 }
             } else if let Err(msg) = build_with_params(cp) {
-                eprintln!("Error: {:?}", msg);
+                eprintln!("Error: {msg:?}");
                 std::process::exit(1);
             }
         }

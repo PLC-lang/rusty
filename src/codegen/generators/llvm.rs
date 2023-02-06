@@ -129,7 +129,7 @@ impl<'a> Llvm<'a> {
     ) -> Result<PointerValue<'a>, Diagnostic> {
         self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|_| {
             Diagnostic::codegen_error(
-                &format!("Cannot generate qualified reference for {:}", name),
+                &format!("Cannot generate qualified reference for {name:}"),
                 offset.clone(),
             )
         })
@@ -180,7 +180,7 @@ impl<'a> Llvm<'a> {
         match target_type {
             BasicTypeEnum::IntType { 0: int_type } => int_type
                 .const_int_from_string(value, StringRadix::Decimal)
-                .ok_or_else(|| Diagnostic::codegen_error(&format!("Cannot parse {} as int", value), location))
+                .ok_or_else(|| Diagnostic::codegen_error(&format!("Cannot parse {value} as int"), location))
                 .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { 0: float_type } => {
                 let value = float_type.const_float_from_string(value);

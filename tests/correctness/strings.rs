@@ -729,7 +729,7 @@ fn string_returned_from_main_does_not_truncate() {
     let _: u32 = compile_and_run(src, &mut res);
 
     assert_eq!(
-        format!("{:?}",res), 
+        format!("{res:?}"), 
         format!(
             "{:?}", 
             "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()
@@ -775,7 +775,7 @@ fn when_function_returns_value_from_generic_function_call_then_string_does_not_t
     let _: () = compile_and_run(src, &mut res);
 
     assert_eq!(
-        format!("{:?}",res), 
+        format!("{res:?}"), 
         format!(
             "{:?}", 
             "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()
@@ -815,7 +815,7 @@ fn when_function_returns_value_from_function_call_string_does_not_truncate() {
     let _: () = compile_and_run(src, &mut res);
 
     assert_eq!(
-        format!("{:?}",res), 
+        format!("{res:?}"), 
         format!(
             "{:?}", 
             "     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.\0".as_bytes()

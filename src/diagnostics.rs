@@ -152,7 +152,7 @@ impl Diagnostic {
 
     pub fn unexpected_token_found(expected: &str, found: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Unexpected token: expected {} but found {}", expected, found),
+            message: format!("Unexpected token: expected {expected} but found {found}"),
             range: vec![range],
             err_no: ErrNo::syntax__unexpected_token,
         }
@@ -168,10 +168,7 @@ impl Diagnostic {
 
     pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!(
-                "POU Type {:?} does not support a return type. Did you mean Function?",
-                pou_type
-            ),
+            message: format!("POU Type {pou_type:?} does not support a return type. Did you mean Function?"),
             range: vec![range],
             err_no: ErrNo::pou__unexpected_return_type,
         }
@@ -179,7 +176,7 @@ impl Diagnostic {
 
     pub fn function_unsupported_return_type(data_type: &DataTypeDeclaration) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Data Type {:?} not supported as a function return type!", data_type),
+            message: format!("Data Type {data_type:?} not supported as a function return type!"),
             range: vec![data_type.get_location()],
             err_no: ErrNo::pou__unsupported_return_type,
         }
@@ -208,8 +205,7 @@ impl Diagnostic {
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Missing compare function 'FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...'.",
-                function_name, data_type
+                "Missing compare function 'FUNCTION {function_name} : BOOL VAR_INPUT a,b : {data_type}; END_VAR ...'."
             ),
             range: vec![location],
             err_no: ErrNo::codegen__missing_compare_function,
@@ -218,7 +214,7 @@ impl Diagnostic {
 
     pub fn missing_token(expected_token: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Missing expected Token {}", expected_token),
+            message: format!("Missing expected Token {expected_token}"),
             range: vec![range],
             err_no: ErrNo::syntax__missing_token,
         }
@@ -233,7 +229,7 @@ impl Diagnostic {
 
     pub fn unresolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Could not resolve reference to {:}", reference),
+            message: format!("Could not resolve reference to {reference:}"),
             range: vec![location],
             err_no: ErrNo::reference__unresolved,
         }
@@ -241,7 +237,7 @@ impl Diagnostic {
 
     pub fn illegal_access(reference: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Illegal access to private member {:}", reference),
+            message: format!("Illegal access to private member {reference:}"),
             range: vec![location],
             err_no: ErrNo::reference__illegal_access,
         }
@@ -249,7 +245,7 @@ impl Diagnostic {
 
     pub fn unresolved_generic_type(symbol: &str, nature: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Could not resolve generic type {} with nature {}", symbol, nature),
+            message: format!("Could not resolve generic type {symbol} with nature {nature}"),
             range: vec![location],
             err_no: ErrNo::type__unresolved_generic,
         }
@@ -257,7 +253,7 @@ impl Diagnostic {
 
     pub fn unknown_type(type_name: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Unknown type: {:}", type_name),
+            message: format!("Unknown type: {type_name:}"),
             range: vec![location],
             err_no: ErrNo::type__unknown_type,
         }
@@ -265,7 +261,7 @@ impl Diagnostic {
 
     pub fn casting_error(type_name: &str, target_type: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Cannot cast from {:} to {:}", type_name, target_type),
+            message: format!("Cannot cast from {type_name:} to {target_type:}"),
             range: vec![location],
             err_no: ErrNo::type__cast_error,
         }
@@ -278,8 +274,7 @@ impl Diagnostic {
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "{}-Wise access requires a Numerical type larger than {} bits",
-                access_type, access_size
+                "{access_type}-Wise access requires a Numerical type larger than {access_size} bits"
             ),
             range: vec![location],
             err_no: ErrNo::type__incompatible_directaccess,
@@ -294,8 +289,8 @@ impl Diagnostic {
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "{}-Wise access for type {} must be in the range {}..{}",
-                access_type, target_type, access_range.start, access_range.end
+                "{access_type}-Wise access for type {target_type} must be in the range {}..{}",
+                access_range.start, access_range.end
             ),
             range: vec![location],
             err_no: ErrNo::type__incompatible_directaccess_range,
@@ -305,8 +300,7 @@ impl Diagnostic {
     pub fn incompatible_directaccess_variable(access_type: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Invalid type {} for direct variable access. Only variables of Integer types are allowed",
-                access_type
+                "Invalid type {access_type} for direct variable access. Only variables of Integer types are allowed",
             ),
             range: vec![location],
             err_no: ErrNo::type__incompatible_directaccess_variable,
@@ -324,8 +318,7 @@ impl Diagnostic {
     pub fn incompatible_array_access_variable(access_type: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Invalid type {} for array access. Only variables of Array types are allowed",
-                access_type
+                "Invalid type {access_type} for array access. Only variables of Array types are allowed",
             ),
             range: vec![location],
             err_no: ErrNo::type__incompatible_arrayaccess_variable,
@@ -335,8 +328,7 @@ impl Diagnostic {
     pub fn incompatible_array_access_type(access_type: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Invalid type {} for array access. Only variables of Integer types are allowed to access an array",
-                access_type
+                "Invalid type {access_type} for array access. Only variables of Integer types are allowed to access an array",
             ),
             range: vec![location],
             err_no: ErrNo::type__incompatible_arrayaccess_variable,
@@ -349,7 +341,7 @@ impl Diagnostic {
         location: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Literal {:} is not campatible to {:}", literal_type, cast_type),
+            message: format!("Literal {literal_type} is not campatible to {cast_type}"),
             range: vec![location],
             err_no: ErrNo::type__incompatible_literal_cast,
         }
@@ -365,7 +357,7 @@ impl Diagnostic {
 
     pub fn literal_out_of_range(literal: &str, range_hint: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Literal {:} out of range ({})", literal, range_hint),
+            message: format!("Literal {literal} out of range ({range_hint})"),
             range: vec![location],
             err_no: ErrNo::type__literal_out_of_range,
         }
@@ -386,9 +378,8 @@ impl Diagnostic {
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Unresolved constant '{:}' variable{:}",
-                constant_name,
-                reason.map(|it| format!(": {:}", it)).unwrap_or_else(|| "".into()),
+                "Unresolved constant '{constant_name:}' variable{:}",
+                reason.map(|it| format!(": {it}",)).unwrap_or_else(|| "".into()),
             ),
             range: vec![location],
             err_no: ErrNo::pou__empty_variable_block,
@@ -406,8 +397,7 @@ impl Diagnostic {
     pub fn invalid_constant(constant_name: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Invalid constant {:} - Functionblock- and Class-instances cannot be delcared constant",
-                constant_name
+                "Invalid constant {constant_name} - Functionblock- and Class-instances cannot be delcared constant",
             ),
             range: vec![location],
             err_no: ErrNo::var__invalid_constant,
@@ -416,7 +406,7 @@ impl Diagnostic {
 
     pub fn cannot_assign_to_constant(qualified_name: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Cannot assign to CONSTANT '{:}'", qualified_name),
+            message: format!("Cannot assign to CONSTANT '{qualified_name}'"),
             range: vec![location],
             err_no: ErrNo::var__cannot_assign_to_const,
         }
@@ -424,7 +414,7 @@ impl Diagnostic {
 
     pub fn cannot_generate_initializer(variable_name: &str, location: SourceRange) -> Diagnostic {
         Self::codegen_error(
-            &format!("Cannot generate literal initializer for '{:}': Value cannot be derived", variable_name),
+            &format!("Cannot generate literal initializer for '{variable_name}': Value cannot be derived"),
             location,
         )
     }
@@ -450,14 +440,14 @@ impl Diagnostic {
 
     pub fn io_read_error(file: &str, reason: &str) -> Diagnostic {
         Diagnostic::GeneralError {
-            message: format!("Cannot read file '{:}': {:}'", file, reason),
+            message: format!("Cannot read file '{file}': {reason}'"),
             err_no: ErrNo::general__io_err,
         }
     }
 
     pub fn io_write_error(file: &str, reason: &str) -> Diagnostic {
         Diagnostic::GeneralError {
-            message: format!("Cannot write file '{:}': {:}'", file, reason),
+            message: format!("Cannot write file {file} {reason}'"),
             err_no: ErrNo::general__io_err,
         }
     }
@@ -468,28 +458,28 @@ impl Diagnostic {
 
     pub fn llvm_error(file: &str, llvm_error: &LLVMString) -> Diagnostic {
         Diagnostic::GeneralError {
-            message: format!("{:}: Internal llvm error: {:}", file, llvm_error.to_string()),
+            message: format!("{file}: Internal llvm error: {:}", llvm_error.to_string()),
             err_no: ErrNo::general__io_err,
         }
     }
 
     pub fn cannot_generate_from_empty_literal(type_name: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::codegen_error(
-            format!("Cannot generate {} from empty literal", type_name).as_str(),
+            format!("Cannot generate {type_name} from empty literal").as_str(),
             location,
         )
     }
 
     pub fn cannot_generate_string_literal(type_name: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::codegen_error(
-            format!("Cannot generate String-Literal for type {}", type_name).as_str(),
+            format!("Cannot generate String-Literal for type {type_name}").as_str(),
             location,
         )
     }
 
     pub fn invalid_assignment(right_type: &str, left_type: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Invalid assignment: cannot assign '{:}' to '{:}'", right_type, left_type),
+            message: format!("Invalid assignment: cannot assign '{right_type}' to '{left_type}'"),
             range: vec![location],
             err_no: ErrNo::var__invalid_assignment,
         }
@@ -497,7 +487,7 @@ impl Diagnostic {
 
     pub fn invalid_type_nature(actual: &str, expected: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Invalid type nature for generic argument. {} is no {}.", actual, expected),
+            message: format!("Invalid type nature for generic argument. {actual} is no {expected}."),
             range: vec![location],
             err_no: ErrNo::type__invalid_nature,
         }
@@ -505,7 +495,7 @@ impl Diagnostic {
 
     pub fn unknown_type_nature(nature: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Unknown type nature {}.", nature),
+            message: format!("Unknown type nature {nature}."),
             range: vec![location],
             err_no: ErrNo::type__unknown_nature,
         }
@@ -521,7 +511,7 @@ impl Diagnostic {
 
     pub fn incompatible_type_size(nature: &str, size: u32, error: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("The type {} {} is too small to {} Pointer", nature, size, error),
+            message: format!("The type {nature} {size} is too small to {error} Pointer"),
             range: vec![location],
             err_no: ErrNo::type__incompatible_size,
         }
@@ -590,14 +580,14 @@ impl Diagnostic {
 
     pub fn invalid_pragma_location(message: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
-            message: format!("Invalid pragma location: {}", message),
+            message: format!("Invalid pragma location: {message}"),
             range: vec![range],
         }
     }
 
     pub fn non_constant_case_condition(case: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("{}. Non constant variables are not supported in case conditions", case),
+            message: format!("{case}. Non constant variables are not supported in case conditions"),
             range: vec![range],
             err_no: ErrNo::type__invalid_type,
         }
@@ -605,7 +595,7 @@ impl Diagnostic {
 
     pub fn duplicate_case_condition(value: &i128, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Duplicate condition value: {}. Occurred more than once!", value),
+            message: format!("Duplicate condition value: {value}. Occurred more than once!"),
             range: vec![range],
             err_no: ErrNo::case__duplicate_condition,
         }
@@ -629,7 +619,7 @@ impl Diagnostic {
 
     pub fn missing_inout_parameter(parameter: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Missing inout parameter: {}", parameter),
+            message: format!("Missing inout parameter: {parameter}"),
             range: vec![range],
             err_no: ErrNo::pou__missing_action_container,
         }
@@ -650,8 +640,7 @@ impl Diagnostic {
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(
-                "Expected a reference for parameter {} because their type is {:?}",
-                parameter_name, parameter_type,
+                "Expected a reference for parameter {parameter_name} because their type is {parameter_type:?}"
             ),
             range: vec![range],
             err_no: ErrNo::call__invalid_parameter_type,
@@ -660,7 +649,7 @@ impl Diagnostic {
 
     pub fn duplicate_pou(name: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Duplicate POU {}", name),
+            message: format!("Duplicate POU {name}"),
             range: vec![range],
             err_no: ErrNo::duplicate_symbol,
         }
@@ -683,7 +672,7 @@ impl Diagnostic {
         let mut locations = vec![location];
         locations.extend(conflicts.into_iter());
         Diagnostic::SyntaxError {
-            message: format!("{}: {}", name, additional_text),
+            message: format!("{name}: {additional_text}"),
             range: locations,
             err_no: ErrNo::duplicate_symbol,
         }
@@ -737,7 +726,7 @@ impl Display for Severity {
             Severity::Warning => "warning",
             Severity::_Info => "info",
         };
-        write!(f, "{}", severity)
+        write!(f, "{severity}")
     }
 }
 
@@ -891,7 +880,7 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
                 &diagnostic.message,
             );
 
-            eprintln!("{}", res);
+            eprintln!("{res}");
         }
     }
     fn register(&mut self, path: String, src: String) -> usize {
@@ -941,7 +930,7 @@ impl ClangFormatDiagnosticReporter {
             }
         }
         // severity
-        str.push_str(format!("{}: ", severity).as_str());
+        str.push_str(format!("{severity}: ").as_str());
         // msg
         str.push_str(msg);
 
@@ -988,8 +977,8 @@ impl Diagnostician {
     /// creates a null-diagnostician that does not report diagnostics
     pub fn null_diagnostician() -> Diagnostician {
         Diagnostician {
-            assessor: Box::new(DefaultDiagnosticAssessor::default()),
-            reporter: Box::new(NullDiagnosticReporter::default()),
+            assessor: Box::<DefaultDiagnosticAssessor>::default(),
+            reporter: Box::<NullDiagnosticReporter>::default(),
             filename_fileid_mapping: HashMap::new(),
         }
     }
@@ -997,8 +986,8 @@ impl Diagnostician {
     /// creates a clang-format-diagnostician that reports diagnostics in clang format
     pub fn clang_format_diagnostician() -> Diagnostician {
         Diagnostician {
-            reporter: Box::new(ClangFormatDiagnosticReporter::default()),
-            assessor: Box::new(DefaultDiagnosticAssessor::default()),
+            reporter: Box::<ClangFormatDiagnosticReporter>::default(),
+            assessor: Box::<DefaultDiagnosticAssessor>::default(),
             filename_fileid_mapping: HashMap::new(),
         }
     }
@@ -1051,11 +1040,13 @@ impl DiagnosticAssessor for Diagnostician {
     }
 }
 
+//This clippy lint is wrong her because the trait is expecting dyn
+#[allow(clippy::derivable_impls)]
 impl Default for Diagnostician {
     fn default() -> Self {
         Self {
-            reporter: Box::new(CodeSpanDiagnosticReporter::default()),
-            assessor: Box::new(DefaultDiagnosticAssessor::default()),
+            reporter: Box::<CodeSpanDiagnosticReporter>::default(),
+            assessor: Box::<DefaultDiagnosticAssessor>::default(),
             filename_fileid_mapping: HashMap::new(),
         }
     }

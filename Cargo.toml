@@ -16,7 +16,7 @@ verify = []
 
 [dependencies]
 logos = "0.12.0"
-inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features= ["llvm13-0"] }
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features= ["llvm14-0"] }
 thiserror = "1.0"
 clap = { version = "3.0", features = ["derive"] }
 indexmap = "1.6"
@@ -25,7 +25,7 @@ glob = "0.3.0"
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 codespan-reporting = "0.11.1"
-lld_rs = "130.0.0"
+lld_rs = "140.0.0"
 generational-arena = "0.2.8"
 regex = "1"
 serde = { version = "1.0", features = ["derive"] }
