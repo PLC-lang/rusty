@@ -278,15 +278,6 @@ pub fn cast_if_needed<'ctx>(
                 statement.get_location(),
             )),
         },
-
-        DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } => {
-            // Call `cast_if_needed` again, this time with more information regarding the pointers type
-            let target_type = index.get_intrinsic_type_by_name(inner_type_name);
-            let value_type = index.get_intrinsic_type_by_name(value_type.get_name());
-
-            cast_if_needed(llvm, index, llvm_type_index, target_type, value, value_type, statement)
-        }
-
         DataTypeInformation::Pointer { auto_deref: false, .. } => match value_type {
             DataTypeInformation::Integer { .. } => Ok(llvm
                 .builder
@@ -325,7 +316,7 @@ pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> Res
         64 => Ok(context.i64_type()),
         128 => Ok(context.i128_type()),
         _ => Err(Diagnostic::codegen_error(
-            &format!("Invalid size for type : '{}' at {}", name, size),
+            &format!("Invalid size for type : '{name}' at {size}"),
             SourceRange::undefined(),
         )),
     }
@@ -340,7 +331,7 @@ pub fn get_llvm_float_type<'a>(
         32 => Ok(context.f32_type()),
         64 => Ok(context.f64_type()),
         _ => Err(Diagnostic::codegen_error(
-            &format!("Invalid size for type : '{}' at {}", name, size),
+            &format!("Invalid size for type : '{name}' at {size}"),
             SourceRange::undefined(),
         )),
     }

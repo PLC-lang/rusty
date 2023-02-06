@@ -97,7 +97,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         variable_name: &str,
         target_value: PointerValue<'ink>,
     ) -> Result<(), Diagnostic> {
-        let qualified_name = format!("{}.{}", container_name, variable_name);
+        let qualified_name = format!("{container_name}.{variable_name}");
         self.loaded_variable_associations.insert(qualified_name.to_lowercase(), target_value);
         Ok(())
     }

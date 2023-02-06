@@ -60,7 +60,7 @@ impl<'idx> ExpressionPath<'idx> {
                                     res.push(next.to_string());
                                 } else {
                                     for item in curr.iter() {
-                                        res.push(format!("{},{}", item, next));
+                                        res.push(format!("{item},{next}"));
                                     }
                                 }
                             });
@@ -69,7 +69,7 @@ impl<'idx> ExpressionPath<'idx> {
                     );
 
                     //Add array brackets
-                    array.iter_mut().for_each(|s| *s = format!("[{}]", s));
+                    array.iter_mut().for_each(|s| *s = format!("[{s}]"));
                     array
                 }
             };
@@ -83,7 +83,7 @@ impl<'idx> ExpressionPath<'idx> {
                 } else {
                     let separator = if next.starts_with('[') { "" } else { "." };
                     for ele in &curr {
-                        res.push(format!("{}{}{}", ele, separator, next));
+                        res.push(format!("{ele}{separator}{next}"));
                     }
                 }
             });
