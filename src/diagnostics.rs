@@ -640,8 +640,7 @@ impl Diagnostic {
     ) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: format!(
-                "Potential loss of information due to passing '{}' to parameter of type '{}'.",
-                passed_parameter_name, declared_parameter_name,
+                "Potential loss of information due to passing '{passed_parameter_name}' to parameter of type '{declared_parameter_name}'."
             ),
             range: vec![range],
         }
