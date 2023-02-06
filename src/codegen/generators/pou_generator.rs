@@ -269,7 +269,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let current_function = self.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
             Diagnostic::codegen_error(
-                &format!("Could not find generated stub for {}", pou_name),
+                &format!("Could not find generated stub for {pou_name}"),
                 implementation.location.clone(),
             )
         })?;
@@ -408,7 +408,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             }
             None => Ok(self.llvm.context.void_type().fn_type(&params, is_var_args)),
             _ => Err(Diagnostic::codegen_error(
-                &format!("Unsupported return type {:?}", return_type),
+                &format!("Unsupported return type {return_type:?}"),
                 SourceRange::undefined(),
             )),
         }
@@ -721,12 +721,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             } else {
                 // renerate return statement
                 let call_name = function_context.linking_context.get_call_name();
-                let var_name = format!("{}_ret", call_name);
+                let var_name = format!("{call_name}_ret");
                 let ret_name = ret_v.get_qualified_name();
                 let value_ptr =
                     local_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
                         Diagnostic::codegen_error(
-                            &format!("Cannot generate return variable for {:}", call_name),
+                            &format!("Cannot generate return variable for {call_name:}"),
                             SourceRange::undefined(),
                         )
                     })?;

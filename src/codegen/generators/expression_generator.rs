@@ -280,7 +280,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             })
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    format!("Cannot propagate constant value for '{:}'", qualified_name).as_str(),
+                    format!("Cannot propagate constant value for '{qualified_name:}'").as_str(),
                     expression.get_location(),
                 )
             })?;
@@ -349,7 +349,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             _ => {
                 return Err(Diagnostic::codegen_error(
-                    &format!("Invalid direct-access: {:?}", elements),
+                    &format!("Invalid direct-access: {elements:?}"),
                     SourceRange::undefined(),
                 ));
             }
@@ -522,7 +522,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .find_associated_implementation(implementation_name) // using the non error option to control the output error
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    &format!("No callable implementation associated to {:?}", implementation_name),
+                    &format!("No callable implementation associated to {implementation_name:?}"),
                     operator.get_location(),
                 )
             })?;
@@ -632,7 +632,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                         Diagnostic::codegen_error(
-                            &format!("Cannot build generate parameter: {:#?}", parameter),
+                            &format!("Cannot build generate parameter: {parameter:#?}"),
                             parameter.source_location.source_range.clone(),
                         )
                     })?;
@@ -1007,13 +1007,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         context: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        let instance_name = format!("{}_instance", function_name);
+        let instance_name = format!("{function_name}_instance");
         let function_type = self
             .llvm_index
             .find_associated_pou_type(function_name) //Using find instead of get to control the compile error
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    &format!("No type associated with '{:}'", instance_name),
+                    &format!("No type associated with '{instance_name:}'"),
                     context.get_location(),
                 )
             })?;
@@ -1153,7 +1153,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             let pointer_to_param = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
                 Diagnostic::codegen_error(
-                    &format!("Cannot build generate parameter: {:#?}", expression),
+                    &format!("Cannot build generate parameter: {expression:#?}"),
                     expression.get_location(),
                 )
             })?;
@@ -1252,7 +1252,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             qualifier = Some(self.do_generate_element_pointer(qualifier, e)?);
         }
         qualifier.ok_or_else(|| {
-            Diagnostic::codegen_error(&format!("Cannot generate a LValue for {:?}", elements), location)
+            Diagnostic::codegen_error(&format!("Cannot generate a LValue for {elements:?}"), location)
         })
     }
 
@@ -1281,7 +1281,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .map(|it| it.as_pointer_value())
             .ok_or_else(|| unreachable!("All string literals have to be constants")),
             _ => Err(Diagnostic::codegen_error(
-                &format!("Cannot generate a LValue for {:?}", reference_statement),
+                &format!("Cannot generate a LValue for {reference_statement:?}"),
                 reference_statement.get_location(),
             )),
         };
@@ -1328,7 +1328,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
                 _ => {
                     let qualifier_name = self.get_type_hint_for(context)?.get_name();
-                    let qualified_name = format!("{}.{}", qualifier_name, name);
+                    let qualified_name = format!("{qualifier_name}.{name}");
                     let implementation = self.index.find_pou_implementation(&qualified_name);
                     if implementation.is_some() {
                         return Ok(qualifier.to_owned());
@@ -1456,7 +1456,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|msg| {
                         Diagnostic::codegen_error(
-                            format!("Invalid array dimensions access: {}", msg).as_str(),
+                            format!("Invalid array dimensions access: {msg}").as_str(),
                             access.get_location(),
                         )
                     })?;
@@ -1589,7 +1589,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     Ok(self.llvm.load_array_element(ptr, &[index], name.as_str())?.as_basic_value_enum())
                 } else {
                     Err(Diagnostic::codegen_error(
-                        format!("'{}' operation must contain one int type", operator).as_str(),
+                        format!("'{operator}' operation must contain one int type").as_str(),
                         expression.get_location(),
                     ))
                 }
@@ -1655,7 +1655,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 )
                 .as_basic_value_enum()),
             _ => Err(Diagnostic::codegen_error(
-                format!("Operator '{}' unimplemented for pointers", operator).as_str(),
+                format!("Operator '{operator}' unimplemented for pointers").as_str(),
                 expression.get_location(),
             )),
         };
@@ -1879,7 +1879,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             AstStatement::CastStatement { target, .. } => self.generate_expression_value(target),
             _ => Err(Diagnostic::codegen_error(
-                &format!("Cannot generate Literal for {:?}", literal_statement),
+                &format!("Cannot generate Literal for {literal_statement:?}"),
                 literal_statement.get_location(),
             )),
         }
@@ -1906,7 +1906,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             DataTypeInformation::String { encoding, size, .. } => {
                 let declared_length = size.as_int_value(self.index).map_err(|msg| {
                     Diagnostic::codegen_error(
-                        format!("Unable to generate string-literal: {}", msg).as_str(),
+                        format!("Unable to generate string-literal: {msg}").as_str(),
                         location.clone(),
                     )
                 })? as usize;
@@ -1983,7 +1983,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .or_else(|| self.annotations.get_type(statement, self.index))
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
-                    &format!("no type hint available for {:#?}", statement),
+                    &format!("no type hint available for {statement:#?}"),
                     statement.get_location(),
                 )
             })
@@ -2006,7 +2006,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     if let AstStatement::Reference { name: variable_name, location, .. } = &**left {
                         let member = self.index.find_member(struct_name, variable_name).ok_or_else(|| {
                             Diagnostic::unresolved_reference(
-                                format!("{}.{}", struct_name, variable_name).as_str(),
+                                format!("{struct_name}.{variable_name}").as_str(),
                                 location.clone(),
                             )
                         })?;
@@ -2034,7 +2034,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             for variable_name in uninitialized_members {
                 let member = self.index.find_member(struct_name, variable_name).ok_or_else(|| {
                     Diagnostic::unresolved_reference(
-                        format!("{}.{}", struct_name, variable_name).as_str(),
+                        format!("{struct_name}.{variable_name}").as_str(),
                         declaration_location.clone(),
                     )
                 })?;
@@ -2075,7 +2075,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         } else {
             Err(Diagnostic::codegen_error(
-                &format!("Expected Struct-literal, got {:#?}", assignments),
+                &format!("Expected Struct-literal, got {assignments:#?}"),
                 assignments.get_location(),
             ))
         }
@@ -2221,7 +2221,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 )
                 .as_basic_value_enum()),
             _ => Err(Diagnostic::codegen_error(
-                format!("illegal boolean expresspion for operator {:}", operator).as_str(),
+                format!("illegal boolean expresspion for operator {operator:}").as_str(),
                 (left.get_location().get_start()..right.get_location().get_end()).into(),
             )),
         }
@@ -2253,7 +2253,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::And => builder.build_conditional_branch(lhs, right_branch, continue_branch),
             _ => {
                 return Err(Diagnostic::codegen_error(
-                    &format!("Cannot generate phi-expression for operator {:}", operator),
+                    &format!("Cannot generate phi-expression for operator {operator:}"),
                     left.get_location(),
                 ))
             }

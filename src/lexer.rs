@@ -82,7 +82,7 @@ impl<'a> ParseSession<'a> {
     pub fn expect(&self, token: Token) -> Result<(), Diagnostic> {
         if self.token != token {
             Err(Diagnostic::unexpected_token_found(
-                format!("{:?}", token).as_str(),
+                format!("{token:?}").as_str(),
                 self.slice(),
                 self.location(),
             ))
@@ -103,10 +103,7 @@ impl<'a> ParseSession<'a> {
 
     pub fn consume_or_report(&mut self, token: Token) {
         if !self.allow(&token) {
-            self.accept_diagnostic(Diagnostic::missing_token(
-                format!("{:?}", token).as_str(),
-                self.location(),
-            ));
+            self.accept_diagnostic(Diagnostic::missing_token(format!("{token:?}").as_str(), self.location()));
         }
     }
 
@@ -241,7 +238,7 @@ impl<'a> ParseSession<'a> {
                     .closing_keywords
                     .last()
                     .expect("parse-recovery has no closing-keyword to recover from."); //illegal state! invalid use of parser-recovery?
-                let expected_tokens = format!("{:?}", closing);
+                let expected_tokens = format!("{closing:?}");
                 self.accept_diagnostic(Diagnostic::missing_token(expected_tokens.as_str(), self.location()));
             }
         }

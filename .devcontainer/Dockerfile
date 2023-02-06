@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y vim git
 
 
-ARG LLVM_VER=13
+ARG LLVM_VER=14
 # Use the bullseye llvm version because there is no newer one yet
 ARG LLVM_DISTRO_VERSION=bullseye 
 
