@@ -913,7 +913,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let actual_type = self.annotations.get_type_or_void(argument, self.index);
                     let target_type = self.index.find_elementary_pointer_type(&hint.information);
 
-                    if target_type != actual_type.get_type_information() {
+                    // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction:
+                    // The ‘bitcast’ instruction takes a value to cast, which must be a **non-aggregate**
+                    // first class value [...]
+                    if !actual_type.is_aggregate_type() && target_type != actual_type.get_type_information() {
                         return Ok(self.llvm.builder.build_bitcast(
                             gep,
                             self.llvm_index.get_associated_type(hint.get_name())?,
