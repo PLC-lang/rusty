@@ -391,7 +391,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 Ok(Some(generator.generate_literal(initializer)?.get_basic_value_enum()))
             } else {
                 Err(Diagnostic::codegen_error(
-                    &format!("Expected {} but found {:?}", expected_ast, initializer),
+                    &format!("Expected {expected_ast} but found {initializer:?}"),
                     initializer.get_location(),
                 ))
             }
@@ -436,7 +436,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         let array_result: Result<ArrayType, _> = result.try_into();
         array_result.map_err(|_| {
             Diagnostic::codegen_error(
-                &format!("Expected ArrayType but found {:#?}", result),
+                &format!("Expected ArrayType but found {result:#?}"),
                 SourceRange::undefined(),
             )
         })

@@ -38,5 +38,5 @@ pub fn calculate_date_time(
     {
         return Ok(date_time.timestamp_nanos());
     }
-    Err(format!("Invalid Date {}-{}-{}-{}:{}:{}.{}", year, month, day, hour, min, sec, nano))
+    Err(format!("Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
 }

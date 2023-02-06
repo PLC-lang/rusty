@@ -48,7 +48,7 @@ pub mod tests {
         use crate::diagnostics::DefaultDiagnosticAssessor;
 
         Diagnostician {
-            assessor: Box::new(DefaultDiagnosticAssessor::default()),
+            assessor: Box::<DefaultDiagnosticAssessor>::default(),
             reporter: Box::new(ListBasedDiagnosticReporter { diagnostics, ..Default::default() }),
             filename_fileid_mapping: HashMap::new(),
         }

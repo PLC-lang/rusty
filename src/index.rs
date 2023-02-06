@@ -176,7 +176,7 @@ impl VariableIndexEntry {
 
         VariableIndexEntry {
             name: name.to_string(),
-            qualified_name: format!("{}.{}", container, name),
+            qualified_name: format!("{container}.{name}"),
             data_type_name: new_type.to_string(),
             varargs,
             ..self.to_owned()
@@ -1024,7 +1024,7 @@ impl Index {
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_enum_element(&self, enum_name: &str, element_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&format!("{}.{}", enum_name, element_name).to_lowercase())
+        self.enum_qualified_variables.get(&format!("{enum_name}.{element_name}").to_lowercase())
     }
 
     /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
@@ -1159,7 +1159,7 @@ impl Index {
 
     /// expect a built-in type
     pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
-        self.type_index.get_type(type_name).unwrap_or_else(|_| panic!("{} not found", type_name))
+        self.type_index.get_type(type_name).unwrap_or_else(|_| panic!("{type_name} not found"))
     }
 
     pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
@@ -1334,7 +1334,7 @@ impl Index {
         let variable_type = member_info.variable_linkage;
         let data_type_name = member_info.variable_type_name;
 
-        let qualified_name = format!("{}.{}", container_name, variable_name);
+        let qualified_name = format!("{container_name}.{variable_name}");
 
         let entry = VariableIndexEntry::new(
             variable_name,
@@ -1364,7 +1364,7 @@ impl Index {
         initial_value: Option<ConstId>,
         source_location: SymbolLocation,
     ) {
-        let qualified_name = format!("{}.{}", enum_type_name, element_name);
+        let qualified_name = format!("{enum_type_name}.{element_name}");
         let entry =
             VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
                 .set_constant(true)
@@ -1513,7 +1513,7 @@ impl Index {
 
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
-    format!("__{}__init", name)
+    format!("__{name}__init")
 }
 impl VariableType {
     pub(crate) fn is_private(&self) -> bool {
