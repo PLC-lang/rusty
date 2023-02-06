@@ -422,7 +422,7 @@ pub trait DiagnosticInfo {
 
 impl DiagnosticInfo for AstStatement {
     fn get_description(&self) -> String {
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 
     fn get_location(&self) -> SourceRange {

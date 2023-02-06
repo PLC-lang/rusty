@@ -1001,7 +1001,7 @@ impl<'i> TypeAnnotator<'i> {
                         .map_or_else(
                             || {
                                 self.index
-                                    .find_pou(format!("{}.{}", qualifier, name).as_str())
+                                    .find_pou(format!("{qualifier}.{name}").as_str())
                                     .map(|it| it.into())
                             },
                             |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
@@ -1039,7 +1039,7 @@ impl<'i> TypeAnnotator<'i> {
                                 .or_else(|| {
                                     // try to find a local action with this name
                                     self.index
-                                        .find_pou(format!("{}.{}", qualifier, name).as_str())
+                                        .find_pou(format!("{qualifier}.{name}").as_str())
                                         .map(StatementAnnotation::from)
                                 })
                         })
@@ -1047,7 +1047,7 @@ impl<'i> TypeAnnotator<'i> {
                             // ... then try if we find a scoped-pou with that name (maybe it's a call to a local method or action?)
                             ctx.pou.and_then(|pou_name| self.index.find_pou(pou_name)).and_then(|it| {
                                 self.index
-                                    .find_pou(format!("{}.{}", it.get_container(), name).as_str())
+                                    .find_pou(format!("{}.{name}", it.get_container()).as_str())
                                     .map(Into::into)
                             })
                         })

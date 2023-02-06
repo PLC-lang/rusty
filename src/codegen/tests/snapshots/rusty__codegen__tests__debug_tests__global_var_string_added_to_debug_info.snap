@@ -23,7 +23,6 @@ source_filename = "main"
 !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 160, align: 64, elements: !5)
 !10 = !DIBasicType(name: "wchar", size: 16, encoding: DW_ATE_UTF, flags: DIFlagPublic)
 !11 = !{i32 2, !"Dwarf Version", i32 5}
-!12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !13, globals: !14, splitDebugInlining: false)
-!13 = !{}
-!14 = !{!0, !7}
+!12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
+!13 = !{!0, !7}
 
