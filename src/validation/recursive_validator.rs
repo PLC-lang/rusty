@@ -24,6 +24,7 @@ use super::Validators;
 /// overflows the stack.
 ///
 /// [1] https://en.wikipedia.org/wiki/Depth-first_search
+#[derive(Default)]
 pub struct RecursiveValidator {
     pub diagnostics: Vec<Diagnostic>,
 }
@@ -70,7 +71,7 @@ impl RecursiveValidator {
 
         for node in &nodes_all {
             if !nodes_visited.contains(node) {
-                self.dfs(index, &mut path, node, nodes_visited, &nodes_all);
+                self.dfs(index, &mut path, node, nodes_visited);
             }
         }
     }
@@ -86,20 +87,21 @@ impl RecursiveValidator {
         path: &mut IndexSet<&'idx str>,
         node_curr: &'idx str,
         nodes_visited: &mut IndexSet<&'idx str>,
-        nodes_all: &IndexSet<&'idx str>,
     ) {
         nodes_visited.insert(node_curr);
         path.insert(node_curr);
 
-        let edges = index.get_container_members_filtered(node_curr);
-        for node in self.filter_members(index, edges, nodes_all) {
+        for node in index
+            .get_container_members(node_curr).iter()
+            .map(|x| self.get_type_name(index, x))
+            .collect::<IndexSet<_>>()
+        {
             if path.contains(node) {
                 self.report(index, node, path);
             } else if !nodes_visited.contains(node) {
-                self.dfs(index, path, node, nodes_visited, nodes_all);
+                self.dfs(index, path, node, nodes_visited);
             }
         }
-
         path.pop();
     }
 
@@ -116,28 +118,11 @@ impl RecursiveValidator {
                     .collect();
 
                 slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
-                self.push_diagnostic(Diagnostic::recursive_datastructure(&slice.join(" -> "), ranges));
+                self.diagnostics.push(Diagnostic::recursive_datastructure(&slice.join(" -> "), ranges));
             }
 
             None => unreachable!("Node has to be in the IndexSet"),
         }
-    }
-
-    /// Filters all member variables of a node to only contain members we're interested in, i.e. structs and
-    /// functions blocks. For example a node `A` may contain a member variable `b` of type `DINT` and `c`
-    /// of type struct `C`. Calling `filter_members` will return an IndexSet consisting of only type `C`.
-    #[inline(always)]
-    fn filter_members<'idx>(
-        &self,
-        index: &'idx Index,
-        members: Vec<&'idx VariableIndexEntry>,
-        nodes_all: &IndexSet<&'idx str>,
-    ) -> IndexSet<&'idx str> {
-        return members
-            .iter()
-            .map(|entry| self.get_type_name(index, entry))
-            .filter(|name| nodes_all.contains(name))
-            .collect::<IndexSet<_>>();
     }
 
     /// Returns the type name of `entry` distinguishing between two cases:

@@ -28,7 +28,7 @@ mod edgecases {
     fn external_function_should_not_trigger() {
         let diagnostics = parse_and_validate(
             "
-            @{external}
+            {external}
             FUNCTION TIME : TIME
             END_FUNCTION
 
@@ -52,6 +52,46 @@ mod edgecases {
 
             TYPE TM : STRUCT
                 hours, minutes, seconds : DINT;
+            END_STRUCT
+            END_TYPE
+            ",
+        );
+
+        assert_eq!(diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn struct_and_function_with_same_name_2() {
+        let diagnostics = parse_and_validate(
+            "
+            FUNCTION TM : DINT
+                VAR_INPUT
+                    x : TM;
+                END_VAR
+            END_FUNCTION
+
+            TYPE TM : STRUCT
+                hours, minutes, seconds : DINT;
+            END_STRUCT
+            END_TYPE
+            ",
+        );
+
+        assert_eq!(diagnostics.len(), 0);
+    }
+
+    #[test]
+    fn struct_and_function_with_same_name_3() {
+        let diagnostics = parse_and_validate(
+            "
+            FUNCTION TM : DINT
+                VAR_INPUT
+                    x : TM;
+                END_VAR
+            END_FUNCTION
+
+            TYPE TM : STRUCT
+                TM : DINT;
             END_STRUCT
             END_TYPE
             ",

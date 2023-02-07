@@ -35,6 +35,7 @@ lazy_static = "1.4.0"
 shell-words = "1.1.0"
 which = "4.2.5"
 tempfile = "3"
+itertools = "0.10.5"
 
 [dev-dependencies]
 num = "0.4"

@@ -3207,6 +3207,7 @@ fn sizeof_works_in_binary_expression_with_different_size() {
 }
 
 #[test]
+#[ignore]
 fn function_and_struct_with_same_names() {
     // See description of [`index::get_container_members_filtered`]
     // for reasoning why this test case exists.

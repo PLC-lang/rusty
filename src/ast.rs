@@ -46,7 +46,7 @@ pub enum PolymorphismMode {
     Final,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = "direction")]
 pub enum HardwareAccessType {
     Input,
@@ -55,7 +55,7 @@ pub enum HardwareAccessType {
     Global,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub enum DirectAccessType {
     Bit,
@@ -229,7 +229,7 @@ pub struct Implementation {
     pub access: Option<AccessModifier>,
 }
 
-#[derive(Debug, Copy, PartialEq, Eq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone, Hash)]
 pub enum LinkageType {
     Internal,
     External,
@@ -451,7 +451,7 @@ impl SourceRangeFactory {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SourceRange {
     /// the start and end offset in the source-file
     range: core::ops::Range<usize>,

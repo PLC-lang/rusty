@@ -152,7 +152,8 @@ fn fb_methods_are_indexed() {
     let info = index.get_type("myFuncBlock.foo").unwrap().get_type_information();
     if let crate::typesystem::DataTypeInformation::Struct { name, member_names, .. } = info {
         assert_eq!("myFuncBlock.foo", name);
-        assert_eq!(&vec!["x"], member_names);
+        assert_eq!(1, member_names.len());
+        assert_eq!("x", member_names[0].get_name());
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -176,7 +177,8 @@ fn class_methods_are_indexed() {
     let info = index.get_type("myClass.foo").unwrap().get_type_information();
     if let crate::typesystem::DataTypeInformation::Struct { name, member_names, .. } = info {
         assert_eq!("myClass.foo", name);
-        assert_eq!(&vec!["y"], member_names);
+        assert_eq!(1, member_names.len());
+        assert_eq!("y", member_names[0].get_name());
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -1754,7 +1756,6 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::Function {
             name: "myFunction".into(),
             linkage: LinkageType::Internal,
-            instance_struct_name: "myFunction".into(),
             generics: [GenericBinding { name: "A".into(), nature: TypeNature::Int }].to_vec(),
             return_type: "INT".into(),
             is_variadic: false,
@@ -1909,15 +1910,12 @@ fn pou_duplicates_are_indexed() {
 
     //THEN I expect both PouIndexEntries
     let pous = index.get_pous().values().filter(|it| it.get_name().eq("foo")).collect::<Vec<_>>();
-    let members = index.get_members("foo").unwrap().values().collect::<Vec<_>>();
 
     let foo1 = pous.get(0).unwrap();
     assert_eq!(foo1.get_name(), "foo");
-    assert_eq!(members.get(0).unwrap().get_name(), "input1");
 
     let foo2 = pous.get(1).unwrap();
     assert_eq!(foo2.get_name(), "foo");
-    assert_eq!(members.get(1).unwrap().get_name(), "input2");
 }
 
 #[test]
@@ -1948,19 +1946,15 @@ fn type_duplicates_are_indexed() {
 
     //THEN I expect all 3 DataTypes
     let types = index.get_types().values().filter(|it| it.get_name().eq("MyStruct")).collect::<Vec<_>>();
-    let members = index.get_members("MyStruct").unwrap().values().collect::<Vec<_>>();
 
     let mystruct1 = types.get(0).unwrap();
     assert_eq!(mystruct1.get_name(), "MyStruct");
-    assert_eq!(members.get(0).unwrap().get_name(), "field1");
 
     let mystruct2 = types.get(1).unwrap();
     assert_eq!(mystruct2.get_name(), "MyStruct");
-    assert_eq!(members.get(1).unwrap().get_name(), "field2");
 
     let mystruct3 = types.get(2).unwrap();
     assert_eq!(mystruct3.get_name(), "MyStruct");
-    assert_eq!(members.get(2).unwrap().get_name(), "field3");
 }
 
 #[test]

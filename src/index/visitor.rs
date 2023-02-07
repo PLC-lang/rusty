@@ -63,7 +63,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 member_varargs = varargs.clone();
             }
 
-            member_names.push(var.name.clone());
 
             if let Some(var_type_name) = var.data_type.get_name() {
                 let type_name = if block_type.is_by_ref() {
@@ -83,7 +82,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                     .as_ref()
                     .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
 
-                index.register_member_variable(
+                let entry = index.register_member_variable(
                     MemberInfo {
                         container_name: &pou.name,
                         variable_name: &var.name,
@@ -97,16 +96,16 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                     symbol_location_factory.create_symbol_location(&var.location),
                     count,
                 );
+                member_names.push(entry);
                 count += 1;
-            }
+            };
         }
     }
 
     //register a function's return type as a member variable
     let return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
     if pou.return_type.is_some() {
-        member_names.push(pou.get_return_name().into());
-        index.register_member_variable(
+        let entry = index.register_member_variable(
             MemberInfo {
                 container_name: &pou.name,
                 variable_name: pou.get_return_name(),
@@ -119,8 +118,10 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             None,
             symbol_location_factory.create_symbol_location(&pou.name_location),
             count,
-        )
+        );
+        member_names.push(entry);
     }
+    
 
     let has_varargs = member_varargs.is_some();
     let datatype = typesystem::DataType {
@@ -342,39 +343,7 @@ fn visit_data_type(
         DataType::StructType { name: Some(name), variables } => {
             let struct_name = name.as_str();
 
-            let member_names: Vec<String> = variables.iter().map(|it| it.name.to_string()).collect();
-
-            let type_name = name.clone();
-            let information = DataTypeInformation::Struct {
-                name: type_name.clone(),
-                member_names,
-                source: StructSource::OriginalDeclaration,
-            };
-
-            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
-                type_declaration.initializer.clone(),
-                type_name.as_str(),
-                scope.clone(),
-            );
-            index.register_type(typesystem::DataType {
-                name: name.to_string(),
-                initial_value: init,
-                information,
-                nature: TypeNature::Derived,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
-            });
-            //Generate an initializer for the struct
-            let global_struct_name = crate::index::get_initializer_name(name);
-            let variable = VariableIndexEntry::create_global(
-                &global_struct_name,
-                &global_struct_name,
-                type_name.as_str(),
-                symbol_location_factory.create_symbol_location(&type_declaration.location),
-            )
-            .set_initial_value(init)
-            .set_constant(true);
-            index.register_global_initializer(&global_struct_name, variable);
-            for (count, var) in variables.iter().enumerate() {
+            let member_names = variables.iter().enumerate().map(|(count, var)| {
                 if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } = &var.data_type {
                     //first we need to handle the inner type
                     visit_data_type(
@@ -414,8 +383,40 @@ fn visit_data_type(
                     init,
                     symbol_location_factory.create_symbol_location(&var.location),
                     count as u32,
-                );
-            }
+                )
+
+            }).collect::<Vec<_>>();
+
+            let type_name = name.clone();
+            let information = DataTypeInformation::Struct {
+                name: type_name.clone(),
+                member_names,
+                source: StructSource::OriginalDeclaration,
+            };
+
+            let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                type_declaration.initializer.clone(),
+                type_name.as_str(),
+                scope.clone(),
+            );
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Derived,
+                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+            });
+            //Generate an initializer for the struct
+            let global_struct_name = crate::index::get_initializer_name(name);
+            let variable = VariableIndexEntry::create_global(
+                &global_struct_name,
+                &global_struct_name,
+                type_name.as_str(),
+                symbol_location_factory.create_symbol_location(&type_declaration.location),
+            )
+            .set_initial_value(init)
+            .set_constant(true);
+            index.register_global_initializer(&global_struct_name, variable);
         }
 
         DataType::EnumType { name: Some(name), elements, numeric_type, .. } => {

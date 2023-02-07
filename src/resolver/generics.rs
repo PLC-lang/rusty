@@ -152,16 +152,34 @@ impl<'i> TypeAnnotator<'i> {
             // register the member-variables (interface) of the new function
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
             // into the concrete type (e.g. INT)
-            if let Some(generic_function_members) = self.index.get_members(generic_function.get_name()) {
-                for member in generic_function_members.values() {
-                    let new_type_name = self.find_or_create_datatype(member.get_type_name(), generics);
+            let old_dataype = self.index.get_type_or_panic(generic_function.get_name());
+            let information = if let DataTypeInformation::Struct { member_names, source, .. } =
+                old_dataype.get_type_information()
+            {
+                let member_names = member_names
+                    .iter()
+                    .map(|member| {
+                        let new_type_name = self.find_or_create_datatype(member.get_type_name(), generics);
 
-                    //register the member under the new container (old: foo__T, new: foo__INT)
-                    //with its new type-name (old: T, new: INT)
-                    let entry = member.into_typed(new_name, &new_type_name);
-                    self.annotation_map.new_index.register_member_entry(new_name, entry);
-                }
-            }
+                        //register the member under the new container (old: foo__T, new: foo__INT)
+                        //with its new type-name (old: T, new: INT)
+                        member.into_typed(new_name, &new_type_name)
+                    })
+                    .collect::<Vec<_>>();
+                DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), member_names }
+            } else {
+                unreachable!("The function {} type is always a struct", old_dataype.get_name())
+            };
+
+            let new_datatype = DataType {
+                name: new_name.to_string(),
+                information,
+                initial_value: old_dataype.initial_value.to_owned(),
+                location: old_dataype.location.to_owned(),
+                nature: old_dataype.nature.to_owned(),
+            };
+
+            self.annotation_map.new_index.register_pou_type(new_datatype);
         }
     }
 

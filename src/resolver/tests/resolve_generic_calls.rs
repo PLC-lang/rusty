@@ -836,7 +836,7 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
         END_VAR
         END_FUNCTION
 
-        FUNCTION main
+        FUNCTION main : DINT
         VAR
             res : DINT;
         END_VAR
@@ -871,8 +871,8 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
         unreachable!("Not an assignment.")
     }
 
-    let function = index.get_members("LEN__STRING").unwrap();
-    let param = function.get(&"in".to_string()).unwrap();
+    let function = index.get_container_members("LEN__STRING");
+    let param = function.iter().find(|it| it.get_name().eq_ignore_ascii_case("in")).unwrap();
 
     let datatype = index.get_type_information_or_void(param.get_type_name());
     if let DataTypeInformation::Pointer { inner_type_name, .. } = datatype {

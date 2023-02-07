@@ -6,7 +6,7 @@ use std::hash::Hash;
 
 /// Location information of a Symbol in the index consisting of the line_number
 /// and the detailled SourceRange information consisting the file and the range inside the source-string
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct SymbolLocation {
     /// the line-number of this symbol in the source-file
     pub line_number: u32,

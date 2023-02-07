@@ -11,7 +11,7 @@ use std::convert::TryInto;
 use crate::ast::SourceRange;
 use crate::codegen::debug::Debug;
 use crate::diagnostics::Diagnostician;
-use crate::index::{Index, VariableIndexEntry};
+use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AstAnnotations;
 use crate::typesystem::{Dimension, StringEncoding, StructSource};
 use crate::Diagnostic;
@@ -71,7 +71,7 @@ pub fn generate_data_types<'ink>(
         .get_pous()
         .values()
         .filter(|pou| !pou.is_generic() && !pou.is_action()) //actions dont get an own datatype, they use the one from their parent
-        .map(|pou| pou.get_instance_struct_type(generator.index))
+        .map(|pou| pou.get_instance_struct_type_or_void(generator.index))
         .map(|it| (it.get_name(), it))
         .collect::<Vec<(&str, &DataType)>>();
 
@@ -169,11 +169,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// generates the members of an opaque struct and associates its initial values
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
         let information = data_type.get_type_information();
-        if let DataTypeInformation::Struct { source, .. } = information {
-            let members = self
-                .index
-                .get_container_members_filtered(data_type.get_name())
-                .into_iter()
+        if let DataTypeInformation::Struct { source, member_names: members, .. } = information {
+            let members = members.iter()
+                .filter(|it| !it.is_temp() && !it.is_return())
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
                 .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
 
@@ -262,10 +260,10 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { source, .. } => {
-                let members = self.index.get_container_members_filtered(data_type.get_name());
+            DataTypeInformation::Struct { source, member_names : members, .. } => {
                 let member_names_and_initializers = members
                     .iter()
+                    .filter(|it| it.get_variable_type() != VariableType::Temp)
                     .map(|it| {
                         self.generate_initial_value_for_variable(it).and_then(|v| match v {
                             Some(v) => Ok((it.get_qualified_name(), v)),
