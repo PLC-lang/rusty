@@ -504,16 +504,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
-            return builtin.codegen(self, parameters_list.as_slice(), operator.get_location()).map(|it| {
-                // for "REF" and "ADR" we expect the pointer/address of an element
-                // therefore we should handle these as RValues
-                // LValues would be loaded in further codegen, which is not correct
-                if it.is_pointer_value() && !matches!(implementation_name, "REF" | "ADR") {
-                    ExpressionValue::LValue(it.into_pointer_value())
-                } else {
-                    ExpressionValue::RValue(it)
-                }
-            });
+            return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
 
         let mut arguments_list = self.generate_pou_call_arguments_list(
