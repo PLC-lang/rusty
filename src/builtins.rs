@@ -150,8 +150,7 @@ lazy_static! {
                         builder.position_at_end(insert_block);
                         builder.build_switch(k.into_int_value(), continue_block, &cases);
                         builder.position_at_end(continue_block);
-                        let result_var = builder.build_load(result_var, "");
-                        Ok(ExpressionValue::RValue(result_var))
+                        Ok(ExpressionValue::LValue(result_var))
                     } else {
                         Err(Diagnostic::codegen_error("Invalid signature for MUX", location))
                     }

@@ -3397,3 +3397,50 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
         panic!("No initial value, initial value should be an expression list")
     }
 }
+
+#[test]
+fn mux_generic_with_strings_is_annotated_correctly() {
+    let id_provider = IdProvider::default();
+    // GIVEN
+    let (unit, mut index) = index_with_ids(
+        "
+	PROGRAM main
+	VAR
+		str1 : STRING;
+	END_VAR
+	VAR_TEMP
+		str2 : STRING := 'str2 ';
+		str3 : STRING := 'str3 ';
+		str4 : STRING := 'str4 ';
+	END_VAR
+		MUX(2, str2, str3, str4);
+        str2;
+	END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    if let AstStatement::CallStatement { parameters, .. } = &unit.implementations[0].statements[0] {
+        let list = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+
+        // MUX(2, str2, str3, str4)
+        //     ~
+        //.                                    Why is this happening?? ---
+        //.                                                               \
+        assert_type_and_hint!(&annotations, &index, list[0], "DINT", Some("STRING"));
+
+        // MUX(2, str2, str3, str4)
+        //        ~~~~
+        //.                                        Why is this happening?? ---
+        //.                                                                   \
+        assert_type_and_hint!(&annotations, &index, list[1], "STRING", Some("STRING"));
+
+        // the reference "str2" on its own has no type-hint to string
+        assert_type_and_hint!(&annotations, &index, &unit.implementations[0].statements[1], "STRING", None);
+    } else {
+        panic!("no call to be found")
+    }
+}
