@@ -24,6 +24,7 @@ sudo apt install                \
     libz-dev                    \
     libclang-common-14-dev 
 ```
+Additionally you _might_ need `libffi7`, which can be installed with `sudo apt install libffi7`.
 
 ## Debian
 
