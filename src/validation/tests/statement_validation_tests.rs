@@ -1005,3 +1005,32 @@ fn validate_call_by_ref_arrays() {
     assert_eq!(diagnostics[1].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
     assert_eq!(diagnostics[1].get_affected_ranges(), &[(326..327).into()]);
 }
+
+#[test]
+fn assigning_to_rvalue() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION func : DINT
+        VAR_INPUT
+            x : INT;
+        END_VAR
+        END_FUNCTION
+    
+        PROGRAM main
+        VAR
+            i : INT;
+        END_VAR
+            1 := 1;
+            1 := i;
+            func(1 := 1);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_eq!(diagnostics.len(), 3);
+
+    let ranges = &[(193..194), (213..214), (238..239)];
+    for (idx, diag) in diagnostics.iter().enumerate() {
+        assert_eq!(diag, &Diagnostic::reference_expected(ranges[idx].to_owned().into()))
+    }
+}
