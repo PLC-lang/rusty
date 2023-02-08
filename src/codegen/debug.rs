@@ -630,8 +630,8 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             let alignment = type_info.get_alignment(index);
             let location = &datatype.location;
             match type_info {
-                DataTypeInformation::Struct { member_names, .. } => {
-                    self.create_struct_type(name, member_names.as_slice(), index, location)
+                DataTypeInformation::Struct { members, .. } => {
+                    self.create_struct_type(name, members.as_slice(), index, location)
                 }
                 DataTypeInformation::Array { name, inner_type_name, dimensions, .. } => {
                     self.create_array_type(name, inner_type_name, dimensions, size, alignment, index)

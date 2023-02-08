@@ -1992,10 +1992,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         assignments: &AstStatement,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-        if let DataTypeInformation::Struct { name: struct_name, member_names, .. } =
+        if let DataTypeInformation::Struct { name: struct_name, members, .. } =
             self.get_type_hint_info_for(assignments)?
         {
-            let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(member_names);
+            let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(members);
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
                 if let AstStatement::Assignment { left, right, .. } = assignment {

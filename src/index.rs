@@ -831,14 +831,14 @@ impl Index {
                         DataTypeInformation::String { size, .. } => {
                             *size = self.import_type_size(&mut other.constant_expressions, size);
                         }
-                        DataTypeInformation::Struct { member_names, .. } => {
-                            let mut variables = member_names
+                        DataTypeInformation::Struct { members, .. } => {
+                            let mut variables = members
                                 .drain(..)
                                 .map(|variable| {
                                     self.transfer_constants(variable, &mut other.constant_expressions)
                                 })
                                 .collect::<Vec<_>>();
-                            member_names.append(&mut variables);
+                            members.append(&mut variables);
                         }
                         _ => {}
                     }
@@ -853,12 +853,12 @@ impl Index {
             elements.iter_mut().for_each(|e| {
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
 
-                if let DataTypeInformation::Struct { member_names, .. } = &mut e.information {
-                    let mut variables = member_names
+                if let DataTypeInformation::Struct { members, .. } = &mut e.information {
+                    let mut variables = members
                         .drain(..)
                         .map(|variable| self.transfer_constants(variable, &mut other.constant_expressions))
                         .collect::<Vec<_>>();
-                    member_names.append(&mut variables);
+                    members.append(&mut variables);
                 }
             });
             self.type_index.pou_types.insert_many(name, elements)

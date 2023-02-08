@@ -154,24 +154,24 @@ impl DataType {
     }
 
     pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
-            member_names.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
         } else {
             None
         }
     }
 
     pub fn get_members(&self) -> &[VariableIndexEntry] {
-        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
-            member_names
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members
         } else {
             &[]
         }
     }
 
     pub fn find_declared_parameter_by_location(&self, location: u32) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
-            member_names
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members
                 .iter()
                 .filter(|item| item.is_parameter() && !item.is_variadic())
                 .find(|member| member.get_location_in_parent() == location)
@@ -181,16 +181,16 @@ impl DataType {
     }
 
     pub fn find_variadic_member(&self) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
-            member_names.iter().find(|member| member.is_variadic())
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members.iter().find(|member| member.is_variadic())
         } else {
             None
         }
     }
 
     pub fn find_return_variable(&self) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
-            member_names.iter().find(|member| member.is_return())
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members.iter().find(|member| member.is_return())
         } else {
             None
         }
@@ -280,7 +280,7 @@ type TypeId = String;
 pub enum DataTypeInformation {
     Struct {
         name: TypeId,
-        member_names: Vec<VariableIndexEntry>,
+        members: Vec<VariableIndexEntry>,
         source: StructSource,
     },
     Array {
@@ -446,7 +446,7 @@ impl DataTypeInformation {
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
                 .map(Bytes::from_bits)
                 .unwrap(),
-            DataTypeInformation::Struct { member_names, .. } => member_names
+            DataTypeInformation::Struct { members, .. } => members
                 .iter()
                 .map(|it| it.get_type_name())
                 .fold(MemoryLocation::new(0), |prev, it| {

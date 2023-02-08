@@ -150,10 +150,10 @@ fn fb_methods_are_indexed() {
     assert_eq!("myFuncBlock.foo", foo_impl.call_name);
     assert_eq!("myFuncBlock.foo", foo_impl.type_name);
     let info = index.get_type("myFuncBlock.foo").unwrap().get_type_information();
-    if let crate::typesystem::DataTypeInformation::Struct { name, member_names, .. } = info {
+    if let crate::typesystem::DataTypeInformation::Struct { name, members, .. } = info {
         assert_eq!("myFuncBlock.foo", name);
-        assert_eq!(1, member_names.len());
-        assert_eq!("x", member_names[0].get_name());
+        assert_eq!(1, members.len());
+        assert_eq!("x", members[0].get_name());
     } else {
         panic!("Wrong variant : {info:#?}");
     }
@@ -175,10 +175,10 @@ fn class_methods_are_indexed() {
     assert_eq!("myClass.foo", foo_impl.call_name);
     assert_eq!("myClass.foo", foo_impl.type_name);
     let info = index.get_type("myClass.foo").unwrap().get_type_information();
-    if let crate::typesystem::DataTypeInformation::Struct { name, member_names, .. } = info {
+    if let crate::typesystem::DataTypeInformation::Struct { name, members, .. } = info {
         assert_eq!("myClass.foo", name);
-        assert_eq!(1, member_names.len());
-        assert_eq!("y", member_names[0].get_name());
+        assert_eq!(1, members.len());
+        assert_eq!("y", members[0].get_name());
     } else {
         panic!("Wrong variant : {info:#?}");
     }

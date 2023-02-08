@@ -169,7 +169,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// generates the members of an opaque struct and associates its initial values
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
         let information = data_type.get_type_information();
-        if let DataTypeInformation::Struct { source, member_names: members, .. } = information {
+        if let DataTypeInformation::Struct { source, members, .. } = information {
             let members = members
                 .iter()
                 .filter(|it| !it.is_temp() && !it.is_return())
@@ -261,7 +261,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { source, member_names: members, .. } => {
+            DataTypeInformation::Struct { source, members, .. } => {
                 let member_names_and_initializers = members
                     .iter()
                     .filter(|it| it.get_variable_type() != VariableType::Temp)

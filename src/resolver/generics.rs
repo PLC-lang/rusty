@@ -153,10 +153,10 @@ impl<'i> TypeAnnotator<'i> {
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
             // into the concrete type (e.g. INT)
             let old_dataype = self.index.get_type_or_panic(generic_function.get_name());
-            let information = if let DataTypeInformation::Struct { member_names, source, .. } =
+            let information = if let DataTypeInformation::Struct { members, source, .. } =
                 old_dataype.get_type_information()
             {
-                let member_names = member_names
+                let members = members
                     .iter()
                     .map(|member| {
                         let new_type_name = self.find_or_create_datatype(member.get_type_name(), generics);
@@ -166,11 +166,7 @@ impl<'i> TypeAnnotator<'i> {
                         member.into_typed(new_name, &new_type_name)
                     })
                     .collect::<Vec<_>>();
-                DataTypeInformation::Struct {
-                    name: new_name.to_string(),
-                    source: source.clone(),
-                    member_names,
-                }
+                DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), members }
             } else {
                 unreachable!("The function {} type is always a struct", old_dataype.get_name())
             };

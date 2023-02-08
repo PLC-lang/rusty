@@ -60,7 +60,7 @@ fn programs_state_is_stored_in_a_struct() {
             initial_value: None,
             information: Struct {
                 name: "main_prg",
-                member_names: [
+                members: [
                     VariableIndexEntry {
                         name: "i",
                         qualified_name: "main_prg.i",

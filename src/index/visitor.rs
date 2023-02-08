@@ -36,7 +36,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 }
 
 pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolLocationFactory) {
-    let mut member_names = vec![];
+    let mut members = vec![];
 
     //register the pou's member variables
     let mut member_varargs = None;
@@ -95,7 +95,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                     symbol_location_factory.create_symbol_location(&var.location),
                     count,
                 );
-                member_names.push(entry);
+                members.push(entry);
                 count += 1;
             };
         }
@@ -118,7 +118,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             symbol_location_factory.create_symbol_location(&pou.name_location),
             count,
         );
-        member_names.push(entry);
+        members.push(entry);
     }
 
     let has_varargs = member_varargs.is_some();
@@ -127,7 +127,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
         initial_value: None,
         information: DataTypeInformation::Struct {
             name: pou.name.to_string(),
-            member_names,
+            members,
             source: StructSource::Pou(pou.pou_type.clone()),
         },
         nature: TypeNature::Any,
@@ -341,7 +341,7 @@ fn visit_data_type(
         DataType::StructType { name: Some(name), variables } => {
             let struct_name = name.as_str();
 
-            let member_names = variables
+            let members = variables
                 .iter()
                 .enumerate()
                 .map(|(count, var)| {
@@ -391,7 +391,7 @@ fn visit_data_type(
             let type_name = name.clone();
             let information = DataTypeInformation::Struct {
                 name: type_name.clone(),
-                member_names,
+                members,
                 source: StructSource::OriginalDeclaration,
             };
 
