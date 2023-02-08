@@ -250,6 +250,30 @@ fn bitcast_argument_references_for_function_call() {
 }
 
 #[test]
+fn literal_string_argument_passed_by_ref() {
+    let result = codegen(
+        "
+        @EXTERNAL
+        FUNCTION func : STRING
+            VAR_INPUT {ref}
+                in : STRING;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                res : STRING;
+            END_VAR
+
+            res := func('hello');
+        END_PROGRAM
+    ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn function_with_varargs_called_in_program() {
     let result = codegen(
         "

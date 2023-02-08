@@ -897,6 +897,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let value = self.generate_expression(argument)?;
             let argument = self.llvm.builder.build_alloca(value.get_type(), "");
             self.llvm.builder.build_store(argument, value);
+
             Ok(argument)
         })?;
 
