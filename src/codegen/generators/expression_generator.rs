@@ -2512,13 +2512,13 @@ pub fn get_implicit_call_parameter<'a>(
     let (location, param_statement, is_implicit) = match param_statement {
         AstStatement::Assignment { left, right, .. } | AstStatement::OutputAssignment { left, right, .. } => {
             //explicit
-            let loc = if let AstStatement::Reference { name: left_name, .. } = left.as_ref() {
-                let position = declared_parameters.iter().position(|p| p.get_name() == left_name);
-                position.ok_or_else(|| Diagnostic::unresolved_reference(left_name, left.get_location()))
-            } else {
-                unreachable!("left of an assignment must be a reference");
-            }?;
-
+            let AstStatement::Reference { name: left_name, .. } = left.as_ref() else {
+                return Err(Diagnostic::reference_expected(param_statement.get_location()));
+            };
+            let loc = declared_parameters
+                .iter()
+                .position(|p| p.get_name() == left_name)
+                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, left.get_location()))?;
             (loc, right.as_ref(), false)
         }
         _ => {

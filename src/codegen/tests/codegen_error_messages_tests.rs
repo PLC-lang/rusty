@@ -433,3 +433,26 @@ fn pointer_binary_expression_modulo() {
         panic!("expected code-gen error but got none")
     }
 }
+
+#[test]
+fn assigning_to_rvalue() {
+    let result = codegen_without_unwrap(
+        r#"
+        FUNCTION func : DINT
+        VAR_INPUT
+            x : INT;
+        END_VAR
+        END_FUNCTION
+    
+        PROGRAM main
+            func(1 := 1);
+        END_PROGRAM
+        "#,
+    );
+
+    let Err(msg) = result else {
+        panic!("expected code-gen error but got none")
+    };
+
+    assert_eq!(msg, Diagnostic::reference_expected((149..155).into()))
+}
