@@ -338,11 +338,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             )?;
         }
         {
-            let pou_members = self
-                .index
-                .get_pou_members(&implementation.type_name)
-                .iter()
-                .collect::<Vec<_>>();
+            let pou_members =
+                self.index.get_pou_members(&implementation.type_name).iter().collect::<Vec<_>>();
             //if this is a function, we need to initilialize the VAR-variables
             if matches!(implementation.pou_type, PouType::Function | PouType::Method { .. }) {
                 self.generate_initialization_of_local_vars(

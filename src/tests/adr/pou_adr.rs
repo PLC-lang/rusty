@@ -40,7 +40,7 @@ const DEFAULT_PRG: &str = r#"
 
 /// The state (the memory, the stateful variables) are intnerally saved in a Struct-Type generated for this program.
 /// Programs register a PouType in the index using the POU's name. The PouType offers information about the
-/// POU like the name of the struct-type carrying the program's state, the names of all members, vararg and generic
+/// POU like the name of the struct-type carrying the program's state, all members, vararg and generic
 /// information etc.
 
 #[test]
@@ -61,11 +61,106 @@ fn programs_state_is_stored_in_a_struct() {
             information: Struct {
                 name: "main_prg",
                 member_names: [
-                    "i",
-                    "io",
-                    "o",
-                    "v",
-                    "vt",
+                    VariableIndexEntry {
+                        name: "i",
+                        qualified_name: "main_prg.i",
+                        initial_value: None,
+                        variable_type: ByVal(
+                            Input,
+                        ),
+                        is_constant: false,
+                        data_type_name: "INT",
+                        location_in_parent: 0,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 2,
+                            source_range: SourceRange {
+                                range: 43..44,
+                            },
+                        },
+                        varargs: None,
+                    },
+                    VariableIndexEntry {
+                        name: "io",
+                        qualified_name: "main_prg.io",
+                        initial_value: None,
+                        variable_type: ByRef(
+                            InOut,
+                        ),
+                        is_constant: false,
+                        data_type_name: "__auto_pointer_to_INT",
+                        location_in_parent: 1,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 3,
+                            source_range: SourceRange {
+                                range: 83..85,
+                            },
+                        },
+                        varargs: None,
+                    },
+                    VariableIndexEntry {
+                        name: "o",
+                        qualified_name: "main_prg.o",
+                        initial_value: None,
+                        variable_type: ByVal(
+                            Output,
+                        ),
+                        is_constant: false,
+                        data_type_name: "INT",
+                        location_in_parent: 2,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 4,
+                            source_range: SourceRange {
+                                range: 123..124,
+                            },
+                        },
+                        varargs: None,
+                    },
+                    VariableIndexEntry {
+                        name: "v",
+                        qualified_name: "main_prg.v",
+                        initial_value: None,
+                        variable_type: ByVal(
+                            Local,
+                        ),
+                        is_constant: false,
+                        data_type_name: "INT",
+                        location_in_parent: 3,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 5,
+                            source_range: SourceRange {
+                                range: 163..164,
+                            },
+                        },
+                        varargs: None,
+                    },
+                    VariableIndexEntry {
+                        name: "vt",
+                        qualified_name: "main_prg.vt",
+                        initial_value: None,
+                        variable_type: ByVal(
+                            Temp,
+                        ),
+                        is_constant: false,
+                        data_type_name: "INT",
+                        location_in_parent: 4,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 6,
+                            source_range: SourceRange {
+                                range: 203..205,
+                            },
+                        },
+                        varargs: None,
+                    },
                 ],
                 source: Pou(
                     Program,

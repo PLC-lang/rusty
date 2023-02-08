@@ -16,6 +16,6 @@ fn generics_saved_in_index() {
         let t = &generics[0];
         assert_eq!(&GenericBinding { name: "T".into(), nature: crate::ast::TypeNature::Any }, t);
     } else {
-        panic!("{:#?} not a generic function", foo_info);
+        panic!("{foo_info:#?} not a generic function");
     }
 }

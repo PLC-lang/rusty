@@ -170,7 +170,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
         let information = data_type.get_type_information();
         if let DataTypeInformation::Struct { source, member_names: members, .. } = information {
-            let members = members.iter()
+            let members = members
+                .iter()
                 .filter(|it| !it.is_temp() && !it.is_return())
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
                 .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
@@ -260,7 +261,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { source, member_names : members, .. } => {
+            DataTypeInformation::Struct { source, member_names: members, .. } => {
                 let member_names_and_initializers = members
                     .iter()
                     .filter(|it| it.get_variable_type() != VariableType::Temp)

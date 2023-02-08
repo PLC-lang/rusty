@@ -671,7 +671,7 @@ fn auto_pointer_of_generic_resolved() {
     if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } = dt {
         assert_eq!(inner_type_name, "DINT")
     } else {
-        panic!("Expecting a pointer to dint, found {:?}", dt)
+        panic!("Expecting a pointer to dint, found {dt:?}")
     }
 }
 
@@ -720,7 +720,7 @@ fn string_ref_as_generic_resolved() {
     if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } = dt {
         assert_eq!(inner_type_name, STRING_TYPE)
     } else {
-        panic!("Expecting auto deref pointer to string, found {:?}", dt)
+        panic!("Expecting auto deref pointer to string, found {dt:?}")
     }
 }
 

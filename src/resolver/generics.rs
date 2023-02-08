@@ -166,7 +166,11 @@ impl<'i> TypeAnnotator<'i> {
                         member.into_typed(new_name, &new_type_name)
                     })
                     .collect::<Vec<_>>();
-                DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), member_names }
+                DataTypeInformation::Struct {
+                    name: new_name.to_string(),
+                    source: source.clone(),
+                    member_names,
+                }
             } else {
                 unreachable!("The function {} type is always a struct", old_dataype.get_name())
             };

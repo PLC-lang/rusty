@@ -63,7 +63,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 member_varargs = varargs.clone();
             }
 
-
             if let Some(var_type_name) = var.data_type.get_name() {
                 let type_name = if block_type.is_by_ref() {
                     //register a pointer type for argument
@@ -121,7 +120,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
         );
         member_names.push(entry);
     }
-    
 
     let has_varargs = member_varargs.is_some();
     let datatype = typesystem::DataType {
@@ -343,49 +341,52 @@ fn visit_data_type(
         DataType::StructType { name: Some(name), variables } => {
             let struct_name = name.as_str();
 
-            let member_names = variables.iter().enumerate().map(|(count, var)| {
-                if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } = &var.data_type {
-                    //first we need to handle the inner type
-                    visit_data_type(
-                        index,
-                        &UserTypeDeclaration {
-                            data_type: data_type.clone(),
-                            initializer: None,
-                            location: SourceRange::undefined(),
-                            scope: scope.clone(),
+            let member_names = variables
+                .iter()
+                .enumerate()
+                .map(|(count, var)| {
+                    if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } = &var.data_type {
+                        //first we need to handle the inner type
+                        visit_data_type(
+                            index,
+                            &UserTypeDeclaration {
+                                data_type: data_type.clone(),
+                                initializer: None,
+                                location: SourceRange::undefined(),
+                                scope: scope.clone(),
+                            },
+                            symbol_location_factory,
+                        )
+                    }
+
+                    let member_type = var.data_type.get_name().expect("named variable datatype");
+                    let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                        var.initializer.clone(),
+                        member_type,
+                        scope.clone(),
+                    );
+
+                    let binding = var
+                        .address
+                        .as_ref()
+                        .and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
+
+                    index.register_member_variable(
+                        MemberInfo {
+                            container_name: struct_name,
+                            variable_name: &var.name,
+                            variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
+                            variable_type_name: member_type,
+                            is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                            binding,
+                            varargs: None,
                         },
-                        symbol_location_factory,
+                        init,
+                        symbol_location_factory.create_symbol_location(&var.location),
+                        count as u32,
                     )
-                }
-
-                let member_type = var.data_type.get_name().expect("named variable datatype");
-                let init = index.get_mut_const_expressions().maybe_add_constant_expression(
-                    var.initializer.clone(),
-                    member_type,
-                    scope.clone(),
-                );
-
-                let binding = var
-                    .address
-                    .as_ref()
-                    .and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
-
-                index.register_member_variable(
-                    MemberInfo {
-                        container_name: struct_name,
-                        variable_name: &var.name,
-                        variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
-                        variable_type_name: member_type,
-                        is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
-                        binding,
-                        varargs: None,
-                    },
-                    init,
-                    symbol_location_factory.create_symbol_location(&var.location),
-                    count as u32,
-                )
-
-            }).collect::<Vec<_>>();
+                })
+                .collect::<Vec<_>>();
 
             let type_name = name.clone();
             let information = DataTypeInformation::Struct {

@@ -969,20 +969,13 @@ impl Index {
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
     pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
-        self.get_container_from_name(container_name).and_then(|it| it.find_member(variable_name)).or_else(
-            || {
-                //check qualifier
-                container_name
-                    .rfind('.')
-                    .map(|p| &container_name[..p])
-                    .and_then(|qualifier| self.find_member(qualifier, variable_name))
-            },
-        )
-    }
-
-    fn get_container_from_name(&self, container_name: &str) -> Option<&DataType> {
-        let container_name = container_name.to_lowercase();
-        self.type_index.find_type(&container_name).or_else(|| self.type_index.find_pou_type(&container_name))
+        self.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
+            //check qualifier
+            container_name
+                .rfind('.')
+                .map(|p| &container_name[..p])
+                .and_then(|qualifier| self.find_member(qualifier, variable_name))
+        })
     }
 
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -1036,16 +1029,19 @@ impl Index {
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
     pub fn get_container_members(&self, container_name: &str) -> &[VariableIndexEntry] {
-        self.get_container_from_name(container_name).map(|it| it.get_members()).unwrap_or_else(|| &[])
+        self.type_index.find_type(container_name).map(|it| it.get_members()).unwrap_or_else(|| &[])
     }
 
     /// returns all member variables of the given POU (e.g. FUNCTION, PROGRAM, etc.)
     pub fn get_pou_members(&self, container_name: &str) -> &[VariableIndexEntry] {
-        self.get_pou_types().get(&container_name.to_lowercase()).map(|it| it.get_members()).unwrap_or_else(|| &[])
+        self.get_pou_types()
+            .get(&container_name.to_lowercase())
+            .map(|it| it.get_members())
+            .unwrap_or_else(|| &[])
     }
 
-    pub fn get_declared_parameters(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
-        self.get_container_members(container_name)
+    pub fn get_declared_parameters(&self, pou_name: &str) -> Vec<&VariableIndexEntry> {
+        self.get_pou_members(pou_name)
             .iter()
             .filter(|it| it.is_parameter() && !it.is_variadic())
             .collect::<Vec<_>>()
@@ -1054,17 +1050,16 @@ impl Index {
     /// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
     /// In other words it returns some if the member variable at `index` of the given container is a possible parameter in
     /// the call to it
-    pub fn get_declared_parameter(&self, container_name: &str, index: u32) -> Option<&VariableIndexEntry> {
-        self.get_container_from_name(container_name)
-            .and_then(|it| it.find_declared_parameter_by_location(index))
+    pub fn get_declared_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.type_index.find_pou_type(pou_name).and_then(|it| it.find_declared_parameter_by_location(index))
     }
 
-    pub fn get_variadic_member(&self, container_name: &str) -> Option<&VariableIndexEntry> {
-        self.get_container_from_name(container_name).and_then(|it| it.find_variadic_member())
+    pub fn get_variadic_member(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
+        self.type_index.find_pou_type(pou_name).and_then(|it| it.find_variadic_member())
     }
 
     pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
-        self.get_container_members(pou_name)
+        self.get_pou_members(pou_name)
             .iter()
             .filter(|item| item.get_variable_type() == VariableType::Input)
             .find(|item| item.location_in_parent == index)
@@ -1293,7 +1288,7 @@ impl Index {
 
         let qualified_name = format!("{container_name}.{variable_name}");
 
-        let entry = VariableIndexEntry::new(
+        VariableIndexEntry::new(
             variable_name,
             &qualified_name,
             data_type_name,
@@ -1304,9 +1299,7 @@ impl Index {
         .set_constant(member_info.is_constant)
         .set_initial_value(initial_value)
         .set_hardware_binding(member_info.binding)
-        .set_varargs(member_info.varargs);
-
-        entry
+        .set_varargs(member_info.varargs)
     }
 
     pub fn register_enum_element(

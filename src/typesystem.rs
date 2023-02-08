@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
+    hash::Hash,
     mem::size_of,
     ops::{Range, RangeInclusive},
 };
@@ -85,7 +86,7 @@ pub const VOID_TYPE: &str = "VOID";
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct DataType {
     pub name: String,
     /// the initial value defined on the TYPE-declration
@@ -94,6 +95,22 @@ pub struct DataType {
     pub nature: TypeNature,
     pub location: SymbolLocation,
 }
+
+impl Hash for DataType {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+        self.nature.hash(state);
+        self.location.hash(state);
+    }
+}
+
+impl PartialEq for DataType {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.nature == other.nature && self.location == other.location
+    }
+}
+
+impl Eq for DataType {}
 
 impl DataType {
     pub fn get_name(&self) -> &str {
@@ -137,7 +154,7 @@ impl DataType {
     }
 
     pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { member_names, ..} = self.get_type_information() {
+        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
             member_names.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
         } else {
             None
@@ -145,7 +162,7 @@ impl DataType {
     }
 
     pub fn get_members(&self) -> &[VariableIndexEntry] {
-        if let DataTypeInformation::Struct { member_names, ..} = self.get_type_information() {
+        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
             member_names
         } else {
             &[]
@@ -153,8 +170,9 @@ impl DataType {
     }
 
     pub fn find_declared_parameter_by_location(&self, location: u32) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { member_names, ..} = self.get_type_information() {
-            member_names.iter()
+        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
+            member_names
+                .iter()
                 .filter(|item| item.is_parameter() && !item.is_variadic())
                 .find(|member| member.get_location_in_parent() == location)
         } else {
@@ -163,18 +181,16 @@ impl DataType {
     }
 
     pub fn find_variadic_member(&self) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { member_names, ..} = self.get_type_information() {
-            member_names.iter()
-                .find(|member| member.is_variadic())
+        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
+            member_names.iter().find(|member| member.is_variadic())
         } else {
             None
         }
     }
 
     pub fn find_return_variable(&self) -> Option<&VariableIndexEntry> {
-        if let DataTypeInformation::Struct { member_names, ..} = self.get_type_information() {
-            member_names.iter()
-                .find(|member| member.is_return())
+        if let DataTypeInformation::Struct { member_names, .. } = self.get_type_information() {
+            member_names.iter().find(|member| member.is_return())
         } else {
             None
         }

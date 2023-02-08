@@ -57,7 +57,7 @@ fn empty_statements_are_ignored_after_a_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"Reference {
     name: "x",
 }"#;
@@ -176,7 +176,7 @@ fn string_variable_declaration_can_be_parsed() {
            ";
     let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
-    assert_snapshot!(format!("{:#?}", x).as_str(), @r###"
+    assert_snapshot!(format!("{x:#?}").as_str(), @r###"
     Variable {
         name: "x",
         data_type: DataTypeReference {
@@ -186,7 +186,7 @@ fn string_variable_declaration_can_be_parsed() {
     "###);
 
     let x = &parse_result.global_vars[0].variables[1];
-    assert_snapshot!(format!("{:#?}", x).as_str(), @r#"Variable {
+    assert_snapshot!(format!("{x:#?}").as_str(), @r#"Variable {
     name: "y",
     data_type: DataTypeDefinition {
         data_type: StringType {
@@ -202,7 +202,7 @@ fn string_variable_declaration_can_be_parsed() {
 }"#);
 
     let x = &parse_result.global_vars[0].variables[2];
-    assert_snapshot!(format!("{:#?}", x).as_str(), @r###"
+    assert_snapshot!(format!("{x:#?}").as_str(), @r###"
     Variable {
         name: "wx",
         data_type: DataTypeReference {
@@ -212,7 +212,7 @@ fn string_variable_declaration_can_be_parsed() {
     "###);
 
     let x = &parse_result.global_vars[0].variables[3];
-    assert_snapshot!(format!("{:#?}", x).as_str(), @r#"Variable {
+    assert_snapshot!(format!("{x:#?}").as_str(), @r#"Variable {
     name: "wy",
     data_type: DataTypeDefinition {
         data_type: StringType {
