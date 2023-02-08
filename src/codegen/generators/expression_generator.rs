@@ -870,8 +870,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         type_name: &str,
         declared_parameter: Option<&VariableIndexEntry>,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        // Check for uninitialized var_output / var_in_out's...
         if matches!(argument, AstStatement::EmptyStatement { .. }) {
+            // Uninitialized var_output / var_in_out
             let v_type = self
                 .llvm_index
                 .find_associated_type(type_name)
@@ -890,54 +890,51 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(ptr_value.into());
         }
 
-        // ...else...
-        match self.generate_element_pointer(argument) {
-            // ...check if we work with an array type, such that we can bitcast the array to a pointer
-            Ok(gep) if gep.get_type().get_element_type().is_array_type() => {
-                let res = self.llvm.builder.build_bitcast(
-                    gep,
-                    gep.get_type()
-                        .get_element_type()
-                        .into_array_type()
-                        .get_element_type()
-                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+        // Generate the element pointer, then...
+        let value = self.generate_element_pointer(argument).or_else::<Diagnostic, _>(|_| {
+            // Passed a literal to a byref parameter?
+            // TODO: find more defensive solution - check early
+            let value = self.generate_expression(argument)?;
+            let argument = self.llvm.builder.build_alloca(value.get_type(), "");
+            self.llvm.builder.build_store(argument, value);
+            Ok(argument)
+        })?;
+
+        // ...check if we can bitcast an array to a pointer, i.e. `[81 x i8]*` should be passed as a `i8*`
+        if value.get_type().get_element_type().is_array_type() {
+            let res = self.llvm.builder.build_bitcast(
+                value,
+                value
+                    .get_type()
+                    .get_element_type()
+                    .into_array_type()
+                    .get_element_type()
+                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                "",
+            );
+
+            return Ok(res.into_pointer_value().into());
+        }
+
+        // ...check if we can bitcast a reference to their hinted type
+        if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
+            let actual_type = self.annotations.get_type_or_void(argument, self.index);
+            let actual_type_info = self.index.find_elementary_pointer_type(&actual_type.information);
+            let target_type_info = self.index.find_elementary_pointer_type(&hint.information);
+
+            // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction: The ‘bitcast’ instruction takes
+            // a value to cast, which must be a **non-aggregate** first class value [...]
+            if !actual_type_info.is_aggregate() && actual_type_info != target_type_info {
+                return Ok(self.llvm.builder.build_bitcast(
+                    value,
+                    self.llvm_index.get_associated_type(hint.get_name())?,
                     "",
-                );
-
-                Ok(res.into_pointer_value().into())
-            }
-
-            // ...check if we need to bitcast the `gep` value to a hinted type before returning it
-            Ok(gep) => {
-                if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
-                    let actual_type = self.annotations.get_type_or_void(argument, self.index);
-                    let target_type = self.index.find_elementary_pointer_type(&hint.information);
-
-                    // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction:
-                    // The ‘bitcast’ instruction takes a value to cast, which must be a **non-aggregate**
-                    // first class value [...]
-                    if !actual_type.is_aggregate_type() && target_type != actual_type.get_type_information() {
-                        return Ok(self.llvm.builder.build_bitcast(
-                            gep,
-                            self.llvm_index.get_associated_type(hint.get_name())?,
-                            "",
-                        ));
-                    }
-                }
-
-                Ok(gep.into())
-            }
-
-            // ...otherwise we _probably_ passed a literal to a byref parameter
-            Err(_) => {
-                // TODO: find more defensive solution - check early
-                let value = self.generate_expression(argument)?;
-                let argument = self.llvm.builder.build_alloca(value.get_type(), "");
-                self.llvm.builder.build_store(argument, value);
-
-                Ok(argument.into())
+                ));
             }
         }
+
+        // ...otherwise no bitcasting was needed, thus return the generated element pointer as is
+        Ok(value.into())
     }
 
     pub fn generate_variadic_arguments_list(
