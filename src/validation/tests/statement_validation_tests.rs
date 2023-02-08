@@ -973,7 +973,7 @@ fn validate_call_by_ref() {
 }
 
 #[test]
-fn validate_call_by_ref_arrays() {
+fn validate_array_elements_passed_to_functions_by_ref() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
         FUNCTION func : DINT
@@ -1004,4 +1004,27 @@ fn validate_call_by_ref_arrays() {
 
     assert_eq!(diagnostics[1].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
     assert_eq!(diagnostics[1].get_affected_ranges(), &[(326..327).into()]);
+}
+
+#[test]
+fn validate_arrays_passed_to_functions() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION func : DINT
+            VAR_INPUT
+                arr_dint : ARRAY[0..1] OF DINT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                local_arr_dint : ARRAY[0..1] OF DINT;
+            END_VAR
+
+            func(local_arr_dint);
+        END_PROGRAM
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 0);
 }

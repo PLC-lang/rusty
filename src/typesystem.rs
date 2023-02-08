@@ -973,6 +973,36 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
 
+        DataTypeInformation::Array { inner_type_name: l_name, dimensions: l_dimensions, .. } => match rtype {
+            DataTypeInformation::Array { inner_type_name: r_name, dimensions: r_dimensions, .. } => {
+                // TODO:
+                // - [ ] This is ugly, let's rewrite it
+                //   - [ ] In general are arrays incompatible if they have different dimensions?
+                //         => clang does not generate a warning
+                // - [ ] Add more test cases
+
+                // dbg!((&l_name, r_name));
+                // dbg!((&l_dimensions, r_dimensions));
+                // dbg!((&l_dimensions[0].get_length(index), r_dimensions));
+                if l_dimensions.len() != r_dimensions.len() {
+                    return false;
+                }
+
+                if l_dimensions
+                    .iter()
+                    .zip(r_dimensions)
+                    .map(|(x, y)| x.get_length(index) == y.get_length(index))
+                    .any(|x| !x)
+                {
+                    return false;
+                }
+
+                l_name == r_name
+            }
+
+            _ => false,
+        },
+
         // We have to handle 3 different cases here:
         // 1. foo := ADR(bar)
         // 2. foo := REF(bar)
