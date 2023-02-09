@@ -7,7 +7,7 @@ use crate::{
     },
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
-    resolver::{const_evaluator, AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    resolver::{const_evaluator, AnnotationMap, AnnotationMapImpl},
     typesystem::{self, DataTypeInformation},
     Diagnostic,
 };
@@ -47,15 +47,10 @@ impl<'s> ValidationContext<'s> {
     /// try find a POU for the given statement
     fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
         match stmt {
-            AstStatement::Reference { name, .. } => Some(name),
+            AstStatement::Reference { name, .. } => Some(name.as_str()),
             AstStatement::QualifiedReference { elements, .. } => {
-                if let Some(stmt) = elements.last() {
-                    match self.ast_annotation.get(stmt) {
-                        Some(StatementAnnotation::Variable { resulting_type, .. }) => Some(resulting_type),
-                        Some(StatementAnnotation::Program { qualified_name }) => Some(qualified_name),
-                        Some(StatementAnnotation::Function { qualified_name, .. }) => Some(qualified_name),
-                        _ => None,
-                    }
+                if let Some(name) = elements.last().and_then(|it| self.ast_annotation.get_call_name(it)) {
+                    Some(name)
                 } else {
                     None
                 }
