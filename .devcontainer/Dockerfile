@@ -1,37 +1,16 @@
 # FROM mcr.microsoft.com/vscode/devcontainers/rust:latest
-ARG VARIANT="bullseye"
-FROM mcr.microsoft.com/vscode/devcontainers/rust:1-${VARIANT}
+FROM ghcr.io/plc-lang/rust-llvm:latest
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
 
-# # This Dockerfile adds a non-root user with sudo access. Use the "remoteUser"
-# # property in devcontainer.json to use it. On Linux, the container user's GID/UIDs
-# # will be updated to match your local UID/GID (when using the dockerFile property).
-# # See https://aka.ms/vscode-remote/containers/non-root-user for details.
+# This Dockerfile adds a non-root user with sudo access. Use the "remoteUser"
+# property in devcontainer.json to use it. On Linux, the container user's GID/UIDs
+# will be updated to match your local UID/GID (when using the dockerFile property).
+# See https://aka.ms/vscode-remote/containers/non-root-user for details.
 # ARG USERNAME=vscode
 # ARG USER_UID=1000
 # ARG USER_GID=$USER_UID
-
-RUN apt-get update && apt-get install -y vim git
-
-
-ARG LLVM_VER=14
-# Use the bullseye llvm version because there is no newer one yet
-ARG LLVM_DISTRO_VERSION=bullseye 
-
-# Avoid warnings by switching to noninteractive
-ENV DEBIAN_FRONTEND=noninteractive
-# Setup llvm sources
-RUN echo "deb http://apt.llvm.org/$LLVM_DISTRO_VERSION/ llvm-toolchain-$LLVM_DISTRO_VERSION-$LLVM_VER  main" >> /etc/apt/sources.list.d/llvm.list
-RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-
-RUN apt-get update
-#Install Clang dependencies
-RUN apt-get install -y zip clang-$LLVM_VER lldb-$LLVM_VER lld-$LLVM_VER clangd-$LLVM_VER liblld-$LLVM_VER-dev llvm-$LLVM_VER-dev
-
-#Install documentation and coverage tools
-RUN cargo install mdbook grcov
 
 # # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
 # RUN groupadd --gid $USER_GID $USERNAME \
@@ -51,4 +30,4 @@ RUN chmod -R a+rw $CARGO_HOME \
 ENV DEBIAN_FRONTEND=dialog
 
 # Required if we want to use `lld` as the default linker for RuSTy
-RUN ln -sf /usr/bin/ld.lld-$LLVM_VER /usr/bin/ld.lld
+# RUN ln -sf /usr/bin/ld.lld-$LLVM_VER /usr/bin/ld.lld
