@@ -522,7 +522,7 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Result<A
     } else if lexer.allow(&KeywordParensOpen) {
         let multiplier = result
             .parse::<u32>()
-            .map_err(|e| Diagnostic::syntax_error(format!("{}", e).as_str(), location.clone()))?;
+            .map_err(|e| Diagnostic::syntax_error(format!("{e}").as_str(), location.clone()))?;
         let element = parse_expression(lexer);
         lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
@@ -552,7 +552,7 @@ pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstState
     // parsed number value can be safely unwrapped
     let result = result.replace('_', "");
     if result.to_lowercase().contains('e') {
-        Err(Diagnostic::unexpected_token_found("Integer", &format!("Exponent value: {}", result), location))
+        Err(Diagnostic::unexpected_token_found("Integer", &format!("Exponent value: {result}"), location))
     } else {
         let value = result.parse::<i128>().expect("valid i128");
         Ok(AstStatement::LiteralInteger { value, location, id: lexer.next_id() })
@@ -561,7 +561,7 @@ pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstState
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
     text.parse::<F>().map_err(|_| {
-        Diagnostic::syntax_error(format!("Failed parsing number {}", text).as_str(), location.clone())
+        Diagnostic::syntax_error(format!("Failed parsing number {text}").as_str(), location.clone())
     })
 }
 
@@ -740,7 +740,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
             values[position] = Some(number); //store the number
         } else {
             return Err(Diagnostic::syntax_error(
-                format!("Invalid TIME Literal: illegal unit '{}'", unit).as_str(),
+                format!("Invalid TIME Literal: illegal unit '{unit}'").as_str(),
                 location,
             ));
         }

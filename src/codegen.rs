@@ -115,7 +115,7 @@ impl<'ink> CodeGen<'ink> {
             let data_type = llvm.context.i8_type().array_type(len as u32);
             let literal_variable = llvm.create_global_variable(
                 &self.module,
-                format!("utf08_literal_{}", idx).as_str(),
+                format!("utf08_literal_{idx}").as_str(),
                 data_type.as_basic_type_enum(),
             );
             let initializer = llvm.create_const_utf8_string(literal.as_str(), len)?;
@@ -131,7 +131,7 @@ impl<'ink> CodeGen<'ink> {
             let data_type = llvm.context.i16_type().array_type(len as u32);
             let literal_variable = llvm.create_global_variable(
                 &self.module,
-                format!("utf16_literal_{}", idx).as_str(),
+                format!("utf16_literal_{idx}").as_str(),
                 data_type.as_basic_type_enum(),
             );
             let initializer = llvm.create_const_utf16_string(literal.as_str(), literal.len() + 1)?;
