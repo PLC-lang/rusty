@@ -2537,6 +2537,25 @@
 <a href="#2537" id="2537">2537</a>
 <a href="#2538" id="2538">2538</a>
 <a href="#2539" id="2539">2539</a>
+<a href="#2540" id="2540">2540</a>
+<a href="#2541" id="2541">2541</a>
+<a href="#2542" id="2542">2542</a>
+<a href="#2543" id="2543">2543</a>
+<a href="#2544" id="2544">2544</a>
+<a href="#2545" id="2545">2545</a>
+<a href="#2546" id="2546">2546</a>
+<a href="#2547" id="2547">2547</a>
+<a href="#2548" id="2548">2548</a>
+<a href="#2549" id="2549">2549</a>
+<a href="#2550" id="2550">2550</a>
+<a href="#2551" id="2551">2551</a>
+<a href="#2552" id="2552">2552</a>
+<a href="#2553" id="2553">2553</a>
+<a href="#2554" id="2554">2554</a>
+<a href="#2555" id="2555">2555</a>
+<a href="#2556" id="2556">2556</a>
+<a href="#2557" id="2557">2557</a>
+<a href="#2558" id="2558">2558</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     ast::{<span class="self">self</span>, DirectAccessType, SourceRange},
@@ -3410,7 +3429,7 @@
         declared_parameter: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">if </span><span class="macro">matches!</span>(argument, AstStatement::EmptyStatement { .. }) {
-            <span class="comment">//uninitialized var_output/var_in_out
+            <span class="comment">// Uninitialized var_output / var_in_out
             </span><span class="kw">let </span>v_type = <span class="self">self
                 </span>.llvm_index
                 .find_associated_type(type_name)
@@ -3425,37 +3444,56 @@
                     <span class="self">self</span>.llvm.builder.build_store(ptr_value, value);
                 }
             }
-            <span class="prelude-val">Ok</span>(ptr_value)
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>value = <span class="self">self</span>.generate_element_pointer(argument).or_else::&lt;Diagnostic, <span class="kw">_</span>&gt;(|<span class="kw">_</span>| {
-                <span class="comment">//passed a literal to byref parameter?
-                //TODO: find more defensive solution - check early
-                </span><span class="kw">let </span>value = <span class="self">self</span>.generate_expression(argument)<span class="question-mark">?</span>;
-                <span class="kw">let </span>argument = <span class="self">self</span>.llvm.builder.build_alloca(value.get_type(), <span class="string">&quot;&quot;</span>);
-                <span class="self">self</span>.llvm.builder.build_store(argument, value);
-                <span class="prelude-val">Ok</span>(argument)
-            })<span class="question-mark">?</span>;
-            <span class="comment">// if we pass any array type by ref
-            // we need to pass a pointer to the array element type
-            // and not a pointer to array =&gt; [81 x i8]* -&gt; i8*
-            </span><span class="kw">if </span>value.get_type().get_element_type().is_array_type() {
-                <span class="kw">let </span>res = <span class="self">self</span>.llvm.builder.build_bitcast(
+
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ptr_value.into());
+        }
+
+        <span class="comment">// Generate the element pointer, then...
+        </span><span class="kw">let </span>value = <span class="self">self</span>.generate_element_pointer(argument).or_else::&lt;Diagnostic, <span class="kw">_</span>&gt;(|<span class="kw">_</span>| {
+            <span class="comment">// Passed a literal to a byref parameter?
+            // TODO: find more defensive solution - check early
+            </span><span class="kw">let </span>value = <span class="self">self</span>.generate_expression(argument)<span class="question-mark">?</span>;
+            <span class="kw">let </span>argument = <span class="self">self</span>.llvm.builder.build_alloca(value.get_type(), <span class="string">&quot;&quot;</span>);
+            <span class="self">self</span>.llvm.builder.build_store(argument, value);
+
+            <span class="prelude-val">Ok</span>(argument)
+        })<span class="question-mark">?</span>;
+
+        <span class="comment">// ...check if we can bitcast an array to a pointer, i.e. `[81 x i8]*` should be passed as a `i8*`
+        </span><span class="kw">if </span>value.get_type().get_element_type().is_array_type() {
+            <span class="kw">let </span>res = <span class="self">self</span>.llvm.builder.build_bitcast(
+                value,
+                value
+                    .get_type()
+                    .get_element_type()
+                    .into_array_type()
+                    .get_element_type()
+                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                <span class="string">&quot;&quot;</span>,
+            );
+
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(res.into_pointer_value().into());
+        }
+
+        <span class="comment">// ...check if we can bitcast a reference to their hinted type
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(hint) = <span class="self">self</span>.annotations.get_type_hint(argument, <span class="self">self</span>.index) {
+            <span class="kw">let </span>actual_type = <span class="self">self</span>.annotations.get_type_or_void(argument, <span class="self">self</span>.index);
+            <span class="kw">let </span>actual_type_info = <span class="self">self</span>.index.find_elementary_pointer_type(<span class="kw-2">&amp;</span>actual_type.information);
+            <span class="kw">let </span>target_type_info = <span class="self">self</span>.index.find_elementary_pointer_type(<span class="kw-2">&amp;</span>hint.information);
+
+            <span class="comment">// From https://llvm.org/docs/LangRef.html#bitcast-to-instruction: The ‘bitcast’ instruction takes
+            // a value to cast, which must be a **non-aggregate** first class value [...]
+            </span><span class="kw">if </span>!actual_type_info.is_aggregate() &amp;&amp; actual_type_info != target_type_info {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.llvm.builder.build_bitcast(
                     value,
-                    value
-                        .get_type()
-                        .get_element_type()
-                        .into_array_type()
-                        .get_element_type()
-                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    <span class="self">self</span>.llvm_index.get_associated_type(hint.get_name())<span class="question-mark">?</span>,
                     <span class="string">&quot;&quot;</span>,
-                );
-                <span class="prelude-val">Ok</span>(res.into_pointer_value())
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(value)
+                ));
             }
-            <span class="comment">// Ok(value)
-        </span>}
-        .map(Into::into)
+        }
+
+        <span class="comment">// ...otherwise no bitcasting was needed, thus return the generated element pointer as is
+        </span><span class="prelude-val">Ok</span>(value.into())
     }
 
     <span class="kw">pub fn </span>generate_variadic_arguments_list(
