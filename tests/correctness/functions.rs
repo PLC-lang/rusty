@@ -928,13 +928,13 @@ fn mux_string_ref() {
 		str5 : STRING := 'str5 ';
 		str6 : STRING := 'str6 ';
 	END_VAR
-		str1 := MUX(2, str2, str3, str4, str5, str6); // str5
+		str1 := MUX(3, str2, str3, str4, str5, str6); // str5
 	END_PROGRAM
 	"#;
 
     let mut main = MainType::default();
     let _: i32 = compile_and_run(function.to_string(), &mut main);
-    assert_eq!(main.res, "STR5 \0".as_bytes());
+    assert_eq!(main.res, "str5 \0".as_bytes());
 }
 
 #[test]
@@ -942,7 +942,7 @@ fn mux_string_literal() {
     #[repr(C)]
     #[derive(Default)]
     struct MainType {
-        res: [u8; 6],
+        res: [u8; 4],
     }
 
     let function = r#"
@@ -958,7 +958,6 @@ fn mux_string_literal() {
     let _: i32 = compile_and_run(function.to_string(), &mut main);
     assert_eq!(main.res, "baz\0".as_bytes());
 }
-
 
 #[test]
 fn sel_test_false() {
@@ -1087,9 +1086,6 @@ fn sel_array_ref() {
     let _: i32 = compile_and_run(function.to_string(), &mut main);
     assert_eq!(main.res, [3, 4, 5]);
 }
-
-
-
 
 #[test]
 fn sel_string_ref() {

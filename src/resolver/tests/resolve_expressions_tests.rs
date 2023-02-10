@@ -3428,14 +3428,10 @@ fn mux_generic_with_strings_is_annotated_correctly() {
 
         // MUX(2, str2, str3, str4)
         //     ~
-        //.                                    Why is this happening?? ---
-        //.                                                               \
-        assert_type_and_hint!(&annotations, &index, list[0], "DINT", Some("STRING"));
+        assert_type_and_hint!(&annotations, &index, list[0], "DINT", Some("DINT"));
 
         // MUX(2, str2, str3, str4)
         //        ~~~~
-        //.                                        Why is this happening?? ---
-        //.                                                                   \
         assert_type_and_hint!(&annotations, &index, list[1], "STRING", Some("STRING"));
 
         // the reference "str2" on its own has no type-hint to string
