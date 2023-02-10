@@ -1074,6 +1074,14 @@
 <a href="#1074" id="1074">1074</a>
 <a href="#1075" id="1075">1075</a>
 <a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     mem::size_of,
@@ -2048,6 +2056,14 @@
         DataTypeInformation::String { encoding: lenc, .. } =&gt; {
             <span class="macro">matches!</span>(rtype, DataTypeInformation::String { encoding, .. } <span class="kw">if </span>encoding == lenc)
         }
+
+        DataTypeInformation::Array { inner_type_name: l_inner_type, .. } =&gt; <span class="kw">match </span>rtype {
+            DataTypeInformation::Array { inner_type_name: r_inner_type, .. } =&gt; {
+                l_inner_type == r_inner_type &amp;&amp; ltype.get_size(index) == rtype.get_size(index)
+            }
+
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        },
 
         <span class="comment">// We have to handle 3 different cases here:
         // 1. foo := ADR(bar)
