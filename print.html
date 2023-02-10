@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build & Install</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="development_tips.html"><strong aria-hidden="true">2.1.</strong> Development Tips</a></li></ol></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="using_rusty/build_configuration.html"><strong aria-hidden="true">3.1.</strong> Build Configuration</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.1.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.1.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="pous.html"><strong aria-hidden="true">5.</strong> POUs</a></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">6.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">7.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">8.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="arch/architecture.html"><strong aria-hidden="true">9.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="arch/parser.html"><strong aria-hidden="true">9.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="arch/indexer.html"><strong aria-hidden="true">9.2.</strong> Indexer & Symbol-Table</a></li><li class="chapter-item expanded "><a href="arch/linker.html"><strong aria-hidden="true">9.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="arch/validation.html"><strong aria-hidden="true">9.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="arch/codegen.html"><strong aria-hidden="true">9.5.</strong> Codegen</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -203,10 +203,10 @@ We are aiming towards an open-source industry-grade ST compiler supporting at le
 <li>✔ Logical Operators</li>
 <li>✔ Bitwise Operators</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="building-and-installing"><a class="header" href="#building-and-installing">Building and Installing</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="build--install"><a class="header" href="#build--install">Build &amp; Install</a></h1>
 <p>RuSTys code can be found on <a href="https://github.com/PLC-lang/rusty">GitHub</a>.
-By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided.</p>
-<p>If you wish to develop natively however, you will need some additional dependencies namely :</p>
+By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided. If you wish to develop natively 
+however, you will need some additional dependencies namely:</p>
 <ul>
 <li><a href="https://www.rust-lang.org/tools/install">Rust</a></li>
 <li>LLVM 14</li>
@@ -214,7 +214,10 @@ By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file a
 <li>Build Tools (e.g. <code>build-essential</code> on Ubuntu)</li>
 <li>zlib</li>
 </ul>
-<p>The next sections will cover how to install these dependencies on different platforms.</p>
+<p>The next sections cover how to install these dependencies on different platforms, if you already have them
+however, RuSTy can be build using the <code>cargo</code> command. For debug builds this can be accomplished by executing
+<code>cargo build</code> and for release builds (smaller &amp; faster) you would execute <code>cargo build --release</code>. The 
+resulting binaries can be found at <code>target/debug/rustyc</code> and <code>target/release/rustyc</code> respectively.</p>
 <h2 id="ubuntu"><a class="header" href="#ubuntu">Ubuntu</a></h2>
 <p>The specified dependencies can be installed with the following command on Ubuntu :</p>
 <pre><code class="language-bash">sudo apt install                \
@@ -237,6 +240,8 @@ To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.<
 </code></pre>
 <h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
 <p>For Windows you will need a <a href="https://github.com/plc-lang/llvm-package-windows/releases/tag/v14.0.6">custom build</a>.</p>
+<h2 id="installing"><a class="header" href="#installing">Installing</a></h2>
+<p><em>TODO</em></p>
 <h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
 <ul>
 <li>Because of weak compatibility guarantees of the LLVM API, the LLVM installation must exactly match the
@@ -247,17 +252,11 @@ major version of the <code>llvm-sys</code> crate.Currently you will need to inst
 the appropriate environment variable (<code>LLVM_SYS_140_PREFIX=/usr/lib/llvm-14</code> for LLVM 14), so
 the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
 </ul>
-<h2 id="building"><a class="header" href="#building">Building</a></h2>
-<p>Just like any Rust project, binaries can be built with <code>cargo build</code>.
-For release builds, i.e. faster and smaller binaries, you have to pass the <code>--release</code> flag, like so <code>cargo build --release</code>.
-The resulting binaries can be found at <code>target/release/rustyc</code>.</p>
-<h2 id="improving-compile-times"><a class="header" href="#improving-compile-times">Improving Compile Times</a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="improving-compile-times"><a class="header" href="#improving-compile-times">Improving Compile Times</a></h2>
 <p>By default Rust uses the GNU Linker on Linux which compared to <a href="https://lld.llvm.org/">lld</a> is slower by a margin of <a href="https://llvm.org/devmtg/2016-10/slides/Ueyama-lld.pdf">~2x - 4x</a>.
 To improve compile times we can therefore use <code>lld</code>.
 To do so you will need to run the <code>rusty/scripts/lld.sh</code> script inside the <code>rusty</code> root folder, i.e. by executing <code>./scripts/lld.sh</code>.
 <strong>Note</strong> that the script was only tested on Ubuntu based distributions thus far.</p>
-<h2 id="installing"><a class="header" href="#installing">Installing</a></h2>
-<p><em>TODO</em></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
 <p><code>rustyc</code> offers a comprehensive help via the -h (--help) option.
 <code>rustyc</code> takes one output-format parameter and any number of input-files.
