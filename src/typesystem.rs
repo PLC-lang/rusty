@@ -973,18 +973,9 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
 
-        DataTypeInformation::Array { inner_type_name: l_name, dimensions: l_dim, .. } => match rtype {
-            DataTypeInformation::Array { inner_type_name: r_name, dimensions: r_dim, .. } => {
-                // Check if the inner type name as well as the dimension length are equal
-                if !(l_name == r_name && l_dim.len() == r_dim.len()) {
-                    return false;
-                }
-
-                // Check if the dimension's lengths are equal
-                let l_dim_len = l_dim.iter().map(|x| x.get_length(index)).collect::<Vec<_>>();
-                let r_dim_len = r_dim.iter().map(|x| x.get_length(index)).collect::<Vec<_>>();
-
-                l_dim_len == r_dim_len
+        DataTypeInformation::Array { inner_type_name: l_inner_type, .. } => match rtype {
+            DataTypeInformation::Array { inner_type_name: r_inner_type, .. } => {
+                l_inner_type == r_inner_type && ltype.get_size(index) == rtype.get_size(index)
             }
 
             _ => false,
