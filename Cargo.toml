@@ -1,7 +1,10 @@
 [package]
 name = "rusty"
 version = "0.2.0"
-authors = ["Ghaith Hachem <ghaith.hachem@gmail.com>", "Mathias Rieder <mathias.rieder@gmail.com>"]
+authors = [
+    "Ghaith Hachem <ghaith.hachem@gmail.com>",
+    "Mathias Rieder <mathias.rieder@gmail.com>",
+]
 edition = "2021"
 readme = "README.md"
 repository = "https://github.com/ghaith/rusty/"
@@ -16,7 +19,9 @@ verify = []
 
 [dependencies]
 logos = "0.12.0"
-inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features= ["llvm14-0"] }
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = [
+    "llvm14-0",
+] }
 thiserror = "1.0"
 clap = { version = "3.0", features = ["derive"] }
 indexmap = "1.6"
