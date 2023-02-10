@@ -973,31 +973,18 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
 
-        DataTypeInformation::Array { inner_type_name: l_name, dimensions: l_dimensions, .. } => match rtype {
-            DataTypeInformation::Array { inner_type_name: r_name, dimensions: r_dimensions, .. } => {
-                // TODO:
-                // - [ ] This is ugly, let's rewrite it
-                //   - [ ] In general are arrays incompatible if they have different dimensions?
-                //         => clang does not generate a warning
-                // - [ ] Add more test cases
-
-                // dbg!((&l_name, r_name));
-                // dbg!((&l_dimensions, r_dimensions));
-                // dbg!((&l_dimensions[0].get_length(index), r_dimensions));
-                if l_dimensions.len() != r_dimensions.len() {
+        DataTypeInformation::Array { inner_type_name: l_name, dimensions: l_dim, .. } => match rtype {
+            DataTypeInformation::Array { inner_type_name: r_name, dimensions: r_dim, .. } => {
+                // Check if the inner type name as well as the dimension length are equal
+                if !(l_name == r_name && l_dim.len() == r_dim.len()) {
                     return false;
                 }
 
-                if l_dimensions
-                    .iter()
-                    .zip(r_dimensions)
-                    .map(|(x, y)| x.get_length(index) == y.get_length(index))
-                    .any(|x| !x)
-                {
-                    return false;
-                }
+                // Check if the dimension's lengths are equal
+                let l_dim_len = l_dim.iter().map(|x| x.get_length(index)).collect::<Vec<_>>();
+                let r_dim_len = r_dim.iter().map(|x| x.get_length(index)).collect::<Vec<_>>();
 
-                l_name == r_name
+                l_dim_len == r_dim_len
             }
 
             _ => false,

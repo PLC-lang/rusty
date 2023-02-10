@@ -1012,19 +1012,63 @@ fn validate_arrays_passed_to_functions() {
         "
         FUNCTION func : DINT
             VAR_INPUT
-                arr_dint : ARRAY[0..1] OF DINT;
+                arr_dint  : ARRAY[0..1] OF DINT;
             END_VAR
         END_FUNCTION
 
         PROGRAM main
             VAR
-                local_arr_dint : ARRAY[0..1] OF DINT;
+                arr_sint   : ARRAY[0..1] OF   SINT;
+                arr_int    : ARRAY[0..1] OF    INT;
+                arr_dint   : ARRAY[0..1] OF   DINT;
+                arr_lint   : ARRAY[0..1] OF   LINT;
+                arr_real   : ARRAY[0..1] OF   REAL;
+                arr_lreal  : ARRAY[0..1] OF  LREAL;
+
+                arr_dint_1_2            : ARRAY[1..2]       OF DINT; 
+                arr_dint_3_4            : ARRAY[3..4]       OF DINT;
+                arr_dint_1_10           : ARRAY[1..10]      OF DINT;
+                arr_dint_10_100         : ARRAY[10..100]    OF DINT;
+                
+                arr_dint_2d : ARRAY[0..1] OF ARRAY[0..1] OF DINT;
             END_VAR
 
-            func(local_arr_dint);
+            // Check if datatypes are correctly checked; only `arr_dint` should work
+            func(arr_sint);
+            func(arr_int);
+            func(arr_dint);
+            func(arr_lint);
+            func(arr_real);
+            func(arr_lreal);
+
+            // Check if dimensions are correctly checked
+            func(arr_dint_1_2); // Should work (but why would you write this)
+            func(arr_dint_3_4); // ^
+            func(arr_dint_1_10);
+            func(arr_dint_10_100);
+
+            // Check if 2D arrays are correctly checked
+            func(arr_dint_2d);
         END_PROGRAM
         ",
     );
 
-    assert_eq!(diagnostics.len(), 0);
+    #[rustfmt::skip]
+    let expected = vec![
+        Diagnostic::invalid_assignment("__main_arr_sint",           "__func_arr_dint", (976..984  ).into()),
+        Diagnostic::invalid_assignment("__main_arr_int",            "__func_arr_dint", (1004..1011).into()),
+        Diagnostic::invalid_assignment("__main_arr_lint",           "__func_arr_dint", (1059..1067).into()),
+        Diagnostic::invalid_assignment("__main_arr_real",           "__func_arr_dint", (1087..1095).into()),
+        Diagnostic::invalid_assignment("__main_arr_lreal",          "__func_arr_dint", (1115..1124).into()),
+        Diagnostic::invalid_assignment("__main_arr_dint_1_10",      "__func_arr_dint", (1317..1330).into()),
+        Diagnostic::invalid_assignment("__main_arr_dint_10_100",    "__func_arr_dint", (1350..1365).into()),
+        Diagnostic::invalid_assignment("__main_arr_dint_2d",        "__func_arr_dint", (1442..1453).into())
+    ];
+
+    assert_eq!(diagnostics.len(), 8);
+    assert_eq!(diagnostics.len(), expected.len());
+    for (actual, expected) in diagnostics.iter().zip(expected) {
+        assert_eq!(actual.get_message(), expected.get_message());
+        assert_eq!(actual.get_affected_ranges(), expected.get_affected_ranges());
+    }
 }
