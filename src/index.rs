@@ -39,7 +39,7 @@ pub struct VariableIndexEntry {
     is_constant: bool,
     /// the variable's datatype
     pub data_type_name: String,
-    /// the index of the member-variable in it's container (e.gxxx. struct). defautls to 0 (Single variables)
+    /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
     location_in_parent: u32,
     /// Wether the variable is externally or internally available
     linkage: LinkageType,

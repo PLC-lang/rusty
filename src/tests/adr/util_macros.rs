@@ -9,10 +9,9 @@ macro_rules! annotate {
 }
 pub(crate) use annotate;
 
-
 macro_rules! deconstruct_assignment {
     ($src:expr) => {{
-        if let AstStatement::Assignment{left, right, ..} = $src {
+        if let AstStatement::Assignment { left, right, .. } = $src {
             (left, right)
         } else {
             unreachable!();
@@ -23,9 +22,11 @@ pub(crate) use deconstruct_assignment;
 
 macro_rules! deconstruct_call_statement {
     ($src:expr) => {{
-        if let AstStatement::CallStatement{operator, parameters, ..} = $src {
-            (operator, 
-                parameters.as_ref().as_ref().map(crate::ast::flatten_expression_list).unwrap_or_default())
+        if let AstStatement::CallStatement { operator, parameters, .. } = $src {
+            (
+                operator,
+                parameters.as_ref().as_ref().map(crate::ast::flatten_expression_list).unwrap_or_default(),
+            )
         } else {
             unreachable!();
         }
@@ -37,19 +38,18 @@ macro_rules! deconstruct_qualified_reference {
     ($src:expr) => {{
         if let AstStatement::QualifiedReference { elements, .. } = &$src {
             elements
-        }else{
+        } else {
             unreachable!();
         }
     }};
 }
 pub(crate) use deconstruct_qualified_reference;
 
-
 macro_rules! deconstruct_binary_expression {
     ($src:expr) => {{
-        if let AstStatement::BinaryExpression { left, right , .. } = &$src {
+        if let AstStatement::BinaryExpression { left, right, .. } = &$src {
             (left, right)
-        }else{
+        } else {
             unreachable!();
         }
     }};

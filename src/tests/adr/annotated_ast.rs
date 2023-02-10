@@ -32,7 +32,6 @@ fn references_to_variables_are_annotated() {
         END_VAR
 
         a := gX;
-        b := 4;
     END_PROGRAM
 
     VAR_GLOBAL constant
@@ -43,7 +42,7 @@ fn references_to_variables_are_annotated() {
 
     // lets look at a := gX;
     let (a, g_x) = deconstruct_assignment!(&statements[0]);
-    // the left side is a reference to the Variable prg.a
+    // the left side is a reference to the Variable prg.a of type SINT
     assert_eq!(
         annotations.get(a).unwrap(),
         &StatementAnnotation::Variable {
@@ -55,7 +54,7 @@ fn references_to_variables_are_annotated() {
         }
     );
 
-    // the right side is a reference to the global variable gX
+    // the right side is a reference to the global variable gX of type INT
     assert_eq!(
         annotations.get(g_x).unwrap(),
         &StatementAnnotation::Variable {
@@ -86,20 +85,20 @@ fn different_types_of_annotations() {
         END_PROGRAM
 
         FUNCTION foo : DINT END_FUNCTION
+
         PROGRAM Main 
             VAR_INPUT in : INT; END_VAR
         END_FUNCTION
 
         TYPE POINT:
-        STRUCT
-            x,y : SINT;
-        END_STRUCT
+            STRUCT
+                x,y : SINT;
+            END_STRUCT
         END_POINT
     "#
     );
 
-    // now lets take a look at several annotations that got placed:
-    // p.x resolves into a variable, a Variable annotation indicates an LValue
+    // p.x resolves to a variable, a Variable annotation indicates an LValue
     assert_eq!(
         annotations.get(&statements[0]),
         Some(&StatementAnnotation::Variable {
@@ -128,7 +127,7 @@ fn different_types_of_annotations() {
         Some(&StatementAnnotation::Value { resulting_type: "DINT".into() })
     );
 
-    // p.y + foo() resolves to an INT (bigger of the two)
+    // p.y + foo() resolves to a value of type INT (the bigger type of the two)
     assert_eq!(
         annotations.get(&statements[2]),
         Some(&StatementAnnotation::Value { resulting_type: "DINT".into() })
@@ -136,12 +135,14 @@ fn different_types_of_annotations() {
 
     // Main.in
     let segments = deconstruct_qualified_reference!(&statements[3]);
+    // Main resolves to a Program
     assert_eq!(
-        annotations.get(&segments[0]), //Main resolves to a Program
+        annotations.get(&segments[0]),
         Some(&StatementAnnotation::Program { qualified_name: "Main".into() })
     );
+    //in resolves to the variable in
     assert_eq!(
-        annotations.get(&segments[1]), //in resolves to the variable in
+        annotations.get(&segments[1]),
         Some(&StatementAnnotation::Variable {
             qualified_name: "Main.in".into(),
             resulting_type: "INT".into(),
@@ -150,16 +151,17 @@ fn different_types_of_annotations() {
             variable_type: VariableType::Input
         })
     );
-    // the qualified statement gets the annotation of the last segment
+    // the qualified statement gets the annotation of the last segment (in this case "Main.in" of type INT)
     assert_eq!(annotations.get(&statements[3]), annotations.get(&segments[1]));
 }
 
 /// The resolver (the component that annotates the AST) not only annnotates the real datatype
 /// of expressions, it also annotates a hint on what datatype needs to be generated for an
 /// expression. This means that the resolver not only analyzes the real type of a declared element,
-/// it only determines the type of an evaluated expression, and even hints necessary casts
+/// it also determines the type of an evaluated expression and even hints necessary casts
 /// (e.g. when assigning an INT to a DINT-variable). The TypeAnnotations offers a helper function
-/// `get_type(&AstStatement)` that extracts the resulting-type from the statement's annotation.
+/// `get_type(&AstStatement)` that extracts the resulting-type from the statement's annotation -
+/// whatever type of annotation it is.
 #[test]
 fn type_annotations_reflect_the_evaluation_result() {
     let (statements, annotations, idx) = annotate!(
@@ -187,13 +189,17 @@ fn type_annotations_reflect_the_evaluation_result() {
 }
 
 /// An expression gets a type-annotation and a type-hint annotation. The meaning is the following:
-/// - Type-Annotation: the real type of this expression. These Type-Hints work for all kinds of
-/// type necessary casts or promotions, including:
+/// - Type-Annotation: the real type of this expression.
+/// - Type Hint: the type that should be used to treat this expression.
+///
+/// If the Type-Hint differs from the Type-Annotation the resolver indicates that we need a cast
+/// from the Type to the Type-hint.
+///
+/// These Type-Hints work for all kinds of necessary casts or promotions, including:
 ///  - casting a variable due to an assignment to a differently-typed variable (e.g. `myInt := mySInt;`)
 ///  - casting a variable when passing it to a function that expects a different type (e.g. `foo(mySInt);` mySInt
 ///         gets the type-hint of the 1st foo-parameter)
-///  - automatic upscaling expressions in binary-expressions (e.g. `myInt + mySInt;` mySInt will receive a
-///         typehint of "INT" so the addition can be performed as `INT + INT`)
+
 #[test]
 fn type_annotations_indicates_necessary_casts() {
     let (statements, annotations, _) = annotate!(
@@ -235,12 +241,72 @@ fn type_annotations_indicates_necessary_casts() {
         Some(&StatementAnnotation::Value { resulting_type: "DINT".into() })
     );
 
-    // k := d
+    // foo(3)
     let (_, parameters) = deconstruct_call_statement!(&statements[2]);
-    // left has no special type-hint
-    assert_eq!(annotations.get_hint(parameters[0]), Some(&StatementAnnotation::value("DINT"))); //numeric literals are treated as DINTs
+    // 3 is a DINT but hinted as an INT because foo expects an INT as first parameter
+    assert_eq!(annotations.get_hint(parameters[0]), Some(&StatementAnnotation::value("INT")));
+}
+
+/// The resolver also hints necessary upscaling of operands in binary-expressions (e.g. `myInt + mySInt;`
+/// mySInt will receive a typehint of "INT" so the addition can be performed as `INT + INT`);
+/// It also correctly resolves the result of such expressions
+#[test]
+fn type_annotations_for_binary_expression() {
+    let (statements, annotations, _) = annotate!(
+        r#"
+        PROGRAM prg 
+            VAR 
+                i : INT; 
+                d : DINT;
+                r : LREAL;
+            END_VAR
+        
+            i + d;
+            r / d;
+        END_PROGRAM
+    "#
+    );
+
+    // i + d
+    let (left, right) = deconstruct_binary_expression!(&statements[0]);
+    // left needs upscale to match the right type-size
+    assert_eq!(annotations.get_hint(left), Some(&StatementAnnotation::value("DINT")));
+    // right is the bigger type and needs no hint
+    assert_eq!(annotations.get_hint(right), None);
+    // the whole expression (i + d) results in an DINT
+    assert_eq!(annotations.get(&statements[0]), Some(&StatementAnnotation::value("DINT")));
+
+    // r / d
+    let (left, right) = deconstruct_binary_expression!(&statements[1]);
+    // left is the bigger type and needs no hint
+    assert_eq!(annotations.get_hint(left), None);
+    // right needs upscale to match the left type-size
+    assert_eq!(annotations.get_hint(right), Some(&StatementAnnotation::value("LREAL")));
+    // the whole expression (i / d) results in an LREAL
+    assert_eq!(annotations.get(&statements[1]), Some(&StatementAnnotation::value("LREAL")));
+}
+
+/// In general one can say, that an expression's type can be derived like this:
+///  1. get the expression's type-hint-annotation,
+///  2. if there is no type-hint-annotation check the type-annotation
+#[test]
+fn useful_type_annotation_method() {
+    let (statements, annotations, idx) = annotate!(
+        r#"
+        PROGRAM prg 
+            VAR 
+                i : INT; 
+                d : DINT;
+            END_VAR
+        
+            i + d;
+        END_PROGRAM
+    "#
+    );
+
+    // the get_type
     assert_eq!(
-        annotations.get_hint(parameters[0]),
-        Some(&StatementAnnotation::Value { resulting_type: "INT".into() }) // the parameter's hint is "INT" because it needs to be casted when passed
+        annotations.get_type_or_void(&statements[0], &idx),
+        idx.get_effective_type_or_void_by_name("DINT")
     );
 }
