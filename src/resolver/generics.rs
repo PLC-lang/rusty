@@ -152,7 +152,10 @@ impl<'i> TypeAnnotator<'i> {
             // register the member-variables (interface) of the new function
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
             // into the concrete type (e.g. INT)
-            let old_dataype = self.index.get_type_or_panic(generic_function.get_name());
+            let old_dataype = self
+                .index
+                .find_pou_type(generic_function.get_name())
+                .expect(&format!("The POU {} should be in the types index", generic_function.get_name()));
             let information = if let DataTypeInformation::Struct { members, source, .. } =
                 old_dataype.get_type_information()
             {

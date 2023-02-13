@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use crate::{
     ast::{
         AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -1040,6 +1039,10 @@ impl Index {
             .unwrap_or_else(|| &[])
     }
 
+    pub fn find_pou_type(&self, pou_name: &str) -> Option<&DataType> {
+        self.get_pou_types().get(&pou_name.to_lowercase())
+    }
+
     pub fn get_declared_parameters(&self, pou_name: &str) -> Vec<&VariableIndexEntry> {
         self.get_pou_members(pou_name)
             .iter()
@@ -1120,8 +1123,10 @@ impl Index {
     }
 
     /// expect a built-in type
+    /// This only returns types, not POUs as it is meant for builtins only
     pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
-        self.type_index.get_type(type_name).unwrap_or_else(|_| panic!("{type_name} not found"))
+        self.get_types().get(&type_name.to_lowercase())
+        .unwrap_or_else(|| panic!("{type_name} not found"))
     }
 
     pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
