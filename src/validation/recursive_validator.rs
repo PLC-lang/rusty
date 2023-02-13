@@ -55,14 +55,12 @@ impl RecursiveValidator {
         nodes_all.extend(index.get_types().values().filter(|x| x.get_type_information().is_struct()));
 
         // Function Blocks
-        nodes_all.extend(
-            index.get_pou_types().values().filter(|x| {
-                matches!(
-                    x.get_type_information(),
-                    DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. }
-                )
-            }),
-        );
+        nodes_all.extend(index.get_pou_types().values().filter(|x| {
+            matches!(
+                x.get_type_information(),
+                DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. }
+            )
+        }));
 
         self.find_cycle(index, nodes_all, &mut nodes_visited);
     }
@@ -98,9 +96,7 @@ impl RecursiveValidator {
         nodes_visited.insert(node_curr);
         path.insert(node_curr);
 
-        for node in
-            node_curr.get_members().iter().map(|x| self.get_type(index, x)).collect::<IndexSet<_>>()
-        {
+        for node in node_curr.get_members().iter().map(|x| self.get_type(index, x)).collect::<IndexSet<_>>() {
             if path.contains(node) {
                 self.report(node, path);
             } else if !nodes_visited.contains(node) {
