@@ -1018,10 +1018,9 @@ fn literal_string_as_parameter_resolves_correctly() {
 
 #[test]
 fn generic_function_sharing_a_datatype_name_resolves() {
-
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
-    "{external}
+        "{external}
     FUNCTION LT <T: ANY_STRING> : BOOL
     VAR_INPUT {ref}
         IN1 : {sized} T...;
@@ -1031,7 +1030,9 @@ fn generic_function_sharing_a_datatype_name_resolves() {
     FUNCTION main : DINT
       LT('hello','world');
     END_FUNCTION
-    ", id_provider.clone());
+    ",
+        id_provider.clone(),
+    );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[1].statements[0];

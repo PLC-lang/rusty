@@ -1125,8 +1125,7 @@ impl Index {
     /// expect a built-in type
     /// This only returns types, not POUs as it is meant for builtins only
     pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
-        self.get_types().get(&type_name.to_lowercase())
-        .unwrap_or_else(|| panic!("{type_name} not found"))
+        self.get_types().get(&type_name.to_lowercase()).unwrap_or_else(|| panic!("{type_name} not found"))
     }
 
     pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
