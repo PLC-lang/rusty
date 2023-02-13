@@ -65,7 +65,7 @@ fn exponent_literals_parsed_as_variables() {
         generics: vec![],
         linkage: crate::ast::LinkageType::Internal,
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pou).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{pou:#?}").as_str());
     let implementation = &parse_result.implementations[0];
     let expected = Implementation {
         name: "E1".into(),
@@ -91,8 +91,8 @@ fn exponent_literals_parsed_as_variables() {
         location: (105..142).into(),
         name_location: (22..24).into(),
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", implementation).as_str());
-    assert_eq!(format!("{:#?}", diagnostics), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{implementation:#?}").as_str());
+    assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
 }
 
 #[test]

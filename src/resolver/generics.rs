@@ -152,16 +152,34 @@ impl<'i> TypeAnnotator<'i> {
             // register the member-variables (interface) of the new function
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
             // into the concrete type (e.g. INT)
-            if let Some(generic_function_members) = self.index.get_members(generic_function.get_name()) {
-                for member in generic_function_members.values() {
-                    let new_type_name = self.find_or_create_datatype(member.get_type_name(), generics);
+            let old_dataype = self.index.get_type_or_panic(generic_function.get_name());
+            let information = if let DataTypeInformation::Struct { members, source, .. } =
+                old_dataype.get_type_information()
+            {
+                let members = members
+                    .iter()
+                    .map(|member| {
+                        let new_type_name = self.find_or_create_datatype(member.get_type_name(), generics);
 
-                    //register the member under the new container (old: foo__T, new: foo__INT)
-                    //with its new type-name (old: T, new: INT)
-                    let entry = member.into_typed(new_name, &new_type_name);
-                    self.annotation_map.new_index.register_member_entry(new_name, entry);
-                }
-            }
+                        //register the member under the new container (old: foo__T, new: foo__INT)
+                        //with its new type-name (old: T, new: INT)
+                        member.into_typed(new_name, &new_type_name)
+                    })
+                    .collect::<Vec<_>>();
+                DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), members }
+            } else {
+                unreachable!("The function {} type is always a struct", old_dataype.get_name())
+            };
+
+            let new_datatype = DataType {
+                name: new_name.to_string(),
+                information,
+                initial_value: old_dataype.initial_value.to_owned(),
+                location: old_dataype.location.to_owned(),
+                nature: old_dataype.nature.to_owned(),
+            };
+
+            self.annotation_map.new_index.register_pou_type(new_datatype);
         }
     }
 
@@ -218,53 +236,61 @@ impl<'i> TypeAnnotator<'i> {
             nature: TypeNature,
         }
 
-        let passed_parameters = ast::flatten_expression_list(s);
         let declared_parameters = self.index.get_declared_parameters(function_name);
-        for (i, p) in passed_parameters.iter().enumerate() {
+        // separate variadic and non variadic parameters
+        let mut passed_parameters = Vec::new();
+        let mut variadic_parameters = Vec::new();
+        for (i, p) in ast::flatten_expression_list(s).iter().enumerate() {
             if let Ok((location_in_parent, passed_parameter, ..)) =
                 get_implicit_call_parameter(p, &declared_parameters, i)
             {
                 if let Some(declared_parameter) = declared_parameters.get(location_in_parent) {
-                    // check if declared parameter is generic
-                    if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = self
-                        .index
-                        .find_effective_type_info(declared_parameter.get_type_name())
-                        .map(|t| self.index.find_elementary_pointer_type(t))
-                    {
-                        // get generic type of the declared parameter this will be our type hint as the expected type
-                        if let Some(generic) = generic_map.get(generic_symbol) {
-                            if let Some(datatype) =
-                                self.index.find_effective_type_by_name(generic.derived_type.as_str())
-                            {
-                                // annotate the type hint for the passed parameter
-                                self.annotation_map.annotate_type_hint(
-                                    passed_parameter,
-                                    StatementAnnotation::value(datatype.get_name()),
-                                );
-                                // annotate the generic type nature of the passed parameter, this is the actual nature of the generic declaration
-                                self.annotation_map
-                                    .add_generic_nature(passed_parameter, generic.generic_nature);
+                    passed_parameters.push((*p, passed_parameter, *declared_parameter));
+                } else {
+                    // variadic parameters are not included in declared_parameters
+                    variadic_parameters.push(passed_parameter);
+                }
+            }
+        }
 
-                                // for assignments we need to annotate the left side aswell
-                                match p {
-                                    AstStatement::Assignment { left, .. }
-                                    | AstStatement::OutputAssignment { left, .. } => {
-                                        self.annotation_map
-                                            .annotate(left, StatementAnnotation::value(datatype.get_name()));
-                                    }
-                                    _ => {}
-                                }
+        for (parameter_stmt, passed_parameter, declared_parameter) in passed_parameters.iter() {
+            // check if declared parameter is generic
+            if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = self
+                .index
+                .find_effective_type_info(declared_parameter.get_type_name())
+                .map(|t| self.index.find_elementary_pointer_type(t))
+            {
+                // get generic type of the declared parameter this will be our type hint as the expected type
+                if let Some(generic) = generic_map.get(generic_symbol) {
+                    if let Some(datatype) =
+                        self.index.find_effective_type_by_name(generic.derived_type.as_str())
+                    {
+                        // annotate the type hint for the passed parameter
+                        self.annotation_map.annotate_type_hint(
+                            passed_parameter,
+                            StatementAnnotation::value(datatype.get_name()),
+                        );
+                        // annotate the generic type nature of the passed parameter, this is the actual nature of the generic declaration
+                        self.annotation_map.add_generic_nature(passed_parameter, generic.generic_nature);
+
+                        // for assignments we need to annotate the left side aswell
+                        match parameter_stmt {
+                            AstStatement::Assignment { left, .. }
+                            | AstStatement::OutputAssignment { left, .. } => {
+                                self.annotation_map
+                                    .annotate(left, StatementAnnotation::value(datatype.get_name()));
                             }
+                            _ => {}
                         }
                     }
                 }
             }
         }
 
-        //Then handle the varargs
-        //Get the variadic argument if any
+        // Then handle the varargs
+        // Get the variadic argument if any
         if let Some(dt) = self.index.get_variadic_member(function_name).map(|it| {
-            //if the member is generic
+            // if the member is generic
             if let Some(DataTypeInformation::Generic { generic_symbol, nature, .. }) =
                 self.index.find_effective_type_info(it.get_type_name())
             {
@@ -277,7 +303,7 @@ impl<'i> TypeAnnotator<'i> {
                 None
             }
         }) {
-            for p in passed_parameters {
+            for p in variadic_parameters {
                 if let Some(TypeAndNature { datatype, nature }) = dt {
                     self.annotation_map.add_generic_nature(p, nature);
                     self.annotation_map

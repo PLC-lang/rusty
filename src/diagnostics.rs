@@ -391,7 +391,7 @@ impl Diagnostic {
                 reason.map(|it| format!(": {it}",)).unwrap_or_else(|| "".into()),
             ),
             range: vec![location],
-            err_no: ErrNo::pou__empty_variable_block,
+            err_no: ErrNo::var__unresolved_constant,
         }
     }
 

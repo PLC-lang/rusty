@@ -65,16 +65,19 @@ fn array_initialization_validation() {
         "
 		FUNCTION main : DINT
 		VAR
-			arr	 : ARRAY[1..2] OF DINT;
-			arr2 : ARRAY[1..2] OF DINT := 1, 2; // our parser can handle this, should we validate this ?
-			arr3 : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2))); // valid
-			arr4 : ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2)); // var2 missing `(`
-			x	 : myStruct;
-			y	 : myStruct := (var1 := 1, var2 := 3, 4); // var2 missing `(`
+			arr			: ARRAY[1..2] OF DINT;
+			arr2		: ARRAY[1..2] OF DINT := 1, 2; // our parser can handle this, should we validate this ?
+			arr3		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := (1, 2))); // valid
+			arr4		: ARRAY[1..2] OF myStruct := ((var1 := 1), (var1 := 2, var2 := 1, 2)); // var2 missing `(`
+			arr_init	: ARRAY[1..2] OF DINT := (1, 2);
+			x	 		: myStruct;
+			y	 		: myStruct := (var1 := 1, var2 := 3, 4); // var2 missing `(`
 		END_VAR
-			arr := 1, 2; // missing `(`
-			arr := (1, 2); // valid
-			x := (var1 := 1, var2 := 3, 4); // var2 missing `(`
+			arr	:= 1, 2; // missing `(`
+			arr	:= (1, 2); // valid
+			arr	:= (arr_init); // valid
+			x	:= (var1 := 1, var2 := 3, 4); // var2 missing `(`
+			x	:= (var1 := 1, var2 := arr_init); // valid
 		END_FUNCTION
 		
 		TYPE myStruct : STRUCT
@@ -88,14 +91,14 @@ fn array_initialization_validation() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::array_expected_initializer_list((310..314).into()),
-            Diagnostic::array_expected_identifier_or_round_bracket((321..322).into()),
-            Diagnostic::array_expected_initializer_list((396..400).into()),
-            Diagnostic::array_expected_identifier_or_round_bracket((407..408).into()),
-            Diagnostic::array_expected_initializer_list((444..447).into()),
-            Diagnostic::array_expected_identifier_or_round_bracket((454..455).into()),
-            Diagnostic::array_expected_initializer_list((519..523).into()),
-            Diagnostic::array_expected_identifier_or_round_bracket((530..531).into()),
+            Diagnostic::array_expected_initializer_list((314..318).into()),
+            Diagnostic::array_expected_identifier_or_round_bracket((325..326).into()),
+            Diagnostic::array_expected_initializer_list((449..453).into()),
+            Diagnostic::array_expected_identifier_or_round_bracket((460..461).into()),
+            Diagnostic::array_expected_initializer_list((497..500).into()),
+            Diagnostic::array_expected_identifier_or_round_bracket((507..508).into()),
+            Diagnostic::array_expected_initializer_list((603..607).into()),
+            Diagnostic::array_expected_identifier_or_round_bracket((614..615).into()),
         ]
     );
 }

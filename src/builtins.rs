@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
-    values::{BasicValue, BasicValueEnum, IntValue},
+    values::{BasicValue, IntValue},
 };
 use lazy_static::lazy_static;
 
@@ -12,7 +12,7 @@ use crate::{
         flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
         SourceRangeFactory,
     },
-    codegen::generators::expression_generator::{self, ExpressionCodeGenerator},
+    codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
     lexer::{self, IdProvider},
     parser,
@@ -41,7 +41,7 @@ lazy_static! {
                     if let [reference] = params {
                         generator
                             .generate_element_pointer(reference)
-                            .map(|it| generator.ptr_as_value(it))
+                            .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
                     } else {
                         Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for REF",
@@ -92,7 +92,7 @@ lazy_static! {
                     if let [reference] = params {
                         generator
                             .generate_element_pointer(reference)
-                            .map(|it| it.as_basic_value_enum())
+                            .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for REF",
@@ -150,8 +150,7 @@ lazy_static! {
                         builder.position_at_end(insert_block);
                         builder.build_switch(k.into_int_value(), continue_block, &cases);
                         builder.position_at_end(continue_block);
-                        let result_var = builder.build_load(result_var, "");
-                        Ok(result_var)
+                        Ok(ExpressionValue::LValue(result_var))
                     } else {
                         Err(Diagnostic::codegen_error("Invalid signature for MUX", location))
                     }
@@ -173,12 +172,29 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
-                        //Evaluate the parameters
+                        // evaluate the parameters
                         let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder);
-                        let in0 = generator.generate_expression(in0)?;
-                        let in1 = generator.generate_expression(in1)?;
-                        //Generate an llvm select instruction
-                        Ok(generator.llvm.builder.build_select(cond, in1, in0, ""))
+                        // for aggregate types we need a ptr to perform memcpy
+                        // use generate_expression_value(), this will return a gep
+                        // generate_expression() would load the ptr
+                        let in0 = if generator.annotations.get_type(in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(in0)?.get_basic_value_enum()
+                        } else {
+                            generator.generate_expression(in0)?
+                        };
+                        let in1 = if generator.annotations.get_type(in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(in1)?.get_basic_value_enum()
+                        } else {
+                            generator.generate_expression(in1)?
+                        };
+                        // generate an llvm select instruction
+                        let sel = generator.llvm.builder.build_select(cond, in1, in0, "");
+
+                        if sel.is_pointer_value(){
+                            Ok(ExpressionValue::LValue(sel.into_pointer_value()))
+                        } else {
+                            Ok(ExpressionValue::RValue(sel))
+                        }
                     } else {
                         Err(Diagnostic::codegen_error("Invalid signature for SEL", location))
                     }
@@ -198,7 +214,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if params.len() == 1 {
-                        generator.generate_expression(params[0])
+                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
                     } else {
                         Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location))
                     }
@@ -231,7 +247,7 @@ lazy_static! {
                             )?.size_of()
                             .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", location.clone()))?
                             .as_basic_value_enum();
-                            Ok(size)
+                            Ok(ExpressionValue::RValue(size))
                     } else {
                         Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for SIZEOF",
@@ -251,7 +267,7 @@ type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstStatement],
     SourceRange,
-) -> Result<BasicValueEnum<'ink>, Diagnostic>;
+) -> Result<ExpressionValue<'ink>, Diagnostic>;
 pub struct BuiltIn {
     decl: &'static str,
     annotation: Option<AnnotationFunction>,
@@ -265,7 +281,7 @@ impl BuiltIn {
         generator: &'b ExpressionCodeGenerator<'ink, 'b>,
         params: &[&AstStatement],
         location: SourceRange,
-    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         (self.code)(generator, params, location)
     }
     pub(crate) fn get_annotation(&self) -> Option<AnnotationFunction> {

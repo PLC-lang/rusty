@@ -309,7 +309,7 @@ fn subrangetype_can_be_parsed() {
         address: None,
         location: (0..0).into(),
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }
 
 #[test]
@@ -381,7 +381,7 @@ fn pointer_type_test() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pointer_type).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
     assert_eq!(diagnostics.len(), 1);
     let diagnostic = Diagnostic::ImprovementSuggestion {
         message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
@@ -412,7 +412,7 @@ fn ref_type_test() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", reference_type).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{reference_type:#?}").as_str());
     assert_eq!(diagnostics.len(), 0)
 }
 
@@ -444,7 +444,7 @@ fn global_pointer_declaration() {
         address: None,
         location: (0..0).into(),
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", reference_type).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{reference_type:#?}").as_str());
     let pointer_type = &result.global_vars[0].variables[1];
     let expected = Variable {
         name: "SamplePointer".into(),
@@ -463,7 +463,7 @@ fn global_pointer_declaration() {
         address: None,
         location: (0..0).into(),
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pointer_type).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
     assert_eq!(diagnostics.len(), 1);
     let diagnostic = Diagnostic::ImprovementSuggestion {
         message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),

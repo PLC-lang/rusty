@@ -285,7 +285,7 @@ mod cli_tests {
             Err(e) => {
                 assert_eq!(e.kind(), expected_error_kind);
             }
-            Ok(p) => panic!("expected error, but found none. arguments: {:?}. params: {:?}", args, p),
+            Ok(p) => panic!("expected error, but found none. arguments: {args:?}. params: {p:?}"),
         }
     }
     macro_rules! vec_of_strings {

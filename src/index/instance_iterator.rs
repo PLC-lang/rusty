@@ -74,20 +74,18 @@ impl<'idx> InstanceIterator<'idx> {
             } else {
                 (container, current_prefix.clone())
             };
-        index
-            .get_members(container)
-            .map(|it| {
-                it.values().map(|it| {
-                    (it.get_qualified_name().split('.').last().expect("Variable needs a name").into(), it)
-                })
-            })
-            .map(|iterator| InstanceIterator {
-                index,
-                current_prefix: prefix,
-                iterator: (Box::new(iterator)) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
-                inner: None,
-                filter,
-            })
+        let result = index
+            .get_container_members(container)
+            .iter()
+            .map(|it| (it.get_qualified_name().split('.').last().expect("Variable needs a name").into(), it));
+
+        Some(InstanceIterator {
+            index,
+            current_prefix: prefix,
+            iterator: (Box::new(result)) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
+            inner: None,
+            filter,
+        })
     }
 
     fn get(&mut self) -> Option<Instance<'idx>> {

@@ -671,7 +671,7 @@ fn auto_pointer_of_generic_resolved() {
     if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } = dt {
         assert_eq!(inner_type_name, "DINT")
     } else {
-        panic!("Expecting a pointer to dint, found {:?}", dt)
+        panic!("Expecting a pointer to dint, found {dt:?}")
     }
 }
 
@@ -720,7 +720,7 @@ fn string_ref_as_generic_resolved() {
     if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } = dt {
         assert_eq!(inner_type_name, STRING_TYPE)
     } else {
-        panic!("Expecting auto deref pointer to string, found {:?}", dt)
+        panic!("Expecting auto deref pointer to string, found {dt:?}")
     }
 }
 
@@ -836,7 +836,7 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
         END_VAR
         END_FUNCTION
 
-        FUNCTION main
+        FUNCTION main : DINT
         VAR
             res : DINT;
         END_VAR
@@ -871,8 +871,8 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
         unreachable!("Not an assignment.")
     }
 
-    let function = index.get_members("LEN__STRING").unwrap();
-    let param = function.get(&"in".to_string()).unwrap();
+    let function = index.get_container_members("LEN__STRING");
+    let param = function.iter().find(|it| it.get_name().eq_ignore_ascii_case("in")).unwrap();
 
     let datatype = index.get_type_information_or_void(param.get_type_name());
     if let DataTypeInformation::Pointer { inner_type_name, .. } = datatype {
