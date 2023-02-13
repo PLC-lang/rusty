@@ -16,7 +16,7 @@ fn if_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"IfStatement {
     blocks: [
         ConditionalBlock {
@@ -38,7 +38,7 @@ fn test_return_statement() {
     let prg = &result.implementations[0];
     let stmt = &prg.statements[0];
 
-    assert_eq!(format!("{:?}", stmt), "ReturnStatement");
+    assert_eq!(format!("{stmt:?}"), "ReturnStatement");
 }
 
 #[test]
@@ -48,7 +48,7 @@ fn test_continue_statement() {
     let prg = &result.implementations[0];
     let stmt = &prg.statements[0];
 
-    assert_eq!(format!("{:?}", stmt), "ContinueStatement");
+    assert_eq!(format!("{stmt:?}"), "ContinueStatement");
 }
 
 #[test]
@@ -58,7 +58,7 @@ fn test_exit_statement() {
     let prg = &result.implementations[0];
     let stmt = &prg.statements[0];
 
-    assert_eq!(format!("{:?}", stmt), "ExitStatement");
+    assert_eq!(format!("{stmt:?}"), "ExitStatement");
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn if_else_statement_with_expressions() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"IfStatement {
     blocks: [
         ConditionalBlock {
@@ -120,7 +120,7 @@ fn if_elsif_elsif_else_statement_with_expressions() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"IfStatement {
     blocks: [
         ConditionalBlock {
@@ -176,7 +176,7 @@ fn for_with_literals_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"ForLoopStatement {
     counter: Reference {
         name: "y",
@@ -206,7 +206,7 @@ fn for_with_step_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"ForLoopStatement {
     counter: Reference {
         name: "x",
@@ -240,7 +240,7 @@ fn for_with_reference_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"ForLoopStatement {
     counter: Reference {
         name: "z",
@@ -272,7 +272,7 @@ fn for_with_body_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"ForLoopStatement {
     counter: Reference {
         name: "z",
@@ -309,7 +309,7 @@ fn while_with_literal() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"WhileLoopStatement {
     condition: LiteralBool {
         value: true,
@@ -332,7 +332,7 @@ fn while_with_expression() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"WhileLoopStatement {
     condition: BinaryExpression {
         operator: Less,
@@ -363,7 +363,7 @@ fn while_with_body_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"WhileLoopStatement {
     condition: LiteralBool {
         value: true,
@@ -395,7 +395,7 @@ fn repeat_with_literal() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RepeatLoopStatement {
     condition: LiteralBool {
         value: true,
@@ -419,7 +419,7 @@ fn repeat_with_expression() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RepeatLoopStatement {
     condition: BinaryExpression {
         operator: Greater,
@@ -451,7 +451,7 @@ fn repeat_with_body_statement() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RepeatLoopStatement {
     condition: LiteralBool {
         value: true,
@@ -483,7 +483,7 @@ fn case_statement_with_one_condition() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"CaseStatement {
     selector: Reference {
         name: "StateMachine",
@@ -522,7 +522,7 @@ fn case_statement_with_one_condition_with_trailling_comma() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"CaseStatement {
     selector: Reference {
         name: "StateMachine",
@@ -559,7 +559,7 @@ fn case_statement_with_else_and_no_condition() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"CaseStatement {
     selector: Reference {
         name: "StateMachine",
@@ -584,7 +584,7 @@ fn case_statement_with_no_conditions() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"CaseStatement {
     selector: Reference {
         name: "StateMachine",
@@ -612,7 +612,7 @@ fn case_statement_with_one_condition_and_an_else() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"CaseStatement {
     selector: Reference {
         name: "StateMachine",
@@ -655,7 +655,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"CaseStatement {
     selector: Reference {
         name: "StateMachine",
@@ -694,7 +694,7 @@ fn case_statement_with_multiple_conditions() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"CaseStatement {
     selector: Reference {
         name: "StateMachine",
@@ -758,7 +758,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"CaseStatement {
     selector: Reference {
         name: "StateMachine",

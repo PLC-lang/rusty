@@ -191,7 +191,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.debug.set_debug_location(self.llvm, &function_context.function, line, column);
     }
 
-    fn generate_expression_value(
+    pub fn generate_expression_value(
         &self,
         expression: &AstStatement,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
@@ -504,9 +504,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
-            return builtin
-                .codegen(self, parameters_list.as_slice(), operator.get_location())
-                .map(ExpressionValue::RValue);
+            return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
 
         let mut arguments_list = self.generate_pou_call_arguments_list(
@@ -1889,13 +1887,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     DataTypeInformation::Array { .. } => {
                         self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
                     }
-                    _ => self.generate_literal_struct(literal_statement, &literal_statement.get_location()),
+                    _ => self.generate_literal_struct(literal_statement),
                 }
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
-            AstStatement::Assignment { .. } => {
-                self.generate_literal_struct(literal_statement, &literal_statement.get_location())
-            }
+            AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
             AstStatement::CastStatement { target, .. } => self.generate_expression_value(target),
             _ => Err(Diagnostic::codegen_error(
                 &format!("Cannot generate Literal for {literal_statement:?}"),
@@ -2012,28 +2008,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_literal_struct(
         &self,
         assignments: &AstStatement,
-        declaration_location: &SourceRange,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-        if let DataTypeInformation::Struct { name: struct_name, member_names, .. } =
+        if let DataTypeInformation::Struct { name: struct_name, members, .. } =
             self.get_type_hint_info_for(assignments)?
         {
-            let mut uninitialized_members: HashSet<&str> =
-                member_names.iter().map(|it| it.as_str()).collect();
+            let mut uninitialized_members: HashSet<&VariableIndexEntry> = HashSet::from_iter(members);
             let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
             for assignment in flatten_expression_list(assignments) {
                 if let AstStatement::Assignment { left, right, .. } = assignment {
                     if let AstStatement::Reference { name: variable_name, location, .. } = &**left {
-                        let member = self.index.find_member(struct_name, variable_name).ok_or_else(|| {
-                            Diagnostic::unresolved_reference(
-                                format!("{struct_name}.{variable_name}").as_str(),
-                                location.clone(),
-                            )
-                        })?;
+                        let member: &VariableIndexEntry =
+                            self.index.find_member(struct_name, variable_name).ok_or_else(|| {
+                                Diagnostic::unresolved_reference(
+                                    format!("{struct_name}.{variable_name}").as_str(),
+                                    location.clone(),
+                                )
+                            })?;
 
                         let index_in_parent = member.get_location_in_parent();
                         let value = self.generate_expression(right)?;
 
-                        uninitialized_members.remove(member.get_name());
+                        uninitialized_members.remove(member);
                         member_values.push((index_in_parent, value));
                     } else {
                         return Err(Diagnostic::codegen_error(
@@ -2050,14 +2045,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
 
             //fill the struct with fields we didnt mention yet
-            for variable_name in uninitialized_members {
-                let member = self.index.find_member(struct_name, variable_name).ok_or_else(|| {
-                    Diagnostic::unresolved_reference(
-                        format!("{struct_name}.{variable_name}").as_str(),
-                        declaration_location.clone(),
-                    )
-                })?;
-
+            for member in uninitialized_members {
                 let initial_value = self
                     .llvm_index
                     .find_associated_variable_value(member.get_qualified_name())

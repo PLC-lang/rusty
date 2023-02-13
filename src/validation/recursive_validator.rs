@@ -1,9 +1,11 @@
 use indexmap::IndexSet;
+use itertools::Itertools;
 
 use crate::{
+    ast::PouType,
     diagnostics::Diagnostic,
     index::{Index, VariableIndexEntry},
-    typesystem::DataTypeInformationProvider,
+    typesystem::{DataType, DataTypeInformation, DataTypeInformationProvider, StructSource},
 };
 
 use super::Validators;
@@ -46,16 +48,19 @@ impl RecursiveValidator {
 
     /// Entry point of finding and reporting all recursive data structures.
     pub fn validate_recursion(&mut self, index: &Index) {
-        let mut nodes_all: IndexSet<&str> = IndexSet::new();
+        let mut nodes_all: IndexSet<&DataType> = IndexSet::new();
         let mut nodes_visited = IndexSet::new();
 
         // Structs (includes arrays defined in structs)
-        nodes_all.extend(
-            index.get_types().values().filter(|x| x.get_type_information().is_struct()).map(|x| x.get_name()),
-        );
+        nodes_all.extend(index.get_types().values().filter(|x| x.get_type_information().is_struct()));
 
         // Function Blocks
-        nodes_all.extend(index.get_pous().values().filter(|x| x.is_function_block()).map(|x| x.get_name()));
+        nodes_all.extend(index.get_pou_types().values().filter(|x| {
+            matches!(
+                x.get_type_information(),
+                DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. }
+            )
+        }));
 
         self.find_cycle(index, nodes_all, &mut nodes_visited);
     }
@@ -64,8 +69,8 @@ impl RecursiveValidator {
     fn find_cycle<'idx>(
         &mut self,
         index: &'idx Index,
-        nodes_all: IndexSet<&'idx str>,
-        nodes_visited: &mut IndexSet<&'idx str>,
+        nodes_all: IndexSet<&'idx DataType>,
+        nodes_visited: &mut IndexSet<&'idx DataType>,
     ) {
         let mut path = IndexSet::new();
 
@@ -84,47 +89,42 @@ impl RecursiveValidator {
     fn dfs<'idx>(
         &mut self,
         index: &'idx Index,
-        path: &mut IndexSet<&'idx str>,
-        node_curr: &'idx str,
-        nodes_visited: &mut IndexSet<&'idx str>,
+        path: &mut IndexSet<&'idx DataType>,
+        node_curr: &'idx DataType,
+        nodes_visited: &mut IndexSet<&'idx DataType>,
     ) {
         nodes_visited.insert(node_curr);
         path.insert(node_curr);
 
-        if let Some(edges) = index.get_members(node_curr) {
-            for node in edges.values().map(|x| self.get_type_name(index, x)).collect::<IndexSet<_>>() {
-                if path.contains(node) {
-                    self.report(index, node, path);
-                } else if !nodes_visited.contains(node) {
-                    self.dfs(index, path, node, nodes_visited);
-                }
+        for node in node_curr.get_members().iter().map(|x| self.get_type(index, x)).collect::<IndexSet<_>>() {
+            if path.contains(node) {
+                self.report(node, path);
+            } else if !nodes_visited.contains(node) {
+                self.dfs(index, path, node, nodes_visited);
             }
         }
-
         path.pop();
     }
 
     /// Generates and reports the minimal path of a cycle. Specifically `path` contains all nodes visited up
     /// until a cycle, e.g. `A -> B -> C -> B`. We are only interested in `B -> C -> B` as such this method
     /// finds the first occurence of `B` to create a vector slice of `B -> C -> B` for the diagnostician.
-    fn report<'idx>(&mut self, index: &'idx Index, node: &'idx str, path: &mut IndexSet<&'idx str>) {
+    fn report<'idx>(&mut self, node: &'idx DataType, path: &mut IndexSet<&'idx DataType>) {
         match path.get_index_of(node) {
             Some(idx) => {
                 let mut slice = path.iter().skip(idx).copied().collect::<Vec<_>>();
-                let ranges = slice
-                    .iter()
-                    .map(|node| index.get_type(node).unwrap().location.source_range.to_owned())
-                    .collect();
+                let ranges = slice.iter().map(|node| node.location.source_range.to_owned()).collect();
 
                 slice.push(node); // Append to get `B -> C -> B` instead of `B -> C` in the report
-                self.diagnostics.push(Diagnostic::recursive_datastructure(&slice.join(" -> "), ranges));
+                let error = slice.iter().map(|it| it.get_name()).join(" -> ");
+                self.diagnostics.push(Diagnostic::recursive_datastructure(&error, ranges));
             }
 
             None => unreachable!("Node has to be in the IndexSet"),
         }
     }
 
-    /// Returns the type name of `entry` distinguishing between two cases:
+    /// Returns the data type of `entry` distinguishing between two cases:
     /// 1. If the entry is any type but an array its datatype is returned (as usual)
     /// 2. If the entry is an array their inner type name is returned. For example calling the
     /// [`index::VariableIndexEntry::get_type_name`] method on the following code snippet
@@ -137,14 +137,17 @@ impl RecursiveValidator {
     /// name. This is important for the `dfs` method as it otherwise wouldn't correctly recognize cycles since
     /// it operate on these "normalized" type names.
     #[inline(always)]
-    fn get_type_name<'idx>(&self, index: &'idx Index, entry: &'idx VariableIndexEntry) -> &'idx str {
+    fn get_type<'idx>(&self, index: &'idx Index, entry: &'idx VariableIndexEntry) -> &'idx DataType {
         let name = entry.get_type_name();
-        let info = index.get_type_information_or_void(name);
+        let dt = index.get_effective_type_or_void_by_name(name);
 
-        if info.is_array() {
-            return info.get_inner_array_type_name().unwrap_or(name); // the `unwrap_or` _should_ never trigger
+        if dt.is_array() {
+            dt.get_type_information()
+                .get_inner_array_type_name()
+                .map(|it| index.get_effective_type_or_void_by_name(it))
+                .unwrap_or(dt)
+        } else {
+            dt
         }
-
-        name
     }
 }

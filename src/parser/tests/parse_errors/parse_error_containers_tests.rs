@@ -221,7 +221,7 @@ fn unclosed_var_container() {
     //check if b was parsed successfully
     let var_block = &compilation_unit.units[0].variable_blocks[0];
     assert_eq!(
-        format!("{:#?}", var_block),
+        format!("{var_block:#?}"),
         format!(
             "{:#?}",
             VariableBlock {
