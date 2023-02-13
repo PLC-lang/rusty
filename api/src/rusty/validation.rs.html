@@ -492,6 +492,9 @@
 <a href="#492" id="492">492</a>
 <a href="#493" id="493">493</a>
 <a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::collections::HashSet;
 
 <span class="kw">use crate</span>::{
@@ -964,13 +967,16 @@
         }
         <span class="kw">match </span>e {
             AstStatement::Assignment { left, right, .. } =&gt; {
-                <span class="kw">if </span><span class="macro">matches!</span>(
-                    context.ast_annotation.get_type_or_void(left, context.index).get_type_information(),
-                    DataTypeInformation::Array { .. }
-                )
+                <span class="kw">let </span>left_type =
+                    context.ast_annotation.get_type_or_void(left, context.index).get_type_information();
+                <span class="kw">let </span>right_type =
+                    context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
+
+                <span class="kw">if </span>left_type.is_array()
 				<span class="comment">// if we try to assign an `ExpressionList` to an ARRAY
 				// we can expect that `()` were used and we got a valid parse result
 				 </span>&amp;&amp; !<span class="macro">matches!</span>(right.as_ref(), AstStatement::ExpressionList { .. })
+                 &amp;&amp; !right_type.is_array()
                 {
                     <span class="comment">// otherwise we are definitely in an invalid assignment
                     </span>array_assignment = <span class="bool-val">true</span>;
