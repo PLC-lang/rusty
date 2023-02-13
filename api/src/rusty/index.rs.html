@@ -1465,8 +1465,11 @@
 <a href="#1465" id="1465">1465</a>
 <a href="#1466" id="1466">1466</a>
 <a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 </span><span class="kw">use crate</span>::{
     ast::{
         AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -2507,6 +2510,10 @@
             .unwrap_or_else(|| <span class="kw-2">&amp;</span>[])
     }
 
+    <span class="kw">pub fn </span>find_pou_type(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DataType&gt; {
+        <span class="self">self</span>.get_pou_types().get(<span class="kw-2">&amp;</span>pou_name.to_lowercase())
+    }
+
     <span class="kw">pub fn </span>get_declared_parameters(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
         <span class="self">self</span>.get_pou_members(pou_name)
             .iter()
@@ -2587,8 +2594,9 @@
     }
 
     <span class="doccomment">/// expect a built-in type
+    /// This only returns types, not POUs as it is meant for builtins only
     </span><span class="kw">pub fn </span>get_type_or_panic(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>DataType {
-        <span class="self">self</span>.type_index.get_type(type_name).unwrap_or_else(|<span class="kw">_</span>| <span class="macro">panic!</span>(<span class="string">&quot;{type_name} not found&quot;</span>))
+        <span class="self">self</span>.get_types().get(<span class="kw-2">&amp;</span>type_name.to_lowercase()).unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">&quot;{type_name} not found&quot;</span>))
     }
 
     <span class="kw">pub fn </span>get_initial_value(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ConstId&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstStatement&gt; {
