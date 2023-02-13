@@ -1,8 +1,6 @@
 ---
 source: src/hardware_binding.rs
-assertion_line: 256
 expression: config
-
 ---
 [
     HardwareBinding {
@@ -132,13 +130,13 @@ expression: config
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 9,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 10,
+                                    index: 3,
                                     generation: 0,
                                 },
                             ),
@@ -165,13 +163,13 @@ expression: config
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 9,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 10,
+                                    index: 3,
                                     generation: 0,
                                 },
                             ),
@@ -201,13 +199,13 @@ expression: config
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 9,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 10,
+                                    index: 3,
                                     generation: 0,
                                 },
                             ),
@@ -237,13 +235,13 @@ expression: config
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 9,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 10,
+                                    index: 3,
                                     generation: 0,
                                 },
                             ),
@@ -270,13 +268,13 @@ expression: config
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 9,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 10,
+                                    index: 3,
                                     generation: 0,
                                 },
                             ),
@@ -303,13 +301,13 @@ expression: config
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 9,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 10,
+                                    index: 3,
                                     generation: 0,
                                 },
                             ),
@@ -338,13 +336,13 @@ expression: config
                         Dimension {
                             start_offset: ConstExpression(
                                 Index {
-                                    index: 9,
+                                    index: 2,
                                     generation: 0,
                                 },
                             ),
                             end_offset: ConstExpression(
                                 Index {
-                                    index: 10,
+                                    index: 3,
                                     generation: 0,
                                 },
                             ),

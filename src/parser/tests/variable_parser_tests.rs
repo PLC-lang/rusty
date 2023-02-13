@@ -9,7 +9,7 @@ fn empty_global_vars_can_be_parsed() {
     let result = parse(src).0;
 
     let vars = &result.global_vars[0]; //globar_vars
-    let ast_string = format!("{:#?}", vars);
+    let ast_string = format!("{vars:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [],
     variable_block_type: Global,
@@ -23,7 +23,7 @@ fn global_vars_can_be_parsed() {
     let result = parse(src).0;
 
     let vars = &result.global_vars[0]; //globar_vars
-    let ast_string = format!("{:#?}", vars);
+    let ast_string = format!("{vars:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
@@ -50,7 +50,7 @@ fn external_global_vars_can_be_parsed() {
     let result = parse(src).0;
 
     let vars = &result.global_vars[0]; //globar_vars
-    let ast_string = format!("{:#?}", vars);
+    let ast_string = format!("{vars:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
@@ -78,7 +78,7 @@ fn global_single_line_vars_can_be_parsed() {
     let result = parse(src).0;
 
     let vars = &result.global_vars[0]; //globar_vars
-    let ast_string = format!("{:#?}", vars);
+    let ast_string = format!("{vars:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
@@ -129,7 +129,7 @@ fn two_global_vars_can_be_parsed() {
     let result = parse(src).0;
 
     let vars = &result.global_vars; //global_vars
-    let ast_string = format!("{:#?}", vars);
+    let ast_string = format!("{vars:#?}");
     let expected_ast = r#"[
     VariableBlock {
         variables: [
@@ -178,7 +178,7 @@ fn global_var_with_address() {
 
     assert_eq!(diag, vec![]);
 
-    insta::assert_snapshot!(format!("{:?}", result));
+    insta::assert_snapshot!(format!("{result:?}"));
 }
 
 #[test]
@@ -199,7 +199,7 @@ fn pou_var_with_address() {
 
     assert_eq!(diag, vec![]);
 
-    insta::assert_snapshot!(format!("{:?}", result));
+    insta::assert_snapshot!(format!("{result:?}"));
 }
 
 #[test]
@@ -218,7 +218,7 @@ fn struct_with_address() {
     let (result, diag) = parse(src);
 
     assert_eq!(diag, vec![]);
-    insta::assert_snapshot!(format!("{:?}", result));
+    insta::assert_snapshot!(format!("{result:?}"));
 }
 
 #[test]
@@ -246,5 +246,5 @@ fn date_and_time_constants_test() {
     let (result, diag) = parse(src);
     let vars = &result.global_vars[0]; //globar_vars
     assert_eq!(diag, vec![]);
-    insta::assert_snapshot!(format!("{:#?}", vars));
+    insta::assert_snapshot!(format!("{vars:#?}"));
 }

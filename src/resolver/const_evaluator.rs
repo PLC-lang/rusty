@@ -320,7 +320,7 @@ fn cast_if_necessary(literal: AstStatement, target_type_name: &Option<&str>, ind
             AstStatement::LiteralInteger { value, id, location } => {
                 if data_type.get_type_information().is_float() {
                     return AstStatement::LiteralReal {
-                        value: format!("{:}", value),
+                        value: format!("{value}"),
                         id: *id,
                         location: location.clone(),
                     };
@@ -393,21 +393,21 @@ pub fn evaluate_with_target_hint(
                 location,
             )
         }
-        AstStatement::CastStatement { target, type_name, .. } => match index
-            .find_effective_type_info(type_name)
-        {
-            Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
-                if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
-                    return index
-                        .find_enum_element(enum_name, ref_name)
-                        .ok_or_else(|| format!("Cannot resolve constant enum {}#{}.", enum_name, ref_name))
-                        .and_then(|v| resolve_const_reference(v, ref_name, index));
-                } else {
-                    return Err("Cannot resolve unknown constant.".to_string());
+        AstStatement::CastStatement { target, type_name, .. } => {
+            match index.find_effective_type_info(type_name) {
+                Some(DataTypeInformation::Enum { name: enum_name, .. }) => {
+                    if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
+                        return index
+                            .find_enum_element(enum_name, ref_name)
+                            .ok_or_else(|| format!("Cannot resolve constant enum {enum_name}#{ref_name}."))
+                            .and_then(|v| resolve_const_reference(v, ref_name, index));
+                    } else {
+                        return Err("Cannot resolve unknown constant.".to_string());
+                    }
                 }
+                _ => Some(get_cast_statement_literal(target, type_name, scope, index)?),
             }
-            _ => Some(get_cast_statement_literal(target, type_name, scope, index)?),
-        },
+        }
         AstStatement::Reference { name, .. } => index
             .find_variable(scope, std::slice::from_ref(&name.as_str()))
             .map(|variable| resolve_const_reference(variable, name, index))
@@ -455,9 +455,7 @@ pub fn evaluate_with_target_hint(
                     Operator::And => bitwise_expression!(left, & , right, "AND", *id)?,
                     Operator::Or => bitwise_expression!(left, | , right, "OR", *id)?,
                     Operator::Xor => bitwise_expression!(left, ^, right, "XOR", *id)?,
-                    _ => {
-                        return Err(format!("Cannot resolve operator {:?} in constant evaluation", operator))
-                    }
+                    _ => return Err(format!("Cannot resolve operator {operator:?} in constant evaluation")),
                 })
             } else {
                 None //not all operators can be resolved
@@ -476,7 +474,7 @@ pub fn evaluate_with_target_hint(
                 None => {
                     None //not yet resolvable
                 }
-                _ => return Err(format!("Cannot resolve constant Not {:?}", value)),
+                _ => return Err(format!("Cannot resolve constant Not {value:?}")),
             }
         }
         // - x
@@ -487,10 +485,7 @@ pub fn evaluate_with_target_hint(
                 }
                 Some(AstStatement::LiteralReal { value: v, id, location }) => {
                     Some(AstStatement::LiteralReal {
-                        value: format!(
-                            "{:}",
-                            -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err, v))?
-                        ),
+                        value: format!("{:}", -(v.parse::<f64>()).map_err(|err| format!("{err:}: {v:}"))?),
                         id,
                         location,
                     })
@@ -498,7 +493,7 @@ pub fn evaluate_with_target_hint(
                 None => {
                     None //not yet resolvable
                 }
-                _ => return Err(format!("Cannot resolve constant Minus {:?}", value)),
+                _ => return Err(format!("Cannot resolve constant Minus {value:?}")),
             }
         }
         AstStatement::LiteralArray { id, elements: Some(elements), location, .. } => {
@@ -567,7 +562,7 @@ pub fn evaluate_with_target_hint(
             let end = Box::new(evaluate(end, scope, index)?.unwrap_or_else(|| *end.to_owned()));
             Some(AstStatement::RangeStatement { start, end, id: *id })
         }
-        _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),
+        _ => return Err(format!("Cannot resolve constant: {initial:#?}")),
     };
     Ok(literal)
 }
@@ -592,7 +587,7 @@ fn resolve_const_reference(
         }
     } else {
         //the referenced variabale is no const!
-        Err(format!("'{:}' is no const reference", name))
+        Err(format!("'{name}' is no const reference"))
     }
 }
 
@@ -617,7 +612,7 @@ fn get_cast_statement_literal(
                     if let AstStatement::LiteralInteger { value, .. } = v {
                         Ok(*value)
                     } else {
-                        Err(format!("Expected integer value, found {:?}", v))
+                        Err(format!("Expected integer value, found {v:?}"))
                     }
                 })
                 .transpose()?;
@@ -635,7 +630,7 @@ fn get_cast_statement_literal(
                     (UNSIGNED, INT_SIZE) => (value as NativeWordType) as i128,
                     (UNSIGNED, DINT_SIZE) => (value as NativeDwordType) as i128,
                     (UNSIGNED, LINT_SIZE) => (value as NativeLwordType) as i128,
-                    _ => return Err(format!("Cannot resolve constant: {:}#{:?}", type_name, cast_statement)),
+                    _ => return Err(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")),
                 };
                 Ok(AstStatement::LiteralInteger {
                     value,
@@ -643,11 +638,11 @@ fn get_cast_statement_literal(
                     location: cast_statement.get_location(),
                 })
             } else {
-                Err(format!("Cannot resolve constant: {:}#{:?}", type_name, cast_statement))
+                Err(format!("Cannot resolve constant: {type_name}#{cast_statement:?}"))
             }
         }
 
         //Some(&crate::typesystem::DataTypeInformation::Float{..}) => {},
-        _ => Err(format!("Cannot resolve constant: {:}#{:?}", type_name, cast_statement)),
+        _ => Err(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")),
     }
 }

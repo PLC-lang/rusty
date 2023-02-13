@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
+    hash::Hash,
     mem::size_of,
     ops::{Range, RangeInclusive},
 };
@@ -7,7 +8,7 @@ use std::{
 use crate::{
     ast::{AstStatement, Operator, PouType, TypeNature},
     datalayout::{Bytes, MemoryLocation},
-    index::{const_expressions::ConstId, symbol::SymbolLocation, Index},
+    index::{const_expressions::ConstId, symbol::SymbolLocation, Index, VariableIndexEntry},
 };
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
@@ -85,7 +86,7 @@ pub const VOID_TYPE: &str = "VOID";
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct DataType {
     pub name: String,
     /// the initial value defined on the TYPE-declration
@@ -94,6 +95,22 @@ pub struct DataType {
     pub nature: TypeNature,
     pub location: SymbolLocation,
 }
+
+impl Hash for DataType {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+        self.nature.hash(state);
+        self.location.hash(state);
+    }
+}
+
+impl PartialEq for DataType {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.nature == other.nature && self.location == other.location
+    }
+}
+
+impl Eq for DataType {}
 
 impl DataType {
     pub fn get_name(&self) -> &str {
@@ -135,9 +152,52 @@ impl DataType {
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
     }
+
+    pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
+        } else {
+            None
+        }
+    }
+
+    pub fn get_members(&self) -> &[VariableIndexEntry] {
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members
+        } else {
+            &[]
+        }
+    }
+
+    pub fn find_declared_parameter_by_location(&self, location: u32) -> Option<&VariableIndexEntry> {
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members
+                .iter()
+                .filter(|item| item.is_parameter() && !item.is_variadic())
+                .find(|member| member.get_location_in_parent() == location)
+        } else {
+            None
+        }
+    }
+
+    pub fn find_variadic_member(&self) -> Option<&VariableIndexEntry> {
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members.iter().find(|member| member.is_variadic())
+        } else {
+            None
+        }
+    }
+
+    pub fn find_return_variable(&self) -> Option<&VariableIndexEntry> {
+        if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
+            members.iter().find(|member| member.is_return())
+        } else {
+            None
+        }
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum VarArgs {
     Sized(Option<String>),
     Unsized(Option<String>),
@@ -220,7 +280,7 @@ type TypeId = String;
 pub enum DataTypeInformation {
     Struct {
         name: TypeId,
-        member_names: Vec<String>,
+        members: Vec<VariableIndexEntry>,
         source: StructSource,
     },
     Array {
@@ -386,9 +446,8 @@ impl DataTypeInformation {
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
                 .map(Bytes::from_bits)
                 .unwrap(),
-            DataTypeInformation::Struct { member_names, .. } => member_names
+            DataTypeInformation::Struct { members, .. } => members
                 .iter()
-                .filter_map(|it| index.find_member(self.get_name(), it))
                 .map(|it| it.get_type_name())
                 .fold(MemoryLocation::new(0), |prev, it| {
                     let type_info = index.get_type_information_or_void(it);
@@ -993,7 +1052,12 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             // If nothing applies we can assume the types to be different
             _ => false,
         },
-
+        DataTypeInformation::Array { inner_type_name: l_inner_type, .. } => match rtype {
+            DataTypeInformation::Array { inner_type_name: r_inner_type, .. } => {
+                l_inner_type == r_inner_type && ltype.get_size(index) == rtype.get_size(index)
+            }
+            _ => false,
+        },
         _ => ltype == rtype,
     }
 }
@@ -1066,11 +1130,11 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
         _ => None,
     };
 
-    suffix.map(|suffix| format!("{}_{}", type_name, suffix))
+    suffix.map(|suffix| format!("{type_name}_{suffix}"))
 }
 
 /// returns a name for internally created types using the given prefix and original type name
 /// the return name starts with "__"
 pub fn create_internal_type_name(prefix: &str, original_type_name: &str) -> String {
-    format!("__{}{}", prefix, original_type_name)
+    format!("__{prefix}{original_type_name}")
 }

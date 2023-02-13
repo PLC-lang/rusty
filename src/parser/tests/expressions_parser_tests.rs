@@ -16,7 +16,7 @@ fn single_statement_parsed() {
     if let AstStatement::Reference { name, .. } = statement {
         assert_eq!(name, "x");
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -30,7 +30,7 @@ fn qualified_reference_statement_parsed() {
 
     if let AstStatement::QualifiedReference { elements, .. } = statement {
         assert_eq!(
-            format!("{:?}", elements),
+            format!("{elements:?}"),
             format!(
                 "{:?}",
                 &[
@@ -40,7 +40,7 @@ fn qualified_reference_statement_parsed() {
             )
         );
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -157,7 +157,7 @@ fn bitwise_access_parsed() {
         },
     ];
 
-    assert_eq!(format!("{:?}", expected), format!("{:?}", statement));
+    assert_eq!(format!("{expected:?}"), format!("{statement:?}"));
     assert_eq!(true, diagnostics.is_empty());
 }
 
@@ -172,7 +172,7 @@ fn literal_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &7_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -187,7 +187,7 @@ fn literal_binary_with_underscore_number_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &45_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -202,7 +202,7 @@ fn literal_hex_number_with_underscores_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &3735928559_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -217,7 +217,7 @@ fn literal_hex_number_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &3735928559_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -232,7 +232,7 @@ fn literal_oct_number_with_underscores_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &63_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -247,7 +247,7 @@ fn literal_dec_number_with_underscores_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &43000_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -262,7 +262,7 @@ fn literal_oct_number_with_underscore_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &63_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -289,7 +289,7 @@ fn additon_of_two_variables_parsed() {
         }
         assert_eq!(operator, &Operator::Plus);
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -318,13 +318,13 @@ fn additon_of_three_variables_parsed() {
             }
             assert_eq!(operator, &Operator::Plus);
         } else {
-            panic!("Expected Reference but found {:?}", statement);
+            panic!("Expected Reference but found {statement:?}");
         }
         if let AstStatement::Reference { name, .. } = &**right {
             assert_eq!(name, "z");
         }
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -345,7 +345,7 @@ fn parenthesis_expressions_should_not_change_the_ast() {
         }
         assert_eq!(operator, &Operator::Plus);
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -357,7 +357,7 @@ fn multiplication_expressions_parse() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Division,
     left: BinaryExpression {
@@ -394,7 +394,7 @@ fn addition_ast_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: LiteralInteger {
@@ -415,7 +415,7 @@ fn multiplication_ast_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: LiteralInteger {
@@ -442,7 +442,7 @@ fn term_ast_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: BinaryExpression {
@@ -476,7 +476,7 @@ fn module_expression_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Modulo,
     left: LiteralInteger {
@@ -498,7 +498,7 @@ fn parenthesized_term_ast_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Multiplication,
     left: BinaryExpression {
@@ -531,7 +531,7 @@ fn boolean_literals_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Or,
     left: LiteralBool {
@@ -552,7 +552,7 @@ fn assignment_test() {
     let prg = &result.implementations[0];
     {
         let statement = &prg.statements[0];
-        let ast_string = format!("{:#?}", statement);
+        let ast_string = format!("{statement:#?}");
         let expected_ast = r#"Assignment {
     left: Reference {
         name: "x",
@@ -566,7 +566,7 @@ fn assignment_test() {
 
     {
         let statement = &prg.statements[1];
-        let ast_string = format!("{:#?}", statement);
+        let ast_string = format!("{statement:#?}");
         let expected_ast = r#"Assignment {
     left: Reference {
         name: "x",
@@ -593,7 +593,7 @@ fn equality_expression_test() {
     let prg = &result.implementations[0];
     {
         let statement = &prg.statements[0];
-        let ast_string = format!("{:#?}", statement);
+        let ast_string = format!("{statement:#?}");
         let expected_ast = r#"BinaryExpression {
     operator: Equal,
     left: Reference {
@@ -608,7 +608,7 @@ fn equality_expression_test() {
 
     {
         let statement = &prg.statements[1];
-        let ast_string = format!("{:#?}", statement);
+        let ast_string = format!("{statement:#?}");
         let expected_ast = r#"BinaryExpression {
     operator: NotEqual,
     left: BinaryExpression {
@@ -656,7 +656,7 @@ fn comparison_expression_test() {
         value: 3,
     },
 }"#;
-        assert_eq!(format!("{:#?}", statement), expected_ast);
+        assert_eq!(format!("{statement:#?}"), expected_ast);
     }
     {
         let statement = &prg.statements[1]; // b > 0
@@ -669,7 +669,7 @@ fn comparison_expression_test() {
         value: 0,
     },
 }"#;
-        assert_eq!(format!("{:#?}", statement), expected_ast);
+        assert_eq!(format!("{statement:#?}"), expected_ast);
     }
     {
         let statement = &prg.statements[2]; // c <= 7
@@ -682,7 +682,7 @@ fn comparison_expression_test() {
         value: 7,
     },
 }"#;
-        assert_eq!(format!("{:#?}", statement), expected_ast);
+        assert_eq!(format!("{statement:#?}"), expected_ast);
     }
     {
         let statement = &prg.statements[3]; // d >= 4
@@ -695,7 +695,7 @@ fn comparison_expression_test() {
         value: 4,
     },
 }"#;
-        assert_eq!(format!("{:#?}", statement), expected_ast);
+        assert_eq!(format!("{statement:#?}"), expected_ast);
     }
     {
         //e := 2 + 1 > 3 + 1;
@@ -726,7 +726,7 @@ fn comparison_expression_test() {
         },
     },
 }"#;
-        assert_eq!(format!("{:#?}", statement), expected_ast);
+        assert_eq!(format!("{statement:#?}"), expected_ast);
     }
 }
 
@@ -738,7 +738,7 @@ fn boolean_expression_ast_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Or,
     left: BinaryExpression {
@@ -774,7 +774,7 @@ fn boolean_expression_param_ast_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: And,
     left: Reference {
@@ -814,7 +814,7 @@ fn signed_literal_minus_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"LiteralInteger {
     value: -1,
 }"#;
@@ -1210,7 +1210,7 @@ fn literal_real_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements;
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"[
     LiteralReal {
         value: "1.1",
@@ -1260,7 +1260,7 @@ fn literal_enum_parse_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements;
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     assert_eq!(
         ast_string,
         format!(
@@ -1313,7 +1313,7 @@ fn literal_cast_parse_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements;
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     assert_eq!(
         ast_string,
         format!(
@@ -1421,7 +1421,7 @@ fn literal_exponents_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements;
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"[
     LiteralReal {
         value: "12e3",
@@ -1457,7 +1457,7 @@ fn signed_literal_expression_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: LiteralInteger {
@@ -1485,7 +1485,7 @@ fn assignment_to_null() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"Assignment {
     left: Reference {
         name: "x",
@@ -1566,7 +1566,7 @@ fn pointer_address_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"UnaryExpression {
     operator: Address,
     value: Reference {
@@ -1588,7 +1588,7 @@ fn pointer_dereference_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"PointerAccess {
     reference: Reference {
         name: "x",
@@ -1609,7 +1609,7 @@ fn pointer_dereference_test_nested() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"PointerAccess {
     reference: PointerAccess {
         reference: ArrayAccess {
@@ -1653,7 +1653,7 @@ fn signed_literal_expression_reversed_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: LiteralInteger {
@@ -1678,7 +1678,7 @@ fn or_compare_expressions_priority_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Or,
     left: BinaryExpression {
@@ -1709,7 +1709,7 @@ fn addition_compare_or_priority_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Or,
     left: BinaryExpression {
@@ -1746,7 +1746,7 @@ fn and_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: And,
     left: Reference {
@@ -1767,11 +1767,11 @@ fn amp_as_and_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    println!("result= {:?}", result);
+    println!("result= {result:?}");
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: And,
     left: Reference {
@@ -1792,11 +1792,11 @@ fn amp_as_and_with_address_test() {
     END_PROGRAM
     ";
     let result = parse(src).0;
-    println!("result= {:?}", result);
+    println!("result= {result:?}");
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: And,
     left: Reference {
@@ -1824,7 +1824,7 @@ fn boolean_priority_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Or,
     left: BinaryExpression {
@@ -1861,7 +1861,7 @@ fn comparison_priority_test() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"BinaryExpression {
     operator: Equal,
     left: BinaryExpression {
@@ -1899,7 +1899,7 @@ fn expression_list() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"ExpressionList {
     expressions: [
         LiteralInteger {
@@ -1929,7 +1929,7 @@ fn expression_list_assignments() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"ExpressionList {
     expressions: [
         Assignment {
@@ -1977,7 +1977,7 @@ fn range_expression() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RangeStatement {
     start: Reference {
         name: "a",
@@ -1990,7 +1990,7 @@ fn range_expression() {
 
     let statement = &prg.statements[1];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
         value: 1,
@@ -2003,7 +2003,7 @@ fn range_expression() {
 
     let statement = &prg.statements[2];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RangeStatement {
     start: Reference {
         name: "a",
@@ -2016,7 +2016,7 @@ fn range_expression() {
 
     let statement = &prg.statements[3];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
         value: 2,
@@ -2040,7 +2040,7 @@ fn negative_range_expression() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
         value: -2,
@@ -2065,7 +2065,7 @@ fn negative_range_expression_space() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
         value: -2,
@@ -2090,7 +2090,7 @@ fn range_expression2() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
         value: 1,
@@ -2113,7 +2113,7 @@ fn function_call_no_params() {
 
     let statement = &parse_result.implementations[0].statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
 
     let expected_ast = r#"CallStatement {
     operator: Reference {
@@ -2136,7 +2136,7 @@ fn function_call_params() {
 
     let statement = &parse_result.implementations[0].statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
 
     let expected_ast = r#"CallStatement {
     operator: Reference {
@@ -2175,7 +2175,7 @@ fn function_call_params_with_trailling_comma() {
 
     let statement = &parse_result.implementations[0].statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
 
     let expected_ast = r#"CallStatement {
     operator: Reference {
@@ -2209,7 +2209,7 @@ fn string_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
         variables: [
@@ -2256,7 +2256,7 @@ fn wide_string_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
         variables: [
@@ -2304,7 +2304,7 @@ fn arrays_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
 
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
@@ -2377,7 +2377,7 @@ fn nested_arrays_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
         variables: [
@@ -2470,7 +2470,7 @@ fn multidim_arrays_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
         variables: [
@@ -2566,7 +2566,7 @@ fn arrays_in_structs_can_be_parsed() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"QualifiedReference {
     elements: [
         Reference {
@@ -2594,7 +2594,7 @@ fn arrays_of_structs_can_be_parsed() {
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
     let expected_ast = r#"QualifiedReference {
     elements: [
         ArrayAccess {
@@ -2625,7 +2625,7 @@ fn function_call_formal_params() {
 
     let statement = &parse_result.implementations[0].statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
 
     let expected_ast = r#"CallStatement {
     operator: Reference {
@@ -2677,7 +2677,7 @@ fn function_call_return_params() {
 
     let statement = &parse_result.implementations[0].statements[0];
 
-    let ast_string = format!("{:#?}", statement);
+    let ast_string = format!("{statement:#?}");
 
     let expected_ast = r#"Assignment {
     left: Reference {
@@ -2816,7 +2816,7 @@ fn sized_string_as_function_return() {
         linkage: crate::ast::LinkageType::Internal,
     };
 
-    assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
     assert_eq!(diagnostics.is_empty(), true);
 }
 
@@ -2864,7 +2864,7 @@ fn array_type_as_function_return() {
         linkage: crate::ast::LinkageType::Internal,
     };
 
-    assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
     assert_eq!(diagnostics.is_empty(), true);
 }
 
@@ -2965,5 +2965,5 @@ fn direct_access_as_expression_parsed() {
     let (result, _) = parse(src);
 
     //THEN the AST contains direct address nodes at the access location
-    assert_snapshot!(format!("{:?}", result));
+    assert_snapshot!(format!("{result:?}"));
 }

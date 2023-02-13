@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use crate::{
     ast::{
         AstStatement, DirectAccessType, GenericBinding, HardwareAccessType, LinkageType, PouType,
@@ -25,7 +24,7 @@ pub mod symbol;
 mod tests;
 pub mod visitor;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct VariableIndexEntry {
     /// the name of this variable (e.g. 'x' for 'PLC_PRG.x')
     name: String,
@@ -51,7 +50,7 @@ pub struct VariableIndexEntry {
     varargs: Option<VarArgs>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct HardwareBinding {
     /// Specifies if the binding is an In/Out or Memory binding
     pub direction: HardwareAccessType,
@@ -176,7 +175,7 @@ impl VariableIndexEntry {
 
         VariableIndexEntry {
             name: name.to_string(),
-            qualified_name: format!("{}.{}", container, name),
+            qualified_name: format!("{container}.{name}"),
             data_type_name: new_type.to_string(),
             varargs,
             ..self.to_owned()
@@ -255,7 +254,7 @@ impl VariableIndexEntry {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ArgumentType {
     ByVal(VariableType),
     ByRef(VariableType),
@@ -274,7 +273,7 @@ impl ArgumentType {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum VariableType {
     Local, // functions have no locals; others: VAR-block
     Temp,  // for functions: VAR & VAR_TEMP; others: VAR_TEMP
@@ -382,7 +381,6 @@ pub enum PouIndexEntry {
     Function {
         name: String,
         return_type: String,
-        instance_struct_name: String,
         generics: Vec<GenericBinding>,
         linkage: LinkageType,
         is_variadic: bool,
@@ -462,7 +460,6 @@ impl PouIndexEntry {
             name: name.into(),
             generics: generic_names.to_vec(),
             return_type: return_type.into(),
-            instance_struct_name: name.into(),
             linkage,
             is_variadic,
             location,
@@ -484,7 +481,6 @@ impl PouIndexEntry {
             name: name.into(),
             generics: generic_names.to_vec(),
             return_type: return_type.into(),
-            instance_struct_name: name.into(),
             linkage,
             is_variadic,
             location,
@@ -574,7 +570,7 @@ impl PouIndexEntry {
         }
     }
 
-    /// returns `Some(DataType)` associated with this pou or `Some` if none is associated
+    /// returns `Some(DataType)` associated with this pou or `None` if none is associated
     ///
     /// - `index` the index to fetch te DataType from
     pub fn find_instance_struct_type<'idx>(&self, index: &'idx Index) -> Option<&'idx DataType> {
@@ -584,7 +580,7 @@ impl PouIndexEntry {
     /// returns the struct-datatype associated with this pou or `void` if none is associated
     ///
     /// - `index` the index to fetch te DataType from
-    pub fn get_instance_struct_type<'idx>(&self, index: &'idx Index) -> &'idx DataType {
+    pub fn get_instance_struct_type_or_void<'idx>(&self, index: &'idx Index) -> &'idx DataType {
         self.find_instance_struct_type(index).unwrap_or_else(|| index.get_void_type())
     }
 
@@ -755,9 +751,6 @@ pub struct Index {
     /// all enum-members with their qualified names <enum-type>.<element-name>
     enum_qualified_variables: SymbolMap<String, VariableIndexEntry>,
 
-    /// all local variables, grouped by the POU's name
-    member_variables: IndexMap<String, SymbolMap<String, VariableIndexEntry>>,
-
     // all pous,
     pous: SymbolMap<String, PouIndexEntry>,
 
@@ -778,7 +771,7 @@ pub struct Index {
 impl Index {
     /// imports all entries from the given index into the current index
     ///
-    /// imports all global_variables, member_variables, types and implementations
+    /// imports all global_variables, types and implementations
     /// # Arguments
     /// - `other` the other index. The elements are drained from the given index and moved
     /// into the current one
@@ -815,20 +808,6 @@ impl Index {
             self.global_initializers.insert_many(name, elements);
         }
 
-        //member variables
-        for (name, mut members) in other.member_variables.drain(..) {
-            //enum qualified variables
-            let mut new_members = SymbolMap::default();
-            for (name, entries) in members.drain(..) {
-                let entries = entries
-                    .into_iter()
-                    .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
-                    .collect::<Vec<_>>();
-                new_members.insert_many(name, entries);
-            }
-            self.member_variables.insert(name, new_members);
-        }
-
         //types
         for (name, mut elements) in other.type_index.types.drain(..) {
             for mut e in elements.drain(..) {
@@ -851,6 +830,15 @@ impl Index {
                         DataTypeInformation::String { size, .. } => {
                             *size = self.import_type_size(&mut other.constant_expressions, size);
                         }
+                        DataTypeInformation::Struct { members, .. } => {
+                            let mut variables = members
+                                .drain(..)
+                                .map(|variable| {
+                                    self.transfer_constants(variable, &mut other.constant_expressions)
+                                })
+                                .collect::<Vec<_>>();
+                            members.append(&mut variables);
+                        }
                         _ => {}
                     }
 
@@ -860,9 +848,17 @@ impl Index {
         }
 
         //pou_types
-        for (name, elements) in other.type_index.pou_types.drain(..) {
-            elements.iter().for_each(|e| {
+        for (name, mut elements) in other.type_index.pou_types.drain(..) {
+            elements.iter_mut().for_each(|e| {
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+
+                if let DataTypeInformation::Struct { members, .. } = &mut e.information {
+                    let mut variables = members
+                        .drain(..)
+                        .map(|variable| self.transfer_constants(variable, &mut other.constant_expressions))
+                        .collect::<Vec<_>>();
+                    members.append(&mut variables);
+                }
             });
             self.type_index.pou_types.insert_many(name, elements)
         }
@@ -972,16 +968,13 @@ impl Index {
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
     pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
-        self.member_variables
-            .get(&container_name.to_lowercase())
-            .and_then(|map| map.get(&variable_name.to_lowercase()))
-            .or_else(|| {
-                //check qualifier
-                container_name
-                    .rfind('.')
-                    .map(|p| &container_name[..p])
-                    .and_then(|qualifier| self.find_member(qualifier, variable_name))
-            })
+        self.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
+            //check qualifier
+            container_name
+                .rfind('.')
+                .map(|p| &container_name[..p])
+                .and_then(|qualifier| self.find_member(qualifier, variable_name))
+        })
     }
 
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -1024,7 +1017,7 @@ impl Index {
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
     /// or None if the requested Enum-Type or -Element does not exist
     pub fn find_enum_element(&self, enum_name: &str, element_name: &str) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables.get(&format!("{}.{}", enum_name, element_name).to_lowercase())
+        self.enum_qualified_variables.get(&format!("{enum_name}.{element_name}").to_lowercase())
     }
 
     /// returns the index entry of the enum-element denoted by the given fully `qualified_name` (e.g. "Color.RED")
@@ -1034,50 +1027,49 @@ impl Index {
     }
 
     /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
-    pub fn get_container_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
-        self.member_variables
-            .get(&container_name.to_lowercase())
-            .map(|it| it.values().collect())
-            .unwrap_or_else(Vec::new)
+    pub fn get_container_members(&self, container_name: &str) -> &[VariableIndexEntry] {
+        self.type_index.find_type(container_name).map(|it| it.get_members()).unwrap_or_else(|| &[])
     }
 
-    pub fn get_declared_parameters(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
-        self.member_variables
+    /// returns all member variables of the given POU (e.g. FUNCTION, PROGRAM, etc.)
+    pub fn get_pou_members(&self, container_name: &str) -> &[VariableIndexEntry] {
+        self.get_pou_types()
             .get(&container_name.to_lowercase())
-            .map(|it| it.values().filter(|it| it.is_parameter() && !it.is_variadic()))
-            .map(|it| it.collect())
-            .unwrap_or_else(Vec::new)
+            .map(|it| it.get_members())
+            .unwrap_or_else(|| &[])
+    }
+
+    pub fn find_pou_type(&self, pou_name: &str) -> Option<&DataType> {
+        self.get_pou_types().get(&pou_name.to_lowercase())
+    }
+
+    pub fn get_declared_parameters(&self, pou_name: &str) -> Vec<&VariableIndexEntry> {
+        self.get_pou_members(pou_name)
+            .iter()
+            .filter(|it| it.is_parameter() && !it.is_variadic())
+            .collect::<Vec<_>>()
     }
 
     /// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
     /// In other words it returns some if the member variable at `index` of the given container is a possible parameter in
     /// the call to it
-    pub fn get_declared_parameter(&self, container_name: &str, index: u32) -> Option<&VariableIndexEntry> {
-        self.member_variables.get(&container_name.to_lowercase()).and_then(|map| {
-            map.values()
-                .filter(|item| item.is_parameter() && !item.is_variadic())
-                .find(|item| item.location_in_parent == index)
-        })
+    pub fn get_declared_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.type_index.find_pou_type(pou_name).and_then(|it| it.find_declared_parameter_by_location(index))
     }
 
-    pub fn get_variadic_member(&self, container_name: &str) -> Option<&VariableIndexEntry> {
-        self.member_variables
-            .get(&container_name.to_lowercase())
-            .and_then(|map| map.values().find(|it| it.is_variadic()))
+    pub fn get_variadic_member(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
+        self.type_index.find_pou_type(pou_name).and_then(|it| it.find_variadic_member())
     }
 
     pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
-        self.member_variables.get(&pou_name.to_lowercase()).and_then(|map| {
-            map.values()
-                .filter(|item| item.get_variable_type() == VariableType::Input)
-                .find(|item| item.location_in_parent == index)
-        })
+        self.get_pou_members(pou_name)
+            .iter()
+            .filter(|item| item.get_variable_type() == VariableType::Input)
+            .find(|item| item.location_in_parent == index)
     }
 
     pub fn find_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
-        self.member_variables
-            .get(&pou_name.to_lowercase())
-            .and_then(|map| map.values().find(|item| item.location_in_parent == index))
+        self.get_pou_members(pou_name).iter().find(|item| item.location_in_parent == index)
     }
 
     /// returns the effective DataType of the type with the given name if it exists
@@ -1131,8 +1123,9 @@ impl Index {
     }
 
     /// expect a built-in type
+    /// This only returns types, not POUs as it is meant for builtins only
     pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
-        self.type_index.get_type(type_name).unwrap_or_else(|_| panic!("{} not found", type_name))
+        self.get_types().get(&type_name.to_lowercase()).unwrap_or_else(|| panic!("{type_name} not found"))
     }
 
     pub fn get_initial_value(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
@@ -1172,9 +1165,7 @@ impl Index {
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
-        let members = self.member_variables.get(&pou_name.to_lowercase());
-
-        members.and_then(|members| members.values().find(|it| it.get_variable_type() == VariableType::Return))
+        self.get_pou_types().get(&pou_name.to_lowercase()).and_then(|it| it.find_return_variable())
     }
 
     pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
@@ -1220,14 +1211,6 @@ impl Index {
 
     pub fn get_global_initializers(&self) -> &SymbolMap<String, VariableIndexEntry> {
         &self.global_initializers
-    }
-
-    pub fn get_members(&self, name: &str) -> Option<&SymbolMap<String, VariableIndexEntry>> {
-        self.member_variables.get(&name.to_lowercase())
-    }
-
-    pub fn get_all_members_by_container(&self) -> &IndexMap<String, SymbolMap<String, VariableIndexEntry>> {
-        &self.member_variables
     }
 
     pub fn get_global_qualified_enums(&self) -> &SymbolMap<String, VariableIndexEntry> {
@@ -1285,7 +1268,7 @@ impl Index {
         self.find_pou(pou_name).and_then(|it| it.find_implementation(self))
     }
 
-    /// registers a member-variable of a container to be accessed in a qualified name.
+    /// creates a member-variable of a container to be accessed in a qualified name.
     /// e.g. "POU.member", "StructName.member", etc.
     ///
     /// #Arguments
@@ -1301,15 +1284,15 @@ impl Index {
         initial_value: Option<ConstId>,
         source_location: SymbolLocation,
         location: u32,
-    ) {
+    ) -> VariableIndexEntry {
         let container_name = member_info.container_name;
         let variable_name = member_info.variable_name;
         let variable_type = member_info.variable_linkage;
         let data_type_name = member_info.variable_type_name;
 
-        let qualified_name = format!("{}.{}", container_name, variable_name);
+        let qualified_name = format!("{container_name}.{variable_name}");
 
-        let entry = VariableIndexEntry::new(
+        VariableIndexEntry::new(
             variable_name,
             &qualified_name,
             data_type_name,
@@ -1320,14 +1303,7 @@ impl Index {
         .set_constant(member_info.is_constant)
         .set_initial_value(initial_value)
         .set_hardware_binding(member_info.binding)
-        .set_varargs(member_info.varargs);
-
-        self.register_member_entry(container_name, entry);
-    }
-    pub fn register_member_entry(&mut self, container_name: &str, entry: VariableIndexEntry) {
-        let key = container_name.to_lowercase();
-        let members = self.member_variables.entry(key).or_default();
-        members.insert(entry.name.to_lowercase(), entry);
+        .set_varargs(member_info.varargs)
     }
 
     pub fn register_enum_element(
@@ -1337,7 +1313,7 @@ impl Index {
         initial_value: Option<ConstId>,
         source_location: SymbolLocation,
     ) {
-        let qualified_name = format!("{}.{}", enum_type_name, element_name);
+        let qualified_name = format!("{enum_type_name}.{element_name}");
         let entry =
             VariableIndexEntry::create_global(element_name, &qualified_name, enum_type_name, source_location)
                 .set_constant(true)
@@ -1486,7 +1462,7 @@ impl Index {
 
 /// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
-    format!("__{}__init", name)
+    format!("__{name}__init")
 }
 impl VariableType {
     pub(crate) fn is_private(&self) -> bool {

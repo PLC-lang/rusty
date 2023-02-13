@@ -168,14 +168,14 @@ pub enum SubCommands {
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
-    Encoding::for_label(encoding.as_bytes()).ok_or(format!("Unknown encoding {}", encoding))
+    Encoding::for_label(encoding.as_bytes()).ok_or(format!("Unknown encoding {encoding}"))
 }
 
 fn validate_config(config_name: &str) -> Result<String, String> {
     if get_config_format(config_name).is_some() {
         Ok(config_name.to_string())
     } else {
-        Err(format!(r#"Cannot identify format type for {}, valid extensions : "json", "toml""#, config_name))
+        Err(format!(r#"Cannot identify format type for {config_name}, valid extensions : "json", "toml""#))
     }
 }
 
@@ -285,7 +285,7 @@ mod cli_tests {
             Err(e) => {
                 assert_eq!(e.kind(), expected_error_kind);
             }
-            Ok(p) => panic!("expected error, but found none. arguments: {:?}. params: {:?}", args, p),
+            Ok(p) => panic!("expected error, but found none. arguments: {args:?}. params: {p:?}"),
         }
     }
     macro_rules! vec_of_strings {

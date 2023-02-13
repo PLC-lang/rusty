@@ -971,3 +971,104 @@ fn validate_call_by_ref() {
         );
     }
 }
+
+#[test]
+fn validate_array_elements_passed_to_functions_by_ref() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION func : DINT
+            VAR_IN_OUT
+                byRefInOut : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                byRefOutput : INT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                x : ARRAY[0..1] OF INT;
+            END_VAR
+
+            func(x, x);                                    // Invalid because we pass a whole array
+            func(x[0], x[1]);                              // Valid because we pass a variable by array access 
+            func(byRefInOut := x[0], byRefOutput := x[1]); // Valid because we pass a variable by array access 
+        END_PROGRAM
+        ",
+    );
+
+    assert_eq!(diagnostics.len(), 2);
+    assert_eq!(diagnostics[0].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
+    assert_eq!(diagnostics[0].get_affected_ranges(), &[(323..324).into()]);
+
+    assert_eq!(diagnostics[1].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
+    assert_eq!(diagnostics[1].get_affected_ranges(), &[(326..327).into()]);
+}
+
+#[test]
+fn validate_arrays_passed_to_functions() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION func : DINT
+            VAR_INPUT
+                arr_dint  : ARRAY[0..1] OF DINT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                arr_sint   : ARRAY[0..1] OF   SINT;
+                arr_int    : ARRAY[0..1] OF    INT;
+                arr_dint   : ARRAY[0..1] OF   DINT;
+                arr_lint   : ARRAY[0..1] OF   LINT;
+                arr_real   : ARRAY[0..1] OF   REAL;
+                arr_lreal  : ARRAY[0..1] OF  LREAL;
+
+                arr_dint_1_2            : ARRAY[1..2]       OF DINT; 
+                arr_dint_3_4            : ARRAY[3..4]       OF DINT;
+                arr_dint_1_10           : ARRAY[1..10]      OF DINT;
+                arr_dint_10_100         : ARRAY[10..100]    OF DINT;
+                
+                arr_dint_2d : ARRAY[0..1] OF ARRAY[0..1] OF DINT;
+            END_VAR
+
+            // Check if datatypes are correctly checked; only `arr_dint` should work
+            func(arr_sint);
+            func(arr_int);
+            func(arr_dint);
+            func(arr_lint);
+            func(arr_real);
+            func(arr_lreal);
+
+            // Check if dimensions are correctly checked
+            func(arr_dint_1_2); // Should work (but why would you write this)
+            func(arr_dint_3_4); // ^
+            func(arr_dint_1_10);
+            func(arr_dint_10_100);
+
+            // Check if 2D arrays are correctly checked
+            func(arr_dint_2d);
+        END_PROGRAM
+        ",
+    );
+
+    #[rustfmt::skip]
+    let expected = vec![
+        Diagnostic::invalid_assignment("__main_arr_sint",           "__func_arr_dint", (976..984  ).into()),
+        Diagnostic::invalid_assignment("__main_arr_int",            "__func_arr_dint", (1004..1011).into()),
+        Diagnostic::invalid_assignment("__main_arr_lint",           "__func_arr_dint", (1059..1067).into()),
+        Diagnostic::invalid_assignment("__main_arr_real",           "__func_arr_dint", (1087..1095).into()),
+        Diagnostic::invalid_assignment("__main_arr_lreal",          "__func_arr_dint", (1115..1124).into()),
+        Diagnostic::invalid_assignment("__main_arr_dint_1_10",      "__func_arr_dint", (1317..1330).into()),
+        Diagnostic::invalid_assignment("__main_arr_dint_10_100",    "__func_arr_dint", (1350..1365).into()),
+        Diagnostic::invalid_assignment("__main_arr_dint_2d",        "__func_arr_dint", (1442..1453).into())
+    ];
+
+    assert_eq!(diagnostics.len(), 8);
+    assert_eq!(diagnostics.len(), expected.len());
+    for (actual, expected) in diagnostics.iter().zip(expected) {
+        assert_eq!(actual.get_message(), expected.get_message());
+        assert_eq!(actual.get_affected_ranges(), expected.get_affected_ranges());
+    }
+}

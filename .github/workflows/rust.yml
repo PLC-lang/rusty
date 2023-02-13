@@ -11,14 +11,14 @@ on:
   
 env:
   IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: 13-1.60
+  IMAGE_VERSION: 14-1.67
 
 jobs:
   check: 
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: check
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Cargo test
         shell: bash
@@ -69,14 +69,14 @@ jobs:
 
   test-windows:
     name: Test Windows
-    runs-on: windows-2019
+    runs-on: windows-2022
     needs: check
     env:
-      toolchain-version: 1.60.0
-      llvm-version: 13.0.0
+      toolchain-version: 1.67.0
+      llvm-version: 14.0.6
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
@@ -133,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: check
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Run Checks
         run: |
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: check
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Run Checks
         run: |
@@ -159,7 +159,7 @@ jobs:
           ./scripts/build.sh --container --container-name=$IMAGE_ID --coverage
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
             files: lcov.info 
 

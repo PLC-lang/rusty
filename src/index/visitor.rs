@@ -36,7 +36,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 }
 
 pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolLocationFactory) {
-    let mut member_names = vec![];
+    let mut members = vec![];
 
     //register the pou's member variables
     let mut member_varargs = None;
@@ -63,8 +63,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 member_varargs = varargs.clone();
             }
 
-            member_names.push(var.name.clone());
-
             if let Some(var_type_name) = var.data_type.get_name() {
                 let type_name = if block_type.is_by_ref() {
                     //register a pointer type for argument
@@ -83,7 +81,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                     .as_ref()
                     .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
 
-                index.register_member_variable(
+                let entry = index.register_member_variable(
                     MemberInfo {
                         container_name: &pou.name,
                         variable_name: &var.name,
@@ -97,16 +95,16 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                     symbol_location_factory.create_symbol_location(&var.location),
                     count,
                 );
+                members.push(entry);
                 count += 1;
-            }
+            };
         }
     }
 
     //register a function's return type as a member variable
     let return_type_name = pou.return_type.as_ref().and_then(|it| it.get_name()).unwrap_or(VOID_TYPE);
     if pou.return_type.is_some() {
-        member_names.push(pou.get_return_name().into());
-        index.register_member_variable(
+        let entry = index.register_member_variable(
             MemberInfo {
                 container_name: &pou.name,
                 variable_name: pou.get_return_name(),
@@ -119,7 +117,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             None,
             symbol_location_factory.create_symbol_location(&pou.name_location),
             count,
-        )
+        );
+        members.push(entry);
     }
 
     let has_varargs = member_varargs.is_some();
@@ -128,7 +127,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
         initial_value: None,
         information: DataTypeInformation::Struct {
             name: pou.name.to_string(),
-            member_names,
+            members,
             source: StructSource::Pou(pou.pou_type.clone()),
         },
         nature: TypeNature::Any,
@@ -342,12 +341,57 @@ fn visit_data_type(
         DataType::StructType { name: Some(name), variables } => {
             let struct_name = name.as_str();
 
-            let member_names: Vec<String> = variables.iter().map(|it| it.name.to_string()).collect();
+            let members = variables
+                .iter()
+                .enumerate()
+                .map(|(count, var)| {
+                    if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } = &var.data_type {
+                        //first we need to handle the inner type
+                        visit_data_type(
+                            index,
+                            &UserTypeDeclaration {
+                                data_type: data_type.clone(),
+                                initializer: None,
+                                location: SourceRange::undefined(),
+                                scope: scope.clone(),
+                            },
+                            symbol_location_factory,
+                        )
+                    }
+
+                    let member_type = var.data_type.get_name().expect("named variable datatype");
+                    let init = index.get_mut_const_expressions().maybe_add_constant_expression(
+                        var.initializer.clone(),
+                        member_type,
+                        scope.clone(),
+                    );
+
+                    let binding = var
+                        .address
+                        .as_ref()
+                        .and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
+
+                    index.register_member_variable(
+                        MemberInfo {
+                            container_name: struct_name,
+                            variable_name: &var.name,
+                            variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
+                            variable_type_name: member_type,
+                            is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                            binding,
+                            varargs: None,
+                        },
+                        init,
+                        symbol_location_factory.create_symbol_location(&var.location),
+                        count as u32,
+                    )
+                })
+                .collect::<Vec<_>>();
 
             let type_name = name.clone();
             let information = DataTypeInformation::Struct {
                 name: type_name.clone(),
-                member_names,
+                members,
                 source: StructSource::OriginalDeclaration,
             };
 
@@ -374,48 +418,6 @@ fn visit_data_type(
             .set_initial_value(init)
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
-            for (count, var) in variables.iter().enumerate() {
-                if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } = &var.data_type {
-                    //first we need to handle the inner type
-                    visit_data_type(
-                        index,
-                        &UserTypeDeclaration {
-                            data_type: data_type.clone(),
-                            initializer: None,
-                            location: SourceRange::undefined(),
-                            scope: scope.clone(),
-                        },
-                        symbol_location_factory,
-                    )
-                }
-
-                let member_type = var.data_type.get_name().expect("named variable datatype");
-                let init = index.get_mut_const_expressions().maybe_add_constant_expression(
-                    var.initializer.clone(),
-                    member_type,
-                    scope.clone(),
-                );
-
-                let binding = var
-                    .address
-                    .as_ref()
-                    .and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
-
-                index.register_member_variable(
-                    MemberInfo {
-                        container_name: struct_name,
-                        variable_name: &var.name,
-                        variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
-                        variable_type_name: member_type,
-                        is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
-                        binding,
-                        varargs: None,
-                    },
-                    init,
-                    symbol_location_factory.create_symbol_location(&var.location),
-                    count as u32,
-                );
-            }
         }
 
         DataType::EnumType { name: Some(name), elements, numeric_type, .. } => {

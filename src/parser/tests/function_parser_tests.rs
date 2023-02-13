@@ -36,7 +36,7 @@ fn a_function_with_varargs_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string,  @r###"
     VariableBlock {
         variables: [
@@ -70,7 +70,7 @@ fn a_function_with_typed_varargs_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string,@r###"
     VariableBlock {
         variables: [
@@ -108,7 +108,7 @@ fn a_function_with_sized_varargs_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string,  @r###"
     VariableBlock {
         variables: [
@@ -142,7 +142,7 @@ fn a_function_with_sized_typed_varargs_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string,@r###"
     VariableBlock {
         variables: [
@@ -185,7 +185,7 @@ fn varargs_parameters_can_be_parsed() {
            ";
     let (parse_result, diagnostics) = parse(src);
 
-    assert_eq!(format!("{:#?}", diagnostics), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
+    assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
 
     let x = &parse_result.units[0];
     let expected = Pou {
@@ -239,7 +239,7 @@ fn varargs_parameters_can_be_parsed() {
         generics: vec![],
         linkage: crate::ast::LinkageType::Internal,
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }
 
 #[test]
@@ -254,7 +254,7 @@ fn sized_varargs_parameters_can_be_parsed() {
            ";
     let (parse_result, diagnostics) = parse(src);
 
-    assert_eq!(format!("{:#?}", diagnostics), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
+    assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
 
     let x = &parse_result.units[0];
     let expected = Pou {
@@ -308,7 +308,7 @@ fn sized_varargs_parameters_can_be_parsed() {
         generics: vec![],
         linkage: crate::ast::LinkageType::Internal,
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{x:#?}").as_str());
 }
 
 // Tests for function return types
@@ -499,7 +499,7 @@ fn simple_fb_with_var_temp_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
@@ -521,7 +521,7 @@ fn simple_function_with_var_temp_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
@@ -543,7 +543,7 @@ fn var_input_by_ref_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
 
     insta::assert_snapshot!(ast_string, @r###"
     VariableBlock {
