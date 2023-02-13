@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{
     ast::{PouType, SourceRange},
     diagnostics::Diagnostic,
@@ -92,20 +94,20 @@ impl GlobalValidator {
 
         self.check_uniqueness_of_cluster(globals.chain(prgs), Some("Ambiguous global variable."));
 
-        //check pou-member uniqueness
-        let duplication_members = index
-            .get_all_members_by_container()
-            .values()
-            .flat_map(|it| it.entries())
-            .filter(|(_, vars)| vars.len() > 1)
-            .map(|(_, variables)| {
-                (variables[0].get_qualified_name(), variables.iter().map(|v| &v.source_location.source_range))
-            });
-
-        for (name, locations) in duplication_members {
-            self.report_name_conflict(name, &locations.collect::<Vec<_>>(), None);
+        for ty in index.get_types().values().chain(index.get_pou_types().values()) {
+            let members = ty.get_members().iter().sorted_by_key(|it| it.get_qualified_name().to_lowercase());
+            for (_, mut vars) in &members.group_by(|it| it.get_qualified_name().to_lowercase()) {
+                if let Some(first) = vars.next() {
+                    if let Some(second) = vars.next() {
+                        //Collect remaining
+                        let mut locations: Vec<_> = vars.map(|it| &it.source_location.source_range).collect();
+                        locations.push(&first.source_location.source_range);
+                        locations.push(&second.source_location.source_range);
+                        self.report_name_conflict(first.get_qualified_name(), locations.as_slice(), None)
+                    }
+                }
+            }
         }
-
         //check enums
         let duplication_enums = index
             .get_global_qualified_enums()

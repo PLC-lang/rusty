@@ -206,7 +206,7 @@ fn casted_literals_are_annotated() {
     let actual_types: Vec<&str> =
         statements.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
 
-    assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
+    assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
 }
 
 #[test]
@@ -326,7 +326,7 @@ fn casted_inner_literals_are_annotated() {
         .map(|it| annotations.get_type_or_void(it, &index).get_name())
         .collect();
 
-    assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
+    assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
 }
 
 #[test]
@@ -358,7 +358,7 @@ fn casted_literals_enums_are_annotated_correctly() {
         .map(|it| annotations.get_type_or_void(it, &index).get_name())
         .collect();
 
-    assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
+    assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
 }
 
 #[test]
@@ -379,7 +379,7 @@ fn expression_list_members_are_annotated() {
         let actual_types: Vec<&str> =
             expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
 
-        assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
+        assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
     } else {
         unreachable!()
     }
@@ -410,7 +410,7 @@ fn expression_lists_with_expressions_are_annotated() {
         let actual_types: Vec<&str> =
             expressions.iter().map(|it| annotations.get_type_or_void(it, &index).get_name()).collect();
 
-        assert_eq!(format!("{:#?}", expected_types), format!("{:#?}", actual_types),)
+        assert_eq!(format!("{expected_types:#?}"), format!("{actual_types:#?}"),)
     } else {
         unreachable!()
     }

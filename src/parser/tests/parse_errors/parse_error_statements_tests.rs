@@ -973,7 +973,7 @@ fn pointer_type_without_to_test() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pointer_type).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
 
     assert_eq!(
         vec![
@@ -1008,7 +1008,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pointer_type).as_str());
+    assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
     assert_eq!(
         vec![
             Diagnostic::ImprovementSuggestion {
@@ -1029,7 +1029,7 @@ fn bitwise_access_error_validation() {
     b.%f6;
     END_PROGRAM";
     let (ast, diagnostics) = parse(src);
-    println!("{:?}", ast);
+    println!("{ast:?}");
 
     assert_eq!(2, diagnostics.len());
     let errs = vec![

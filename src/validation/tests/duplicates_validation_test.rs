@@ -98,7 +98,7 @@ fn duplicate_function_and_type_is_no_issue() {
     let diagnostics = parse_and_validate(
         r#"
         FUNCTION  foo: INT  END_FUNCTION
-        TYPE foo : INT END_TYPE
+        TYPE foo : INT; END_TYPE
     "#,
     );
     // THEN there should be 0 duplication diagnostics

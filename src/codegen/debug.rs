@@ -244,18 +244,16 @@ impl<'ink> DebugBuilder<'ink> {
         Ok(())
     }
 
-    fn create_struct_type<T: AsRef<str>>(
+    fn create_struct_type(
         &mut self,
         name: &str,
-        members: &[T],
+        members: &[VariableIndexEntry],
         index: &Index,
         location: &SymbolLocation,
     ) -> Result<(), Diagnostic> {
         //Create each type
         let index_types = members
             .iter()
-            .map(|it| it.as_ref())
-            .filter_map(|it| index.find_member(name, it))
             .map(|it| (it.get_name(), it.get_type_name(), &it.source_location))
             .map(|(name, type_name, location)| {
                 index.get_type(type_name.as_ref()).map(|dt| (name, dt, location))
@@ -506,7 +504,7 @@ impl<'ink> DebugBuilder<'ink> {
         let mut param_offset = 0;
         //Register the return and local variables for debugging
         for variable in index
-            .get_container_members(pou.get_name())
+            .get_pou_members(pou.get_name())
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
@@ -632,8 +630,8 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             let alignment = type_info.get_alignment(index);
             let location = &datatype.location;
             match type_info {
-                DataTypeInformation::Struct { member_names, .. } => {
-                    self.create_struct_type(name, member_names.as_slice(), index, location)
+                DataTypeInformation::Struct { members, .. } => {
+                    self.create_struct_type(name, members.as_slice(), index, location)
                 }
                 DataTypeInformation::Array { name, inner_type_name, dimensions, .. } => {
                     self.create_array_type(name, inner_type_name, dimensions, size, alignment, index)

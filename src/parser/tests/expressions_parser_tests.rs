@@ -16,7 +16,7 @@ fn single_statement_parsed() {
     if let AstStatement::Reference { name, .. } = statement {
         assert_eq!(name, "x");
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -40,7 +40,7 @@ fn qualified_reference_statement_parsed() {
             )
         );
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -172,7 +172,7 @@ fn literal_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &7_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -187,7 +187,7 @@ fn literal_binary_with_underscore_number_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &45_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -202,7 +202,7 @@ fn literal_hex_number_with_underscores_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &3735928559_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -217,7 +217,7 @@ fn literal_hex_number_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &3735928559_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -232,7 +232,7 @@ fn literal_oct_number_with_underscores_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &63_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -247,7 +247,7 @@ fn literal_dec_number_with_underscores_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &43000_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -262,7 +262,7 @@ fn literal_oct_number_with_underscore_can_be_parsed() {
     if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &63_i128);
     } else {
-        panic!("Expected LiteralInteger but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {statement:?}");
     }
 }
 
@@ -289,7 +289,7 @@ fn additon_of_two_variables_parsed() {
         }
         assert_eq!(operator, &Operator::Plus);
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -318,13 +318,13 @@ fn additon_of_three_variables_parsed() {
             }
             assert_eq!(operator, &Operator::Plus);
         } else {
-            panic!("Expected Reference but found {:?}", statement);
+            panic!("Expected Reference but found {statement:?}");
         }
         if let AstStatement::Reference { name, .. } = &**right {
             assert_eq!(name, "z");
         }
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -345,7 +345,7 @@ fn parenthesis_expressions_should_not_change_the_ast() {
         }
         assert_eq!(operator, &Operator::Plus);
     } else {
-        panic!("Expected Reference but found {:?}", statement);
+        panic!("Expected Reference but found {statement:?}");
     }
 }
 
@@ -1767,7 +1767,7 @@ fn amp_as_and_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    println!("result= {:?}", result);
+    println!("result= {result:?}");
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
@@ -1792,7 +1792,7 @@ fn amp_as_and_with_address_test() {
     END_PROGRAM
     ";
     let result = parse(src).0;
-    println!("result= {:?}", result);
+    println!("result= {result:?}");
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
@@ -2209,7 +2209,7 @@ fn string_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
         variables: [
@@ -2256,7 +2256,7 @@ fn wide_string_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
         variables: [
@@ -2304,7 +2304,7 @@ fn arrays_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
 
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
@@ -2377,7 +2377,7 @@ fn nested_arrays_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
         variables: [
@@ -2470,7 +2470,7 @@ fn multidim_arrays_can_be_parsed() {
     let unit = &result.units[0];
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     assert_snapshot!(ast_string, @r###"
     VariableBlock {
         variables: [
@@ -2816,7 +2816,7 @@ fn sized_string_as_function_return() {
         linkage: crate::ast::LinkageType::Internal,
     };
 
-    assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
     assert_eq!(diagnostics.is_empty(), true);
 }
 
@@ -2864,7 +2864,7 @@ fn array_type_as_function_return() {
         linkage: crate::ast::LinkageType::Internal,
     };
 
-    assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(format!("{:?}", ast.units[0]), format!("{expected:?}"));
     assert_eq!(diagnostics.is_empty(), true);
 }
 
@@ -2965,5 +2965,5 @@ fn direct_access_as_expression_parsed() {
     let (result, _) = parse(src);
 
     //THEN the AST contains direct address nodes at the access location
-    assert_snapshot!(format!("{:?}", result));
+    assert_snapshot!(format!("{result:?}"));
 }

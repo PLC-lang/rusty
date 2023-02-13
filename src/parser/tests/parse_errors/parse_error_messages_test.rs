@@ -12,7 +12,7 @@ fn test_unexpected_token_error_message() {
     let (_, diagnostics) = parse(source);
 
     assert_eq!(
-        format!("{:?}", diagnostics),
+        format!("{diagnostics:?}"),
         format!("{:?}", vec![Diagnostic::unexpected_token_found("KeywordEndVar", "';'", (32..33).into()),])
     );
 }
