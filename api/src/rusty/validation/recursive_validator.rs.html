@@ -148,12 +148,17 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
 </pre><pre class="rust"><code><span class="kw">use </span>indexmap::IndexSet;
+<span class="kw">use </span>itertools::Itertools;
 
 <span class="kw">use crate</span>::{
+    ast::PouType,
     diagnostics::Diagnostic,
     index::{Index, VariableIndexEntry},
-    typesystem::DataTypeInformationProvider,
+    typesystem::{DataType, DataTypeInformation, DataTypeInformationProvider, StructSource},
 };
 
 <span class="kw">use </span><span class="kw">super</span>::Validators;
@@ -196,16 +201,19 @@
 
     <span class="doccomment">/// Entry point of finding and reporting all recursive data structures.
     </span><span class="kw">pub fn </span>validate_recursion(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) {
-        <span class="kw">let </span><span class="kw-2">mut </span>nodes_all: IndexSet&lt;<span class="kw-2">&amp;</span>str&gt; = IndexSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>nodes_all: IndexSet&lt;<span class="kw-2">&amp;</span>DataType&gt; = IndexSet::new();
         <span class="kw">let </span><span class="kw-2">mut </span>nodes_visited = IndexSet::new();
 
         <span class="comment">// Structs (includes arrays defined in structs)
-        </span>nodes_all.extend(
-            index.get_types().values().filter(|x| x.get_type_information().is_struct()).map(|x| x.get_name()),
-        );
+        </span>nodes_all.extend(index.get_types().values().filter(|x| x.get_type_information().is_struct()));
 
         <span class="comment">// Function Blocks
-        </span>nodes_all.extend(index.get_pous().values().filter(|x| x.is_function_block()).map(|x| x.get_name()));
+        </span>nodes_all.extend(index.get_pou_types().values().filter(|x| {
+            <span class="macro">matches!</span>(
+                x.get_type_information(),
+                DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. }
+            )
+        }));
 
         <span class="self">self</span>.find_cycle(index, nodes_all, <span class="kw-2">&amp;mut </span>nodes_visited);
     }
@@ -214,8 +222,8 @@
     </span><span class="kw">fn </span>find_cycle&lt;<span class="lifetime">&#39;idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index,
-        nodes_all: IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str&gt;,
-        nodes_visited: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str&gt;,
+        nodes_all: IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt;,
+        nodes_visited: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt;,
     ) {
         <span class="kw">let </span><span class="kw-2">mut </span>path = IndexSet::new();
 
@@ -234,47 +242,42 @@
     </span><span class="kw">fn </span>dfs&lt;<span class="lifetime">&#39;idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index,
-        path: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str&gt;,
-        node_curr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str,
-        nodes_visited: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str&gt;,
+        path: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt;,
+        node_curr: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType,
+        nodes_visited: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt;,
     ) {
         nodes_visited.insert(node_curr);
         path.insert(node_curr);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(edges) = index.get_members(node_curr) {
-            <span class="kw">for </span>node <span class="kw">in </span>edges.values().map(|x| <span class="self">self</span>.get_type_name(index, x)).collect::&lt;IndexSet&lt;<span class="kw">_</span>&gt;&gt;() {
-                <span class="kw">if </span>path.contains(node) {
-                    <span class="self">self</span>.report(index, node, path);
-                } <span class="kw">else if </span>!nodes_visited.contains(node) {
-                    <span class="self">self</span>.dfs(index, path, node, nodes_visited);
-                }
+        <span class="kw">for </span>node <span class="kw">in </span>node_curr.get_members().iter().map(|x| <span class="self">self</span>.get_type(index, x)).collect::&lt;IndexSet&lt;<span class="kw">_</span>&gt;&gt;() {
+            <span class="kw">if </span>path.contains(node) {
+                <span class="self">self</span>.report(node, path);
+            } <span class="kw">else if </span>!nodes_visited.contains(node) {
+                <span class="self">self</span>.dfs(index, path, node, nodes_visited);
             }
         }
-
         path.pop();
     }
 
     <span class="doccomment">/// Generates and reports the minimal path of a cycle. Specifically `path` contains all nodes visited up
     /// until a cycle, e.g. `A -&gt; B -&gt; C -&gt; B`. We are only interested in `B -&gt; C -&gt; B` as such this method
     /// finds the first occurence of `B` to create a vector slice of `B -&gt; C -&gt; B` for the diagnostician.
-    </span><span class="kw">fn </span>report&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str, path: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str&gt;) {
+    </span><span class="kw">fn </span>report&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType, path: <span class="kw-2">&amp;mut </span>IndexSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt;) {
         <span class="kw">match </span>path.get_index_of(node) {
             <span class="prelude-val">Some</span>(idx) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>slice = path.iter().skip(idx).copied().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-                <span class="kw">let </span>ranges = slice
-                    .iter()
-                    .map(|node| index.get_type(node).unwrap().location.source_range.to_owned())
-                    .collect();
+                <span class="kw">let </span>ranges = slice.iter().map(|node| node.location.source_range.to_owned()).collect();
 
                 slice.push(node); <span class="comment">// Append to get `B -&gt; C -&gt; B` instead of `B -&gt; C` in the report
-                </span><span class="self">self</span>.diagnostics.push(Diagnostic::recursive_datastructure(<span class="kw-2">&amp;</span>slice.join(<span class="string">&quot; -&gt; &quot;</span>), ranges));
+                </span><span class="kw">let </span>error = slice.iter().map(|it| it.get_name()).join(<span class="string">&quot; -&gt; &quot;</span>);
+                <span class="self">self</span>.diagnostics.push(Diagnostic::recursive_datastructure(<span class="kw-2">&amp;</span>error, ranges));
             }
 
             <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Node has to be in the IndexSet&quot;</span>),
         }
     }
 
-    <span class="doccomment">/// Returns the type name of `entry` distinguishing between two cases:
+    <span class="doccomment">/// Returns the data type of `entry` distinguishing between two cases:
     /// 1. If the entry is any type but an array its datatype is returned (as usual)
     /// 2. If the entry is an array their inner type name is returned. For example calling the
     /// [`index::VariableIndexEntry::get_type_name`] method on the following code snippet
@@ -287,15 +290,18 @@
     /// name. This is important for the `dfs` method as it otherwise wouldn&#39;t correctly recognize cycles since
     /// it operate on these &quot;normalized&quot; type names.
     </span><span class="attr">#[inline(always)]
-    </span><span class="kw">fn </span>get_type_name&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index, entry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>VariableIndexEntry) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>str {
+    </span><span class="kw">fn </span>get_type&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index, entry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>VariableIndexEntry) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType {
         <span class="kw">let </span>name = entry.get_type_name();
-        <span class="kw">let </span>info = index.get_type_information_or_void(name);
+        <span class="kw">let </span>dt = index.get_effective_type_or_void_by_name(name);
 
-        <span class="kw">if </span>info.is_array() {
-            <span class="kw">return </span>info.get_inner_array_type_name().unwrap_or(name); <span class="comment">// the `unwrap_or` _should_ never trigger
-        </span>}
-
-        name
+        <span class="kw">if </span>dt.is_array() {
+            dt.get_type_information()
+                .get_inner_array_type_name()
+                .map(|it| index.get_effective_type_or_void_by_name(it))
+                .unwrap_or(dt)
+        } <span class="kw">else </span>{
+            dt
+        }
     }
 }
 </code></pre></div>

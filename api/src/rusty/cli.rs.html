@@ -954,7 +954,7 @@
             <span class="prelude-val">Err</span>(e) =&gt; {
                 <span class="macro">assert_eq!</span>(e.kind(), expected_error_kind);
             }
-            <span class="prelude-val">Ok</span>(p) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected error, but found none. arguments: {:?}. params: {:?}&quot;</span>, args, p),
+            <span class="prelude-val">Ok</span>(p) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected error, but found none. arguments: {args:?}. params: {p:?}&quot;</span>),
         }
     }
     <span class="macro">macro_rules! </span>vec_of_strings {

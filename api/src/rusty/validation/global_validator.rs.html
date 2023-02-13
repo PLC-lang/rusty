@@ -212,7 +212,11 @@
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+</pre><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+
+<span class="kw">use crate</span>::{
     ast::{PouType, SourceRange},
     diagnostics::Diagnostic,
     index::{symbol::SymbolMap, Index, PouIndexEntry},
@@ -306,20 +310,20 @@
 
         <span class="self">self</span>.check_uniqueness_of_cluster(globals.chain(prgs), <span class="prelude-val">Some</span>(<span class="string">&quot;Ambiguous global variable.&quot;</span>));
 
-        <span class="comment">//check pou-member uniqueness
-        </span><span class="kw">let </span>duplication_members = index
-            .get_all_members_by_container()
-            .values()
-            .flat_map(|it| it.entries())
-            .filter(|(<span class="kw">_</span>, vars)| vars.len() &gt; <span class="number">1</span>)
-            .map(|(<span class="kw">_</span>, variables)| {
-                (variables[<span class="number">0</span>].get_qualified_name(), variables.iter().map(|v| <span class="kw-2">&amp;</span>v.source_location.source_range))
-            });
-
-        <span class="kw">for </span>(name, locations) <span class="kw">in </span>duplication_members {
-            <span class="self">self</span>.report_name_conflict(name, <span class="kw-2">&amp;</span>locations.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="prelude-val">None</span>);
+        <span class="kw">for </span>ty <span class="kw">in </span>index.get_types().values().chain(index.get_pou_types().values()) {
+            <span class="kw">let </span>members = ty.get_members().iter().sorted_by_key(|it| it.get_qualified_name().to_lowercase());
+            <span class="kw">for </span>(<span class="kw">_</span>, <span class="kw-2">mut </span>vars) <span class="kw">in </span><span class="kw-2">&amp;</span>members.group_by(|it| it.get_qualified_name().to_lowercase()) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = vars.next() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(second) = vars.next() {
+                        <span class="comment">//Collect remaining
+                        </span><span class="kw">let </span><span class="kw-2">mut </span>locations: Vec&lt;<span class="kw">_</span>&gt; = vars.map(|it| <span class="kw-2">&amp;</span>it.source_location.source_range).collect();
+                        locations.push(<span class="kw-2">&amp;</span>first.source_location.source_range);
+                        locations.push(<span class="kw-2">&amp;</span>second.source_location.source_range);
+                        <span class="self">self</span>.report_name_conflict(first.get_qualified_name(), locations.as_slice(), <span class="prelude-val">None</span>)
+                    }
+                }
+            }
         }
-
         <span class="comment">//check enums
         </span><span class="kw">let </span>duplication_enums = index
             .get_global_qualified_enums()

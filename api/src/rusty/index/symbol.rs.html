@@ -255,7 +255,7 @@
 
 <span class="doccomment">/// Location information of a Symbol in the index consisting of the line_number
 /// and the detailled SourceRange information consisting the file and the range inside the source-string
-</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 </span><span class="kw">pub struct </span>SymbolLocation {
     <span class="doccomment">/// the line-number of this symbol in the source-file
     </span><span class="kw">pub </span>line_number: u32,

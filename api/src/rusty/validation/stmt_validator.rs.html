@@ -1059,7 +1059,7 @@
         .and_then(|function_name| context.index.find_pou_implementation(function_name));
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(implementation) = implementation {
-        <span class="kw">let </span>members = context.index.get_container_members(implementation.get_type_name());
+        <span class="kw">let </span>members = context.index.get_pou_members(implementation.get_type_name());
 
         <span class="comment">//we expect two input parameters and a return-parameter
         </span><span class="kw">if let </span>[VariableIndexEntry {
@@ -1074,7 +1074,7 @@
             data_type_name: return_type,
             variable_type: ArgumentType::ByVal(VariableType::Return),
             ..
-        }] = members.as_slice()
+        }] = members
         {
             <span class="kw">let </span>type_name_1 = context
                 .index

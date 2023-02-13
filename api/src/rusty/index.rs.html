@@ -1465,34 +1465,6 @@
 <a href="#1465" id="1465">1465</a>
 <a href="#1466" id="1466">1466</a>
 <a href="#1467" id="1467">1467</a>
-<a href="#1468" id="1468">1468</a>
-<a href="#1469" id="1469">1469</a>
-<a href="#1470" id="1470">1470</a>
-<a href="#1471" id="1471">1471</a>
-<a href="#1472" id="1472">1472</a>
-<a href="#1473" id="1473">1473</a>
-<a href="#1474" id="1474">1474</a>
-<a href="#1475" id="1475">1475</a>
-<a href="#1476" id="1476">1476</a>
-<a href="#1477" id="1477">1477</a>
-<a href="#1478" id="1478">1478</a>
-<a href="#1479" id="1479">1479</a>
-<a href="#1480" id="1480">1480</a>
-<a href="#1481" id="1481">1481</a>
-<a href="#1482" id="1482">1482</a>
-<a href="#1483" id="1483">1483</a>
-<a href="#1484" id="1484">1484</a>
-<a href="#1485" id="1485">1485</a>
-<a href="#1486" id="1486">1486</a>
-<a href="#1487" id="1487">1487</a>
-<a href="#1488" id="1488">1488</a>
-<a href="#1489" id="1489">1489</a>
-<a href="#1490" id="1490">1490</a>
-<a href="#1491" id="1491">1491</a>
-<a href="#1492" id="1492">1492</a>
-<a href="#1493" id="1493">1493</a>
-<a href="#1494" id="1494">1494</a>
-<a href="#1495" id="1495">1495</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
@@ -1520,7 +1492,7 @@
 </span><span class="kw">mod </span>tests;
 <span class="kw">pub mod </span>visitor;
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 </span><span class="kw">pub struct </span>VariableIndexEntry {
     <span class="doccomment">/// the name of this variable (e.g. &#39;x&#39; for &#39;PLC_PRG.x&#39;)
     </span>name: String,
@@ -1546,7 +1518,7 @@
     </span>varargs: <span class="prelude-ty">Option</span>&lt;VarArgs&gt;,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 </span><span class="kw">pub struct </span>HardwareBinding {
     <span class="doccomment">/// Specifies if the binding is an In/Out or Memory binding
     </span><span class="kw">pub </span>direction: HardwareAccessType,
@@ -1750,7 +1722,7 @@
     }
 }
 
-<span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+<span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 </span><span class="kw">pub enum </span>ArgumentType {
     ByVal(VariableType),
     ByRef(VariableType),
@@ -1769,7 +1741,7 @@
     }
 }
 
-<span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+<span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 </span><span class="kw">pub enum </span>VariableType {
     Local, <span class="comment">// functions have no locals; others: VAR-block
     </span>Temp,  <span class="comment">// for functions: VAR &amp; VAR_TEMP; others: VAR_TEMP
@@ -1877,7 +1849,6 @@
     Function {
         name: String,
         return_type: String,
-        instance_struct_name: String,
         generics: Vec&lt;GenericBinding&gt;,
         linkage: LinkageType,
         is_variadic: bool,
@@ -1957,7 +1928,6 @@
             name: name.into(),
             generics: generic_names.to_vec(),
             return_type: return_type.into(),
-            instance_struct_name: name.into(),
             linkage,
             is_variadic,
             location,
@@ -1979,7 +1949,6 @@
             name: name.into(),
             generics: generic_names.to_vec(),
             return_type: return_type.into(),
-            instance_struct_name: name.into(),
             linkage,
             is_variadic,
             location,
@@ -2069,7 +2038,7 @@
         </span>}
     }
 
-    <span class="doccomment">/// returns `Some(DataType)` associated with this pou or `Some` if none is associated
+    <span class="doccomment">/// returns `Some(DataType)` associated with this pou or `None` if none is associated
     ///
     /// - `index` the index to fetch te DataType from
     </span><span class="kw">pub fn </span>find_instance_struct_type&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType&gt; {
@@ -2079,7 +2048,7 @@
     <span class="doccomment">/// returns the struct-datatype associated with this pou or `void` if none is associated
     ///
     /// - `index` the index to fetch te DataType from
-    </span><span class="kw">pub fn </span>get_instance_struct_type&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType {
+    </span><span class="kw">pub fn </span>get_instance_struct_type_or_void&lt;<span class="lifetime">&#39;idx</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>Index) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx </span>DataType {
         <span class="self">self</span>.find_instance_struct_type(index).unwrap_or_else(|| index.get_void_type())
     }
 
@@ -2250,9 +2219,6 @@
     <span class="doccomment">/// all enum-members with their qualified names &lt;enum-type&gt;.&lt;element-name&gt;
     </span>enum_qualified_variables: SymbolMap&lt;String, VariableIndexEntry&gt;,
 
-    <span class="doccomment">/// all local variables, grouped by the POU&#39;s name
-    </span>member_variables: IndexMap&lt;String, SymbolMap&lt;String, VariableIndexEntry&gt;&gt;,
-
     <span class="comment">// all pous,
     </span>pous: SymbolMap&lt;String, PouIndexEntry&gt;,
 
@@ -2273,7 +2239,7 @@
 <span class="kw">impl </span>Index {
     <span class="doccomment">/// imports all entries from the given index into the current index
     ///
-    /// imports all global_variables, member_variables, types and implementations
+    /// imports all global_variables, types and implementations
     /// # Arguments
     /// - `other` the other index. The elements are drained from the given index and moved
     /// into the current one
@@ -2310,20 +2276,6 @@
             <span class="self">self</span>.global_initializers.insert_many(name, elements);
         }
 
-        <span class="comment">//member variables
-        </span><span class="kw">for </span>(name, <span class="kw-2">mut </span>members) <span class="kw">in </span>other.member_variables.drain(..) {
-            <span class="comment">//enum qualified variables
-            </span><span class="kw">let </span><span class="kw-2">mut </span>new_members = SymbolMap::default();
-            <span class="kw">for </span>(name, entries) <span class="kw">in </span>members.drain(..) {
-                <span class="kw">let </span>entries = entries
-                    .into_iter()
-                    .map(|e| <span class="self">self</span>.transfer_constants(e, <span class="kw-2">&amp;mut </span>other.constant_expressions))
-                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-                new_members.insert_many(name, entries);
-            }
-            <span class="self">self</span>.member_variables.insert(name, new_members);
-        }
-
         <span class="comment">//types
         </span><span class="kw">for </span>(name, <span class="kw-2">mut </span>elements) <span class="kw">in </span>other.type_index.types.drain(..) {
             <span class="kw">for </span><span class="kw-2">mut </span>e <span class="kw">in </span>elements.drain(..) {
@@ -2346,6 +2298,15 @@
                         </span>DataTypeInformation::String { size, .. } =&gt; {
                             <span class="kw-2">*</span>size = <span class="self">self</span>.import_type_size(<span class="kw-2">&amp;mut </span>other.constant_expressions, size);
                         }
+                        DataTypeInformation::Struct { members, .. } =&gt; {
+                            <span class="kw">let </span><span class="kw-2">mut </span>variables = members
+                                .drain(..)
+                                .map(|variable| {
+                                    <span class="self">self</span>.transfer_constants(variable, <span class="kw-2">&amp;mut </span>other.constant_expressions)
+                                })
+                                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                            members.append(<span class="kw-2">&amp;mut </span>variables);
+                        }
                         <span class="kw">_ </span>=&gt; {}
                     }
 
@@ -2355,9 +2316,17 @@
         }
 
         <span class="comment">//pou_types
-        </span><span class="kw">for </span>(name, elements) <span class="kw">in </span>other.type_index.pou_types.drain(..) {
-            elements.iter().for_each(|e| {
+        </span><span class="kw">for </span>(name, <span class="kw-2">mut </span>elements) <span class="kw">in </span>other.type_index.pou_types.drain(..) {
+            elements.iter_mut().for_each(|e| {
                 <span class="self">self</span>.maybe_import_const_expr(<span class="kw-2">&amp;mut </span>other.constant_expressions, <span class="kw-2">&amp;</span>e.initial_value);
+
+                <span class="kw">if let </span>DataTypeInformation::Struct { members, .. } = <span class="kw-2">&amp;mut </span>e.information {
+                    <span class="kw">let </span><span class="kw-2">mut </span>variables = members
+                        .drain(..)
+                        .map(|variable| <span class="self">self</span>.transfer_constants(variable, <span class="kw-2">&amp;mut </span>other.constant_expressions))
+                        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                    members.append(<span class="kw-2">&amp;mut </span>variables);
+                }
             });
             <span class="self">self</span>.type_index.pou_types.insert_many(name, elements)
         }
@@ -2467,16 +2436,13 @@
 
     <span class="doccomment">/// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
     </span><span class="kw">pub fn </span>find_member(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str, variable_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.member_variables
-            .get(<span class="kw-2">&amp;</span>container_name.to_lowercase())
-            .and_then(|map| map.get(<span class="kw-2">&amp;</span>variable_name.to_lowercase()))
-            .or_else(|| {
-                <span class="comment">//check qualifier
-                </span>container_name
-                    .rfind(<span class="string">&#39;.&#39;</span>)
-                    .map(|p| <span class="kw-2">&amp;</span>container_name[..p])
-                    .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name))
-            })
+        <span class="self">self</span>.type_index.find_type(container_name).and_then(|it| it.find_member(variable_name)).or_else(|| {
+            <span class="comment">//check qualifier
+            </span>container_name
+                .rfind(<span class="string">&#39;.&#39;</span>)
+                .map(|p| <span class="kw-2">&amp;</span>container_name[..p])
+                .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name))
+        })
     }
 
     <span class="doccomment">/// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
@@ -2529,50 +2495,45 @@
     }
 
     <span class="doccomment">/// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
-    </span><span class="kw">pub fn </span>get_container_members(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.member_variables
-            .get(<span class="kw-2">&amp;</span>container_name.to_lowercase())
-            .map(|it| it.values().collect())
-            .unwrap_or_else(Vec::new)
+    </span><span class="kw">pub fn </span>get_container_members(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>[VariableIndexEntry] {
+        <span class="self">self</span>.type_index.find_type(container_name).map(|it| it.get_members()).unwrap_or_else(|| <span class="kw-2">&amp;</span>[])
     }
 
-    <span class="kw">pub fn </span>get_declared_parameters(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.member_variables
+    <span class="doccomment">/// returns all member variables of the given POU (e.g. FUNCTION, PROGRAM, etc.)
+    </span><span class="kw">pub fn </span>get_pou_members(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>[VariableIndexEntry] {
+        <span class="self">self</span>.get_pou_types()
             .get(<span class="kw-2">&amp;</span>container_name.to_lowercase())
-            .map(|it| it.values().filter(|it| it.is_parameter() &amp;&amp; !it.is_variadic()))
-            .map(|it| it.collect())
-            .unwrap_or_else(Vec::new)
+            .map(|it| it.get_members())
+            .unwrap_or_else(|| <span class="kw-2">&amp;</span>[])
+    }
+
+    <span class="kw">pub fn </span>get_declared_parameters(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.get_pou_members(pou_name)
+            .iter()
+            .filter(|it| it.is_parameter() &amp;&amp; !it.is_variadic())
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
     }
 
     <span class="doccomment">/// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
     /// In other words it returns some if the member variable at `index` of the given container is a possible parameter in
     /// the call to it
-    </span><span class="kw">pub fn </span>get_declared_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.member_variables.get(<span class="kw-2">&amp;</span>container_name.to_lowercase()).and_then(|map| {
-            map.values()
-                .filter(|item| item.is_parameter() &amp;&amp; !item.is_variadic())
-                .find(|item| item.location_in_parent == index)
-        })
+    </span><span class="kw">pub fn </span>get_declared_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.type_index.find_pou_type(pou_name).and_then(|it| it.find_declared_parameter_by_location(index))
     }
 
-    <span class="kw">pub fn </span>get_variadic_member(<span class="kw-2">&amp;</span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.member_variables
-            .get(<span class="kw-2">&amp;</span>container_name.to_lowercase())
-            .and_then(|map| map.values().find(|it| it.is_variadic()))
+    <span class="kw">pub fn </span>get_variadic_member(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.type_index.find_pou_type(pou_name).and_then(|it| it.find_variadic_member())
     }
 
     <span class="kw">pub fn </span>find_input_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.member_variables.get(<span class="kw-2">&amp;</span>pou_name.to_lowercase()).and_then(|map| {
-            map.values()
-                .filter(|item| item.get_variable_type() == VariableType::Input)
-                .find(|item| item.location_in_parent == index)
-        })
+        <span class="self">self</span>.get_pou_members(pou_name)
+            .iter()
+            .filter(|item| item.get_variable_type() == VariableType::Input)
+            .find(|item| item.location_in_parent == index)
     }
 
     <span class="kw">pub fn </span>find_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str, index: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="self">self</span>.member_variables
-            .get(<span class="kw-2">&amp;</span>pou_name.to_lowercase())
-            .and_then(|map| map.values().find(|item| item.location_in_parent == index))
+        <span class="self">self</span>.get_pou_members(pou_name).iter().find(|item| item.location_in_parent == index)
     }
 
     <span class="doccomment">/// returns the effective DataType of the type with the given name if it exists
@@ -2667,9 +2628,7 @@
     }
 
     <span class="kw">pub fn </span>find_return_variable(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
-        <span class="kw">let </span>members = <span class="self">self</span>.member_variables.get(<span class="kw-2">&amp;</span>pou_name.to_lowercase());
-
-        members.and_then(|members| members.values().find(|it| it.get_variable_type() == VariableType::Return))
+        <span class="self">self</span>.get_pou_types().get(<span class="kw-2">&amp;</span>pou_name.to_lowercase()).and_then(|it| it.find_return_variable())
     }
 
     <span class="kw">pub fn </span>find_return_type(<span class="kw-2">&amp;</span><span class="self">self</span>, pou_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DataType&gt; {
@@ -2715,14 +2674,6 @@
 
     <span class="kw">pub fn </span>get_global_initializers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SymbolMap&lt;String, VariableIndexEntry&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.global_initializers
-    }
-
-    <span class="kw">pub fn </span>get_members(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SymbolMap&lt;String, VariableIndexEntry&gt;&gt; {
-        <span class="self">self</span>.member_variables.get(<span class="kw-2">&amp;</span>name.to_lowercase())
-    }
-
-    <span class="kw">pub fn </span>get_all_members_by_container(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IndexMap&lt;String, SymbolMap&lt;String, VariableIndexEntry&gt;&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.member_variables
     }
 
     <span class="kw">pub fn </span>get_global_qualified_enums(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SymbolMap&lt;String, VariableIndexEntry&gt; {
@@ -2780,7 +2731,7 @@
         <span class="self">self</span>.find_pou(pou_name).and_then(|it| it.find_implementation(<span class="self">self</span>))
     }
 
-    <span class="doccomment">/// registers a member-variable of a container to be accessed in a qualified name.
+    <span class="doccomment">/// creates a member-variable of a container to be accessed in a qualified name.
     /// e.g. &quot;POU.member&quot;, &quot;StructName.member&quot;, etc.
     ///
     /// #Arguments
@@ -2796,7 +2747,7 @@
         initial_value: <span class="prelude-ty">Option</span>&lt;ConstId&gt;,
         source_location: SymbolLocation,
         location: u32,
-    ) {
+    ) -&gt; VariableIndexEntry {
         <span class="kw">let </span>container_name = member_info.container_name;
         <span class="kw">let </span>variable_name = member_info.variable_name;
         <span class="kw">let </span>variable_type = member_info.variable_linkage;
@@ -2804,7 +2755,7 @@
 
         <span class="kw">let </span>qualified_name = <span class="macro">format!</span>(<span class="string">&quot;{container_name}.{variable_name}&quot;</span>);
 
-        <span class="kw">let </span>entry = VariableIndexEntry::new(
+        VariableIndexEntry::new(
             variable_name,
             <span class="kw-2">&amp;</span>qualified_name,
             data_type_name,
@@ -2815,14 +2766,7 @@
         .set_constant(member_info.is_constant)
         .set_initial_value(initial_value)
         .set_hardware_binding(member_info.binding)
-        .set_varargs(member_info.varargs);
-
-        <span class="self">self</span>.register_member_entry(container_name, entry);
-    }
-    <span class="kw">pub fn </span>register_member_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, container_name: <span class="kw-2">&amp;</span>str, entry: VariableIndexEntry) {
-        <span class="kw">let </span>key = container_name.to_lowercase();
-        <span class="kw">let </span>members = <span class="self">self</span>.member_variables.entry(key).or_default();
-        members.insert(entry.name.to_lowercase(), entry);
+        .set_varargs(member_info.varargs)
     }
 
     <span class="kw">pub fn </span>register_enum_element(

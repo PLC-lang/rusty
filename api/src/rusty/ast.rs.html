@@ -1456,7 +1456,7 @@
     Final,
 }
 
-<span class="attr">#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+<span class="attr">#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = <span class="string">&quot;direction&quot;</span>)]
 </span><span class="kw">pub enum </span>HardwareAccessType {
     Input,
@@ -1465,7 +1465,7 @@
     Global,
 }
 
-<span class="attr">#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+<span class="attr">#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = <span class="string">&quot;type&quot;</span>)]
 </span><span class="kw">pub enum </span>DirectAccessType {
     Bit,
@@ -1476,7 +1476,7 @@
     Template,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 </span><span class="kw">pub enum </span>TypeNature {
     Any,
     Derived,
@@ -1639,7 +1639,7 @@
     <span class="kw">pub </span>access: <span class="prelude-ty">Option</span>&lt;AccessModifier&gt;,
 }
 
-<span class="attr">#[derive(Debug, Copy, PartialEq, Eq, Clone)]
+<span class="attr">#[derive(Debug, Copy, PartialEq, Eq, Clone, Hash)]
 </span><span class="kw">pub enum </span>LinkageType {
     Internal,
     External,
@@ -1654,7 +1654,7 @@
     </span>Internal,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 </span><span class="kw">pub enum </span>PouType {
     Program,
     Function,
@@ -1861,7 +1861,7 @@
     }
 }
 
-<span class="attr">#[derive(Clone, PartialEq, Eq)]
+<span class="attr">#[derive(Clone, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>SourceRange {
     <span class="doccomment">/// the start and end offset in the source-file
     </span>range: core::ops::Range&lt;usize&gt;,

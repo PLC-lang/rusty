@@ -428,6 +428,24 @@
 <a href="#428" id="428">428</a>
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use crate</span>::{
@@ -582,16 +600,34 @@
             <span class="comment">// register the member-variables (interface) of the new function
             // copy each member-index-entry and make sure to turn the generic (e.g. T)
             // into the concrete type (e.g. INT)
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(generic_function_members) = <span class="self">self</span>.index.get_members(generic_function.get_name()) {
-                <span class="kw">for </span>member <span class="kw">in </span>generic_function_members.values() {
-                    <span class="kw">let </span>new_type_name = <span class="self">self</span>.find_or_create_datatype(member.get_type_name(), generics);
+            </span><span class="kw">let </span>old_dataype = <span class="self">self</span>.index.get_type_or_panic(generic_function.get_name());
+            <span class="kw">let </span>information = <span class="kw">if let </span>DataTypeInformation::Struct { members, source, .. } =
+                old_dataype.get_type_information()
+            {
+                <span class="kw">let </span>members = members
+                    .iter()
+                    .map(|member| {
+                        <span class="kw">let </span>new_type_name = <span class="self">self</span>.find_or_create_datatype(member.get_type_name(), generics);
 
-                    <span class="comment">//register the member under the new container (old: foo__T, new: foo__INT)
-                    //with its new type-name (old: T, new: INT)
-                    </span><span class="kw">let </span>entry = member.into_typed(new_name, <span class="kw-2">&amp;</span>new_type_name);
-                    <span class="self">self</span>.annotation_map.new_index.register_member_entry(new_name, entry);
-                }
-            }
+                        <span class="comment">//register the member under the new container (old: foo__T, new: foo__INT)
+                        //with its new type-name (old: T, new: INT)
+                        </span>member.into_typed(new_name, <span class="kw-2">&amp;</span>new_type_name)
+                    })
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                DataTypeInformation::Struct { name: new_name.to_string(), source: source.clone(), members }
+            } <span class="kw">else </span>{
+                <span class="macro">unreachable!</span>(<span class="string">&quot;The function {} type is always a struct&quot;</span>, old_dataype.get_name())
+            };
+
+            <span class="kw">let </span>new_datatype = DataType {
+                name: new_name.to_string(),
+                information,
+                initial_value: old_dataype.initial_value.to_owned(),
+                location: old_dataype.location.to_owned(),
+                nature: old_dataype.nature.to_owned(),
+            };
+
+            <span class="self">self</span>.annotation_map.new_index.register_pou_type(new_datatype);
         }
     }
 

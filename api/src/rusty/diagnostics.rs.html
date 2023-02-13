@@ -1516,7 +1516,7 @@
                 reason.map(|it| <span class="macro">format!</span>(<span class="string">&quot;: {it}&quot;</span>,)).unwrap_or_else(|| <span class="string">&quot;&quot;</span>.into()),
             ),
             range: <span class="macro">vec!</span>[location],
-            err_no: ErrNo::pou__empty_variable_block,
+            err_no: ErrNo::var__unresolved_constant,
         }
     }
 

@@ -1079,8 +1079,68 @@
 <a href="#1079" id="1079">1079</a>
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
+    hash::Hash,
     mem::size_of,
     ops::{Range, RangeInclusive},
 };
@@ -1088,7 +1148,7 @@
 <span class="kw">use crate</span>::{
     ast::{AstStatement, Operator, PouType, TypeNature},
     datalayout::{Bytes, MemoryLocation},
-    index::{const_expressions::ConstId, symbol::SymbolLocation, Index},
+    index::{const_expressions::ConstId, symbol::SymbolLocation, Index, VariableIndexEntry},
 };
 
 <span class="kw">pub const </span>DEFAULT_STRING_LEN: u32 = <span class="number">80</span>;
@@ -1166,7 +1226,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="attr">#[derive(Debug, Clone, PartialEq)]
+<span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>DataType {
     <span class="kw">pub </span>name: String,
     <span class="doccomment">/// the initial value defined on the TYPE-declration
@@ -1175,6 +1235,22 @@
     <span class="kw">pub </span>nature: TypeNature,
     <span class="kw">pub </span>location: SymbolLocation,
 }
+
+<span class="kw">impl </span>Hash <span class="kw">for </span>DataType {
+    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.name.hash(state);
+        <span class="self">self</span>.nature.hash(state);
+        <span class="self">self</span>.location.hash(state);
+    }
+}
+
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>DataType {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.name == other.name &amp;&amp; <span class="self">self</span>.nature == other.nature &amp;&amp; <span class="self">self</span>.location == other.location
+    }
+}
+
+<span class="kw">impl </span>Eq <span class="kw">for </span>DataType {}
 
 <span class="kw">impl </span>DataType {
     <span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
@@ -1216,9 +1292,52 @@
     </span><span class="kw">pub fn </span>is_aggregate_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.get_type_information().is_aggregate()
     }
+
+    <span class="kw">pub fn </span>find_member(<span class="kw-2">&amp;</span><span class="self">self</span>, member_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="kw">if let </span>DataTypeInformation::Struct { members, .. } = <span class="self">self</span>.get_type_information() {
+            members.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="kw">pub fn </span>get_members(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[VariableIndexEntry] {
+        <span class="kw">if let </span>DataTypeInformation::Struct { members, .. } = <span class="self">self</span>.get_type_information() {
+            members
+        } <span class="kw">else </span>{
+            <span class="kw-2">&amp;</span>[]
+        }
+    }
+
+    <span class="kw">pub fn </span>find_declared_parameter_by_location(<span class="kw-2">&amp;</span><span class="self">self</span>, location: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="kw">if let </span>DataTypeInformation::Struct { members, .. } = <span class="self">self</span>.get_type_information() {
+            members
+                .iter()
+                .filter(|item| item.is_parameter() &amp;&amp; !item.is_variadic())
+                .find(|member| member.get_location_in_parent() == location)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="kw">pub fn </span>find_variadic_member(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="kw">if let </span>DataTypeInformation::Struct { members, .. } = <span class="self">self</span>.get_type_information() {
+            members.iter().find(|member| member.is_variadic())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
+
+    <span class="kw">pub fn </span>find_return_variable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="kw">if let </span>DataTypeInformation::Struct { members, .. } = <span class="self">self</span>.get_type_information() {
+            members.iter().find(|member| member.is_return())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
+    }
 }
 
-<span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 </span><span class="kw">pub enum </span>VarArgs {
     Sized(<span class="prelude-ty">Option</span>&lt;String&gt;),
     Unsized(<span class="prelude-ty">Option</span>&lt;String&gt;),
@@ -1301,7 +1420,7 @@
 </span><span class="kw">pub enum </span>DataTypeInformation {
     Struct {
         name: TypeId,
-        member_names: Vec&lt;String&gt;,
+        members: Vec&lt;VariableIndexEntry&gt;,
         source: StructSource,
     },
     Array {
@@ -1467,9 +1586,8 @@
                 .map(|size| encoding.get_bytes_per_char() * size <span class="kw">as </span>u32)
                 .map(Bytes::from_bits)
                 .unwrap(),
-            DataTypeInformation::Struct { member_names, .. } =&gt; member_names
+            DataTypeInformation::Struct { members, .. } =&gt; members
                 .iter()
-                .filter_map(|it| index.find_member(<span class="self">self</span>.get_name(), it))
                 .map(|it| it.get_type_name())
                 .fold(MemoryLocation::new(<span class="number">0</span>), |prev, it| {
                     <span class="kw">let </span>type_info = index.get_type_information_or_void(it);

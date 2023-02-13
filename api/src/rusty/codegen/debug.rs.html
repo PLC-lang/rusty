@@ -937,8 +937,6 @@
 <a href="#937" id="937">937</a>
 <a href="#938" id="938">938</a>
 <a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashMap, ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
@@ -1185,18 +1183,16 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>create_struct_type&lt;T: AsRef&lt;str&gt;&gt;(
+    <span class="kw">fn </span>create_struct_type(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
-        members: <span class="kw-2">&amp;</span>[T],
+        members: <span class="kw-2">&amp;</span>[VariableIndexEntry],
         index: <span class="kw-2">&amp;</span>Index,
         location: <span class="kw-2">&amp;</span>SymbolLocation,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">//Create each type
         </span><span class="kw">let </span>index_types = members
             .iter()
-            .map(|it| it.as_ref())
-            .filter_map(|it| index.find_member(name, it))
             .map(|it| (it.get_name(), it.get_type_name(), <span class="kw-2">&amp;</span>it.source_location))
             .map(|(name, type_name, location)| {
                 index.get_type(type_name.as_ref()).map(|dt| (name, dt, location))
@@ -1447,7 +1443,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>param_offset = <span class="number">0</span>;
         <span class="comment">//Register the return and local variables for debugging
         </span><span class="kw">for </span>variable <span class="kw">in </span>index
-            .get_container_members(pou.get_name())
+            .get_pou_members(pou.get_name())
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
@@ -1573,8 +1569,8 @@
             <span class="kw">let </span>alignment = type_info.get_alignment(index);
             <span class="kw">let </span>location = <span class="kw-2">&amp;</span>datatype.location;
             <span class="kw">match </span>type_info {
-                DataTypeInformation::Struct { member_names, .. } =&gt; {
-                    <span class="self">self</span>.create_struct_type(name, member_names.as_slice(), index, location)
+                DataTypeInformation::Struct { members, .. } =&gt; {
+                    <span class="self">self</span>.create_struct_type(name, members.as_slice(), index, location)
                 }
                 DataTypeInformation::Array { name, inner_type_name, dimensions, .. } =&gt; {
                     <span class="self">self</span>.create_array_type(name, inner_type_name, dimensions, size, alignment, index)

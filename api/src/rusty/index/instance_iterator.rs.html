@@ -124,8 +124,6 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     expression_path::{ExpressionPath, ExpressionPathElement},
     typesystem::DataTypeInformation,
@@ -202,20 +200,18 @@
             } <span class="kw">else </span>{
                 (container, current_prefix.clone())
             };
-        index
-            .get_members(container)
-            .map(|it| {
-                it.values().map(|it| {
-                    (it.get_qualified_name().split(<span class="string">&#39;.&#39;</span>).last().expect(<span class="string">&quot;Variable needs a name&quot;</span>).into(), it)
-                })
-            })
-            .map(|iterator| InstanceIterator {
-                index,
-                current_prefix: prefix,
-                iterator: (Box::new(iterator)) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = InstanceEntry&lt;<span class="lifetime">&#39;idx</span>&gt;&gt;&gt;,
-                inner: <span class="prelude-val">None</span>,
-                filter,
-            })
+        <span class="kw">let </span>result = index
+            .get_container_members(container)
+            .iter()
+            .map(|it| (it.get_qualified_name().split(<span class="string">&#39;.&#39;</span>).last().expect(<span class="string">&quot;Variable needs a name&quot;</span>).into(), it));
+
+        <span class="prelude-val">Some</span>(InstanceIterator {
+            index,
+            current_prefix: prefix,
+            iterator: (Box::new(result)) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = InstanceEntry&lt;<span class="lifetime">&#39;idx</span>&gt;&gt;&gt;,
+            inner: <span class="prelude-val">None</span>,
+            filter,
+        })
     }
 
     <span class="kw">fn </span>get(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Instance&lt;<span class="lifetime">&#39;idx</span>&gt;&gt; {

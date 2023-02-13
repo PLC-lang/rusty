@@ -864,7 +864,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>local_llvm_index = LlvmTypedIndex::default();
     <span class="kw">for </span>implementation <span class="kw">in </span>index.get_implementations().values() {
         <span class="kw">let </span>type_name = implementation.get_type_name();
-        <span class="kw">let </span>pou_members = index.get_container_members(type_name);
+        <span class="kw">let </span>pou_members = index.get_pou_members(type_name);
         <span class="kw">let </span>variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
             <span class="kw">let </span>var_type =
                 index.get_effective_type_or_void_by_name(it.get_type_name()).get_type_information();
@@ -1088,7 +1088,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>param_index = <span class="number">0</span>;
         <span class="kw">if let </span>PouType::Method { .. } = implementation.pou_type {
             <span class="kw">let </span>class_name = implementation.type_name.split(<span class="string">&#39;.&#39;</span>).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;()[<span class="number">0</span>];
-            <span class="self">self</span>.generate_local_struct_variable_accessors(
+            <span class="self">self</span>.generate_local_pou_variable_accessors(
                 param_index,
                 <span class="kw-2">&amp;mut </span>local_index,
                 class_name,
@@ -1108,7 +1108,7 @@
                 debug,
             )<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="self">self</span>.generate_local_struct_variable_accessors(
+            <span class="self">self</span>.generate_local_pou_variable_accessors(
                 param_index,
                 <span class="kw-2">&amp;mut </span>local_index,
                 <span class="kw-2">&amp;</span>implementation.type_name,
@@ -1118,7 +1118,8 @@
             )<span class="question-mark">?</span>;
         }
         {
-            <span class="kw">let </span>pou_members = <span class="self">self</span>.index.get_container_members(<span class="kw-2">&amp;</span>implementation.type_name);
+            <span class="kw">let </span>pou_members =
+                <span class="self">self</span>.index.get_pou_members(<span class="kw-2">&amp;</span>implementation.type_name).iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             <span class="comment">//if this is a function, we need to initilialize the VAR-variables
             </span><span class="kw">if </span><span class="macro">matches!</span>(implementation.pou_type, PouType::Function | PouType::Method { .. }) {
                 <span class="self">self</span>.generate_initialization_of_local_vars(
@@ -1129,8 +1130,7 @@
                 )<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
                 <span class="comment">//Generate temp variables
-                </span><span class="kw">let </span>members =
-                    pou_members.into_iter().filter(|it| it.is_temp()).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt;&gt;();
+                </span><span class="kw">let </span>members = pou_members.into_iter().filter(|it| it.is_temp()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
                 <span class="self">self</span>.generate_initialization_of_local_vars(<span class="kw-2">&amp;</span>members, <span class="kw-2">&amp;</span>local_index, <span class="kw-2">&amp;</span>function_context, debug)<span class="question-mark">?</span>;
             }
             <span class="kw">let </span>statement_gen = StatementCodeGenerator::new(
@@ -1202,7 +1202,7 @@
         function_context: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;_</span>&gt;,
         debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">let </span>members = <span class="self">self</span>.index.get_container_members(type_name);
+        <span class="kw">let </span>members = <span class="self">self</span>.index.get_pou_members(type_name);
         <span class="comment">//Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         // eagerly handle the return-variable
@@ -1278,7 +1278,7 @@
 
     <span class="doccomment">/// generates a load-statement for the given members
     /// for pous that take a struct-state-variable (or two for methods)
-    </span><span class="kw">fn </span>generate_local_struct_variable_accessors(
+    </span><span class="kw">fn </span>generate_local_pou_variable_accessors(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         arg_index: u32,
         index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">&#39;ink</span>&gt;,
@@ -1287,7 +1287,7 @@
         location: <span class="kw-2">&amp;</span>SourceRange,
         debug: <span class="kw-2">&amp;</span>DebugBuilderEnum&lt;<span class="lifetime">&#39;ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">let </span>members = <span class="self">self</span>.index.get_container_members(type_name);
+        <span class="kw">let </span>members = <span class="self">self</span>.index.get_pou_members(type_name);
         <span class="kw">let </span>param_pointer = function_context
             .function
             .get_nth_param(arg_index)
