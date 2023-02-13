@@ -56,7 +56,7 @@ impl RecursiveValidator {
 
         // Function Blocks
         nodes_all.extend(
-            index.get_pou_types().values().filter(|x| x.get_type_information().is_struct()).filter(|x| {
+            index.get_pou_types().values().filter(|x| {
                 matches!(
                     x.get_type_information(),
                     DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. }
@@ -99,7 +99,7 @@ impl RecursiveValidator {
         path.insert(node_curr);
 
         for node in
-            node_curr.get_members().iter().map(|x| self.get_type_name(index, x)).collect::<IndexSet<_>>()
+            node_curr.get_members().iter().map(|x| self.get_type(index, x)).collect::<IndexSet<_>>()
         {
             if path.contains(node) {
                 self.report(node, path);
@@ -128,7 +128,7 @@ impl RecursiveValidator {
         }
     }
 
-    /// Returns the type name of `entry` distinguishing between two cases:
+    /// Returns the data type of `entry` distinguishing between two cases:
     /// 1. If the entry is any type but an array its datatype is returned (as usual)
     /// 2. If the entry is an array their inner type name is returned. For example calling the
     /// [`index::VariableIndexEntry::get_type_name`] method on the following code snippet
@@ -141,7 +141,7 @@ impl RecursiveValidator {
     /// name. This is important for the `dfs` method as it otherwise wouldn't correctly recognize cycles since
     /// it operate on these "normalized" type names.
     #[inline(always)]
-    fn get_type_name<'idx>(&self, index: &'idx Index, entry: &'idx VariableIndexEntry) -> &'idx DataType {
+    fn get_type<'idx>(&self, index: &'idx Index, entry: &'idx VariableIndexEntry) -> &'idx DataType {
         let name = entry.get_type_name();
         let dt = index.get_effective_type_or_void_by_name(name);
 
