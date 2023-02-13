@@ -293,12 +293,28 @@
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
-    values::{BasicValue, BasicValueEnum, IntValue},
+    values::{BasicValue, IntValue},
 };
 <span class="kw">use </span>lazy_static::lazy_static;
 
@@ -307,7 +323,7 @@
         flatten_expression_list, AstStatement, CompilationUnit, GenericBinding, LinkageType, SourceRange,
         SourceRangeFactory,
     },
-    codegen::generators::expression_generator::{<span class="self">self</span>, ExpressionCodeGenerator},
+    codegen::generators::expression_generator::{<span class="self">self</span>, ExpressionCodeGenerator, ExpressionValue},
     diagnostics::Diagnostic,
     lexer::{<span class="self">self</span>, IdProvider},
     parser,
@@ -336,7 +352,7 @@
                     <span class="kw">if let </span>[reference] = params {
                         generator
                             .generate_element_pointer(reference)
-                            .map(|it| generator.ptr_as_value(it))
+                            .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                             <span class="string">&quot;Expected exactly one parameter for REF&quot;</span>,
@@ -387,7 +403,7 @@
                     <span class="kw">if let </span>[reference] = params {
                         generator
                             .generate_element_pointer(reference)
-                            .map(|it| it.as_basic_value_enum())
+                            .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                             <span class="string">&quot;Expected exactly one parameter for REF&quot;</span>,
@@ -445,8 +461,7 @@
                         builder.position_at_end(insert_block);
                         builder.build_switch(k.into_int_value(), continue_block, <span class="kw-2">&amp;</span>cases);
                         builder.position_at_end(continue_block);
-                        <span class="kw">let </span>result_var = builder.build_load(result_var, <span class="string">&quot;&quot;</span>);
-                        <span class="prelude-val">Ok</span>(result_var)
+                        <span class="prelude-val">Ok</span>(ExpressionValue::LValue(result_var))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid signature for MUX&quot;</span>, location))
                     }
@@ -468,12 +483,29 @@
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     <span class="kw">if let </span><span class="kw-2">&amp;</span>[g,in0,in1] = params {
-                        <span class="comment">//Evaluate the parameters
+                        <span class="comment">// evaluate the parameters
                         </span><span class="kw">let </span>cond = expression_generator::to_i1(generator.generate_expression(g)<span class="question-mark">?</span>.into_int_value(), <span class="kw-2">&amp;</span>generator.llvm.builder);
-                        <span class="kw">let </span>in0 = generator.generate_expression(in0)<span class="question-mark">?</span>;
-                        <span class="kw">let </span>in1 = generator.generate_expression(in1)<span class="question-mark">?</span>;
-                        <span class="comment">//Generate an llvm select instruction
-                        </span><span class="prelude-val">Ok</span>(generator.llvm.builder.build_select(cond, in1, in0, <span class="string">&quot;&quot;</span>))
+                        <span class="comment">// for aggregate types we need a ptr to perform memcpy
+                        // use generate_expression_value(), this will return a gep
+                        // generate_expression() would load the ptr
+                        </span><span class="kw">let </span>in0 = <span class="kw">if </span>generator.annotations.get_type(in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(in0)<span class="question-mark">?</span>.get_basic_value_enum()
+                        } <span class="kw">else </span>{
+                            generator.generate_expression(in0)<span class="question-mark">?
+                        </span>};
+                        <span class="kw">let </span>in1 = <span class="kw">if </span>generator.annotations.get_type(in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(in1)<span class="question-mark">?</span>.get_basic_value_enum()
+                        } <span class="kw">else </span>{
+                            generator.generate_expression(in1)<span class="question-mark">?
+                        </span>};
+                        <span class="comment">// generate an llvm select instruction
+                        </span><span class="kw">let </span>sel = generator.llvm.builder.build_select(cond, in1, in0, <span class="string">&quot;&quot;</span>);
+
+                        <span class="kw">if </span>sel.is_pointer_value(){
+                            <span class="prelude-val">Ok</span>(ExpressionValue::LValue(sel.into_pointer_value()))
+                        } <span class="kw">else </span>{
+                            <span class="prelude-val">Ok</span>(ExpressionValue::RValue(sel))
+                        }
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;Invalid signature for SEL&quot;</span>, location))
                     }
@@ -493,7 +525,7 @@
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     <span class="kw">if </span>params.len() == <span class="number">1 </span>{
-                        generator.generate_expression(params[<span class="number">0</span>])
+                        generator.generate_expression(params[<span class="number">0</span>]).map(ExpressionValue::RValue)
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">&quot;MOVE expects exactly one parameter&quot;</span>, location))
                     }
@@ -526,7 +558,7 @@
                             )<span class="question-mark">?</span>.size_of()
                             .ok_or_else(|| Diagnostic::codegen_error(<span class="string">&quot;Parameter type is not sized.&quot;</span>, location.clone()))<span class="question-mark">?
                             </span>.as_basic_value_enum();
-                            <span class="prelude-val">Ok</span>(size)
+                            <span class="prelude-val">Ok</span>(ExpressionValue::RValue(size))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
                             <span class="string">&quot;Expected exactly one parameter for SIZEOF&quot;</span>,
@@ -546,7 +578,7 @@
     <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
     <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
     SourceRange,
-) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt;;
+) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt;;
 <span class="kw">pub struct </span>BuiltIn {
     decl: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
     annotation: <span class="prelude-ty">Option</span>&lt;AnnotationFunction&gt;,
@@ -560,7 +592,7 @@
         generator: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ExpressionCodeGenerator&lt;<span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;b</span>&gt;,
         params: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstStatement],
         location: SourceRange,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">&#39;ink</span>&gt;, Diagnostic&gt; {
         (<span class="self">self</span>.code)(generator, params, location)
     }
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;AnnotationFunction&gt; {

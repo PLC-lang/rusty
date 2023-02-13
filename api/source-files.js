@@ -17,7 +17,7 @@ var sourcesIndex = JSON.parse('{\
 "generational_arena":["",[],["lib.rs"]],\
 "glob":["",[],["lib.rs"]],\
 "hashbrown":["",[["external_trait_impls",[],["mod.rs"]],["raw",[],["alloc.rs","bitmask.rs","mod.rs","sse2.rs"]]],["lib.rs","macros.rs","map.rs","scopeguard.rs","set.rs"]],\
-"heck":["",[],["kebab.rs","lib.rs","lower_camel.rs","shouty_kebab.rs","shouty_snake.rs","snake.rs","title.rs","upper_camel.rs"]],\
+"heck":["",[],["kebab.rs","lib.rs","lower_camel.rs","shouty_kebab.rs","shouty_snake.rs","snake.rs","title.rs","train.rs","upper_camel.rs"]],\
 "iana_time_zone":["",[],["ffi_utils.rs","lib.rs","tz_linux.rs"]],\
 "indexmap":["",[["map",[["core",[],["raw.rs"]]],["core.rs"]]],["arbitrary.rs","equivalent.rs","lib.rs","macros.rs","map.rs","mutable_keys.rs","set.rs","util.rs"]],\
 "inkwell":["",[["support",[],["error_handling.rs","mod.rs"]],["types",[],["array_type.rs","enums.rs","float_type.rs","fn_type.rs","int_type.rs","metadata_type.rs","mod.rs","ptr_type.rs","struct_type.rs","traits.rs","vec_type.rs","void_type.rs"]],["values",[],["array_value.rs","basic_value_use.rs","call_site_value.rs","callable_value.rs","enums.rs","float_value.rs","fn_value.rs","generic_value.rs","global_value.rs","instruction_value.rs","int_value.rs","metadata_value.rs","mod.rs","phi_value.rs","ptr_value.rs","struct_value.rs","traits.rs","vec_value.rs"]]],["attributes.rs","basic_block.rs","builder.rs","comdat.rs","context.rs","data_layout.rs","debug_info.rs","execution_engine.rs","intrinsics.rs","lib.rs","memory_buffer.rs","module.rs","object_file.rs","passes.rs","targets.rs"]],\
