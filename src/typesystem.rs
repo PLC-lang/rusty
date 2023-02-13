@@ -973,14 +973,6 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
         }
 
-        DataTypeInformation::Array { inner_type_name: l_inner_type, .. } => match rtype {
-            DataTypeInformation::Array { inner_type_name: r_inner_type, .. } => {
-                l_inner_type == r_inner_type && ltype.get_size(index) == rtype.get_size(index)
-            }
-
-            _ => false,
-        },
-
         // We have to handle 3 different cases here:
         // 1. foo := ADR(bar)
         // 2. foo := REF(bar)
@@ -1001,7 +993,12 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             // If nothing applies we can assume the types to be different
             _ => false,
         },
-
+        DataTypeInformation::Array { inner_type_name: l_inner_type, .. } => match rtype {
+            DataTypeInformation::Array { inner_type_name: r_inner_type, .. } => {
+                l_inner_type == r_inner_type && ltype.get_size(index) == rtype.get_size(index)
+            }
+            _ => false,
+        },
         _ => ltype == rtype,
     }
 }
