@@ -38,7 +38,7 @@ fn initial_scalar_values_can_be_parsed() {
         },
     ),
 }"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+    assert_eq!(expected, format!("{x:#?}").as_str());
 
     let struct_type = &parse_result.types[0];
     let expected = r#"UserTypeDeclaration {
@@ -85,7 +85,7 @@ fn initial_scalar_values_can_be_parsed() {
     initializer: None,
     scope: None,
 }"#;
-    assert_eq!(expected, format!("{:#?}", struct_type).as_str());
+    assert_eq!(expected, format!("{struct_type:#?}").as_str());
 
     let my_int_type = &parse_result.types[1];
     let expected = r#"UserTypeDeclaration {
@@ -103,7 +103,7 @@ fn initial_scalar_values_can_be_parsed() {
     ),
     scope: None,
 }"#;
-    assert_eq!(expected, format!("{:#?}", my_int_type).as_str());
+    assert_eq!(expected, format!("{my_int_type:#?}").as_str());
 
     let y = &parse_result.units[0].variable_blocks[0].variables[0];
     let expected = r#"Variable {
@@ -118,7 +118,7 @@ fn initial_scalar_values_can_be_parsed() {
     ),
 }"#;
 
-    assert_eq!(expected, format!("{:#?}", y).as_str());
+    assert_eq!(expected, format!("{y:#?}").as_str());
 }
 
 #[test]
@@ -168,7 +168,7 @@ fn array_initializer_can_be_parsed() {
         },
     ),
 }"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+    assert_eq!(expected, format!("{x:#?}").as_str());
 }
 
 #[test]
@@ -238,7 +238,7 @@ fn multi_dim_array_initializer_can_be_parsed() {
         },
     ),
 }"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+    assert_eq!(expected, format!("{x:#?}").as_str());
 }
 
 #[test]
@@ -281,7 +281,7 @@ fn array_initializer_multiplier_can_be_parsed() {
         },
     ),
 }"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+    assert_eq!(expected, format!("{x:#?}").as_str());
 }
 
 #[test]
@@ -321,7 +321,7 @@ fn struct_initializer_can_be_parsed() {
         },
     ),
 }"#;
-    assert_eq!(expected, format!("{:#?}", x).as_str());
+    assert_eq!(expected, format!("{x:#?}").as_str());
 }
 
 #[test]
@@ -338,7 +338,7 @@ fn array_initializer_in_pou_can_be_parsed() {
 
     let member = &result.units[0].variable_blocks[0].variables[0];
     if let Some(initializer) = &member.initializer {
-        let ast_string = format!("{:#?}", initializer);
+        let ast_string = format!("{initializer:#?}");
         let expected_ast = r#"LiteralArray {
     elements: Some(
         ExpressionList {

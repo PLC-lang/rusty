@@ -49,7 +49,7 @@ fn create_string_literal(v: &str, wide: bool) -> AstStatement {
 }
 
 fn create_real_literal(v: f64) -> AstStatement {
-    AstStatement::LiteralReal { value: format!("{:}", v), id: 0, location: SourceRange::undefined() }
+    AstStatement::LiteralReal { value: format!("{v:}"), id: 0, location: SourceRange::undefined() }
 }
 
 fn create_bool_literal(v: bool) -> AstStatement {
@@ -1052,7 +1052,7 @@ fn nested_array_literals_type_resolving() {
         index.find_effective_type_by_name(a.get_type_name())
     );
 
-    println!("{:#?}", initializer);
+    println!("{initializer:#?}");
 
     //check the initializer's array-element's types
     if let AstStatement::LiteralArray { elements: Some(e), .. } = initializer {

@@ -127,14 +127,10 @@ fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
     }
 
     match data_type {
-        DataTypeInformation::Struct { member_names, name, .. } =>
+        DataTypeInformation::Struct { members, .. } =>
         //see if any member is fb or class intance
         {
-            member_names.iter().any(|member_name| {
-                index
-                    .find_member(name.as_str(), member_name.as_str())
-                    .map_or(false, |v| data_type_is_fb_or_class_instance(v.get_type_name(), index))
-            })
+            members.iter().any(|member| data_type_is_fb_or_class_instance(member.get_type_name(), index))
         }
         DataTypeInformation::Array { inner_type_name, .. } => {
             data_type_is_fb_or_class_instance(inner_type_name.as_str(), index)

@@ -104,14 +104,14 @@ fn actions_are_indexed() {
         assert_eq!("myProgram.foo", name);
         assert_eq!("myProgram", referenced_type);
     } else {
-        panic!("Wrong variant : {:#?}", info);
+        panic!("Wrong variant : {info:#?}");
     }
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
         index.find_effective_type_info(info.get_name()).unwrap()
     {
         assert_eq!("myProgram", name);
     } else {
-        panic!("Wrong variant : {:#?}", info);
+        panic!("Wrong variant : {info:#?}");
     }
 
     let bar = index.find_implementation_by_name("myProgram.bar").unwrap();
@@ -123,14 +123,14 @@ fn actions_are_indexed() {
         assert_eq!("myProgram.bar", name);
         assert_eq!("myProgram", referenced_type);
     } else {
-        panic!("Wrong variant : {:#?}", info);
+        panic!("Wrong variant : {info:#?}");
     }
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
         index.find_effective_type_info(info.get_name()).unwrap()
     {
         assert_eq!("myProgram", name);
     } else {
-        panic!("Wrong variant : {:#?}", info);
+        panic!("Wrong variant : {info:#?}");
     }
 }
 
@@ -150,11 +150,12 @@ fn fb_methods_are_indexed() {
     assert_eq!("myFuncBlock.foo", foo_impl.call_name);
     assert_eq!("myFuncBlock.foo", foo_impl.type_name);
     let info = index.get_type("myFuncBlock.foo").unwrap().get_type_information();
-    if let crate::typesystem::DataTypeInformation::Struct { name, member_names, .. } = info {
+    if let crate::typesystem::DataTypeInformation::Struct { name, members, .. } = info {
         assert_eq!("myFuncBlock.foo", name);
-        assert_eq!(&vec!["x"], member_names);
+        assert_eq!(1, members.len());
+        assert_eq!("x", members[0].get_name());
     } else {
-        panic!("Wrong variant : {:#?}", info);
+        panic!("Wrong variant : {info:#?}");
     }
 }
 
@@ -174,11 +175,12 @@ fn class_methods_are_indexed() {
     assert_eq!("myClass.foo", foo_impl.call_name);
     assert_eq!("myClass.foo", foo_impl.type_name);
     let info = index.get_type("myClass.foo").unwrap().get_type_information();
-    if let crate::typesystem::DataTypeInformation::Struct { name, member_names, .. } = info {
+    if let crate::typesystem::DataTypeInformation::Struct { name, members, .. } = info {
         assert_eq!("myClass.foo", name);
-        assert_eq!(&vec!["y"], member_names);
+        assert_eq!(1, members.len());
+        assert_eq!("y", members[0].get_name());
     } else {
-        panic!("Wrong variant : {:#?}", info);
+        panic!("Wrong variant : {info:#?}");
     }
 }
 
@@ -729,7 +731,7 @@ fn pre_processing_generates_inline_pointers() {
         initializer: None,
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
@@ -738,7 +740,7 @@ fn pre_processing_generates_inline_pointers() {
         location: SourceRange::undefined(),
     };
 
-    assert_eq!(format!("{:?}", expected), format!("{:?}", var_data_type));
+    assert_eq!(format!("{expected:?}"), format!("{var_data_type:?}"));
 }
 
 #[test]
@@ -766,7 +768,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
 
     // AND the original variable should now point to the new DataType
     let original = &ast.types[0];
@@ -782,7 +784,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", original));
+    assert_eq!(format!("{expected:?}"), format!("{original:?}"));
 }
 
 #[test]
@@ -814,7 +816,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         initializer: None,
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
 
     // Pointer OF Pointer
     let new_pointer_type = &ast.types[1];
@@ -830,7 +832,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         initializer: None,
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
@@ -839,7 +841,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         referenced_type: "__foo_inline_pointer".to_string(),
         location: SourceRange::undefined(),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", var_data_type));
+    assert_eq!(format!("{expected:?}"), format!("{var_data_type:?}"));
 }
 
 #[test]
@@ -883,7 +885,7 @@ fn pre_processing_generates_inline_arrays() {
         location: (59..77).into(),
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
@@ -938,7 +940,7 @@ fn pre_processing_generates_inline_array_of_array() {
         location: (59..92).into(),
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[1];
@@ -967,7 +969,7 @@ fn pre_processing_generates_inline_array_of_array() {
         location: (59..92).into(),
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
@@ -1007,7 +1009,7 @@ fn pre_processing_generates_array_of_array_type() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_type:?}"));
 
     // AND the original variable should now point to the new DataType
     let original = &ast.types[0];
@@ -1028,7 +1030,7 @@ fn pre_processing_generates_array_of_array_type() {
         initializer: None,
         scope: None,
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", original));
+    assert_eq!(format!("{expected:?}"), format!("{original:?}"));
 }
 
 #[test]
@@ -1072,7 +1074,7 @@ fn pre_processing_nested_array_in_struct() {
         location: (14..97).into(),
         scope: None,
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // ARRAY OF INT
     let new_array_type = &ast.types[1];
@@ -1101,7 +1103,7 @@ fn pre_processing_nested_array_in_struct() {
         location: (59..77).into(),
         scope: None,
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 }
 
 #[test]
@@ -1146,7 +1148,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         location: (74..107).into(),
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[1];
@@ -1175,7 +1177,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         location: (59..107).into(),
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[2];
@@ -1204,7 +1206,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         location: (59..107).into(),
         scope: Some("foo".into()),
     };
-    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
+    assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
@@ -1243,7 +1245,7 @@ fn pre_processing_generates_generic_types() {
         scope: Some("myFunc".into()),
     };
 
-    assert_eq!(format!("{:?}", expected), format!("{:?}", ast.types[0]));
+    assert_eq!(format!("{expected:?}"), format!("{:?}", ast.types[0]));
 
     //The variables with type G now have type __myFunc__G
     let pou = &ast.units[0];
@@ -1277,7 +1279,7 @@ fn pre_processing_generates_nested_generic_types() {
         scope: Some("myFunc".into()),
     };
 
-    assert_eq!(format!("{:?}", expected), format!("{:?}", ast.types[0]));
+    assert_eq!(format!("{expected:?}"), format!("{:?}", ast.types[0]));
     //Additional types created
     assert_eq!(3, ast.types.len());
     //referenced types of additional types are the new type
@@ -1312,14 +1314,14 @@ fn sub_range_boundaries_are_registered_at_the_index() {
             ..AstStatement::LiteralInteger { value: 1000, location: SourceRange::undefined(), id: 0 },
     };
 
-    assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
+    assert_eq!(format!("{expected:?}"), format!("{my_int:?}"));
 
     // THEN I expect the index to contain the defined range-information for the given type
     let my_int = &index.get_type("MyAliasInt").unwrap().information;
     let expected =
         &DataTypeInformation::Alias { name: "MyAliasInt".to_string(), referenced_type: "MyInt".to_string() };
 
-    assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
+    assert_eq!(format!("{expected:?}"), format!("{my_int:?}"));
 }
 
 #[test]
@@ -1477,7 +1479,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
                 right: Box::new(crate::parser::tests::literal_int(1))
             }
         ),
-        format!("{:#?}", end_0)
+        format!("{end_0:#?}")
     );
 
     //check 2nd dimension MIN .. MAX
@@ -1496,9 +1498,9 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         })
         .unwrap();
 
-    assert_eq!(format!("{:#?}", crate::parser::tests::ref_to("MIN")), format!("{:#?}", start_1));
+    assert_eq!(format!("{:#?}", crate::parser::tests::ref_to("MIN")), format!("{start_1:#?}"));
 
-    assert_eq!(format!("{:#?}", crate::parser::tests::ref_to("MAX")), format!("{:#?}", end_1));
+    assert_eq!(format!("{:#?}", crate::parser::tests::ref_to("MAX")), format!("{end_1:#?}"));
 }
 
 #[test]
@@ -1754,7 +1756,6 @@ fn a_program_pou_is_indexed() {
         Some(&PouIndexEntry::Function {
             name: "myFunction".into(),
             linkage: LinkageType::Internal,
-            instance_struct_name: "myFunction".into(),
             generics: [GenericBinding { name: "A".into(), nature: TypeNature::Int }].to_vec(),
             return_type: "INT".into(),
             is_variadic: false,
@@ -1909,15 +1910,12 @@ fn pou_duplicates_are_indexed() {
 
     //THEN I expect both PouIndexEntries
     let pous = index.get_pous().values().filter(|it| it.get_name().eq("foo")).collect::<Vec<_>>();
-    let members = index.get_members("foo").unwrap().values().collect::<Vec<_>>();
 
     let foo1 = pous.get(0).unwrap();
     assert_eq!(foo1.get_name(), "foo");
-    assert_eq!(members.get(0).unwrap().get_name(), "input1");
 
     let foo2 = pous.get(1).unwrap();
     assert_eq!(foo2.get_name(), "foo");
-    assert_eq!(members.get(1).unwrap().get_name(), "input2");
 }
 
 #[test]
@@ -1948,19 +1946,15 @@ fn type_duplicates_are_indexed() {
 
     //THEN I expect all 3 DataTypes
     let types = index.get_types().values().filter(|it| it.get_name().eq("MyStruct")).collect::<Vec<_>>();
-    let members = index.get_members("MyStruct").unwrap().values().collect::<Vec<_>>();
 
     let mystruct1 = types.get(0).unwrap();
     assert_eq!(mystruct1.get_name(), "MyStruct");
-    assert_eq!(members.get(0).unwrap().get_name(), "field1");
 
     let mystruct2 = types.get(1).unwrap();
     assert_eq!(mystruct2.get_name(), "MyStruct");
-    assert_eq!(members.get(1).unwrap().get_name(), "field2");
 
     let mystruct3 = types.get(2).unwrap();
     assert_eq!(mystruct3.get_name(), "MyStruct");
-    assert_eq!(members.get(2).unwrap().get_name(), "field3");
 }
 
 #[test]
