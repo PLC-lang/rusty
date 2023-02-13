@@ -236,53 +236,61 @@ impl<'i> TypeAnnotator<'i> {
             nature: TypeNature,
         }
 
-        let passed_parameters = ast::flatten_expression_list(s);
         let declared_parameters = self.index.get_declared_parameters(function_name);
-        for (i, p) in passed_parameters.iter().enumerate() {
+        // separate variadic and non variadic parameters
+        let mut passed_parameters = Vec::new();
+        let mut variadic_parameters = Vec::new();
+        for (i, p) in ast::flatten_expression_list(s).iter().enumerate() {
             if let Ok((location_in_parent, passed_parameter, ..)) =
                 get_implicit_call_parameter(p, &declared_parameters, i)
             {
                 if let Some(declared_parameter) = declared_parameters.get(location_in_parent) {
-                    // check if declared parameter is generic
-                    if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = self
-                        .index
-                        .find_effective_type_info(declared_parameter.get_type_name())
-                        .map(|t| self.index.find_elementary_pointer_type(t))
-                    {
-                        // get generic type of the declared parameter this will be our type hint as the expected type
-                        if let Some(generic) = generic_map.get(generic_symbol) {
-                            if let Some(datatype) =
-                                self.index.find_effective_type_by_name(generic.derived_type.as_str())
-                            {
-                                // annotate the type hint for the passed parameter
-                                self.annotation_map.annotate_type_hint(
-                                    passed_parameter,
-                                    StatementAnnotation::value(datatype.get_name()),
-                                );
-                                // annotate the generic type nature of the passed parameter, this is the actual nature of the generic declaration
-                                self.annotation_map
-                                    .add_generic_nature(passed_parameter, generic.generic_nature);
+                    passed_parameters.push((*p, passed_parameter, *declared_parameter));
+                } else {
+                    // variadic parameters are not included in declared_parameters
+                    variadic_parameters.push(passed_parameter);
+                }
+            }
+        }
 
-                                // for assignments we need to annotate the left side aswell
-                                match p {
-                                    AstStatement::Assignment { left, .. }
-                                    | AstStatement::OutputAssignment { left, .. } => {
-                                        self.annotation_map
-                                            .annotate(left, StatementAnnotation::value(datatype.get_name()));
-                                    }
-                                    _ => {}
-                                }
+        for (parameter_stmt, passed_parameter, declared_parameter) in passed_parameters.iter() {
+            // check if declared parameter is generic
+            if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = self
+                .index
+                .find_effective_type_info(declared_parameter.get_type_name())
+                .map(|t| self.index.find_elementary_pointer_type(t))
+            {
+                // get generic type of the declared parameter this will be our type hint as the expected type
+                if let Some(generic) = generic_map.get(generic_symbol) {
+                    if let Some(datatype) =
+                        self.index.find_effective_type_by_name(generic.derived_type.as_str())
+                    {
+                        // annotate the type hint for the passed parameter
+                        self.annotation_map.annotate_type_hint(
+                            passed_parameter,
+                            StatementAnnotation::value(datatype.get_name()),
+                        );
+                        // annotate the generic type nature of the passed parameter, this is the actual nature of the generic declaration
+                        self.annotation_map.add_generic_nature(passed_parameter, generic.generic_nature);
+
+                        // for assignments we need to annotate the left side aswell
+                        match parameter_stmt {
+                            AstStatement::Assignment { left, .. }
+                            | AstStatement::OutputAssignment { left, .. } => {
+                                self.annotation_map
+                                    .annotate(left, StatementAnnotation::value(datatype.get_name()));
                             }
+                            _ => {}
                         }
                     }
                 }
             }
         }
 
-        //Then handle the varargs
-        //Get the variadic argument if any
+        // Then handle the varargs
+        // Get the variadic argument if any
         if let Some(dt) = self.index.get_variadic_member(function_name).map(|it| {
-            //if the member is generic
+            // if the member is generic
             if let Some(DataTypeInformation::Generic { generic_symbol, nature, .. }) =
                 self.index.find_effective_type_info(it.get_type_name())
             {
@@ -295,7 +303,7 @@ impl<'i> TypeAnnotator<'i> {
                 None
             }
         }) {
-            for p in passed_parameters {
+            for p in variadic_parameters {
                 if let Some(TypeAndNature { datatype, nature }) = dt {
                     self.annotation_map.add_generic_nature(p, nature);
                     self.annotation_map

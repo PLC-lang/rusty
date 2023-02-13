@@ -191,7 +191,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.debug.set_debug_location(self.llvm, &function_context.function, line, column);
     }
 
-    fn generate_expression_value(
+    pub fn generate_expression_value(
         &self,
         expression: &AstStatement,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
@@ -504,9 +504,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
-            return builtin
-                .codegen(self, parameters_list.as_slice(), operator.get_location())
-                .map(ExpressionValue::RValue);
+            return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
 
         let mut arguments_list = self.generate_pou_call_arguments_list(
