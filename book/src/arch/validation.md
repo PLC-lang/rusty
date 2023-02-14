@@ -5,11 +5,13 @@ The validator is a hand-written visitor that offers a callback when visiting the
 
 The validation rules are implemented in dedicated validator-structs:
 
-| Validator          | Responsibilities                                                                                   |
-| ------------------ | -------------------------------------------------------------------------------------------------- |
-| pou_validator      | Semantic rules on the level of Programs, Functionblocks and Functions.                             |
-| variable_validator | Semantic rules on the level of variable declarations (e.g. empty var-blocks, empty structs, etc.). |
-| stmt_validator     | Semantic rules on the level of statements (e.g. invalid type-casts).                               |
+| Validator           | Responsibilities                                                                                   |
+| ------------------- | -------------------------------------------------------------------------------------------------- |
+| global_validator    | Semantic rules on the level of declarations as a whole (e.g. name-conflicts)                       |
+| pou_validator       | Semantic rules on the level of programs, function- and function-blocks.                            |
+| recursive_validator | Semantic rules on the level of recursion (e.g. struct referencing itself)                          |
+| stmt_validator      | Semantic rules on the level of statements (e.g. invalid type-casts).                               |
+| variable_validator  | Semantic rules on the level of variable declarations (e.g. empty var-blocks, empty structs, etc.). |
 
 ## Diagnostics
 
