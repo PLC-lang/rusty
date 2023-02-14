@@ -146,11 +146,14 @@
 RuSTy supports this functionalty and extends it to support all <code>INT</code> types.</p>
 <h2 id="constant-based-direct-access"><a class="header" href="#constant-based-direct-access">Constant based Direct Access</a></h2>
 <p>To access a bit sequence in a variable, a direct access instruction <code>%&lt;Type&gt;&lt;Value&gt;</code> is used.</p>
-<p><code>Type</code> is the bit sequence size required and is described as follows :
-| Type | Size | Example |
-| ---- | ---- | ------- |
-| X    | 1    | <code>%X1    | | B    | 8    | </code>%B1    |
-| W    | 16   | <code>%W1    | | D    | 32   | </code>%D1    |</p>
+<p><code>Type</code> is the bit sequence size required and is described as follows:</p>
+<div class="table-wrapper"><table><thead><tr><th>Type</th><th>Size</th><th>Example</th></tr></thead><tbody>
+<tr><td>X</td><td>1</td><td>`%X1</td></tr>
+<tr><td>B</td><td>8</td><td>`%B1</td></tr>
+<tr><td>W</td><td>16</td><td>`%W1</td></tr>
+<tr><td>D</td><td>32</td><td>`%D1</td></tr>
+</tbody></table>
+</div>
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>

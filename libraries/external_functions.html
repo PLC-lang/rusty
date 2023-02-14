@@ -156,23 +156,23 @@ END_FUNCTION
 </code></pre>
 <p>At compilation time, the function <code>log</code> will be defined as an externally available function, and can be called from <code>ST</code> code.</p>
 <blockquote>
-<p>Note : At linking time, a <code>log</code> function with a compatible signature must be available on the system.</p>
+<p>Note: At linking time, a <code>log</code> function with a compatible signature must be available on the system.</p>
 </blockquote>
 <h2 id="calling-c-functions"><a class="header" href="#calling-c-functions">Calling C functions</a></h2>
 <p><code>ST</code> code can call into foreign functions natively.
 To achieve this, the called function must be defined in a <code>C</code> compatible API, e.g. <code>extern &quot;C&quot;</code> blocks.</p>
-<p>The interface of the function has to :</p>
+<p>The interface of the function has to:</p>
 <ul>
 <li>either be included with the <code>-i</code> flag</li>
 <li>or be declared in <code>ST</code> using the <code>{external}</code> keyword</li>
 </ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<p>Given a <code>min</code> function defined in <code>C</code> as follows :</p>
+<p>Given a <code>min</code> function defined in <code>C</code> as follows:</p>
 <pre><code class="language-C">int min(int a, int b) {
 //...
 }
 </code></pre>
-<p>an interface of that function in <code>ST</code> can be defined as :</p>
+<p>an interface of that function in <code>ST</code> can be defined as:</p>
 <pre><code class="language-iecst">{external}
 FUNCTION min : DINT
 VAR_INPUT
@@ -187,10 +187,10 @@ END_FUNCTION
 <p>An example of a variadic function is <code>printf</code>.</p>
 <p>Calling a variadic function is supported in <code>ST</code>. To mark an external function as variadic, you can add a parameter of type <code>...</code> to the <code>VAR_INPUT</code> block.</p>
 <h4 id="variadic-function-example"><a class="header" href="#variadic-function-example">Variadic function example</a></h4>
-<p>Given the <code>printf</code> function defined as :</p>
+<p>Given the <code>printf</code> function defined as:</p>
 <pre><code class="language-C">int printf( const char *restrict format, ... );
 </code></pre>
-<p>the <code>ST</code> interface can be defined as :</p>
+<p>the <code>ST</code> interface can be defined as:</p>
 <pre><code class="language-iecst">{external}
 FUNCTION printf : DINT
 VAR_INPUT {ref}
@@ -204,7 +204,7 @@ END_FUNCTION
 <h4 id="runnable-example"><a class="header" href="#runnable-example">Runnable example</a></h4>
 <p>With the <code>printf</code> function available on the system, there is no need to declare
 the C function.</p>
-<p>An <code>ST</code> program called <code>ExternalFunctions.st</code> with the following code can be declared :</p>
+<p>An <code>ST</code> program called <code>ExternalFunctions.st</code> with the following code can be declared:</p>
 <pre><code class="language-iecst">(*ExternalFunctions.st*)
 
 (**
@@ -236,7 +236,7 @@ END_VAR
   main := tmp;
 END_FUNCTION
 </code></pre>
-<p>Compiling the previous code with the following command :</p>
+<p>Compiling the previous code with the following command:</p>
 <pre><code class="language-sh">rustyc ExternalFunctions.st -o ExternalFunctions --linker=clang
 </code></pre>
 <p>will yield an executable called <code>ExternalFunctions</code>.</p>

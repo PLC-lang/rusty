@@ -146,14 +146,15 @@
 To generate the <em>IR</em> we use a crate that wraps the native llvm <a href="https://github.com/TheDan64/inkwell">C-API</a>.</p>
 <p>The code-generator is basically a transformation from the ST-AST into an IR-Tree representation.
 Therefore the AST is traversed in a visitor-like way and transformed simultaneously.</p>
-<p>The code generation is split into specialized sub-generators for different tasks :
-| Generator            | Responsibilities |
-| -------------------- | ---------------- |
-| pou_generator        | The pou-generator takes care of generating the programming organization units (Programs, FunctionBlocks, Functions) including their signature and body. More specialized tasks are delegated to other generators.  |
-| data_type_generator  | Generates complex datatypes like Structs, Arrays, Enums, Strings, etc. |
-| variable_generator   | Generates global variables and their initialization. |
-| statement_generator  | Generates everything of the body of a POU except expressions. Non-expressions include: IFs, Loops, Assignments, etc. |
-| expression_generator | Generates expressions (everything that <em>possibly</em> resolves to a value) including: call-statements, references, array-access, etc. |</p>
+<p>The code generation is split into specialized sub-generators for different tasks:</p>
+<div class="table-wrapper"><table><thead><tr><th>Generator</th><th>Responsibilities</th></tr></thead><tbody>
+<tr><td>pou_generator</td><td>The pou-generator takes care of generating the programming organization units (Programs, FunctionBlocks, Functions) including their signature and body. More specialized tasks are delegated to other generators.</td></tr>
+<tr><td>data_type_generator</td><td>Generates complex datatypes like Structs, Arrays, Enums, Strings, etc.</td></tr>
+<tr><td>variable_generator</td><td>Generates global variables and their initialization.</td></tr>
+<tr><td>statement_generator</td><td>Generates everything of the body of a POU except expressions. Non-expressions include: IFs, Loops, Assignments, etc.</td></tr>
+<tr><td>expression_generator</td><td>Generates expressions (everything that <em>possibly</em> resolves to a value) including: call-statements, references, array-access, etc.</td></tr>
+</tbody></table>
+</div>
 <h2 id="generating-pous"><a class="header" href="#generating-pous">Generating POUs</a></h2>
 <p>Generating POUs (Programs, Function-Blocks, Functions) must generate the POU's body itself, as well as the POU's interface (or state) variables.
 In this segment we focus on generating the interface for a POU.
@@ -187,7 +188,7 @@ entry:
 So in contrast to Programs, a FunctionBlock can have multiple instances.
 Nevertheless the code-generator uses a very similar strategy.
 A struct-type for the FunctionBlock's interface is created but no global instance-variable is allocated.
-Instead the function block can be used as a DataType to declare instances like in the following example :</p>
+Instead the function block can be used as a DataType to declare instances like in the following example:</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK foo
   VAR_INPUT
     x, y : INT;
@@ -244,7 +245,7 @@ We generate a new datatype with the user-type's name for the struct.</p>
   END_STRUCT
 END_TYPE
 </code></pre>
-<p>This struct simply generates a llvm struct type :</p>
+<p>This struct simply generates a llvm struct type:</p>
 <pre><code class="language-llvm">%MyStruct = type { i32, i16 }
 </code></pre>
 <h3 id="enum-types"><a class="header" href="#enum-types">Enum Types</a></h3>
@@ -272,20 +273,20 @@ END_VAR
 @y = global [6 x float] zeroinitializer
 </code></pre>
 <h4 id="multi-dimensional-arrays"><a class="header" href="#multi-dimensional-arrays">Multi dimensional arrays</a></h4>
-<p>Arrays can be declared as multi-dimensional :</p>
+<p>Arrays can be declared as multi-dimensional:</p>
 <pre><code class="language-iecst">VAR_GLOBAL
   x : ARRAY[0..5, 2..5, 0..1] OF INT;
 END_VAR
 </code></pre>
 <p>The compiler will flatten these type of arrays to a single-dimension. To accomplish that, it calculates the total
-length by mulitplying the sizes of all dimensions :</p>
+length by mulitplying the sizes of all dimensions:</p>
 <pre><code class="language-ignore">    0..5 x 2..5 x 0..1
       6  x   4  x   2  = 64
 </code></pre>
-<p>So the array <code>x : ARRAY[0..5, 2..5, 0..1] OF INT;</code> will be generated as :</p>
+<p>So the array <code>x : ARRAY[0..5, 2..5, 0..1] OF INT;</code> will be generated as:</p>
 <pre><code class="language-llvm">@x = global [64 x i16] zeroinitializer
 </code></pre>
-<p>This means that such a multidimensional array must be initialized like a single-dimensional array :</p>
+<p>This means that such a multidimensional array must be initialized like a single-dimensional array:</p>
 <ul>
 <li><em>wrong</em></li>
 </ul>

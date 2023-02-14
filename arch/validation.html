@@ -144,21 +144,25 @@
                         <h1 id="validation"><a class="header" href="#validation">Validation</a></h1>
 <p>The validation module implements the semantic validation step of the compiler.
 The validator is a hand-written visitor that offers a callback when visiting the single AST-nodes to then perform the different validation tasks.</p>
-<p>The validation rules are implemented in dedicated validator-structs :
-| Validator          | Responsibilities                                                                                   |
-| ------------------ | -------------------------------------------------------------------------------------------------- |
-| pou_validator      | Semantic rules on the level of Programs, Functionblocks and Functions.                             |
-| variable_validator | Semantic rules on the level of variable declarations (e.g. empty var-blocks, empty structs, etc.). |
-| stmt_validator     | Semantic rules on the level of statements (e.g. invalid type-casts).                               |</p>
+<p>The validation rules are implemented in dedicated validator-structs:</p>
+<div class="table-wrapper"><table><thead><tr><th>Validator</th><th>Responsibilities</th></tr></thead><tbody>
+<tr><td>global_validator</td><td>Semantic rules on the level of declarations as a whole (e.g. name-conflicts)</td></tr>
+<tr><td>pou_validator</td><td>Semantic rules on the level of programs, function- and function-blocks.</td></tr>
+<tr><td>recursive_validator</td><td>Semantic rules on the level of recursion (e.g. struct referencing itself)</td></tr>
+<tr><td>stmt_validator</td><td>Semantic rules on the level of statements (e.g. invalid type-casts).</td></tr>
+<tr><td>variable_validator</td><td>Semantic rules on the level of variable declarations (e.g. empty var-blocks, empty structs, etc.).</td></tr>
+</tbody></table>
+</div>
 <h2 id="diagnostics"><a class="header" href="#diagnostics">Diagnostics</a></h2>
 <p>Problems (semantic or syntactic) are represented as <em>Diagnostics</em> <sup class="footnote-reference"><a href="#1">1</a></sup>.
 Diagnostics carry information on the exact location inside the source-string (start- &amp; end-offset), a custom message and a unique error-number to identify the problem.</p>
-<p>There are 3 types of <em>Diagnostics</em> :
-| Diagnostic   | Description |
-| ------------ | ----------------- |
-| SyntaxError  | A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language's grammar. |
-| GeneralError | General errors are problems that occured during the compilation process, that cannot be linked to a malformed input (e.g. file-I/O problems, internal LLVM errors, etc.). |
-| Improvement  | Problems that may not prevent successful compilation but are still considered a flaw in the source-code. (e.g. use proprietary <em>POINTER TO</em> instead of the norm-compliant <em>REF_TO</em>). |</p>
+<p>There are 3 types of <em>Diagnostics</em>:</p>
+<div class="table-wrapper"><table><thead><tr><th>Diagnostic</th><th>Description</th></tr></thead><tbody>
+<tr><td>SyntaxError</td><td>A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language's grammar.</td></tr>
+<tr><td>GeneralError</td><td>General errors are problems that occured during the compilation process, that cannot be linked to a malformed input (e.g. file-I/O problems, internal LLVM errors, etc.).</td></tr>
+<tr><td>Improvement</td><td>Problems that may not prevent successful compilation but are still considered a flaw in the source-code. (e.g. use proprietary <em>POINTER TO</em> instead of the norm-compliant <em>REF_TO</em>).</td></tr>
+</tbody></table>
+</div>
 <div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
 <p>:(i): The diagnostics are subject to change since they don't elegantly represent the different types of problems (e.g. semantic problems).</p>
 </div>

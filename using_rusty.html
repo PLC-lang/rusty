@@ -151,9 +151,9 @@ In the case that no output format switch has been specified, the compiler will s
 <p>Similarly, if you do not specify an output filename via the <code>-o</code> or <code>--output</code> options,
 the output filename will consist of the first input filename, but with an appropriate
 file extension depending on the output file format.</p>
-<p>A minimal invocation looks like this :
+<p>A minimal invocation looks like this:
 <code>rustyc input.st</code> ... this will take in the file input.st and compile it into a static object that will be written to a file named input.o.</p>
-<p>More examples :</p>
+<p>More examples:</p>
 <ul>
 <li><code>rustyc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
 <li><code>rustyc --ir src/*.st</code> will compile all st files in the src-folder.</li>
@@ -181,12 +181,12 @@ END_FUNCTION
 </code></pre>
 <h3 id="compiling-with-rusty"><a class="header" href="#compiling-with-rusty">Compiling with RuSTy</a></h3>
 <p>The RuSTy command line interface is similar to that of other compilers.</p>
-<p>If you just want to build an object file, then do this :</p>
+<p>If you just want to build an object file, then do this:</p>
 <pre><code class="language-bash">rustyc -c hello_world.st -o hello_world.o
 </code></pre>
 <h3 id="optimization"><a class="header" href="#optimization">Optimization</a></h3>
 <p><code>rustyc</code> offers 4 levels of optimization which correspond to the levels established by llvm respectively <a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options">clang</a> (<code>none</code> to <code>aggressive</code>, respectively <code>-O0</code> to <code>-O3</code>).</p>
-<p>To use an optimization, the flag <code>-O</code> or <code>--optimization</code> is required :</p>
+<p>To use an optimization, the flag <code>-O</code> or <code>--optimization</code> is required:</p>
 <ul>
 <li><code>rustyc -c &quot;**/*.st&quot; -O none</code></li>
 <li><code>rustyc -c &quot;**/*.st&quot; -O less</code></li>
@@ -195,7 +195,7 @@ END_FUNCTION
 </ul>
 <p>By default <code>rustyc</code> will use <code>default</code> which corresponds to clang's <code>-O2</code>.</p>
 <h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
-<p>Instead, you can also compile this into an executable and run it :</p>
+<p>Instead, you can also compile this into an executable and run it:</p>
 <pre><code class="language-bash">rustyc hello_world.st -o hello_world --linker=cc
 ./hello_world
 </code></pre>

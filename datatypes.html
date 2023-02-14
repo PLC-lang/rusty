@@ -163,7 +163,7 @@ be default-initialized with a value of <code>0</code> or <code>0.0</code> respec
 <h3 id="a-word-on-integer-literals"><a class="header" href="#a-word-on-integer-literals">A word on integer literals</a></h3>
 <p>Integer literals can be prefixed with either <code>2#</code> (binary), <code>8#</code> (octal) or <code>16#</code> (hexadecimal).
 They will then be treated with regard to the respective number system.</p>
-<p>Examples :</p>
+<p>Examples:</p>
 <ul>
 <li><code>i1 : DINT := 42;</code> - declares and initializes a 32bit signed integer with value 42.</li>
 <li><code>i1 : DINT := 2#101010;</code> - declares and initializes a 32bit signed integer with value 42.</li>
@@ -186,7 +186,7 @@ A <code>STRING</code> literal is surrounded by single-ticks <code>'</code>.</p>
 <p>A String has a well defined length which can be defined similar to the array-syntax.
 A String-variable <code>myVariable: STRING[20]</code> declares a byte array of length 21, to store 20 utf8 character bytes.
 When declaring a <code>STRING</code>, the length-attribute is optional. The default length is 80.</p>
-<p>Examples :</p>
+<p>Examples:</p>
 <ul>
 <li><code>s1 : STRING;</code> - declares a String of length 80.</li>
 <li><code>s2 : STRING[20];</code> - declares a String of length 20.</li>
@@ -201,7 +201,7 @@ A <code>WSTRING</code> literal is surrounded by doubly-ticks <code>&quot;</code>
 <p>A <code>WSTRING</code> has a well defined length which can be defined similar to the array-syntax.
 A <code>WSTRING</code>-variable <code>myVariable: WSTRING[20]</code> declares a byte array of length 42, to store 20 utf16 character bytes.
 When declaring a <code>WSTRING</code>, the length-attribute is optional. The default length is 80.</p>
-<p>Examples :</p>
+<p>Examples:</p>
 <ul>
 <li><code>ws1 : WSTRING;</code> - declares a Wide-String of length 80.</li>
 <li><code>ws2 : WSTRING[20];</code> - declares a Wide-String of length 20.</li>
@@ -224,7 +224,7 @@ Therefore the long pendants <code>LTIME</code>, <code>LTOD</code>, <code>LDATE</
 Such a value is stored as an i64 with a precision in nanoseconds and denotes the number of nanoseconds
 that have elapsed since January 1, 1970 UTC not counting leap seconds.
 DATE literals start with <code>DATE#</code> or <code>D#</code> followed by a date in the format of <code>yyyy-mm-dd</code>.</p>
-<p>Examples :</p>
+<p>Examples:</p>
 <ul>
 <li><code>d1 : DATE := DATE#2021-05-02;</code></li>
 <li><code>d2 : DATE := DATE#1-12-24;</code></li>
@@ -237,7 +237,7 @@ number of nanoseconds that have elapsed since January 1, 1970 UTC not counting l
 DATE_AND_TIME literals start with <code>DATE_AND_TIME#</code> or <code>DT#</code> followed by a date and time in the
 format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
 <p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
-<p>Examples :</p>
+<p>Examples:</p>
 <ul>
 <li><code>d1 : DATE_AND_TIME := DATE_AND_TIME#2021-05-02-14:20:10.25;</code></li>
 <li><code>d2 : DATE_AND_TIME := DATE_AND_TIME#1-12-24-00:00:1;</code></li>
@@ -251,7 +251,7 @@ Hence this value is stored as a <code>DATE_AND_TIME</code> with the day fixed to
 <code>TIME_OF_DAY</code> literals start with <code>TIME_OF_DAY#</code> or <code>TOD#</code> followed by a time in the
 format of <code>hh:mm:ss</code>.</p>
 <p>Note that only the seconeds-segment can have a fraction denoting the milliseconds.</p>
-<p>Examples :</p>
+<p>Examples:</p>
 <ul>
 <li><code>t1 : TIME_OF_DAY := TIME_OF_DAY#14:20:10.25;</code></li>
 <li><code>t2 : TIME_OF_DAY := TIME_OF_DY#0:00:1;</code></li>
@@ -261,7 +261,7 @@ format of <code>hh:mm:ss</code>.</p>
 <p>The <code>TIME</code> datatype is used to represent a time-span.
 A <code>TIME</code> value is stored as an <code>i64</code> value with a precision in nanoseconds.
 TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <code>TIME</code> segements.</p>
-<p>Supported segements are :</p>
+<p>Supported segements are:</p>
 <ul>
 <li><code>d</code> ... <code>f64</code> days</li>
 <li><code>h</code> ... <code>f64</code> hours</li>
@@ -272,7 +272,7 @@ TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <
 <li><code>ns</code> ... <code>u32</code> nanaoseconds</li>
 </ul>
 <p>Note that only the last segment of a <code>TIME</code> literal can have a fraction.</p>
-<p>Examples :</p>
+<p>Examples:</p>
 <ul>
 <li><code>t1 : TIME := TIME#2d4h6m8s10ms;</code></li>
 <li><code>t2 : TIME := T#2d4.2h;</code></li>

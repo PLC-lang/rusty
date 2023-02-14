@@ -145,18 +145,18 @@
 <p>In addition to the comprehensive help, <code>rustyc</code> offers a build subcommand that simplifies the build process. </br>
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
 The build description file needs to be saved in the <a href="https://en.wikipedia.org/wiki/JSON">json</a> format.</p>
-<p>Usage :
+<p>Usage:
 <code>rustyc build</code></p>
 <p>Note that if <code>rustyc</code> cannot find the <code>plc.json</code> file, it will throw an error and request the path.
 The default location for the build file is the current directory.</p>
-<p>The command for building with an additional path looks like this :
+<p>The command for building with an additional path looks like this:
 <code>rustyc build src/plc.json</code></p>
 <h2 id="build-description-file-plcjson"><a class="header" href="#build-description-file-plcjson">Build description file (plc.json)</a></h2>
 <p>For the build description file to work, it must be written in the <a href="https://en.wikipedia.org/wiki/JavaScript_Object_Notation">json</a> format.
 All the keys used in the build description file are described in the following sections.</p>
 <h3 id="files"><a class="header" href="#files">files</a></h3>
 <p>The keyword <code>files</code> is the equivalent to the <code>input</code> parameter, which adds all the <code>ST</code> files that need to be compiled.</p>
-<p>The value of <code>files</code> is an array of strings, definied as follows :</p>
+<p>The value of <code>files</code> is an array of strings, definied as follows:</p>
 <pre><code class="language-json">&quot;files&quot; : [
     &quot;examples/hello_world.st&quot;,
     &quot;examples/hw.st&quot;
@@ -228,7 +228,7 @@ The <code>compile_type</code> keyword is optional.</p>
 }
 </code></pre>
 <h2 id="build-parameters"><a class="header" href="#build-parameters">Build Parameters</a></h2>
-<p>The <code>build</code> subcommand exposes the following optional parameters :</p>
+<p>The <code>build</code> subcommand exposes the following optional parameters:</p>
 <h3 id="--build-location"><a class="header" href="#--build-location"><code>--build-location</code></a></h3>
 <p>The build location is the location all build files will be copied to. </br>
 By default the build location is the <code>build</code> folder in the root of the project (the location of the <code>plc.json</code>).</br>
@@ -239,13 +239,13 @@ By default it is the same as the <code>build-location</code>.</br>
 This can be overriden with the <code>--lib-location</code> command line parameter.</p>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
 <p>Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.</p>
-<p>In addition to externally defined variables, the build exports variables that can be referenced in the description file :</p>
+<p>In addition to externally defined variables, the build exports variables that can be referenced in the description file:</p>
 <h3 id="project_root"><a class="header" href="#project_root"><code>PROJECT_ROOT</code></a></h3>
 <p>The folder containing the <code>plc.json</code> file, i.e. the root of the project.</p>
 <h3 id="arch"><a class="header" href="#arch"><code>ARCH</code></a></h3>
 <p>The target architecture currently being built, for a multi architecture build.
 The value for <code>ARCH</code> will be updated for every target.</p>
-<p>Example targets are :
+<p>Example targets are:
 <code>x86_64-pc-linux-gnu</code>, <code>x86_64-pc-windows-msvc</code>, <code>aarch64-pc-linux-musl</code></p>
 <h3 id="build_location"><a class="header" href="#build_location"><code>BUILD_LOCATION</code></a></h3>
 <p><code>BUILD_LOCATION</code> is the folder where the build will be saved.

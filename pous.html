@@ -148,7 +148,7 @@ It can be defined as either a Program, a Function, a Function Block, or an Actio
 <blockquote>
 <p>Methods on classes are also considered POUs but are not covered by this document</p>
 </blockquote>
-<p>A POU is defined as :</p>
+<p>A POU is defined as:</p>
 <pre><code class="language-iecst">&lt;POU Type&gt; name 
 (* parameters *)
 
@@ -161,14 +161,14 @@ Such parameters are defined in a <em>variable block</em>  delimeted by <code>VAR
 Supported parameter types are <code>VAR_INPUT</code>, <code>VAR_INPUT {ref}</code>, <code>VAR_OUTPUT</code> and <code>VAR_IN_OUT</code></p>
 <h4 id="input"><a class="header" href="#input">Input</a></h4>
 <p>Input parameters are typically copied into the target POU to be stored and read for later references.</p>
-<p>A definition for input parameters is as follows :</p>
+<p>A definition for input parameters is as follows:</p>
 <pre><code class="language-iecst">VAR_INPUT
     a : INT;
 END_VAR
 </code></pre>
 <p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see <a href="libraries/external_functions.html">External Functions</a>) it is more efficient to avoid copying the variable values and just use a pointer to the required input.
 This can be done either using the in/out variables or by specifying a special property <code>ref</code> on the input block.</p>
-<p>Example :</p>
+<p>Example:</p>
 <pre><code class="language-iecst">VAR_INPUT {ref}
     a : STRING;
 END_VAR
@@ -190,7 +190,7 @@ In a function, all local variables are temporary.</p>
 <h3 id="function"><a class="header" href="#function">Function</a></h3>
 <p>Functions are <em>stateless</em> sequences of callable code. They are not backed by any structs, and cannot hold any state accross multiple calls.
 A function's input parameter can be passed by value, or by reference.</p>
-<p>Functions also support a return type, the resulting definition is :</p>
+<p>Functions also support a return type, the resulting definition is:</p>
 <pre><code class="language-iecst">    FUNCTION fnName : &lt;TYPE&gt;
     (* parameters *)
     VAR_INPUT (* by value *)
@@ -214,7 +214,7 @@ A function's input parameter can be passed by value, or by reference.</p>
 <p>Programs are a static (i.e. <code>GLOBAL</code>) <code>STRUCT</code> that holds its state accross multiple calls.
 A Program exists once, and only once in an application, and subsequent calls to a program will change and store the passed parameters as well as internal variables.
 A program does not support passing input parameters by reference.</p>
-<p>Example :</p>
+<p>Example:</p>
 <pre><code class="language-iecst">PROGRAM prg 
 (* parameters *)
 VAR_INPUT
@@ -255,7 +255,7 @@ END_FUNCTION_BLOCK
 <p>An action is represented by a parent struct, and does not define its own interface (VAR blocks).
 An action can only be defined for Programs and Function Blocks.</p>
 <p>An action is defined in 3 different ways, either in a container (<code>ACTIONS</code>) directly below the POU, in a named <code>ACTIONS</code> container, or using a qualified name on the action.</p>
-<p>Example :</p>
+<p>Example:</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK fb
 (* parameters *)
 VAR_INPUT

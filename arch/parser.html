@@ -183,7 +183,7 @@ Compared to other languages, Structured Text has a quite high number of keywords
 <p>The logos crate uses <a href="https://doc.rust-lang.org/reference/procedural-macros.html">procedural macros</a> to generate the code required to  lex the source-string.
 The number of tokens identified by the RuSTy-lexer is quite high, so as of january 2022 the rust sdk for vs-code (rust-analyzer) reports problem with the number of macro-generated tokens (<em>macro invocation exceeds token limit...</em>).</p>
 <p>The tokens identified by the lexer follow the formal definition provided by the IEC61131-3 (2013) standard.</p>
-<p>Following strategies increase the number of tokens and should be reconsidered :</p>
+<p>Following strategies increase the number of tokens and should be reconsidered:</p>
 <ul>
 <li>case insensitivity</li>
 <li>optional underscores in keywords (e.g. <code>END_IF</code> == <code>ENDIF</code>)</li>
@@ -204,7 +204,7 @@ Every element of the AST is easily identified, debugged and understood.
 E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
 It is impossible to construct it differently.</p>
 <h4 id="example"><a class="header" href="#example">Example</a></h4>
-<p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures :</p>
+<p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
 <pre><code class="language-rs">struct Reference {
    name: string
 }
