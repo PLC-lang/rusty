@@ -304,7 +304,8 @@ The assignment `z := x + y` is loaded with different types :
 In order to make life easier for validation and code-generation we add an additional annotation to `x + y` to indicate, that while it technically results in a *DINT*, it should rather be treated as a *BYTE* since it is going to be assigned to `z`.
 This second annotation is called the *type-hint*. It indicates that while it technically is not the real type of this expression, the program's semantic wants the compiler to treat it as this type.
 
-The expression `z := x + y` is annotated like this :
+The expression `z := x + y` is annotated like this:
+
 | expression | type annotation | type-hint annotation | explanation                                                          |
 | ---------- | --------------- | -------------------- | -------------------------------------------------------------------- |
 | `x`        | SINT            | DINT                 | auto-upgraded to DINT                                                |

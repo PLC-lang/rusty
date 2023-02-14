@@ -6,7 +6,8 @@ To generate the *IR* we use a crate that wraps the native llvm [C-API](https://g
 The code-generator is basically a transformation from the ST-AST into an IR-Tree representation.
 Therefore the AST is traversed in a visitor-like way and transformed simultaneously.
 
-The code generation is split into specialized sub-generators for different tasks :
+The code generation is split into specialized sub-generators for different tasks:
+
 | Generator            | Responsibilities |
 | -------------------- | ---------------- |
 | pou_generator        | The pou-generator takes care of generating the programming organization units (Programs, FunctionBlocks, Functions) including their signature and body. More specialized tasks are delegated to other generators.  |

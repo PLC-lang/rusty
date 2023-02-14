@@ -3,7 +3,8 @@
 The validation module implements the semantic validation step of the compiler.
 The validator is a hand-written visitor that offers a callback when visiting the single AST-nodes to then perform the different validation tasks.
 
-The validation rules are implemented in dedicated validator-structs :
+The validation rules are implemented in dedicated validator-structs:
+
 | Validator          | Responsibilities                                                                                   |
 | ------------------ | -------------------------------------------------------------------------------------------------- |
 | pou_validator      | Semantic rules on the level of Programs, Functionblocks and Functions.                             |
@@ -15,7 +16,8 @@ The validation rules are implemented in dedicated validator-structs :
 Problems (semantic or syntactic) are represented as *Diagnostics* [^1].
 Diagnostics carry information on the exact location inside the source-string (start- & end-offset), a custom message and a unique error-number to identify the problem.
 
-There are 3 types of *Diagnostics* :
+There are 3 types of *Diagnostics*:
+
 | Diagnostic   | Description |
 | ------------ | ----------------- |
 | SyntaxError  | A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language's grammar. |
