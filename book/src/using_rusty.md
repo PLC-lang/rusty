@@ -13,10 +13,10 @@ Similarly, if you do not specify an output filename via the `-o` or `--output` o
 the output filename will consist of the first input filename, but with an appropriate
 file extension depending on the output file format.
 
-A minimal invocation looks like this :
+A minimal invocation looks like this:
 `rustyc input.st` ... this will take in the file input.st and compile it into a static object that will be written to a file named input.o.
 
-More examples :
+More examples:
 
 - `rustyc --ir file1.st file2.st` will compile file1.st and file2.st.
 - `rustyc --ir src/*.st` will compile all st files in the src-folder.
@@ -50,7 +50,7 @@ END_FUNCTION
 
 The RuSTy command line interface is similar to that of other compilers.
 
-If you just want to build an object file, then do this :
+If you just want to build an object file, then do this:
 
 ```bash
 rustyc -c hello_world.st -o hello_world.o
@@ -60,7 +60,7 @@ rustyc -c hello_world.st -o hello_world.o
 
 `rustyc` offers 4 levels of optimization which correspond to the levels established by llvm respectively [clang](https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options) (`none` to `aggressive`, respectively `-O0` to `-O3`).
 
-To use an optimization, the flag `-O` or `--optimization` is required :
+To use an optimization, the flag `-O` or `--optimization` is required:
 
 - `rustyc -c "**/*.st" -O none`
 - `rustyc -c "**/*.st" -O less`
@@ -71,7 +71,7 @@ By default `rustyc` will use `default` which corresponds to clang's `-O2`.
 
 ### Linking an executable
 
-Instead, you can also compile this into an executable and run it :
+Instead, you can also compile this into an executable and run it:
 
 ```bash
 rustyc hello_world.st -o hello_world --linker=cc

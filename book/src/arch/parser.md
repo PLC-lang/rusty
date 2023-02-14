@@ -50,7 +50,7 @@ The number of tokens identified by the RuSTy-lexer is quite high, so as of janua
 
 The tokens identified by the lexer follow the formal definition provided by the IEC61131-3 (2013) standard.
 
-Following strategies increase the number of tokens and should be reconsidered :
+Following strategies increase the number of tokens and should be reconsidered:
 
 - case insensitivity
 - optional underscores in keywords (e.g. `END_IF` == `ENDIF`)
@@ -77,7 +77,7 @@ It is impossible to construct it differently.
 
 #### Example
 
-So an assignment `a := 3;` will be parsed with the help of the following Structures :
+So an assignment `a := 3;` will be parsed with the help of the following Structures:
 
 ```rs
 struct Reference {

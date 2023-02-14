@@ -7,7 +7,8 @@ RuSTy supports this functionalty and extends it to support all `INT` types.
 
 To access a bit sequence in a variable, a direct access instruction `%<Type><Value>` is used.
 
-`Type` is the bit sequence size required and is described as follows :
+`Type` is the bit sequence size required and is described as follows:
+
 | Type | Size | Example |
 | ---- | ---- | ------- |
 | X    | 1    | `%X1    |

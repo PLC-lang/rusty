@@ -27,7 +27,7 @@ be default-initialized with a value of `0` or `0.0` respectively.
 Integer literals can be prefixed with either `2#` (binary), `8#` (octal) or `16#` (hexadecimal).
 They will then be treated with regard to the respective number system.
 
-Examples :
+Examples:
 
 - `i1 : DINT := 42;` - declares and initializes a 32bit signed integer with value 42.
 - `i1 : DINT := 2#101010;` - declares and initializes a 32bit signed integer with value 42.
@@ -56,7 +56,7 @@ A String has a well defined length which can be defined similar to the array-syn
 A String-variable `myVariable: STRING[20]` declares a byte array of length 21, to store 20 utf8 character bytes.
 When declaring a `STRING`, the length-attribute is optional. The default length is 80.
 
-Examples :
+Examples:
 
 - `s1 : STRING;` - declares a String of length 80.
 - `s2 : STRING[20];` - declares a String of length 20.
@@ -74,7 +74,7 @@ A `WSTRING` has a well defined length which can be defined similar to the array-
 A `WSTRING`-variable `myVariable: WSTRING[20]` declares a byte array of length 42, to store 20 utf16 character bytes.
 When declaring a `WSTRING`, the length-attribute is optional. The default length is 80.
 
-Examples :
+Examples:
 
 - `ws1 : WSTRING;` - declares a Wide-String of length 80.
 - `ws2 : WSTRING[20];` - declares a Wide-String of length 20.
@@ -102,7 +102,7 @@ Such a value is stored as an i64 with a precision in nanoseconds and denotes the
 that have elapsed since January 1, 1970 UTC not counting leap seconds.
 DATE literals start with `DATE#` or `D#` followed by a date in the format of `yyyy-mm-dd`.
 
-Examples :
+Examples:
 
 - `d1 : DATE := DATE#2021-05-02;`
 - `d2 : DATE := DATE#1-12-24;`
@@ -118,7 +118,7 @@ format of `yyyy-mm-dd-hh:mm:ss`.
 
 Note that only the seconds-segment can have a fraction denoting the milliseconds.
 
-Examples :
+Examples:
 
 - `d1 : DATE_AND_TIME := DATE_AND_TIME#2021-05-02-14:20:10.25;`
 - `d2 : DATE_AND_TIME := DATE_AND_TIME#1-12-24-00:00:1;`
@@ -135,7 +135,7 @@ format of `hh:mm:ss`.
 
 Note that only the seconeds-segment can have a fraction denoting the milliseconds.
 
-Examples :
+Examples:
 
 - `t1 : TIME_OF_DAY := TIME_OF_DAY#14:20:10.25;`
 - `t2 : TIME_OF_DAY := TIME_OF_DY#0:00:1;`
@@ -147,7 +147,7 @@ The `TIME` datatype is used to represent a time-span.
 A `TIME` value is stored as an `i64` value with a precision in nanoseconds.
 TIME literals start with `TIME#` or `T#` followed by the `TIME` segements.
 
-Supported segements are :
+Supported segements are:
 
 - `d` ... `f64` days
 - `h` ... `f64` hours
@@ -159,7 +159,7 @@ Supported segements are :
 
 Note that only the last segment of a `TIME` literal can have a fraction.
 
-Examples :
+Examples:
 
 - `t1 : TIME := TIME#2d4h6m8s10ms;`
 - `t2 : TIME := T#2d4.2h;`
