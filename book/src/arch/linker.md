@@ -1,7 +1,7 @@
 # Linker
 
 The linker's task is to decide where all references in the source code point to.
-There are different references in Structured Text :
+There are different references in Structured Text:
 
 - variable references  
 `x := 4` where *x* is a reference to the variable x.  
@@ -12,7 +12,7 @@ There are different references in Structured Text :
 - Function references  
 `max(a, b)` where *max* is a reference to a Function-POU called *max*.
 
-So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference's name :
+So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference's name:
 
 ```iecst
         PROGRAM PLC_PRG
@@ -48,7 +48,7 @@ The AnnotationMap can store two type of annotations for any AST-element.
 So the first step is that we need a way to uniquely identify every single AST-node so we can use this ID as a key for the annotations stored in the AnnotationMap to automatically associate it with the given AST-Node.
 The parser assigns a unique ID to every Statement-Tree-Node (Note that we only assign IDs to Statements, not every AST-Node).
 
-So the expression `a + 3` now looks like this :
+So the expression `a + 3` now looks like this:
 
 ```ignore
                       ┌─────────────────┐
@@ -127,7 +127,7 @@ The Type-annotation indicates that this AST-Element resolves to a DataType (e.g.
         │   Type                  │
         ├─────────────────────────┤
         │                         │
-        │  type_name : String     │
+        │  type_name: String      │
         │                         │
         └─────────────────────────┘
 ```
@@ -196,13 +196,13 @@ So the example expression from above `a + 3* will be annotated like this:
 ```
 
 Another example where the annotated AST carries a lot of useful information is with complex expressions like array-expressions or qualified references.
-Lets consider the following statement :
+Lets consider the following statement:
 
 ```iecst
 PLC_PRG.a.b[2]
 ```
 
-It is annotated in the following way :
+It is annotated in the following way:
 
 ```ignore
                 ┌────────────────────┐
@@ -279,7 +279,7 @@ It is annotated in the following way :
 
 The AnnotationMap not only offers annotations regarding the AST-node's type, but it also offers a second type of annotation.
 
-Consider the following snippet :
+Consider the following snippet:
 
 ```iecst
 PROGRAM PLC_PRG
@@ -294,7 +294,7 @@ PROGRAM PLC_PRG
 END_PROGRAM
 ```
 
-The assignment `z := x + y` is loaded with different types :
+The assignment `z := x + y` is loaded with different types:
 
 - `x` is annotated as *Variable* of type *SINT* and will be auto-upgraded to *DINT*.
 - `y` is annotated as *Variable* of type *INT* and will be auto-upgraded to *DINT*.
