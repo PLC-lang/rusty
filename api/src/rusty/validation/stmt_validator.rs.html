@@ -559,6 +559,9 @@
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{convert::TryInto, mem::discriminant};
 
 <span class="kw">use super</span>::{ValidationContext, Validators};
@@ -752,6 +755,9 @@
                             statement.get_location(),
                         ));
                     }
+                } <span class="kw">else if </span>!<span class="macro">matches!</span>(left.as_ref(), AstStatement::Reference { .. }) {
+                    <span class="comment">// we hit an assignment without a LValue to assign to
+                    </span><span class="self">self</span>.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
                 }
             }
             AstStatement::BinaryExpression { operator, left, right, .. } =&gt; <span class="kw">match </span>operator {

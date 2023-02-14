@@ -5065,13 +5065,13 @@
     <span class="kw">let </span>(location, param_statement, is_implicit) = <span class="kw">match </span>param_statement {
         AstStatement::Assignment { left, right, .. } | AstStatement::OutputAssignment { left, right, .. } =&gt; {
             <span class="comment">//explicit
-            </span><span class="kw">let </span>loc = <span class="kw">if let </span>AstStatement::Reference { name: left_name, .. } = left.as_ref() {
-                <span class="kw">let </span>position = declared_parameters.iter().position(|p| p.get_name() == left_name);
-                position.ok_or_else(|| Diagnostic::unresolved_reference(left_name, left.get_location()))
-            } <span class="kw">else </span>{
-                <span class="macro">unreachable!</span>(<span class="string">&quot;left of an assignment must be a reference&quot;</span>);
-            }<span class="question-mark">?</span>;
-
+            </span><span class="kw">let </span>AstStatement::Reference { name: left_name, .. } = left.as_ref() <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::reference_expected(param_statement.get_location()));
+            };
+            <span class="kw">let </span>loc = declared_parameters
+                .iter()
+                .position(|p| p.get_name() == left_name)
+                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, left.get_location()))<span class="question-mark">?</span>;
             (loc, right.as_ref(), <span class="bool-val">false</span>)
         }
         <span class="kw">_ </span>=&gt; {
