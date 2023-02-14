@@ -191,6 +191,9 @@ impl StatementValidator {
                             statement.get_location(),
                         ));
                     }
+                } else if !matches!(left.as_ref(), AstStatement::Reference { .. }) {
+                    // we hit an assignment without a LValue to assign to
+                    self.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
                 }
             }
             AstStatement::BinaryExpression { operator, left, right, .. } => match operator {
