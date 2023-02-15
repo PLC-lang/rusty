@@ -34,7 +34,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use typesystem::get_builtin_types;
 
-use ast::{LinkageType, PouType, SourceRange, SourceRangeFactory};
+use ast::{LinkageType, SourceRange, SourceRangeFactory};
 use cli::{CompileParameters, SubCommands};
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;

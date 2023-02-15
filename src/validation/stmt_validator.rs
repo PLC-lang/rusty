@@ -68,7 +68,7 @@ impl StatementValidator {
             }
             AstStatement::ArrayAccess { reference, access, .. } => {
                 let target_type =
-                    context.ast_annotation.get_type_or_void(reference, context.index).get_type_information();
+                    context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
                 if let DataTypeInformation::Array { dimensions, .. } = target_type {
                     if let AstStatement::ExpressionList { expressions, .. } = access.as_ref() {
@@ -90,10 +90,8 @@ impl StatementValidator {
                 if let Some((AstStatement::DirectAccess { access, index, location, .. }, reference)) =
                     i.next().zip(i.next())
                 {
-                    let target_type = context
-                        .ast_annotation
-                        .get_type_or_void(reference, context.index)
-                        .get_type_information();
+                    let target_type =
+                        context.annotations.get_type_or_void(reference, context.index).get_type_information();
                     if target_type.is_int() {
                         if !access.is_compatible(target_type, context.index) {
                             self.push_diagnostic(Diagnostic::incompatible_directaccess(
@@ -120,7 +118,7 @@ impl StatementValidator {
                     qualified_name: l_qualified_name,
                     resulting_type: l_resulting_type,
                     ..
-                }) = context.ast_annotation.get(left.as_ref())
+                }) = context.annotations.get(left.as_ref())
                 {
                     // check if we assign to a constant variable
                     if *constant {
@@ -135,7 +133,7 @@ impl StatementValidator {
                         .get_effective_type_or_void_by_name(l_resulting_type)
                         .get_type_information();
                     let r_effective_type =
-                        context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
+                        context.annotations.get_type_or_void(right, context.index).get_type_information();
 
                     //check if Datatype can hold a Pointer (u64)
                     if r_effective_type.is_pointer()
@@ -223,9 +221,9 @@ impl StatementValidator {
     /// statement
     fn validate_type_nature(&mut self, statement: &AstStatement, context: &ValidationContext) {
         if let Some(statement_type) = context
-            .ast_annotation
+            .annotations
             .get_type_hint(statement, context.index)
-            .or_else(|| context.ast_annotation.get_type(statement, context.index))
+            .or_else(|| context.annotations.get_type(statement, context.index))
         {
             if let DataTypeInformation::Generic { generic_symbol, nature, .. } =
                 statement_type.get_type_information()
@@ -236,9 +234,9 @@ impl StatementValidator {
                     statement.get_location(),
                 ))
             } else if let Some((actual_type, generic_nature)) = context
-                .ast_annotation
+                .annotations
                 .get_type(statement, context.index)
-                .zip(context.ast_annotation.get_generic_nature(statement))
+                .zip(context.annotations.get_generic_nature(statement))
             {
                 if !statement_type.has_nature(actual_type.nature, context.index)
 				// INT parameter for REAL is allowed
@@ -275,7 +273,7 @@ impl StatementValidator {
                 }
             }
             AstStatement::Reference { .. } => {
-                let ref_type = context.ast_annotation.get_type_or_void(access_index, context.index);
+                let ref_type = context.annotations.get_type_or_void(access_index, context.index);
                 if !ref_type.get_type_information().is_int() {
                     self.push_diagnostic(Diagnostic::incompatible_directaccess_variable(
                         ref_type.get_name(),
@@ -307,7 +305,7 @@ impl StatementValidator {
             }
         } else {
             let type_info =
-                context.ast_annotation.get_type_or_void(access, context.index).get_type_information();
+                context.annotations.get_type_or_void(access, context.index).get_type_information();
             if !type_info.is_int() {
                 self.push_diagnostic(Diagnostic::incompatible_array_access_type(
                     type_info.get_name(),
@@ -325,10 +323,10 @@ impl StatementValidator {
         context: &ValidationContext,
     ) {
         // unresolved reference
-        if !context.ast_annotation.has_type_annotation(statement) {
+        if !context.annotations.has_type_annotation(statement) {
             self.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location.clone()));
         } else if let Some(StatementAnnotation::Variable { qualified_name, variable_type, .. }) =
-            context.ast_annotation.get(statement)
+            context.annotations.get(statement)
         {
             //check if we're accessing a private variable AND the variable's qualifier is not the
             //POU we're accessing it from
@@ -366,12 +364,8 @@ impl StatementValidator {
                     literal,
                     !cast_type.is_unsigned_int(),
                 )
-                .or_else(|| {
-                    context.ast_annotation.get_type_hint(literal, context.index).map(DataType::get_name)
-                })
-                .unwrap_or_else(|| {
-                    context.ast_annotation.get_type_or_void(literal, context.index).get_name()
-                }),
+                .or_else(|| context.annotations.get_type_hint(literal, context.index).map(DataType::get_name))
+                .unwrap_or_else(|| context.annotations.get_type_or_void(literal, context.index).get_name()),
             )
             .unwrap_or_else(|| context.index.get_void_type().get_type_information());
 
@@ -469,8 +463,8 @@ impl StatementValidator {
         right: &AstStatement,
         binary_statement: &AstStatement,
     ) {
-        let left_type = context.ast_annotation.get_type_or_void(left, context.index).get_type_information();
-        let right_type = context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
+        let left_type = context.annotations.get_type_or_void(left, context.index).get_type_information();
+        let right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
 
         // if the type is a subrange, check if the intrinsic type is numerical
         let is_numerical = context.index.find_intrinsic_type(left_type).is_numerical();

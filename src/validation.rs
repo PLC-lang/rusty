@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::{
-    ast::{self, AstStatement, CompilationUnit, Pou, PouType, SourceRange, UserTypeDeclaration},
+    ast::{self, AstStatement, CompilationUnit, PouType, SourceRange},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, AnnotationMapImpl, StatementAnnotation},
@@ -10,15 +10,16 @@ use crate::{
 };
 
 use self::{
-    global_validator::GlobalValidator, pou_validator::PouValidator, recursive_validator::RecursiveValidator,
-    stmt_validator::StatementValidator, variable_validator::VariableValidator,
+    global_validator::GlobalValidator, pou::visit_pou, recursive_validator::RecursiveValidator,
+    stmt_validator::StatementValidator, types::visit_user_type_declaration, variable::visit_variable_block,
 };
 
 mod global_validator;
-mod pou_validator;
+mod pou;
 mod recursive_validator;
 mod stmt_validator;
-mod variable_validator;
+mod types;
+mod variable;
 
 #[cfg(test)]
 mod tests;
@@ -34,21 +35,26 @@ macro_rules! visit_all_statements {
      };
    }
 
+#[derive(Clone)]
 pub struct ValidationContext<'s> {
-    ast_annotation: &'s AnnotationMapImpl,
+    annotations: &'s AnnotationMapImpl,
     index: &'s Index,
+    /// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     qualifier: Option<&'s str>,
 }
 
 impl<'s> ValidationContext<'s> {
-    /// try find a POU for the given statement
+    fn with_qualifier(&self, qualifier: &'s str) -> ValidationContext<'s> {
+        ValidationContext { annotations: self.annotations, index: self.index, qualifier: Some(qualifier) }
+    }
+
     fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
         match stmt {
             AstStatement::Reference { name, .. } => Some(name),
             AstStatement::QualifiedReference { elements, .. } => {
                 if let Some(stmt) = elements.last() {
                     if let Some(StatementAnnotation::Variable { resulting_type, .. }) =
-                        self.ast_annotation.get(stmt)
+                        self.annotations.get(stmt)
                     {
                         Some(resulting_type)
                     } else {
@@ -73,18 +79,26 @@ pub trait Validators {
 
 pub struct Validator {
     //context: ValidationContext<'s>,
-    pou_validator: PouValidator,
-    variable_validator: VariableValidator,
+    diagnostics: Vec<Diagnostic>,
     stmt_validator: StatementValidator,
     global_validator: GlobalValidator,
     recursive_validator: RecursiveValidator,
 }
 
+impl Validators for Validator {
+    fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
+    }
+}
+
 impl Validator {
     pub fn new() -> Validator {
         Validator {
-            pou_validator: PouValidator::new(),
-            variable_validator: VariableValidator::new(),
+            diagnostics: Vec::new(),
             stmt_validator: StatementValidator::new(),
             global_validator: GlobalValidator::new(),
             recursive_validator: RecursiveValidator::new(),
@@ -93,8 +107,7 @@ impl Validator {
 
     pub fn diagnostics(&mut self) -> Vec<Diagnostic> {
         let mut all_diagnostics = Vec::new();
-        all_diagnostics.append(&mut self.pou_validator.take_diagnostics());
-        all_diagnostics.append(&mut self.variable_validator.take_diagnostics());
+        all_diagnostics.append(&mut self.take_diagnostics());
         all_diagnostics.append(&mut self.stmt_validator.take_diagnostics());
         all_diagnostics.append(&mut self.global_validator.take_diagnostics());
         all_diagnostics.append(&mut self.recursive_validator.take_diagnostics());
@@ -107,49 +120,30 @@ impl Validator {
     }
 
     pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
+        let context = ValidationContext { annotations, index, qualifier: None };
         // validate POU and declared Variables
         for pou in &unit.units {
-            self.visit_pou(
-                pou,
-                &ValidationContext { ast_annotation: annotations, index, qualifier: Some(pou.name.as_str()) },
-            );
+            visit_pou(self, pou, &context.with_qualifier(pou.name.as_str()));
         }
 
-        let no_context = &ValidationContext { ast_annotation: annotations, index, qualifier: None };
         // validate user declared types
         for t in &unit.types {
-            self.visit_user_type_declaration(t, no_context);
+            visit_user_type_declaration(self, t, &context);
         }
 
         // validate global variables
         for gv in &unit.global_vars {
-            self.variable_validator.visit_variable_block(no_context, gv);
+            visit_variable_block(self, gv, &context);
         }
 
         // validate implementations
         for i in &unit.implementations {
-            let context =
-                ValidationContext { ast_annotation: annotations, index, qualifier: Some(i.name.as_str()) };
             if i.pou_type == PouType::Action && i.type_name == "__unknown__" {
-                self.pou_validator.push_diagnostic(Diagnostic::missing_action_container(i.location.clone()));
+                self.push_diagnostic(Diagnostic::missing_action_container(i.location.clone()));
             }
-            i.statements.iter().for_each(|s| self.visit_statement(s, &context));
-        }
-    }
-
-    pub fn visit_user_type_declaration(
-        &mut self,
-        user_type: &UserTypeDeclaration,
-        context: &ValidationContext,
-    ) {
-        self.variable_validator.visit_data_type(context, &user_type.data_type, &user_type.location);
-    }
-
-    pub fn visit_pou(&mut self, pou: &Pou, context: &ValidationContext) {
-        self.pou_validator.validate_pou(pou, context);
-
-        for block in &pou.variable_blocks {
-            self.variable_validator.visit_variable_block(context, block);
+            i.statements
+                .iter()
+                .for_each(|s| self.visit_statement(s, &context.with_qualifier(i.name.as_str())));
         }
     }
 
@@ -208,7 +202,7 @@ impl Validator {
                             let left_type = left.map(|param| {
                                 context.index.get_effective_type_or_void_by_name(param.get_type_name())
                             });
-                            let right_type = context.ast_annotation.get_type(right, context.index);
+                            let right_type = context.annotations.get_type(right, context.index);
 
                             if let (Some(left), Some(left_type), Some(right_type)) =
                                 (left, left_type, right_type)
@@ -424,9 +418,9 @@ pub fn validate_for_array_assignment<V>(
         match e {
             AstStatement::Assignment { left, right, .. } => {
                 let left_type =
-                    context.ast_annotation.get_type_or_void(left, context.index).get_type_information();
+                    context.annotations.get_type_or_void(left, context.index).get_type_information();
                 let right_type =
-                    context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
+                    context.annotations.get_type_or_void(right, context.index).get_type_information();
 
                 if left_type.is_array()
 				// if we try to assign an `ExpressionList` to an ARRAY
