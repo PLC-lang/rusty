@@ -31,12 +31,26 @@ impl VariableValidator {
         VariableValidator { diagnostics: Vec::new() }
     }
 
+    pub fn visit_variable_block(&mut self, context: &ValidationContext, block: &VariableBlock) {
+        self.validate_variable_block(block);
+
+        for variable in &block.variables {
+            self.visit_variable(context, variable);
+        }
+    }
+
     pub fn validate_variable_block(&mut self, block: &VariableBlock) {
         if block.constant
             && !matches!(block.variable_block_type, VariableBlockType::Global | VariableBlockType::Local)
         {
             self.push_diagnostic(Diagnostic::invalid_constant_block(block.location.clone()))
         }
+    }
+
+    pub fn visit_variable(&mut self, context: &ValidationContext, variable: &Variable) {
+        self.validate_variable(variable, context);
+
+        self.visit_data_type_declaration(context, &variable.data_type);
     }
 
     pub fn validate_variable(&mut self, variable: &Variable, context: &ValidationContext) {
@@ -86,10 +100,40 @@ impl VariableValidator {
         }
     }
 
-    pub fn validate_data_type_declaration(&self, _declaration: &DataTypeDeclaration) {}
+    pub fn visit_data_type_declaration(
+        &mut self,
+        context: &ValidationContext,
+        declaration: &DataTypeDeclaration,
+    ) {
+        if let DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } = declaration {
+            self.visit_data_type(context, data_type, location);
+        }
+    }
 
-    pub fn validate_data_type(&mut self, declaration: &DataType, location: &SourceRange) {
-        match declaration {
+    pub fn visit_data_type(
+        &mut self,
+        context: &ValidationContext,
+        data_type: &DataType,
+        location: &SourceRange,
+    ) {
+        self.validate_data_type(data_type, location);
+
+        match data_type {
+            DataType::StructType { variables, .. } => {
+                variables.iter().for_each(|v| self.visit_variable(context, v))
+            }
+            DataType::ArrayType { referenced_type, .. } => {
+                self.visit_data_type_declaration(context, referenced_type)
+            }
+            DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
+                self.visit_data_type_declaration(context, referenced_type.as_ref());
+            }
+            _ => {}
+        }
+    }
+
+    pub fn validate_data_type(&mut self, data_type: &DataType, location: &SourceRange) {
+        match data_type {
             DataType::StructType { variables, .. } => {
                 if variables.is_empty() {
                     self.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));
@@ -111,9 +155,8 @@ impl VariableValidator {
     }
 }
 
-/// returns whether this data_type is a function block, a class or an array/pointer of/to these
 fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
-    let data_type = index.find_effective_type_by_name(type_name).map_or_else(
+    let data_type_info = index.find_effective_type_by_name(type_name).map_or_else(
         || index.get_void_type().get_type_information(),
         crate::typesystem::DataType::get_type_information,
     );
@@ -121,12 +164,12 @@ fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
     if let DataTypeInformation::Struct {
         source: StructSource::Pou(PouType::FunctionBlock) | StructSource::Pou(PouType::Class),
         ..
-    } = data_type
+    } = data_type_info
     {
         return true;
     }
 
-    match data_type {
+    match data_type_info {
         DataTypeInformation::Struct { members, .. } =>
         //see if any member is fb or class intance
         {

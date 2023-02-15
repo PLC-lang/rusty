@@ -1,10 +1,7 @@
 use std::collections::HashSet;
 
 use crate::{
-    ast::{
-        self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, PouType, SourceRange,
-        UserTypeDeclaration, Variable, VariableBlock,
-    },
+    ast::{self, AstStatement, CompilationUnit, Pou, PouType, SourceRange, UserTypeDeclaration},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, AnnotationMapImpl, StatementAnnotation},
@@ -110,6 +107,7 @@ impl Validator {
     }
 
     pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
+        // validate POU and declared Variables
         for pou in &unit.units {
             self.visit_pou(
                 pou,
@@ -118,14 +116,17 @@ impl Validator {
         }
 
         let no_context = &ValidationContext { ast_annotation: annotations, index, qualifier: None };
+        // validate user declared types
         for t in &unit.types {
             self.visit_user_type_declaration(t, no_context);
         }
 
+        // validate global variables
         for gv in &unit.global_vars {
-            self.visit_variable_container(no_context, gv);
+            self.variable_validator.visit_variable_block(no_context, gv);
         }
 
+        // validate implementations
         for i in &unit.implementations {
             let context =
                 ValidationContext { ast_annotation: annotations, index, qualifier: Some(i.name.as_str()) };
@@ -138,65 +139,17 @@ impl Validator {
 
     pub fn visit_user_type_declaration(
         &mut self,
-        user_data_type: &UserTypeDeclaration,
+        user_type: &UserTypeDeclaration,
         context: &ValidationContext,
     ) {
-        self.visit_data_type(context, &user_data_type.data_type, &user_data_type.location);
+        self.variable_validator.visit_data_type(context, &user_type.data_type, &user_type.location);
     }
 
     pub fn visit_pou(&mut self, pou: &Pou, context: &ValidationContext) {
         self.pou_validator.validate_pou(pou, context);
 
         for block in &pou.variable_blocks {
-            self.visit_variable_container(context, block);
-        }
-    }
-
-    pub fn visit_variable_container(&mut self, context: &ValidationContext, container: &VariableBlock) {
-        self.variable_validator.validate_variable_block(container);
-
-        for variable in &container.variables {
-            self.visit_variable(context, variable);
-        }
-    }
-
-    pub fn visit_variable(&mut self, context: &ValidationContext, variable: &Variable) {
-        self.variable_validator.validate_variable(variable, context);
-
-        self.visit_data_type_declaration(context, &variable.data_type);
-    }
-
-    pub fn visit_data_type_declaration(
-        &mut self,
-        context: &ValidationContext,
-        declaration: &DataTypeDeclaration,
-    ) {
-        self.variable_validator.validate_data_type_declaration(declaration);
-
-        if let DataTypeDeclaration::DataTypeDefinition { data_type, location, .. } = declaration {
-            self.visit_data_type(context, data_type, location);
-        }
-    }
-
-    pub fn visit_data_type(
-        &mut self,
-        context: &ValidationContext,
-        data_type: &DataType,
-        location: &SourceRange,
-    ) {
-        self.variable_validator.validate_data_type(data_type, location);
-
-        match data_type {
-            DataType::StructType { variables, .. } => {
-                variables.iter().for_each(|v| self.visit_variable(context, v))
-            }
-            DataType::ArrayType { referenced_type, .. } => {
-                self.visit_data_type_declaration(context, referenced_type)
-            }
-            DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
-                self.visit_data_type_declaration(context, referenced_type.as_ref());
-            }
-            _ => {}
+            self.variable_validator.visit_variable_block(context, block);
         }
     }
 
