@@ -533,3 +533,62 @@ fn return_a_complex_type_from_function() {
     attributes #1 = { argmemonly nofree nounwind willreturn }
     "###);
 }
+
+/// Passing aggregate types to a function is an expensive operation, this is why the compiler offers
+/// a {ref} macro that turns a block of variables into by-ref parameters without changing the
+/// functions interface during compile-time.
+///  ... all variables of a block marked by {ref} will be passed by-reference
+///  ... the function's signature does not change, a caller passes the variable still the same way.
+///      Although it looks like a value is passed by value, it is internally treated as a by-ref parameter
+///  ... this allows more efficient function calls if the function can assure that it will not create any
+///      side-effects regarding the passed values (e.g. change the variable).
+#[test]
+fn passing_by_ref_to_functions() {
+    let src = r###"
+        FUNCTION StrEqual : BOOL
+          VAR_INPUT {ref}
+            o1: STRING;
+            o2: STRING;
+          END_VAR
+            // ...
+        END_FUNCTION
+        PROGRAM main
+            VAR 
+                str1, str2 : STRING; 
+            END_VAR
+            StrEqual(str1, str2); //looks like pass by-val
+        END_PROGRAM
+    "###;
+
+    //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
+    insta::assert_snapshot!(codegen(src), @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %main = type { [81 x i8], [81 x i8] }
+
+    @main_instance = global %main zeroinitializer
+
+    define i8 @StrEqual(i8* %0, i8* %1) {
+    entry:
+      %StrEqual = alloca i8, align 1
+      %o1 = alloca i8*, align 8
+      store i8* %0, i8** %o1, align 8
+      %o2 = alloca i8*, align 8
+      store i8* %1, i8** %o2, align 8
+      store i8 0, i8* %StrEqual, align 1
+      %StrEqual_ret = load i8, i8* %StrEqual, align 1
+      ret i8 %StrEqual_ret
+    }
+
+    define void @main(%main* %0) {
+    entry:
+      %str1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+      %str2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      %1 = bitcast [81 x i8]* %str1 to i8*
+      %2 = bitcast [81 x i8]* %str2 to i8*
+      %call = call i8 @StrEqual(i8* %1, i8* %2)
+      ret void
+    }
+    "###);
+}
