@@ -93,36 +93,45 @@ fn assigning_full_arrays() {
 /// Accessing ARRAY's members uses the LLVM GEP statement to get a pointer
 /// to its elements.
 #[test]
-fn accessing_struct_members() {
-    // two nested struct-variables that get initialized ...
+fn accessing_array_elements() {
+    // an array 'a' that is initialized ...
+    // an array 'b' that is defined from 2..5
     let src = r#"
         TYPE Data: ARRAY[0..9] OF DINT := [0,1,2,3,4,5,6,7,8,9]; END_TYPE
 
         PROGRAM prg
             VAR
-                a,b : Data;
+                // array with default value
+                a : Data;
+
+                // array with 3-based index
+                b : ARRAY[3..5] OF DINT := [3,4,5];
             END_VAR
 
-            a[2] := b[3];
+            a[2] := b[4];
         END_PROGRAM       
         "#;
 
-    // ... will be initialized directly in the variable's definition
+    // ... both will use 0-based indexing internally, although one is 0-based and the other is 3-based
+    // ... note that the b[4] access is generated as a gep-expression at index 1
+    // .   %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %b, i32 0, i32 1
+    // .                                                                      ^^^^^
     insta::assert_snapshot!(codegen(src), @r###"
     ; ModuleID = 'main'
     source_filename = "main"
 
-    %prg = type { [10 x i32], [10 x i32] }
+    %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
+    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+    @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
 
     define void @prg(%prg* %0) {
     entry:
       %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
       %tmpVar = getelementptr inbounds [10 x i32], [10 x i32]* %a, i32 0, i32 2
-      %tmpVar1 = getelementptr inbounds [10 x i32], [10 x i32]* %b, i32 0, i32 3
+      %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %b, i32 0, i32 1
       %load_tmpVar = load i32, i32* %tmpVar1, align 4
       store i32 %load_tmpVar, i32* %tmpVar, align 4
       ret void

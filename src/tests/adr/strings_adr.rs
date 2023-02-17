@@ -46,9 +46,9 @@ fn strings_are_terminated_with_0byte() {
     "###);
 }
 
-/// Arrays are aggregate types. This means that passing them to functions and assigning them
-/// are expensive operations (when compared to passing ar assigning an INT). Aggregate types like
-/// structs and arrays are assigned using memcpy.
+/// Strings are aggregate types. This means that passing them to functions and assigning them
+/// are expensive operations (when compared to passing ar assigning an INT). Aggregate types
+/// are assigned using memcpy.
 #[test]
 fn assigning_strings() {
     // two strings get assigned ...
