@@ -730,6 +730,10 @@
 <a href="#730" id="730">730</a>
 <a href="#731" id="731">731</a>
 <a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
@@ -914,6 +918,10 @@
         <span class="comment">//TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         </span><span class="kw">if </span>left_statement.has_direct_access() {
             <span class="kw">return </span><span class="self">self</span>.generate_direct_access_assignment(left_statement, right_statement);
+        }
+        <span class="comment">//TODO: Also hacky but for now we cannot generate assignments for hardware access
+        </span><span class="kw">if </span><span class="macro">matches!</span>(left_statement, AstStatement::HardwareAccess { .. }) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
         <span class="kw">let </span>exp_gen = <span class="self">self</span>.create_expr_generator();
         <span class="kw">let </span>left = exp_gen.generate_element_pointer(left_statement)<span class="question-mark">?</span>;
