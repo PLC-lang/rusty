@@ -447,3 +447,48 @@ fn hardware_access_codegen() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn hardware_access_assign_codegen() {
+    let result = codegen(
+        "
+        PROGRAM prg
+        VAR
+          x,y,z : BYTE;
+        END_VAR
+          %IB1.2 := 1;
+          %MB1.2 := 1;
+          %GB1.2 := 1;
+          %IX1.2 := 1;
+          %MD1.2 := 1;
+          %GW1.2 := 1;
+        END_PROGRAM
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn allowed_assignable_types() {
+    let result = codegen(
+        r#"
+        PROGRAM main
+        VAR
+            v : INT;
+            x : ARRAY[0..1] OF INT;
+            y : REF_TO INT;
+            z : REF_TO ARRAY[0..1] OF INT;
+        END_VAR
+            v := 0;
+            x[0] := 1;
+            y^ := 2;
+            y^.1 := 3;
+            z^[0] := 4;
+            z^[1].1 := 5;
+        END_PROGRAM
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
