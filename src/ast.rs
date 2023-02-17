@@ -1179,13 +1179,46 @@ impl AstStatement {
             AstStatement::CastStatement { id, .. } => *id,
         }
     }
-    /// Returns true if the current statement has a return access.
+
+    /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
         if let AstStatement::QualifiedReference { elements, .. } = self {
             matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
         } else {
             false
         }
+    }
+
+    pub fn is_reference(&self) -> bool {
+        matches!(self, AstStatement::Reference { .. })
+    }
+
+    pub fn is_hardware_access(&self) -> bool {
+        matches!(self, AstStatement::HardwareAccess { .. })
+    }
+
+    pub fn is_array_access(&self) -> bool {
+        if let AstStatement::QualifiedReference { elements, .. } = self {
+            matches!(elements.last(), Some(AstStatement::ArrayAccess { .. }))
+        } else {
+            matches!(self, AstStatement::ArrayAccess { .. })
+        }
+    }
+
+    pub fn is_pointer_access(&self) -> bool {
+        if let AstStatement::QualifiedReference { elements, .. } = self {
+            matches!(elements.last(), Some(AstStatement::PointerAccess { .. }))
+        } else {
+            matches!(self, AstStatement::PointerAccess { .. })
+        }
+    }
+
+    pub fn can_be_assigned_to(&self) -> bool {
+        self.has_direct_access()
+            || self.is_reference()
+            || self.is_array_access()
+            || self.is_pointer_access()
+            || self.is_hardware_access()
     }
 }
 

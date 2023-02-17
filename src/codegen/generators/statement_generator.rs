@@ -183,6 +183,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         if left_statement.has_direct_access() {
             return self.generate_direct_access_assignment(left_statement, right_statement);
         }
+        //TODO: Also hacky but for now we cannot generate assignments for hardware access
+        if matches!(left_statement, AstStatement::HardwareAccess { .. }) {
+            return Ok(());
+        }
         let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_element_pointer(left_statement)?;
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
