@@ -1187,6 +1187,55 @@ impl AstStatement {
             false
         }
     }
+
+    pub fn is_reference(&self) -> bool {
+        matches!(self, AstStatement::Reference { .. })
+    }
+
+    pub fn is_hardware_access(&self) -> bool {
+        matches!(self, AstStatement::HardwareAccess { .. })
+    }
+
+    pub fn is_array_access(&self) -> bool {
+        if let AstStatement::QualifiedReference { elements, .. } = self {
+            matches!(elements.last(), Some(AstStatement::ArrayAccess { .. }))
+        } else {
+            matches!(self, AstStatement::ArrayAccess { .. })
+        }
+    }
+
+    pub fn is_pointer_access(&self) -> bool {
+        if let AstStatement::QualifiedReference { elements, .. } = self {
+            matches!(elements.last(), Some(AstStatement::PointerAccess { .. }))
+        } else {
+            matches!(self, AstStatement::PointerAccess { .. })
+        }
+    }
+
+    pub fn can_be_assigned_to(&self) -> bool {
+        self.has_direct_access()
+            || self.is_reference()
+            || self.is_array_access()
+            || self.is_pointer_access()
+            || self.is_hardware_access()
+    }
+
+    /// Returns true if the statement is a literal
+    pub fn is_literal(&self) -> bool {
+        matches!(
+            self,
+            AstStatement::LiteralArray { .. }
+                | AstStatement::LiteralBool { .. }
+                | AstStatement::LiteralDate { .. }
+                | AstStatement::LiteralDateAndTime { .. }
+                | AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::LiteralNull { .. }
+                | AstStatement::LiteralString { .. }
+                | AstStatement::LiteralTime { .. }
+                | AstStatement::LiteralTimeOfDay { .. }
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
