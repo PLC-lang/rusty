@@ -466,7 +466,7 @@ impl<'i> TypeAnnotator<'i> {
             visitor.visit_pou(ctx, pou);
         }
 
-        for t in &unit.types {
+        for t in &unit.user_types {
             visitor.visit_user_type_declaration(t, ctx);
         }
 
@@ -671,7 +671,7 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     fn visit_variable(&mut self, ctx: &VisitorContext, variable: &Variable) {
-        self.visit_data_type_declaration(ctx, &variable.data_type);
+        self.visit_data_type_declaration(ctx, &variable.data_type_declaration);
         if let Some(initializer) = variable.initializer.as_ref() {
             // annotate a type-hint for the initializer, it should be the same type as the variable
             // e.g. x : BYTE := 7 + 3;  --> 7+3 should be cast into a byte

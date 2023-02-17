@@ -28,7 +28,7 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
 pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
     validate_variable(validator, variable, context);
 
-    visit_data_type_declaration(validator, &variable.data_type, context);
+    visit_data_type_declaration(validator, &variable.data_type_declaration, context);
 }
 
 fn validate_variable(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {
@@ -37,7 +37,6 @@ fn validate_variable(validator: &mut Validator, variable: &Variable, context: &V
         .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
         .or_else(|| context.index.find_global_variable(variable.name.as_str()))
     {
-        //TODO: statement validaton ?
         if let Some(AstStatement::ExpressionList { expressions, .. }) = &variable.initializer {
             validate_for_array_assignment(validator, expressions, context);
         }

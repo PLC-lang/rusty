@@ -1,6 +1,6 @@
 use super::{variable::visit_variable_block, ValidationContext, Validator, Validators};
 use crate::{
-    ast::{Pou, PouType},
+    ast::{Implementation, Pou, PouType},
     Diagnostic,
 };
 
@@ -23,5 +23,11 @@ fn validate_function(validator: &mut Validator, pou: &Pou, context: &ValidationC
     // functions must have a return type
     if return_type.is_none() {
         validator.push_diagnostic(Diagnostic::function_return_missing(pou.name_location.to_owned()));
+    }
+}
+
+pub fn validate_action_container(validator: &mut Validator, implementation: &Implementation) {
+    if implementation.pou_type == PouType::Action && implementation.type_name == "__unknown__" {
+        validator.push_diagnostic(Diagnostic::missing_action_container(implementation.location.clone()));
     }
 }

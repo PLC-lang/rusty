@@ -80,7 +80,7 @@ fn generic_parameters_are_datatypes() {
         &vec![
             Variable {
                 name: "x".into(),
-                data_type: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "T".into(),
                     location: (53..54).into(),
                 },
@@ -90,7 +90,7 @@ fn generic_parameters_are_datatypes() {
             },
             Variable {
                 name: "y".into(),
-                data_type: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "R".into(),
                     location: (60..61).into(),
                 },
@@ -114,7 +114,7 @@ fn generic_method_parameters_are_datatypes() {
         &vec![
             Variable {
                 name: "x".into(),
-                data_type: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "T".into(),
                     location: (61..62).into(),
                 },
@@ -124,7 +124,7 @@ fn generic_method_parameters_are_datatypes() {
             },
             Variable {
                 name: "y".into(),
-                data_type: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "R".into(),
                     location: (68..69).into(),
                 },
