@@ -1179,7 +1179,8 @@ impl AstStatement {
             AstStatement::CastStatement { id, .. } => *id,
         }
     }
-    /// Returns true if the current statement has a return access.
+
+    /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
         if let AstStatement::QualifiedReference { elements, .. } = self {
             matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
@@ -1218,23 +1219,6 @@ impl AstStatement {
             || self.is_array_access()
             || self.is_pointer_access()
             || self.is_hardware_access()
-    }
-
-    /// Returns true if the statement is a literal
-    pub fn is_literal(&self) -> bool {
-        matches!(
-            self,
-            AstStatement::LiteralArray { .. }
-                | AstStatement::LiteralBool { .. }
-                | AstStatement::LiteralDate { .. }
-                | AstStatement::LiteralDateAndTime { .. }
-                | AstStatement::LiteralInteger { .. }
-                | AstStatement::LiteralReal { .. }
-                | AstStatement::LiteralNull { .. }
-                | AstStatement::LiteralString { .. }
-                | AstStatement::LiteralTime { .. }
-                | AstStatement::LiteralTimeOfDay { .. }
-        )
     }
 }
 
