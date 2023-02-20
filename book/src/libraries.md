@@ -10,7 +10,7 @@ System functions can also be added using [External Function](libraries/external_
 
 ## Library Structure
 
-A library is defined by :
+A library is defined by:
 
 - A set of `st` interfaces, each interface represents a function that has been precompiled.
 
@@ -110,7 +110,7 @@ Since libraries can be compiled for multiple targets, the lib path can contain e
 
 ### Configuration Example (`plc.json`)
 
-A configuration example for a `Copy` library called _mylib_ and a `System` library called _std_ :
+A configuration example for a `Copy` library called _mylib_ and a `System` library called _std_:
 
 ```json
 "libraries" : [

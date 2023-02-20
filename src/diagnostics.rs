@@ -68,6 +68,7 @@ pub enum ErrNo {
     //reference related
     reference__unresolved,
     reference__illegal_access,
+    reference__expected,
 
     //type related
     type__cast_error,
@@ -360,6 +361,14 @@ impl Diagnostic {
             message: format!("Literal {literal} out of range ({range_hint})"),
             range: vec![location],
             err_no: ErrNo::type__literal_out_of_range,
+        }
+    }
+
+    pub fn reference_expected(location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Expression is not assignable".into(),
+            range: vec![location],
+            err_no: ErrNo::reference__expected,
         }
     }
 

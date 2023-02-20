@@ -1015,3 +1015,38 @@ fn literal_string_as_parameter_resolves_correctly() {
         unreachable!("This should always be a call statement.")
     }
 }
+
+#[test]
+fn generic_function_sharing_a_datatype_name_resolves() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "{external}
+    FUNCTION LT <T: ANY_STRING> : BOOL
+    VAR_INPUT {ref}
+        IN1 : {sized} T...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION main : DINT
+      LT('hello','world');
+    END_FUNCTION
+    ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[1].statements[0];
+
+    if let AstStatement::CallStatement { operator, .. } = statement {
+        assert_eq!(
+            annotations.get(operator).unwrap(),
+            &StatementAnnotation::Function {
+                return_type: "BOOL".to_string(),
+                qualified_name: "LT".to_string(),
+                call_name: Some("LT__STRING".to_string()),
+            }
+        );
+    } else {
+        unreachable!("This should always be a call statement.")
+    }
+}

@@ -1072,3 +1072,93 @@ fn validate_arrays_passed_to_functions() {
         assert_eq!(actual.get_affected_ranges(), expected.get_affected_ranges());
     }
 }
+
+#[test]
+fn assigning_to_rvalue() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION func : DINT
+        VAR_INPUT
+            x : INT;
+        END_VAR
+        END_FUNCTION
+    
+        PROGRAM main
+        VAR
+            i : INT;
+        END_VAR
+            1 := 1;
+            1 := i;
+            func(1 := 1);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_eq!(diagnostics.len(), 3);
+
+    let ranges = &[(193..194), (213..214), (238..239)];
+    for (idx, diag) in diagnostics.iter().enumerate() {
+        assert_eq!(diag, &Diagnostic::reference_expected(ranges[idx].to_owned().into()))
+    }
+}
+
+#[test]
+fn assigning_to_qualified_references_allowed() {
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM prg 
+        VAR_INPUT
+            x : INT;
+        END_VAR
+        END_PROGRAM
+    
+        PROGRAM main
+            prg.x := 1;
+        END_PROGRAM
+        "#,
+    );
+
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn assigning_to_rvalue_allowed_for_directaccess() {
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM main
+        VAR
+            x : INT;
+        END_VAR
+            %Q1 := 1;
+            %Q1 := 1;
+            x.1 := 1;
+        END_PROGRAM
+        "#,
+    );
+
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn allowed_assignable_types() {
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM main
+        VAR
+            v : INT;
+            x : ARRAY[0..1] OF INT;
+            y : REF_TO INT;
+            z : REF_TO ARRAY[0..1] OF INT;
+        END_VAR
+            v := 0;
+            x[0] := 1;
+            y^ := 2;
+            y^.1 := 3;
+            z^[0] := 4;
+            z^[1].1 := 5;
+        END_PROGRAM
+        "#,
+    );
+
+    assert_eq!(diagnostics.len(), 0);
+}

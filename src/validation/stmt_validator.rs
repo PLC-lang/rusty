@@ -191,6 +191,12 @@ impl StatementValidator {
                             statement.get_location(),
                         ));
                     }
+                } else {
+                    // If whatever we got is not assignable, output an error
+                    if !left.can_be_assigned_to() {
+                        // we hit an assignment without a LValue to assign to
+                        self.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
+                    }
                 }
             }
             AstStatement::BinaryExpression { operator, left, right, .. } => match operator {

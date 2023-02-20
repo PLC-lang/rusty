@@ -17,7 +17,7 @@ resulting binaries can be found at `target/debug/rustyc` and `target/release/rus
 
 ## Ubuntu
 
-The specified dependencies can be installed with the following command on Ubuntu :
+The specified dependencies can be installed with the following command on Ubuntu:
 
 ```bash
 sudo apt install                \
@@ -43,7 +43,7 @@ Furthermore LLVM 14 is needed, which can be easily installed with [homebrew](htt
 brew install llvm@14
 ````
 
-After the installation you have to add `/opt/homebrew/opt/llvm@14/bin` to your `$PATH` environment variable, e.g. with the following command :
+After the installation you have to add `/opt/homebrew/opt/llvm@14/bin` to your `$PATH` environment variable, e.g. with the following command:
 
 ```bash
 echo 'export PATH="/opt/homebrew/opt/llvm@14/bin:$PATH"' >> ~/.zshrc
