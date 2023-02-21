@@ -177,7 +177,7 @@ impl TypeNature {
     }
 
     pub fn is_bit(&self) -> bool {
-        self.derives(TypeNature::Bit)
+        self.derives_from(TypeNature::Bit)
     }
 }
 
