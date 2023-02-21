@@ -46,7 +46,7 @@ pub enum PolymorphismMode {
     Final,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = "direction")]
 pub enum HardwareAccessType {
     Input,
@@ -55,7 +55,7 @@ pub enum HardwareAccessType {
     Global,
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(tag = "type")]
 pub enum DirectAccessType {
     Bit,
@@ -66,7 +66,7 @@ pub enum DirectAccessType {
     Template,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum TypeNature {
     Any,
     Derived,
@@ -160,6 +160,10 @@ impl TypeNature {
     pub fn is_real(&self) -> bool {
         self.derives(TypeNature::Real)
     }
+
+    pub fn is_bit(&self) -> bool {
+        self.derives(TypeNature::Bit)
+    }
 }
 
 impl DirectAccessType {
@@ -229,7 +233,7 @@ pub struct Implementation {
     pub access: Option<AccessModifier>,
 }
 
-#[derive(Debug, Copy, PartialEq, Eq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone, Hash)]
 pub enum LinkageType {
     Internal,
     External,
@@ -244,7 +248,7 @@ pub enum AccessModifier {
     Internal,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum PouType {
     Program,
     Function,
@@ -451,7 +455,7 @@ impl SourceRangeFactory {
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct SourceRange {
     /// the start and end offset in the source-file
     range: core::ops::Range<usize>,
@@ -1179,13 +1183,46 @@ impl AstStatement {
             AstStatement::CastStatement { id, .. } => *id,
         }
     }
-    /// Returns true if the current statement has a return access.
+
+    /// Returns true if the current statement has a direct access.
     pub fn has_direct_access(&self) -> bool {
         if let AstStatement::QualifiedReference { elements, .. } = self {
             matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
         } else {
             false
         }
+    }
+
+    pub fn is_reference(&self) -> bool {
+        matches!(self, AstStatement::Reference { .. })
+    }
+
+    pub fn is_hardware_access(&self) -> bool {
+        matches!(self, AstStatement::HardwareAccess { .. })
+    }
+
+    pub fn is_array_access(&self) -> bool {
+        if let AstStatement::QualifiedReference { elements, .. } = self {
+            matches!(elements.last(), Some(AstStatement::ArrayAccess { .. }))
+        } else {
+            matches!(self, AstStatement::ArrayAccess { .. })
+        }
+    }
+
+    pub fn is_pointer_access(&self) -> bool {
+        if let AstStatement::QualifiedReference { elements, .. } = self {
+            matches!(elements.last(), Some(AstStatement::PointerAccess { .. }))
+        } else {
+            matches!(self, AstStatement::PointerAccess { .. })
+        }
+    }
+
+    pub fn can_be_assigned_to(&self) -> bool {
+        self.has_direct_access()
+            || self.is_reference()
+            || self.is_array_access()
+            || self.is_pointer_access()
+            || self.is_hardware_access()
     }
 
     /// Returns true if the current statement is a literal

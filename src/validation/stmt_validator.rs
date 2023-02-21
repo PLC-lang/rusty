@@ -191,6 +191,12 @@ impl StatementValidator {
                             statement.get_location(),
                         ));
                     }
+                } else {
+                    // If whatever we got is not assignable, output an error
+                    if !left.can_be_assigned_to() {
+                        // we hit an assignment without a LValue to assign to
+                        self.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
+                    }
                 }
             }
             AstStatement::BinaryExpression { operator, left, right, .. } => match operator {
@@ -498,7 +504,7 @@ fn compare_function_exists(type_name: &str, operator: &Operator, context: &Valid
         .and_then(|function_name| context.index.find_pou_implementation(function_name));
 
     if let Some(implementation) = implementation {
-        let members = context.index.get_container_members(implementation.get_type_name());
+        let members = context.index.get_pou_members(implementation.get_type_name());
 
         //we expect two input parameters and a return-parameter
         if let [VariableIndexEntry {
@@ -513,7 +519,7 @@ fn compare_function_exists(type_name: &str, operator: &Operator, context: &Valid
             data_type_name: return_type,
             variable_type: ArgumentType::ByVal(VariableType::Return),
             ..
-        }] = members.as_slice()
+        }] = members
         {
             let type_name_1 = context
                 .index

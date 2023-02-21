@@ -84,7 +84,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     let mut local_llvm_index = LlvmTypedIndex::default();
     for implementation in index.get_implementations().values() {
         let type_name = implementation.get_type_name();
-        let pou_members = index.get_container_members(type_name);
+        let pou_members = index.get_pou_members(type_name);
         let variables = pou_members.iter().filter(|it| it.is_local() || it.is_temp()).filter(|it| {
             let var_type =
                 index.get_effective_type_or_void_by_name(it.get_type_name()).get_type_information();
@@ -308,7 +308,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let mut param_index = 0;
         if let PouType::Method { .. } = implementation.pou_type {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
-            self.generate_local_struct_variable_accessors(
+            self.generate_local_pou_variable_accessors(
                 param_index,
                 &mut local_index,
                 class_name,
@@ -328,7 +328,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 debug,
             )?;
         } else {
-            self.generate_local_struct_variable_accessors(
+            self.generate_local_pou_variable_accessors(
                 param_index,
                 &mut local_index,
                 &implementation.type_name,
@@ -338,7 +338,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             )?;
         }
         {
-            let pou_members = self.index.get_container_members(&implementation.type_name);
+            let pou_members =
+                self.index.get_pou_members(&implementation.type_name).iter().collect::<Vec<_>>();
             //if this is a function, we need to initilialize the VAR-variables
             if matches!(implementation.pou_type, PouType::Function | PouType::Method { .. }) {
                 self.generate_initialization_of_local_vars(
@@ -349,8 +350,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 )?;
             } else {
                 //Generate temp variables
-                let members =
-                    pou_members.into_iter().filter(|it| it.is_temp()).collect::<Vec<&VariableIndexEntry>>();
+                let members = pou_members.into_iter().filter(|it| it.is_temp()).collect::<Vec<_>>();
                 self.generate_initialization_of_local_vars(&members, &local_index, &function_context, debug)?;
             }
             let statement_gen = StatementCodeGenerator::new(
@@ -422,7 +422,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         function_context: &FunctionContext<'ink, '_>,
         debug: &DebugBuilderEnum<'ink>,
     ) -> Result<(), Diagnostic> {
-        let members = self.index.get_container_members(type_name);
+        let members = self.index.get_pou_members(type_name);
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         // eagerly handle the return-variable
@@ -498,7 +498,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
     /// generates a load-statement for the given members
     /// for pous that take a struct-state-variable (or two for methods)
-    fn generate_local_struct_variable_accessors(
+    fn generate_local_pou_variable_accessors(
         &self,
         arg_index: u32,
         index: &mut LlvmTypedIndex<'ink>,
@@ -507,7 +507,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         location: &SourceRange,
         debug: &DebugBuilderEnum<'ink>,
     ) -> Result<(), Diagnostic> {
-        let members = self.index.get_container_members(type_name);
+        let members = self.index.get_pou_members(type_name);
         let param_pointer = function_context
             .function
             .get_nth_param(arg_index)

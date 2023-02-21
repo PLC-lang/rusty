@@ -6,7 +6,8 @@ To generate the *IR* we use a crate that wraps the native llvm [C-API](https://g
 The code-generator is basically a transformation from the ST-AST into an IR-Tree representation.
 Therefore the AST is traversed in a visitor-like way and transformed simultaneously.
 
-The code generation is split into specialized sub-generators for different tasks :
+The code generation is split into specialized sub-generators for different tasks:
+
 | Generator            | Responsibilities |
 | -------------------- | ---------------- |
 | pou_generator        | The pou-generator takes care of generating the programming organization units (Programs, FunctionBlocks, Functions) including their signature and body. More specialized tasks are delegated to other generators.  |
@@ -58,7 +59,7 @@ A FunctionBlock is an POU that is instantiated in a declaration.
 So in contrast to Programs, a FunctionBlock can have multiple instances.
 Nevertheless the code-generator uses a very similar strategy.
 A struct-type for the FunctionBlock's interface is created but no global instance-variable is allocated.
-Instead the function block can be used as a DataType to declare instances like in the following example :
+Instead the function block can be used as a DataType to declare instances like in the following example:
 
 ```iecst
 FUNCTION_BLOCK foo
@@ -133,7 +134,7 @@ TYPE MyStruct:
 END_TYPE
 ```
 
-This struct simply generates a llvm struct type :
+This struct simply generates a llvm struct type:
 
 ```llvm
 %MyStruct = type { i32, i16 }
@@ -179,7 +180,7 @@ Custom array data types are not reflected as dedicated types on the llvm-level.
 
 #### Multi dimensional arrays
 
-Arrays can be declared as multi-dimensional :
+Arrays can be declared as multi-dimensional:
 
 ```iecst
 VAR_GLOBAL
@@ -188,20 +189,20 @@ END_VAR
 ```
 
 The compiler will flatten these type of arrays to a single-dimension. To accomplish that, it calculates the total
-length by mulitplying the sizes of all dimensions :
+length by mulitplying the sizes of all dimensions:
 
 ```ignore
     0..5 x 2..5 x 0..1
       6  x   4  x   2  = 64
 ```
 
-So the array `x : ARRAY[0..5, 2..5, 0..1] OF INT;` will be generated as :
+So the array `x : ARRAY[0..5, 2..5, 0..1] OF INT;` will be generated as:
 
 ```llvm
 @x = global [64 x i16] zeroinitializer
 ```
 
-This means that such a multidimensional array must be initialized like a single-dimensional array :
+This means that such a multidimensional array must be initialized like a single-dimensional array:
 
 - *wrong*
 

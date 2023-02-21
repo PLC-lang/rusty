@@ -7,7 +7,7 @@ It can be defined as either a Program, a Function, a Function Block, or an Actio
 
 > Methods on classes are also considered POUs but are not covered by this document
 
-A POU is defined as :
+A POU is defined as:
 
 ```iecst
 <POU Type> name 
@@ -27,7 +27,7 @@ Supported parameter types are `VAR_INPUT`, `VAR_INPUT {ref}`, `VAR_OUTPUT` and `
 
 Input parameters are typically copied into the target POU to be stored and read for later references.
 
-A definition for input parameters is as follows :
+A definition for input parameters is as follows:
 
 ```iecst
 VAR_INPUT
@@ -38,7 +38,7 @@ END_VAR
 In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see [External Functions](libraries/external_functions.md)) it is more efficient to avoid copying the variable values and just use a pointer to the required input.
 This can be done either using the in/out variables or by specifying a special property `ref` on the input block.
 
-Example :
+Example:
 
 ```iecst
 VAR_INPUT {ref}
@@ -74,7 +74,7 @@ In addition to the default behavior, each type of POU has some special cases.
 Functions are _stateless_ sequences of callable code. They are not backed by any structs, and cannot hold any state accross multiple calls.
 A function's input parameter can be passed by value, or by reference.
 
-Functions also support a return type, the resulting definition is :
+Functions also support a return type, the resulting definition is:
 
 ```iecst
     FUNCTION fnName : <TYPE>
@@ -103,7 +103,7 @@ Programs are a static (i.e. `GLOBAL`) `STRUCT` that holds its state accross mult
 A Program exists once, and only once in an application, and subsequent calls to a program will change and store the passed parameters as well as internal variables.
 A program does not support passing input parameters by reference.
 
-Example :
+Example:
 
 ```iecst
 PROGRAM prg 
@@ -154,7 +154,7 @@ An action can only be defined for Programs and Function Blocks.
 
 An action is defined in 3 different ways, either in a container (`ACTIONS`) directly below the POU, in a named `ACTIONS` container, or using a qualified name on the action.
 
-Example :
+Example:
 
 ```iecst
 FUNCTION_BLOCK fb

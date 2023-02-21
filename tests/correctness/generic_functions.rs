@@ -126,28 +126,37 @@ unsafe extern "C" fn left_ext__string(in_param: *const u8, out: *mut u8) -> i32 
 fn test_generic_function_with_param_by_ref_called() {
     //Given some external function.
     let prog = "
-    FUNCTION LEFT <T: ANY_STRING> : T
-    VAR_INPUT {ref}
-        IN : T;
+    VAR_GLOBAL CONSTANT
+        __STRING_LENGTH : DINT := 2048;
     END_VAR
-    END_FUNCTION
 
+    {external}
     FUNCTION LEFT_EXT<T: ANY_STRING> : DINT
-    VAR_INPUT {ref}
-        IN : T;
-    END_VAR
+        VAR_INPUT {ref}
+            IN : T;
+        END_VAR
+        VAR_INPUT
+            L  : DINT;
+        END_VAR
+        VAR_IN_OUT
+            OUT : T;
+        END_VAR
     END_FUNCTION
 
-    FUNCTION LEFT__STRING : STRING 
-    VAR_INPUT
-        IN : STRING;
-    END_VAR
-        LEFT_EXT(IN);
+    FUNCTION LEFT__STRING : STRING[__STRING_LENGTH]
+        VAR_INPUT {ref}
+            IN : STRING[__STRING_LENGTH];
+        END_VAR
+        VAR_INPUT
+            L  : DINT;
+        END_VAR
+
+        LEFT_EXT(IN, L, LEFT__STRING);
     END_FUNCTION
 
     PROGRAM main 
-    VAR
-    END_VAR
+        VAR
+        END_VAR
     END_PROGRAM
     ";
 

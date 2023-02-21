@@ -40,7 +40,7 @@ const DEFAULT_PRG: &str = r#"
 
 /// The state (the memory, the stateful variables) are intnerally saved in a Struct-Type generated for this program.
 /// Programs register a PouType in the index using the POU's name. The PouType offers information about the
-/// POU like the name of the struct-type carrying the program's state, the names of all members, vararg and generic
+/// POU like the name of the struct-type carrying the program's state, all members, vararg and generic
 /// information etc.
 
 #[test]
@@ -60,12 +60,107 @@ fn programs_state_is_stored_in_a_struct() {
             initial_value: None,
             information: Struct {
                 name: "main_prg",
-                member_names: [
-                    "i",
-                    "io",
-                    "o",
-                    "v",
-                    "vt",
+                members: [
+                    VariableIndexEntry {
+                        name: "i",
+                        qualified_name: "main_prg.i",
+                        initial_value: None,
+                        variable_type: ByVal(
+                            Input,
+                        ),
+                        is_constant: false,
+                        data_type_name: "INT",
+                        location_in_parent: 0,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 2,
+                            source_range: SourceRange {
+                                range: 43..44,
+                            },
+                        },
+                        varargs: None,
+                    },
+                    VariableIndexEntry {
+                        name: "io",
+                        qualified_name: "main_prg.io",
+                        initial_value: None,
+                        variable_type: ByRef(
+                            InOut,
+                        ),
+                        is_constant: false,
+                        data_type_name: "__auto_pointer_to_INT",
+                        location_in_parent: 1,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 3,
+                            source_range: SourceRange {
+                                range: 83..85,
+                            },
+                        },
+                        varargs: None,
+                    },
+                    VariableIndexEntry {
+                        name: "o",
+                        qualified_name: "main_prg.o",
+                        initial_value: None,
+                        variable_type: ByVal(
+                            Output,
+                        ),
+                        is_constant: false,
+                        data_type_name: "INT",
+                        location_in_parent: 2,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 4,
+                            source_range: SourceRange {
+                                range: 123..124,
+                            },
+                        },
+                        varargs: None,
+                    },
+                    VariableIndexEntry {
+                        name: "v",
+                        qualified_name: "main_prg.v",
+                        initial_value: None,
+                        variable_type: ByVal(
+                            Local,
+                        ),
+                        is_constant: false,
+                        data_type_name: "INT",
+                        location_in_parent: 3,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 5,
+                            source_range: SourceRange {
+                                range: 163..164,
+                            },
+                        },
+                        varargs: None,
+                    },
+                    VariableIndexEntry {
+                        name: "vt",
+                        qualified_name: "main_prg.vt",
+                        initial_value: None,
+                        variable_type: ByVal(
+                            Temp,
+                        ),
+                        is_constant: false,
+                        data_type_name: "INT",
+                        location_in_parent: 4,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SymbolLocation {
+                            line_number: 6,
+                            source_range: SourceRange {
+                                range: 203..205,
+                            },
+                        },
+                        varargs: None,
+                    },
                 ],
                 source: Pou(
                     Program,
@@ -436,5 +531,64 @@ fn return_a_complex_type_from_function() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
     attributes #1 = { argmemonly nofree nounwind willreturn }
+    "###);
+}
+
+/// Passing aggregate types to a function is an expensive operation, this is why the compiler offers
+/// a {ref} macro that turns a block of variables into by-ref parameters without changing the
+/// functions interface during compile-time.
+///  ... all variables of a block marked by {ref} will be passed by-reference
+///  ... the function's signature does not change, a caller passes the variable still the same way.
+///      Although it looks like a value is passed by value, it is internally treated as a by-ref parameter
+///  ... this allows more efficient function calls if the function can assure that it will not create any
+///      side-effects regarding the passed values (e.g. change the variable).
+#[test]
+fn passing_by_ref_to_functions() {
+    let src = r###"
+        FUNCTION StrEqual : BOOL
+          VAR_INPUT {ref}
+            o1: STRING;
+            o2: STRING;
+          END_VAR
+            // ...
+        END_FUNCTION
+        PROGRAM main
+            VAR 
+                str1, str2 : STRING; 
+            END_VAR
+            StrEqual(str1, str2); //looks like pass by-val
+        END_PROGRAM
+    "###;
+
+    //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
+    insta::assert_snapshot!(codegen(src), @r###"
+    ; ModuleID = 'main'
+    source_filename = "main"
+
+    %main = type { [81 x i8], [81 x i8] }
+
+    @main_instance = global %main zeroinitializer
+
+    define i8 @StrEqual(i8* %0, i8* %1) {
+    entry:
+      %StrEqual = alloca i8, align 1
+      %o1 = alloca i8*, align 8
+      store i8* %0, i8** %o1, align 8
+      %o2 = alloca i8*, align 8
+      store i8* %1, i8** %o2, align 8
+      store i8 0, i8* %StrEqual, align 1
+      %StrEqual_ret = load i8, i8* %StrEqual, align 1
+      ret i8 %StrEqual_ret
+    }
+
+    define void @main(%main* %0) {
+    entry:
+      %str1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+      %str2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      %1 = bitcast [81 x i8]* %str1 to i8*
+      %2 = bitcast [81 x i8]* %str2 to i8*
+      %call = call i8 @StrEqual(i8* %1, i8* %2)
+      ret void
+    }
     "###);
 }

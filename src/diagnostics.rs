@@ -68,6 +68,7 @@ pub enum ErrNo {
     //reference related
     reference__unresolved,
     reference__illegal_access,
+    reference__expected,
 
     //type related
     type__cast_error,
@@ -363,6 +364,14 @@ impl Diagnostic {
         }
     }
 
+    pub fn reference_expected(location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Expression is not assignable".into(),
+            range: vec![location],
+            err_no: ErrNo::reference__expected,
+        }
+    }
+
     pub fn empty_variable_block(location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Variable block is empty".into(),
@@ -382,7 +391,7 @@ impl Diagnostic {
                 reason.map(|it| format!(": {it}",)).unwrap_or_else(|| "".into()),
             ),
             range: vec![location],
-            err_no: ErrNo::pou__empty_variable_block,
+            err_no: ErrNo::var__unresolved_constant,
         }
     }
 

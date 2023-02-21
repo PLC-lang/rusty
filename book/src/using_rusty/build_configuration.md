@@ -4,13 +4,13 @@ In addition to the comprehensive help, `rustyc` offers a build subcommand that s
 Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
 The build description file needs to be saved in the [json](https://en.wikipedia.org/wiki/JSON) format.
 
-Usage :
+Usage:
 `rustyc build`
 
 Note that if `rustyc` cannot find the `plc.json` file, it will throw an error and request the path.
 The default location for the build file is the current directory.
 
-The command for building with an additional path looks like this :
+The command for building with an additional path looks like this:
 `rustyc build src/plc.json`
 
 ## Build description file (plc.json)
@@ -22,7 +22,7 @@ All the keys used in the build description file are described in the following s
 
 The keyword `files` is the equivalent to the `input` parameter, which adds all the `ST` files that need to be compiled.
 
-The value of `files` is an array of strings, definied as follows :
+The value of `files` is an array of strings, definied as follows:
 
 ```json
 "files" : [
@@ -110,7 +110,7 @@ The `package_commands` keyword is optional.
 
 ## Build Parameters
 
-The `build` subcommand exposes the following optional parameters :
+The `build` subcommand exposes the following optional parameters:
 
 ### `--build-location`
 
@@ -128,7 +128,7 @@ This can be overriden with the `--lib-location` command line parameter.
 
 Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.
 
-In addition to externally defined variables, the build exports variables that can be referenced in the description file :
+In addition to externally defined variables, the build exports variables that can be referenced in the description file:
 
 ### `PROJECT_ROOT`
 
@@ -139,7 +139,7 @@ The folder containing the `plc.json` file, i.e. the root of the project.
 The target architecture currently being built, for a multi architecture build.
 The value for `ARCH` will be updated for every target.
 
-Example targets are :
+Example targets are:
 `x86_64-pc-linux-gnu`, `x86_64-pc-windows-msvc`, `aarch64-pc-linux-musl`
 
 ### `BUILD_LOCATION`

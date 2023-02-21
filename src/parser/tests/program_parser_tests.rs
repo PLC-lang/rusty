@@ -31,7 +31,7 @@ fn simple_program_with_variable_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
@@ -53,7 +53,7 @@ fn simple_program_with_var_input_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string, @r#"VariableBlock {
     variables: [
         Variable {
@@ -76,7 +76,7 @@ fn simple_program_with_var_output_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
@@ -98,7 +98,7 @@ fn simple_program_with_var_inout_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
@@ -120,7 +120,7 @@ fn simple_program_with_var_temp_can_be_parsed() {
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
-    let ast_string = format!("{:#?}", variable_block);
+    let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [
         Variable {

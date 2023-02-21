@@ -671,7 +671,7 @@ fn auto_pointer_of_generic_resolved() {
     if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } = dt {
         assert_eq!(inner_type_name, "DINT")
     } else {
-        panic!("Expecting a pointer to dint, found {:?}", dt)
+        panic!("Expecting a pointer to dint, found {dt:?}")
     }
 }
 
@@ -720,7 +720,7 @@ fn string_ref_as_generic_resolved() {
     if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } = dt {
         assert_eq!(inner_type_name, STRING_TYPE)
     } else {
-        panic!("Expecting auto deref pointer to string, found {:?}", dt)
+        panic!("Expecting auto deref pointer to string, found {dt:?}")
     }
 }
 
@@ -836,7 +836,7 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
         END_VAR
         END_FUNCTION
 
-        FUNCTION main
+        FUNCTION main : DINT
         VAR
             res : DINT;
         END_VAR
@@ -871,8 +871,8 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
         unreachable!("Not an assignment.")
     }
 
-    let function = index.get_members("LEN__STRING").unwrap();
-    let param = function.get(&"in".to_string()).unwrap();
+    let function = index.get_container_members("LEN__STRING");
+    let param = function.iter().find(|it| it.get_name().eq_ignore_ascii_case("in")).unwrap();
 
     let datatype = index.get_type_information_or_void(param.get_type_name());
     if let DataTypeInformation::Pointer { inner_type_name, .. } = datatype {
@@ -1009,6 +1009,41 @@ fn literal_string_as_parameter_resolves_correctly() {
                 return_type: "STRING".to_string(),
                 qualified_name: "foo".to_string(),
                 call_name: Some("foo__STRING".to_string()),
+            }
+        );
+    } else {
+        unreachable!("This should always be a call statement.")
+    }
+}
+
+#[test]
+fn generic_function_sharing_a_datatype_name_resolves() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "{external}
+    FUNCTION LT <T: ANY_STRING> : BOOL
+    VAR_INPUT {ref}
+        IN1 : {sized} T...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION main : DINT
+      LT('hello','world');
+    END_FUNCTION
+    ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[1].statements[0];
+
+    if let AstStatement::CallStatement { operator, .. } = statement {
+        assert_eq!(
+            annotations.get(operator).unwrap(),
+            &StatementAnnotation::Function {
+                return_type: "BOOL".to_string(),
+                qualified_name: "LT".to_string(),
+                call_name: Some("LT__STRING".to_string()),
             }
         );
     } else {

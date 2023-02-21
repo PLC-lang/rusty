@@ -524,13 +524,16 @@ pub fn validate_for_array_assignment<V>(
         }
         match e {
             AstStatement::Assignment { left, right, .. } => {
-                if matches!(
-                    context.ast_annotation.get_type_or_void(left, context.index).get_type_information(),
-                    DataTypeInformation::Array { .. }
-                )
+                let left_type =
+                    context.ast_annotation.get_type_or_void(left, context.index).get_type_information();
+                let right_type =
+                    context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
+
+                if left_type.is_array()
 				// if we try to assign an `ExpressionList` to an ARRAY
 				// we can expect that `()` were used and we got a valid parse result
 				 && !matches!(right.as_ref(), AstStatement::ExpressionList { .. })
+                 && !right_type.is_array()
                 {
                     // otherwise we are definitely in an invalid assignment
                     array_assignment = true;

@@ -17,21 +17,21 @@ END_FUNCTION
 
 At compilation time, the function `log` will be defined as an externally available function, and can be called from `ST` code.
 
-> Note : At linking time, a `log` function with a compatible signature must be available on the system.
+> Note: At linking time, a `log` function with a compatible signature must be available on the system.
 
 ## Calling C functions
 
 `ST` code can call into foreign functions natively.
 To achieve this, the called function must be defined in a `C` compatible API, e.g. `extern "C"` blocks.
 
-The interface of the function has to :
+The interface of the function has to:
 
 - either be included with the `-i` flag
 - or be declared in `ST` using the `{external}` keyword
 
 ### Example
 
-Given a `min` function defined in `C` as follows :
+Given a `min` function defined in `C` as follows:
 
 ```C
 int min(int a, int b) {
@@ -39,7 +39,7 @@ int min(int a, int b) {
 }
 ```
 
-an interface of that function in `ST` can be defined as :
+an interface of that function in `ST` can be defined as:
 
 ```iecst
 {external}
@@ -63,13 +63,13 @@ Calling a variadic function is supported in `ST`. To mark an external function a
 
 #### Variadic function example
 
-Given the `printf` function defined as :
+Given the `printf` function defined as:
 
 ```C
 int printf( const char *restrict format, ... );
 ```
 
-the `ST` interface can be defined as :
+the `ST` interface can be defined as:
 
 ```iecst
 {external}
@@ -88,7 +88,7 @@ END_FUNCTION
 With the `printf` function available on the system, there is no need to declare
 the C function.
 
-An `ST` program called `ExternalFunctions.st` with the following code can be declared :
+An `ST` program called `ExternalFunctions.st` with the following code can be declared:
 
 ```iecst
 (*ExternalFunctions.st*)
@@ -123,7 +123,7 @@ END_VAR
 END_FUNCTION
 ```
 
-Compiling the previous code with the following command :
+Compiling the previous code with the following command:
 
 ```sh
 rustyc ExternalFunctions.st -o ExternalFunctions --linker=clang
