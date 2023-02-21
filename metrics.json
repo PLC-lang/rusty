@@ -1,0 +1,1 @@
+{"host":{"os":"Linux  Debian GNU/Linux","cpu":"Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz","mem":7110620},"timestamp":1676975923,"commit":"6df95029feb7034b645b680f9fb11410ece1823e","metrics":{"oscat -Oaggressive":8338,"oscat -Odefault":8311,"oscat -Oless":6873,"oscat -Onone":2796,"sieve -Oaggressive":7216,"sieve -Odefault":7211,"sieve -Oless":7241,"sieve -Onone":15771}}
