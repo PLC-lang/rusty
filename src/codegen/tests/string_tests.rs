@@ -419,27 +419,6 @@ fn using_a_constant_var_string_should_be_memcpyable() {
 }
 
 #[test]
-fn impilicit_char_conversion() {
-    let result = codegen(
-        r#"
-        PROGRAM main
-        VAR
-            s : STRING;
-            ws: WSTRING;
-            c : CHAR := CHAR#'a';
-            wc : WCHAR := WCHAR#"b";
-        END_VAR
-            s := c;
-            ws := wc; 
-        END_PROGRAM
-    "#,
-    );
-
-    // THEN
-    insta::assert_snapshot!(result);
-}
-
-#[test]
 #[ignore = "missing validation for literal string assignments"]
 fn assigning_utf8_literal_to_wstring() {
     let result = codegen(
@@ -458,44 +437,15 @@ fn assigning_utf8_literal_to_wstring() {
 }
 
 #[test]
-fn impilicit_char_conversion_cast_errors_are_reported() {
+fn impilicit_char_conversion_is_reported() {
     let result = codegen_without_unwrap(
         r#"
         PROGRAM main
         VAR
             s : STRING;
-            ws: WSTRING;
-            c : CHAR := CHAR#'a';
-            wc : WCHAR := WCHAR#"b";
-            i : USINT;
-        END_VAR
-            s := c; // valid
-            ws := wc; // valid
-            s := i; // invalid
-        END_PROGRAM
-    "#,
-    );
-
-    // THEN
-    let Err(diagnostic) = result else {
-        unreachable!("expected diagnostic")
-    };
-
-    assert_eq!(diagnostic, Diagnostic::casting_error("USINT", "STRING", (270..271).into()));
-
-    let result = codegen_without_unwrap(
-        r#"
-        PROGRAM main
-        VAR
-            s : STRING;
-            ws: WSTRING;
             c : CHAR := 'a';
-            wc : WCHAR := "b";
-            i : USINT;
         END_VAR
-            s := c; // valid
-            ws := wc; // valid
-            s := 123; // invalid
+            s := c; 
         END_PROGRAM
     "#,
     );
@@ -505,18 +455,16 @@ fn impilicit_char_conversion_cast_errors_are_reported() {
         unreachable!("expected diagnostic")
     };
 
-    assert_eq!(diagnostic, Diagnostic::casting_error("DINT", "STRING", (259..262).into()));
+    assert_eq!(diagnostic, Diagnostic::casting_error("CHAR", "STRING", (120..121).into()));
 
     let result = codegen_without_unwrap(
         r#"
         PROGRAM main
         VAR
-            ws: WSTRING;
+            ws : WSTRING;
             wc : WCHAR := WCHAR#"b";
-            i : UINT;
         END_VAR
-            ws := wc; // valid
-            ws := i; // invalid
+            ws := wc;
         END_PROGRAM
     "#,
     );
@@ -526,26 +474,5 @@ fn impilicit_char_conversion_cast_errors_are_reported() {
         unreachable!("expected diagnostic")
     };
 
-    assert_eq!(diagnostic, Diagnostic::casting_error("UINT", "WSTRING", (183..184).into()));
-
-    let result = codegen_without_unwrap(
-        r#"
-        PROGRAM main
-        VAR
-            s : STRING;
-            c : CHAR := CHAR#'a';
-            i : USINT := 8;
-        END_VAR
-            s := c; // valid
-            s := i; // invalid
-        END_PROGRAM
-    "#,
-    );
-
-    // THEN
-    let Err(diagnostic) = result else {
-        unreachable!("expected diagnostic")
-    };
-
-    assert_eq!(diagnostic, Diagnostic::casting_error("USINT", "STRING", (182..183).into()));
+    assert_eq!(diagnostic, Diagnostic::casting_error("WCHAR", "WSTRING", (131..133).into()));
 }

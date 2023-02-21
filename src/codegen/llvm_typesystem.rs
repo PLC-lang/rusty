@@ -272,17 +272,6 @@ pub fn cast_if_needed<'ctx>(
                 }
                 Ok(value)
             }
-            DataTypeInformation::Integer { size, .. } => match size {
-                8 if value_type.is_character() && matches!(encoding, StringEncoding::Utf8) => Ok(value),
-                16 if value_type.is_character() && matches!(encoding, StringEncoding::Utf16) => Ok(value),
-                _ => {
-                    return Err(Diagnostic::casting_error(
-                        value_type.get_name(),
-                        target_type.get_name(),
-                        statement.get_location(),
-                    ))
-                }
-            },
             _ => Err(Diagnostic::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
