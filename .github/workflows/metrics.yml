@@ -2,9 +2,8 @@ name: Metrics
 
 on:
   push:
-    # branches:
-    # - master
-  pull_request:
+    branches:
+    - dashboard
 
 env:
   IMAGE_NAME: rust-llvm
@@ -30,9 +29,8 @@ jobs:
         ./scripts/build.sh --metrics --container --container-name=$IMAGE_ID
     - name: Commit collected data
       run: |
-        git config user.name "bot"
-        git config user.email "doesnt@really.matter"
-        git pull
+        git config user.name "${{ github.actor }}""
+        git config user.email "${{ github.actor }}@users.noreply.github.com"
         git add metrics.json
         git commit --message 'Update metrics data'
         git push origin dashboard
