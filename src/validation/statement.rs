@@ -711,13 +711,12 @@ fn validate_case_statement(
 /// Validates that the assigned type and type hint are compatible with the nature for this
 /// statement
 fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, context: &ValidationContext) {
-    if let Some(statement_type) = context
+    if let Some(type_hint) = context
         .annotations
         .get_type_hint(statement, context.index)
         .or_else(|| context.annotations.get_type(statement, context.index))
     {
-        if let DataTypeInformation::Generic { generic_symbol, nature, .. } =
-            statement_type.get_type_information()
+        if let DataTypeInformation::Generic { generic_symbol, nature, .. } = type_hint.get_type_information()
         {
             validator.push_diagnostic(Diagnostic::unresolved_generic_type(
                 generic_symbol,
@@ -729,9 +728,10 @@ fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, con
             .get_type(statement, context.index)
             .zip(context.annotations.get_generic_nature(statement))
         {
-            if !statement_type.has_nature(actual_type.nature, context.index)
+            // TODO: check if type_hint and actual_type is compatible
+            if !(actual_type.has_nature(*generic_nature, context.index)
 				// INT parameter for REAL is allowed
-                    & !(statement_type.is_real() & actual_type.is_numerical())
+                | (type_hint.is_real() & actual_type.is_numerical()))
             {
                 validator.push_diagnostic(Diagnostic::invalid_type_nature(
                     actual_type.get_name(),
