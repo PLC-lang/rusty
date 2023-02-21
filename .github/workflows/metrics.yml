@@ -13,11 +13,11 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
+      with:
+        ref: dashboard
 
     - name: Run Metrics 
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
         # Change all uppercase to lowercase
