@@ -86,8 +86,8 @@ impl Metrics {
 
         let filename = "metrics.json";
         cmd!(sh, "git pull").run()?;
-        cmd!(sh, "git config user.name '{actor}'").run()?;
-        cmd!(sh, "git config user.email '{actor}'").run()?;
+        cmd!(sh, "git config user.name \"{actor}\"").run()?;
+        cmd!(sh, "git config user.email \"{actor}\"").run()?;
         cmd!(sh, "git checkout metrics-data").run()?;
 
         let mut file = fs::File::options().create(true).append(true).open(filename)?;
