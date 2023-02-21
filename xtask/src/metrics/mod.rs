@@ -2,7 +2,7 @@ use crate::metrics::{oscat::Oscat, sieve::Sieve};
 use serde::Serialize;
 use std::{
     collections::BTreeMap,
-    env, fs,
+    fs,
     io::Write,
     time::{SystemTime, UNIX_EPOCH},
 };

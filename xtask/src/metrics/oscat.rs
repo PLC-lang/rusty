@@ -33,7 +33,7 @@ impl Task for Oscat {
             let mut elapsed_sum = 0;
             for _ in 0..ITERATIONS_PER_BENCHMARK {
                 let now = Instant::now();
-                cmd!(sh, "./rustyc {optimization} build").quiet().run()?;
+                cmd!(sh, "./rustyc {optimization} build").ignore_stderr().run()?;
                 let elapsed = now.elapsed();
 
                 elapsed_sum += elapsed.as_millis() as u64;

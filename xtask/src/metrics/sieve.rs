@@ -21,7 +21,7 @@ impl Task for Sieve {
             cmd!(sh, "./rustyc {optimization} --linker=clang sieve.st").run()?; // TODO: move out
             for _ in 0..ITERATIONS_PER_BENCHMARK {
                 let now = Instant::now();
-                cmd!(sh, "./sieve").run().ok();
+                cmd!(sh, "./sieve").ignore_status().run()?;
                 let elapsed = now.elapsed();
 
                 elapsed_sum += elapsed.as_millis() as u64;
