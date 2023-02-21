@@ -34,4 +34,4 @@ jobs:
         git config user.email "doesnt@really.matter"
         git add metrics.json
         git commit --message 'Update metrics data'
-        git push origin metrics-data
+        git push origin dashboard
