@@ -5,6 +5,7 @@ vendor=0
 offline=0
 check=0
 check_style=0
+metrics=0
 build=0
 doc=0
 test=0
@@ -78,13 +79,18 @@ function run_build() {
 
 function run_check() {
 	CARGO_OPTIONS=$(set_cargo_options)
-  log "Running cargo check"
+	log "Running cargo check"
 	cargo check $CARGO_OPTIONS 
+}
+
+function run_metrics() {
+	log "Running cargo xtask metrics"
+	cargo xtask metrics
 }
 
 function run_doc() {
 	CARGO_OPTIONS=$(set_cargo_options)
-  log "Running cargo doc"
+	log "Running cargo doc"
 	cargo doc $CARGO_OPTIONS 
 	log "Building book"
 	cd book && mdbook build && mdbook test
@@ -92,9 +98,9 @@ function run_doc() {
 
 function run_check_style() {
 	CARGO_OPTIONS=$(set_cargo_options)
-  log "Running cargo clippy"
+	log "Running cargo clippy"
 	cargo clippy $CARGO_OPTIONS -- -Dwarnings
-  log "Running cargo fmt check"
+	log "Running cargo fmt check"
 	cargo fmt -- --check
 }
 
@@ -148,6 +154,9 @@ function run_in_container() {
 	if [[ $check_style -ne 0 ]]; then
 		params="$params --check-style"
 	fi
+	if [[ $metrics -ne 0 ]]; then
+		params="$params --metrics"
+	fi
 	if [[ $build -ne 0 ]]; then
 		params="$params --build"
 	fi
@@ -193,7 +202,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage
+LONGOPTS=sources,offline,release,check,check-style,metrics,build,doc,test,junit,verbose,container,linux,container-name:,coverage
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -238,6 +247,9 @@ while true; do
 					;;
 			--check)
 				  check=1
+					;;
+			--metrics)
+				  metrics=1
 					;;
 			-b|--build)
 				  build=1
@@ -293,6 +305,10 @@ fi
 
 if [[ $check_style -ne 0 ]]; then
   run_check_style
+fi
+
+if [[ $metrics -ne 0 ]]; then
+  run_metrics
 fi
 
 if [[ $build -ne 0 ]]; then

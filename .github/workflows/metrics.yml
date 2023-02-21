@@ -1,0 +1,25 @@
+name: Metrics
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  metrics:
+    name: Metrics
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Run Metrics 
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
+        # Change all uppercase to lowercase
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        docker pull $IMAGE_ID
+        ./scripts/build.sh --metrics --container --container-name=$IMAGE_ID
