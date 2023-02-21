@@ -225,9 +225,7 @@ impl StatementValidator {
                 let l_name = l_effective_type.get_name();
                 let r_name = r_effective_type.get_name();
 
-                if !(l_name.eq(VOID_TYPE)
-                    | r_name.eq(VOID_TYPE))
-                {
+                if !(l_name.eq(VOID_TYPE) | r_name.eq(VOID_TYPE)) {
                     let l_nature = context.index.get_intrinsic_type_by_name(l_name).get_nature();
                     let r_nature = context.index.get_intrinsic_type_by_name(r_name).get_nature();
                     if !(l_nature.is_compatible_with_nature(r_nature)
