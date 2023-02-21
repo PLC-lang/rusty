@@ -898,10 +898,14 @@ impl<'i> TypeAnnotator<'i> {
                         let bigger_type = if l_intrinsic_type.is_bool() && r_intrinsic_type.is_bool() {
                             left_type
                         } else {
-                            let dint = self.index.get_type_or_panic(DINT_TYPE);
+                            let ty = if left_type.is_bit() && right_type.is_bit() {
+                                right_type
+                            } else {
+                                self.index.get_type_or_panic(DINT_TYPE)
+                            };
                             get_bigger_type(
                                 get_bigger_type(left_type, right_type, self.index),
-                                dint,
+                                ty,
                                 self.index,
                             )
                         };
