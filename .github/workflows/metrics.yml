@@ -30,8 +30,8 @@ jobs:
         ./scripts/build.sh --metrics --container --container-name=$IMAGE_ID
     - name: Commit collected data
       run: |
-        git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
-        git config --global user.email "username@users.noreply.github.com"
+        git config user.name "bot"
+        git config user.email "doesnt@really.matter"
         git add metrics.json
         git commit --message 'Update metrics data'
         git push origin metrics-data
