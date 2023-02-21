@@ -175,6 +175,10 @@ impl TypeNature {
             _ => false,
         }
     }
+
+    pub fn is_bit(&self) -> bool {
+        self.derives(TypeNature::Bit)
+    }
 }
 
 impl DirectAccessType {
