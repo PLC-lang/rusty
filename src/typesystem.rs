@@ -138,6 +138,10 @@ impl DataType {
         self.nature.is_real()
     }
 
+    pub fn is_bit(&self) -> bool {
+        self.nature.is_bit()
+    }
+
     /// returns true if this type is an internal, auto-generated type
     pub fn is_internal(&self) -> bool {
         self.location.is_internal()
