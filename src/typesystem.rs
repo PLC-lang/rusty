@@ -127,7 +127,7 @@ impl DataType {
 
     pub fn has_nature(&self, nature: TypeNature, index: &Index) -> bool {
         let type_nature = index.get_intrinsic_type_by_name(self.get_name()).nature;
-        type_nature.derives(nature)
+        type_nature.derives_from(nature)
     }
 
     pub fn is_numerical(&self) -> bool {
@@ -151,6 +151,10 @@ impl DataType {
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
+    }
+
+    pub fn get_nature(&self) -> TypeNature {
+        self.nature
     }
 
     pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {

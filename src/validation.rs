@@ -41,6 +41,7 @@ pub struct ValidationContext<'s> {
     ast_annotation: &'s AnnotationMapImpl,
     index: &'s Index,
     qualifier: Option<&'s str>,
+    is_call: bool,
 }
 
 impl<'s> ValidationContext<'s> {
@@ -64,6 +65,19 @@ impl<'s> ValidationContext<'s> {
             _ => None,
         }
         .and_then(|pou_name| self.index.find_pou(pou_name))
+    }
+
+    fn set_is_call(&self) -> ValidationContext<'s> {
+        ValidationContext {
+            ast_annotation: self.ast_annotation,
+            index: self.index,
+            qualifier: self.qualifier,
+            is_call: true,
+        }
+    }
+
+    fn is_call(&self) -> bool {
+        self.is_call
     }
 }
 
@@ -113,11 +127,17 @@ impl Validator {
         for pou in &unit.units {
             self.visit_pou(
                 pou,
-                &ValidationContext { ast_annotation: annotations, index, qualifier: Some(pou.name.as_str()) },
+                &ValidationContext {
+                    ast_annotation: annotations,
+                    index,
+                    qualifier: Some(pou.name.as_str()),
+                    is_call: false,
+                },
             );
         }
 
-        let no_context = &ValidationContext { ast_annotation: annotations, index, qualifier: None };
+        let no_context =
+            &ValidationContext { ast_annotation: annotations, index, qualifier: None, is_call: false };
         for t in &unit.types {
             self.visit_user_type_declaration(t, no_context);
         }
@@ -127,8 +147,12 @@ impl Validator {
         }
 
         for i in &unit.implementations {
-            let context =
-                ValidationContext { ast_annotation: annotations, index, qualifier: Some(i.name.as_str()) };
+            let context = ValidationContext {
+                ast_annotation: annotations,
+                index,
+                qualifier: Some(i.name.as_str()),
+                is_call: false,
+            };
             if i.pou_type == PouType::Action && i.type_name == "__unknown__" {
                 self.pou_validator.push_diagnostic(Diagnostic::missing_action_container(i.location.clone()));
             }
@@ -281,7 +305,7 @@ impl Validator {
                             }
                         }
 
-                        self.visit_statement(p, context);
+                        self.visit_statement(p, &context.set_is_call());
                     }
 
                     // for PROGRAM/FB we need special inout validation
@@ -435,8 +459,9 @@ impl Validator {
         };
         let right_type_info = index.find_intrinsic_type(right_type.get_type_information());
         // stmt_validator `validate_type_nature()` should report any error see `generic_validation_tests` ignore generics here and safe work
-        if !matches!(left_type_info, DataTypeInformation::Generic { .. })
-            & !typesystem::is_same_type_class(left_type_info, right_type_info, index)
+        if !(matches!(left_type_info, DataTypeInformation::Generic { .. })
+            | typesystem::is_same_type_class(left_type_info, right_type_info, index)
+            | left_type.get_nature().is_compatible_with_nature(right_type.get_nature()))
         {
             self.stmt_validator.push_diagnostic(Diagnostic::invalid_assignment(
                 right_type_info.get_name(),

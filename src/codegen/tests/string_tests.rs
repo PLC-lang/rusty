@@ -426,14 +426,11 @@ fn impilicit_char_conversion() {
         VAR
             s : STRING;
             ws: WSTRING;
-            c : CHAR := 'a';
-            wc : WCHAR := "b";
-            i : USINT;
+            c : CHAR := CHAR#'a';
+            wc : WCHAR := WCHAR#"b";
         END_VAR
             s := c;
-            s := 'c';
             ws := wc; 
-            ws := "d";
         END_PROGRAM
     "#,
     );
@@ -468,8 +465,8 @@ fn impilicit_char_conversion_cast_errors_are_reported() {
         VAR
             s : STRING;
             ws: WSTRING;
-            c : CHAR := 'a';
-            wc : WCHAR := "b";
+            c : CHAR := CHAR#'a';
+            wc : WCHAR := WCHAR#"b";
             i : USINT;
         END_VAR
             s := c; // valid
@@ -484,7 +481,7 @@ fn impilicit_char_conversion_cast_errors_are_reported() {
         unreachable!("expected diagnostic")
     };
 
-    assert_eq!(diagnostic, Diagnostic::casting_error("USINT", "STRING", (258..259).into()));
+    assert_eq!(diagnostic, Diagnostic::casting_error("USINT", "STRING", (270..271).into()));
 
     let result = codegen_without_unwrap(
         r#"
@@ -514,13 +511,10 @@ fn impilicit_char_conversion_cast_errors_are_reported() {
         r#"
         PROGRAM main
         VAR
-            s : STRING;
             ws: WSTRING;
-            c : CHAR := 'a';
-            wc : WCHAR := "b";
-            i : USINT;
+            wc : WCHAR := WCHAR#"b";
+            i : UINT;
         END_VAR
-            s := c; // valid
             ws := wc; // valid
             ws := i; // invalid
         END_PROGRAM
@@ -532,21 +526,18 @@ fn impilicit_char_conversion_cast_errors_are_reported() {
         unreachable!("expected diagnostic")
     };
 
-    assert_eq!(diagnostic, Diagnostic::casting_error("USINT", "WSTRING", (259..260).into()));
+    assert_eq!(diagnostic, Diagnostic::casting_error("UINT", "WSTRING", (183..184).into()));
 
     let result = codegen_without_unwrap(
         r#"
         PROGRAM main
         VAR
             s : STRING;
-            ws: WSTRING;
-            c : CHAR := 'a';
-            wc : WCHAR := "b";
-            i : USINT;
+            c : CHAR := CHAR#'a';
+            i : USINT := 8;
         END_VAR
             s := c; // valid
-            ws := wc; // valid
-            ws := 123; // invalid
+            s := i; // invalid
         END_PROGRAM
     "#,
     );
@@ -556,5 +547,5 @@ fn impilicit_char_conversion_cast_errors_are_reported() {
         unreachable!("expected diagnostic")
     };
 
-    assert_eq!(diagnostic, Diagnostic::casting_error("USINT", "WSTRING", (259..262).into()));
+    assert_eq!(diagnostic, Diagnostic::casting_error("USINT", "STRING", (182..183).into()));
 }

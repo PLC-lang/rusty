@@ -6,9 +6,9 @@ use crate::{
     index::{ArgumentType, VariableIndexEntry, VariableType},
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{
-        DataType, DataTypeInformation, Dimension, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
-        INT_TYPE, LINT_TYPE, LREAL_TYPE, POINTER_SIZE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
+        is_same_type_class, DataType, DataTypeInformation, Dimension, BOOL_TYPE, DATE_AND_TIME_TYPE,
+        DATE_TYPE, DINT_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, POINTER_SIZE, SINT_TYPE, STRING_TYPE,
+        TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
     },
     Diagnostic,
 };
@@ -115,89 +115,7 @@ impl StatementValidator {
                 }
             }
             AstStatement::Assignment { left, right, .. } => {
-                if let Some(StatementAnnotation::Variable {
-                    constant,
-                    qualified_name: l_qualified_name,
-                    resulting_type: l_resulting_type,
-                    ..
-                }) = context.ast_annotation.get(left.as_ref())
-                {
-                    // check if we assign to a constant variable
-                    if *constant {
-                        self.push_diagnostic(Diagnostic::cannot_assign_to_constant(
-                            l_qualified_name.as_str(),
-                            left.get_location(),
-                        ));
-                    }
-
-                    let l_effective_type = context
-                        .index
-                        .get_effective_type_or_void_by_name(l_resulting_type)
-                        .get_type_information();
-                    let r_effective_type =
-                        context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
-
-                    //check if Datatype can hold a Pointer (u64)
-                    if r_effective_type.is_pointer()
-                        && !l_effective_type.is_pointer()
-                        && l_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
-                    {
-                        self.push_diagnostic(Diagnostic::incompatible_type_size(
-                            l_effective_type.get_name(),
-                            l_effective_type.get_size_in_bits(context.index),
-                            "hold a",
-                            statement.get_location(),
-                        ));
-                    }
-                    //check if size allocated to Pointer is standart pointer size (u64)
-                    else if l_effective_type.is_pointer()
-                        && !r_effective_type.is_pointer()
-                        && r_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
-                    {
-                        self.push_diagnostic(Diagnostic::incompatible_type_size(
-                            r_effective_type.get_name(),
-                            r_effective_type.get_size_in_bits(context.index),
-                            "to be stored in a",
-                            statement.get_location(),
-                        ));
-                    }
-
-                    // valid assignments -> char := literalString, char := char
-                    // check if we assign to a character variable -> char := ..
-                    if l_effective_type.is_character() {
-                        if let AstStatement::LiteralString { value, location, .. } = right.as_ref() {
-                            // literalString may only be 1 character long
-                            if value.len() > 1 {
-                                self.push_diagnostic(Diagnostic::syntax_error(
-                                    format!("Value: '{value}' exceeds length for type: {l_resulting_type}",)
-                                        .as_str(),
-                                    location.clone(),
-                                ));
-                            }
-                        } else if l_effective_type != r_effective_type {
-                            // invalid assignment
-                            self.push_diagnostic(Diagnostic::invalid_assignment(
-                                r_effective_type.get_name(),
-                                l_effective_type.get_name(),
-                                statement.get_location(),
-                            ));
-                        }
-                    } else if r_effective_type.is_character() {
-                        // if we try to assign a character variable -> .. := char
-                        // and didn't match the first if, left and right won't have the same type -> invalid assignment
-                        self.push_diagnostic(Diagnostic::invalid_assignment(
-                            r_effective_type.get_name(),
-                            l_effective_type.get_name(),
-                            statement.get_location(),
-                        ));
-                    }
-                } else {
-                    // If whatever we got is not assignable, output an error
-                    if !left.can_be_assigned_to() {
-                        // we hit an assignment without a LValue to assign to
-                        self.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
-                    }
-                }
+                self.validate_assignment(context, statement, left, right)
             }
             AstStatement::BinaryExpression { operator, left, right, .. } => match operator {
                 Operator::NotEqual => {
@@ -220,6 +138,116 @@ impl StatementValidator {
             _ => (),
         }
         self.validate_type_nature(statement, context);
+    }
+
+    fn validate_assignment(
+        &mut self,
+        context: &ValidationContext,
+        statement: &AstStatement,
+        left: &AstStatement,
+        right: &AstStatement,
+    ) {
+        if let Some(StatementAnnotation::Variable {
+            constant,
+            qualified_name: l_qualified_name,
+            resulting_type: l_resulting_type,
+            ..
+        }) = context.ast_annotation.get(left)
+        {
+            let l_effective_type =
+                context.index.get_effective_type_or_void_by_name(l_resulting_type).get_type_information();
+            let r_effective_type =
+                context.ast_annotation.get_type_or_void(right, context.index).get_type_information();
+
+            //check if Datatype can hold a Pointer (u64)
+            if r_effective_type.is_pointer()
+                && !l_effective_type.is_pointer()
+                && l_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
+            {
+                self.push_diagnostic(Diagnostic::incompatible_type_size(
+                    l_effective_type.get_name(),
+                    l_effective_type.get_size_in_bits(context.index),
+                    "hold a",
+                    statement.get_location(),
+                ));
+            }
+
+            if context.is_call() {
+                return;
+            }
+            // check if we assign to a constant variable
+            if *constant {
+                self.push_diagnostic(Diagnostic::cannot_assign_to_constant(
+                    l_qualified_name,
+                    left.get_location(),
+                ));
+            }
+            //check if size allocated to Pointer is standart pointer size (u64)
+            else if l_effective_type.is_pointer()
+                && !r_effective_type.is_pointer()
+                && r_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
+            {
+                self.push_diagnostic(Diagnostic::incompatible_type_size(
+                    r_effective_type.get_name(),
+                    r_effective_type.get_size_in_bits(context.index),
+                    "to be stored in a",
+                    statement.get_location(),
+                ));
+            }
+            // valid assignments -> char := literalString, char := char
+            // check if we assign to a character variable -> char := ..
+            else if l_effective_type.is_character() {
+                if let AstStatement::LiteralString { value, location, .. } = right {
+                    // literalString may only be 1 character long
+                    if value.len() > 1 {
+                        self.push_diagnostic(Diagnostic::syntax_error(
+                            format!("Value: '{value}' exceeds length for type: {l_resulting_type}",).as_str(),
+                            location.clone(),
+                        ));
+                    }
+                } else if l_effective_type != r_effective_type {
+                    // invalid assignment
+                    self.push_diagnostic(Diagnostic::invalid_assignment(
+                        r_effective_type.get_name(),
+                        l_effective_type.get_name(),
+                        statement.get_location(),
+                    ));
+                }
+            } else if r_effective_type.is_character() {
+                // if we try to assign a character variable -> .. := char
+                // and didn't match the first if, left and right won't have the same type -> invalid assignment
+                self.push_diagnostic(Diagnostic::invalid_assignment(
+                    r_effective_type.get_name(),
+                    l_effective_type.get_name(),
+                    statement.get_location(),
+                ));
+            } else {
+                let l_name = l_effective_type.get_name();
+                let r_name = r_effective_type.get_name();
+
+                if !(l_name.eq(VOID_TYPE)
+                    | r_name.eq(VOID_TYPE))
+                {
+                    let l_nature = context.index.get_intrinsic_type_by_name(l_name).get_nature();
+                    let r_nature = context.index.get_intrinsic_type_by_name(r_name).get_nature();
+                    if !(l_nature.is_compatible_with_nature(r_nature)
+                        | is_same_type_class(l_effective_type, r_effective_type, context.index))
+                    {
+                        self.push_diagnostic(Diagnostic::invalid_assignment(
+                            r_name,
+                            l_name,
+                            statement.get_location(),
+                        ));
+                    }
+                }
+            }
+        } else {
+            // If whatever we got is not assignable, output an error
+            if !left.can_be_assigned_to() {
+                // we hit an assignment without a LValue to assign to
+                self.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
+            }
+        }
     }
 
     /// Validates that the assigned type and type hint are compatible with the nature for this
