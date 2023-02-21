@@ -81,10 +81,13 @@ impl Metrics {
     }
 
     pub fn finalize(&self, sh: &Shell) -> anyhow::Result<()> {
+        let actor = std::env::var("GITHUB_ACTOR").unwrap_or("n/a".to_string());
+        eprintln!("{:#?}", std::env::vars());
+
         let filename = "metrics.json";
         cmd!(sh, "git pull").run()?;
-        cmd!(sh, "git config user.name 'temp'").run()?;
-        cmd!(sh, "git config user.email 'temp'").run()?;
+        cmd!(sh, "git config user.name '{actor}'").run()?;
+        cmd!(sh, "git config user.email '{actor}'").run()?;
         cmd!(sh, "git checkout metrics-data").run()?;
 
         let mut file = fs::File::options().create(true).append(true).open(filename)?;

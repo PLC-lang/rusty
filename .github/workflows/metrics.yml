@@ -21,6 +21,8 @@ jobs:
         ref: dashboard
 
     - name: Run Metrics 
+      env:
+        GITHUB_ACTOR: ${{ github.actor }}
       run: |
         IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
         # Change all uppercase to lowercase
