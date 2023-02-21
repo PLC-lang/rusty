@@ -1,0 +1,1 @@
+{"host":{"os":"Linux  Debian GNU/Linux","cpu":"Intel(R) Xeon(R) Platinum 8272CL CPU @ 2.60GHz","mem":7110624},"timestamp":1676988826,"commit":"141de798e392e7815ef30c67b71046f914a92288","metrics":{"oscat -Oaggressive":8594,"oscat -Odefault":8421,"oscat -Oless":7027,"oscat -Onone":2802,"sieve -Oaggressive":9018,"sieve -Odefault":9041,"sieve -Oless":9113,"sieve -Onone":18247}}
