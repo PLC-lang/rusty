@@ -152,7 +152,8 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
                         statement.get_location(),
                     ));
                 }
-            } else if !matches!(left.as_ref(), AstStatement::Reference { .. }) {
+            } else if !left.can_be_assigned_to() {
+                // If whatever we got is not assignable, output an error
                 // we hit an assignment without a LValue to assign to
                 validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
             }
