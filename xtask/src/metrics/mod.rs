@@ -75,23 +75,11 @@ impl Metrics {
             task.execute(sh, self)?;
         }
 
-        println!("{}", serde_json::to_string_pretty(self)?);
-        // self.push(sh)?;
-
-        Ok(())
-    }
-
-    fn push(&mut self, sh: &Shell) -> anyhow::Result<()> {
-        let token = env::var("GITHUB_TOKEN")?;
-        cmd!(sh, "git clone https://{token}@github.com/plc-lang/metrics").run()?;
-
-        let mut file = fs::File::options().append(true).open("metrics/metrics.json")?;
+        // Finalize execution by appending the collected data into a file.
+        // The GitHub Action will then push the modified file to the `metrics-data` branch.
+        let mut file = fs::File::options().create(true).append(true).open("metrics.json")?;
+        eprintln!("{}", serde_json::to_string_pretty(self)?);
         writeln!(file, "{}", serde_json::to_string(self)?)?;
-
-        let _dir = sh.push_dir("metrics");
-        cmd!(sh, "git add . ").run()?;
-        cmd!(sh, "git -c user.name=bot -c user.email=doesnt@really.matter commit --message Bump").run()?;
-        cmd!(sh, "git push origin main").run()?;
 
         Ok(())
     }
