@@ -1138,6 +1138,10 @@
 <a href="#1138" id="1138">1138</a>
 <a href="#1139" id="1139">1139</a>
 <a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1276,6 +1280,10 @@
 
     <span class="kw">pub fn </span>is_real(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.nature.is_real()
+    }
+
+    <span class="kw">pub fn </span>is_bit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.nature.is_bit()
     }
 
     <span class="doccomment">/// returns true if this type is an internal, auto-generated type

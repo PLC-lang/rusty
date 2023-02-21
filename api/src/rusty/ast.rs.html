@@ -1441,6 +1441,10 @@
 <a href="#1441" id="1441">1441</a>
 <a href="#1442" id="1442">1442</a>
 <a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     index::Index,
@@ -1602,6 +1606,10 @@
 
     <span class="kw">pub fn </span>is_real(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.derives(TypeNature::Real)
+    }
+
+    <span class="kw">pub fn </span>is_bit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.derives(TypeNature::Bit)
     }
 }
 

@@ -1564,6 +1564,10 @@
 <a href="#1564" id="1564">1564</a>
 <a href="#1565" id="1565">1565</a>
 <a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2464,10 +2468,14 @@
                         <span class="kw">let </span>bigger_type = <span class="kw">if </span>l_intrinsic_type.is_bool() &amp;&amp; r_intrinsic_type.is_bool() {
                             left_type
                         } <span class="kw">else </span>{
-                            <span class="kw">let </span>dint = <span class="self">self</span>.index.get_type_or_panic(DINT_TYPE);
+                            <span class="kw">let </span>ty = <span class="kw">if </span>left_type.is_bit() &amp;&amp; right_type.is_bit() {
+                                right_type
+                            } <span class="kw">else </span>{
+                                <span class="self">self</span>.index.get_type_or_panic(DINT_TYPE)
+                            };
                             get_bigger_type(
                                 get_bigger_type(left_type, right_type, <span class="self">self</span>.index),
-                                dint,
+                                ty,
                                 <span class="self">self</span>.index,
                             )
                         };
