@@ -2,9 +2,9 @@ name: Metrics
 
 on:
   push:
-    branches:
-    - master
-  pull:
+    # branches:
+    # - master
+  pull_request:
 
 jobs:
   metrics:
