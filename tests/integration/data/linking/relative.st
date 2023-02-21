@@ -1,2 +1,0 @@
-FUNCTION relative : DINT
-END_FUNCTION

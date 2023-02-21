@@ -1,1 +1,0 @@
-PROGRAM exp a AND NOT b OR c XOR d; END_PROGRAM
