@@ -32,6 +32,7 @@ jobs:
       run: |
         git config user.name "bot"
         git config user.email "doesnt@really.matter"
+        git pull
         git add metrics.json
         git commit --message 'Update metrics data'
         git push origin dashboard
