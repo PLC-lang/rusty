@@ -728,7 +728,8 @@ fn validate_type_nature(validator: &mut Validator, statement: &AstStatement, con
             .get_type(statement, context.index)
             .zip(context.annotations.get_generic_nature(statement))
         {
-            // TODO: check if type_hint and actual_type is compatible
+            // check if type_hint and actual_type is compatible
+            // should be handled by assignment validation
             if !(actual_type.has_nature(*generic_nature, context.index)
 				// INT parameter for REAL is allowed
                 | (type_hint.is_real() & actual_type.is_numerical()))

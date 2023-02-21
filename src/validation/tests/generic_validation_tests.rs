@@ -22,6 +22,33 @@ fn any_allows_all_natures() {
 }
 
 #[test]
+fn any_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //                                                           ^^^^^^^
+        //                                     string is any but is not compatible with the other types
+        //                                     should be handled with assignment validation
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
 fn non_resolved_generics_reported() {
     let src = r"
         FUNCTION test<T : ANY_STRING> : T END_VAR END_FUNCTION
@@ -161,6 +188,40 @@ fn any_magnitude_does_not_allow_date() {
     );
 }
 
+#[test]
+fn any_magnitude_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_MAGNITUDE> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //                                                 ^^^^^^^^  ^^^^^^^  ^^^^^^^^  ^^^^^^^^
+        //                                                     these types are not MAGNITUDE
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("BYTE", "Magnitude", (481..489).into()),
+            Diagnostic::invalid_type_nature("STRING", "Magnitude", (491..498).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Magnitude", (500..508).into()),
+            Diagnostic::invalid_type_nature("DATE", "Magnitude", (510..518).into()),
+        ]
+    );
+}
+
 // ##########    ANY_NUMBER    ##########
 
 #[test]
@@ -292,6 +353,41 @@ fn any_num_does_not_allow_date() {
             Diagnostic::invalid_type_nature("DATE", "Num", (276..277).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Num", (349..350).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Num", (417..418).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_num_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_NUM> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //                                       ^^^^^^^^  ^^^^^^^^  ^^^^^^^  ^^^^^^^^  ^^^^^^^^
+        //                                                  these types are not NUM
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("TIME", "Num", (465..473).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Num", (475..483).into()),
+            Diagnostic::invalid_type_nature("STRING", "Num", (485..492).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Num", (494..502).into()),
+            Diagnostic::invalid_type_nature("DATE", "Num", (504..512).into()),
         ]
     );
 }
@@ -429,6 +525,41 @@ fn any_real_does_not_allow_date() {
             Diagnostic::invalid_type_nature("DATE", "Real", (271..272).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Real", (338..339).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Real", (406..407).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_real_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_REAL> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //                                       ^^^^^^^^  ^^^^^^^^  ^^^^^^^  ^^^^^^^^  ^^^^^^^^
+        //                 ints are allowed                these types are not REAL
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("TIME", "Real", (466..474).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Real", (476..484).into()),
+            Diagnostic::invalid_type_nature("STRING", "Real", (486..493).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Real", (495..503).into()),
+            Diagnostic::invalid_type_nature("DATE", "Real", (505..513).into()),
         ]
     );
 }
@@ -571,6 +702,42 @@ fn any_int_does_not_allow_date() {
             Diagnostic::invalid_type_nature("DATE", "Int", (270..271).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Int", (337..338).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Int", (405..406).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_int_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_INT> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^                            ^^^^^^^^  ^^^^^^^^  ^^^^^^^  ^^^^^^^^  ^^^^^^^^
+        //                             these types are not REAL
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "Int", (429..437).into()),
+            Diagnostic::invalid_type_nature("TIME", "Int", (465..473).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Int", (475..483).into()),
+            Diagnostic::invalid_type_nature("STRING", "Int", (485..492).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Int", (494..502).into()),
+            Diagnostic::invalid_type_nature("DATE", "Int", (504..512).into()),
         ]
     );
 }
@@ -733,6 +900,43 @@ fn any_unsigned_does_not_allow_date() {
     );
 }
 
+#[test]
+fn any_unsigned_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_UNSIGNED> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^                ^^^^^^^^^^  ^^^^^^^^  ^^^^^^^^  ^^^^^^^  ^^^^^^^^  ^^^^^^^^
+        //                             these types are not UNSIGNED
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "Unsigned", (434..442).into()),
+            Diagnostic::invalid_type_nature("DINT", "Unsigned", (458..468).into()),
+            Diagnostic::invalid_type_nature("TIME", "Unsigned", (470..478).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Unsigned", (480..488).into()),
+            Diagnostic::invalid_type_nature("STRING", "Unsigned", (490..497).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Unsigned", (499..507).into()),
+            Diagnostic::invalid_type_nature("DATE", "Unsigned", (509..517).into()),
+        ]
+    );
+}
+
 // ##########    ANY_SIGNED    ##########
 
 #[test]
@@ -891,6 +1095,43 @@ fn any_signed_does_not_allow_date() {
     );
 }
 
+#[test]
+fn any_signed_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_SIGNED> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^  ^^^^^^^^^^^^              ^^^^^^^^  ^^^^^^^^  ^^^^^^^  ^^^^^^^^  ^^^^^^^^
+        //                             these types are not SIGNED
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "Signed", (432..440).into()),
+            Diagnostic::invalid_type_nature("UDINT", "Signed", (442..454).into()),
+            Diagnostic::invalid_type_nature("TIME", "Signed", (468..476).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Signed", (478..486).into()),
+            Diagnostic::invalid_type_nature("STRING", "Signed", (488..495).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Signed", (497..505).into()),
+            Diagnostic::invalid_type_nature("DATE", "Signed", (507..515).into()),
+        ]
+    );
+}
+
 // ##########    ANY_DURATION    ##########
 
 #[test]
@@ -1035,6 +1276,43 @@ fn any_duration_does_not_allow_date() {
             Diagnostic::invalid_type_nature("DATE", "Duration", (275..276).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Duration", (342..343).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Duration", (410..411).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_duration_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_DURATION> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^            ^^^^^^^^  ^^^^^^^  ^^^^^^^^  ^^^^^^^^
+        //                             these types are not DURATION
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "Duration", (434..442).into()),
+            Diagnostic::invalid_type_nature("UDINT", "Duration", (444..456).into()),
+            Diagnostic::invalid_type_nature("DINT", "Duration", (458..468).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Duration", (480..488).into()),
+            Diagnostic::invalid_type_nature("STRING", "Duration", (490..497).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Duration", (499..507).into()),
+            Diagnostic::invalid_type_nature("DATE", "Duration", (509..517).into()),
         ]
     );
 }
@@ -1198,6 +1476,43 @@ fn any_bit_does_not_allow_date() {
     );
 }
 
+#[test]
+fn any_bit_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_BIT> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^            ^^^^^^^  ^^^^^^^^  ^^^^^^^^
+        //                             these types are not BIT
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "Bit", (429..437).into()),
+            Diagnostic::invalid_type_nature("UDINT", "Bit", (439..451).into()),
+            Diagnostic::invalid_type_nature("DINT", "Bit", (453..463).into()),
+            Diagnostic::invalid_type_nature("TIME", "Bit", (465..473).into()),
+            Diagnostic::invalid_type_nature("STRING", "Bit", (485..492).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Bit", (494..502).into()),
+            Diagnostic::invalid_type_nature("DATE", "Bit", (504..512).into()),
+        ]
+    );
+}
+
 // ##########    ANY_CHARS    ##########
 
 #[test]
@@ -1336,6 +1651,42 @@ fn any_chars_does_not_allow_date() {
             Diagnostic::invalid_type_nature("DATE", "Chars", (272..273).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Chars", (339..340).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Chars", (407..408).into()),
+        ]
+    );
+}
+
+#[test]
+fn any_chars_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_CHARS> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^  ^^^^^^^^                     ^^^^^^^^
+        //                             these types are not CHARS
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "Chars", (431..439).into()),
+            Diagnostic::invalid_type_nature("UDINT", "Chars", (441..453).into()),
+            Diagnostic::invalid_type_nature("DINT", "Chars", (455..465).into()),
+            Diagnostic::invalid_type_nature("TIME", "Chars", (467..475).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Chars", (477..485).into()),
+            Diagnostic::invalid_type_nature("DATE", "Chars", (506..514).into()),
         ]
     );
 }
@@ -1488,6 +1839,43 @@ fn any_string_does_not_allow_date() {
     );
 }
 
+#[test]
+fn any_string_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_STRING> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^  ^^^^^^^^           ^^^^^^^^  ^^^^^^^^
+        //                             these types are not STRING
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "String", (432..440).into()),
+            Diagnostic::invalid_type_nature("UDINT", "String", (442..454).into()),
+            Diagnostic::invalid_type_nature("DINT", "String", (456..466).into()),
+            Diagnostic::invalid_type_nature("TIME", "String", (468..476).into()),
+            Diagnostic::invalid_type_nature("BYTE", "String", (478..486).into()),
+            Diagnostic::invalid_type_nature("CHAR", "String", (497..505).into()),
+            Diagnostic::invalid_type_nature("DATE", "String", (507..515).into()),
+        ]
+    );
+}
+
 // ##########    ANY_CHAR    ##########
 
 #[test]
@@ -1636,6 +2024,43 @@ fn any_char_does_not_allow_date() {
     );
 }
 
+#[test]
+fn any_char_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_CHAR> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^  ^^^^^^^^  ^^^^^^^            ^^^^^^^^
+        //                             these types are not CHAR
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "Char", (430..438).into()),
+            Diagnostic::invalid_type_nature("UDINT", "Char", (440..452).into()),
+            Diagnostic::invalid_type_nature("DINT", "Char", (454..464).into()),
+            Diagnostic::invalid_type_nature("TIME", "Char", (466..474).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Char", (476..484).into()),
+            Diagnostic::invalid_type_nature("STRING", "Char", (486..493).into()),
+            Diagnostic::invalid_type_nature("DATE", "Char", (505..513).into()),
+        ]
+    );
+}
+
 // ##########    ANY_DATE    ##########
 
 #[test]
@@ -1779,4 +2204,41 @@ fn any_date_allows_date() {
 
     let diagnostics = parse_and_validate(src);
     assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn any_date_multiple_parameters() {
+    let src = r"
+    FUNCTION func<T : ANY_DATE> : INT VAR_INPUT in1, in2, in3, in4, in5, in6, in7, in8 : T; END_VAR END_FUNCTION
+
+    FUNCTION foo : INT
+    VAR
+        var_real        : REAL;
+        var_unsigned    : UDINT;
+        var_signed      : DINT;
+        var_time        : TIME;
+        var_byte        : BYTE;
+        var_str         : STRING;
+        var_char        : CHAR;
+        var_date        : DATE;
+    END_VAR
+        func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+        //   ^^^^^^^^  ^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^  ^^^^^^^^  ^^^^^^^  ^^^^^^^^
+        //                             these types are not DATE
+    END_FUNCTION
+    ";
+
+    let diagnostics = parse_and_validate(src);
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_type_nature("REAL", "Date", (430..438).into()),
+            Diagnostic::invalid_type_nature("UDINT", "Date", (440..452).into()),
+            Diagnostic::invalid_type_nature("DINT", "Date", (454..464).into()),
+            Diagnostic::invalid_type_nature("TIME", "Date", (466..474).into()),
+            Diagnostic::invalid_type_nature("BYTE", "Date", (476..484).into()),
+            Diagnostic::invalid_type_nature("STRING", "Date", (486..493).into()),
+            Diagnostic::invalid_type_nature("CHAR", "Date", (495..503).into()),
+        ]
+    );
 }
