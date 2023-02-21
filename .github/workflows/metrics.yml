@@ -6,6 +6,10 @@ on:
     # - master
   pull_request:
 
+env:
+  IMAGE_NAME: rust-llvm
+  IMAGE_VERSION: latest
+
 jobs:
   metrics:
     name: Metrics
