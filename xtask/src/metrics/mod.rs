@@ -54,18 +54,6 @@ impl Metrics {
         // Needed because of "fatal: detected deubious ownership in repository at '/build'" error
         cmd!(sh, "git config --global --add safe.directory /build").run()?;
 
-        // test ---
-        cmd!(sh, "git pull").run()?;
-        cmd!(sh, "git config user.name 'temp'").run()?;
-        cmd!(sh, "git config user.email 'temp'").run()?;
-        cmd!(sh, "git checkout metrics-data").run()?;
-        let mut file = fs::File::options().create(true).append(true).open("metrics.json")?;
-        writeln!(file, "test")?;
-        cmd!(sh, "git add metrics.json").run()?;
-        cmd!(sh, "git commit -m 'update'").run()?;
-        cmd!(sh, "git push origin metrics-data").run()?;
-        // test ---
-
         let host = Host::new();
         let commit = cmd!(sh, "git rev-parse HEAD").read()?;
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
@@ -87,18 +75,25 @@ impl Metrics {
             task.execute(sh, self)?;
         }
 
-        // Finalize execution by appending the collected data into a file.
-        // The GitHub Action will then push the modified file to the `metrics-data` branch.
-        let mut file = fs::File::options().create(true).append(true).open("metrics.json")?;
-        eprintln!("{}", serde_json::to_string_pretty(self)?);
-        writeln!(file, "{}", serde_json::to_string(self)?)?;
+        self.finalize(sh)?;
 
         Ok(())
     }
 
-    // pub fn finalize(&self) -> anyhow::Result<()> {
-    //     // let mut file = fs::File::options().create(true).append(true).open("metrics.json")?;
-    //     // eprintln!("{}", serde_json::to_string_pretty(self)?);
-    //     // writeln!(file, "{}", serde_json::to_string(self)?)?;
-    // }
+    pub fn finalize(&self, sh: &Shell) -> anyhow::Result<()> {
+        let filename = "metrics.json";
+        cmd!(sh, "git pull").run()?;
+        cmd!(sh, "git config user.name 'temp'").run()?;
+        cmd!(sh, "git config user.email 'temp'").run()?;
+        cmd!(sh, "git checkout metrics-data").run()?;
+
+        let mut file = fs::File::options().create(true).append(true).open(filename)?;
+        writeln!(file, "{}", serde_json::to_string(self)?)?;
+
+        cmd!(sh, "git add {filename}").run()?;
+        cmd!(sh, "git commit -m 'Update data'").run()?;
+        cmd!(sh, "git push origin metrics-data").run()?;
+
+        Ok(())
+    }
 }
