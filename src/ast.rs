@@ -170,7 +170,8 @@ impl TypeNature {
             | TypeNature::Duration
             | TypeNature::Date
             | TypeNature::Bit => other.is_numerical() || matches!(other, TypeNature::Bit | TypeNature::Date),
-            TypeNature::Char | TypeNature::String => matches!(other, TypeNature::String | TypeNature::Char),
+            TypeNature::Char => matches!(other, TypeNature::Char),
+            TypeNature::String => matches!(other, TypeNature::String),
             _ => false,
         }
     }
