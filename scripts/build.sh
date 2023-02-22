@@ -289,6 +289,10 @@ log "Moving to project level directory $project_location"
 cd "$project_location"
 
 
+if [[ $ci -ne 0 ]]; then
+	export CI_RUN=true
+fi
+
 if [[ $container -ne 0 ]]; then
 	log "Container Build"
 	run_in_container
@@ -309,23 +313,23 @@ if [[ $offline -ne 0 ]]; then
 fi
 
 if [[ $check -ne 0 ]]; then
-  run_check
+	run_check
 fi
 
 if [[ $check_style -ne 0 ]]; then
-  run_check_style
+	run_check_style
 fi
 
 if [[ $metrics -ne 0 ]]; then
-  run_metrics
+	run_metrics
 fi
 
 if [[ $build -ne 0 ]]; then
-  run_build
+	run_build
 fi
 
 if [[ $test -ne 0 ]]; then
-  run_test
+	run_test
 fi
 
 if [[ $doc -ne 0 ]]; then
@@ -333,7 +337,7 @@ if [[ $doc -ne 0 ]]; then
 fi
 
 if [[ $coverage -ne 0 ]]; then
-  run_coverage
+	run_coverage
 fi
 
 if [[ -d $project_location/target/ ]]; then

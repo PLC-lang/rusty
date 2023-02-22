@@ -12,12 +12,12 @@ pub trait Task {
     fn execute(&self, sh: &Shell, metrics: &mut Metrics) -> anyhow::Result<()>;
 }
 
-pub trait BenchmarkExtension {
+pub trait Benchmark {
     const ITERATIONS_PER_BENCHMARK: u64 = 3;
     fn benchmark(&self, metrics: &mut Metrics, name: &str, desc: &str) -> anyhow::Result<()>;
 }
 
-impl<'sh> BenchmarkExtension for Cmd<'sh> {
+impl<'sh> Benchmark for Cmd<'sh> {
     fn benchmark(&self, metrics: &mut Metrics, name: &str, desc: &str) -> anyhow::Result<()> {
         let mut elapsed_sum = 0;
         for _ in 0..Self::ITERATIONS_PER_BENCHMARK {

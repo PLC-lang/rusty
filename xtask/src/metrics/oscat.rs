@@ -1,6 +1,6 @@
 use xshell::{cmd, Shell};
 
-use super::{traits::BenchmarkExtension, Task};
+use super::{traits::Benchmark, Task};
 
 pub struct Oscat;
 impl Task for Oscat {

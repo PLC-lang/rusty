@@ -1,6 +1,6 @@
 use xshell::cmd;
 
-use super::traits::{BenchmarkExtension, Task};
+use super::traits::{Benchmark, Task};
 
 pub struct Sieve;
 impl Task for Sieve {
