@@ -75,7 +75,10 @@ impl Metrics {
             task.execute(sh, self)?;
         }
 
-        self.finalize(sh)?;
+        // Only commit and push IF we executed the task within a CI job
+        if std::env::var("CI_RUN").is_ok() {
+            self.finalize(sh)?;
+        }
 
         Ok(())
     }

@@ -26,4 +26,4 @@ jobs:
         # Change all uppercase to lowercase
         IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
         docker pull $IMAGE_ID
-        ./scripts/build.sh --metrics --container --container-name=$IMAGE_ID
+        ./scripts/build.sh --metrics --container --container-name=$IMAGE_ID --ci

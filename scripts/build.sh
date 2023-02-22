@@ -15,6 +15,7 @@ debug=0
 container=0
 assume_linux=0
 junit=0
+ci=0
 
 CONTAINER_NAME='rust-llvm'
 
@@ -142,6 +143,8 @@ function set_offline() {
 function run_in_container() {
 	container_engine=$(get_container_engine)
 	params=""
+	options=""
+
 	if [[ $offline -ne 0 ]]; then
 		params="$params --offline"
 	fi
@@ -175,6 +178,9 @@ function run_in_container() {
 	if [[ $doc -ne 0 ]]; then
 		params="$params --doc"
 	fi
+	if [[ $ci -ne 0 ]]; then
+		options="$options --env=CI_RUN=true"
+	fi
 
 	volume_target="/build"
   unameOut="$(uname -s)"
@@ -193,7 +199,7 @@ function run_in_container() {
 	build_location=$(sanitize_path "$project_location")
 	log "Sanitized Project location : $project_location"
 
-	command_to_run="$container_engine run -v $build_location:$volume_target $CONTAINER_NAME scripts/build.sh $params"
+	command_to_run="$container_engine run $options -v $build_location:$volume_target $CONTAINER_NAME scripts/build.sh $params"
 	log "Running command : $command_to_run"
 	eval "$command_to_run"
 }
@@ -202,7 +208,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,metrics,build,doc,test,junit,verbose,container,linux,container-name:,coverage
+LONGOPTS=sources,offline,release,check,check-style,metrics,ci,build,doc,test,junit,verbose,container,linux,container-name:,coverage
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -250,6 +256,9 @@ while true; do
 					;;
 			--metrics)
 				  metrics=1
+					;;
+			--ci)
+				  ci=1
 					;;
 			-b|--build)
 				  build=1
