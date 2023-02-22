@@ -1118,6 +1118,20 @@ fn any_bit_allows_bits() {
 		FUNCTION func3  : INT VAR x : WORD; END_VAR test(x); END_FUNCTION
 		FUNCTION func4  : INT VAR x : DWORD; END_VAR test(x); END_FUNCTION
 		FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
+        // binary expressions
+        FUNCTION func6  : INT 
+        VAR
+        a : BOOL;
+        b : BYTE;
+        c : WORD;
+        d : DWORD;
+        e : LWORD;
+        END_VAR
+            test(a + b);
+            test(d - c);
+            test(d * d);
+            test(b + e);
+        END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
