@@ -1,8 +1,6 @@
-use std::time::Instant;
-
 use xshell::{cmd, Shell};
 
-use super::{Task, ITERATIONS_PER_BENCHMARK};
+use super::{traits::BenchmarkExtension, Task};
 
 pub struct Oscat;
 impl Task for Oscat {
@@ -29,18 +27,14 @@ impl Task for Oscat {
     fn execute(&self, sh: &Shell, metrics: &mut super::Metrics) -> anyhow::Result<()> {
         let _oscat = sh.push_dir("./benchmark/oscat");
 
-        for optimization in &["-Onone", "-Oless", "-Odefault", "-Oaggressive"] {
-            let mut elapsed_sum = 0;
-            for _ in 0..ITERATIONS_PER_BENCHMARK {
-                let now = Instant::now();
-                cmd!(sh, "./rustyc {optimization} build").ignore_stderr().run()?;
-                let elapsed = now.elapsed();
-
-                elapsed_sum += elapsed.as_millis() as u64;
-            }
-
-            metrics.metrics.insert(format!("oscat {optimization}"), elapsed_sum / ITERATIONS_PER_BENCHMARK);
+        for flag in ["none", "less", "default", "aggressive"] {
+            cmd!(sh, "./rustyc -O{flag} build").ignore_stderr().benchmark(metrics, "oscat", flag)?;
         }
+
+        cmd!(sh, "./rustyc check oscat.st")
+            .ignore_status()
+            .ignore_stderr()
+            .benchmark(metrics, "oscat", "check")?;
 
         Ok(())
     }

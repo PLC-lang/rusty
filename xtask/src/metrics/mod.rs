@@ -1,4 +1,4 @@
-use crate::metrics::{oscat::Oscat, sieve::Sieve};
+use crate::metrics::{oscat::Oscat, sieve::Sieve, traits::Task};
 use serde::Serialize;
 use std::{
     collections::BTreeMap,
@@ -11,8 +11,7 @@ use xshell::{cmd, Shell};
 
 mod oscat;
 mod sieve;
-
-const ITERATIONS_PER_BENCHMARK: u64 = 3;
+mod traits;
 
 #[derive(Serialize)]
 struct Host {
@@ -27,14 +26,6 @@ pub struct Metrics {
     timestamp: u64,
     commit: String,
     metrics: BTreeMap<String, u64>,
-}
-
-trait Task {
-    /// Prepares its environment to execute a benchmark
-    fn prepare(&self, sh: &Shell) -> anyhow::Result<()>;
-
-    /// Executes a benchmark
-    fn execute(&self, sh: &Shell, metrics: &mut Metrics) -> anyhow::Result<()>;
 }
 
 impl Host {
@@ -75,6 +66,8 @@ impl Metrics {
             task.execute(sh, self)?;
         }
 
+        println!("{}", serde_json::to_string_pretty(self)?);
+
         // Only commit and push IF we executed the task within a CI job
         if std::env::var("CI_RUN").is_ok() {
             self.finalize(sh)?;
@@ -84,6 +77,7 @@ impl Metrics {
     }
 
     pub fn finalize(&self, sh: &Shell) -> anyhow::Result<()> {
+        let branch = "metrics-data";
         let filename = "metrics.json";
         let user_name = cmd!(sh, "git log -1 --pretty=format:'%an'").read()?;
         let user_mail = cmd!(sh, "git log -1 --pretty=format:'%ae'").read()?;
@@ -91,14 +85,14 @@ impl Metrics {
         cmd!(sh, "git pull").run()?;
         cmd!(sh, "git config user.name \"{user_name}\"").run()?;
         cmd!(sh, "git config user.email \"{user_mail}\"").run()?;
-        cmd!(sh, "git checkout metrics-data").run()?;
+        cmd!(sh, "git checkout {branch}").run()?;
 
         let mut file = fs::File::options().create(true).append(true).open(filename)?;
         writeln!(file, "{}", serde_json::to_string(self)?)?;
 
         cmd!(sh, "git add {filename}").run()?;
         cmd!(sh, "git commit -m 'Update data'").run()?;
-        cmd!(sh, "git push origin metrics-data").run()?;
+        cmd!(sh, "git push origin {branch}").run()?;
 
         Ok(())
     }
