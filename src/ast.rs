@@ -160,6 +160,10 @@ impl TypeNature {
     pub fn is_real(&self) -> bool {
         self.derives(TypeNature::Real)
     }
+
+    pub fn is_bit(&self) -> bool {
+        self.derives(TypeNature::Bit)
+    }
 }
 
 impl DirectAccessType {
