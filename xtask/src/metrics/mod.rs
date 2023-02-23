@@ -89,11 +89,10 @@ impl Metrics {
     /// Appends the collected data to a JSON file, commiting and pushing it onto
     /// the `metrics` branch hosted on RuSTy. Whoever the author of the last commit
     /// on the RuSTy master branch is thereby also the author of this commit.
-    #[allow(unused_variables)]
     pub fn finalize(&self, sh: &Shell) -> anyhow::Result<()> {
         let branch = "metrics";
         let filename = "metrics.json";
-        let commit = &self.commit;
+        let message = format!("'Append {}'", self.commit);
         let user_name = cmd!(sh, "git log -1 --pretty=format:'%an'").read()?;
         let user_mail = cmd!(sh, "git log -1 --pretty=format:'%ae'").read()?;
 
@@ -106,7 +105,7 @@ impl Metrics {
         writeln!(file, "{}", serde_json::to_string(self)?)?;
 
         cmd!(sh, "git add {filename}").run()?;
-        cmd!(sh, "git commit -m 'Append {commit}'").run()?;
+        cmd!(sh, "git commit -m {message}").run()?;
         cmd!(sh, "git push origin {branch}").run()?;
 
         Ok(())
