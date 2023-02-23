@@ -92,7 +92,7 @@ impl Metrics {
     pub fn finalize(&self, sh: &Shell) -> anyhow::Result<()> {
         let branch = "metrics";
         let filename = "metrics.json";
-        let message = format!("'Append {}'", self.commit);
+        let message = format!("Update {}", self.commit);
         let user_name = cmd!(sh, "git log -1 --pretty=format:'%an'").read()?;
         let user_mail = cmd!(sh, "git log -1 --pretty=format:'%ae'").read()?;
 
