@@ -1275,7 +1275,7 @@ fn method_implicit_downcast() {
 }
 
 #[test]
-fn validate_call_by_ref_arrays() {
+fn validate_array_elements_passed_to_functions_by_ref() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
         FUNCTION func : DINT
