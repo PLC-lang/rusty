@@ -7,6 +7,8 @@ impl Task for Oscat {
     fn prepare(&self, sh: &Shell) -> anyhow::Result<()> {
         cmd!(sh, "git clone https://github.com/plc-lang/oscat ./benchmark/oscat").run()?;
         cmd!(sh, "git clone https://github.com/plc-lang/standardfunctions ./benchmark/oscat/sf").run()?;
+
+        cmd!(sh, "cargo b --release").run()?;
         sh.copy_file("./target/release/rustyc", "./benchmark/oscat")?;
 
         sh.create_dir("./benchmark/oscat/lib").unwrap();

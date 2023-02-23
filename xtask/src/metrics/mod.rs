@@ -14,18 +14,28 @@ mod sieve;
 mod traits;
 
 #[derive(Serialize)]
+pub struct Metrics {
+    /// Host information, see [`Host`].
+    host: Host,
+
+    /// Unix timestamp of when this xtask was called.
+    timestamp: u64,
+
+    /// Commit hash on which the benchmark ran.
+    commit: String,
+
+    /// Collected benchmarks, where the first tuple element describes the benchmark and the second
+    /// element is its raw wall-time value in milliseconds.
+    /// For example one such element might be `("oscat/aggressive", 8000)`, indicating an oscat build
+    /// with the `aggressive` optimization flag took 8000ms.
+    metrics: BTreeMap<String, u64>,
+}
+
+#[derive(Serialize)]
 struct Host {
     os: String,
     cpu: String,
     mem: u64,
-}
-
-#[derive(Serialize)]
-pub struct Metrics {
-    host: Host,
-    timestamp: u64,
-    commit: String,
-    metrics: BTreeMap<String, u64>,
 }
 
 impl Host {
@@ -53,12 +63,13 @@ impl Metrics {
         Ok(Self { host, timestamp, commit, metrics })
     }
 
+    /// Starts the execution of various [`Task`]s, collecting bechmark data.
+    /// Additionally the data is pushed onto the `metrics` branch on rusty if the task
+    /// is executed within a CI enviroment, i.e. specified by the `CI_RUN` environment flag.
     pub fn execute(&mut self, sh: &Shell) -> anyhow::Result<()> {
         // Remove and re-create the folder in case of previous dry runs
         sh.remove_path("./benchmark")?;
         sh.create_dir("./benchmark")?;
-
-        cmd!(sh, "cargo b --release").run()?;
 
         let tasks: Vec<Box<dyn Task>> = vec![Box::new(Oscat), Box::new(Sieve)];
         for task in tasks {
@@ -66,19 +77,23 @@ impl Metrics {
             task.execute(sh, self)?;
         }
 
-        println!("{}", serde_json::to_string_pretty(self)?);
-
         // Only commit and push IF we executed the task within a CI job
         if std::env::var("CI_RUN").is_ok() {
             self.finalize(sh)?;
         }
 
+        println!("{}", serde_json::to_string_pretty(self)?);
         Ok(())
     }
 
+    /// Appends the collected data to a JSON file, commiting and pushing it onto
+    /// the `metrics` branch hosted on RuSTy. Whoever the author of the last commit
+    /// on the RuSTy master branch is thereby also the author of this commit.
+    #[allow(unused_variables)]
     pub fn finalize(&self, sh: &Shell) -> anyhow::Result<()> {
-        let branch = "metrics-data";
+        let branch = "metrics";
         let filename = "metrics.json";
+        let commit = &self.commit;
         let user_name = cmd!(sh, "git log -1 --pretty=format:'%an'").read()?;
         let user_mail = cmd!(sh, "git log -1 --pretty=format:'%ae'").read()?;
 
@@ -91,7 +106,7 @@ impl Metrics {
         writeln!(file, "{}", serde_json::to_string(self)?)?;
 
         cmd!(sh, "git add {filename}").run()?;
-        cmd!(sh, "git commit -m 'Update data'").run()?;
+        cmd!(sh, "git commit -m 'Append {commit}'").run()?;
         cmd!(sh, "git push origin {branch}").run()?;
 
         Ok(())
