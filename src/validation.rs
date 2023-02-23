@@ -276,13 +276,7 @@ impl Validator {
 
                                 // check for implicit downcasts
                                 if !(pou.is_generic() || right.is_literal()) {
-                                    self.validate_passed_call_parameter_size(
-                                        left,
-                                        left_type,
-                                        right_type,
-                                        p.get_location(),
-                                        context.index,
-                                    );
+                                    self.validate_assignment_type_sizes(left, p, p.get_location(), context);
                                 }
                             }
 
@@ -461,40 +455,26 @@ impl Validator {
         }
     }
 
-    fn validate_passed_call_parameter_size(
+    fn validate_assignment_type_sizes(
         &mut self,
         idx_entry: &VariableIndexEntry,
-        declared_type: &typesystem::DataType,
-        passed_type: &typesystem::DataType,
+        statement: &AstStatement,
         location: SourceRange,
-        index: &Index,
+        context: &ValidationContext,
     ) {
-        let passed_type_info = passed_type.get_type_information();
-        let declared_type_info = declared_type.get_type_information();
-
-        // if the parameter is declared as by_ref, get the type behind it
-        let declared_type_info = if matches!(idx_entry.variable_type, ArgumentType::ByRef(..)) {
-            index.find_elementary_pointer_type(declared_type_info)
-        } else {
-            index.find_intrinsic_type(declared_type_info)
+        let index = &context.index;
+        let assigned_type = context.ast_annotation.get_type(&statement, &index);
+        let actual_type = context.ast_annotation.get_type_hint(&statement, &index);
+        let (Some(assigned_type), Some(actual_type)) = (assigned_type, actual_type) else {
+            return
         };
 
-        // if we are passing a pointer, get the type behind it
-        let passed_type_info = if passed_type_info.is_pointer() {
-            index.find_elementary_pointer_type(passed_type_info)
-        } else {
-            index.find_intrinsic_type(passed_type_info)
-        };
-
-        // if either type is an aggregate type, we do not check for downcasts because a size mismatch will be an invalid assignment
-        if declared_type_info.is_aggregate() || passed_type_info.is_aggregate() {
-            return;
-        }
-
-        if declared_type_info.get_size(index) < passed_type_info.get_size(index) {
+        if assigned_type.get_type_information().get_size(&index)
+            > actual_type.get_type_information().get_size(&index)
+        {
             self.stmt_validator.push_diagnostic(Diagnostic::implicit_downcast(
-                declared_type_info.get_name(),
-                passed_type_info.get_name(),
+                actual_type.get_name(),
+                assigned_type.get_name(),
                 location,
             ))
         }

@@ -643,13 +643,13 @@ impl Diagnostic {
     }
 
     pub fn implicit_downcast(
-        declared_parameter_name: &str,
-        passed_parameter_name: &str,
+        actual_type_name: &str,
+        assigned_type_name: &str,
         range: SourceRange,
     ) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: format!(
-                "Potential loss of information due to passing '{passed_parameter_name}' to parameter of type '{declared_parameter_name}'."
+                "Potential loss of information due to assigning '{assigned_type_name}' to variable of type '{actual_type_name}'."
             ),
             range: vec![range],
         }
