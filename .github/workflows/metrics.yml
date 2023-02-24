@@ -3,7 +3,7 @@ name: Metrics
 on:
   push:
     branches:
-    - dashboard
+    - master
 
 env:
   IMAGE_NAME: rust-llvm
@@ -17,8 +17,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      with:
-        ref: dashboard
+      # with:
+      #   submodules: true
 
     - name: Collect metrics
       run: |

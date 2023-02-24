@@ -26,9 +26,6 @@ FUNCTION sieve : DINT
         END_IF;
     END_FOR;
 
-    // TODO: Is there something like an assertion; alternatively return != 0 bash status code?
-    // - primes.utm.edu/howmany.html
-    // - wolframalpha.com/input?i=primes+between+1+and+500%2C000%2C000
     printf('Primes found: %d (correct: %d)$N', primes_total, (primes_total - 1) = 26_355_867);
 END_FUNCTION
 
