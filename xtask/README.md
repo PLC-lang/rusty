@@ -7,4 +7,3 @@ This directory contains the following [tasks](https://github.com/matklad/cargo-x
     <img src="res/ARCH.svg">
 </div>
 
-foo
