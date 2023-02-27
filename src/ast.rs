@@ -1266,6 +1266,10 @@ impl AstStatement {
         matches!(self, AstStatement::Reference { .. })
     }
 
+    pub fn is_qualified_reference(&self) -> bool {
+        matches!(self, AstStatement::QualifiedReference { .. })
+    }
+
     pub fn is_hardware_access(&self) -> bool {
         matches!(self, AstStatement::HardwareAccess { .. })
     }
@@ -1289,6 +1293,7 @@ impl AstStatement {
     pub fn can_be_assigned_to(&self) -> bool {
         self.has_direct_access()
             || self.is_reference()
+            || self.is_qualified_reference()
             || self.is_array_access()
             || self.is_pointer_access()
             || self.is_hardware_access()

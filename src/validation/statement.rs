@@ -77,86 +77,7 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
             visit_statement(validator, left, context);
             visit_statement(validator, right, context);
 
-            // validate assignment
-            if let Some(StatementAnnotation::Variable {
-                constant,
-                qualified_name: l_qualified_name,
-                resulting_type: l_resulting_type,
-                ..
-            }) = context.annotations.get(left.as_ref())
-            {
-                // check if we assign to a constant variable
-                if *constant {
-                    validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
-                        l_qualified_name.as_str(),
-                        left.get_location(),
-                    ));
-                }
-
-                let l_effective_type =
-                    context.index.get_effective_type_or_void_by_name(l_resulting_type).get_type_information();
-                let r_effective_type =
-                    context.annotations.get_type_or_void(right, context.index).get_type_information();
-
-                //check if Datatype can hold a Pointer (u64)
-                if r_effective_type.is_pointer()
-                    && !l_effective_type.is_pointer()
-                    && l_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
-                {
-                    validator.push_diagnostic(Diagnostic::incompatible_type_size(
-                        l_effective_type.get_name(),
-                        l_effective_type.get_size_in_bits(context.index),
-                        "hold a",
-                        statement.get_location(),
-                    ));
-                }
-                //check if size allocated to Pointer is standart pointer size (u64)
-                else if l_effective_type.is_pointer()
-                    && !r_effective_type.is_pointer()
-                    && r_effective_type.get_size_in_bits(context.index) < POINTER_SIZE
-                {
-                    validator.push_diagnostic(Diagnostic::incompatible_type_size(
-                        r_effective_type.get_name(),
-                        r_effective_type.get_size_in_bits(context.index),
-                        "to be stored in a",
-                        statement.get_location(),
-                    ));
-                }
-
-                // valid assignments -> char := literalString, char := char
-                // check if we assign to a character variable -> char := ..
-                if l_effective_type.is_character() {
-                    if let AstStatement::LiteralString { value, location, .. } = right.as_ref() {
-                        // literalString may only be 1 character long
-                        if value.len() > 1 {
-                            validator.push_diagnostic(Diagnostic::syntax_error(
-                                format!("Value: '{value}' exceeds length for type: {l_resulting_type}",)
-                                    .as_str(),
-                                location.clone(),
-                            ));
-                        }
-                    } else if l_effective_type != r_effective_type {
-                        // invalid assignment
-                        validator.push_diagnostic(Diagnostic::invalid_assignment(
-                            r_effective_type.get_name(),
-                            l_effective_type.get_name(),
-                            statement.get_location(),
-                        ));
-                    }
-                } else if r_effective_type.is_character() {
-                    // if we try to assign a character variable -> .. := char
-                    // and didn't match the first if, left and right won't have the same type -> invalid assignment
-                    validator.push_diagnostic(Diagnostic::invalid_assignment(
-                        r_effective_type.get_name(),
-                        l_effective_type.get_name(),
-                        statement.get_location(),
-                    ));
-                }
-            } else if !left.can_be_assigned_to() {
-                // If whatever we got is not assignable, output an error
-                // we hit an assignment without a LValue to assign to
-                validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
-            }
+            validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::OutputAssignment { left, right, .. } => {
             visit_statement(validator, left, context);
@@ -659,6 +580,169 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
             )),
         }
     }
+}
+
+fn validate_assignment(
+    validator: &mut Validator,
+    right: &AstStatement,
+    left: Option<&AstStatement>,
+    location: &SourceRange,
+    context: &ValidationContext,
+) {
+    if let Some(left) = left {
+        // check if we assign to a constant variable
+        if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
+            context.annotations.get(left)
+        {
+            if *constant {
+                validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
+                    qualified_name.as_str(),
+                    left.get_location(),
+                ));
+            }
+        }
+
+        // If whatever we got is not assignable, output an error
+        if !left.can_be_assigned_to() {
+            // we hit an assignment without a LValue to assign to
+            validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
+        }
+    }
+
+    let right_type = context.annotations.get_type(right, context.index);
+    let left_type = context.annotations.get_type_hint(right, context.index);
+    if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
+        if !left_type.is_compatible_with_type(right_type)
+            || !is_valid_assignment(left_type, right_type, right, context.index, location, validator)
+        {
+            validator.push_diagnostic(Diagnostic::invalid_assignment(
+                right_type.get_type_information().get_name(),
+                left_type.get_type_information().get_name(),
+                location.clone(),
+            ));
+        }
+    }
+}
+
+fn is_valid_assignment(
+    left_type: &DataType,
+    right_type: &DataType,
+    right: &AstStatement,
+    index: &Index,
+    location: &SourceRange,
+    validator: &mut Validator,
+) -> bool {
+    if is_valid_string_to_char_assignment(
+        left_type.get_type_information(),
+        right_type.get_type_information(),
+        right,
+        location,
+        validator,
+    ) {
+        // in this case return true and skip any other validation
+        // because those would fail
+        return true;
+    } else if is_invalid_pointer_assignment(
+        left_type.get_type_information(),
+        right_type.get_type_information(),
+        index,
+        location,
+        validator,
+    ) | is_invalid_char_assignment(
+        left_type.get_type_information(),
+        right_type.get_type_information(),
+    ) | is_aggregate_to_none_aggregate_assignment(left_type, right_type)
+        | is_aggregate_type_missmatch(left_type, right_type, index)
+    {
+        return false;
+    }
+    true
+}
+
+/// strings with length 1 can be assigned to characters
+fn is_valid_string_to_char_assignment(
+    left_type: &DataTypeInformation,
+    right_type: &DataTypeInformation,
+    right: &AstStatement,
+    location: &SourceRange,
+    validator: &mut Validator,
+) -> bool {
+    // TODO: casted literals and reference
+    if left_type.is_character() & right_type.is_string() {
+        if let AstStatement::LiteralString { value, .. } = right {
+            if value.len() == 1 {
+                return true;
+            } else {
+                validator.push_diagnostic(Diagnostic::syntax_error(
+                    format!("Value: '{value}' exceeds length for type: {}", left_type.get_name()).as_str(),
+                    location.clone(),
+                ));
+                return false;
+            }
+        }
+    }
+    false
+}
+
+fn is_invalid_pointer_assignment(
+    left_type: &DataTypeInformation,
+    right_type: &DataTypeInformation,
+    index: &Index,
+    location: &SourceRange,
+    validator: &mut Validator,
+) -> bool {
+    //check if Datatype can hold a Pointer (u64)
+    if right_type.is_pointer() && !left_type.is_pointer() && left_type.get_size_in_bits(index) < POINTER_SIZE
+    {
+        validator.push_diagnostic(Diagnostic::incompatible_type_size(
+            left_type.get_name(),
+            left_type.get_size_in_bits(index),
+            "hold a",
+            location.clone(),
+        ));
+        return true;
+    }
+    //check if size allocated to Pointer is standart pointer size (u64)
+    else if left_type.is_pointer()
+        && !right_type.is_pointer()
+        && right_type.get_size_in_bits(index) < POINTER_SIZE
+    {
+        validator.push_diagnostic(Diagnostic::incompatible_type_size(
+            right_type.get_name(),
+            right_type.get_size_in_bits(index),
+            "to be stored in a",
+            location.clone(),
+        ));
+        return true;
+    }
+    false
+}
+
+/// check if we try to assign a CHAR to WCHAR or vice versa
+fn is_invalid_char_assignment(left_type: &DataTypeInformation, right_type: &DataTypeInformation) -> bool {
+    if (left_type.is_character() & right_type.is_character())
+        && (left_type.get_name() != right_type.get_name())
+    {
+        return true;
+    }
+    false
+}
+
+/// aggregate types can only be assigned to aggregate types
+/// special case char := string_with_length_1, handled by `is_valid_string_to_char_assignment()`
+fn is_aggregate_to_none_aggregate_assignment(left_type: &DataType, right_type: &DataType) -> bool {
+    left_type.is_aggregate_type() ^ right_type.is_aggregate_type()
+}
+
+/// if we try to assign an aggregate type to another
+/// check if we have the same type
+fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, index: &Index) -> bool {
+    left_type.is_aggregate_type() & right_type.is_aggregate_type()
+        && !typesystem::is_same_type_class(
+            left_type.get_type_information(),
+            right_type.get_type_information(),
+            index,
+        )
 }
 
 // selector, case_blocks, else_block

@@ -199,6 +199,25 @@ impl DataType {
             None
         }
     }
+
+    pub fn is_compatible_with_type(&self, other: &DataType) -> bool {
+        match self.nature {
+            TypeNature::Real
+            | TypeNature::Int
+            | TypeNature::Signed
+            | TypeNature::Unsigned
+            | TypeNature::Duration
+            | TypeNature::Date
+            | TypeNature::Bit => {
+                other.is_numerical()
+                    || matches!(other.nature, TypeNature::Bit | TypeNature::Date | TypeNature::Duration)
+            }
+            TypeNature::Char => matches!(other.nature, TypeNature::Char | TypeNature::String),
+            TypeNature::String => matches!(other.nature, TypeNature::String),
+            TypeNature::Any => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

@@ -23,7 +23,10 @@ fn assign_pointer_to_too_small_type_result_in_an_error() {
     //THEN assignment with different type sizes are reported
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::incompatible_type_size("DWORD", 32, "hold a", (204..218).into()),]
+        vec![
+            Diagnostic::incompatible_type_size("DWORD", 32, "hold a", (204..218).into()),
+            Diagnostic::invalid_assignment("__FOO_ptr", "DWORD", (204..218).into())
+        ]
     );
 }
 
@@ -48,7 +51,10 @@ fn assign_too_small_type_to_pointer_result_in_an_error() {
     //THEN assignment with different type sizes are reported
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::incompatible_type_size("DWORD", 32, "to be stored in a", (204..218).into()),]
+        vec![
+            Diagnostic::incompatible_type_size("DWORD", 32, "to be stored in a", (204..218).into()),
+            Diagnostic::invalid_assignment("DWORD", "__FOO_ptr", (204..218).into())
+        ]
     );
 }
 
@@ -65,7 +71,7 @@ fn assign_pointer_to_lword() {
             END_VAR
             
             address := 16#DEAD_BEEF;              
-            address := ptr;         //should throw error as address is too small to store full pointer
+            address := ptr;
         END_PROGRAM
         ",
     );
@@ -196,8 +202,10 @@ fn invalid_char_assignments() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::syntax_error("Value: 'AJK%&/231' exceeds length for type: CHAR", (129..140).into()),
-            Diagnostic::syntax_error("Value: '898JKAN' exceeds length for type: WCHAR", (162..171).into()),
+            Diagnostic::syntax_error("Value: 'AJK%&/231' exceeds length for type: CHAR", (124..140).into()),
+            Diagnostic::invalid_assignment("STRING", "CHAR", (124..140).into()),
+            Diagnostic::syntax_error("Value: '898JKAN' exceeds length for type: WCHAR", (156..171).into()),
+            Diagnostic::invalid_assignment("WSTRING", "WCHAR", (156..171).into()),
             Diagnostic::invalid_assignment("WCHAR", "CHAR", (188..195).into()),
             Diagnostic::invalid_assignment("CHAR", "WCHAR", (211..218).into()),
             Diagnostic::invalid_assignment("INT", "CHAR", (247..253).into()),

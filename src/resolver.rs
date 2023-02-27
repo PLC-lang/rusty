@@ -1441,17 +1441,14 @@ fn get_direct_access_type(access: &crate::ast::DirectAccessType) -> &'static str
 
 /// adds a string-type to the given index and returns it's name
 fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
-    let new_type_name = if is_wide {
-        typesystem::create_internal_type_name("WSTRING_", len.to_string().as_str())
-    } else {
-        typesystem::create_internal_type_name("STRING_", len.to_string().as_str())
-    };
+    let prefix = if is_wide { "WSTRING_" } else { "STRING_" };
+    let new_type_name = typesystem::create_internal_type_name(prefix, len.to_string().as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(crate::typesystem::DataType {
             name: new_type_name.clone(),
             initial_value: None,
-            nature: TypeNature::Chars,
+            nature: TypeNature::String,
             information: crate::typesystem::DataTypeInformation::String {
                 encoding: if is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
