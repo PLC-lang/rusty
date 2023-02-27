@@ -382,7 +382,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_direct_access_index(
         &self,
         access: &DirectAccessType,
-        index: &AstStatement,
+        index: &AstStatement, // name is index, type is AstStatement?
         access_type: &DataTypeInformation,
         target_type: &DataType,
     ) -> Result<IntValue<'ink>, Diagnostic> {
