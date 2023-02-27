@@ -77,11 +77,13 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
             visit_statement(validator, left, context);
             visit_statement(validator, right, context);
 
-            validate_assignment(validator, right, Some(left), &statement.get_location(), context);
+            validate_assignment(validator, right, left, &statement.get_location(), context);
         }
         AstStatement::OutputAssignment { left, right, .. } => {
             visit_statement(validator, left, context);
             visit_statement(validator, right, context);
+
+            validate_assignment(validator, right, left, &statement.get_location(), context);
         }
         AstStatement::CallStatement { operator, parameters, .. } => {
             // visit called pou
@@ -585,28 +587,26 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
 fn validate_assignment(
     validator: &mut Validator,
     right: &AstStatement,
-    left: Option<&AstStatement>,
+    left: &AstStatement,
     location: &SourceRange,
     context: &ValidationContext,
 ) {
-    if let Some(left) = left {
-        // check if we assign to a constant variable
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
-            context.annotations.get(left)
-        {
-            if *constant {
-                validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
-                    qualified_name.as_str(),
-                    left.get_location(),
-                ));
-            }
+    // check if we assign to a constant variable
+    if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
+        context.annotations.get(left)
+    {
+        if *constant {
+            validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
+                qualified_name.as_str(),
+                left.get_location(),
+            ));
         }
+    }
 
-        // If whatever we got is not assignable, output an error
-        if !left.can_be_assigned_to() {
-            // we hit an assignment without a LValue to assign to
-            validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
-        }
+    // If whatever we got is not assignable, output an error
+    if !left.can_be_assigned_to() {
+        // we hit an assignment without a LValue to assign to
+        validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
     }
 
     let right_type = context.annotations.get_type(right, context.index);
