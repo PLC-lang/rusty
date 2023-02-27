@@ -90,7 +90,7 @@ impl Metrics {
     /// the `metrics` branch hosted on RuSTy. Whoever the author of the last commit
     /// on the RuSTy master branch is thereby also the author of this commit.
     pub fn finalize(&self, sh: &Shell) -> anyhow::Result<()> {
-        let branch = "metrics";
+        let branch = "metrics-data";
         let filename = "metrics.json";
         let message = format!("Update {}", self.commit);
         let user_name = cmd!(sh, "git log -1 --pretty=format:'%an'").read()?;
