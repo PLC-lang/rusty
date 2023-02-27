@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod array_validation_test;
+mod assignment_validation_tests;
 mod bitaccess_validation_test;
 mod duplicates_validation_test;
 mod generic_validation_tests;

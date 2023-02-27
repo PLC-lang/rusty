@@ -1073,7 +1073,7 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
                 let ldetails = index.find_elementary_pointer_type(ltype);
                 let rdetails = index.find_elementary_pointer_type(rtype);
 
-                ldetails == rdetails
+                is_same_type_class(ldetails, rdetails, index)
             }
 
             // If nothing applies we can assume the types to be different
