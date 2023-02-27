@@ -7,7 +7,7 @@ END_VAR
 FUNCTION sieve : DINT
     VAR
         i, j : ULINT;
-        primes_total : ULINT;
+        primes : ULINT;
     END_VAR
 
     FOR i := 2 TO sieve_size DO
@@ -22,11 +22,11 @@ FUNCTION sieve : DINT
 
     FOR i := 2 TO sieve_size DO
         IF flags[i] = 0 THEN
-            primes_total := primes_total + 1;
+            primes := primes + 1;
         END_IF;
     END_FOR;
 
-    printf('Primes found: %d (correct: %d)$N', primes_total, (primes_total - 1) = 26_355_867);
+    printf('Primes found: %lld (correct: %d)$N', primes, (primes - 1) = 26_355_867);
 END_FUNCTION
 
 FUNCTION main : DINT

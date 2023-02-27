@@ -8,6 +8,7 @@ impl Task for Sieve {
         cmd!(sh, "cargo b --release").run()?;
         sh.copy_file("./target/release/rustyc", "./benchmark")?;
         sh.copy_file("./xtask/res/sieve.st", "./benchmark")?;
+        sh.copy_file("./xtask/res/sieve.c", "./benchmark")?;
 
         Ok(())
     }
@@ -17,7 +18,12 @@ impl Task for Sieve {
 
         for flag in ["none", "less", "default", "aggressive"] {
             cmd!(sh, "./rustyc --linker=clang -O{flag} sieve.st").run()?;
-            cmd!(sh, "./sieve").ignore_status().benchmark(metrics, "sieve", flag)?;
+            cmd!(sh, "./sieve").ignore_status().benchmark(metrics, "sieve-st", flag)?;
+        }
+
+        for flag in ["0", "1", "2", "3"] {
+            cmd!(sh, "gcc -O{flag} sieve.c").run()?;
+            cmd!(sh, "./a.out").ignore_status().benchmark(metrics, "sieve-c", flag)?;
         }
 
         Ok(())
