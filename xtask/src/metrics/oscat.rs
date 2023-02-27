@@ -1,6 +1,5 @@
+use crate::traits::{Benchmark, Task};
 use xshell::{cmd, Shell};
-
-use super::{traits::Benchmark, Task};
 
 pub struct Oscat;
 impl Task for Oscat {
@@ -36,7 +35,7 @@ impl Task for Oscat {
         cmd!(sh, "./rustyc check oscat.st")
             .ignore_status()
             .ignore_stderr()
-            .benchmark(metrics, "oscat", "check")?;
+            .benchmark(metrics, "check", "oscat")?;
 
         Ok(())
     }

@@ -1,4 +1,5 @@
-use crate::metrics::{oscat::Oscat, sieve::Sieve, traits::Task};
+use crate::metrics::{oscat::Oscat, sieve::Sieve};
+use crate::traits::Task;
 use serde::Serialize;
 use std::{
     collections::BTreeMap,
@@ -11,7 +12,6 @@ use xshell::{cmd, Shell};
 
 mod oscat;
 mod sieve;
-mod traits;
 
 #[derive(Serialize)]
 pub struct Metrics {
@@ -28,7 +28,7 @@ pub struct Metrics {
     /// element is its raw wall-time value in milliseconds.
     /// For example one such element might be `("oscat/aggressive", 8000)`, indicating an oscat build
     /// with the `aggressive` optimization flag took 8000ms.
-    metrics: BTreeMap<String, u64>,
+    pub(crate) metrics: BTreeMap<String, u64>,
 }
 
 #[derive(Serialize)]

@@ -5,6 +5,7 @@ use metrics::Metrics;
 use xshell::Shell;
 
 mod metrics;
+mod traits;
 
 enum Task {
     Metrics,
