@@ -6,3 +6,5 @@ This directory contains the following [tasks](https://github.com/matklad/cargo-x
 <div align="center">
     <img src="res/ARCH.svg">
 </div>
+
+foobar
