@@ -77,90 +77,16 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
             visit_statement(validator, left, context);
             visit_statement(validator, right, context);
 
-            validate_assignment(validator, right, left, &statement.get_location(), context);
+            validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::OutputAssignment { left, right, .. } => {
             visit_statement(validator, left, context);
             visit_statement(validator, right, context);
 
-            validate_assignment(validator, right, left, &statement.get_location(), context);
+            validate_assignment(validator, right, Some(left), &statement.get_location(), context);
         }
         AstStatement::CallStatement { operator, parameters, .. } => {
-            // visit called pou
-            visit_statement(validator, operator, context);
-
-            if let Some(pou) = context.find_pou(operator) {
-                let declared_parameters = context.index.get_declared_parameters(pou.get_name());
-                let passed_parameters =
-                    parameters.as_ref().as_ref().map(ast::flatten_expression_list).unwrap_or_default();
-
-                let mut passed_params_idx = Vec::new();
-                let mut are_implicit_parameters = true;
-                // validate parameters
-                for (i, p) in passed_parameters.iter().enumerate() {
-                    if let Ok((location_in_parent, right, is_implicit)) =
-                        get_implicit_call_parameter(p, &declared_parameters, i)
-                    {
-                        // safe index of passed parameter
-                        passed_params_idx.push(location_in_parent);
-
-                        let left = declared_parameters.get(location_in_parent);
-                        let left_type = left.map(|param| {
-                            context.index.get_effective_type_or_void_by_name(param.get_type_name())
-                        });
-                        let right_type = context.annotations.get_type(right, context.index);
-
-                        if let (Some(left), Some(left_type), Some(right_type)) = (left, left_type, right_type)
-                        {
-                            validate_call_parameter_assignment(
-                                validator,
-                                left,
-                                left_type,
-                                right_type,
-                                p.get_location(),
-                                context.index,
-                            );
-
-                            validate_call_by_ref(validator, left, p);
-                        }
-
-                        // mixing implicit and explicit parameters is not allowed
-                        // allways compare to the first passed parameter
-                        if i == 0 {
-                            are_implicit_parameters = is_implicit;
-                        } else if are_implicit_parameters != is_implicit {
-                            validator.push_diagnostic(Diagnostic::invalid_parameter_type(p.get_location()));
-                        }
-                    }
-
-                    visit_statement(validator, p, context);
-                }
-
-                // for PROGRAM/FB we need special inout validation
-                if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
-                    let inouts: Vec<&&VariableIndexEntry> = declared_parameters
-                        .iter()
-                        .filter(|p| VariableType::InOut == p.get_variable_type())
-                        .collect();
-                    // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
-                    if !inouts.is_empty() {
-                        // check if all inouts were passed to the pou call
-                        inouts.into_iter().for_each(|p| {
-                            if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
-                                validator.push_diagnostic(Diagnostic::missing_inout_parameter(
-                                    p.get_name(),
-                                    operator.get_location(),
-                                ));
-                            }
-                        });
-                    }
-                }
-            } else {
-                // POU could not be found, we can still partially validate the passed parameters
-                if let Some(s) = parameters.as_ref() {
-                    visit_statement(validator, s, context);
-                }
-            }
+            validate_call(validator, operator, parameters, context);
         }
         AstStatement::IfStatement { blocks, else_block, .. } => {
             blocks.iter().for_each(|b| {
@@ -532,30 +458,23 @@ fn validate_unary_expression(
     }
 }
 
-fn validate_call_parameter_assignment(
+fn validate_implicit_call_parameter_assignment(
     validator: &mut Validator,
     left: &VariableIndexEntry,
     left_type: &typesystem::DataType,
-    right_type: &typesystem::DataType,
+    right: &AstStatement,
     location: SourceRange,
-    index: &Index,
+    context: &ValidationContext,
 ) {
     // for parameters passed `ByRef` we need to check the inner type of the pointer
     let left_type_info = if matches!(left.variable_type, ArgumentType::ByRef(..)) {
-        index.find_elementary_pointer_type(left_type.get_type_information())
+        context.index.find_elementary_pointer_type(left_type.get_type_information())
     } else {
-        index.find_intrinsic_type(left_type.get_type_information())
+        context.index.find_intrinsic_type(left_type.get_type_information())
     };
-    let right_type_info = index.find_intrinsic_type(right_type.get_type_information());
     // stmt_validator `validate_type_nature()` should report any error see `generic_validation_tests` ignore generics here and safe work
-    if !matches!(left_type_info, DataTypeInformation::Generic { .. })
-        & !typesystem::is_same_type_class(left_type_info, right_type_info, index)
-    {
-        validator.push_diagnostic(Diagnostic::invalid_assignment(
-            right_type_info.get_name(),
-            left_type_info.get_name(),
-            location,
-        ))
+    if !matches!(left_type_info, DataTypeInformation::Generic { .. }) {
+        validate_assignment(validator, right, None, &location, context);
     }
 }
 
@@ -587,31 +506,43 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
 fn validate_assignment(
     validator: &mut Validator,
     right: &AstStatement,
-    left: &AstStatement,
+    left: Option<&AstStatement>,
     location: &SourceRange,
     context: &ValidationContext,
 ) {
-    // check if we assign to a constant variable
-    if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
-        context.annotations.get(left)
-    {
-        if *constant {
-            validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
-                qualified_name.as_str(),
-                left.get_location(),
-            ));
+    if let Some(left) = left {
+        // check if we assign to a constant variable
+        if let Some(StatementAnnotation::Variable { constant, qualified_name, .. }) =
+            context.annotations.get(left)
+        {
+            if *constant {
+                validator.push_diagnostic(Diagnostic::cannot_assign_to_constant(
+                    qualified_name.as_str(),
+                    left.get_location(),
+                ));
+            }
         }
-    }
 
-    // If whatever we got is not assignable, output an error
-    if !left.can_be_assigned_to() {
-        // we hit an assignment without a LValue to assign to
-        validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
+        // If whatever we got is not assignable, output an error
+        if !left.can_be_assigned_to() {
+            // we hit an assignment without a LValue to assign to
+            validator.push_diagnostic(Diagnostic::reference_expected(left.get_location()));
+        }
     }
 
     let right_type = context.annotations.get_type(right, context.index);
     let left_type = context.annotations.get_type_hint(right, context.index);
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
+        // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
+        // we need the inner type
+        let left_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: true, .. } =
+            left_type.get_type_information()
+        {
+            context.index.get_effective_type_or_void_by_name(inner_type_name)
+        } else {
+            left_type
+        };
+
         if !left_type.is_compatible_with_type(right_type)
             || !is_valid_assignment(left_type, right_type, right, context.index, location, validator)
         {
@@ -691,8 +622,13 @@ fn is_invalid_pointer_assignment(
     location: &SourceRange,
     validator: &mut Validator,
 ) -> bool {
+    if left_type.is_pointer() & right_type.is_pointer() {
+        return !typesystem::is_same_type_class(left_type, right_type, index);
+    }
     //check if Datatype can hold a Pointer (u64)
-    if right_type.is_pointer() && !left_type.is_pointer() && left_type.get_size_in_bits(index) < POINTER_SIZE
+    else if right_type.is_pointer()
+        && !left_type.is_pointer()
+        && left_type.get_size_in_bits(index) < POINTER_SIZE
     {
         validator.push_diagnostic(Diagnostic::incompatible_type_size(
             left_type.get_name(),
@@ -743,6 +679,87 @@ fn is_aggregate_type_missmatch(left_type: &DataType, right_type: &DataType, inde
             right_type.get_type_information(),
             index,
         )
+}
+
+fn validate_call(
+    validator: &mut Validator,
+    operator: &AstStatement,
+    parameters: &Option<AstStatement>,
+    context: &ValidationContext,
+) {
+    // visit called pou
+    visit_statement(validator, operator, context);
+
+    if let Some(pou) = context.find_pou(operator) {
+        let declared_parameters = context.index.get_declared_parameters(pou.get_name());
+        let passed_parameters = parameters.as_ref().map(ast::flatten_expression_list).unwrap_or_default();
+
+        let mut passed_params_idx = Vec::new();
+        let mut are_implicit_parameters = true;
+        // validate parameters
+        for (i, p) in passed_parameters.iter().enumerate() {
+            if let Ok((location_in_parent, right, is_implicit)) =
+                get_implicit_call_parameter(p, &declared_parameters, i)
+            {
+                // safe index of passed parameter
+                passed_params_idx.push(location_in_parent);
+
+                let left = declared_parameters.get(location_in_parent);
+                let left_type =
+                    left.map(|param| context.index.get_effective_type_or_void_by_name(param.get_type_name()));
+
+                if let (Some(left), Some(left_type)) = (left, left_type) {
+                    // explicit call parameter assignments will be handled by
+                    // `visit_statement()` via `Assignment` and `OutputAssignment`
+                    if is_implicit {
+                        validate_implicit_call_parameter_assignment(
+                            validator,
+                            left,
+                            left_type,
+                            right,
+                            p.get_location(),
+                            context,
+                        );
+                    }
+
+                    validate_call_by_ref(validator, left, p);
+                }
+
+                // mixing implicit and explicit parameters is not allowed
+                // allways compare to the first passed parameter
+                if i == 0 {
+                    are_implicit_parameters = is_implicit;
+                } else if are_implicit_parameters != is_implicit {
+                    validator.push_diagnostic(Diagnostic::invalid_parameter_type(p.get_location()));
+                }
+            }
+
+            visit_statement(validator, p, context);
+        }
+
+        // for PROGRAM/FB we need special inout validation
+        if let PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. } = pou {
+            let inouts: Vec<&&VariableIndexEntry> =
+                declared_parameters.iter().filter(|p| VariableType::InOut == p.get_variable_type()).collect();
+            // if the called pou has declared inouts, we need to make sure that these were passed to the pou call
+            if !inouts.is_empty() {
+                // check if all inouts were passed to the pou call
+                inouts.into_iter().for_each(|p| {
+                    if !passed_params_idx.contains(&(p.get_location_in_parent() as usize)) {
+                        validator.push_diagnostic(Diagnostic::missing_inout_parameter(
+                            p.get_name(),
+                            operator.get_location(),
+                        ));
+                    }
+                });
+            }
+        }
+    } else {
+        // POU could not be found, we can still partially validate the passed parameters
+        if let Some(s) = parameters.as_ref() {
+            visit_statement(validator, s, context);
+        }
+    }
 }
 
 // selector, case_blocks, else_block

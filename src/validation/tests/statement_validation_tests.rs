@@ -699,7 +699,9 @@ fn function_call_parameter_validation() {
 			foo(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
 			foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+            //                                  ^^^^^^^^^^^^^^^ REAL assignment to DINT is valid
 			foo(var2, var3, var4); // invalid types assigned
+            //              ^^^^ REAL assignment to DINT is valid
 		END_PROGRAM
         "#,
     );
@@ -711,12 +713,11 @@ fn function_call_parameter_validation() {
             Diagnostic::invalid_parameter_type((360..364).into()),
             Diagnostic::invalid_parameter_type((366..370).into()),
             Diagnostic::invalid_assignment("STRING", "DINT", (425..439).into()),
-            Diagnostic::invalid_assignment("__main_var3", "DINT", (441..455).into()),
             Diagnostic::incompatible_type_size("DINT", 32, "hold a", (441..455).into()),
-            Diagnostic::invalid_assignment("REAL", "DINT", (457..472).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (508..512).into()),
-            Diagnostic::invalid_assignment("__main_var3", "DINT", (514..518).into()),
-            Diagnostic::invalid_assignment("REAL", "DINT", (520..524).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (441..455).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (605..609).into()),
+            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (611..615).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (611..615).into()),
         ]
     );
 }
@@ -751,7 +752,9 @@ fn program_call_parameter_validation() {
 			prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
 
 			prog(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+            //                                   ^^^^^^^^^^^^^^^ REAL assignment to DINT is valid
 			prog(var2, var3, var4); // invalid types assigned
+            //               ^^^^ REAL assignment to DINT is valid
 		END_PROGRAM
         "#,
     );
@@ -763,12 +766,11 @@ fn program_call_parameter_validation() {
             Diagnostic::invalid_parameter_type((354..358).into()),
             Diagnostic::invalid_parameter_type((360..364).into()),
             Diagnostic::invalid_assignment("STRING", "DINT", (420..434).into()),
-            Diagnostic::invalid_assignment("__main_var3", "DINT", (436..450).into()),
             Diagnostic::incompatible_type_size("DINT", 32, "hold a", (436..450).into()),
-            Diagnostic::invalid_assignment("REAL", "DINT", (452..467).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (504..508).into()),
-            Diagnostic::invalid_assignment("__main_var3", "DINT", (510..514).into()),
-            Diagnostic::invalid_assignment("REAL", "DINT", (516..520).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (436..450).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (602..606).into()),
+            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (608..612).into()),
+            Diagnostic::invalid_assignment("__main_var3", "DINT", (608..612).into()),
         ]
     );
 }
@@ -965,13 +967,15 @@ fn validate_call_by_ref() {
         ("byRefInOut", VariableType::InOut, (733..734)),
         ("byRefOutput", VariableType::Output, (763..764)),
         ("byRefInOut", VariableType::InOut, (957..958)),
+        ("byRefOutput", VariableType::Output, (976..977)),
+        ("byRefOutput", VariableType::Output, (1046..1047)),
         ("byRefInOut", VariableType::InOut, (1140..1141)),
         ("byRefOutput", VariableType::Output, (1158..1159)),
         ("byRefInOut", VariableType::InOut, (1211..1212)),
         ("byRefOutput", VariableType::Output, (1299..1300)),
     ];
 
-    assert_eq!(diagnostics.len(), 13);
+    assert_eq!(diagnostics.len(), 15);
     for (idx, diagnostic) in diagnostics.iter().enumerate() {
         assert_eq!(
             diagnostic,
