@@ -223,35 +223,18 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
     fn promote(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        match &cast_data.target_type {
-            DataTypeInformation::Integer { .. } => {
-                // INT --> INT
-                let llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, "Integer");
-                if cast_data.value_type.is_signed_int() {
-                    cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")
-                } else {
-                    cast_data.llvm.builder.build_int_z_extend_or_bit_cast(self, llvm_int_type, "")
-                }
-                .into()
-            }
-            DataTypeInformation::Float { .. } => {
-                // INT --> FLOAT
-                let llvm_fp_type = get_llvm_float_type(cast_data.llvm.context, lsize, "Float");
-                if cast_data.value_type.is_signed_int() {
-                    cast_data.llvm.builder.build_signed_int_to_float(self, llvm_fp_type, "")
-                } else {
-                    cast_data.llvm.builder.build_unsigned_int_to_float(self, llvm_fp_type, "")
-                }
-                .into()
-            }
-            _ => unreachable!("Can only promote to either INT or FLOAT types"),
+        let llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, "Integer");
+        if cast_data.value_type.is_signed_int() {
+            cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")
+        } else {
+            cast_data.llvm.builder.build_int_z_extend_or_bit_cast(self, llvm_int_type, "")
         }
+        .into()
     }
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
     fn promote(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        // FLOAT --> FLOAT
         cast_data
             .llvm
             .builder
