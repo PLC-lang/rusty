@@ -138,10 +138,6 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
     fn cast(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let lsize = cast_data.target_type.get_size_in_bits(cast_data.index);
         match cast_data.target_type {
-            DataTypeInformation::Integer { .. } if cast_data.target_type.is_character() => {
-                // special char assignment handling
-                self.truncate(lsize, cast_data)
-            }
             DataTypeInformation::Integer { .. } => {
                 //its important to use the real type's size here, because we may have an i1 which is annotated as BOOL (8 bit)
                 let rsize = self.get_type().get_bit_width();
