@@ -59,12 +59,12 @@ pub fn get_llvm_float_type<'a>(context: &'a Context, size: u32, name: &str) -> F
     }
 }
 
-struct CastInstructionBuilder<'ctx, 'cnvn> {
-    llvm: &'cnvn Llvm<'ctx>,
-    index: &'cnvn Index,
-    llvm_type_index: &'cnvn LlvmTypedIndex<'ctx>,
-    value_type: &'cnvn DataTypeInformation,
-    target_type: &'cnvn DataTypeInformation,
+struct CastInstructionBuilder<'ctx, 'cast> {
+    llvm: &'cast Llvm<'ctx>,
+    index: &'cast Index,
+    llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
+    value_type: &'cast DataTypeInformation,
+    target_type: &'cast DataTypeInformation,
 }
 
 impl<'ctx, 'cast> CastInstructionBuilder<'ctx, 'cast> {
