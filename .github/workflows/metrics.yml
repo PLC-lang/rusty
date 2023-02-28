@@ -4,7 +4,6 @@ on:
   push:
     branches:
     - master
-    - dashboard # TODO: Remove this once we are ready to merge
 
 env:
   IMAGE_NAME: rust-llvm
@@ -19,7 +18,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        ref: dashboard # TODO: replace this with master once we are ready to merge
+        ref: master
 
     - name: Collect metrics
       run: |
