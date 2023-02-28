@@ -38,14 +38,20 @@ fn any_multiple_parameters() {
         var_date        : DATE;
     END_VAR
         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-        //                                                           ^^^^^^^
-        //                                     string is any but is not compatible with the other types
-        //                                     should be handled with assignment validation
+        //                                                           ^^^^^^^  ^^^^^^^^
+        //                                     these types are not compatible with the other types
     END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    assert_eq!(
+        diagnostics,
+        vec![
+            // DATE is the derived generic type for this call
+            Diagnostic::invalid_assignment("STRING", "DATE", (481..488).into()),
+            Diagnostic::invalid_assignment("CHAR", "DATE", (490..498).into())
+        ]
+    );
 }
 
 #[test]
@@ -140,7 +146,9 @@ fn any_magnitude_does_not_allow_strings() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "USINT", (145..146).into()),
             Diagnostic::invalid_type_nature("STRING", "Magnitude", (145..146).into()),
+            Diagnostic::invalid_assignment("WSTRING", "USINT", (222..223).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Magnitude", (222..223).into()),
         ]
     );
@@ -158,7 +166,9 @@ fn any_magnitude_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "USINT", (143..144).into()),
             Diagnostic::invalid_type_nature("CHAR", "Magnitude", (143..144).into()),
+            Diagnostic::invalid_assignment("WCHAR", "USINT", (218..219).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Magnitude", (218..219).into()),
         ]
     );
@@ -215,7 +225,9 @@ fn any_magnitude_multiple_parameters() {
         diagnostics,
         vec![
             Diagnostic::invalid_type_nature("BYTE", "Magnitude", (481..489).into()),
+            Diagnostic::invalid_assignment("STRING", "TIME", (491..498).into()),
             Diagnostic::invalid_type_nature("STRING", "Magnitude", (491..498).into()),
+            Diagnostic::invalid_assignment("CHAR", "TIME", (500..508).into()),
             Diagnostic::invalid_type_nature("CHAR", "Magnitude", (500..508).into()),
             Diagnostic::invalid_type_nature("DATE", "Magnitude", (510..518).into()),
         ]
@@ -309,7 +321,9 @@ fn any_num_does_not_allow_strings() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "USINT", (139..140).into()),
             Diagnostic::invalid_type_nature("STRING", "Num", (139..140).into()),
+            Diagnostic::invalid_assignment("WSTRING", "USINT", (216..217).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Num", (216..217).into()),
         ]
     );
@@ -327,7 +341,9 @@ fn any_num_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "USINT", (137..138).into()),
             Diagnostic::invalid_type_nature("CHAR", "Num", (137..138).into()),
+            Diagnostic::invalid_assignment("WCHAR", "USINT", (212..213).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Num", (212..213).into()),
         ]
     );
@@ -385,7 +401,9 @@ fn any_num_multiple_parameters() {
         vec![
             Diagnostic::invalid_type_nature("TIME", "Num", (465..473).into()),
             Diagnostic::invalid_type_nature("BYTE", "Num", (475..483).into()),
+            Diagnostic::invalid_assignment("STRING", "REAL", (485..492).into()),
             Diagnostic::invalid_type_nature("STRING", "Num", (485..492).into()),
+            Diagnostic::invalid_assignment("CHAR", "REAL", (494..502).into()),
             Diagnostic::invalid_type_nature("CHAR", "Num", (494..502).into()),
             Diagnostic::invalid_type_nature("DATE", "Num", (504..512).into()),
         ]
@@ -481,7 +499,9 @@ fn any_real_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "REAL", (138..139).into()),
             Diagnostic::invalid_type_nature("CHAR", "Real", (138..139).into()),
+            Diagnostic::invalid_assignment("WCHAR", "REAL", (207..208).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Real", (207..208).into()),
         ]
     );
@@ -499,7 +519,9 @@ fn any_real_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "REAL", (141..142).into()),
             Diagnostic::invalid_type_nature("STRING", "Real", (141..142).into()),
+            Diagnostic::invalid_assignment("WSTRING", "REAL", (218..219).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Real", (218..219).into()),
         ]
     );
@@ -557,7 +579,9 @@ fn any_real_multiple_parameters() {
         vec![
             Diagnostic::invalid_type_nature("TIME", "Real", (466..474).into()),
             Diagnostic::invalid_type_nature("BYTE", "Real", (476..484).into()),
+            Diagnostic::invalid_assignment("STRING", "REAL", (486..493).into()),
             Diagnostic::invalid_type_nature("STRING", "Real", (486..493).into()),
+            Diagnostic::invalid_assignment("CHAR", "REAL", (495..503).into()),
             Diagnostic::invalid_type_nature("CHAR", "Real", (495..503).into()),
             Diagnostic::invalid_type_nature("DATE", "Real", (505..513).into()),
         ]
@@ -658,7 +682,9 @@ fn any_int_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "USINT", (137..138).into()),
             Diagnostic::invalid_type_nature("CHAR", "Int", (137..138).into()),
+            Diagnostic::invalid_assignment("WCHAR", "USINT", (206..207).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Int", (206..207).into()),
         ]
     );
@@ -676,7 +702,9 @@ fn any_int_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "USINT", (140..141).into()),
             Diagnostic::invalid_type_nature("STRING", "Int", (140..141).into()),
+            Diagnostic::invalid_assignment("WSTRING", "USINT", (217..218).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Int", (217..218).into()),
         ]
     );
@@ -735,7 +763,9 @@ fn any_int_multiple_parameters() {
             Diagnostic::invalid_type_nature("REAL", "Int", (429..437).into()),
             Diagnostic::invalid_type_nature("TIME", "Int", (465..473).into()),
             Diagnostic::invalid_type_nature("BYTE", "Int", (475..483).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (485..492).into()),
             Diagnostic::invalid_type_nature("STRING", "Int", (485..492).into()),
+            Diagnostic::invalid_assignment("CHAR", "DINT", (494..502).into()),
             Diagnostic::invalid_type_nature("CHAR", "Int", (494..502).into()),
             Diagnostic::invalid_type_nature("DATE", "Int", (504..512).into()),
         ]
@@ -852,7 +882,9 @@ fn any_unsigned_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "USINT", (142..143).into()),
             Diagnostic::invalid_type_nature("CHAR", "Unsigned", (142..143).into()),
+            Diagnostic::invalid_assignment("WCHAR", "USINT", (211..212).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Unsigned", (211..212).into()),
         ]
     );
@@ -870,7 +902,9 @@ fn any_unsigned_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "USINT", (145..146).into()),
             Diagnostic::invalid_type_nature("STRING", "Unsigned", (145..146).into()),
+            Diagnostic::invalid_assignment("WSTRING", "USINT", (222..223).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Unsigned", (222..223).into()),
         ]
     );
@@ -930,7 +964,9 @@ fn any_unsigned_multiple_parameters() {
             Diagnostic::invalid_type_nature("DINT", "Unsigned", (458..468).into()),
             Diagnostic::invalid_type_nature("TIME", "Unsigned", (470..478).into()),
             Diagnostic::invalid_type_nature("BYTE", "Unsigned", (480..488).into()),
+            Diagnostic::invalid_assignment("STRING", "UDINT", (490..497).into()),
             Diagnostic::invalid_type_nature("STRING", "Unsigned", (490..497).into()),
+            Diagnostic::invalid_assignment("CHAR", "UDINT", (499..507).into()),
             Diagnostic::invalid_type_nature("CHAR", "Unsigned", (499..507).into()),
             Diagnostic::invalid_type_nature("DATE", "Unsigned", (509..517).into()),
         ]
@@ -1047,7 +1083,9 @@ fn any_signed_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "SINT", (140..141).into()),
             Diagnostic::invalid_type_nature("CHAR", "Signed", (140..141).into()),
+            Diagnostic::invalid_assignment("WCHAR", "SINT", (209..210).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Signed", (209..210).into()),
         ]
     );
@@ -1065,7 +1103,9 @@ fn any_signed_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "SINT", (143..144).into()),
             Diagnostic::invalid_type_nature("STRING", "Signed", (143..144).into()),
+            Diagnostic::invalid_assignment("WSTRING", "SINT", (220..221).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Signed", (220..221).into()),
         ]
     );
@@ -1125,7 +1165,9 @@ fn any_signed_multiple_parameters() {
             Diagnostic::invalid_type_nature("UDINT", "Signed", (442..454).into()),
             Diagnostic::invalid_type_nature("TIME", "Signed", (468..476).into()),
             Diagnostic::invalid_type_nature("BYTE", "Signed", (478..486).into()),
+            Diagnostic::invalid_assignment("STRING", "DINT", (488..495).into()),
             Diagnostic::invalid_type_nature("STRING", "Signed", (488..495).into()),
+            Diagnostic::invalid_assignment("CHAR", "DINT", (497..505).into()),
             Diagnostic::invalid_type_nature("CHAR", "Signed", (497..505).into()),
             Diagnostic::invalid_type_nature("DATE", "Signed", (507..515).into()),
         ]
@@ -1232,7 +1274,9 @@ fn any_duration_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "TIME", (142..143).into()),
             Diagnostic::invalid_type_nature("CHAR", "Duration", (142..143).into()),
+            Diagnostic::invalid_assignment("WCHAR", "TIME", (211..212).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Duration", (211..212).into()),
         ]
     );
@@ -1250,7 +1294,9 @@ fn any_duration_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "TIME", (145..146).into()),
             Diagnostic::invalid_type_nature("STRING", "Duration", (145..146).into()),
+            Diagnostic::invalid_assignment("WSTRING", "TIME", (222..223).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Duration", (222..223).into()),
         ]
     );
@@ -1310,7 +1356,9 @@ fn any_duration_multiple_parameters() {
             Diagnostic::invalid_type_nature("UDINT", "Duration", (444..456).into()),
             Diagnostic::invalid_type_nature("DINT", "Duration", (458..468).into()),
             Diagnostic::invalid_type_nature("BYTE", "Duration", (480..488).into()),
+            Diagnostic::invalid_assignment("STRING", "TIME", (490..497).into()),
             Diagnostic::invalid_type_nature("STRING", "Duration", (490..497).into()),
+            Diagnostic::invalid_assignment("CHAR", "TIME", (499..507).into()),
             Diagnostic::invalid_type_nature("CHAR", "Duration", (499..507).into()),
             Diagnostic::invalid_type_nature("DATE", "Duration", (509..517).into()),
         ]
@@ -1428,7 +1476,9 @@ fn any_bit_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "BOOL", (137..138).into()),
             Diagnostic::invalid_type_nature("CHAR", "Bit", (137..138).into()),
+            Diagnostic::invalid_assignment("WCHAR", "BOOL", (206..207).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Bit", (206..207).into()),
         ]
     );
@@ -1446,7 +1496,9 @@ fn any_bit_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "BOOL", (140..141).into()),
             Diagnostic::invalid_type_nature("STRING", "Bit", (140..141).into()),
+            Diagnostic::invalid_assignment("WSTRING", "BOOL", (217..218).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Bit", (217..218).into()),
         ]
     );
@@ -1506,7 +1558,9 @@ fn any_bit_multiple_parameters() {
             Diagnostic::invalid_type_nature("UDINT", "Bit", (439..451).into()),
             Diagnostic::invalid_type_nature("DINT", "Bit", (453..463).into()),
             Diagnostic::invalid_type_nature("TIME", "Bit", (465..473).into()),
+            Diagnostic::invalid_assignment("STRING", "BYTE", (485..492).into()),
             Diagnostic::invalid_type_nature("STRING", "Bit", (485..492).into()),
+            Diagnostic::invalid_assignment("CHAR", "BYTE", (494..502).into()),
             Diagnostic::invalid_type_nature("CHAR", "Bit", (494..502).into()),
             Diagnostic::invalid_type_nature("DATE", "Bit", (504..512).into()),
         ]
@@ -1527,7 +1581,9 @@ fn any_chars_does_not_allow_reals() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("REAL", "CHAR", (138..139).into()),
             Diagnostic::invalid_type_nature("REAL", "Chars", (138..139).into()),
+            Diagnostic::invalid_assignment("LREAL", "CHAR", (213..214).into()),
             Diagnostic::invalid_type_nature("LREAL", "Chars", (213..214).into()),
         ]
     );
@@ -1553,13 +1609,21 @@ fn any_chars_does_not_allow_ints() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("USINT", "CHAR", (135..136).into()),
             Diagnostic::invalid_type_nature("USINT", "Chars", (135..136).into()),
+            Diagnostic::invalid_assignment("UINT", "CHAR", (209..210).into()),
             Diagnostic::invalid_type_nature("UINT", "Chars", (209..210).into()),
+            Diagnostic::invalid_assignment("UDINT", "CHAR", (278..279).into()),
             Diagnostic::invalid_type_nature("UDINT", "Chars", (278..279).into()),
+            Diagnostic::invalid_assignment("ULINT", "CHAR", (347..348).into()),
             Diagnostic::invalid_type_nature("ULINT", "Chars", (347..348).into()),
+            Diagnostic::invalid_assignment("SINT", "CHAR", (416..417).into()),
             Diagnostic::invalid_type_nature("SINT", "Chars", (416..417).into()),
+            Diagnostic::invalid_assignment("INT", "CHAR", (489..490).into()),
             Diagnostic::invalid_type_nature("INT", "Chars", (489..490).into()),
+            Diagnostic::invalid_assignment("DINT", "CHAR", (557..558).into()),
             Diagnostic::invalid_type_nature("DINT", "Chars", (557..558).into()),
+            Diagnostic::invalid_assignment("LINT", "CHAR", (625..626).into()),
             Diagnostic::invalid_type_nature("LINT", "Chars", (625..626).into()),
         ]
     );
@@ -1577,7 +1641,9 @@ fn any_chars_does_not_allow_time() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("TIME", "CHAR", (139..140).into()),
             Diagnostic::invalid_type_nature("TIME", "Chars", (139..140).into()),
+            Diagnostic::invalid_assignment("TIME", "CHAR", (208..209).into()),
             Diagnostic::invalid_type_nature("TIME", "Chars", (208..209).into()),
         ]
     );
@@ -1598,10 +1664,15 @@ fn any_chars_does_not_allow_bits() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("BOOL", "CHAR", (139..140).into()),
             Diagnostic::invalid_type_nature("BOOL", "Chars", (139..140).into()),
+            Diagnostic::invalid_assignment("BYTE", "CHAR", (207..208).into()),
             Diagnostic::invalid_type_nature("BYTE", "Chars", (207..208).into()),
+            Diagnostic::invalid_assignment("WORD", "CHAR", (275..276).into()),
             Diagnostic::invalid_type_nature("WORD", "Chars", (275..276).into()),
+            Diagnostic::invalid_assignment("DWORD", "CHAR", (344..345).into()),
             Diagnostic::invalid_type_nature("DWORD", "Chars", (344..345).into()),
+            Diagnostic::invalid_assignment("LWORD", "CHAR", (413..414).into()),
             Diagnostic::invalid_type_nature("LWORD", "Chars", (413..414).into()),
         ]
     );
@@ -1646,10 +1717,15 @@ fn any_chars_does_not_allow_date() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("DATE_AND_TIME", "CHAR", (137..138).into()),
             Diagnostic::invalid_type_nature("DATE_AND_TIME", "Chars", (137..138).into()),
+            Diagnostic::invalid_assignment("DATE_AND_TIME", "CHAR", (204..205).into()),
             Diagnostic::invalid_type_nature("DATE_AND_TIME", "Chars", (204..205).into()),
+            Diagnostic::invalid_assignment("DATE", "CHAR", (272..273).into()),
             Diagnostic::invalid_type_nature("DATE", "Chars", (272..273).into()),
+            Diagnostic::invalid_assignment("TIME_OF_DAY", "CHAR", (339..340).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Chars", (339..340).into()),
+            Diagnostic::invalid_assignment("TIME_OF_DAY", "CHAR", (407..408).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Chars", (407..408).into()),
         ]
     );
@@ -1681,11 +1757,18 @@ fn any_chars_multiple_parameters() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("REAL", "STRING", (431..439).into()),
             Diagnostic::invalid_type_nature("REAL", "Chars", (431..439).into()),
+            Diagnostic::invalid_assignment("UDINT", "STRING", (441..453).into()),
             Diagnostic::invalid_type_nature("UDINT", "Chars", (441..453).into()),
+            Diagnostic::invalid_assignment("DINT", "STRING", (455..465).into()),
             Diagnostic::invalid_type_nature("DINT", "Chars", (455..465).into()),
+            Diagnostic::invalid_assignment("TIME", "STRING", (467..475).into()),
             Diagnostic::invalid_type_nature("TIME", "Chars", (467..475).into()),
+            Diagnostic::invalid_assignment("BYTE", "STRING", (477..485).into()),
             Diagnostic::invalid_type_nature("BYTE", "Chars", (477..485).into()),
+            Diagnostic::invalid_assignment("CHAR", "STRING", (496..504).into()),
+            Diagnostic::invalid_assignment("DATE", "STRING", (506..514).into()),
             Diagnostic::invalid_type_nature("DATE", "Chars", (506..514).into()),
         ]
     );
@@ -1705,7 +1788,9 @@ fn any_string_does_not_allow_reals() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("REAL", "STRING", (139..140).into()),
             Diagnostic::invalid_type_nature("REAL", "String", (139..140).into()),
+            Diagnostic::invalid_assignment("LREAL", "STRING", (214..215).into()),
             Diagnostic::invalid_type_nature("LREAL", "String", (214..215).into()),
         ]
     );
@@ -1731,13 +1816,21 @@ fn any_string_does_not_allow_ints() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("USINT", "STRING", (136..137).into()),
             Diagnostic::invalid_type_nature("USINT", "String", (136..137).into()),
+            Diagnostic::invalid_assignment("UINT", "STRING", (210..211).into()),
             Diagnostic::invalid_type_nature("UINT", "String", (210..211).into()),
+            Diagnostic::invalid_assignment("UDINT", "STRING", (279..280).into()),
             Diagnostic::invalid_type_nature("UDINT", "String", (279..280).into()),
+            Diagnostic::invalid_assignment("ULINT", "STRING", (348..349).into()),
             Diagnostic::invalid_type_nature("ULINT", "String", (348..349).into()),
+            Diagnostic::invalid_assignment("SINT", "STRING", (417..418).into()),
             Diagnostic::invalid_type_nature("SINT", "String", (417..418).into()),
+            Diagnostic::invalid_assignment("INT", "STRING", (490..491).into()),
             Diagnostic::invalid_type_nature("INT", "String", (490..491).into()),
+            Diagnostic::invalid_assignment("DINT", "STRING", (558..559).into()),
             Diagnostic::invalid_type_nature("DINT", "String", (558..559).into()),
+            Diagnostic::invalid_assignment("LINT", "STRING", (626..627).into()),
             Diagnostic::invalid_type_nature("LINT", "String", (626..627).into()),
         ]
     );
@@ -1755,7 +1848,9 @@ fn any_string_does_not_allow_time() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("TIME", "STRING", (140..141).into()),
             Diagnostic::invalid_type_nature("TIME", "String", (140..141).into()),
+            Diagnostic::invalid_assignment("TIME", "STRING", (209..210).into()),
             Diagnostic::invalid_type_nature("TIME", "String", (209..210).into()),
         ]
     );
@@ -1776,10 +1871,15 @@ fn any_string_does_not_allow_bits() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("BOOL", "STRING", (140..141).into()),
             Diagnostic::invalid_type_nature("BOOL", "String", (140..141).into()),
+            Diagnostic::invalid_assignment("BYTE", "STRING", (208..209).into()),
             Diagnostic::invalid_type_nature("BYTE", "String", (208..209).into()),
+            Diagnostic::invalid_assignment("WORD", "STRING", (276..277).into()),
             Diagnostic::invalid_type_nature("WORD", "String", (276..277).into()),
+            Diagnostic::invalid_assignment("DWORD", "STRING", (345..346).into()),
             Diagnostic::invalid_type_nature("DWORD", "String", (345..346).into()),
+            Diagnostic::invalid_assignment("LWORD", "STRING", (414..415).into()),
             Diagnostic::invalid_type_nature("LWORD", "String", (414..415).into()),
         ]
     );
@@ -1797,7 +1897,9 @@ fn any_string_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "STRING", (140..141).into()),
             Diagnostic::invalid_type_nature("CHAR", "String", (140..141).into()),
+            Diagnostic::invalid_assignment("WCHAR", "STRING", (209..210).into()),
             Diagnostic::invalid_type_nature("WCHAR", "String", (209..210).into()),
         ]
     );
@@ -1830,10 +1932,15 @@ fn any_string_does_not_allow_date() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("DATE_AND_TIME", "STRING", (138..139).into()),
             Diagnostic::invalid_type_nature("DATE_AND_TIME", "String", (138..139).into()),
+            Diagnostic::invalid_assignment("DATE_AND_TIME", "STRING", (205..206).into()),
             Diagnostic::invalid_type_nature("DATE_AND_TIME", "String", (205..206).into()),
+            Diagnostic::invalid_assignment("DATE", "STRING", (273..274).into()),
             Diagnostic::invalid_type_nature("DATE", "String", (273..274).into()),
+            Diagnostic::invalid_assignment("TIME_OF_DAY", "STRING", (340..341).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "String", (340..341).into()),
+            Diagnostic::invalid_assignment("TIME_OF_DAY", "STRING", (408..409).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "String", (408..409).into()),
         ]
     );
@@ -1865,12 +1972,19 @@ fn any_string_multiple_parameters() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("REAL", "STRING", (432..440).into()),
             Diagnostic::invalid_type_nature("REAL", "String", (432..440).into()),
+            Diagnostic::invalid_assignment("UDINT", "STRING", (442..454).into()),
             Diagnostic::invalid_type_nature("UDINT", "String", (442..454).into()),
+            Diagnostic::invalid_assignment("DINT", "STRING", (456..466).into()),
             Diagnostic::invalid_type_nature("DINT", "String", (456..466).into()),
+            Diagnostic::invalid_assignment("TIME", "STRING", (468..476).into()),
             Diagnostic::invalid_type_nature("TIME", "String", (468..476).into()),
+            Diagnostic::invalid_assignment("BYTE", "STRING", (478..486).into()),
             Diagnostic::invalid_type_nature("BYTE", "String", (478..486).into()),
+            Diagnostic::invalid_assignment("CHAR", "STRING", (497..505).into()),
             Diagnostic::invalid_type_nature("CHAR", "String", (497..505).into()),
+            Diagnostic::invalid_assignment("DATE", "STRING", (507..515).into()),
             Diagnostic::invalid_type_nature("DATE", "String", (507..515).into()),
         ]
     );
@@ -1890,7 +2004,9 @@ fn any_char_does_not_allow_reals() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("REAL", "CHAR", (137..138).into()),
             Diagnostic::invalid_type_nature("REAL", "Char", (137..138).into()),
+            Diagnostic::invalid_assignment("LREAL", "CHAR", (212..213).into()),
             Diagnostic::invalid_type_nature("LREAL", "Char", (212..213).into()),
         ]
     );
@@ -1916,13 +2032,21 @@ fn any_char_does_not_allow_ints() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("USINT", "CHAR", (134..135).into()),
             Diagnostic::invalid_type_nature("USINT", "Char", (134..135).into()),
+            Diagnostic::invalid_assignment("UINT", "CHAR", (208..209).into()),
             Diagnostic::invalid_type_nature("UINT", "Char", (208..209).into()),
+            Diagnostic::invalid_assignment("UDINT", "CHAR", (277..278).into()),
             Diagnostic::invalid_type_nature("UDINT", "Char", (277..278).into()),
+            Diagnostic::invalid_assignment("ULINT", "CHAR", (346..347).into()),
             Diagnostic::invalid_type_nature("ULINT", "Char", (346..347).into()),
+            Diagnostic::invalid_assignment("SINT", "CHAR", (415..416).into()),
             Diagnostic::invalid_type_nature("SINT", "Char", (415..416).into()),
+            Diagnostic::invalid_assignment("INT", "CHAR", (488..489).into()),
             Diagnostic::invalid_type_nature("INT", "Char", (488..489).into()),
+            Diagnostic::invalid_assignment("DINT", "CHAR", (556..557).into()),
             Diagnostic::invalid_type_nature("DINT", "Char", (556..557).into()),
+            Diagnostic::invalid_assignment("LINT", "CHAR", (624..625).into()),
             Diagnostic::invalid_type_nature("LINT", "Char", (624..625).into()),
         ]
     );
@@ -1940,7 +2064,9 @@ fn any_char_does_not_allow_time() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("TIME", "CHAR", (138..139).into()),
             Diagnostic::invalid_type_nature("TIME", "Char", (138..139).into()),
+            Diagnostic::invalid_assignment("TIME", "CHAR", (207..208).into()),
             Diagnostic::invalid_type_nature("TIME", "Char", (207..208).into()),
         ]
     );
@@ -1961,10 +2087,15 @@ fn any_char_does_not_allow_bits() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("BOOL", "CHAR", (138..139).into()),
             Diagnostic::invalid_type_nature("BOOL", "Char", (138..139).into()),
+            Diagnostic::invalid_assignment("BYTE", "CHAR", (206..207).into()),
             Diagnostic::invalid_type_nature("BYTE", "Char", (206..207).into()),
+            Diagnostic::invalid_assignment("WORD", "CHAR", (274..275).into()),
             Diagnostic::invalid_type_nature("WORD", "Char", (274..275).into()),
+            Diagnostic::invalid_assignment("DWORD", "CHAR", (343..344).into()),
             Diagnostic::invalid_type_nature("DWORD", "Char", (343..344).into()),
+            Diagnostic::invalid_assignment("LWORD", "CHAR", (412..413).into()),
             Diagnostic::invalid_type_nature("LWORD", "Char", (412..413).into()),
         ]
     );
@@ -1994,7 +2125,9 @@ fn any_char_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "CHAR", (141..142).into()),
             Diagnostic::invalid_type_nature("STRING", "Char", (141..142).into()),
+            Diagnostic::invalid_assignment("WSTRING", "CHAR", (218..219).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Char", (218..219).into()),
         ]
     );
@@ -2015,10 +2148,15 @@ fn any_char_does_not_allow_date() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("DATE_AND_TIME", "CHAR", (136..137).into()),
             Diagnostic::invalid_type_nature("DATE_AND_TIME", "Char", (136..137).into()),
+            Diagnostic::invalid_assignment("DATE_AND_TIME", "CHAR", (203..204).into()),
             Diagnostic::invalid_type_nature("DATE_AND_TIME", "Char", (203..204).into()),
+            Diagnostic::invalid_assignment("DATE", "CHAR", (271..272).into()),
             Diagnostic::invalid_type_nature("DATE", "Char", (271..272).into()),
+            Diagnostic::invalid_assignment("TIME_OF_DAY", "CHAR", (338..339).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Char", (338..339).into()),
+            Diagnostic::invalid_assignment("TIME_OF_DAY", "CHAR", (406..407).into()),
             Diagnostic::invalid_type_nature("TIME_OF_DAY", "Char", (406..407).into()),
         ]
     );
@@ -2050,12 +2188,19 @@ fn any_char_multiple_parameters() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("REAL", "CHAR", (430..438).into()),
             Diagnostic::invalid_type_nature("REAL", "Char", (430..438).into()),
+            Diagnostic::invalid_assignment("UDINT", "CHAR", (440..452).into()),
             Diagnostic::invalid_type_nature("UDINT", "Char", (440..452).into()),
+            Diagnostic::invalid_assignment("DINT", "CHAR", (454..464).into()),
             Diagnostic::invalid_type_nature("DINT", "Char", (454..464).into()),
+            Diagnostic::invalid_assignment("TIME", "CHAR", (466..474).into()),
             Diagnostic::invalid_type_nature("TIME", "Char", (466..474).into()),
+            Diagnostic::invalid_assignment("BYTE", "CHAR", (476..484).into()),
             Diagnostic::invalid_type_nature("BYTE", "Char", (476..484).into()),
+            Diagnostic::invalid_assignment("STRING", "CHAR", (486..493).into()),
             Diagnostic::invalid_type_nature("STRING", "Char", (486..493).into()),
+            Diagnostic::invalid_assignment("DATE", "CHAR", (505..513).into()),
             Diagnostic::invalid_type_nature("DATE", "Char", (505..513).into()),
         ]
     );
@@ -2167,7 +2312,9 @@ fn any_date_does_not_allow_chars() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("CHAR", "DATE", (138..139).into()),
             Diagnostic::invalid_type_nature("CHAR", "Date", (138..139).into()),
+            Diagnostic::invalid_assignment("WCHAR", "DATE", (207..208).into()),
             Diagnostic::invalid_type_nature("WCHAR", "Date", (207..208).into()),
         ]
     );
@@ -2185,7 +2332,9 @@ fn any_date_does_not_allow_string() {
     assert_eq!(
         diagnostics,
         vec![
+            Diagnostic::invalid_assignment("STRING", "DATE", (141..142).into()),
             Diagnostic::invalid_type_nature("STRING", "Date", (141..142).into()),
+            Diagnostic::invalid_assignment("WSTRING", "DATE", (218..219).into()),
             Diagnostic::invalid_type_nature("WSTRING", "Date", (218..219).into()),
         ]
     );
@@ -2237,7 +2386,9 @@ fn any_date_multiple_parameters() {
             Diagnostic::invalid_type_nature("DINT", "Date", (454..464).into()),
             Diagnostic::invalid_type_nature("TIME", "Date", (466..474).into()),
             Diagnostic::invalid_type_nature("BYTE", "Date", (476..484).into()),
+            Diagnostic::invalid_assignment("STRING", "DATE", (486..493).into()),
             Diagnostic::invalid_type_nature("STRING", "Date", (486..493).into()),
+            Diagnostic::invalid_assignment("CHAR", "DATE", (495..503).into()),
             Diagnostic::invalid_type_nature("CHAR", "Date", (495..503).into()),
         ]
     );

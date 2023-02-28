@@ -458,26 +458,6 @@ fn validate_unary_expression(
     }
 }
 
-fn validate_implicit_call_parameter_assignment(
-    validator: &mut Validator,
-    left: &VariableIndexEntry,
-    left_type: &typesystem::DataType,
-    right: &AstStatement,
-    location: SourceRange,
-    context: &ValidationContext,
-) {
-    // for parameters passed `ByRef` we need to check the inner type of the pointer
-    let left_type_info = if matches!(left.variable_type, ArgumentType::ByRef(..)) {
-        context.index.find_elementary_pointer_type(left_type.get_type_information())
-    } else {
-        context.index.find_intrinsic_type(left_type.get_type_information())
-    };
-    // stmt_validator `validate_type_nature()` should report any error see `generic_validation_tests` ignore generics here and safe work
-    if !matches!(left_type_info, DataTypeInformation::Generic { .. }) {
-        validate_assignment(validator, right, None, &location, context);
-    }
-}
-
 /// Validates if an argument can be passed to a function with [`VariableType::Output`] and
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
@@ -705,24 +685,14 @@ fn validate_call(
                 passed_params_idx.push(location_in_parent);
 
                 let left = declared_parameters.get(location_in_parent);
-                let left_type =
-                    left.map(|param| context.index.get_effective_type_or_void_by_name(param.get_type_name()));
-
-                if let (Some(left), Some(left_type)) = (left, left_type) {
-                    // explicit call parameter assignments will be handled by
-                    // `visit_statement()` via `Assignment` and `OutputAssignment`
-                    if is_implicit {
-                        validate_implicit_call_parameter_assignment(
-                            validator,
-                            left,
-                            left_type,
-                            right,
-                            p.get_location(),
-                            context,
-                        );
-                    }
-
+                if let Some(left) = left {
                     validate_call_by_ref(validator, left, p);
+                }
+
+                // explicit call parameter assignments will be handled by
+                // `visit_statement()` via `Assignment` and `OutputAssignment`
+                if is_implicit {
+                    validate_assignment(validator, right, None, &p.get_location(), context);
                 }
 
                 // mixing implicit and explicit parameters is not allowed
