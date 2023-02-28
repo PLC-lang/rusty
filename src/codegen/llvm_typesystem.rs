@@ -116,7 +116,7 @@ trait Castable<'ctx, 'cast> {
 }
 
 trait Promotable<'ctx, 'cast> {
-    fn promote(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn promote(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 trait Truncatable<'ctx, 'cast> {
@@ -146,37 +146,22 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
                     self.truncate(lsize, cast_data)
                 } else {
                     //Expand
-                    self.promote(cast_data)
+                    self.promote(lsize, cast_data)
                 }
             }
             DataTypeInformation::Float { size: _rsize, .. } => {
+                let float_type = get_llvm_float_type(cast_data.llvm.context, lsize, "Float");
                 if cast_data.value_type.is_signed_int() {
-                    cast_data
-                        .llvm
-                        .builder
-                        .build_signed_int_to_float(
-                            self,
-                            get_llvm_float_type(cast_data.llvm.context, lsize, "Float"),
-                            "",
-                        )
-                        .into()
+                    cast_data.llvm.builder.build_signed_int_to_float(self, float_type, "").into()
                 } else {
-                    cast_data
-                        .llvm
-                        .builder
-                        .build_unsigned_int_to_float(
-                            self,
-                            get_llvm_float_type(cast_data.llvm.context, lsize, "Float"),
-                            "",
-                        )
-                        .into()
+                    cast_data.llvm.builder.build_unsigned_int_to_float(self, float_type, "").into()
                 }
             }
             DataTypeInformation::Pointer { .. } => {
                 let Ok(associated_type) = cast_data
                     .llvm_type_index
                     .get_associated_type(cast_data.target_type.get_name()) else {
-                        unreachable!("Cast into non-existant type")
+                        unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
                     };
 
                 cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
@@ -194,30 +179,15 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
                 if lsize < rsize {
                     self.truncate(*lsize, cast_data)
                 } else {
-                    self.promote(cast_data)
+                    self.promote(*lsize, cast_data)
                 }
             }
             DataTypeInformation::Integer { signed, size: lsize, .. } => {
+                let int_type = get_llvm_int_type(cast_data.llvm.context, *lsize, "Integer");
                 if *signed {
-                    cast_data
-                        .llvm
-                        .builder
-                        .build_float_to_signed_int(
-                            self,
-                            get_llvm_int_type(cast_data.llvm.context, *lsize, "Integer"),
-                            "",
-                        )
-                        .into()
+                    cast_data.llvm.builder.build_float_to_signed_int(self, int_type, "").into()
                 } else {
-                    cast_data
-                        .llvm
-                        .builder
-                        .build_float_to_unsigned_int(
-                            self,
-                            get_llvm_int_type(cast_data.llvm.context, *lsize, "Integer"),
-                            "",
-                        )
-                        .into()
+                    cast_data.llvm.builder.build_float_to_unsigned_int(self, int_type, "").into()
                 }
             }
             _ => unreachable!("Cannot cast floating-point value to {}", cast_data.target_type.get_name()),
@@ -227,20 +197,20 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
     fn cast(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        let builder = &cast_data.llvm.builder;
-        let llvm_type_index = cast_data.llvm_type_index;
         match &cast_data.target_type {
-            DataTypeInformation::Integer { size: lsize, .. } => builder
+            DataTypeInformation::Integer { size: lsize, .. } => cast_data
+                .llvm
+                .builder
                 .build_ptr_to_int(self, get_llvm_int_type(cast_data.llvm.context, *lsize, ""), "")
                 .into(),
             DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
                 // TODO: is void really needed here? no failing tests if omitted/do we ever cast to void?
-                let Ok(target_ptr_type) = llvm_type_index.get_associated_type(cast_data.target_type.get_name()) else {
-                        unreachable!("Cast into non-existant type")
+                let Ok(target_ptr_type) = cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name()) else {
+                        unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
                     };
                 if BasicValueEnum::from(self).get_type() != target_ptr_type {
                     // bit-cast necessary
-                    builder.build_bitcast(self, target_ptr_type, "")
+                    cast_data.llvm.builder.build_bitcast(self, target_ptr_type, "")
                 } else {
                     //this is ok, no cast required
                     self.into()
@@ -252,25 +222,21 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
-    fn promote(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn promote(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         match &cast_data.target_type {
-            DataTypeInformation::Integer { size: target_size, .. } => {
+            DataTypeInformation::Integer { .. } => {
                 // INT --> INT
-                if &self.get_type().get_bit_width() < target_size {
-                    let llvm_int_type = get_llvm_int_type(cast_data.llvm.context, *target_size, "Integer");
-                    if cast_data.value_type.is_signed_int() {
-                        cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")
-                    } else {
-                        cast_data.llvm.builder.build_int_z_extend_or_bit_cast(self, llvm_int_type, "")
-                    }
-                    .into()
+                let llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, "Integer");
+                if cast_data.value_type.is_signed_int() {
+                    cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")
                 } else {
-                    self.into()
+                    cast_data.llvm.builder.build_int_z_extend_or_bit_cast(self, llvm_int_type, "")
                 }
+                .into()
             }
-            DataTypeInformation::Float { size: target_size, .. } => {
+            DataTypeInformation::Float { .. } => {
                 // INT --> FLOAT
-                let llvm_fp_type = get_llvm_float_type(cast_data.llvm.context, *target_size, "Float");
+                let llvm_fp_type = get_llvm_float_type(cast_data.llvm.context, lsize, "Float");
                 if cast_data.value_type.is_signed_int() {
                     cast_data.llvm.builder.build_signed_int_to_float(self, llvm_fp_type, "")
                 } else {
@@ -284,19 +250,13 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn promote(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn promote(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         // FLOAT --> FLOAT
-        let target_size = cast_data.target_type.get_size_in_bits(cast_data.index);
-        let value_size = cast_data.value_type.get_size_in_bits(cast_data.index);
-        if target_size <= value_size {
-            self.into()
-        } else {
-            cast_data
-                .llvm
-                .builder
-                .build_float_ext(self, get_llvm_float_type(cast_data.llvm.context, target_size, "Float"), "")
-                .into()
-        }
+        cast_data
+            .llvm
+            .builder
+            .build_float_ext(self, get_llvm_float_type(cast_data.llvm.context, lsize, "Float"), "")
+            .into()
     }
 }
 
