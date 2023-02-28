@@ -302,7 +302,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     right,
                     right_type,
                 )
-                .map(BasicValueEnum::into_int_value)?;
+                .into_int_value();
                 //Shift left by the direct access
                 let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
 

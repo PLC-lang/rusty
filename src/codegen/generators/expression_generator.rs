@@ -176,7 +176,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 target_type,
                 v,
                 actual_type,
-            )?)
+            ))
         } else {
             Ok(v)
         }
@@ -400,7 +400,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference,
                 self.get_type_hint_for(index)?,
             )
-            .map(BasicValueEnum::into_int_value)?;
+            .into_int_value();
             // let reference = reference.into_int_value();
             //Multiply by the bitwitdh
             if access.get_bit_width() > 1 {
@@ -555,9 +555,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let v = call.try_as_basic_value().either(Ok, |_| {
                 // we return an uninitialized int pointer for void methods :-/
                 // dont deref it!!
-                get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE).map(|int| {
-                    int.ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST)).const_null().as_basic_value_enum()
-                })
+                Ok(get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                    .const_null()
+                    .as_basic_value_enum())
             });
             v.map(ExpressionValue::RValue)
         });
@@ -1433,14 +1434,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             access_value.into_int_value()
         };
         //turn it into i32 immediately
-        llvm_typesystem::cast_if_needed(
+        Ok(llvm_typesystem::cast_if_needed(
             self.llvm,
             self.index,
             self.llvm_index,
             self.index.get_type(DINT_TYPE)?,
             result.as_basic_value_enum(),
             self.get_type_hint_for(access_expression)?,
-        )
+        ))
     }
 
     /// generates a gep statement for a array-reference with an optional qualifier
