@@ -176,7 +176,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 target_type,
                 v,
                 actual_type,
-                expression,
             )?)
         } else {
             Ok(v)
@@ -400,7 +399,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 target_type,
                 reference,
                 self.get_type_hint_for(index)?,
-                index,
             )
             .map(BasicValueEnum::into_int_value)?;
             // let reference = reference.into_int_value();
@@ -1442,7 +1440,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.index.get_type(DINT_TYPE)?,
             result.as_basic_value_enum(),
             self.get_type_hint_for(access_expression)?,
-            access_expression,
         )
     }
 

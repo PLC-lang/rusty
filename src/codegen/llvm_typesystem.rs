@@ -1,20 +1,75 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{
-    builder::Builder,
     context::Context,
     types::{FloatType, IntType},
     values::{BasicValueEnum, FloatValue, IntValue, PointerValue},
 };
 
 use crate::{
-    ast::AstStatement,
     ast::SourceRange,
     diagnostics::Diagnostic,
     index::Index,
-    typesystem::{DataType, DataTypeInformation, StringEncoding},
+    typesystem::{DataType, DataTypeInformation},
 };
 
 use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
+
+/// generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
+/// the original `value` if no cast is necessary
+///
+/// - `llvm` the llvm utilities to use for code-generation
+/// - `index` the current Index used for type-lookups
+/// - `llvm_type_index` the type index to lookup llvm generated types
+/// - `target_type` the expected target type of the value
+/// - `value` the value to (maybe) cast
+/// - `value_type` the current type of the given value
+pub fn cast_if_needed<'ctx>(
+    llvm: &Llvm<'ctx>,
+    index: &Index,
+    llvm_type_index: &LlvmTypedIndex<'ctx>,
+    target_type: &DataType,
+    value: BasicValueEnum<'ctx>,
+    value_type: &DataType,
+) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
+    CastInstructionBuilder::generate_cast_instruction(
+        llvm,
+        index,
+        llvm_type_index,
+        value,
+        value_type,
+        target_type,
+    )
+}
+
+pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> Result<IntType<'a>, Diagnostic> {
+    match size {
+        1 => Ok(context.bool_type()),
+        8 => Ok(context.i8_type()),
+        16 => Ok(context.i16_type()),
+        32 => Ok(context.i32_type()),
+        64 => Ok(context.i64_type()),
+        128 => Ok(context.i128_type()),
+        _ => Err(Diagnostic::codegen_error(
+            &format!("Invalid size for type : '{name}' at {size}"),
+            SourceRange::undefined(),
+        )),
+    }
+}
+
+pub fn get_llvm_float_type<'a>(
+    context: &'a Context,
+    size: u32,
+    name: &str,
+) -> Result<FloatType<'a>, Diagnostic> {
+    match size {
+        32 => Ok(context.f32_type()),
+        64 => Ok(context.f64_type()),
+        _ => Err(Diagnostic::codegen_error(
+            &format!("Invalid size for type : '{name}' at {size}"),
+            SourceRange::undefined(),
+        )),
+    }
+}
 
 struct CastInstructionBuilder<'ctx, 'cnvn> {
     llvm: &'cnvn Llvm<'ctx>,
@@ -22,22 +77,19 @@ struct CastInstructionBuilder<'ctx, 'cnvn> {
     llvm_type_index: &'cnvn LlvmTypedIndex<'ctx>,
     value_type: &'cnvn DataTypeInformation,
     target_type: &'cnvn DataTypeInformation,
-    location: SourceRange,
 }
 
 impl<'ctx, 'cast> CastInstructionBuilder<'ctx, 'cast> {
-    pub fn generate_cast(
+    fn generate_cast_instruction(
         llvm: &'cast Llvm<'ctx>,
         index: &'cast Index,
         llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
         value: BasicValueEnum<'ctx>,
         value_type: &DataType,
         target_type: &DataType,
-        location: SourceRange,
     ) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
-        let Some(cast_data) =
-        CastInstructionBuilder::new(llvm, index, llvm_type_index, value_type, target_type, location) else {
-            return Ok(value)
+        let Some(cast_data) = CastInstructionBuilder::new(llvm, index, llvm_type_index, value_type, target_type) else {
+                return Ok(value)
         };
 
         value.cast(cast_data)
@@ -49,29 +101,25 @@ impl<'ctx, 'cast> CastInstructionBuilder<'ctx, 'cast> {
         llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
         value_type: &DataType,
         target_type: &DataType,
-        location: SourceRange,
     ) -> Option<CastInstructionBuilder<'ctx, 'cast>> {
-        let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
         let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
+        let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
 
         // if the current or target type are generic (unresolved or builtin)
         // we return the value without modification -> no cast info struct needed
         if target_type.is_generic(index) || value_type.is_generic(index) {
-            None
-        } else {
-            Some(CastInstructionBuilder { llvm, index, llvm_type_index, value_type, target_type, location })
-        }
-    }
+            return None;
+        };
 
-    fn with_inner_target_type(&self, inner_target: &'cast DataType) -> CastInstructionBuilder<'ctx, 'cast> {
-        CastInstructionBuilder {
-            llvm: self.llvm,
-            index: self.index,
-            llvm_type_index: self.llvm_type_index,
-            value_type: self.value_type,
-            target_type: inner_target.get_type_information(),
-            location: self.location.clone(),
-        }
+        let target_type =
+            if let DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } = target_type {
+                // Deref auto-deref pointers before casting
+                index.get_intrinsic_type_by_name(inner_type_name.as_str()).get_type_information()
+            } else {
+                target_type
+            };
+
+        Some(CastInstructionBuilder { llvm, index, llvm_type_index, value_type, target_type })
     }
 }
 
@@ -104,7 +152,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
             BasicValueEnum::IntValue(val) => val.cast(cast_data),
             BasicValueEnum::FloatValue(val) => val.cast(cast_data),
             BasicValueEnum::PointerValue(val) => val.cast(cast_data),
-            _ => Ok(self), //unreachable!("tried to cast a type that is not castable"),
+            _ => Ok(self),
         }
     }
 }
@@ -114,7 +162,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
         self,
         cast_data: CastInstructionBuilder<'ctx, 'cast>,
     ) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
-        let lsize = cast_data.target_type.get_size_in_bits(&cast_data.index);
+        let lsize = cast_data.target_type.get_size_in_bits(cast_data.index);
         match cast_data.target_type {
             DataTypeInformation::Integer { .. } if cast_data.target_type.is_character() => {
                 // special char assignment handling
@@ -176,23 +224,23 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
         self,
         cast_data: CastInstructionBuilder<'ctx, 'cast>,
     ) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
-        let lsize = cast_data.target_type.get_size_in_bits(cast_data.index);
+        let rsize = &cast_data.value_type.get_size_in_bits(cast_data.index);
         match cast_data.target_type {
-            DataTypeInformation::Float { size: rsize, .. } => {
-                if lsize < *rsize {
-                    self.truncate(lsize, cast_data)
+            DataTypeInformation::Float { size: lsize, .. } => {
+                if lsize < rsize {
+                    self.truncate(*lsize, cast_data)
                 } else {
                     self.promote(cast_data)
                 }
             }
-            DataTypeInformation::Integer { signed, .. } => {
+            DataTypeInformation::Integer { signed, size: lsize, .. } => {
                 if *signed {
                     Ok(cast_data
                         .llvm
                         .builder
                         .build_float_to_signed_int(
                             self,
-                            get_llvm_int_type(cast_data.llvm.context, lsize, "Integer")?,
+                            get_llvm_int_type(cast_data.llvm.context, *lsize, "Integer")?,
                             "",
                         )
                         .into())
@@ -202,7 +250,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
                         .builder
                         .build_float_to_unsigned_int(
                             self,
-                            get_llvm_int_type(cast_data.llvm.context, lsize, "Integer")?,
+                            get_llvm_int_type(cast_data.llvm.context, *lsize, "Integer")?,
                             "",
                         )
                         .into())
@@ -221,45 +269,26 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
         let builder = &cast_data.llvm.builder;
         let llvm_type_index = cast_data.llvm_type_index;
         match &cast_data.target_type {
-            DataTypeInformation::Integer { size: lsize, .. }
-                if matches!(cast_data.value_type, DataTypeInformation::Pointer { auto_deref: false, .. }) =>
-            {
-                Ok(builder
-                    .build_ptr_to_int(self, get_llvm_int_type(cast_data.llvm.context, *lsize, "")?, "")
-                    .into())
-            }
-            DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } => {
-                // Call `cast` again, this time with more information regarding the pointers type
-                let target_type = cast_data.index.get_intrinsic_type_by_name(inner_type_name);
-                self.cast(cast_data.with_inner_target_type(target_type))
-            }
-            DataTypeInformation::Pointer { auto_deref: false, .. } => match cast_data.value_type {
-                DataTypeInformation::Integer { .. } => Ok(builder
-                    .build_int_to_ptr(
-                        self,
-                        llvm_type_index
-                            .get_associated_type(cast_data.target_type.get_name())?
-                            .into_pointer_type(),
-                        "",
-                    )
-                    .into()),
-                DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
-                    let target_ptr_type =
-                        llvm_type_index.get_associated_type(cast_data.target_type.get_name())?;
-                    if BasicValueEnum::from(self).get_type() != target_ptr_type {
-                        // bit-cast necessary
-                        Ok(builder.build_bitcast(self, target_ptr_type, ""))
-                    } else {
-                        //this is ok, no cast required
-                        Ok(self.into())
-                    }
+            DataTypeInformation::Integer { size: lsize, .. } => Ok(builder
+                .build_ptr_to_int(self, get_llvm_int_type(cast_data.llvm.context, *lsize, "")?, "")
+                .into()),
+            DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
+                // TODO: is void really needed here? no failing tests if omitted/do we ever cast to void?
+                let target_ptr_type =
+                    llvm_type_index.get_associated_type(cast_data.target_type.get_name())?;
+                if BasicValueEnum::from(self).get_type() != target_ptr_type {
+                    // bit-cast necessary
+                    Ok(builder.build_bitcast(self, target_ptr_type, ""))
+                } else {
+                    //this is ok, no cast required
+                    Ok(self.into())
                 }
-                _ => unreachable!("Can only promote to either INT or FLOAT types"),
-            },
-            _ => unreachable!("type not castable"),
+            }
+            _ => unreachable!("Cannot cast pointer value to {}", cast_data.target_type.get_name()),
         }
     }
 }
+
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
     fn promote(
         self,
@@ -301,8 +330,8 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
         cast_data: CastInstructionBuilder<'ctx, 'cast>,
     ) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
         // FLOAT --> FLOAT
-        let target_size = cast_data.target_type.get_size_in_bits(&cast_data.index);
-        let value_size = cast_data.value_type.get_size_in_bits(&cast_data.index);
+        let target_size = cast_data.target_type.get_size_in_bits(cast_data.index);
+        let value_size = cast_data.value_type.get_size_in_bits(cast_data.index);
         if target_size <= value_size {
             Ok(self.into())
         } else {
@@ -344,353 +373,5 @@ impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for FloatValue<'ctx> {
             .builder
             .build_float_trunc(self, get_llvm_float_type(cast_data.llvm.context, lsize, "Float")?, "")
             .into())
-    }
-}
-
-///
-/// generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
-/// the original `value` if no cast is necessary
-///
-/// - `llvm` the llvm utilities to use for code-generation
-/// - `index` the current Index used for type-lookups
-/// - `llvm_type_index` the type index to lookup llvm generated types
-/// - `target_type` the expected target type of the value
-/// - `value` the value to (maybe) cast
-/// - `value_type` the current type of the given value
-/// - `statement` the original statement as a context (e.g. for error reporting)
-pub fn cast_if_needed<'ctx>(
-    llvm: &Llvm<'ctx>,
-    index: &Index,
-    llvm_type_index: &LlvmTypedIndex<'ctx>,
-    target_type: &DataType,
-    value: BasicValueEnum<'ctx>,
-    value_type: &DataType,
-    //TODO: Could be location
-    statement: &AstStatement,
-) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
-    CastInstructionBuilder::generate_cast(
-        llvm,
-        index,
-        llvm_type_index,
-        value,
-        value_type,
-        target_type,
-        statement.get_location(),
-    )
-}
-
-pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> Result<IntType<'a>, Diagnostic> {
-    match size {
-        1 => Ok(context.bool_type()),
-        8 => Ok(context.i8_type()),
-        16 => Ok(context.i16_type()),
-        32 => Ok(context.i32_type()),
-        64 => Ok(context.i64_type()),
-        128 => Ok(context.i128_type()),
-        _ => Err(Diagnostic::codegen_error(
-            &format!("Invalid size for type : '{name}' at {size}"),
-            SourceRange::undefined(),
-        )),
-    }
-}
-
-pub fn get_llvm_float_type<'a>(
-    context: &'a Context,
-    size: u32,
-    name: &str,
-) -> Result<FloatType<'a>, Diagnostic> {
-    match size {
-        32 => Ok(context.f32_type()),
-        64 => Ok(context.f64_type()),
-        _ => Err(Diagnostic::codegen_error(
-            &format!("Invalid size for type : '{name}' at {size}"),
-            SourceRange::undefined(),
-        )),
-    }
-}
-
-pub fn _cast_if_needed<'ctx>(
-    llvm: &Llvm<'ctx>,
-    index: &Index,
-    llvm_type_index: &LlvmTypedIndex<'ctx>,
-    target_type: &DataType,
-    value: BasicValueEnum<'ctx>,
-    value_type: &DataType,
-    //TODO: Could be location
-    statement: &AstStatement,
-) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
-    let builder = &llvm.builder;
-    let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
-
-    let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
-
-    // if the current or target type are generic (unresolved or builtin)
-    // return the value without modification
-    if target_type.is_generic(index) || value_type.is_generic(index) {
-        return Ok(value);
-    }
-
-    match target_type {
-        DataTypeInformation::Integer { signed, size: lsize, .. } => {
-            match value_type {
-                DataTypeInformation::Integer { .. } => {
-                    //its important to use the real type's size here, because we may bot an i1 which is annotated as BOOL (8 bit)
-                    let rsize = &value.get_type().into_int_type().get_bit_width();
-                    if lsize < rsize {
-                        //Truncate
-                        Ok(llvm
-                            .builder
-                            .build_int_truncate_or_bit_cast(
-                                value.into_int_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
-                                "",
-                            )
-                            .into())
-                    } else {
-                        //Expand
-                        promote_value_if_needed(llvm.context, &llvm.builder, value, value_type, target_type)
-                            .map_err(|it| Diagnostic::relocate(it, statement.get_location()))
-                    }
-                }
-                DataTypeInformation::Float { size: _rsize, .. } => {
-                    if *signed {
-                        Ok(llvm
-                            .builder
-                            .build_float_to_signed_int(
-                                value.into_float_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
-                                "",
-                            )
-                            .into())
-                    } else {
-                        Ok(builder
-                            .build_float_to_unsigned_int(
-                                value.into_float_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
-                                "",
-                            )
-                            .into())
-                    }
-                }
-                DataTypeInformation::String { encoding, .. } => {
-                    if (*lsize == 8 && matches!(encoding, StringEncoding::Utf16))
-                        || (*lsize == 16 && matches!(encoding, StringEncoding::Utf8))
-                    {
-                        return Err(Diagnostic::casting_error(
-                            value_type.get_name(),
-                            target_type.get_name(),
-                            statement.get_location(),
-                        ));
-                    };
-                    Ok(llvm
-                        .builder
-                        .build_int_truncate_or_bit_cast(
-                            value.into_int_value(),
-                            get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
-                            "",
-                        )
-                        .into())
-                }
-                DataTypeInformation::Pointer { auto_deref: false, .. } => Ok(llvm
-                    .builder
-                    .build_ptr_to_int(
-                        value.into_pointer_value(),
-                        get_llvm_int_type(llvm.context, *lsize, "")?,
-                        "",
-                    )
-                    .into()),
-                _ => Err(Diagnostic::casting_error(
-                    value_type.get_name(),
-                    target_type.get_name(),
-                    statement.get_location(),
-                )),
-            }
-        }
-
-        DataTypeInformation::Float {
-            // generated_type,
-            size: lsize,
-            ..
-        } => match value_type {
-            DataTypeInformation::Integer { signed, .. } => {
-                if *signed {
-                    Ok(builder
-                        .build_signed_int_to_float(
-                            value.into_int_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
-                            "",
-                        )
-                        .into())
-                } else {
-                    Ok(builder
-                        .build_unsigned_int_to_float(
-                            value.into_int_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
-                            "",
-                        )
-                        .into())
-                }
-            }
-            DataTypeInformation::Float { size: rsize, .. } => {
-                if lsize < rsize {
-                    Ok(builder
-                        .build_float_trunc(
-                            value.into_float_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
-                            "",
-                        )
-                        .into())
-                } else {
-                    promote_value_if_needed(llvm.context, &llvm.builder, value, value_type, target_type)
-                        .map_err(|it| Diagnostic::relocate(it, statement.get_location()))
-                }
-            }
-            _ => Err(Diagnostic::casting_error(
-                value_type.get_name(),
-                target_type.get_name(),
-                statement.get_location(),
-            )),
-        },
-        DataTypeInformation::String { encoding, .. } => match value_type {
-            DataTypeInformation::String { encoding: value_encoding, .. } => {
-                if encoding != value_encoding {
-                    return Err(Diagnostic::casting_error(
-                        value_type.get_name(),
-                        target_type.get_name(),
-                        statement.get_location(),
-                    ));
-                }
-                Ok(value)
-            }
-            _ => Err(Diagnostic::casting_error(
-                value_type.get_name(),
-                target_type.get_name(),
-                statement.get_location(),
-            )),
-        },
-        DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } => {
-            // Call `cast_if_needed` again, this time with more information regarding the pointers type
-            let target_type = index.get_intrinsic_type_by_name(inner_type_name);
-            let value_type = index.get_intrinsic_type_by_name(value_type.get_name());
-
-            cast_if_needed(llvm, index, llvm_type_index, target_type, value, value_type, statement)
-        }
-        DataTypeInformation::Pointer { auto_deref: false, .. } => match value_type {
-            DataTypeInformation::Integer { .. } => Ok(llvm
-                .builder
-                .build_int_to_ptr(
-                    value.into_int_value(),
-                    llvm_type_index.get_associated_type(target_type.get_name())?.into_pointer_type(),
-                    "",
-                )
-                .into()),
-            DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
-                let target_ptr_type = llvm_type_index.get_associated_type(target_type.get_name())?;
-                if value.get_type() != target_ptr_type {
-                    // bit-cast necessary
-                    Ok(builder.build_bitcast(value, target_ptr_type, ""))
-                } else {
-                    //this is ok, no cast required
-                    Ok(value)
-                }
-            }
-            _ => Err(Diagnostic::casting_error(
-                value_type.get_name(),
-                target_type.get_name(),
-                statement.get_location(),
-            )),
-        },
-        _ => Ok(value),
-    }
-}
-
-pub fn create_llvm_extend_int_value<'a>(
-    builder: &Builder<'a>,
-    lvalue: IntValue<'a>,
-    ltype: &DataTypeInformation,
-    target_type: IntType<'a>,
-) -> IntValue<'a> {
-    match ltype {
-        DataTypeInformation::Integer { signed: true, .. } => {
-            builder.build_int_s_extend_or_bit_cast(lvalue, target_type, "")
-        }
-        DataTypeInformation::Integer { signed: false, .. } => {
-            builder.build_int_z_extend_or_bit_cast(lvalue, target_type, "")
-        }
-        _ => unreachable!(),
-    }
-}
-
-pub fn promote_value_if_needed<'ctx>(
-    context: &'ctx Context,
-    builder: &Builder<'ctx>,
-    lvalue: BasicValueEnum<'ctx>,
-    ltype: &DataTypeInformation,
-    target_type: &DataTypeInformation,
-) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
-    //Is the target type int
-    //Expand the current type to the target size
-    //Is the target type float
-    //Is the current type int
-    //Cast to float
-    //Expand current type to target type
-
-    match target_type {
-        DataTypeInformation::Integer { size: target_size, .. } => {
-            // INT --> INT
-            let int_value = lvalue.into_int_value();
-            if int_value.get_type().get_bit_width() < *target_size {
-                Ok(create_llvm_extend_int_value(
-                    builder,
-                    int_value,
-                    ltype,
-                    get_llvm_int_type(context, *target_size, "Integer")?,
-                )
-                .into())
-            } else {
-                Ok(lvalue)
-            }
-        }
-        DataTypeInformation::Float { size: target_size, .. } => {
-            if lvalue.is_int_value() {
-                // INT --> FLOAT
-                let int_value = lvalue.into_int_value();
-                if ltype.is_signed_int() {
-                    Ok(builder
-                        .build_signed_int_to_float(
-                            int_value,
-                            get_llvm_float_type(context, *target_size, "Float")?,
-                            "",
-                        )
-                        .into())
-                } else {
-                    Ok(builder
-                        .build_unsigned_int_to_float(
-                            int_value,
-                            get_llvm_float_type(context, *target_size, "Float")?,
-                            "",
-                        )
-                        .into())
-                }
-            } else {
-                // FLOAT --> FLOAT
-                if let DataTypeInformation::Float { size, .. } = ltype {
-                    if target_size <= size {
-                        Ok(lvalue)
-                    } else {
-                        Ok(builder
-                            .build_float_ext(
-                                lvalue.into_float_value(),
-                                get_llvm_float_type(context, *target_size, "Float")?,
-                                "",
-                            )
-                            .into())
-                    }
-                } else {
-                    unreachable!()
-                }
-            }
-        }
-        _ => unreachable!(),
     }
 }

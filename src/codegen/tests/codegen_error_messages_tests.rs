@@ -244,6 +244,7 @@ fn recursive_initial_constant_values() {
 }
 
 #[test]
+#[ignore = "codegen no longer validates casts - this error is already caught beforehand"]
 fn char_assigning_wstring_literal_results_in_casting_error() {
     // GIVEN program with char variable trying to assign a wide string literal
     // WHEN codegen
@@ -265,6 +266,7 @@ fn char_assigning_wstring_literal_results_in_casting_error() {
 }
 
 #[test]
+#[ignore = "codegen no longer validates casts - this error is already caught beforehand"]
 fn wchar_assigning_string_literal_results_in_casting_error() {
     // GIVEN program with wchar variable trying to assing a string literal
     // WHEN codegen

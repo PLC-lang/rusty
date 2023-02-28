@@ -301,7 +301,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     left_type,
                     right,
                     right_type,
-                    right_statement,
                 )
                 .map(BasicValueEnum::into_int_value)?;
                 //Shift left by the direct access
