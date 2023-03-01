@@ -718,6 +718,19 @@ impl Diagnostic {
             err_no: ErrNo::pou__recursive_data_structure,
         }
     }
+
+    pub fn implicit_downcast(
+        actual_type_name: &str,
+        assigned_type_name: &str,
+        range: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!(
+                "Potential loss of information due to assigning '{assigned_type_name}' to variable of type '{actual_type_name}'."
+            ),
+            range: vec![range],
+        }
+    }
 }
 
 /// a diagnostics severity

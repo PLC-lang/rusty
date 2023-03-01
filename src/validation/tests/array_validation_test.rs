@@ -97,10 +97,8 @@ fn array_initialization_validation() {
             Diagnostic::array_expected_identifier_or_round_bracket((460..461).into()),
             Diagnostic::array_expected_initializer_list((497..500).into()),
             Diagnostic::array_expected_identifier_or_round_bracket((507..508).into()),
-            Diagnostic::invalid_assignment("DINT", "__main_arr", (497..505).into()),
             Diagnostic::array_expected_initializer_list((603..607).into()),
             Diagnostic::array_expected_identifier_or_round_bracket((614..615).into()),
-            Diagnostic::invalid_assignment("DINT", "__myStruct_var2", (603..612).into()),
         ]
     );
 }

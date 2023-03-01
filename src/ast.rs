@@ -1260,9 +1260,9 @@ impl AstStatement {
         }
     }
 
-    /// returns true if this AST Statement is a literal that can be
+    /// returns true if this AST Statement is a literal or reference that can be
     /// prefixed with a type-cast (e.g. INT#23)
-    pub fn is_typable_literal(&self) -> bool {
+    pub fn is_cast_prefix_eligible(&self) -> bool { // TODO: figure out a better name for this...
         matches!(
             self,
             AstStatement::LiteralBool { .. }
@@ -1274,6 +1274,22 @@ impl AstStatement {
                 | AstStatement::LiteralTimeOfDay { .. }
                 | AstStatement::LiteralDateAndTime { .. }
                 | AstStatement::Reference { .. }
+        )
+    }
+       /// Returns true if the current statement is a literal
+       pub fn is_literal(&self) -> bool {
+        matches!(
+            self,
+            AstStatement::LiteralNull { .. }
+                | AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralDate { .. }
+                | AstStatement::LiteralDateAndTime { .. }
+                | AstStatement::LiteralTimeOfDay { .. }
+                | AstStatement::LiteralTime { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::LiteralBool { .. }
+                | AstStatement::LiteralString { .. }
+                | AstStatement::LiteralArray { .. }
         )
     }
 
