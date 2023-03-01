@@ -29,12 +29,9 @@ pub fn cast_if_needed<'ctx>(
     value_type: &DataType,
     value: BasicValueEnum<'ctx>,
 ) -> BasicValueEnum<'ctx> {
-    let Some(cast_data) = CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type) else {
-                // TODO: our tests never reach this line - is the generics check necessary?
-                return value
-        };
-
-    value.cast(cast_data)
+    value.cast(
+        CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type)
+    )
 }
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
@@ -72,15 +69,9 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
         llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
         value_type: &DataType,
         target_type: &DataType,
-    ) -> Option<CastInstructionData<'ctx, 'cast>> {
+    ) -> CastInstructionData<'ctx, 'cast> {
         let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
         let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
-
-        // if the current or target type are generic (unresolved or builtin)
-        // we return the value without modification -> no cast info struct needed
-        if target_type.is_generic(index) || value_type.is_generic(index) {
-            return None;
-        };
 
         let target_type =
             if let DataTypeInformation::Pointer { auto_deref: true, inner_type_name, .. } = target_type {
@@ -90,7 +81,7 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
                 target_type
             };
 
-        Some(CastInstructionData { llvm, index, llvm_type_index, value_type, target_type })
+        CastInstructionData { llvm, index, llvm_type_index, value_type, target_type }
     }
 }
 
