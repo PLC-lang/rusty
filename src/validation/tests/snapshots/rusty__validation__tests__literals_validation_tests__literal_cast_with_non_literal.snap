@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/literals_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Expected literal", range: [SourceRange { range: 25..32 }], err_no: type__expected_literal }
+

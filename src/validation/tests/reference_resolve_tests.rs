@@ -1,5 +1,7 @@
+use insta::assert_snapshot;
+
 use crate::test_utils::tests::parse_and_validate;
-use crate::Diagnostic;
+use crate::validation::tests::make_readable;
 
 /// tests wheter simple local and global variables can be resolved and
 /// errors are reported properly
@@ -23,13 +25,7 @@ fn resolve_simple_variable_references() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unresolved_reference("b", (168..169).into()),
-            Diagnostic::unresolved_reference("gb", (207..209).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 /// tests wheter functions and function parameters can be resolved and
@@ -53,15 +49,7 @@ fn resolve_function_calls_and_parameters() {
         ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unresolved_reference("boo", (101..104).into()),
-            Diagnostic::unresolved_reference("c", (105..106).into()),
-            Diagnostic::unresolved_reference("c", (163..164).into()),
-            Diagnostic::unresolved_reference("y", (187..188).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 /// tests wheter structs and struct member variables can be resolved and
@@ -113,17 +101,7 @@ fn resole_struct_member_access() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unresolved_reference("field10", (694..701).into()),
-            Diagnostic::unresolved_reference("field20", (721..728).into()),
-            Diagnostic::unresolved_reference("field30", (748..755).into()),
-            Diagnostic::unresolved_reference("subfield10", (955..965).into()),
-            Diagnostic::unresolved_reference("subfield20", (989..999).into()),
-            Diagnostic::unresolved_reference("subfield30", (1023..1033).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 /// tests wheter function_block members can be resolved and
@@ -191,17 +169,7 @@ fn resolve_function_block_calls_in_structs_and_field_access() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unresolved_reference("fb3", (650..653).into()),
-            Diagnostic::unresolved_reference("a", (654..655).into()),
-            Diagnostic::unresolved_reference("fb3", (664..667).into()),
-            Diagnostic::unresolved_reference("b", (668..669).into()),
-            Diagnostic::unresolved_reference("fb3", (678..681).into()),
-            Diagnostic::unresolved_reference("c", (682..683).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 /// tests wheter function's members cannot be access using the function's name as a qualifier
@@ -227,14 +195,7 @@ fn resolve_function_members_via_qualifier() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unresolved_reference("a", (181..182).into()),
-            Diagnostic::unresolved_reference("b", (217..218).into()),
-            Diagnostic::unresolved_reference("c", (253..254).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 /// tests whether references to privater variables do resolve, but end up in an validation problem
@@ -254,7 +215,7 @@ fn reference_to_private_variable_is_illegal() {
        ",
     );
 
-    assert_eq!(diagnostics, vec![Diagnostic::illegal_access("prg.s", (175..176).into()),]);
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 /// tests whether an intermediate access like: `a.priv.b` (where priv is a var_local)
@@ -290,7 +251,7 @@ fn reference_to_private_variable_in_intermediate_fb() {
 
     // THEN we get a validtion-error for accessing fb1.f, but no follow-up errors for
     // the access of fb2 which is legit
-    assert_eq!(diagnostics, vec![Diagnostic::illegal_access("fb1.f", (413..414).into()),]);
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]

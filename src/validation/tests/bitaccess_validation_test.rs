@@ -1,5 +1,6 @@
-use crate::test_utils::tests::parse_and_validate;
-use crate::Diagnostic;
+use insta::assert_snapshot;
+
+use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
 
 #[test]
 fn bitaccess_only_on_bit_types() {
@@ -24,14 +25,7 @@ fn bitaccess_only_on_bit_types() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_directaccess("Bit", 1, (223..224).into()),
-            Diagnostic::incompatible_directaccess("Bit", 1, (247..248).into()),
-            Diagnostic::incompatible_directaccess("Bit", 1, (270..271).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -54,14 +48,7 @@ fn byteaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_directaccess("Byte", 8, (195..198).into()),
-            Diagnostic::incompatible_directaccess("Byte", 8, (221..224).into()),
-            Diagnostic::incompatible_directaccess("Byte", 8, (247..250).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -84,14 +71,7 @@ fn wordaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_directaccess("Word", 16, (194..197).into()),
-            Diagnostic::incompatible_directaccess("Word", 16, (220..223).into()),
-            Diagnostic::incompatible_directaccess("Word", 16, (246..249).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -114,14 +94,7 @@ fn dwordaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_directaccess("DWord", 32, (197..200).into()),
-            Diagnostic::incompatible_directaccess("DWord", 32, (223..226).into()),
-            Diagnostic::incompatible_directaccess("DWord", 32, (249..252).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -140,15 +113,7 @@ fn bitaccess_range_test() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_directaccess_range("Bit", "BYTE", 0..7, (138..139).into()),
-            Diagnostic::incompatible_directaccess_range("Bit", "WORD", 0..15, (159..161).into()),
-            Diagnostic::incompatible_directaccess_range("Bit", "DWORD", 0..31, (181..183).into()),
-            Diagnostic::incompatible_directaccess_range("Bit", "LWORD", 0..63, (203..205).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -166,14 +131,7 @@ fn byteaccess_range_test() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_directaccess_range("Byte", "WORD", 0..1, (128..131).into()),
-            Diagnostic::incompatible_directaccess_range("Byte", "DWORD", 0..3, (151..154).into()),
-            Diagnostic::incompatible_directaccess_range("Byte", "LWORD", 0..7, (174..177).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -190,13 +148,7 @@ fn wordaccess_range_test() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_directaccess_range("Word", "DWORD", 0..1, (118..121).into()),
-            Diagnostic::incompatible_directaccess_range("Word", "LWORD", 0..3, (141..144).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -212,10 +164,7 @@ fn dwordaccess_range_test() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::incompatible_directaccess_range("DWord", "LWORD", 0..1, (107..110).into()),]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -233,11 +182,5 @@ fn reference_direct_access_only_with_ints() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_directaccess_variable("LREAL", (160..163).into()),
-            Diagnostic::incompatible_directaccess_variable("REAL", (183..186).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }

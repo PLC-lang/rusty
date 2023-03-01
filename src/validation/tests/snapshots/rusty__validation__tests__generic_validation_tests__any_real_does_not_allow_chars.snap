@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Real.", range: [SourceRange { range: 138..139 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. WCHAR is no Real.", range: [SourceRange { range: 207..208 }], err_no: type__invalid_nature }
+

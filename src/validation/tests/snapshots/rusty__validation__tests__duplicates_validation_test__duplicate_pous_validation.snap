@@ -1,0 +1,10 @@
+---
+source: src/validation/tests/duplicates_validation_test.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "foo: Ambiguous callable symbol.", range: [SourceRange { range: 25..28 }, SourceRange { range: 74..77 }], err_no: duplicate_symbol }
+SyntaxError { message: "foo: Ambiguous callable symbol.", range: [SourceRange { range: 74..77 }, SourceRange { range: 25..28 }], err_no: duplicate_symbol }
+SyntaxError { message: "foo: Duplicate symbol.", range: [SourceRange { range: 25..28 }, SourceRange { range: 74..77 }, SourceRange { range: 116..119 }], err_no: duplicate_symbol }
+SyntaxError { message: "foo: Duplicate symbol.", range: [SourceRange { range: 74..77 }, SourceRange { range: 25..28 }, SourceRange { range: 116..119 }], err_no: duplicate_symbol }
+SyntaxError { message: "foo: Duplicate symbol.", range: [SourceRange { range: 116..119 }, SourceRange { range: 25..28 }, SourceRange { range: 74..77 }], err_no: duplicate_symbol }
+
