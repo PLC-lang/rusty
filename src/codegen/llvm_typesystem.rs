@@ -29,9 +29,7 @@ pub fn cast_if_needed<'ctx>(
     value_type: &DataType,
     value: BasicValueEnum<'ctx>,
 ) -> BasicValueEnum<'ctx> {
-    value.cast(
-        CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type)
-    )
+    value.cast(CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type))
 }
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
