@@ -1174,3 +1174,60 @@ fn allowed_assignable_types() {
 
     assert_eq!(diagnostics.len(), 0);
 }
+
+#[test]
+fn assignment_of_incompatible_types_is_reported() {
+    let diagnostics = parse_and_validate(
+        r#"
+    PROGRAM prog
+    VAR
+        dint_ : DINT;
+        string_ : STRING := 'Hello, world!';
+        array_ : ARRAY[0..3] OF LWORD;
+    END_VAR
+        string_ := dint_;           // invalid
+        string_ := array_;          // invalid
+        dint_ := string_;           // invalid
+        array_ := string_;          // invalid
+    END_PROGRAM
+    "#,
+    );
+
+    assert_eq!(diagnostics.len(), 4);
+
+    let ranges = &[(152..168), (199..216), (246..262), (293..310)];
+    let types =
+        &[("DINT", "STRING"), ("__prog_array_", "STRING"), ("STRING", "DINT"), ("STRING", "__prog_array_")];
+    for (idx, diag) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diag,
+            &Diagnostic::invalid_assignment(types[idx].0, types[idx].1, ranges[idx].to_owned().into())
+        )
+    }
+}
+
+#[test]
+fn passing_compatible_numeric_types_to_functions_is_allowed() {
+    let diagnostics = parse_and_validate(
+        r#"
+    PROGRAM prog
+    VAR
+        dint_ : DINT;
+        lreal_ : LREAL;
+    END_VAR
+        foo(dint_);
+        bar(lreal_);
+    END_PROGRAM
+
+    FUNCTION foo : DINT
+    VAR_INPUT r : REAL END_VAR
+    END_FUNCTION
+
+    FUNCTION bar : DINT
+    VAR_INPUT i : LINT END_VAR
+    END_FUNCTION
+    "#,
+    );
+
+    assert_eq!(diagnostics, vec![]);
+}
