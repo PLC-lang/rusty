@@ -19,24 +19,22 @@ use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
 /// - `index` the current Index used for type-lookups
 /// - `llvm_type_index` the type index to lookup llvm generated types
 /// - `target_type` the expected target type of the value
-/// - `value` the value to (maybe) cast
 /// - `value_type` the current type of the given value
+/// - `value` the value to (maybe) cast
 pub fn cast_if_needed<'ctx>(
     llvm: &Llvm<'ctx>,
     index: &Index,
     llvm_type_index: &LlvmTypedIndex<'ctx>,
     target_type: &DataType,
-    value: BasicValueEnum<'ctx>,
     value_type: &DataType,
+    value: BasicValueEnum<'ctx>,
 ) -> BasicValueEnum<'ctx> {
-    CastInstructionBuilder::generate_cast_instruction(
-        llvm,
-        index,
-        llvm_type_index,
-        value,
-        value_type,
-        target_type,
-    )
+    let Some(cast_data) = CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type) else {
+                // TODO: our tests never reach this line - is the generics check necessary?
+                return value
+        };
+
+    value.cast(cast_data)
 }
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
@@ -59,7 +57,7 @@ pub fn get_llvm_float_type<'a>(context: &'a Context, size: u32, name: &str) -> F
     }
 }
 
-struct CastInstructionBuilder<'ctx, 'cast> {
+struct CastInstructionData<'ctx, 'cast> {
     llvm: &'cast Llvm<'ctx>,
     index: &'cast Index,
     llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
@@ -67,29 +65,14 @@ struct CastInstructionBuilder<'ctx, 'cast> {
     target_type: &'cast DataTypeInformation,
 }
 
-impl<'ctx, 'cast> CastInstructionBuilder<'ctx, 'cast> {
-    fn generate_cast_instruction(
-        llvm: &'cast Llvm<'ctx>,
-        index: &'cast Index,
-        llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
-        value: BasicValueEnum<'ctx>,
-        value_type: &DataType,
-        target_type: &DataType,
-    ) -> BasicValueEnum<'ctx> {
-        let Some(cast_data) = CastInstructionBuilder::new(llvm, index, llvm_type_index, value_type, target_type) else {
-                return value
-        };
-
-        value.cast(cast_data)
-    }
-
+impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
     fn new(
         llvm: &'cast Llvm<'ctx>,
         index: &'cast Index,
         llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
         value_type: &DataType,
         target_type: &DataType,
-    ) -> Option<CastInstructionBuilder<'ctx, 'cast>> {
+    ) -> Option<CastInstructionData<'ctx, 'cast>> {
         let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
         let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
 
@@ -107,24 +90,24 @@ impl<'ctx, 'cast> CastInstructionBuilder<'ctx, 'cast> {
                 target_type
             };
 
-        Some(CastInstructionBuilder { llvm, index, llvm_type_index, value_type, target_type })
+        Some(CastInstructionData { llvm, index, llvm_type_index, value_type, target_type })
     }
 }
 
 trait Castable<'ctx, 'cast> {
-    fn cast(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 trait Promotable<'ctx, 'cast> {
-    fn promote(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn promote(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 trait Truncatable<'ctx, 'cast> {
-    fn truncate(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn truncate(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
-    fn cast(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         match self {
             BasicValueEnum::IntValue(val) => val.cast(cast_data),
             BasicValueEnum::FloatValue(val) => val.cast(cast_data),
@@ -135,7 +118,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
-    fn cast(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let lsize = cast_data.target_type.get_size_in_bits(cast_data.index);
         match cast_data.target_type {
             DataTypeInformation::Integer { .. } => {
@@ -149,7 +132,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
                     self.promote(lsize, cast_data)
                 }
             }
-            DataTypeInformation::Float { size: _rsize, .. } => {
+            DataTypeInformation::Float { .. } => {
                 let float_type = get_llvm_float_type(cast_data.llvm.context, lsize, "Float");
                 if cast_data.value_type.is_signed_int() {
                     cast_data.llvm.builder.build_signed_int_to_float(self, float_type, "").into()
@@ -172,7 +155,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn cast(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let rsize = &cast_data.value_type.get_size_in_bits(cast_data.index);
         match cast_data.target_type {
             DataTypeInformation::Float { size: lsize, .. } => {
@@ -196,7 +179,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
-    fn cast(self, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         match &cast_data.target_type {
             DataTypeInformation::Integer { size: lsize, .. } => cast_data
                 .llvm
@@ -222,7 +205,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
-    fn promote(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn promote(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, "Integer");
         if cast_data.value_type.is_signed_int() {
             cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")
@@ -234,7 +217,7 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn promote(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn promote(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         cast_data
             .llvm
             .builder
@@ -244,7 +227,7 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for IntValue<'ctx> {
-    fn truncate(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn truncate(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         cast_data
             .llvm
             .builder
@@ -258,7 +241,7 @@ impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn truncate(self, lsize: u32, cast_data: CastInstructionBuilder<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn truncate(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         cast_data
             .llvm
             .builder

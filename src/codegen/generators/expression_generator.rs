@@ -1,9 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{self, DirectAccessType, SourceRange},
+    ast::{self, flatten_expression_list, AstStatement, DirectAccessType, Operator, SourceRange},
     codegen::{
         debug::{Debug, DebugBuilderEnum},
-        llvm_typesystem,
+        llvm_index::LlvmTypedIndex,
+        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{
@@ -12,7 +13,8 @@ use crate::{
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
-        is_same_type_class, Dimension, StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
+        is_same_type_class, DataType, DataTypeInformation, Dimension, StringEncoding, VarArgs, DINT_TYPE,
+        INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
 use inkwell::{
@@ -25,15 +27,6 @@ use inkwell::{
     AddressSpace, FloatPredicate, IntPredicate,
 };
 use std::{collections::HashSet, vec};
-
-use crate::{
-    ast::{flatten_expression_list, AstStatement, Operator},
-    codegen::{
-        llvm_index::LlvmTypedIndex,
-        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
-    },
-    typesystem::{DataType, DataTypeInformation},
-};
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
 
@@ -166,20 +159,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .as_r_value(self.llvm, self.get_load_name(expression))
             .as_basic_value_enum();
 
-        //see if we need a cast
-        if let Some(target_type) = self.annotations.get_type_hint(expression, self.index) {
-            let actual_type = self.annotations.get_type_or_void(expression, self.index);
-            Ok(llvm_typesystem::cast_if_needed(
-                self.llvm,
-                self.index,
-                self.llvm_index,
-                target_type,
-                v,
-                actual_type,
-            ))
-        } else {
-            Ok(v)
-        }
+        let Some(target_type) = self.annotations.get_type_hint(expression, self.index) else {
+            // no type-hint -> we can return the value as is
+            return Ok(v)
+        };
+        let actual_type = self.annotations.get_type_or_void(expression, self.index);
+        Ok(cast_if_needed(self.llvm, self.index, self.llvm_index, target_type, actual_type, v))
     }
 
     fn register_debug_location(&self, statement: &AstStatement) {
@@ -397,8 +382,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.index,
                 self.llvm_index,
                 target_type,
-                reference,
                 self.get_type_hint_for(index)?,
+                reference,
             )
             .into_int_value();
             // let reference = reference.into_int_value();
@@ -1434,13 +1419,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             access_value.into_int_value()
         };
         //turn it into i32 immediately
-        Ok(llvm_typesystem::cast_if_needed(
+        Ok(cast_if_needed(
             self.llvm,
             self.index,
             self.llvm_index,
             self.index.get_type(DINT_TYPE)?,
-            result.as_basic_value_enum(),
             self.get_type_hint_for(access_expression)?,
+            result.as_basic_value_enum(),
         ))
     }
 
