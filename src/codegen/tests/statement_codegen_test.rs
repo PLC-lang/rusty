@@ -154,3 +154,24 @@ fn function_result_assignment_on_aliased_string() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn floating_point_type_casting() {
+    let result = codegen(
+        r#"
+        FUNCTION fn : DINT
+            VAR
+                a : REAL  :=       7 / 2; // => 3.0 (because we do a integer division first and only then cast the result)
+                b : REAL  :=  REAL#7 / 2; // => 3.5 (because we first cast then divide)
+                c : REAL  := LREAL#7 / 2; // => 3.5 ^
+
+                d : LREAL :=       7 / 2;  // => 3.0 (because we do a integer division first and only then cast the result)
+                e : LREAL :=  REAL#7 / 2;  // => 3.5 (because we first cast then divide)
+                f : LREAL := LREAL#7 / 2;  // => 3.5 ^
+            END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
