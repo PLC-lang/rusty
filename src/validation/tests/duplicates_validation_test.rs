@@ -2,7 +2,7 @@ use insta::assert_snapshot;
 
 use crate::{
     ast::{self, CompilationUnit, SourceRange, SourceRangeFactory},
-    diagnostics::{Diagnostic, Diagnostician},
+    diagnostics::Diagnostic,
     index::{visitor, Index},
     lexer::{self, IdProvider},
     parser,
@@ -10,7 +10,7 @@ use crate::{
     test_utils::tests::{compile_to_string, parse_and_validate},
     typesystem,
     validation::Validator,
-    SourceCode,
+    SourceCode, DebugLevel,
 };
 
 #[test]
@@ -660,8 +660,7 @@ fn duplicate_with_generic_ir() {
         vec![file1, file2, file3],
         vec![],
         None,
-        Diagnostician::default(),
-        crate::DebugLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
 

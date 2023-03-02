@@ -31,9 +31,7 @@ fn test_external_function_called() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -96,9 +94,7 @@ fn sized_variadic_call() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -134,9 +130,7 @@ fn sized_pointer_variadic_call() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -206,9 +200,7 @@ fn string_sized_variadic_call() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -244,9 +236,7 @@ fn string_sized_pointer_variadic_call() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();

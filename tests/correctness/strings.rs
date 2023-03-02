@@ -380,9 +380,7 @@ fn string_as_function_parameters_internal() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -420,9 +418,7 @@ fn string_as_function_parameters() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -470,9 +466,7 @@ fn wstring_as_function_parameters() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -521,9 +515,7 @@ fn string_as_function_parameters_cast() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -571,9 +563,7 @@ fn wstring_as_function_parameters_cast() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();

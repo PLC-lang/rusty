@@ -1,8 +1,8 @@
 use crate::{
     ast::SourceRange,
-    diagnostics::{Diagnostic, Diagnostician},
+    diagnostics::Diagnostic,
     test_utils::tests::compile_to_string,
-    SourceCode,
+    SourceCode, DebugLevel,
 };
 
 #[test]
@@ -25,8 +25,7 @@ fn external_file_function_call() {
         vec![prog],
         vec![ext],
         None,
-        Diagnostician::null_diagnostician(),
-        crate::DebugLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     insta::assert_snapshot!(res);
@@ -60,8 +59,7 @@ fn external_file_global_var() {
         vec![prog],
         vec![ext],
         None,
-        Diagnostician::null_diagnostician(),
-        crate::DebugLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     //x should be external
@@ -82,8 +80,7 @@ fn calling_external_file_function_without_including_file_results_in_error() {
         vec![prog],
         vec![],
         None,
-        Diagnostician::null_diagnostician(),
-        crate::DebugLevel::None,
+        DebugLevel::None,
     );
 
     if let Err(msg) = res {

@@ -18,6 +18,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            root: None,
             build_location: None,
             format: rusty::FormatOption::IR,
             output: out.clone(),
@@ -36,6 +37,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            root: None,
             build_location: None,
             format: rusty::FormatOption::Bitcode,
             output: out.clone(),
@@ -54,6 +56,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            root: None,
             build_location: None,
             format: rusty::FormatOption::Shared,
             output: out.clone(),
@@ -72,6 +75,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            root: None,
             build_location: None,
             format: rusty::FormatOption::PIC,
             output: out.clone(),
@@ -90,6 +94,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
         vec![],
         encoding,
         &CompileOptions {
+            root: None,
             build_location: None,
             format: rusty::FormatOption::Static,
             output: out.clone(),

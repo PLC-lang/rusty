@@ -3,7 +3,7 @@ use inkwell::{
     execution_engine::{ExecutionEngine, JitFunction},
 };
 
-use crate::{compile_module, diagnostics::Diagnostician, SourceCode, SourceContainer};
+use crate::{compile_module, SourceCode, SourceContainer, CompileOptions};
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
 type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;
@@ -92,9 +92,7 @@ pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
         source,
         vec![],
         None,
-        Diagnostician::null_diagnostician(),
-        crate::OptimizationLevel::None,
-        crate::DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     #[cfg(feature = "debug")]

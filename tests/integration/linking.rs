@@ -4,7 +4,7 @@ use crate::get_test_file;
 use inkwell::context::Context;
 use rusty::{
     build_and_link, compile_module,
-    diagnostics::{Diagnostic, Diagnostician},
+    diagnostics::Diagnostic,
     link, persist, CompileOptions, ErrorFormat, FilePath, FormatOption, LinkOptions, Target,
 };
 
@@ -28,6 +28,7 @@ fn link_as_shared_object() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: out2.clone(),
             format: FormatOption::Shared,
@@ -47,6 +48,7 @@ fn link_as_shared_object() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: out1.clone(),
             format: FormatOption::Shared,
@@ -88,6 +90,7 @@ fn link_as_pic_object() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: out2.clone(),
             format: FormatOption::PIC,
@@ -107,6 +110,7 @@ fn link_as_pic_object() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: out1.clone(),
             format: FormatOption::PIC,
@@ -147,6 +151,7 @@ fn link_as_static_object() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: out2.clone(),
             format: FormatOption::Object,
@@ -166,6 +171,7 @@ fn link_as_static_object() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: out1.clone(),
             format: FormatOption::Static,
@@ -207,6 +213,7 @@ fn link_as_relocatable_object() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: out2.clone(),
             format: FormatOption::Object,
@@ -226,6 +233,7 @@ fn link_as_relocatable_object() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: out1.clone(),
             format: FormatOption::Relocatable,
@@ -257,15 +265,16 @@ fn link_missing_file() {
     let target: Target = TARGET.unwrap().into();
     //Compile file1 as shared object with file2 as param
     let context = Context::create();
-    let diagnostician = Diagnostician::default();
+    let compile_opions = CompileOptions {
+        error_format: ErrorFormat::Rich, 
+        ..Default::default()
+    };
     let (_, codegen) = compile_module(
         &context,
         vec![file1],
         vec![],
         None,
-        diagnostician,
-        rusty::OptimizationLevel::None,
-        rusty::DebugLevel::None,
+        &compile_opions,
     )
     .unwrap();
     let object = persist(
@@ -304,6 +313,7 @@ fn link_to_a_relative_location_with_no_parent() {
         vec![],
         None,
         &CompileOptions {
+            root: None,
             build_location: None,
             output: "output.o".into(),
             format: FormatOption::Static,

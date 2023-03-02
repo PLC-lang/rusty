@@ -1,4 +1,4 @@
-use crate::{diagnostics::Diagnostician, test_utils::tests::compile_to_string, SourceCode};
+use crate::{test_utils::tests::compile_to_string, SourceCode, DebugLevel};
 
 #[test]
 fn multiple_source_files_generated() {
@@ -29,8 +29,7 @@ fn multiple_source_files_generated() {
         vec![src1, src2],
         vec![],
         None,
-        Diagnostician::null_diagnostician(),
-        crate::DebugLevel::None,
+        DebugLevel::None,
     )
     .unwrap();
     //The datatypes do not conflics
@@ -74,8 +73,7 @@ fn multiple_files_with_debug_info() {
         vec![src1, src2],
         vec![],
         None,
-        Diagnostician::null_diagnostician(),
-        crate::DebugLevel::Full,
+        DebugLevel::Full,
     )
     .unwrap();
     //The datatypes do not conflics

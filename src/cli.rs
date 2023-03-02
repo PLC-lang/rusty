@@ -637,7 +637,7 @@ mod cli_tests {
         let params = CompileParameters::parse(vec_of_strings!("input.st", "--error-format=clang")).unwrap();
         assert_eq!(params.error_format, ErrorFormat::Clang);
         // set invalid error format
-        expect_argument_error(vec_of_strings!("input.st", "--error-format=none"), ErrorKind::InvalidValue);
+        expect_argument_error(vec_of_strings!("input.st", "--error-format=nothing"), ErrorKind::InvalidValue);
     }
 
     #[test]

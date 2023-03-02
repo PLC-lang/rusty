@@ -176,12 +176,27 @@ impl FromStr for ConfigFormat {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CompileOptions {
+    pub root: Option<PathBuf>,
     pub format: FormatOption,
     pub build_location: Option<PathBuf>,
     pub output: String,
     pub optimization: OptimizationLevel,
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
+}
+
+impl Default for CompileOptions {
+    fn default() -> Self {
+        CompileOptions {
+            root: None,
+            format: FormatOption::None,
+            build_location: None,
+            output: String::new(),
+            optimization: OptimizationLevel::None,
+            error_format: ErrorFormat::None,
+            debug_level: DebugLevel::None,
+        }
+    }
 }
 
 #[derive(Clone, Default, Debug)]
@@ -202,6 +217,7 @@ pub struct ConfigurationOptions {
 pub enum ErrorFormat {
     Rich,
     Clang,
+    None,
 }
 
 impl Default for ErrorFormat {
@@ -585,18 +601,27 @@ pub fn compile_module<'c, T: SourceContainer>(
     sources: Vec<T>,
     includes: Vec<T>,
     encoding: Option<&'static Encoding>,
-    mut diagnostician: Diagnostician,
-    optimization: OptimizationLevel,
-    debug_level: DebugLevel,
+    compile_options: &CompileOptions,
 ) -> Result<(Index, CodeGen<'c>), Diagnostic> {
+    let mut diagnostician = match compile_options.error_format {
+        ErrorFormat::Rich => Diagnostician::default(),
+        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
+        ErrorFormat::None => Diagnostician::null_diagnostician(),
+    };
+
     let module_location = sources.get(0).map(|it| it.get_location()).unwrap_or("").to_owned();
     let (full_index, mut index) = index_module(sources, includes, encoding, &mut diagnostician)?;
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     // ### PHASE 3 ###
 
-    let mut code_generator =
-        codegen::CodeGen::new(context, &module_location, &module_location, optimization, debug_level);
+    let mut code_generator = codegen::CodeGen::new(
+        context,
+        compile_options.root.as_deref(),
+        &module_location,
+        compile_options.optimization,
+        compile_options.debug_level,
+    );
     //Associate the index type with LLVM types
     let llvm_index =
         code_generator.generate_llvm_index(&annotations, index.all_literals, &full_index, &diagnostician)?;
@@ -715,6 +740,7 @@ pub fn build_with_subcommand(parameters: CompileParameters) -> Result<(), Diagno
         };
 
         let compile_options = CompileOptions {
+            root: Some(root),
             build_location: Some(build_location.to_owned()),
             output: get_output_name(project.output.as_deref(), project.compile_type, input),
             format: if parameters.check_only { FormatOption::None } else { project.compile_type },
@@ -857,8 +883,10 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         format: parameters.config_format().expect("Never none for valid parameters"),
         output: config.to_owned(),
     });
+    let root =  env::current_dir()?;
 
     let compile_options = CompileOptions {
+        root: Some(root),
         build_location: None,
         output,
         format: if parameters.check_only { FormatOption::None } else { format },
@@ -928,19 +956,7 @@ pub fn build_and_link(
     });
 
     let context = Context::create();
-    let diagnostician = match compile_options.error_format {
-        ErrorFormat::Rich => Diagnostician::default(),
-        ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
-    };
-    let (index, codegen) = compile_module(
-        &context,
-        sources,
-        includes,
-        encoding,
-        diagnostician,
-        compile_options.optimization,
-        compile_options.debug_level,
-    )?;
+    let (index, codegen) = compile_module(&context, sources, includes, encoding, compile_options)?;
 
     if compile_options.format != FormatOption::None {
         let targets = if targets.is_empty() { vec![Target::System] } else { targets };

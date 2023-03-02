@@ -46,9 +46,7 @@ fn test_external_function_called() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
@@ -168,9 +166,7 @@ fn test_generic_function_with_param_by_ref_called() {
         vec![source],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions::default(),
     )
     .unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
