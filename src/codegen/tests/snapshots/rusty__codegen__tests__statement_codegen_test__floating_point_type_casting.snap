@@ -21,6 +21,12 @@ entry:
   store double 3.500000e+00, double* %e, align 8
   store double 3.500000e+00, double* %f, align 8
   store i32 0, i32* %fn, align 4
+  store float 3.000000e+00, float* %a, align 4
+  store float 3.500000e+00, float* %b, align 4
+  store float 3.500000e+00, float* %c, align 4
+  store double 3.000000e+00, double* %d, align 8
+  store double 3.500000e+00, double* %e, align 8
+  store double 3.500000e+00, double* %f, align 8
   %fn_ret = load i32, i32* %fn, align 4
   ret i32 %fn_ret
 }

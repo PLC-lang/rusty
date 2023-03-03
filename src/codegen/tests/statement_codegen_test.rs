@@ -169,6 +169,15 @@ fn floating_point_type_casting() {
                 e : LREAL :=  REAL#7 / 2;  // => 3.5 (because we first cast then divide)
                 f : LREAL := LREAL#7 / 2;  // => 3.5 ^
             END_VAR
+
+            // Same reasoning as above
+            a :=       7 / 2;
+            b :=  REAL#7 / 2;
+            c := LREAL#7 / 2;
+
+            d :=       7 / 2;
+            e :=  REAL#7 / 2;
+            f := LREAL#7 / 2;
         END_FUNCTION
         "#,
     );
