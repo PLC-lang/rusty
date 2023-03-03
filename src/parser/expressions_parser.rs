@@ -72,7 +72,6 @@ pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
 
 pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> AstStatement {
     let start = parse_or_expression(lexer);
-
     if lexer.token == KeywordDotDot {
         lexer.advance();
         let end = parse_or_expression(lexer);
@@ -254,7 +253,6 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     } else {
         None
     };
-
     let literal_parse_result = match lexer.token {
         // Check if we're dealing with a number that has an explicit '+' or '-' sign...
         OperatorPlus | OperatorMinus => {
@@ -273,7 +271,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
                 )),
             }
         }
-
+        OperatorMultiplication => parse_vla_range(lexer),
         // ...and if not then this token may be anything
         _ => match lexer.token {
             Identifier => parse_qualified_reference(lexer),
@@ -352,6 +350,11 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             statement
         }
     }
+}
+
+fn parse_vla_range(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    lexer.advance();
+    Ok(AstStatement::VlaRangeStatement { start: None, end: None, id: lexer.next_id() })
 }
 
 fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {

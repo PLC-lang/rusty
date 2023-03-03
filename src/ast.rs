@@ -843,6 +843,11 @@ pub enum AstStatement {
         end: Box<AstStatement>,
         id: AstId,
     },
+    VlaRangeStatement {
+        start: Option<Box<AstStatement>>,
+        end: Option<Box<AstStatement>>,
+        id: AstId,
+    },
     // Assignment
     Assignment {
         left: Box<AstStatement>,
@@ -993,6 +998,9 @@ impl Debug for AstStatement {
             AstStatement::RangeStatement { start, end, .. } => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
             }
+            AstStatement::VlaRangeStatement { start, end, .. } => {
+                f.debug_struct("VlaRangeStatement").field("start", start).field("end", end).finish()
+            }
             AstStatement::Assignment { left, right, .. } => {
                 f.debug_struct("Assignment").field("left", left).field("right", right).finish()
             }
@@ -1110,6 +1118,12 @@ impl AstStatement {
                 let end_loc = end.get_location();
                 start_loc.span(&end_loc)
             }
+            AstStatement::VlaRangeStatement { start, end, .. } => {
+                let Some(start_loc) = start else { unreachable!("VLA range unresolved.") };
+                let Some(end_loc) = end else { unreachable!("VLA range unresolved.") };
+
+                start_loc.get_location().span(&end_loc.get_location())
+            }
             AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
@@ -1168,6 +1182,7 @@ impl AstStatement {
             AstStatement::UnaryExpression { id, .. } => *id,
             AstStatement::ExpressionList { id, .. } => *id,
             AstStatement::RangeStatement { id, .. } => *id,
+            AstStatement::VlaRangeStatement { id, .. } => *id,
             AstStatement::Assignment { id, .. } => *id,
             AstStatement::OutputAssignment { id, .. } => *id,
             AstStatement::CallStatement { id, .. } => *id,
