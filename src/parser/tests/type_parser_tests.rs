@@ -481,14 +481,14 @@ fn variable_length_array_can_be_parsed() {
     END_VAR
     "#,
     );
-
+    dbg!(&diagnostics);
     assert_eq!(diagnostics.len(), 0);
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = Variable {
         name: "x".to_string(),
         data_type: DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::ArrayType {
+            data_type: DataType::VlaArrayType {
                 name: None,
                 bounds: AstStatement::VlaRangeStatement { start: None, end: None, id: 0 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -523,7 +523,7 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
     let expected = Variable {
         name: "x".to_string(),
         data_type: DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::ArrayType {
+            data_type: DataType::VlaArrayType {
                 name: None,
                 bounds: AstStatement::ExpressionList {
                     expressions: vec![
@@ -550,7 +550,7 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
     let expected = Variable {
         name: "y".to_string(),
         data_type: DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::ArrayType {
+            data_type: DataType::VlaArrayType {
                 name: None,
                 bounds: AstStatement::ExpressionList {
                     expressions: vec![

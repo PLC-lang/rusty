@@ -204,7 +204,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
 }
 
 fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
-    match datatype {
+    match dbg!(datatype) {
         DataTypeDeclaration::DataTypeReference { .. } => false,
         DataTypeDeclaration::DataTypeDefinition { data_type: DataType::VarArgs { .. }, .. } => false,
         DataTypeDeclaration::DataTypeDefinition { .. } => true,

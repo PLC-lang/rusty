@@ -609,6 +609,11 @@ pub enum DataType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
     },
+    VlaArrayType {
+        name: Option<String>,
+        bounds: AstStatement,
+        referenced_type: Box<DataTypeDeclaration>,
+    },
     StringType {
         name: Option<String>,
         is_wide: bool, //WSTRING
@@ -633,6 +638,7 @@ impl DataType {
             | DataType::SubRangeType { name, .. }
             | DataType::ArrayType { name, .. }
             | DataType::PointerType { name, .. }
+            | DataType::VlaArrayType { name, .. }
             | DataType::StringType { name, .. } => *name = Some(new_name),
             DataType::GenericType { name, .. } => *name = new_name,
             DataType::VarArgs { .. } => {} //No names on varargs
@@ -645,6 +651,7 @@ impl DataType {
             | DataType::EnumType { name, .. }
             | DataType::ArrayType { name, .. }
             | DataType::PointerType { name, .. }
+            | DataType::VlaArrayType { name, .. }
             | DataType::StringType { name, .. }
             | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::GenericType { name, .. } => Some(name.as_str()),
@@ -662,10 +669,9 @@ impl DataType {
         location: &SourceRange,
     ) -> Option<DataTypeDeclaration> {
         match self {
-            DataType::ArrayType { referenced_type, .. } => {
-                replace_reference(referenced_type, type_name, location)
-            }
-            DataType::PointerType { referenced_type, .. } => {
+            DataType::ArrayType { referenced_type, .. }
+            | DataType::PointerType { referenced_type, .. }
+            | DataType::VlaArrayType { referenced_type, .. } => {
                 replace_reference(referenced_type, type_name, location)
             }
             _ => None,

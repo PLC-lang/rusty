@@ -92,7 +92,7 @@ impl<'a> ParseSession<'a> {
     }
 
     /// consumes an optional token and returns true if it was consumed.
-    pub fn allow(&mut self, token: &Token) -> bool {
+    pub fn try_consume(&mut self, token: &Token) -> bool {
         if self.token == *token {
             self.advance();
             true
@@ -102,7 +102,7 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn consume_or_report(&mut self, token: Token) {
-        if !self.allow(&token) {
+        if !self.try_consume(&token) {
             self.accept_diagnostic(Diagnostic::missing_token(format!("{token:?}").as_str(), self.location()));
         }
     }
