@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{cell::RefCell, rc::Rc, path::Path};
+    use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
     use encoding_rs::Encoding;
     use inkwell::context::Context;
@@ -15,7 +15,7 @@ pub mod tests {
         parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
-        DebugLevel, SourceContainer, Validator, CompileOptions,
+        CompileOptions, DebugLevel, SourceContainer, Validator,
     };
 
     ///a Diagnostic reporter that holds all diagnostics in a list
@@ -128,7 +128,7 @@ pub mod tests {
     }
 
     pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
-        codegen_debug_without_unwrap(None, src, DebugLevel::None).map(|(it, _)| it).map_err(|(_, err)| err)
+        codegen_debug_without_unwrap(src, DebugLevel::None).map(|(it, _)| it).map_err(|(_, err)| err)
     }
 
     /// Returns either a string or an error, in addition it always returns
@@ -136,7 +136,6 @@ pub mod tests {
     /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
     /// issues.
     pub fn codegen_debug_without_unwrap(
-        root: Option<&Path>,
         src: &str,
         debug_level: DebugLevel,
     ) -> Result<(String, Vec<ResolvedDiagnostics>), (Vec<ResolvedDiagnostics>, Diagnostic)> {
@@ -150,9 +149,10 @@ pub mod tests {
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();
+        let path = PathBuf::from_str("src").ok();
         let mut code_generator = crate::codegen::CodeGen::new(
             &context,
-            root,
+            path.as_deref(),
             "main",
             crate::OptimizationLevel::None,
             debug_level,
@@ -170,11 +170,11 @@ pub mod tests {
     }
 
     pub fn codegen_with_diagnostics(src: &str) -> (String, Vec<ResolvedDiagnostics>) {
-        codegen_debug_without_unwrap(None, src, DebugLevel::None).unwrap()
+        codegen_debug_without_unwrap(src, DebugLevel::None).unwrap()
     }
 
-    pub fn codegen_with_debug(root: Option<&Path>, src: &str) -> (String, Vec<ResolvedDiagnostics>) {
-        codegen_debug_without_unwrap(root, src, DebugLevel::Full).unwrap()
+    pub fn codegen_with_debug(src: &str) -> (String, Vec<ResolvedDiagnostics>) {
+        codegen_debug_without_unwrap(src, DebugLevel::Full).unwrap()
     }
 
     pub fn codegen(src: &str) -> String {
@@ -198,10 +198,7 @@ pub mod tests {
             sources,
             includes,
             encoding,
-            &CompileOptions{
-                debug_level,
-                ..Default::default()
-            },
+            &CompileOptions { debug_level, ..Default::default() },
         )?;
         Ok(cg.module.print_to_string().to_string())
     }

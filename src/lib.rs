@@ -883,7 +883,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         format: parameters.config_format().expect("Never none for valid parameters"),
         output: config.to_owned(),
     });
-    let root =  env::current_dir()?;
+    let root = env::current_dir()?;
 
     let compile_options = CompileOptions {
         root: Some(root),

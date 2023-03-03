@@ -26,14 +26,8 @@ fn test_external_function_called() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "external_test.st".to_string(), source: prog.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("times_two").unwrap();
@@ -89,14 +83,8 @@ fn sized_variadic_call() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "external_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("add").unwrap();
@@ -125,14 +113,8 @@ fn sized_pointer_variadic_call() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "external_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("add_ref").unwrap();
@@ -195,14 +177,8 @@ fn string_sized_variadic_call() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "external_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("verify_string").unwrap();
@@ -231,14 +207,8 @@ fn string_sized_pointer_variadic_call() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "external_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("verify_string_ref").unwrap();

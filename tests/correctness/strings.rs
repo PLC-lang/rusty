@@ -375,14 +375,8 @@ fn string_as_function_parameters_internal() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let _: i32 = run(&exec_engine, "main", &mut main_type);
@@ -413,14 +407,8 @@ fn string_as_function_parameters() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("func").unwrap();
@@ -461,14 +449,8 @@ fn wstring_as_function_parameters() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("func").unwrap();
@@ -510,14 +492,8 @@ fn string_as_function_parameters_cast() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("func").unwrap();
@@ -558,14 +534,8 @@ fn wstring_as_function_parameters_cast() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "string_test.st".to_string(), source: src.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        &CompileOptions::default(),
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("func").unwrap();

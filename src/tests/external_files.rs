@@ -1,8 +1,5 @@
 use crate::{
-    ast::SourceRange,
-    diagnostics::Diagnostic,
-    test_utils::tests::compile_to_string,
-    SourceCode, DebugLevel,
+    ast::SourceRange, diagnostics::Diagnostic, test_utils::tests::compile_to_string, DebugLevel, SourceCode,
 };
 
 #[test]
@@ -21,13 +18,7 @@ fn external_file_function_call() {
     "
     .into();
     //When they are generated
-    let res = compile_to_string(
-        vec![prog],
-        vec![ext],
-        None,
-        DebugLevel::None,
-    )
-    .unwrap();
+    let res = compile_to_string(vec![prog], vec![ext], None, DebugLevel::None).unwrap();
     insta::assert_snapshot!(res);
 }
 
@@ -55,13 +46,7 @@ fn external_file_global_var() {
     "
     .into();
     //When they are generated
-    let res = compile_to_string(
-        vec![prog],
-        vec![ext],
-        None,
-        DebugLevel::None,
-    )
-    .unwrap();
+    let res = compile_to_string(vec![prog], vec![ext], None, DebugLevel::None).unwrap();
     //x should be external
     insta::assert_snapshot!(res);
 }
@@ -76,12 +61,7 @@ fn calling_external_file_function_without_including_file_results_in_error() {
     "
     .into();
     //External file is not included
-    let res = compile_to_string(
-        vec![prog],
-        vec![],
-        None,
-        DebugLevel::None,
-    );
+    let res = compile_to_string(vec![prog], vec![], None, DebugLevel::None);
 
     if let Err(msg) = res {
         assert_eq!(

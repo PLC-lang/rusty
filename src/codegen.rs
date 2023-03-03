@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::path::{PathBuf, Path};
+use std::path::Path;
 
 /// module to generate llvm intermediate representation for a CompilationUnit
 use self::{
