@@ -289,3 +289,59 @@ fn aliased_ranged_numbers_can_be_compared() {
     let _: i32 = compile_and_run(src, &mut main);
     assert_eq!([main.a, main.b, main.c, main.d, main.e, main.f], [false, true, false, false, true, false]);
 }
+
+#[test]
+fn casting_of_floating_point_types_real() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct Main {
+        a: f32,
+        b: f32,
+        c: f32,
+        d: f32,
+    }
+
+    let mut main = Main::default();
+    let src = r#"
+        PROGRAM main
+            VAR
+                a, b, c, d :  REAL;
+            END_VAR
+                a :=       7 / 2;
+                b :=  REAL#7 / 2;
+                c := LREAL#7 / 2;
+                d := LREAL#7.0 / 2.0;
+        END_PROGRAM
+    "#;
+
+    let _: i32 = compile_and_run(src, &mut main);
+    assert_eq!([main.a, main.b, main.c, main.d], [3.0, 3.5, 3.5, 3.5])
+}
+
+#[test]
+fn casting_of_floating_point_types_lreal() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct Main {
+        a: f64,
+        b: f64,
+        c: f64,
+        d: f64,
+    }
+
+    let mut main = Main::default();
+    let src = r#"
+        PROGRAM main
+            VAR
+                a, b, c, d :  LREAL;
+            END_VAR
+                a :=       7 / 2;
+                b :=  REAL#7 / 2;
+                c := LREAL#7 / 2;
+                d := LREAL#7.0 / 2.0;
+        END_PROGRAM
+    "#;
+
+    let _: i32 = compile_and_run(src, &mut main);
+    assert_eq!([main.a, main.b, main.c, main.d], [3.0, 3.5, 3.5, 3.5])
+}
