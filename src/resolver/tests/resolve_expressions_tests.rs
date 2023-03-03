@@ -3447,17 +3447,18 @@ fn placeholder() {
     // GIVEN
     let (unit, mut index) = index_with_ids(
         "
-		// FUNCTION foo : DINT
-        // VAR_INPUT
-        //     vla: ARRAY[0..1] OF INT;
-        // END_VAR
-        // END_FUNCTION
+		FUNCTION foo : DINT
+        VAR_INPUT
+            vla: ARRAY[*] OF INT;
+        END_VAR
+            vla := (0, 1);
+        END_FUNCTION
 
 		PROGRAM main
 		VAR
-			arr : ARRAY[*] OF INT;
+			arr : ARRAY[1..2] OF INT;
 		END_VAR
-            // foo(arr);
+            foo(arr);
 		END_PROGRAM",
         id_provider.clone(),
     );
@@ -3465,41 +3466,51 @@ fn placeholder() {
     let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
     index.import(std::mem::take(&mut annotations.new_index));
 
-    let container_name = &unit.implementations[0].name; // main
+    let container_name = &unit.implementations[0].name; // foo
     let members = index.get_container_members(container_name);
-    // there is only one member => main.arr
-    assert_eq!(1, members.len());
+    assert_eq!(2, members.len()); // foo.foo, foo.vla
 
-    if let Some(AstStatement::ExpressionList { expressions, .. }) =
-        index.get_const_expressions().maybe_get_constant_statement(&members[0].initial_value)
-    {
-        // we initialized the array with 2 structs
-        assert_eq!(2, expressions.len());
-        let target_type =
-            index.find_effective_type_by_name("myStruct").expect("at this point we should have the type");
-        // each expression is an expression list and contains assignments for the struct fields (a, b, c)
-        for e in expressions {
-            // the expression list should be annotated with the structs type
-            let type_hint = annotations.get_type_hint(e, &index).expect("we should have a type hint");
-            assert_eq!(target_type, type_hint);
-
-            // we have three assignments (a, b, c)
-            let assignments = flatten_expression_list(e);
-            assert_eq!(3, assignments.len());
-            // the last expression of the list is the assignment to myStruct.c (array initialization)
-            if let AstStatement::Assignment { left, right, .. } =
-                assignments.last().expect("this should be the array initialization for myStruct.c")
-            {
-                // the array initialization should be annotated with the correct type hint (myStruct.c type)
-                let target_type = annotations.get_type(left, &index).expect("we should have the type");
-                let array_init_type =
-                    annotations.get_type_hint(right, &index).expect("we should have a type hint");
-                assert_eq!(target_type, array_init_type);
-            } else {
-                panic!("should be an assignment")
-            }
+    let stmt = dbg!(&unit.implementations[0].statements[0]);
+    if let AstStatement::Assignment { left, .. } = stmt {
+        if let AstStatement::VlaRangeStatement { start, end, .. } = left.as_ref() {
+            assert!(matches!(
+                start.as_ref().unwrap().as_ref(),
+                AstStatement::LiteralInteger { value: 1, .. }
+            ));
+            assert!(matches!(end.as_ref().unwrap().as_ref(), AstStatement::LiteralInteger { value: 2, .. }));
         }
-    } else {
-        panic!("No initial value, initial value should be an expression list")
     }
+
+    // if let Some(AstStatement::ExpressionList { expressions, .. }) =
+    //     index.get_const_expressions().maybe_get_constant_statement(&members[0].initial_value)
+    // {
+    //     // we initialized the array with 2 structs
+    //     assert_eq!(2, expressions.len());
+    //     let target_type =
+    //         index.find_effective_type_by_name("myStruct").expect("at this point we should have the type");
+    //     // each expression is an expression list and contains assignments for the struct fields (a, b, c)
+    //     for e in expressions {
+    //         // the expression list should be annotated with the structs type
+    //         let type_hint = annotations.get_type_hint(e, &index).expect("we should have a type hint");
+    //         assert_eq!(target_type, type_hint);
+
+    //         // we have three assignments (a, b, c)
+    //         let assignments = flatten_expression_list(e);
+    //         assert_eq!(3, assignments.len());
+    //         // the last expression of the list is the assignment to myStruct.c (array initialization)
+    //         if let AstStatement::Assignment { left, right, .. } =
+    //             assignments.last().expect("this should be the array initialization for myStruct.c")
+    //         {
+    //             // the array initialization should be annotated with the correct type hint (myStruct.c type)
+    //             let target_type = annotations.get_type(left, &index).expect("we should have the type");
+    //             let array_init_type =
+    //                 annotations.get_type_hint(right, &index).expect("we should have a type hint");
+    //             assert_eq!(target_type, array_init_type);q
+    //         } else {
+    //             panic!("should be an assignment")
+    //         }
+    //     }
+    // } else {
+    //     panic!("No initial value, initial value should be an expression list")
+    // }
 }
