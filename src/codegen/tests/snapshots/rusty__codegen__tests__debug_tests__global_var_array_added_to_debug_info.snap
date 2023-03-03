@@ -14,7 +14,7 @@ source_filename = "main"
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "main", directory: "")
+!2 = !DIFile(filename: "main", directory: "src")
 !3 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 352, align: 64, elements: !5)
 !4 = !DIBasicType(name: "dint", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !5 = !{!6}
