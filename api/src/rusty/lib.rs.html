@@ -1150,6 +1150,22 @@
 <a href="#1150" id="1150">1150</a>
 <a href="#1151" id="1151">1151</a>
 <a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="doccomment">//! A St&amp;ructured Text LLVM Frontent
 //!
@@ -1328,12 +1344,27 @@
 
 <span class="attr">#[derive(Serialize, Deserialize, Debug)]
 </span><span class="kw">pub struct </span>CompileOptions {
+    <span class="kw">pub </span>root: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     <span class="kw">pub </span>format: FormatOption,
     <span class="kw">pub </span>build_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     <span class="kw">pub </span>output: String,
     <span class="kw">pub </span>optimization: OptimizationLevel,
     <span class="kw">pub </span>error_format: ErrorFormat,
     <span class="kw">pub </span>debug_level: DebugLevel,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>CompileOptions {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        CompileOptions {
+            root: <span class="prelude-val">None</span>,
+            format: FormatOption::None,
+            build_location: <span class="prelude-val">None</span>,
+            output: String::new(),
+            optimization: OptimizationLevel::None,
+            error_format: ErrorFormat::None,
+            debug_level: DebugLevel::None,
+        }
+    }
 }
 
 <span class="attr">#[derive(Clone, Default, Debug)]
@@ -1354,6 +1385,7 @@
 </span><span class="kw">pub enum </span>ErrorFormat {
     Rich,
     Clang,
+    <span class="prelude-val">None</span>,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>ErrorFormat {
@@ -1737,18 +1769,27 @@
     sources: Vec&lt;T&gt;,
     includes: Vec&lt;T&gt;,
     encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;,
-    <span class="kw-2">mut </span>diagnostician: Diagnostician,
-    optimization: OptimizationLevel,
-    debug_level: DebugLevel,
+    compile_options: <span class="kw-2">&amp;</span>CompileOptions,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Index, CodeGen&lt;<span class="lifetime">&#39;c</span>&gt;), Diagnostic&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = <span class="kw">match </span>compile_options.error_format {
+        ErrorFormat::Rich =&gt; Diagnostician::default(),
+        ErrorFormat::Clang =&gt; Diagnostician::clang_format_diagnostician(),
+        ErrorFormat::None =&gt; Diagnostician::null_diagnostician(),
+    };
+
     <span class="kw">let </span>module_location = sources.get(<span class="number">0</span>).map(|it| it.get_location()).unwrap_or(<span class="string">&quot;&quot;</span>).to_owned();
     <span class="kw">let </span>(full_index, <span class="kw-2">mut </span>index) = index_module(sources, includes, encoding, <span class="kw-2">&amp;mut </span>diagnostician)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
     <span class="comment">// ### PHASE 3 ###
 
-    </span><span class="kw">let </span><span class="kw-2">mut </span>code_generator =
-        codegen::CodeGen::new(context, <span class="kw-2">&amp;</span>module_location, <span class="kw-2">&amp;</span>module_location, optimization, debug_level);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>code_generator = codegen::CodeGen::new(
+        context,
+        compile_options.root.as_deref(),
+        <span class="kw-2">&amp;</span>module_location,
+        compile_options.optimization,
+        compile_options.debug_level,
+    );
     <span class="comment">//Associate the index type with LLVM types
     </span><span class="kw">let </span>llvm_index =
         code_generator.generate_llvm_index(<span class="kw-2">&amp;</span>annotations, index.all_literals, <span class="kw-2">&amp;</span>full_index, <span class="kw-2">&amp;</span>diagnostician)<span class="question-mark">?</span>;
@@ -1867,6 +1908,7 @@
         };
 
         <span class="kw">let </span>compile_options = CompileOptions {
+            root: <span class="prelude-val">Some</span>(root),
             build_location: <span class="prelude-val">Some</span>(build_location.to_owned()),
             output: get_output_name(project.output.as_deref(), project.compile_type, input),
             format: <span class="kw">if </span>parameters.check_only { FormatOption::None } <span class="kw">else </span>{ project.compile_type },
@@ -2009,8 +2051,10 @@
         format: parameters.config_format().expect(<span class="string">&quot;Never none for valid parameters&quot;</span>),
         output: config.to_owned(),
     });
+    <span class="kw">let </span>root = env::current_dir()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>compile_options = CompileOptions {
+        root: <span class="prelude-val">Some</span>(root),
         build_location: <span class="prelude-val">None</span>,
         output,
         format: <span class="kw">if </span>parameters.check_only { FormatOption::None } <span class="kw">else </span>{ format },
@@ -2080,19 +2124,7 @@
     });
 
     <span class="kw">let </span>context = Context::create();
-    <span class="kw">let </span>diagnostician = <span class="kw">match </span>compile_options.error_format {
-        ErrorFormat::Rich =&gt; Diagnostician::default(),
-        ErrorFormat::Clang =&gt; Diagnostician::clang_format_diagnostician(),
-    };
-    <span class="kw">let </span>(index, codegen) = compile_module(
-        <span class="kw-2">&amp;</span>context,
-        sources,
-        includes,
-        encoding,
-        diagnostician,
-        compile_options.optimization,
-        compile_options.debug_level,
-    )<span class="question-mark">?</span>;
+    <span class="kw">let </span>(index, codegen) = compile_module(<span class="kw-2">&amp;</span>context, sources, includes, encoding, compile_options)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>compile_options.format != FormatOption::None {
         <span class="kw">let </span>targets = <span class="kw">if </span>targets.is_empty() { <span class="macro">vec!</span>[Target::System] } <span class="kw">else </span>{ targets };

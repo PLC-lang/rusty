@@ -1306,7 +1306,7 @@
         </span><span class="kw">let </span>params = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--error-format=clang&quot;</span>)).unwrap();
         <span class="macro">assert_eq!</span>(params.error_format, ErrorFormat::Clang);
         <span class="comment">// set invalid error format
-        </span>expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--error-format=none&quot;</span>), ErrorKind::InvalidValue);
+        </span>expect_argument_error(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--error-format=nothing&quot;</span>), ErrorKind::InvalidValue);
     }
 
     <span class="attr">#[test]

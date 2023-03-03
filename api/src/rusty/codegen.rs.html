@@ -200,9 +200,13 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-</span><span class="doccomment">/// module to generate llvm intermediate representation for a CompilationUnit
+</span><span class="kw">use </span>std::path::Path;
+
+<span class="doccomment">/// module to generate llvm intermediate representation for a CompilationUnit
 </span><span class="kw">use </span><span class="self">self</span>::{
     debug::{Debug, DebugBuilderEnum},
     generators::{
@@ -246,14 +250,14 @@
     <span class="doccomment">/// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
     </span><span class="kw">pub fn </span>new(
         context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink </span>Context,
-        module_name: <span class="kw-2">&amp;</span>str,
+        root: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt;,
         module_location: <span class="kw-2">&amp;</span>str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
     ) -&gt; CodeGen&lt;<span class="lifetime">&#39;ink</span>&gt; {
-        <span class="kw">let </span>module = context.create_module(module_name);
+        <span class="kw">let </span>module = context.create_module(module_location);
         module.set_source_file_name(module_location);
-        <span class="kw">let </span>debug = debug::DebugBuilderEnum::new(context, <span class="kw-2">&amp;</span>module, optimization_level, debug_level);
+        <span class="kw">let </span>debug = debug::DebugBuilderEnum::new(context, <span class="kw-2">&amp;</span>module, root, optimization_level, debug_level);
         CodeGen { context, module, debug }
     }
 

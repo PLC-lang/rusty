@@ -203,12 +203,10 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
 </pre><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
-    <span class="kw">use </span>std::{cell::RefCell, rc::Rc};
+    <span class="kw">use </span>std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
     <span class="kw">use </span>encoding_rs::Encoding;
     <span class="kw">use </span>inkwell::context::Context;
@@ -222,7 +220,7 @@
         parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
-        DebugLevel, SourceContainer, Validator,
+        CompileOptions, DebugLevel, SourceContainer, Validator,
     };
 
     <span class="doccomment">///a Diagnostic reporter that holds all diagnostics in a list
@@ -356,9 +354,10 @@
         index.import(std::mem::take(<span class="kw-2">&amp;mut </span>annotations.new_index));
 
         <span class="kw">let </span>context = inkwell::context::Context::create();
+        <span class="kw">let </span>path = PathBuf::from_str(<span class="string">&quot;src&quot;</span>).ok();
         <span class="kw">let </span><span class="kw-2">mut </span>code_generator = <span class="kw">crate</span>::codegen::CodeGen::new(
             <span class="kw-2">&amp;</span>context,
-            <span class="string">&quot;main&quot;</span>,
+            path.as_deref(),
             <span class="string">&quot;main&quot;</span>,
             <span class="kw">crate</span>::OptimizationLevel::None,
             debug_level,
@@ -396,7 +395,6 @@
         sources: Vec&lt;T&gt;,
         includes: Vec&lt;T&gt;,
         encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;,
-        diagnostician: Diagnostician,
         debug_level: DebugLevel,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
         <span class="kw">let </span>context = Context::create();
@@ -405,9 +403,7 @@
             sources,
             includes,
             encoding,
-            diagnostician,
-            <span class="kw">crate</span>::OptimizationLevel::None,
-            debug_level,
+            <span class="kw-2">&amp;</span>CompileOptions { debug_level, ..Default::default() },
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(cg.module.print_to_string().to_string())
     }
