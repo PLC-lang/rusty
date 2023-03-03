@@ -42,7 +42,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "myPrg", scope: !2, file: !2, line: 4, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "main", directory: "")
+!2 = !DIFile(filename: "main", directory: "src")
 !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myPrg", scope: !2, file: !2, line: 4, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myPrg")
 !4 = !{}
 !5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())
