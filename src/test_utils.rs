@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{cell::RefCell, rc::Rc};
+    use std::{cell::RefCell, path::PathBuf, rc::Rc, str::FromStr};
 
     use encoding_rs::Encoding;
     use inkwell::context::Context;
@@ -15,7 +15,7 @@ pub mod tests {
         parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator},
         typesystem::get_builtin_types,
-        DebugLevel, SourceContainer, Validator,
+        CompileOptions, DebugLevel, SourceContainer, Validator,
     };
 
     ///a Diagnostic reporter that holds all diagnostics in a list
@@ -149,9 +149,10 @@ pub mod tests {
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();
+        let path = PathBuf::from_str("src").ok();
         let mut code_generator = crate::codegen::CodeGen::new(
             &context,
-            "main",
+            path.as_deref(),
             "main",
             crate::OptimizationLevel::None,
             debug_level,
@@ -189,7 +190,6 @@ pub mod tests {
         sources: Vec<T>,
         includes: Vec<T>,
         encoding: Option<&'static Encoding>,
-        diagnostician: Diagnostician,
         debug_level: DebugLevel,
     ) -> Result<String, Diagnostic> {
         let context = Context::create();
@@ -198,9 +198,7 @@ pub mod tests {
             sources,
             includes,
             encoding,
-            diagnostician,
-            crate::OptimizationLevel::None,
-            debug_level,
+            &CompileOptions { debug_level, ..Default::default() },
         )?;
         Ok(cg.module.print_to_string().to_string())
     }
