@@ -783,7 +783,7 @@ fn parse_array_type_definition(
         expect_token!(lexer, KeywordSquareParensOpen, None);
         lexer.advance();
 
-        let range_statement = dbg!(parse_expression(lexer));
+        let range_statement = parse_expression(lexer);
 
         expect_token!(lexer, KeywordSquareParensClose, None);
         lexer.advance();

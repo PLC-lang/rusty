@@ -1,3 +1,4 @@
+use insta::assert_debug_snapshot;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
@@ -1983,4 +1984,21 @@ fn global_variables_duplicates_are_indexed() {
     let x2 = globals.get(1).unwrap();
     assert_eq!(x2.get_name(), "x");
     assert_eq!(x2.get_type_name(), "BOOL");
+}
+
+#[test]
+fn _x() {
+    let (_, index) = index(
+        "
+      FUNCTION foo : DINT
+      VAR_INPUT
+          in : ARRAY[*] OF INT;
+      END_VAR
+      END_FUNCTION
+      ",
+    );
+
+    let members = index.get_container_members("foo");
+    let name = members[0].get_name();
+    assert_debug_snapshot!(index.get_type_information_or_void(name))
 }

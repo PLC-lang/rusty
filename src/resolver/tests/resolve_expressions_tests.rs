@@ -1,6 +1,7 @@
 use core::panic;
 
-use insta::assert_snapshot;
+use clap::value_parser;
+use insta::{assert_debug_snapshot, assert_snapshot};
 
 use crate::{
     ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
@@ -3442,7 +3443,7 @@ fn mux_generic_with_strings_is_annotated_correctly() {
 }
 
 #[test]
-fn placeholder() {
+fn function_with_vla_param_resolves_ranges() {
     let id_provider = IdProvider::default();
     // GIVEN
     let (unit, mut index) = index_with_ids(
@@ -3451,7 +3452,7 @@ fn placeholder() {
         VAR_INPUT
             vla: ARRAY[*] OF INT;
         END_VAR
-            vla := (0, 1);
+            vla := (1, 2);
         END_FUNCTION
 
 		PROGRAM main
@@ -3478,39 +3479,38 @@ fn placeholder() {
                 AstStatement::LiteralInteger { value: 1, .. }
             ));
             assert!(matches!(end.as_ref().unwrap().as_ref(), AstStatement::LiteralInteger { value: 2, .. }));
+        } else {
+            panic!("no vla found")
         }
     }
+}
 
-    // if let Some(AstStatement::ExpressionList { expressions, .. }) =
-    //     index.get_const_expressions().maybe_get_constant_statement(&members[0].initial_value)
-    // {
-    //     // we initialized the array with 2 structs
-    //     assert_eq!(2, expressions.len());
-    //     let target_type =
-    //         index.find_effective_type_by_name("myStruct").expect("at this point we should have the type");
-    //     // each expression is an expression list and contains assignments for the struct fields (a, b, c)
-    //     for e in expressions {
-    //         // the expression list should be annotated with the structs type
-    //         let type_hint = annotations.get_type_hint(e, &index).expect("we should have a type hint");
-    //         assert_eq!(target_type, type_hint);
+#[test]
+fn x() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "FUNCTION foo : DINT
+        VAR_INPUT
+            arr: ARRAY[*] OF INT;
+        END_VAR
+            arr[0];
+        END_FUNCTION
 
-    //         // we have three assignments (a, b, c)
-    //         let assignments = flatten_expression_list(e);
-    //         assert_eq!(3, assignments.len());
-    //         // the last expression of the list is the assignment to myStruct.c (array initialization)
-    //         if let AstStatement::Assignment { left, right, .. } =
-    //             assignments.last().expect("this should be the array initialization for myStruct.c")
-    //         {
-    //             // the array initialization should be annotated with the correct type hint (myStruct.c type)
-    //             let target_type = annotations.get_type(left, &index).expect("we should have the type");
-    //             let array_init_type =
-    //                 annotations.get_type_hint(right, &index).expect("we should have a type hint");
-    //             assert_eq!(target_type, array_init_type);q
-    //         } else {
-    //             panic!("should be an assignment")
-    //         }
-    //     }
+        // FUNCTION main : DINT
+        // VAR
+        //     array : ARRAY[0..1] OF INT;
+        // END_VAR
+        //     foo(array);
+        // END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements[0];
+    // if let AstStatement::UnaryExpression { value, .. } = &statements {
+    //     let _type = annotations.get_type(value.as_ref(), &index);
+    //     // assert_type_and_hint!(&annotations, &index, value.as_ref(), "Vla", None);
     // } else {
-    //     panic!("No initial value, initial value should be an expression list")
+    //     unreachable!()
     // }
 }

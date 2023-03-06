@@ -65,7 +65,6 @@ pub fn generate_data_types<'ink>(
         .filter(|(_, it)| !it.get_type_information().is_generic(generator.index))
         .map(|(a, b)| (a.as_str(), b))
         .collect::<Vec<(&str, &DataType)>>();
-
     let pou_types = generator
         .index
         .get_pous()
@@ -195,7 +194,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn create_type(&mut self, name: &str, data_type: &DataType) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.debug.register_debug_type(name, data_type, self.index)?;
         let information = data_type.get_type_information();
-        match information {
+        match dbg!(information) {
             DataTypeInformation::Struct { source, .. } => match source {
                 StructSource::Pou(..) => self.types_index.get_associated_pou_type(data_type.get_name()),
                 StructSource::OriginalDeclaration => {

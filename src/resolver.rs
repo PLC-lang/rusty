@@ -283,6 +283,7 @@ pub trait AnnotationMap {
     }
 }
 
+#[derive(Debug)]
 pub struct AstAnnotations {
     annotation_map: AnnotationMapImpl,
     bool_id: AstId,
@@ -730,6 +731,9 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_data_type(&mut self, ctx: &VisitorContext, data_type: &DataType) {
         match data_type {
+            DataType::VlaArrayType { name, bounds, referenced_type } => {
+                self.visit_data_type_declaration(ctx, referenced_type)
+            }
             DataType::StructType { name: Some(name), variables, .. } => {
                 let ctx = ctx.with_qualifier(name.clone());
                 variables.iter().for_each(|v| self.visit_variable(&ctx, v))
@@ -830,7 +834,7 @@ impl<'i> TypeAnnotator<'i> {
                     access,
                 );
                 let array_type =
-                    self.annotation_map.get_type_or_void(reference, self.index).get_type_information();
+                    dbg!(self.annotation_map.get_type_or_void(reference, self.index).get_type_information());
                 let inner_type_name = if let DataTypeInformation::Array { inner_type_name, .. } = array_type {
                     Some(
                         self.index.get_effective_type_or_void_by_name(inner_type_name).get_name().to_string(),

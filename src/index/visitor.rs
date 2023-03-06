@@ -3,7 +3,7 @@ use super::symbol::{SymbolLocation, SymbolLocationFactory};
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
+    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
@@ -341,7 +341,7 @@ fn visit_data_type(
         DataType::StructType { name: Some(name), variables } => {
             let struct_name = name.as_str();
 
-            let members = variables
+            let members = dbg!(variables)
                 .iter()
                 .enumerate()
                 .map(|(count, var)| {
@@ -553,6 +553,61 @@ fn visit_data_type(
                 .set_initial_value(init2);
                 index.register_global_initializer(&global_init_name, variable);
             }
+        }
+        DataType::VlaArrayType { name: Some(name), bounds, referenced_type } => {
+            let struct_name = name.as_str();
+            /*
+            struct vla {
+                ptr : i64,
+                dimensions: Vec<Option<Dimension>>
+                size_type: i64,
+            }
+            */
+            let variables = vec![
+                Variable {
+                    name: "ptr".to_string(),
+                    data_type: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: "LWORD".to_string(),
+                        location: SourceRange::undefined(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                },
+                Variable {
+                    name: "dims".to_string(),
+                    data_type: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: "LWORD".to_string(),
+                        location: SourceRange::undefined(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                },
+                Variable {
+                    name: "type_size".to_string(),
+                    data_type: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: referenced_type
+                            .as_ref()
+                            .get_name()
+                            .expect("named datatype")
+                            .to_string(),
+                        location: SourceRange::undefined(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                },
+            ];
+
+            let struct_t = DataType::StructType { name: Some(struct_name.to_string()), variables: variables };
+            let type_dec = UserTypeDeclaration {
+                data_type: struct_t,
+                initializer: None,
+                location: type_declaration.location.clone(),
+                scope: type_declaration.scope.clone(),
+            };
+            visit_data_type(index, &type_dec, symbol_location_factory)
         }
         DataType::PointerType { name: Some(name), referenced_type, .. } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
