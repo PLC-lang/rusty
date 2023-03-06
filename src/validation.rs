@@ -1,5 +1,5 @@
 use crate::{
-    ast::{AstStatement, CompilationUnit, SourceRange},
+    ast::{AstStatement, CompilationUnit},
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AnnotationMapImpl},
     Diagnostic,
@@ -132,31 +132,6 @@ impl Validator {
             implementation.statements.iter().for_each(|s| {
                 visit_statement(self, s, &context.with_qualifier(implementation.name.as_str()))
             });
-        }
-    }
-
-    fn validate_assignment_type_sizes(
-        &mut self,
-        idx_entry: &VariableIndexEntry,
-        statement: &AstStatement,
-        location: SourceRange,
-        context: &ValidationContext,
-    ) {
-        let index = &context.index;
-        let assigned_type = context.annotations.get_type(&statement, &index);
-        let actual_type = context.annotations.get_type_hint(&statement, &index);
-        let (Some(assigned_type), Some(actual_type)) = (assigned_type, actual_type) else {
-            return
-        };
-
-        if assigned_type.get_type_information().get_size(&index)
-            > actual_type.get_type_information().get_size(&index)
-        {
-            self.push_diagnostic(Diagnostic::implicit_downcast(
-                actual_type.get_name(),
-                assigned_type.get_name(),
-                location,
-            ))
         }
     }
 }

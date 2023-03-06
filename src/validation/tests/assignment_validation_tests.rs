@@ -1,3 +1,5 @@
+use insta::assert_debug_snapshot;
+
 use crate::test_utils::tests::parse_and_validate;
 use crate::Diagnostic;
 
@@ -490,4 +492,33 @@ fn assignment_validation() {
             Diagnostic::invalid_assignment("__main_v_ref_to_struct", "WORD", (10069..10094).into()),
         ]
     );
+}
+
+#[test]
+fn invalid_action_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION_BLOCK fb_t
+        VAR_INPUT
+            in1 : DINT;
+            in2 : STRING;
+        END_VAR
+        END_FUNCTION_BLOCK
+        
+        ACTIONS fb_t
+        ACTION foo
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION main : DINT
+        VAR
+            fb: fb_t;
+            arr: ARRAY[0..10] OF WSTRING;
+        END_VAR
+            fb.foo(arr, arr);
+        END_FUNCTION
+        "#,
+    );
+
+    assert_debug_snapshot!(diagnostics)
 }

@@ -169,21 +169,6 @@ impl TypeNature {
         self.derives_from(TypeNature::Real)
     }
 
-    pub fn is_compatible_with_nature(&self, other: TypeNature) -> bool {
-        match self {
-            TypeNature::Real
-            | TypeNature::Int
-            | TypeNature::Signed
-            | TypeNature::Unsigned
-            | TypeNature::Duration
-            | TypeNature::Date
-            | TypeNature::Bit => other.is_numerical() || matches!(other, TypeNature::Bit | TypeNature::Date),
-            TypeNature::Char => matches!(other, TypeNature::Char),
-            TypeNature::String => matches!(other, TypeNature::String),
-            _ => false,
-        }
-    }
-
     pub fn is_bit(&self) -> bool {
         self.derives_from(TypeNature::Bit)
     }
