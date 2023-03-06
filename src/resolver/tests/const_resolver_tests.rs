@@ -1261,3 +1261,48 @@ fn default_values_are_transitive_for_range_types() {
     // a & b should be 7, cc should be 14
     insta::assert_snapshot!(src);
 }
+
+#[test]
+fn floating_point_type_casting_of_valid_types_is_resolvable() {
+    let (_, index) = index(
+        "VAR_GLOBAL CONSTANT
+            a : REAL  :=       7 / 2;
+            b : REAL  :=  REAL#7 / 2;
+            c : REAL  := LREAL#7 / 2;
+
+            d : LREAL :=       7 / 2;
+            e : LREAL :=  REAL#7 / 2;
+            f : LREAL := LREAL#7 / 2;
+
+            g : LREAL := LREAL#7.0 / 2.0;
+            h : LREAL := LREAL#7.0 / 2.0;
+        END_VAR
+       ",
+    );
+
+    let (_, unresolvable) = evaluate_constants(index);
+    assert_eq!(unresolvable.len(), 0);
+}
+
+#[test]
+fn floating_point_type_casting_of_invalid_types_is_unresolvable() {
+    let (_, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : STRING := REAL#'abc';
+            b : STRING := REAL#"abc";
+        END_VAR
+       "#,
+    );
+
+    let (_, unresolvable) = evaluate_constants(index);
+    assert_eq!(unresolvable.len(), 2);
+    assert_eq!(
+        unresolvable[0].reason,
+        r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: false })"#
+    );
+    assert_eq!(
+        unresolvable[1].reason,
+        r#"Expected floating point type, got: Some(LiteralString { value: "abc", is_wide: true })"#
+    );
+}

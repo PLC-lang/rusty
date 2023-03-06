@@ -1,4 +1,4 @@
-use crate::{diagnostics::Diagnostician, test_utils::tests::compile_to_string, SourceCode};
+use crate::{test_utils::tests::compile_to_string, DebugLevel, SourceCode};
 
 #[test]
 fn multiple_source_files_generated() {
@@ -25,14 +25,7 @@ fn multiple_source_files_generated() {
     "
     .into();
     //When the are generated
-    let res = compile_to_string(
-        vec![src1, src2],
-        vec![],
-        None,
-        Diagnostician::null_diagnostician(),
-        crate::DebugLevel::None,
-    )
-    .unwrap();
+    let res = compile_to_string(vec![src1, src2], vec![], None, DebugLevel::None).unwrap();
     //The datatypes do not conflics
     //The functions are defined correctly
     insta::assert_snapshot!(res);
@@ -70,14 +63,7 @@ fn multiple_files_with_debug_info() {
         path: "file2.st".to_string(),
     };
     //When the are generated
-    let res = compile_to_string(
-        vec![src1, src2],
-        vec![],
-        None,
-        Diagnostician::null_diagnostician(),
-        crate::DebugLevel::Full,
-    )
-    .unwrap();
+    let res = compile_to_string(vec![src1, src2], vec![], None, DebugLevel::Full).unwrap();
     //The datatypes do not conflics
     //The functions are defined correctly
     insta::assert_snapshot!(res);
