@@ -21,7 +21,7 @@ source_filename = "main"
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "main", directory: "")
+!2 = !DIFile(filename: "main", directory: "src")
 !3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4, align: 64)
 !4 = !DIBasicType(name: "lint", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())

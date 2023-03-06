@@ -642,7 +642,25 @@ fn get_cast_statement_literal(
             }
         }
 
-        //Some(&crate::typesystem::DataTypeInformation::Float{..}) => {},
+        Some(DataTypeInformation::Float { .. }) => {
+            let evaluated = evaluate(cast_statement, scope, index)?;
+            let value = match evaluated {
+                Some(AstStatement::LiteralInteger { value, .. }) => Some(value as f64),
+                Some(AstStatement::LiteralReal { value, .. }) => value.parse::<f64>().ok(),
+                _ => return Err(format!("Expected floating point type, got: {evaluated:?}")),
+            };
+
+            let Some(value) = value else {
+                return Err(format!("cannot resolve constant: {type_name}#{cast_statement:?}"))
+            };
+
+            Ok(AstStatement::LiteralReal {
+                value: value.to_string(),
+                id: cast_statement.get_id(),
+                location: cast_statement.get_location(),
+            })
+        }
+
         _ => Err(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")),
     }
 }
