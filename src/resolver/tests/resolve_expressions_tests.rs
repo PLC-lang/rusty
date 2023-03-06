@@ -1340,7 +1340,7 @@ fn type_initial_values_are_resolved() {
     let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     index.import(std::mem::take(&mut annotations.new_index));
 
-    let UserTypeDeclaration { data_type, .. } = &unit.types[0];
+    let UserTypeDeclaration { data_type, .. } = &unit.user_types[0];
 
     if let DataType::StructType { variables, .. } = data_type {
         assert_eq!(
@@ -1840,7 +1840,7 @@ fn enum_element_initialization_is_annotated_correctly() {
         index_with_ids(" TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE ", id_provider.clone());
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let data_type = &unit.types[0].data_type;
+    let data_type = &unit.user_types[0].data_type;
     if let DataType::EnumType { elements, .. } = data_type {
         if let AstStatement::Assignment { right, .. } = flatten_expression_list(elements)[2] {
             assert_type_and_hint!(&annotations, &index, right, "DINT", Some("MyEnum"));
@@ -1939,7 +1939,7 @@ fn struct_members_initializers_type_hint_test() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the members's initializers have correct type-hints
-    if let DataType::StructType { variables, .. } = &unit.types[0].data_type {
+    if let DataType::StructType { variables, .. } = &unit.user_types[0].data_type {
         let hints: Vec<&str> = variables
             .iter()
             .map(|v| {
@@ -2009,7 +2009,7 @@ fn data_type_initializers_type_hint_test() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the members's initializers have correct type-hints
-    if let Some(initializer) = &unit.types[0].initializer {
+    if let Some(initializer) = &unit.user_types[0].initializer {
         assert_eq!(Some(index.get_type("MyArray").unwrap()), annotations.get_type_hint(initializer, &index));
 
         let initializer = index.get_type("MyArray").unwrap().initial_value.unwrap();
@@ -2050,7 +2050,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
 
     // THEN the members's initializers have correct type-hints
-    if let Some(my_array_initializer) = &unit.types[0].initializer {
+    if let Some(my_array_initializer) = &unit.user_types[0].initializer {
         let my_array_type = index.get_type("MyArray").unwrap();
         assert_eq!(Some(my_array_type), annotations.get_type_hint(my_array_initializer, &index));
 
@@ -2161,7 +2161,7 @@ fn range_type_min_max_type_hint_test() {
 
     // THEN we want the range-limits (0 and 100) to have proper type-associations
     if let DataType::SubRangeType { bounds: Some(AstStatement::RangeStatement { start, end, .. }), .. } =
-        &unit.types[0].data_type
+        &unit.user_types[0].data_type
     {
         //lets see if start and end got their type-annotations
         assert_eq!(
@@ -2615,7 +2615,7 @@ fn null_statement_should_get_a_valid_type_hint() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    let var_x_type = &unit.units[0].variable_blocks[0].variables[0].data_type.get_name().unwrap();
+    let var_x_type = &unit.units[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
 
     if let AstStatement::Assignment { right, .. } = stmt {
         assert_type_and_hint!(&annotations, &index, right, "VOID", Some(var_x_type));
@@ -2726,7 +2726,7 @@ fn assigning_lword_to_ptr_will_annotate_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
-    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type.get_name().unwrap();
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
 
     if let AstStatement::Assignment { left, right, .. } = a_eq_b {
         assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
@@ -2755,7 +2755,7 @@ fn assigning_ptr_to_lword_will_annotate_correctly() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
-    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type.get_name().unwrap();
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
 
     if let AstStatement::Assignment { left, right, .. } = a_eq_b {
         assert_type_and_hint!(&annotations, &index, left, ptr_type, None);
@@ -2784,7 +2784,7 @@ fn assigning_ptr_to_lword_will_annotate_correctly2() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let a_eq_b = &unit.implementations[0].statements[0];
 
-    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type.get_name().unwrap();
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap();
 
     if let AstStatement::Assignment { left, right, .. } = a_eq_b {
         assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);

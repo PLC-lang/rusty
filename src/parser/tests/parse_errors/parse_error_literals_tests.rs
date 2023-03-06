@@ -134,7 +134,7 @@ fn string_with_round_parens_can_be_parsed() {
         ]
     );
 
-    let ast_string = format!("{:#?}", &result.types);
+    let ast_string = format!("{:#?}", &result.user_types);
 
     let expected_ast = format!(
         "{:#?}",

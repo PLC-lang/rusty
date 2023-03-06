@@ -205,7 +205,7 @@ fn varargs_parameters_can_be_parsed() {
             variables: vec![
                 Variable {
                     name: "args1".into(),
-                    data_type: DataTypeDeclaration::DataTypeDefinition {
+                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs { referenced_type: None, sized: false },
                         location: SourceRange::undefined(),
                         scope: Some("foo".into()),
@@ -216,7 +216,7 @@ fn varargs_parameters_can_be_parsed() {
                 },
                 Variable {
                     name: "args2".into(),
-                    data_type: DataTypeDeclaration::DataTypeDefinition {
+                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs {
                             referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: "INT".into(),
@@ -274,7 +274,7 @@ fn sized_varargs_parameters_can_be_parsed() {
             variables: vec![
                 Variable {
                     name: "args1".into(),
-                    data_type: DataTypeDeclaration::DataTypeDefinition {
+                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs { referenced_type: None, sized: true },
                         location: SourceRange::undefined(),
                         scope: Some("foo".into()),
@@ -285,7 +285,7 @@ fn sized_varargs_parameters_can_be_parsed() {
                 },
                 Variable {
                     name: "args2".into(),
-                    data_type: DataTypeDeclaration::DataTypeDefinition {
+                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs {
                             referenced_type: Some(Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: "INT".into(),
@@ -467,7 +467,7 @@ fn function_inline_struct_return_unsupported() {
                     Variable {
                         name: "x".into(),
                         location: SourceRange::undefined(),
-                        data_type: DataTypeDeclaration::DataTypeReference {
+                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             location: SourceRange::undefined(),
                             referenced_type: "INT".into()
                         },
@@ -477,7 +477,7 @@ fn function_inline_struct_return_unsupported() {
                     Variable {
                         name: "y".into(),
                         location: SourceRange::undefined(),
-                        data_type: DataTypeDeclaration::DataTypeReference {
+                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             location: SourceRange::undefined(),
                             referenced_type: "INT".into()
                         },

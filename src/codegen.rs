@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use std::path::Path;
+
 /// module to generate llvm intermediate representation for a CompilationUnit
 use self::{
     debug::{Debug, DebugBuilderEnum},
@@ -44,14 +46,14 @@ impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
     pub fn new(
         context: &'ink Context,
-        module_name: &str,
+        root: Option<&Path>,
         module_location: &str,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> CodeGen<'ink> {
-        let module = context.create_module(module_name);
+        let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
-        let debug = debug::DebugBuilderEnum::new(context, &module, optimization_level, debug_level);
+        let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
         CodeGen { context, module, debug }
     }
 

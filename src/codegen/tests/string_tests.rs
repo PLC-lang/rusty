@@ -417,3 +417,62 @@ fn using_a_constant_var_string_should_be_memcpyable() {
     // THEN
     insta::assert_snapshot!(result);
 }
+
+#[test]
+#[ignore = "missing validation for literal string assignments"]
+fn assigning_utf8_literal_to_wstring() {
+    let result = codegen(
+        r#"
+        PROGRAM main
+        VAR
+            ws: WSTRING;
+        END_VAR
+            ws := 'd';
+        END_PROGRAM
+    "#,
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn impilicit_char_conversion_is_reported() {
+    let result = codegen_without_unwrap(
+        r#"
+        PROGRAM main
+        VAR
+            s : STRING;
+            c : CHAR := 'a';
+        END_VAR
+            s := c; 
+        END_PROGRAM
+    "#,
+    );
+
+    // THEN
+    let Err(diagnostic) = result else {
+        unreachable!("expected diagnostic")
+    };
+
+    assert_eq!(diagnostic, Diagnostic::casting_error("CHAR", "STRING", (120..121).into()));
+
+    let result = codegen_without_unwrap(
+        r#"
+        PROGRAM main
+        VAR
+            ws : WSTRING;
+            wc : WCHAR := WCHAR#"b";
+        END_VAR
+            ws := wc;
+        END_PROGRAM
+    "#,
+    );
+
+    // THEN
+    let Err(diagnostic) = result else {
+        unreachable!("expected diagnostic")
+    };
+
+    assert_eq!(diagnostic, Diagnostic::casting_error("WCHAR", "WSTRING", (131..133).into()));
+}

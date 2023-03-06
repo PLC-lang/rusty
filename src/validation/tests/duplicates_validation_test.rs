@@ -2,7 +2,7 @@ use insta::assert_snapshot;
 
 use crate::{
     ast::{self, CompilationUnit, SourceRange, SourceRangeFactory},
-    diagnostics::{Diagnostic, Diagnostician},
+    diagnostics::Diagnostic,
     index::{visitor, Index},
     lexer::{self, IdProvider},
     parser,
@@ -10,7 +10,7 @@ use crate::{
     test_utils::tests::{compile_to_string, parse_and_validate},
     typesystem,
     validation::Validator,
-    SourceCode,
+    DebugLevel, SourceCode,
 };
 
 #[test]
@@ -656,14 +656,7 @@ fn duplicate_with_generic_ir() {
         "
     .into();
     // WHEN we compile
-    let ir = compile_to_string(
-        vec![file1, file2, file3],
-        vec![],
-        None,
-        Diagnostician::default(),
-        crate::DebugLevel::None,
-    )
-    .unwrap();
+    let ir = compile_to_string(vec![file1, file2, file3], vec![], None, DebugLevel::None).unwrap();
 
     // THEN we expect only 1 declaration per type-specific implementation of the generic function
     // although file2 & file3 both discovered them independently

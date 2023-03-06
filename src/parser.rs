@@ -58,7 +58,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &str) -> Pars
             KeywordType => {
                 let unit_type = parse_type(&mut lexer);
                 for utype in unit_type {
-                    unit.types.push(utype);
+                    unit.user_types.push(utype);
                 }
             }
             KeywordEndActions | End => return (unit, lexer.diagnostics),
@@ -984,7 +984,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         for (name, location) in var_names {
             variables.push(Variable {
                 name,
-                data_type: data_type.clone(),
+                data_type_declaration: data_type.clone(),
                 location,
                 initializer: initializer.clone(),
                 address: address.clone(),

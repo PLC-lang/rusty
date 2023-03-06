@@ -127,7 +127,7 @@ impl DataType {
 
     pub fn has_nature(&self, nature: TypeNature, index: &Index) -> bool {
         let type_nature = index.get_intrinsic_type_by_name(self.get_name()).nature;
-        type_nature.derives(nature)
+        type_nature.derives_from(nature)
     }
 
     pub fn is_numerical(&self) -> bool {
@@ -155,6 +155,10 @@ impl DataType {
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
+    }
+
+    pub fn get_nature(&self) -> TypeNature {
+        self.nature
     }
 
     pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {
@@ -197,6 +201,25 @@ impl DataType {
             members.iter().find(|member| member.is_return())
         } else {
             None
+        }
+    }
+
+    pub fn is_compatible_with_type(&self, other: &DataType) -> bool {
+        match self.nature {
+            TypeNature::Real
+            | TypeNature::Int
+            | TypeNature::Signed
+            | TypeNature::Unsigned
+            | TypeNature::Duration
+            | TypeNature::Date
+            | TypeNature::Bit => {
+                other.is_numerical()
+                    || matches!(other.nature, TypeNature::Bit | TypeNature::Date | TypeNature::Duration)
+            }
+            TypeNature::Char => matches!(other.nature, TypeNature::Char | TypeNature::String),
+            TypeNature::String => matches!(other.nature, TypeNature::String),
+            TypeNature::Any => true,
+            _ => false,
         }
     }
 }
@@ -426,6 +449,10 @@ impl DataTypeInformation {
                 | DataTypeInformation::Array { .. }
                 | DataTypeInformation::String { .. }
         )
+    }
+
+    pub fn is_date_or_time_type(&self) -> bool {
+        matches!(self.get_name(), DATE_TYPE | DATE_AND_TIME_TYPE | TIME_OF_DAY_TYPE | TIME_TYPE)
     }
 
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
@@ -1050,7 +1077,7 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
                 let ldetails = index.find_elementary_pointer_type(ltype);
                 let rdetails = index.find_elementary_pointer_type(rtype);
 
-                ldetails == rdetails
+                is_same_type_class(ldetails, rdetails, index)
             }
 
             // If nothing applies we can assume the types to be different

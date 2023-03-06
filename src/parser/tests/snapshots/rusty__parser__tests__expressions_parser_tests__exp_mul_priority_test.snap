@@ -58,7 +58,7 @@ CompilationUnit {
             access: None,
         },
     ],
-    types: [],
+    user_types: [],
     file_name: "test.st",
     new_lines: NewLines {
         line_breaks: [

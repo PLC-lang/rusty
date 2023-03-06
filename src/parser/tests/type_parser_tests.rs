@@ -32,7 +32,7 @@ fn simple_struct_type_can_be_parsed() {
         "#,
     );
 
-    let ast_string = format!("{:#?}", &result.types[0]);
+    let ast_string = format!("{:#?}", &result.user_types[0]);
 
     let expected_ast = format!(
         "{:#?}",
@@ -42,7 +42,7 @@ fn simple_struct_type_can_be_parsed() {
                 variables: vec!(
                     Variable {
                         name: "One".to_string(),
-                        data_type: DataTypeDeclaration::DataTypeReference {
+                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
                             location: SourceRange::undefined(),
                         },
@@ -52,7 +52,7 @@ fn simple_struct_type_can_be_parsed() {
                     },
                     Variable {
                         name: "Two".to_string(),
-                        data_type: DataTypeDeclaration::DataTypeReference {
+                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
                             location: SourceRange::undefined(),
                         },
@@ -62,7 +62,7 @@ fn simple_struct_type_can_be_parsed() {
                     },
                     Variable {
                         name: "Three".to_string(),
-                        data_type: DataTypeDeclaration::DataTypeReference {
+                        data_type_declaration: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
                             location: SourceRange::undefined(),
                         },
@@ -88,7 +88,7 @@ fn simple_enum_type_can_be_parsed() {
         END_TYPE 
         "#,
     );
-    insta::assert_debug_snapshot!(result.types[0]);
+    insta::assert_debug_snapshot!(result.user_types[0]);
 }
 
 #[test]
@@ -99,7 +99,7 @@ fn simple_enum_with_numeric_type_can_be_parsed() {
         END_TYPE 
         "#,
     );
-    insta::assert_debug_snapshot!(result.types[0]);
+    insta::assert_debug_snapshot!(result.user_types[0]);
 }
 
 #[test]
@@ -110,7 +110,7 @@ fn simple_enum_with_one_element_numeric_type_can_be_parsed() {
         END_TYPE 
         "#,
     );
-    insta::assert_debug_snapshot!(result.types[0]);
+    insta::assert_debug_snapshot!(result.user_types[0]);
 }
 
 #[test]
@@ -121,7 +121,7 @@ fn typed_enum_with_initial_values_can_be_parsed() {
         END_TYPE 
         "#,
     );
-    insta::assert_debug_snapshot!(result.types[0]);
+    insta::assert_debug_snapshot!(result.user_types[0]);
 }
 
 #[test]
@@ -148,7 +148,7 @@ fn type_alias_can_be_parsed() {
         "#,
     );
 
-    let ast_string = format!("{:#?}", &result.types[0]);
+    let ast_string = format!("{:#?}", &result.user_types[0]);
     let exptected_ast = format!(
         "{:#?}",
         &UserTypeDeclaration {
@@ -174,7 +174,7 @@ fn array_type_can_be_parsed_test() {
             "#,
     );
 
-    let ast_string = format!("{:#?}", &result.types[0]);
+    let ast_string = format!("{:#?}", &result.user_types[0]);
 
     let expected_ast = format!(
         "{:#?}",
@@ -217,7 +217,7 @@ fn string_type_can_be_parsed_test() {
             "#,
     );
 
-    let ast_string = format!("{:#?}", &result.types);
+    let ast_string = format!("{:#?}", &result.user_types);
 
     let expected_ast = format!(
         "{:#?}",
@@ -261,7 +261,7 @@ fn wide_string_type_can_be_parsed_test() {
             "#,
     );
 
-    let ast_string = format!("{:#?}", &result.types[0]);
+    let ast_string = format!("{:#?}", &result.user_types[0]);
 
     let expected_ast = format!(
         "{:#?}",
@@ -292,7 +292,7 @@ fn subrangetype_can_be_parsed() {
     let x = &parse_result.global_vars[0].variables[0];
     let expected = Variable {
         name: "x".to_string(),
-        data_type: DataTypeDeclaration::DataTypeDefinition {
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::SubRangeType {
                 name: None,
                 bounds: Some(AstStatement::RangeStatement {
@@ -324,7 +324,7 @@ fn struct_with_inline_array_can_be_parsed() {
         "#,
     );
 
-    let ast_string = format!("{:#?}", &result.types[0]);
+    let ast_string = format!("{:#?}", &result.user_types[0]);
 
     let expected_ast = r#"UserTypeDeclaration {
     data_type: StructType {
@@ -368,7 +368,7 @@ fn pointer_type_test() {
         END_TYPE 
         "#,
     );
-    let pointer_type = &result.types[0];
+    let pointer_type = &result.user_types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("SamplePointer".into()),
@@ -399,7 +399,7 @@ fn ref_type_test() {
         END_TYPE 
         "#,
     );
-    let reference_type = &result.types[0];
+    let reference_type = &result.user_types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("SampleReference".into()),
@@ -429,7 +429,7 @@ fn global_pointer_declaration() {
     let reference_type = &result.global_vars[0].variables[0];
     let expected = Variable {
         name: "SampleReference".into(),
-        data_type: DataTypeDeclaration::DataTypeDefinition {
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::PointerType {
                 name: None,
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -448,7 +448,7 @@ fn global_pointer_declaration() {
     let pointer_type = &result.global_vars[0].variables[1];
     let expected = Variable {
         name: "SamplePointer".into(),
-        data_type: DataTypeDeclaration::DataTypeDefinition {
+        data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::PointerType {
                 name: None,
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
