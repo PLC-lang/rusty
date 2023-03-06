@@ -34,7 +34,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use typesystem::get_builtin_types;
 
-use ast::{LinkageType, PouType, SourceRange, SourceRangeFactory};
+use ast::{LinkageType, SourceRange, SourceRangeFactory};
 use cli::{CompileParameters, SubCommands};
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
@@ -526,16 +526,24 @@ fn index_module<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     diagnostician: &mut Diagnostician,
 ) -> Result<(Index, IndexComponents), Diagnostic> {
-    let mut full_index = Index::default();
     let id_provider = IdProvider::default();
 
+    let mut full_index = Index::default();
     let mut all_units = Vec::new();
 
     // ### PHASE 1 ###
-    // parse & index everything
+    // parse & index sources
     let (index, mut units) =
         parse_and_index(sources, encoding, &id_provider, diagnostician, LinkageType::Internal)?;
     full_index.import(index);
+    all_units.append(&mut units);
+    // parse & index includes
+    let (includes_index, mut includes_units) =
+        parse_and_index(includes, encoding, &id_provider, diagnostician, LinkageType::External)?;
+    full_index.import(includes_index);
+    all_units.append(&mut includes_units);
+
+    // ### PHASE 1.1 ###
     // import built-in types like INT, BOOL, etc.
     for data_type in get_builtin_types() {
         full_index.register_type(data_type);
@@ -544,36 +552,27 @@ fn index_module<T: SourceContainer>(
     let builtins = builtins::parse_built_ins(id_provider.clone());
     full_index.import(index::visitor::visit(&builtins));
 
-    all_units.append(&mut units);
-
-    let (includes_index, mut includes_units) =
-        parse_and_index(includes, encoding, &id_provider, diagnostician, LinkageType::External)?;
-    full_index.import(includes_index);
-    all_units.append(&mut includes_units);
-
-    // ### PHASE 1.1 resolve constant literal values
+    // ### PHASE 1.2 resolve constant literal values
     let (mut full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
 
-    // perform global validation
-    let global_diagnostics = {
-        let mut validator = Validator::new();
-        validator.perform_global_validation(&full_index);
-        validator.diagnostics()
-    };
-    diagnostician.handle(global_diagnostics);
-
     // ### PHASE 2 ###
-    // annotation & validation everything
+    // annotation & validation
+    // perform global validation
+    let mut validator = Validator::new();
+    validator.perform_global_validation(&full_index);
+    diagnostician.handle(validator.diagnostics());
+
     let mut annotated_units: Vec<CompilationUnit> = Vec::new();
     let mut all_annotations = AnnotationMapImpl::default();
     let mut all_literals = StringLiterals::default();
     for (syntax_errors, unit) in all_units.into_iter() {
+        // annotate unit
         let (annotations, string_literals) =
             TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
 
-        let mut validator = Validator::new();
+        // validate unit
         validator.visit_unit(&annotations, &full_index, &unit);
-        //log errors
+        // log errors
         diagnostician.handle(syntax_errors);
         diagnostician.handle(validator.diagnostics());
 
