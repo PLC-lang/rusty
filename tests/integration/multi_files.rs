@@ -2,9 +2,7 @@ use inkwell::{
     context::Context,
     targets::{InitializationConfig, Target},
 };
-use rusty::{
-    compile_module, diagnostics::Diagnostician, runner::run_no_param, DebugLevel, FilePath, OptimizationLevel,
-};
+use rusty::{compile_module, runner::run_no_param, CompileOptions, FilePath};
 
 use crate::{compile_and_run, get_test_file};
 
@@ -39,9 +37,7 @@ fn multiple_files_create_same_generic_implementation() {
         vec![gen_func, file1, file2],
         vec![],
         None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
+        &CompileOptions { error_format: rusty::ErrorFormat::Rich, ..Default::default() },
     )
     .unwrap();
 

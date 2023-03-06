@@ -1,0 +1,32 @@
+name: Metrics
+
+on:
+  push:
+    branches:
+    - master
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: rust-llvm
+  IMAGE_VERSION: latest
+
+jobs:
+  metrics:
+    name: Metrics
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ref: master
+
+    - name: Collect metrics
+      run: |
+        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION
+        # Change all uppercase to lowercase
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        docker pull $IMAGE_ID
+        ./scripts/build.sh --metrics --container --container-name=$IMAGE_ID --ci

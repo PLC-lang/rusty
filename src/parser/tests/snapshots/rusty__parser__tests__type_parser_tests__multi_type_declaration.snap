@@ -6,7 +6,7 @@ CompilationUnit {
     global_vars: [],
     units: [],
     implementations: [],
-    types: [
+    user_types: [
         UserTypeDeclaration {
             data_type: StructType {
                 name: Some(

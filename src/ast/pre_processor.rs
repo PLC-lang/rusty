@@ -14,7 +14,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     for pou in unit.units.iter_mut() {
         //Find all generic types in that pou
         let generic_types = preprocess_generic_structs(pou);
-        unit.types.extend(generic_types);
+        unit.user_types.extend(generic_types);
 
         let all_variables = pou
             .variable_blocks
@@ -23,11 +23,11 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
             .filter(|it| should_generate_implicit_type(it));
 
         for var in all_variables {
-            pre_process_variable_data_type(pou.name.as_str(), var, &mut unit.types)
+            pre_process_variable_data_type(pou.name.as_str(), var, &mut unit.user_types)
         }
 
         //Generate implicit type for returns
-        preprocess_return_type(pou, &mut unit.types);
+        preprocess_return_type(pou, &mut unit.user_types);
     }
 
     //process all variables from GVLs
@@ -38,12 +38,12 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         .filter(|it| should_generate_implicit_type(it));
 
     for var in all_variables {
-        pre_process_variable_data_type("global", var, &mut unit.types)
+        pre_process_variable_data_type("global", var, &mut unit.user_types)
     }
 
     //process all variables in dataTypes
     let mut new_types = vec![];
-    for dt in unit.types.iter_mut() {
+    for dt in unit.user_types.iter_mut() {
         {
             match &mut dt.data_type {
                 DataType::StructType { name, variables, .. } => {
@@ -132,7 +132,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
             }
         }
     }
-    unit.types.append(&mut new_types);
+    unit.user_types.append(&mut new_types);
 }
 
 fn build_enum_initializer(
@@ -175,7 +175,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
         generic_types.insert(binding.name.clone(), new_name);
     }
     for var in pou.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
-        replace_generic_type_name(&mut var.data_type, &generic_types);
+        replace_generic_type_name(&mut var.data_type_declaration, &generic_types);
     }
     if let Some(datatype) = pou.return_type.as_mut() {
         replace_generic_type_name(datatype, &generic_types);
@@ -212,7 +212,7 @@ fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
 }
 
 fn should_generate_implicit_type(variable: &Variable) -> bool {
-    should_generate_implicit(&variable.data_type)
+    should_generate_implicit(&variable.data_type_declaration)
 }
 
 fn pre_process_variable_data_type(
