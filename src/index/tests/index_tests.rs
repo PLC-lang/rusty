@@ -1999,6 +1999,6 @@ fn _x() {
     );
 
     let members = index.get_container_members("foo");
-    let name = members[0].get_name();
+    let name = members[0].get_type_name();
     assert_debug_snapshot!(index.get_type_information_or_void(name))
 }

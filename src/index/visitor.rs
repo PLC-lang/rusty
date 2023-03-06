@@ -563,19 +563,16 @@ fn visit_data_type(
                 size_type: i64,
             }
             */
-            let variables = vec![
+
+            let ndims = match bounds {
+                AstStatement::VlaRangeStatement { .. } => 1,
+                AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+                _ => unreachable!("not a bounds statement"),
+            };
+
+            let mut variables = vec![
                 Variable {
                     name: "ptr".to_string(),
-                    data_type: DataTypeDeclaration::DataTypeReference {
-                        referenced_type: "LWORD".to_string(),
-                        location: SourceRange::undefined(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceRange::undefined(),
-                },
-                Variable {
-                    name: "dims".to_string(),
                     data_type: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "LWORD".to_string(),
                         location: SourceRange::undefined(),
@@ -599,6 +596,29 @@ fn visit_data_type(
                     location: SourceRange::undefined(),
                 },
             ];
+
+            for i in 0..ndims {
+                variables.push(Variable {
+                    name: format!("dim{}_lower", i),
+                    data_type: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: "DINT".to_string(),
+                        location: SourceRange::undefined(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                });
+                variables.push(Variable {
+                    name: format!("dim{}_upper", i),
+                    data_type: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: "DINT".to_string(),
+                        location: SourceRange::undefined(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                });
+            }
 
             let struct_t = DataType::StructType { name: Some(struct_name.to_string()), variables: variables };
             let type_dec = UserTypeDeclaration {

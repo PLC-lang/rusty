@@ -3507,10 +3507,12 @@ fn x() {
     );
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statements = &unit.implementations[0].statements[0];
-    // if let AstStatement::UnaryExpression { value, .. } = &statements {
-    //     let _type = annotations.get_type(value.as_ref(), &index);
-    //     // assert_type_and_hint!(&annotations, &index, value.as_ref(), "Vla", None);
-    // } else {
-    //     unreachable!()
-    // }
+    if let AstStatement::ArrayAccess { reference, .. } = dbg!(&statements) {
+        let _type = dbg!(annotations.get_type(reference.as_ref(), &index));
+        let _info = dbg!(_type.unwrap().get_type_information());
+        let _size = dbg!(_info.get_size(&index));
+        // assert_type_and_hint!(&annotations, &index, reference.as_ref(), "Vla", None);
+    } else {
+        unreachable!()
+    }
 }
