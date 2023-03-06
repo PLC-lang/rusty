@@ -522,3 +522,35 @@ fn invalid_action_call_assignments_are_validated() {
 
     assert_debug_snapshot!(diagnostics)
 }
+
+#[test]
+fn invalid_function_block_instantiation_is_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION_BLOCK fb_t
+        VAR_INPUT
+            ws : WSTRING;
+        arr_32 : ARRAY[0..1] OF DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+    
+        PROGRAM prog
+        VAR
+            s : STRING := 'HELLO';
+            arr_64 : ARRAY[0..1] OF LINT;
+            fb : fb_t;
+        END_VAR
+            fb(ws := s, arr_32 := arr_64); // invalid explicit
+            fb(s, arr_64); // invalid implicit
+        END_PROGRAM"#,
+    );
+
+    let expected = vec![
+        Diagnostic::invalid_assignment("STRING", "WSTRING", (323..330).into()),
+        Diagnostic::invalid_assignment("__prog_arr_64", "__fb_t_arr_32", (332..348).into()),
+        Diagnostic::invalid_assignment("STRING", "WSTRING", (386..387).into()),
+        Diagnostic::invalid_assignment("__prog_arr_64", "__fb_t_arr_32", (389..395).into()),
+    ];
+
+    assert_eq!(expected, diagnostics)
+}
