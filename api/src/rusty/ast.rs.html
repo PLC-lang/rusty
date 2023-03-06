@@ -1445,13 +1445,88 @@
 <a href="#1445" id="1445">1445</a>
 <a href="#1446" id="1446">1446</a>
 <a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     index::Index,
     lexer::IdProvider,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_TYPE,
-        USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE,
+        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE,
+        UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
     },
 };
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -1462,6 +1537,13 @@
     unimplemented, vec,
 };
 <span class="kw">mod </span>pre_processor;
+
+<span class="comment">//returns a range with the min and max value of the given type
+</span><span class="macro">macro_rules! </span>is_covered_by {
+    (<span class="macro-nonterminal">$t</span>:ty, <span class="macro-nonterminal">$e</span>:expr) =&gt; {
+        &lt;<span class="macro-nonterminal">$t</span>&gt;::MIN <span class="kw">as </span>i128 &lt;= <span class="macro-nonterminal">$e </span><span class="kw">as </span>i128 &amp;&amp; <span class="macro-nonterminal">$e </span><span class="kw">as </span>i128 &lt;= &lt;<span class="macro-nonterminal">$t</span>&gt;::MAX <span class="kw">as </span>i128
+    };
+}
 
 <span class="kw">pub type </span>AstId = usize;
 
@@ -1766,7 +1848,7 @@
     <span class="kw">pub </span>global_vars: Vec&lt;VariableBlock&gt;,
     <span class="kw">pub </span>units: Vec&lt;Pou&gt;,
     <span class="kw">pub </span>implementations: Vec&lt;Implementation&gt;,
-    <span class="kw">pub </span>types: Vec&lt;UserTypeDeclaration&gt;,
+    <span class="kw">pub </span>user_types: Vec&lt;UserTypeDeclaration&gt;,
     <span class="kw">pub </span>file_name: String,
     <span class="kw">pub </span>new_lines: NewLines,
 }
@@ -1777,7 +1859,7 @@
             global_vars: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
-            types: Vec::new(),
+            user_types: Vec::new(),
             file_name: file_name.to_string(),
             new_lines,
         }
@@ -1793,7 +1875,7 @@
         <span class="self">self</span>.global_vars.extend(other.global_vars);
         <span class="self">self</span>.units.extend(other.units);
         <span class="self">self</span>.implementations.extend(other.implementations);
-        <span class="self">self</span>.types.extend(other.types);
+        <span class="self">self</span>.user_types.extend(other.user_types);
     }
 }
 
@@ -1836,7 +1918,7 @@
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Variable {
     <span class="kw">pub </span>name: String,
-    <span class="kw">pub </span>data_type: DataTypeDeclaration,
+    <span class="kw">pub </span>data_type_declaration: DataTypeDeclaration,
     <span class="kw">pub </span>initializer: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
     <span class="kw">pub </span>address: <span class="prelude-ty">Option</span>&lt;AstStatement&gt;,
     <span class="kw">pub </span>location: SourceRange,
@@ -1845,7 +1927,7 @@
 <span class="kw">impl </span>Debug <span class="kw">for </span>Variable {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>var = f.debug_struct(<span class="string">&quot;Variable&quot;</span>);
-        var.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name).field(<span class="string">&quot;data_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data_type);
+        var.field(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.name).field(<span class="string">&quot;data_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.data_type_declaration);
         <span class="kw">if </span><span class="self">self</span>.initializer.is_some() {
             var.field(<span class="string">&quot;initializer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.initializer);
         }
@@ -1860,9 +1942,9 @@
     <span class="kw">pub fn </span>replace_data_type_with_reference_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, type_name: String) -&gt; DataTypeDeclaration {
         <span class="kw">let </span>new_data_type = DataTypeDeclaration::DataTypeReference {
             referenced_type: type_name,
-            location: <span class="self">self</span>.data_type.get_location(),
+            location: <span class="self">self</span>.data_type_declaration.get_location(),
         };
-        std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.data_type, new_data_type)
+        std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.data_type_declaration, new_data_type)
     }
 }
 
@@ -2640,8 +2722,73 @@
         </span>}
     }
 
+    <span class="kw">pub fn </span>get_literal_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">match </span><span class="self">self </span>{
+            AstStatement::LiteralString { value, is_wide: <span class="bool-val">true</span>, .. } =&gt; <span class="macro">format!</span>(<span class="string">r#&quot;&quot;{value}&quot;&quot;#</span>),
+            AstStatement::LiteralString { value, is_wide: <span class="bool-val">false</span>, .. } =&gt; <span class="macro">format!</span>(<span class="string">r#&quot;&#39;{value}&#39;&quot;#</span>),
+            AstStatement::LiteralBool { value, .. } =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;{value}&quot;</span>)
+            }
+            AstStatement::LiteralInteger { value, .. } =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;{value}&quot;</span>)
+            }
+            AstStatement::LiteralReal { value, .. } =&gt; value.clone(),
+            <span class="kw">_ </span>=&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;{self:#?}&quot;</span>)
+            }
+        }
+    }
+
+    <span class="kw">pub fn </span>get_literal_actual_signed_type_name(<span class="kw-2">&amp;</span><span class="self">self</span>, signed: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            AstStatement::LiteralInteger { value, .. } =&gt; <span class="kw">match </span>signed {
+                <span class="kw">_ if </span><span class="kw-2">*</span>value == <span class="number">0_i128 </span>|| <span class="kw-2">*</span>value == <span class="number">1_i128 </span>=&gt; <span class="prelude-val">Some</span>(BOOL_TYPE),
+                <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i8, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(SINT_TYPE),
+                <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i16, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(INT_TYPE),
+                <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i32, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(DINT_TYPE),
+                <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i64, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(LINT_TYPE),
+
+                <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u8, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(USINT_TYPE),
+                <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u16, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(UINT_TYPE),
+                <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u32, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(UDINT_TYPE),
+                <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u64, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(ULINT_TYPE),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(VOID_TYPE),
+            },
+            AstStatement::LiteralBool { .. } =&gt; <span class="prelude-val">Some</span>(BOOL_TYPE),
+            AstStatement::LiteralString { is_wide: <span class="bool-val">true</span>, .. } =&gt; <span class="prelude-val">Some</span>(WSTRING_TYPE),
+            AstStatement::LiteralString { is_wide: <span class="bool-val">false</span>, .. } =&gt; <span class="prelude-val">Some</span>(STRING_TYPE),
+            AstStatement::LiteralReal { .. } =&gt; <span class="prelude-val">Some</span>(LREAL_TYPE),
+            AstStatement::LiteralDate { .. } =&gt; <span class="prelude-val">Some</span>(DATE_TYPE),
+            AstStatement::LiteralDateAndTime { .. } =&gt; <span class="prelude-val">Some</span>(DATE_AND_TIME_TYPE),
+            AstStatement::LiteralTime { .. } =&gt; <span class="prelude-val">Some</span>(TIME_TYPE),
+            AstStatement::LiteralTimeOfDay { .. } =&gt; <span class="prelude-val">Some</span>(TIME_OF_DAY_TYPE),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// returns true if this AST Statement is a literal that can be
+    /// prefixed with a type-cast (e.g. INT#23)
+    </span><span class="kw">pub fn </span>is_typable_literal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            AstStatement::LiteralBool { .. }
+                | AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::LiteralString { .. }
+                | AstStatement::LiteralTime { .. }
+                | AstStatement::LiteralDate { .. }
+                | AstStatement::LiteralTimeOfDay { .. }
+                | AstStatement::LiteralDateAndTime { .. }
+                | AstStatement::Reference { .. }
+        )
+    }
+
     <span class="kw">pub fn </span>is_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::Reference { .. })
+    }
+
+    <span class="kw">pub fn </span>is_qualified_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, AstStatement::QualifiedReference { .. })
     }
 
     <span class="kw">pub fn </span>is_hardware_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2667,6 +2814,7 @@
     <span class="kw">pub fn </span>can_be_assigned_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.has_direct_access()
             || <span class="self">self</span>.is_reference()
+            || <span class="self">self</span>.is_qualified_reference()
             || <span class="self">self</span>.is_array_access()
             || <span class="self">self</span>.is_pointer_access()
             || <span class="self">self</span>.is_hardware_access()

@@ -1165,7 +1165,6 @@
 <a href="#1165" id="1165">1165</a>
 <a href="#1166" id="1166">1166</a>
 <a href="#1167" id="1167">1167</a>
-<a href="#1168" id="1168">1168</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="doccomment">//! A St&amp;ructured Text LLVM Frontent
 //!
@@ -1202,7 +1201,7 @@
 <span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>typesystem::get_builtin_types;
 
-<span class="kw">use </span>ast::{LinkageType, PouType, SourceRange, SourceRangeFactory};
+<span class="kw">use </span>ast::{LinkageType, SourceRange, SourceRangeFactory};
 <span class="kw">use </span>cli::{CompileParameters, SubCommands};
 <span class="kw">use </span>diagnostics::Diagnostic;
 <span class="kw">use </span>encoding_rs::Encoding;
@@ -1694,17 +1693,25 @@
     encoding: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Encoding&gt;,
     diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Index, IndexComponents), Diagnostic&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>full_index = Index::default();
     <span class="kw">let </span>id_provider = IdProvider::default();
 
+    <span class="kw">let </span><span class="kw-2">mut </span>full_index = Index::default();
     <span class="kw">let </span><span class="kw-2">mut </span>all_units = Vec::new();
 
     <span class="comment">// ### PHASE 1 ###
-    // parse &amp; index everything
+    // parse &amp; index sources
     </span><span class="kw">let </span>(index, <span class="kw-2">mut </span>units) =
         parse_and_index(sources, encoding, <span class="kw-2">&amp;</span>id_provider, diagnostician, LinkageType::Internal)<span class="question-mark">?</span>;
     full_index.import(index);
-    <span class="comment">// import built-in types like INT, BOOL, etc.
+    all_units.append(<span class="kw-2">&amp;mut </span>units);
+    <span class="comment">// parse &amp; index includes
+    </span><span class="kw">let </span>(includes_index, <span class="kw-2">mut </span>includes_units) =
+        parse_and_index(includes, encoding, <span class="kw-2">&amp;</span>id_provider, diagnostician, LinkageType::External)<span class="question-mark">?</span>;
+    full_index.import(includes_index);
+    all_units.append(<span class="kw-2">&amp;mut </span>includes_units);
+
+    <span class="comment">// ### PHASE 1.1 ###
+    // import built-in types like INT, BOOL, etc.
     </span><span class="kw">for </span>data_type <span class="kw">in </span>get_builtin_types() {
         full_index.register_type(data_type);
     }
@@ -1712,36 +1719,27 @@
     </span><span class="kw">let </span>builtins = builtins::parse_built_ins(id_provider.clone());
     full_index.import(index::visitor::visit(<span class="kw-2">&amp;</span>builtins));
 
-    all_units.append(<span class="kw-2">&amp;mut </span>units);
-
-    <span class="kw">let </span>(includes_index, <span class="kw-2">mut </span>includes_units) =
-        parse_and_index(includes, encoding, <span class="kw-2">&amp;</span>id_provider, diagnostician, LinkageType::External)<span class="question-mark">?</span>;
-    full_index.import(includes_index);
-    all_units.append(<span class="kw-2">&amp;mut </span>includes_units);
-
-    <span class="comment">// ### PHASE 1.1 resolve constant literal values
+    <span class="comment">// ### PHASE 1.2 resolve constant literal values
     </span><span class="kw">let </span>(<span class="kw-2">mut </span>full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
 
-    <span class="comment">// perform global validation
-    </span><span class="kw">let </span>global_diagnostics = {
-        <span class="kw">let </span><span class="kw-2">mut </span>validator = Validator::new();
-        validator.perform_global_validation(<span class="kw-2">&amp;</span>full_index);
-        validator.diagnostics()
-    };
-    diagnostician.handle(global_diagnostics);
-
     <span class="comment">// ### PHASE 2 ###
-    // annotation &amp; validation everything
-    </span><span class="kw">let </span><span class="kw-2">mut </span>annotated_units: Vec&lt;CompilationUnit&gt; = Vec::new();
+    // annotation &amp; validation
+    // perform global validation
+    </span><span class="kw">let </span><span class="kw-2">mut </span>validator = Validator::new();
+    validator.perform_global_validation(<span class="kw-2">&amp;</span>full_index);
+    diagnostician.handle(validator.diagnostics());
+
+    <span class="kw">let </span><span class="kw-2">mut </span>annotated_units: Vec&lt;CompilationUnit&gt; = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>all_annotations = AnnotationMapImpl::default();
     <span class="kw">let </span><span class="kw-2">mut </span>all_literals = StringLiterals::default();
     <span class="kw">for </span>(syntax_errors, unit) <span class="kw">in </span>all_units.into_iter() {
-        <span class="kw">let </span>(annotations, string_literals) =
+        <span class="comment">// annotate unit
+        </span><span class="kw">let </span>(annotations, string_literals) =
             TypeAnnotator::visit_unit(<span class="kw-2">&amp;</span>full_index, <span class="kw-2">&amp;</span>unit, id_provider.clone());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>validator = Validator::new();
-        validator.visit_unit(<span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>full_index, <span class="kw-2">&amp;</span>unit);
-        <span class="comment">//log errors
+        <span class="comment">// validate unit
+        </span>validator.visit_unit(<span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>full_index, <span class="kw-2">&amp;</span>unit);
+        <span class="comment">// log errors
         </span>diagnostician.handle(syntax_errors);
         diagnostician.handle(validator.diagnostics());
 

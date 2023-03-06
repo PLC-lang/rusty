@@ -1084,7 +1084,7 @@
             KeywordType =&gt; {
                 <span class="kw">let </span>unit_type = parse_type(<span class="kw-2">&amp;mut </span>lexer);
                 <span class="kw">for </span>utype <span class="kw">in </span>unit_type {
-                    unit.types.push(utype);
+                    unit.user_types.push(utype);
                 }
             }
             KeywordEndActions | End =&gt; <span class="kw">return </span>(unit, lexer.diagnostics),
@@ -2010,7 +2010,7 @@
         <span class="kw">for </span>(name, location) <span class="kw">in </span>var_names {
             variables.push(Variable {
                 name,
-                data_type: data_type.clone(),
+                data_type_declaration: data_type.clone(),
                 location,
                 initializer: initializer.clone(),
                 address: address.clone(),

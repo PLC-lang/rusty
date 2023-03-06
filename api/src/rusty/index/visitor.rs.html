@@ -651,6 +651,8 @@
 <a href="#651" id="651">651</a>
 <a href="#652" id="652">652</a>
 <a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::symbol::{SymbolLocation, SymbolLocationFactory};
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
@@ -668,7 +670,7 @@
     </span><span class="kw">let </span>symbol_location_factory = SymbolLocationFactory::new(<span class="kw-2">&amp;</span>unit.new_lines);
 
     <span class="comment">//Create user defined datatypes
-    </span><span class="kw">for </span>user_type <span class="kw">in </span><span class="kw-2">&amp;</span>unit.types {
+    </span><span class="kw">for </span>user_type <span class="kw">in </span><span class="kw-2">&amp;</span>unit.user_types {
         visit_data_type(<span class="kw-2">&amp;mut </span>index, user_type, <span class="kw-2">&amp;</span>symbol_location_factory);
     }
 
@@ -700,7 +702,7 @@
             <span class="kw">let </span>varargs = <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition {
                 data_type: ast::DataType::VarArgs { referenced_type, sized },
                 ..
-            } = <span class="kw-2">&amp;</span>var.data_type
+            } = <span class="kw-2">&amp;</span>var.data_type_declaration
             {
                 <span class="kw">let </span>name = referenced_type
                     .as_ref()
@@ -716,7 +718,7 @@
                 member_varargs = varargs.clone();
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(var_type_name) = var.data_type.get_name() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(var_type_name) = var.data_type_declaration.get_name() {
                 <span class="kw">let </span>type_name = <span class="kw">if </span>block_type.is_by_ref() {
                     <span class="comment">//register a pointer type for argument
                     </span>register_byref_pointer_type_for(index, var_type_name)
@@ -949,7 +951,7 @@
 ) {
     <span class="kw">let </span>linkage = block.linkage;
     <span class="kw">for </span>var <span class="kw">in </span><span class="kw-2">&amp;</span>block.variables {
-        <span class="kw">let </span>target_type = var.data_type.get_name().unwrap_or_default();
+        <span class="kw">let </span>target_type = var.data_type_declaration.get_name().unwrap_or_default();
         <span class="kw">let </span>initializer = index.get_mut_const_expressions().maybe_add_constant_expression(
             var.initializer.clone(),
             target_type,
@@ -958,7 +960,7 @@
         <span class="kw">let </span>variable = VariableIndexEntry::create_global(
             <span class="kw-2">&amp;</span>var.name,
             <span class="kw-2">&amp;</span>var.name,
-            var.data_type.get_name().expect(<span class="string">&quot;named variable datatype&quot;</span>),
+            var.data_type_declaration.get_name().expect(<span class="string">&quot;named variable datatype&quot;</span>),
             symbol_location_factory.create_symbol_location(<span class="kw-2">&amp;</span>var.location),
         )
         .set_initial_value(initializer)
@@ -998,7 +1000,9 @@
                 .iter()
                 .enumerate()
                 .map(|(count, var)| {
-                    <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } = <span class="kw-2">&amp;</span>var.data_type {
+                    <span class="kw">if let </span>DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } =
+                        <span class="kw-2">&amp;</span>var.data_type_declaration
+                    {
                         <span class="comment">//first we need to handle the inner type
                         </span>visit_data_type(
                             index,
@@ -1012,7 +1016,7 @@
                         )
                     }
 
-                    <span class="kw">let </span>member_type = var.data_type.get_name().expect(<span class="string">&quot;named variable datatype&quot;</span>);
+                    <span class="kw">let </span>member_type = var.data_type_declaration.get_name().expect(<span class="string">&quot;named variable datatype&quot;</span>);
                     <span class="kw">let </span>init = index.get_mut_const_expressions().maybe_add_constant_expression(
                         var.initializer.clone(),
                         member_type,

@@ -282,7 +282,7 @@
     </span><span class="kw">for </span>pou <span class="kw">in </span>unit.units.iter_mut() {
         <span class="comment">//Find all generic types in that pou
         </span><span class="kw">let </span>generic_types = preprocess_generic_structs(pou);
-        unit.types.extend(generic_types);
+        unit.user_types.extend(generic_types);
 
         <span class="kw">let </span>all_variables = pou
             .variable_blocks
@@ -291,11 +291,11 @@
             .filter(|it| should_generate_implicit_type(it));
 
         <span class="kw">for </span>var <span class="kw">in </span>all_variables {
-            pre_process_variable_data_type(pou.name.as_str(), var, <span class="kw-2">&amp;mut </span>unit.types)
+            pre_process_variable_data_type(pou.name.as_str(), var, <span class="kw-2">&amp;mut </span>unit.user_types)
         }
 
         <span class="comment">//Generate implicit type for returns
-        </span>preprocess_return_type(pou, <span class="kw-2">&amp;mut </span>unit.types);
+        </span>preprocess_return_type(pou, <span class="kw-2">&amp;mut </span>unit.user_types);
     }
 
     <span class="comment">//process all variables from GVLs
@@ -306,12 +306,12 @@
         .filter(|it| should_generate_implicit_type(it));
 
     <span class="kw">for </span>var <span class="kw">in </span>all_variables {
-        pre_process_variable_data_type(<span class="string">&quot;global&quot;</span>, var, <span class="kw-2">&amp;mut </span>unit.types)
+        pre_process_variable_data_type(<span class="string">&quot;global&quot;</span>, var, <span class="kw-2">&amp;mut </span>unit.user_types)
     }
 
     <span class="comment">//process all variables in dataTypes
     </span><span class="kw">let </span><span class="kw-2">mut </span>new_types = <span class="macro">vec!</span>[];
-    <span class="kw">for </span>dt <span class="kw">in </span>unit.types.iter_mut() {
+    <span class="kw">for </span>dt <span class="kw">in </span>unit.user_types.iter_mut() {
         {
             <span class="kw">match </span><span class="kw-2">&amp;mut </span>dt.data_type {
                 DataType::StructType { name, variables, .. } =&gt; {
@@ -400,7 +400,7 @@
             }
         }
     }
-    unit.types.append(<span class="kw-2">&amp;mut </span>new_types);
+    unit.user_types.append(<span class="kw-2">&amp;mut </span>new_types);
 }
 
 <span class="kw">fn </span>build_enum_initializer(
@@ -443,7 +443,7 @@
         generic_types.insert(binding.name.clone(), new_name);
     }
     <span class="kw">for </span>var <span class="kw">in </span>pou.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
-        replace_generic_type_name(<span class="kw-2">&amp;mut </span>var.data_type, <span class="kw-2">&amp;</span>generic_types);
+        replace_generic_type_name(<span class="kw-2">&amp;mut </span>var.data_type_declaration, <span class="kw-2">&amp;</span>generic_types);
     }
     <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = pou.return_type.as_mut() {
         replace_generic_type_name(datatype, <span class="kw-2">&amp;</span>generic_types);
@@ -480,7 +480,7 @@
 }
 
 <span class="kw">fn </span>should_generate_implicit_type(variable: <span class="kw-2">&amp;</span>Variable) -&gt; bool {
-    should_generate_implicit(<span class="kw-2">&amp;</span>variable.data_type)
+    should_generate_implicit(<span class="kw-2">&amp;</span>variable.data_type_declaration)
 }
 
 <span class="kw">fn </span>pre_process_variable_data_type(

@@ -1565,9 +1565,6 @@
 <a href="#1565" id="1565">1565</a>
 <a href="#1566" id="1566">1566</a>
 <a href="#1567" id="1567">1567</a>
-<a href="#1568" id="1568">1568</a>
-<a href="#1569" id="1569">1569</a>
-<a href="#1570" id="1570">1570</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2036,7 +2033,7 @@
             visitor.visit_pou(ctx, pou);
         }
 
-        <span class="kw">for </span>t <span class="kw">in </span><span class="kw-2">&amp;</span>unit.types {
+        <span class="kw">for </span>t <span class="kw">in </span><span class="kw-2">&amp;</span>unit.user_types {
             visitor.visit_user_type_declaration(t, ctx);
         }
 
@@ -2241,7 +2238,7 @@
     }
 
     <span class="kw">fn </span>visit_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, variable: <span class="kw-2">&amp;</span>Variable) {
-        <span class="self">self</span>.visit_data_type_declaration(ctx, <span class="kw-2">&amp;</span>variable.data_type);
+        <span class="self">self</span>.visit_data_type_declaration(ctx, <span class="kw-2">&amp;</span>variable.data_type_declaration);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(initializer) = variable.initializer.as_ref() {
             <span class="comment">// annotate a type-hint for the initializer, it should be the same type as the variable
             // e.g. x : BYTE := 7 + 3;  --&gt; 7+3 should be cast into a byte
@@ -3011,17 +3008,14 @@
 
 <span class="doccomment">/// adds a string-type to the given index and returns it&#39;s name
 </span><span class="kw">fn </span>register_string_type(index: <span class="kw-2">&amp;mut </span>Index, is_wide: bool, len: usize) -&gt; String {
-    <span class="kw">let </span>new_type_name = <span class="kw">if </span>is_wide {
-        typesystem::create_internal_type_name(<span class="string">&quot;WSTRING_&quot;</span>, len.to_string().as_str())
-    } <span class="kw">else </span>{
-        typesystem::create_internal_type_name(<span class="string">&quot;STRING_&quot;</span>, len.to_string().as_str())
-    };
+    <span class="kw">let </span>prefix = <span class="kw">if </span>is_wide { <span class="string">&quot;WSTRING_&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;STRING_&quot; </span>};
+    <span class="kw">let </span>new_type_name = typesystem::create_internal_type_name(prefix, len.to_string().as_str());
 
     <span class="kw">if </span>index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
         index.register_type(<span class="kw">crate</span>::typesystem::DataType {
             name: new_type_name.clone(),
             initial_value: <span class="prelude-val">None</span>,
-            nature: TypeNature::Chars,
+            nature: TypeNature::String,
             information: <span class="kw">crate</span>::typesystem::DataTypeInformation::String {
                 encoding: <span class="kw">if </span>is_wide { StringEncoding::Utf16 } <span class="kw">else </span>{ StringEncoding::Utf8 },
                 size: typesystem::TypeSize::LiteralInteger(len <span class="kw">as </span>i64 + <span class="number">1</span>),
