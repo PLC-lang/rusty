@@ -12,8 +12,13 @@ use crate::{
 
 use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
 
-/// generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
-/// the original `value` if no cast is necessary
+/// Generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
+/// the original `value` if no cast is necessary or if the provided value is not eligible to be cast (to the target type or at all).
+///
+/// This function provides no additional validation or safeguards for invalid casts, as such validation is expected to be
+/// performed at the validation stage prior to code-gen.
+/// Cast instructions for values other than IntValue, FloatValue and PointerValue will simply be ignored (and the value
+/// returned unchanged). Invalid casting instructions for the above-mentioned values will fail spectacularly instead.
 ///
 /// - `llvm` the llvm utilities to use for code-generation
 /// - `index` the current Index used for type-lookups
