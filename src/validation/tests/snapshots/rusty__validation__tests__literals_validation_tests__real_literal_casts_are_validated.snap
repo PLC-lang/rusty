@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/literals_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Literal '3.14' is not campatible to REAL", range: [SourceRange { range: 180..191 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal \"3.14\" is not campatible to LREAL", range: [SourceRange { range: 252..264 }], err_no: type__incompatible_literal_cast }
+

@@ -1,0 +1,13 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_sint' to '__func_arr_dint'", range: [SourceRange { range: 976..984 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_int' to '__func_arr_dint'", range: [SourceRange { range: 1004..1011 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_lint' to '__func_arr_dint'", range: [SourceRange { range: 1059..1067 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_real' to '__func_arr_dint'", range: [SourceRange { range: 1087..1095 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_lreal' to '__func_arr_dint'", range: [SourceRange { range: 1115..1124 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_1_10' to '__func_arr_dint'", range: [SourceRange { range: 1317..1330 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_10_100' to '__func_arr_dint'", range: [SourceRange { range: 1350..1365 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_arr_dint_2d' to '__func_arr_dint'", range: [SourceRange { range: 1442..1453 }], err_no: var__invalid_assignment }
+

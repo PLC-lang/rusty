@@ -38,7 +38,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !0 = !{i32 2, !"Dwarf Version", i32 5}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-!2 = !DIFile(filename: "main", directory: "")
+!2 = !DIFile(filename: "main", directory: "src")
 !3 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !2, file: !2, line: 2, type: !4, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !1, retainedNodes: !6)
 !4 = !DISubroutineType(flags: DIFlagPublic, types: !5)
 !5 = !{null}

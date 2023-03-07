@@ -1,0 +1,11 @@
+---
+source: src/validation/tests/literals_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Literal true is not campatible to STRING", range: [SourceRange { range: 102..113 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal false is not campatible to WSTRING", range: [SourceRange { range: 127..140 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal 22 is not campatible to STRING", range: [SourceRange { range: 155..164 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal 33 is not campatible to WSTRING", range: [SourceRange { range: 178..188 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal 3.14 is not campatible to STRING", range: [SourceRange { range: 203..214 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal 1.0 is not campatible to WSTRING", range: [SourceRange { range: 228..239 }], err_no: type__incompatible_literal_cast }
+

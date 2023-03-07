@@ -1,16 +1,15 @@
 use insta::assert_snapshot;
 
 use crate::{
-    ast::{self, CompilationUnit, SourceRange, SourceRangeFactory},
-    diagnostics::{Diagnostic, Diagnostician},
+    ast::{self, CompilationUnit, SourceRangeFactory},
     index::{visitor, Index},
     lexer::{self, IdProvider},
     parser,
     resolver::TypeAnnotator,
     test_utils::tests::{compile_to_string, parse_and_validate},
     typesystem,
-    validation::Validator,
-    SourceCode,
+    validation::{tests::make_readable, Validator},
+    DebugLevel, SourceCode,
 };
 
 #[test]
@@ -27,38 +26,7 @@ fn duplicate_pous_validation() {
     "#,
     );
     // THEN there should be 3 duplication diagnostics
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::global_name_conflict_with_text(
-                "foo",
-                SourceRange::without_file(25..28),
-                vec![SourceRange::without_file(74..77),],
-                "Ambiguous callable symbol."
-            ),
-            Diagnostic::global_name_conflict_with_text(
-                "foo",
-                SourceRange::without_file(74..77),
-                vec![SourceRange::without_file(25..28),],
-                "Ambiguous callable symbol."
-            ),
-            Diagnostic::global_name_conflict(
-                "foo",
-                SourceRange::without_file(25..28),
-                vec![SourceRange::without_file(74..77), SourceRange::without_file(116..119),]
-            ),
-            Diagnostic::global_name_conflict(
-                "foo",
-                SourceRange::without_file(74..77),
-                vec![SourceRange::without_file(25..28), SourceRange::without_file(116..119),]
-            ),
-            Diagnostic::global_name_conflict(
-                "foo",
-                SourceRange::without_file(116..119),
-                vec![SourceRange::without_file(25..28), SourceRange::without_file(74..77),]
-            ),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -72,23 +40,7 @@ fn duplicate_pous_and_types_validation() {
     "#,
     );
     // THEN there should be 3 duplication diagnostics
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::global_name_conflict_with_text(
-                "foo",
-                SourceRange::without_file(62..65),
-                vec![SourceRange::without_file(25..28),],
-                "Ambiguous datatype."
-            ),
-            Diagnostic::global_name_conflict_with_text(
-                "foo",
-                SourceRange::without_file(25..28),
-                vec![SourceRange::without_file(62..65),],
-                "Ambiguous datatype."
-            ),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -124,23 +76,7 @@ fn duplicate_global_variables() {
         "#,
     );
     // THEN there should be 0 duplication diagnostics
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::global_name_conflict_with_text(
-                "a",
-                SourceRange::without_file(32..33),
-                vec![SourceRange::without_file(128..129),],
-                "Ambiguous global variable."
-            ),
-            Diagnostic::global_name_conflict_with_text(
-                "a",
-                SourceRange::without_file(128..129),
-                vec![SourceRange::without_file(32..33),],
-                "Ambiguous global variable."
-            ),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -162,21 +98,7 @@ fn duplicate_variables_in_same_pou() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::global_name_conflict(
-                "prg.b",
-                SourceRange::without_file(65..66),
-                vec![SourceRange::without_file(133..134),]
-            ),
-            Diagnostic::global_name_conflict(
-                "prg.b",
-                SourceRange::without_file(133..134),
-                vec![SourceRange::without_file(65..66),]
-            ),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -215,23 +137,7 @@ fn duplicate_fb_inst_and_function() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::global_name_conflict_with_text(
-                "foo",
-                SourceRange::without_file(141..144),
-                vec![SourceRange::without_file(195..198),],
-                "Ambiguous callable symbol."
-            ),
-            Diagnostic::global_name_conflict_with_text(
-                "foo",
-                SourceRange::without_file(195..198),
-                vec![SourceRange::without_file(141..144),],
-                "Ambiguous callable symbol."
-            ),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -244,21 +150,7 @@ fn duplicate_enum_variables() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::global_name_conflict(
-                "enum1.red",
-                SourceRange::without_file(27..30),
-                vec![SourceRange::without_file(47..50),]
-            ),
-            Diagnostic::global_name_conflict(
-                "enum1.red",
-                SourceRange::without_file(47..50),
-                vec![SourceRange::without_file(27..30),]
-            ),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -281,23 +173,7 @@ fn duplicate_global_and_program() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::global_name_conflict_with_text(
-                "prg",
-                SourceRange::without_file(64..67),
-                vec![SourceRange::without_file(139..142),],
-                "Ambiguous global variable."
-            ),
-            Diagnostic::global_name_conflict_with_text(
-                "prg",
-                SourceRange::without_file(139..142),
-                vec![SourceRange::without_file(64..67),],
-                "Ambiguous global variable."
-            ),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -330,23 +206,7 @@ fn duplicate_action_should_be_a_problem() {
     );
 
     // THEN there should be 2 duplication diagnostics
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::global_name_conflict_with_text(
-                "prg.foo",
-                SourceRange::without_file(168..171),
-                vec![SourceRange::without_file(310..313),],
-                "Ambiguous callable symbol."
-            ),
-            Diagnostic::global_name_conflict_with_text(
-                "prg.foo",
-                SourceRange::without_file(310..313),
-                vec![SourceRange::without_file(168..171),],
-                "Ambiguous callable symbol."
-            ),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -656,14 +516,7 @@ fn duplicate_with_generic_ir() {
         "
     .into();
     // WHEN we compile
-    let ir = compile_to_string(
-        vec![file1, file2, file3],
-        vec![],
-        None,
-        Diagnostician::default(),
-        crate::DebugLevel::None,
-    )
-    .unwrap();
+    let ir = compile_to_string(vec![file1, file2, file3], vec![], None, DebugLevel::None).unwrap();
 
     // THEN we expect only 1 declaration per type-specific implementation of the generic function
     // although file2 & file3 both discovered them independently

@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DATE'", range: [SourceRange { range: 481..488 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DATE'", range: [SourceRange { range: 490..498 }], err_no: var__invalid_assignment }
+

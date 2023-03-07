@@ -1,0 +1,13 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid type nature for generic argument. USINT is no Date.", range: [SourceRange { range: 134..135 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. UINT is no Date.", range: [SourceRange { range: 208..209 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Date.", range: [SourceRange { range: 277..278 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. ULINT is no Date.", range: [SourceRange { range: 346..347 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. SINT is no Date.", range: [SourceRange { range: 415..416 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. INT is no Date.", range: [SourceRange { range: 488..489 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DINT is no Date.", range: [SourceRange { range: 556..557 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. LINT is no Date.", range: [SourceRange { range: 624..625 }], err_no: type__invalid_nature }
+

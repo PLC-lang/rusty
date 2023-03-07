@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/bitaccess_validation_test.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Word-Wise access requires a Numerical type larger than 16 bits", range: [SourceRange { range: 194..197 }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "Word-Wise access requires a Numerical type larger than 16 bits", range: [SourceRange { range: 220..223 }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "Word-Wise access requires a Numerical type larger than 16 bits", range: [SourceRange { range: 246..249 }], err_no: type__incompatible_directaccess }
+

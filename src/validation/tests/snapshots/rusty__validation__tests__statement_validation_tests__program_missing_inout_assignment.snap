@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Missing inout parameter: inout1", range: [SourceRange { range: 216..220 }], err_no: pou__missing_action_container }
+SyntaxError { message: "Missing inout parameter: inout1", range: [SourceRange { range: 258..262 }], err_no: pou__missing_action_container }
+SyntaxError { message: "Missing inout parameter: inout1", range: [SourceRange { range: 279..283 }], err_no: pou__missing_action_container }
+SyntaxError { message: "Missing inout parameter: inout1", range: [SourceRange { range: 294..298 }], err_no: pou__missing_action_container }
+

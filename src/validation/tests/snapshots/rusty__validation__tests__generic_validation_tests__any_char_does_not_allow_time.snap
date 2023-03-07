@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'CHAR'", range: [SourceRange { range: 138..139 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Char.", range: [SourceRange { range: 138..139 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'CHAR'", range: [SourceRange { range: 207..208 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. TIME is no Char.", range: [SourceRange { range: 207..208 }], err_no: type__invalid_nature }
+

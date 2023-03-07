@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Expression is not assignable", range: [SourceRange { range: 193..194 }], err_no: reference__expected }
+SyntaxError { message: "Expression is not assignable", range: [SourceRange { range: 213..214 }], err_no: reference__expected }
+SyntaxError { message: "Expression is not assignable", range: [SourceRange { range: 238..239 }], err_no: reference__expected }
+

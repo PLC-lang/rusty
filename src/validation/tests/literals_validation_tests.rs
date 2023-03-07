@@ -1,8 +1,6 @@
-use crate::{
-    test_utils::tests::parse_and_validate,
-    typesystem::{DATE_AND_TIME_TYPE, DATE_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE},
-    Diagnostic,
-};
+use insta::assert_snapshot;
+
+use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable, Diagnostic};
 
 #[test]
 fn int_literal_casts_max_values_are_validated() {
@@ -24,14 +22,7 @@ fn int_literal_casts_max_values_are_validated() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::literal_out_of_range("256", "BYTE", (67..75).into()),
-            Diagnostic::literal_out_of_range("65536", "UINT", (123..134).into()),
-            Diagnostic::literal_out_of_range("4294967296", "UDINT", (190..209).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -50,14 +41,7 @@ fn bool_literal_casts_are_validated() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::literal_out_of_range("2", "BOOL", (120..126).into()),
-            Diagnostic::incompatible_literal_cast("BOOL", "2.3", (140..148).into()),
-            Diagnostic::incompatible_literal_cast("BOOL", "'abc'", (162..172).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -83,17 +67,7 @@ fn string_literal_casts_are_validated() {
        "#,
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_literal_cast("STRING", "true", (102..113).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "false", (127..140).into()),
-            Diagnostic::incompatible_literal_cast("STRING", "22", (155..164).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "33", (178..188).into()),
-            Diagnostic::incompatible_literal_cast("STRING", "3.14", (203..214).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "1.0", (228..239).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -118,13 +92,7 @@ fn real_literal_casts_are_validated() {
        "#,
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_literal_cast("REAL", "'3.14'", (180..191).into()),
-            Diagnostic::incompatible_literal_cast("LREAL", r#""3.14""#, (252..264).into())
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -134,7 +102,7 @@ fn literal_cast_with_non_literal() {
             INT#[x]; 
         END_PROGRAM",
     );
-    assert_eq!(vec![Diagnostic::literal_expected((25..32).into())], diagnostics);
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -177,23 +145,7 @@ fn date_literal_casts_are_validated() {
        "#,
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_literal_cast("LINT", DATE_AND_TIME_TYPE, (33..63).into()),
-            Diagnostic::incompatible_literal_cast("LINT", TIME_OF_DAY_TYPE, (77..106).into()),
-            Diagnostic::incompatible_literal_cast("LINT", TIME_TYPE, (120..136).into()),
-            Diagnostic::incompatible_literal_cast("LINT", DATE_TYPE, (150..170).into()),
-            Diagnostic::incompatible_literal_cast("ULINT", DATE_AND_TIME_TYPE, (185..216).into()),
-            Diagnostic::incompatible_literal_cast("ULINT", TIME_OF_DAY_TYPE, (230..260).into()),
-            Diagnostic::incompatible_literal_cast("ULINT", TIME_TYPE, (274..291).into()),
-            Diagnostic::incompatible_literal_cast("ULINT", DATE_TYPE, (305..326).into()),
-            Diagnostic::incompatible_literal_cast("INT", DATE_AND_TIME_TYPE, (341..370).into()),
-            Diagnostic::incompatible_literal_cast("INT", TIME_OF_DAY_TYPE, (384..412).into()),
-            Diagnostic::incompatible_literal_cast("INT", TIME_TYPE, (426..441).into()),
-            Diagnostic::incompatible_literal_cast("INT", DATE_TYPE, (455..474).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -212,11 +164,5 @@ fn char_cast_validate() {
        "#,
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::literal_out_of_range(r#""XY""#, "CHAR", (83..92).into()),
-            Diagnostic::literal_out_of_range("'YZ'", "WCHAR", (97..107).into())
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
