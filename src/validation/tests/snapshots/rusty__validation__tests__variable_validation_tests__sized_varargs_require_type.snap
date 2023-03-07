@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/variable_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Missing datatype : Sized Variadics require a known datatype.", range: [SourceRange { range: 103..106 }], err_no: var__missing_type }
+
