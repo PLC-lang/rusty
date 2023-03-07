@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/duplicates_validation_test.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "foo: Ambiguous datatype.", range: [SourceRange { range: 62..65 }, SourceRange { range: 25..28 }], err_no: duplicate_symbol }
+SyntaxError { message: "foo: Ambiguous datatype.", range: [SourceRange { range: 25..28 }, SourceRange { range: 62..65 }], err_no: duplicate_symbol }
+

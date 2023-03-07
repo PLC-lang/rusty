@@ -1,5 +1,7 @@
+use insta::assert_snapshot;
+
 use crate::test_utils::tests::parse_and_validate;
-use crate::Diagnostic;
+use crate::validation::tests::make_readable;
 
 #[test]
 fn array_access_validation() {
@@ -44,19 +46,7 @@ fn array_access_validation() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_array_access_range(2..3, (557..558).into()),
-            Diagnostic::incompatible_array_access_range(2..3, (590..591).into()),
-            Diagnostic::incompatible_array_access_range(0..1, (617..618).into()),
-            Diagnostic::incompatible_array_access_range(-2..2, (655..657).into()),
-            Diagnostic::incompatible_array_access_range(-3..-1, (688..690).into()),
-            Diagnostic::incompatible_array_access_range(1..2, (718..719).into()),
-            Diagnostic::incompatible_array_access_type("STRING", (745..755).into()),
-            Diagnostic::incompatible_array_access_variable("INT", (802..803).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -88,17 +78,5 @@ fn array_initialization_validation() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::array_expected_initializer_list((314..318).into()),
-            Diagnostic::array_expected_identifier_or_round_bracket((325..326).into()),
-            Diagnostic::array_expected_initializer_list((449..453).into()),
-            Diagnostic::array_expected_identifier_or_round_bracket((460..461).into()),
-            Diagnostic::array_expected_initializer_list((497..500).into()),
-            Diagnostic::array_expected_identifier_or_round_bracket((507..508).into()),
-            Diagnostic::array_expected_initializer_list((603..607).into()),
-            Diagnostic::array_expected_identifier_or_round_bracket((614..615).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }

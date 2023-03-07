@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/duplicates_validation_test.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "a: Ambiguous global variable.", range: [SourceRange { range: 32..33 }, SourceRange { range: 128..129 }], err_no: duplicate_symbol }
+SyntaxError { message: "a: Ambiguous global variable.", range: [SourceRange { range: 128..129 }, SourceRange { range: 32..33 }], err_no: duplicate_symbol }
+
