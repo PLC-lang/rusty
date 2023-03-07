@@ -51,7 +51,7 @@ fn string_literals_are_annotated() {
         &DataType {
             initial_value: None,
             name: "__STRING_3".into(),
-            nature: crate::ast::TypeNature::Chars,
+            nature: crate::ast::TypeNature::String,
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf8,
                 size: crate::typesystem::TypeSize::LiteralInteger(4)
@@ -64,7 +64,7 @@ fn string_literals_are_annotated() {
         &DataType {
             initial_value: None,
             name: "__WSTRING_6".into(),
-            nature: crate::ast::TypeNature::Chars,
+            nature: crate::ast::TypeNature::String,
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf16,
                 size: crate::typesystem::TypeSize::LiteralInteger(7)

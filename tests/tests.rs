@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::context::Context;
-use rusty::diagnostics::Diagnostician;
 use rusty::*;
 
 //Import the helper run methods into the tests

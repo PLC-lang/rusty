@@ -3,8 +3,9 @@ use crate::{
     index::Index,
     lexer::IdProvider,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_TYPE,
-        USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, CHAR_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE,
+        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE,
+        UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,13 @@ use std::{
     unimplemented, vec,
 };
 mod pre_processor;
+
+//returns a range with the min and max value of the given type
+macro_rules! is_covered_by {
+    ($t:ty, $e:expr) => {
+        <$t>::MIN as i128 <= $e as i128 && $e as i128 <= <$t>::MAX as i128
+    };
+}
 
 pub type AstId = usize;
 
@@ -319,7 +327,7 @@ pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<Pou>,
     pub implementations: Vec<Implementation>,
-    pub types: Vec<UserTypeDeclaration>,
+    pub user_types: Vec<UserTypeDeclaration>,
     pub file_name: String,
     pub new_lines: NewLines,
 }
@@ -330,7 +338,7 @@ impl CompilationUnit {
             global_vars: Vec::new(),
             units: Vec::new(),
             implementations: Vec::new(),
-            types: Vec::new(),
+            user_types: Vec::new(),
             file_name: file_name.to_string(),
             new_lines,
         }
@@ -346,7 +354,7 @@ impl CompilationUnit {
         self.global_vars.extend(other.global_vars);
         self.units.extend(other.units);
         self.implementations.extend(other.implementations);
-        self.types.extend(other.types);
+        self.user_types.extend(other.user_types);
     }
 }
 
@@ -389,7 +397,7 @@ impl Debug for VariableBlock {
 #[derive(Clone, PartialEq)]
 pub struct Variable {
     pub name: String,
-    pub data_type: DataTypeDeclaration,
+    pub data_type_declaration: DataTypeDeclaration,
     pub initializer: Option<AstStatement>,
     pub address: Option<AstStatement>,
     pub location: SourceRange,
@@ -398,7 +406,7 @@ pub struct Variable {
 impl Debug for Variable {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let mut var = f.debug_struct("Variable");
-        var.field("name", &self.name).field("data_type", &self.data_type);
+        var.field("name", &self.name).field("data_type", &self.data_type_declaration);
         if self.initializer.is_some() {
             var.field("initializer", &self.initializer);
         }
@@ -413,9 +421,9 @@ impl Variable {
     pub fn replace_data_type_with_reference_to(&mut self, type_name: String) -> DataTypeDeclaration {
         let new_data_type = DataTypeDeclaration::DataTypeReference {
             referenced_type: type_name,
-            location: self.data_type.get_location(),
+            location: self.data_type_declaration.get_location(),
         };
-        std::mem::replace(&mut self.data_type, new_data_type)
+        std::mem::replace(&mut self.data_type_declaration, new_data_type)
     }
 }
 
@@ -1214,8 +1222,73 @@ impl AstStatement {
         }
     }
 
+    pub fn get_literal_value(&self) -> String {
+        match self {
+            AstStatement::LiteralString { value, is_wide: true, .. } => format!(r#""{value}""#),
+            AstStatement::LiteralString { value, is_wide: false, .. } => format!(r#"'{value}'"#),
+            AstStatement::LiteralBool { value, .. } => {
+                format!("{value}")
+            }
+            AstStatement::LiteralInteger { value, .. } => {
+                format!("{value}")
+            }
+            AstStatement::LiteralReal { value, .. } => value.clone(),
+            _ => {
+                format!("{self:#?}")
+            }
+        }
+    }
+
+    pub fn get_literal_actual_signed_type_name(&self, signed: bool) -> Option<&str> {
+        match self {
+            AstStatement::LiteralInteger { value, .. } => match signed {
+                _ if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),
+                true if is_covered_by!(i8, *value) => Some(SINT_TYPE),
+                true if is_covered_by!(i16, *value) => Some(INT_TYPE),
+                true if is_covered_by!(i32, *value) => Some(DINT_TYPE),
+                true if is_covered_by!(i64, *value) => Some(LINT_TYPE),
+
+                false if is_covered_by!(u8, *value) => Some(USINT_TYPE),
+                false if is_covered_by!(u16, *value) => Some(UINT_TYPE),
+                false if is_covered_by!(u32, *value) => Some(UDINT_TYPE),
+                false if is_covered_by!(u64, *value) => Some(ULINT_TYPE),
+                _ => Some(VOID_TYPE),
+            },
+            AstStatement::LiteralBool { .. } => Some(BOOL_TYPE),
+            AstStatement::LiteralString { is_wide: true, .. } => Some(WSTRING_TYPE),
+            AstStatement::LiteralString { is_wide: false, .. } => Some(STRING_TYPE),
+            AstStatement::LiteralReal { .. } => Some(LREAL_TYPE),
+            AstStatement::LiteralDate { .. } => Some(DATE_TYPE),
+            AstStatement::LiteralDateAndTime { .. } => Some(DATE_AND_TIME_TYPE),
+            AstStatement::LiteralTime { .. } => Some(TIME_TYPE),
+            AstStatement::LiteralTimeOfDay { .. } => Some(TIME_OF_DAY_TYPE),
+            _ => None,
+        }
+    }
+
+    /// returns true if this AST Statement is a literal that can be
+    /// prefixed with a type-cast (e.g. INT#23)
+    pub fn is_typable_literal(&self) -> bool {
+        matches!(
+            self,
+            AstStatement::LiteralBool { .. }
+                | AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::LiteralString { .. }
+                | AstStatement::LiteralTime { .. }
+                | AstStatement::LiteralDate { .. }
+                | AstStatement::LiteralTimeOfDay { .. }
+                | AstStatement::LiteralDateAndTime { .. }
+                | AstStatement::Reference { .. }
+        )
+    }
+
     pub fn is_reference(&self) -> bool {
         matches!(self, AstStatement::Reference { .. })
+    }
+
+    pub fn is_qualified_reference(&self) -> bool {
+        matches!(self, AstStatement::QualifiedReference { .. })
     }
 
     pub fn is_hardware_access(&self) -> bool {
@@ -1241,6 +1314,7 @@ impl AstStatement {
     pub fn can_be_assigned_to(&self) -> bool {
         self.has_direct_access()
             || self.is_reference()
+            || self.is_qualified_reference()
             || self.is_array_access()
             || self.is_pointer_access()
             || self.is_hardware_access()

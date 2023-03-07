@@ -15,7 +15,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
     let symbol_location_factory = SymbolLocationFactory::new(&unit.new_lines);
 
     //Create user defined datatypes
-    for user_type in &unit.types {
+    for user_type in &unit.user_types {
         visit_data_type(&mut index, user_type, &symbol_location_factory);
     }
 
@@ -47,7 +47,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
             let varargs = if let DataTypeDeclaration::DataTypeDefinition {
                 data_type: ast::DataType::VarArgs { referenced_type, sized },
                 ..
-            } = &var.data_type
+            } = &var.data_type_declaration
             {
                 let name = referenced_type
                     .as_ref()
@@ -63,7 +63,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
                 member_varargs = varargs.clone();
             }
 
-            if let Some(var_type_name) = var.data_type.get_name() {
+            if let Some(var_type_name) = var.data_type_declaration.get_name() {
                 let type_name = if block_type.is_by_ref() {
                     //register a pointer type for argument
                     register_byref_pointer_type_for(index, var_type_name)
@@ -296,7 +296,7 @@ fn visit_global_var_block(
 ) {
     let linkage = block.linkage;
     for var in &block.variables {
-        let target_type = var.data_type.get_name().unwrap_or_default();
+        let target_type = var.data_type_declaration.get_name().unwrap_or_default();
         let initializer = index.get_mut_const_expressions().maybe_add_constant_expression(
             var.initializer.clone(),
             target_type,
@@ -305,7 +305,7 @@ fn visit_global_var_block(
         let variable = VariableIndexEntry::create_global(
             &var.name,
             &var.name,
-            var.data_type.get_name().expect("named variable datatype"),
+            var.data_type_declaration.get_name().expect("named variable datatype"),
             symbol_location_factory.create_symbol_location(&var.location),
         )
         .set_initial_value(initializer)
@@ -345,7 +345,9 @@ fn visit_data_type(
                 .iter()
                 .enumerate()
                 .map(|(count, var)| {
-                    if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } = &var.data_type {
+                    if let DataTypeDeclaration::DataTypeDefinition { data_type, scope, .. } =
+                        &var.data_type_declaration
+                    {
                         //first we need to handle the inner type
                         visit_data_type(
                             index,
@@ -359,7 +361,7 @@ fn visit_data_type(
                         )
                     }
 
-                    let member_type = var.data_type.get_name().expect("named variable datatype");
+                    let member_type = var.data_type_declaration.get_name().expect("named variable datatype");
                     let init = index.get_mut_const_expressions().maybe_add_constant_expression(
                         var.initializer.clone(),
                         member_type,

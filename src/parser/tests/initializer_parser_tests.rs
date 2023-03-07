@@ -40,7 +40,7 @@ fn initial_scalar_values_can_be_parsed() {
 }"#;
     assert_eq!(expected, format!("{x:#?}").as_str());
 
-    let struct_type = &parse_result.types[0];
+    let struct_type = &parse_result.user_types[0];
     let expected = r#"UserTypeDeclaration {
     data_type: StructType {
         name: Some(
@@ -87,7 +87,7 @@ fn initial_scalar_values_can_be_parsed() {
 }"#;
     assert_eq!(expected, format!("{struct_type:#?}").as_str());
 
-    let my_int_type = &parse_result.types[1];
+    let my_int_type = &parse_result.user_types[1];
     let expected = r#"UserTypeDeclaration {
     data_type: SubRangeType {
         name: Some(
@@ -368,7 +368,7 @@ fn array_type_initialization_with_literals_can_be_parsed_test() {
             "#,
     );
 
-    let initializer = &result.types[0].initializer;
+    let initializer = &result.user_types[0].initializer;
     let ast_string = format!("{:#?}", &initializer);
 
     let expected_ast = r#"Some(

@@ -558,10 +558,10 @@ fn pre_processing_generates_inline_enums_global() {
 
     //ENUM
     // THEN an implicit datatype should have been generated for the enum
-    insta::assert_debug_snapshot!(ast.types[0].data_type);
+    insta::assert_debug_snapshot!(ast.user_types[0].data_type);
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.global_vars[0].variables[0].data_type;
+    let var_data_type = &ast.global_vars[0].variables[0].data_type_declaration;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
             referenced_type: "__global_inline_enum".to_string(),
@@ -573,7 +573,7 @@ fn pre_processing_generates_inline_enums_global() {
 
     assert_eq!(
         &"__global_inline_enum".to_string(),
-        &ast.global_vars[0].variables[0].data_type.get_name().unwrap().to_string()
+        &ast.global_vars[0].variables[0].data_type_declaration.get_name().unwrap().to_string()
     )
 }
 
@@ -589,7 +589,7 @@ fn pre_processing_generates_inline_structs_global() {
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
-    let new_struct_type = &ast.types[0].data_type;
+    let new_struct_type = &ast.user_types[0].data_type;
 
     if let DataType::StructType { variables, .. } = new_struct_type {
         assert_eq!(variables[0].location, (54..55).into());
@@ -602,7 +602,7 @@ fn pre_processing_generates_inline_structs_global() {
             name: Some("__global_inline_struct".to_string()),
             variables: vec![Variable {
                 name: "a".to_string(),
-                data_type: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
                     location: (57..60).into(),
                 },
@@ -615,7 +615,7 @@ fn pre_processing_generates_inline_structs_global() {
     );
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.global_vars[0].variables[0].data_type;
+    let var_data_type = &ast.global_vars[0].variables[0].data_type_declaration;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
             referenced_type: "__global_inline_struct".to_string(),
@@ -640,7 +640,7 @@ fn pre_processing_generates_inline_enums() {
     //ENUM
     //
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
             referenced_type: "__foo_inline_enum".to_string(),
@@ -650,7 +650,7 @@ fn pre_processing_generates_inline_enums() {
     );
 
     // THEN an implicit datatype should have been generated for the enum
-    let new_enum_type = &ast.types[0].data_type;
+    let new_enum_type = &ast.user_types[0].data_type;
     insta::assert_debug_snapshot!(new_enum_type);
 }
 
@@ -669,7 +669,7 @@ fn pre_processing_generates_inline_structs() {
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
 
-    let new_struct_type = &ast.types[0].data_type;
+    let new_struct_type = &ast.user_types[0].data_type;
     if let DataType::StructType { variables, .. } = new_struct_type {
         assert_eq!(variables[0].location, (67..68).into());
     } else {
@@ -681,7 +681,7 @@ fn pre_processing_generates_inline_structs() {
             name: Some("__foo_inline_struct".to_string()),
             variables: vec![Variable {
                 name: "a".to_string(),
-                data_type: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
                     location: (70..73).into(),
                 },
@@ -694,7 +694,7 @@ fn pre_processing_generates_inline_structs() {
     );
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
             referenced_type: "__foo_inline_struct".to_string(),
@@ -718,7 +718,7 @@ fn pre_processing_generates_inline_pointers() {
 
     //Pointer
     //THEN an implicit datatype should have been generated for the array
-    let new_pointer_type = &ast.types[0];
+    let new_pointer_type = &ast.user_types[0];
 
     let expected = &UserTypeDeclaration {
         data_type: DataType::PointerType {
@@ -735,7 +735,7 @@ fn pre_processing_generates_inline_pointers() {
     assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
     let expected = &DataTypeDeclaration::DataTypeReference {
         referenced_type: "__foo_inline_pointer".to_string(),
         location: SourceRange::undefined(),
@@ -756,7 +756,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
     //THEN an implicit datatype should have been generated for the pointer
 
     // POINTER TO INT
-    let new_pointer_type = &ast.types[1];
+    let new_pointer_type = &ast.user_types[1];
     let expected = &UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("__pointer_to_pointer".to_string()),
@@ -772,7 +772,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
     assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
 
     // AND the original variable should now point to the new DataType
-    let original = &ast.types[0];
+    let original = &ast.user_types[0];
     let expected = &UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("pointer_to_pointer".to_string()),
@@ -804,7 +804,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
     //THEN an implicit datatype should have been generated for the pointer
 
     // POINTER TO INT
-    let new_pointer_type = &ast.types[0];
+    let new_pointer_type = &ast.user_types[0];
     let expected = &UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("__foo_inline_pointer_".to_string()),
@@ -820,7 +820,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
     assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
 
     // Pointer OF Pointer
-    let new_pointer_type = &ast.types[1];
+    let new_pointer_type = &ast.user_types[1];
     let expected = &UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("__foo_inline_pointer".to_string()),
@@ -836,7 +836,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
     assert_eq!(format!("{expected:?}"), format!("{new_pointer_type:?}"));
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
 
     let expected = &DataTypeDeclaration::DataTypeReference {
         referenced_type: "__foo_inline_pointer".to_string(),
@@ -859,7 +859,7 @@ fn pre_processing_generates_inline_arrays() {
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
-    let new_array_type = &ast.types[0];
+    let new_array_type = &ast.user_types[0];
 
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
@@ -889,7 +889,7 @@ fn pre_processing_generates_inline_arrays() {
     assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
             referenced_type: "__foo_inline_array".to_string(),
@@ -915,7 +915,7 @@ fn pre_processing_generates_inline_array_of_array() {
     //THEN an implicit datatype should have been generated for the array
 
     // ARRAY OF INT
-    let new_array_type = &ast.types[0];
+    let new_array_type = &ast.user_types[0];
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
@@ -944,7 +944,7 @@ fn pre_processing_generates_inline_array_of_array() {
     assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // ARRAY OF ARRAY
-    let new_array_type = &ast.types[1];
+    let new_array_type = &ast.user_types[1];
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
@@ -973,7 +973,7 @@ fn pre_processing_generates_inline_array_of_array() {
     assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
     println!("{:#?}", var_data_type.get_location());
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
@@ -992,7 +992,7 @@ fn pre_processing_generates_array_of_array_type() {
         "#;
     let (ast, ..) = parse_and_preprocess(src);
 
-    let new_type = &ast.types[1];
+    let new_type = &ast.user_types[1];
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__arr_arr".to_string()),
@@ -1013,7 +1013,7 @@ fn pre_processing_generates_array_of_array_type() {
     assert_eq!(format!("{expected:?}"), format!("{new_type:?}"));
 
     // AND the original variable should now point to the new DataType
-    let original = &ast.types[0];
+    let original = &ast.user_types[0];
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("arr_arr".to_string()),
@@ -1056,13 +1056,13 @@ fn pre_processing_nested_array_in_struct() {
     //THEN an implicit datatype should have been generated for the array
 
     // Struct Type
-    let new_array_type = &ast.types[0];
+    let new_array_type = &ast.user_types[0];
     let expected = &UserTypeDeclaration {
         data_type: DataType::StructType {
             name: Some("MyStruct".to_string()),
             variables: vec![Variable {
                 name: "field1".to_string(),
-                data_type: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "__MyStruct_field1".to_string(),
                     location: SourceRange::undefined(),
                 },
@@ -1078,7 +1078,7 @@ fn pre_processing_nested_array_in_struct() {
     assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // ARRAY OF INT
-    let new_array_type = &ast.types[1];
+    let new_array_type = &ast.user_types[1];
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__MyStruct_field1".to_string()),
@@ -1123,7 +1123,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     //THEN an implicit datatype should have been generated for the array
 
     // ARRAY OF INT
-    let new_array_type = &ast.types[0];
+    let new_array_type = &ast.user_types[0];
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array__".to_string()),
@@ -1152,7 +1152,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // ARRAY OF ARRAY
-    let new_array_type = &ast.types[1];
+    let new_array_type = &ast.user_types[1];
     let expected = UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
@@ -1181,7 +1181,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // ARRAY OF ARRAY
-    let new_array_type = &ast.types[2];
+    let new_array_type = &ast.user_types[2];
     let expected = UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
@@ -1210,7 +1210,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     assert_eq!(format!("{expected:?}"), format!("{new_array_type:?}"));
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
             referenced_type: "__foo_inline_array".to_string(),
@@ -1233,7 +1233,7 @@ fn pre_processing_generates_generic_types() {
         ";
     let (ast, ..) = parse_and_preprocess(src);
 
-    assert_eq!(1, ast.types.len());
+    assert_eq!(1, ast.user_types.len());
     //A type __myFunc__G is created
     let expected = UserTypeDeclaration {
         data_type: DataType::GenericType {
@@ -1246,12 +1246,12 @@ fn pre_processing_generates_generic_types() {
         scope: Some("myFunc".into()),
     };
 
-    assert_eq!(format!("{expected:?}"), format!("{:?}", ast.types[0]));
+    assert_eq!(format!("{expected:?}"), format!("{:?}", ast.user_types[0]));
 
     //The variables with type G now have type __myFunc__G
     let pou = &ast.units[0];
-    assert_eq!(pou.variable_blocks[0].variables[0].data_type.get_name().unwrap(), "__myFunc__G");
-    assert_eq!(pou.variable_blocks[0].variables[1].data_type.get_name().unwrap(), "INT");
+    assert_eq!(pou.variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap(), "__myFunc__G");
+    assert_eq!(pou.variable_blocks[0].variables[1].data_type_declaration.get_name().unwrap(), "INT");
     assert_eq!(pou.return_type.as_ref().unwrap().get_name().unwrap(), "__myFunc__G");
 }
 
@@ -1280,16 +1280,16 @@ fn pre_processing_generates_nested_generic_types() {
         scope: Some("myFunc".into()),
     };
 
-    assert_eq!(format!("{expected:?}"), format!("{:?}", ast.types[0]));
+    assert_eq!(format!("{expected:?}"), format!("{:?}", ast.user_types[0]));
     //Additional types created
-    assert_eq!(3, ast.types.len());
+    assert_eq!(3, ast.user_types.len());
     //referenced types of additional types are the new type
-    if let DataType::ArrayType { referenced_type, .. } = &ast.types[1].data_type {
+    if let DataType::ArrayType { referenced_type, .. } = &ast.user_types[1].data_type {
         assert_eq!(referenced_type.get_name().unwrap(), "__myFunc__G");
     } else {
         panic!("expected array");
     }
-    if let DataType::PointerType { referenced_type, .. } = &ast.types[2].data_type {
+    if let DataType::PointerType { referenced_type, .. } = &ast.user_types[2].data_type {
         assert_eq!(referenced_type.get_name().unwrap(), "__myFunc__G");
     } else {
         panic!("expected pointer");
@@ -1426,7 +1426,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
-    let data_type = &ast.types[0];
+    let data_type = &ast.user_types[0];
     let initializer = index
         .get_type("MyInt")
         .map(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value))
@@ -1523,7 +1523,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
 
     // THEN I expect the index to contain constants expressions used in the string-len
 
-    let data_type = &ast.types[0].data_type;
+    let data_type = &ast.user_types[0].data_type;
     let actual_len_expression = if let DataType::StringType { size, .. } = data_type {
         size.as_ref().unwrap()
     } else {
