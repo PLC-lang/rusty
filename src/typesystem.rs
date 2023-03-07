@@ -425,6 +425,10 @@ impl DataTypeInformation {
         )
     }
 
+    // pub fn is_vla(&self) -> bool {
+    //     matches!()
+    // }
+
     pub fn is_generic(&self, index: &Index) -> bool {
         match self {
             DataTypeInformation::Array { inner_type_name, .. }

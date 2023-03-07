@@ -3471,17 +3471,9 @@ fn function_with_vla_param_resolves_ranges() {
     let members = index.get_container_members(container_name);
     assert_eq!(2, members.len()); // foo.foo, foo.vla
 
-    let stmt = dbg!(&unit.implementations[0].statements[0]);
+    let stmt = &unit.implementations[0].statements[0];
     if let AstStatement::Assignment { left, .. } = stmt {
-        if let AstStatement::VlaRangeStatement { start, end, .. } = left.as_ref() {
-            assert!(matches!(
-                start.as_ref().unwrap().as_ref(),
-                AstStatement::LiteralInteger { value: 1, .. }
-            ));
-            assert!(matches!(end.as_ref().unwrap().as_ref(), AstStatement::LiteralInteger { value: 2, .. }));
-        } else {
-            panic!("no vla found")
-        }
+        todo!()
     }
 }
 
@@ -3496,22 +3488,78 @@ fn x() {
             arr[0];
         END_FUNCTION
 
-        // FUNCTION main : DINT
-        // VAR
-        //     array : ARRAY[0..1] OF INT;
-        // END_VAR
-        //     foo(array);
-        // END_FUNCTION
-        ",
+        FUNCTION main : DINT
+        VAR
+            a : ARRAY[0..2] OF INT;
+        END_VAR
+            foo(a);
+        END_FUNCTION",
         id_provider.clone(),
     );
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let statements = &unit.implementations[0].statements[0];
-    if let AstStatement::ArrayAccess { reference, .. } = dbg!(&statements) {
-        let _type = dbg!(annotations.get_type(reference.as_ref(), &index));
-        let _info = dbg!(_type.unwrap().get_type_information());
-        let _size = dbg!(_info.get_size(&index));
-        // assert_type_and_hint!(&annotations, &index, reference.as_ref(), "Vla", None);
+    let stmt = &unit.implementations[0].statements[0];
+    if let AstStatement::ArrayAccess { reference, .. } = &stmt {
+        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", None);
+    } else {
+        unreachable!()
+    }
+
+    let stmt = dbg!(&unit.implementations[1].statements[0]);
+    if let AstStatement::CallStatement { parameters, .. } = stmt {
+        let Some(param) = parameters.as_ref() else {
+            unreachable!()
+        };
+
+        assert_type_and_hint!(&annotations, &index, param, "__main_a", Some("__foo_arr"));
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn vla_with_two_arrays() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        r"
+    FUNCTION foo : DINT
+        VAR_INPUT
+            arr: ARRAY[*] OF INT;
+        END_VAR
+            arr[0];
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            a : ARRAY[0..2] OF INT;
+            b : ARRAY[0..6] OF INT;
+        END_VAR
+            foo(a);
+            foo(b);
+        END_FUNCTION
+    ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[1].statements[0];
+    if let AstStatement::CallStatement { parameters, .. } = stmt {
+        let Some(param) = parameters.as_ref() else {
+            unreachable!()
+        };
+
+        assert_type_and_hint!(&annotations, &index, param, "__main_a", Some("__foo_arr"));
+    } else {
+        unreachable!()
+    }
+
+    let stmt = &unit.implementations[1].statements[1];
+    if let AstStatement::CallStatement { parameters, .. } = stmt {
+        let Some(param) = parameters.as_ref() else {
+            unreachable!()
+        };
+
+        assert_type_and_hint!(&annotations, &index, param, "__main_b", Some("__foo_arr"));
     } else {
         unreachable!()
     }

@@ -731,7 +731,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_data_type(&mut self, ctx: &VisitorContext, data_type: &DataType) {
         match data_type {
-            DataType::VlaArrayType { name, bounds, referenced_type } => {
+            DataType::VlaArrayType { referenced_type, .. } => {
                 self.visit_data_type_declaration(ctx, referenced_type)
             }
             DataType::StructType { name: Some(name), variables, .. } => {
@@ -742,7 +742,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_data_type_declaration(ctx, referenced_type)
             }
             DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
-                self.visit_data_type_declaration(ctx, referenced_type.as_ref());
+                self.visit_data_type_declaration(ctx, referenced_type.as_ref())
             }
             DataType::SubRangeType { referenced_type, bounds: Some(bounds), .. } => {
                 if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type) {
@@ -820,7 +820,8 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
             AstStatement::ArrayAccess { reference, access, .. } => {
-                visit_all_statements!(self, ctx, reference);
+                visit_all_statements!(self, ctx, reference); // this could just be visit_statement?
+                                                             // self.visit_statement(ctx, reference);
                 self.visit_statement(
                     &VisitorContext {
                         lhs: None,
@@ -834,13 +835,22 @@ impl<'i> TypeAnnotator<'i> {
                     access,
                 );
                 let array_type =
-                    dbg!(self.annotation_map.get_type_or_void(reference, self.index).get_type_information());
-                let inner_type_name = if let DataTypeInformation::Array { inner_type_name, .. } = array_type {
-                    Some(
+                    self.annotation_map.get_type_or_void(reference, self.index).get_type_information();
+
+                let inner_type_name = match array_type {
+                    DataTypeInformation::Array { inner_type_name, .. } => Some(
                         self.index.get_effective_type_or_void_by_name(inner_type_name).get_name().to_string(),
-                    )
-                } else {
-                    None
+                    ),
+                    DataTypeInformation::Struct { name, members, .. }
+                        // if matches!(
+                        //     self.index.get_type(array_type.get_name()).unwrap().is_array(),
+                        //     crate::ast::DataType::VlaArrayType { .. }
+                        //) 
+                        =>
+                    {
+                        None                        
+                    }
+                    _ => None,
                 };
 
                 if let Some(inner_type_name) = inner_type_name {

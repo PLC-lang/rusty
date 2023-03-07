@@ -65,6 +65,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
 
             if let Some(var_type_name) = var.data_type_declaration.get_name() {
                 let type_name = if block_type.is_by_ref() {
+                    // TODO: register a pointer type/auto deref for our array pointer
                     //register a pointer type for argument
                     register_byref_pointer_type_for(index, var_type_name)
                 } else {
@@ -341,7 +342,7 @@ fn visit_data_type(
         DataType::StructType { name: Some(name), variables } => {
             let struct_name = name.as_str();
 
-            let members = dbg!(variables)
+            let members = variables
                 .iter()
                 .enumerate()
                 .map(|(count, var)| {
@@ -557,34 +558,75 @@ fn visit_data_type(
             }
         }
         DataType::VlaArrayType { name: Some(name), bounds, referenced_type } => {
-            let struct_name = name.as_str();
             /*
-            struct vla {
-                ptr : i64,
-                dimensions: Vec<Option<Dimension>>
-                size_type: i64,
-            }
+            for VLAs, we internally create a fat pointer (struct), which contains a pointer to the passed array plus metadata. e.g.:
+                                    STRUCT
+                                        ptr : REF_TO ARRAY[?] OF INT;
+            ARRAY[*, *, *] OF INT =>    referenced_type: INT;
+                                        dimensions: ARRAY[0..2, 0..1] OF DINT;
+                                                                ^^^^ --> start, end
+                                                          ^^^^       --> amount of dimensions
+                                    END_STRUCT
             */
 
+            let struct_name = name.to_string();
             let ndims = match bounds {
                 AstStatement::VlaRangeStatement { .. } => 1,
                 AstStatement::ExpressionList { expressions, .. } => expressions.len(),
                 _ => unreachable!("not a bounds statement"),
             };
 
-            let mut variables = vec![
+            let mut dims = vec![];
+            for _ in 0..ndims {
+                dims.push(AstStatement::RangeStatement {
+                    start: Box::new(AstStatement::LiteralInteger {
+                        value: 0,
+                        location: SourceRange::undefined(),
+                        id: 0,
+                    }),
+                    end: Box::new(AstStatement::LiteralInteger {
+                        value: 1,
+                        location: SourceRange::undefined(),
+                        id: 0,
+                    }),
+                    id: 0,
+                })
+            }
+
+            let dim_bounds = AstStatement::ExpressionList { expressions: dims, id: 0 };
+
+            let variables = vec![
                 Variable {
                     name: "ptr".to_string(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                        referenced_type: "LWORD".to_string(),
+                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                        data_type: DataType::PointerType {
+                            name: Some("arr_ptr".to_string()),
+                            referenced_type: Box::new(DataTypeDeclaration::DataTypeDefinition {
+                                data_type: DataType::VlaArrayType {
+                                    name: Some(name.clone()),
+                                    bounds: bounds.clone(),
+                                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                                        referenced_type: referenced_type
+                                            .as_ref()
+                                            .get_name()
+                                            .expect("named datatype")
+                                            .to_string(),
+                                        location: SourceRange::undefined(),
+                                    }),
+                                },
+                                location: SourceRange::undefined(),
+                                scope: None,
+                            }),
+                        },
                         location: SourceRange::undefined(),
+                        scope: None, // TODO: might need a scope here
                     },
                     initializer: None,
                     address: None,
                     location: SourceRange::undefined(),
                 },
                 Variable {
-                    name: "type_size".to_string(),
+                    name: "referenced_type".to_string(),
                     data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: referenced_type
                             .as_ref()
@@ -597,30 +639,25 @@ fn visit_data_type(
                     address: None,
                     location: SourceRange::undefined(),
                 },
+                Variable {
+                    name: "dimensions".to_string(),
+                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                        data_type: DataType::ArrayType {
+                            name: Some("vla_ranges".to_string()),
+                            bounds: dim_bounds,
+                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                                referenced_type: DINT_TYPE.to_string(),
+                                location: SourceRange::undefined(),
+                            }),
+                        },
+                        location: SourceRange::undefined(),
+                        scope: None,
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                },
             ];
-
-            for i in 0..ndims {
-                variables.push(Variable {
-                    name: format!("dim{}_lower", i),
-                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                        referenced_type: "DINT".to_string(),
-                        location: SourceRange::undefined(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceRange::undefined(),
-                });
-                variables.push(Variable {
-                    name: format!("dim{}_upper", i),
-                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                        referenced_type: "DINT".to_string(),
-                        location: SourceRange::undefined(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceRange::undefined(),
-                });
-            }
 
             let struct_t = DataType::StructType { name: Some(struct_name.to_string()), variables: variables };
             let type_dec = UserTypeDeclaration {
@@ -629,6 +666,8 @@ fn visit_data_type(
                 location: type_declaration.location.clone(),
                 scope: type_declaration.scope.clone(),
             };
+
+            // visit the internally created struct type
             visit_data_type(index, &type_dec, symbol_location_factory)
         }
         DataType::PointerType { name: Some(name), referenced_type, .. } => {

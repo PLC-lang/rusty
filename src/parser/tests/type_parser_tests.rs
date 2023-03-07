@@ -481,7 +481,6 @@ fn variable_length_array_can_be_parsed() {
     END_VAR
     "#,
     );
-    dbg!(&diagnostics);
     assert_eq!(diagnostics.len(), 0);
 
     let x = &parse_result.global_vars[0].variables[0];

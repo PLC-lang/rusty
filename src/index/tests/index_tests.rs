@@ -1990,15 +1990,27 @@ fn global_variables_duplicates_are_indexed() {
 fn _x() {
     let (_, index) = index(
         "
-      FUNCTION foo : DINT
-      VAR_INPUT
-          in : ARRAY[*] OF INT;
-      END_VAR
-      END_FUNCTION
-      ",
+        TYPE fat_ptr : STRUCT
+          arr : REF_TO ARRAY[0..1] OF INT;
+          referenced_type: INT;
+          dimensions: ARRAY[0..2, 0..1] OF DINT;  
+        END_STRUCT END_TYPE
+
+        FUNCTION foo : DINT
+        VAR_INPUT
+            in1 : ARRAY[*, *, *] OF INT;
+            in2 : fat_ptr;
+        END_VAR
+        END_FUNCTION
+        ",
     );
 
     let members = index.get_container_members("foo");
-    let name = members[0].get_type_name();
-    assert_debug_snapshot!(index.get_type_information_or_void(name))
+    let type_info = index.get_type_information_or_void(members[0].get_type_name());
+    let size_implicit_fat_ptr = &type_info.get_size_in_bits(&index);
+    let size_explicit_fat_ptr =
+        index.get_type_information_or_void(members[1].get_type_name()).get_size_in_bits(&index);
+
+    assert_eq!(&size_explicit_fat_ptr, size_implicit_fat_ptr);
+    assert_debug_snapshot!(&type_info);
 }
