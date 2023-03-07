@@ -575,7 +575,7 @@ fn visit_data_type(
             let mut variables = vec![
                 Variable {
                     name: "ptr".to_string(),
-                    data_type: DataTypeDeclaration::DataTypeReference {
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "LWORD".to_string(),
                         location: SourceRange::undefined(),
                     },
@@ -585,7 +585,7 @@ fn visit_data_type(
                 },
                 Variable {
                     name: "type_size".to_string(),
-                    data_type: DataTypeDeclaration::DataTypeReference {
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: referenced_type
                             .as_ref()
                             .get_name()
@@ -602,7 +602,7 @@ fn visit_data_type(
             for i in 0..ndims {
                 variables.push(Variable {
                     name: format!("dim{}_lower", i),
-                    data_type: DataTypeDeclaration::DataTypeReference {
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "DINT".to_string(),
                         location: SourceRange::undefined(),
                     },
@@ -612,7 +612,7 @@ fn visit_data_type(
                 });
                 variables.push(Variable {
                     name: format!("dim{}_upper", i),
-                    data_type: DataTypeDeclaration::DataTypeReference {
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "DINT".to_string(),
                         location: SourceRange::undefined(),
                     },
