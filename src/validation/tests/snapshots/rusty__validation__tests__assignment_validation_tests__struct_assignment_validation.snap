@@ -1,0 +1,11 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to '__main_v_ref_to_struct'", range: [SourceRange { range: 678..708 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to '__main_v_ref_to_struct'", range: [SourceRange { range: 725..757 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_CHAR' to '__main_v_ref_to_struct'", range: [SourceRange { range: 774..804 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to '__main_v_ref_to_struct'", range: [SourceRange { range: 826..853 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to '__main_v_ref_to_struct'", range: [SourceRange { range: 871..900 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_CHAR' to '__main_v_ref_to_struct'", range: [SourceRange { range: 918..945 }], err_no: var__invalid_assignment }
+

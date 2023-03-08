@@ -1,0 +1,12 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceRange { range: 807..825 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceRange { range: 842..867 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceRange { range: 884..902 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'BYTE'", range: [SourceRange { range: 919..935 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'BYTE'", range: [SourceRange { range: 952..970 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceRange { range: 1089..1111 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceRange { range: 1168..1194 }], err_no: var__invalid_assignment }
+
