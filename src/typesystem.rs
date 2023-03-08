@@ -214,7 +214,8 @@ impl DataType {
             }
             TypeNature::Char => matches!(other.nature, TypeNature::Char | TypeNature::String),
             TypeNature::String => matches!(other.nature, TypeNature::String),
-            TypeNature::Any | TypeNature::Derived => true,
+            TypeNature::Any => true,
+            TypeNature::Derived => matches!(other.nature, TypeNature::Derived),
             _ => false,
         }
     }
