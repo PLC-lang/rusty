@@ -814,36 +814,6 @@
 <a href="#814" id="814">814</a>
 <a href="#815" id="815">815</a>
 <a href="#816" id="816">816</a>
-<a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
-<a href="#819" id="819">819</a>
-<a href="#820" id="820">820</a>
-<a href="#821" id="821">821</a>
-<a href="#822" id="822">822</a>
-<a href="#823" id="823">823</a>
-<a href="#824" id="824">824</a>
-<a href="#825" id="825">825</a>
-<a href="#826" id="826">826</a>
-<a href="#827" id="827">827</a>
-<a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a>
-<a href="#830" id="830">830</a>
-<a href="#831" id="831">831</a>
-<a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
-<a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, convert::TryInto, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -1304,26 +1274,6 @@
     }
 }
 
-<span class="kw">fn </span>validate_implicit_call_parameter_assignment(
-    validator: <span class="kw-2">&amp;mut </span>Validator,
-    left: <span class="kw-2">&amp;</span>VariableIndexEntry,
-    left_type: <span class="kw-2">&amp;</span>typesystem::DataType,
-    right: <span class="kw-2">&amp;</span>AstStatement,
-    location: SourceRange,
-    context: <span class="kw-2">&amp;</span>ValidationContext,
-) {
-    <span class="comment">// for parameters passed `ByRef` we need to check the inner type of the pointer
-    </span><span class="kw">let </span>left_type_info = <span class="kw">if </span><span class="macro">matches!</span>(left.variable_type, ArgumentType::ByRef(..)) {
-        context.index.find_elementary_pointer_type(left_type.get_type_information())
-    } <span class="kw">else </span>{
-        context.index.find_intrinsic_type(left_type.get_type_information())
-    };
-    <span class="comment">// stmt_validator `validate_type_nature()` should report any error see `generic_validation_tests` ignore generics here and safe work
-    </span><span class="kw">if </span>!<span class="macro">matches!</span>(left_type_info, DataTypeInformation::Generic { .. }) {
-        validate_assignment(validator, right, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>location, context);
-    }
-}
-
 <span class="doccomment">/// Validates if an argument can be passed to a function with [`VariableType::Output`] and
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x =&gt; y)`). If neither is the case a diagnostic is generated.
@@ -1551,24 +1501,14 @@
                 </span>passed_params_idx.push(location_in_parent);
 
                 <span class="kw">let </span>left = declared_parameters.get(location_in_parent);
-                <span class="kw">let </span>left_type =
-                    left.map(|param| context.index.get_effective_type_or_void_by_name(param.get_type_name()));
-
-                <span class="kw">if let </span>(<span class="prelude-val">Some</span>(left), <span class="prelude-val">Some</span>(left_type)) = (left, left_type) {
-                    <span class="comment">// explicit call parameter assignments will be handled by
-                    // `visit_statement()` via `Assignment` and `OutputAssignment`
-                    </span><span class="kw">if </span>is_implicit {
-                        validate_implicit_call_parameter_assignment(
-                            validator,
-                            left,
-                            left_type,
-                            right,
-                            p.get_location(),
-                            context,
-                        );
-                    }
-
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(left) = left {
                     validate_call_by_ref(validator, left, p);
+                }
+
+                <span class="comment">// explicit call parameter assignments will be handled by
+                // `visit_statement()` via `Assignment` and `OutputAssignment`
+                </span><span class="kw">if </span>is_implicit {
+                    validate_assignment(validator, right, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>p.get_location(), context);
                 }
 
                 <span class="comment">// mixing implicit and explicit parameters is not allowed
