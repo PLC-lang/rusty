@@ -591,13 +591,30 @@ fn array_assignment_validation() {
 fn struct_assignment_validation() {
     let diagnostics = parse_and_validate(
         r#"
-    TYPE STRUCT_params :
+        TYPE STRUCT1 :
+        STRUCT
+            param1 : BOOL;
+        END_STRUCT
+    END_TYPE
+
+    TYPE STRUCT2 :
         STRUCT
             param1 : BOOL;
             param2 : BOOL;
-            param3 : BOOL;
         END_STRUCT
     END_TYPE
+
+    TYPE STRUCT3 :
+        STRUCT
+            var_struct1 : STRUCT1;
+        END_STRUCT
+    END_TYPE
+
+    FUNCTION_BLOCK fb
+	VAR_IN_OUT
+		var_inout_struct1 : STRUCT1;
+	END_VAR
+    END_FUNCTION_BLOCK
     
     FUNCTION main : DINT
     VAR
@@ -607,25 +624,45 @@ fn struct_assignment_validation() {
     
         v_char : CHAR;
     
-        v_struct : STRUCT_params;
-        v_ref_to_struct : REF_TO STRUCT_params;
+        v_struct1 : STRUCT1;
+        v_struct1_2 : STRUCT1;
+        v_ref_to_struct1 : REF_TO STRUCT1;
+
+        v_struct2 : STRUCT2;
+
+        v_struct3 : STRUCT3;
+
+        myFB : fb;
     END_VAR
     // STRUCT
-    v_ref_to_struct := REF(v_struct); // valid
-    v_ref_to_struct := ADR(v_struct); // valid
-    v_ref_to_struct := &(v_struct); // valid
+    v_real := v_struct1; // INVALID
+    v_struct1 := v_real; // INVALID
+
+    v_struct1 := v_struct1_2; // valid
+    v_struct1 := v_struct2; // INVALID
+
+    v_struct3 := (var_struct1 := v_struct1); // valid
+    v_struct3 := (var_struct1 := v_struct2); // INVALID
+
+    myFB(var_inout_struct1 := v_struct1); // valid
+    myFB(var_inout_struct1 := v_struct2); // INVALID
+
+
+    v_ref_to_struct1 := REF(v_struct1); // valid
+    v_ref_to_struct1 := ADR(v_struct1); // valid
+    v_ref_to_struct1 := &(v_struct1); // valid
     
-    v_ref_to_struct := ADR(v_real); // valid
-    v_ref_to_struct := ADR(v_string); // valid
-    v_ref_to_struct := ADR(v_char); // valid
+    v_ref_to_struct1 := ADR(v_real); // valid
+    v_ref_to_struct1 := ADR(v_string); // valid
+    v_ref_to_struct1 := ADR(v_char); // valid
     
-    v_ref_to_struct := REF(v_real); // INVALID
-    v_ref_to_struct := REF(v_string); // INVALID
-    v_ref_to_struct := REF(v_char); // INVALID
+    v_ref_to_struct1 := REF(v_real); // INVALID
+    v_ref_to_struct1 := REF(v_string); // INVALID
+    v_ref_to_struct1 := REF(v_char); // INVALID
     
-    v_ref_to_struct := &(v_real); // INVALID
-    v_ref_to_struct := &(v_string); // INVALID
-    v_ref_to_struct := &(v_char); // INVALID
+    v_ref_to_struct1 := &(v_real); // INVALID
+    v_ref_to_struct1 := &(v_string); // INVALID
+    v_ref_to_struct1 := &(v_char); // INVALID
     END_FUNCTION
     "#,
     );
