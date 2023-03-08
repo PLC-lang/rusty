@@ -215,6 +215,7 @@ impl DataType {
             TypeNature::Char => matches!(other.nature, TypeNature::Char | TypeNature::String),
             TypeNature::String => matches!(other.nature, TypeNature::String),
             TypeNature::Any => true,
+            TypeNature::Derived => matches!(other.nature, TypeNature::Derived),
             _ => false,
         }
     }
@@ -1116,6 +1117,10 @@ pub fn get_bigger_type<'t, T: DataTypeInformationProvider<'t> + std::convert::Fr
             } else {
                 return real_type.into();
             }
+        } else if lt.is_string() & rt.is_character() {
+            return left_type;
+        } else if rt.is_string() & lt.is_character() {
+            return right_type;
         }
     }
 
