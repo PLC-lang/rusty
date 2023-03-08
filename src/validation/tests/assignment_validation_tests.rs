@@ -699,3 +699,35 @@ fn invalid_action_call_assignments_are_validated() {
 
     assert_snapshot!(make_readable(&diagnostics))
 }
+
+#[test]
+fn invalid_method_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        CLASS cl_t
+        VAR
+            x : INT := 10;
+        END_VAR
+        
+        METHOD foo : DINT
+        VAR_INPUT 
+            a : DINT; 
+            b : STRING;
+        END_VAR
+            foo := a + x;
+        END_METHOD
+        END_CLASS
+
+        FUNCTION main : DINT
+        VAR
+            cl: cl_t;
+            arr: ARRAY[0..10] OF WSTRING;
+        END_VAR
+            cl.foo(12, 'hi'); // valid
+            cl.foo(arr, arr); // invalid
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics))
+}
