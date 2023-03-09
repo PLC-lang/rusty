@@ -260,7 +260,7 @@ fn invalid_variable_name_error_recovery() {
                 location: SourceRange::undefined(),
                 variables: vec![Variable {
                     name: "c".into(),
-                    data_type: DataTypeDeclaration::DataTypeReference {
+                    data_type_declaration: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".into(),
                         location: SourceRange::undefined(),
                     },
@@ -960,7 +960,7 @@ fn pointer_type_without_to_test() {
         END_TYPE 
         "#;
     let (result, diagnostics) = parse(src);
-    let pointer_type = &result.types[0];
+    let pointer_type = &result.user_types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("SamplePointer".into()),
@@ -995,7 +995,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         END_TYPE 
         "#;
     let (result, diagnostics) = parse(src);
-    let pointer_type = &result.types[0];
+    let pointer_type = &result.user_types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
             name: Some("SamplePointer".into()),

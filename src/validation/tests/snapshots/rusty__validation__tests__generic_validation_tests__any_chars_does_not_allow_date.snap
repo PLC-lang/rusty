@@ -1,0 +1,15 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'DATE_AND_TIME' to 'CHAR'", range: [SourceRange { range: 137..138 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Chars.", range: [SourceRange { range: 137..138 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'DATE_AND_TIME' to 'CHAR'", range: [SourceRange { range: 204..205 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Chars.", range: [SourceRange { range: 204..205 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'DATE' to 'CHAR'", range: [SourceRange { range: 272..273 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. DATE is no Chars.", range: [SourceRange { range: 272..273 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'", range: [SourceRange { range: 339..340 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Chars.", range: [SourceRange { range: 339..340 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'", range: [SourceRange { range: 407..408 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Chars.", range: [SourceRange { range: 407..408 }], err_no: type__invalid_nature }
+

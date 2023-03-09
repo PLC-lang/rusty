@@ -51,7 +51,7 @@ fn exponent_literals_parsed_as_variables() {
             linkage: LinkageType::Internal,
             variables: vec![Variable {
                 name: "E3".into(),
-                data_type: DataTypeDeclaration::DataTypeReference {
+                data_type_declaration: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "E4".into(),
                     location: SourceRange::undefined(),
                 },

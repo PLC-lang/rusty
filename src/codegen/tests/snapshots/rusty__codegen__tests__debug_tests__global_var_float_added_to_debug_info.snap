@@ -13,7 +13,7 @@ source_filename = "main"
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "main", directory: "")
+!2 = !DIFile(filename: "main", directory: "src")
 !3 = !DIBasicType(name: "real", size: 32, encoding: DW_ATE_float, flags: DIFlagPublic)
 !4 = !DIGlobalVariableExpression(var: !5, expr: !DIExpression())
 !5 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 4, type: !6, isLocal: false, isDefinition: true)

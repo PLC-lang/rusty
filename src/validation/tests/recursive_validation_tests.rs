@@ -102,7 +102,9 @@ mod edgecases {
 }
 
 mod structs {
-    use crate::{diagnostics::Diagnostic, test_utils::tests::parse_and_validate};
+    use insta::assert_snapshot;
+
+    use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
 
     #[test]
     fn one_cycle_abca() {
@@ -127,14 +129,7 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure(
-                "A -> B -> C -> A",
-                vec![(18..19).into(), (102..103).into(), (186..187).into()]
-            )
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -147,8 +142,7 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into()]));
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -163,8 +157,7 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into()]));
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -181,11 +174,7 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (102..103).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -206,11 +195,7 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("B -> C -> B", vec![(114..115).into(), (210..211).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -229,11 +214,7 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (152..153).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -251,12 +232,7 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
-        assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into()]));
-        assert_eq!(
-            diagnostics[1],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (137..138).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -282,12 +258,7 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
-        assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("C -> C", vec![(210..211).into()]));
-        assert_eq!(
-            diagnostics[1],
-            Diagnostic::recursive_datastructure("C -> E -> C", vec![(210..211).into(), (329..330).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -329,26 +300,14 @@ mod structs {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure(
-                "F -> G -> H -> I -> F",
-                vec![(354..355).into(), (461..462).into(), (545..546).into(), (629..630).into(),]
-            )
-        );
-        assert_eq!(
-            diagnostics[1],
-            Diagnostic::recursive_datastructure(
-                "B -> C -> E -> F -> B",
-                vec![(102..103).into(), (186..187).into(), (270..271).into(), (354..355).into(),]
-            )
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 }
 
 mod arrays {
-    use crate::{diagnostics::Diagnostic, test_utils::tests::parse_and_validate};
+    use insta::assert_snapshot;
+
+    use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
 
     #[test]
     fn two_cycles_aa_and_aba() {
@@ -365,12 +324,7 @@ mod arrays {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
-        assert_eq!(diagnostics[0], Diagnostic::recursive_datastructure("A -> A", vec![(18..19).into()]));
-        assert_eq!(
-            diagnostics[1],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (167..168).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -391,11 +345,7 @@ mod arrays {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("B -> C -> B", vec![(129..130).into(), (240..241).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -414,11 +364,7 @@ mod arrays {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (197..198).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -437,11 +383,7 @@ mod arrays {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (128..129).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -460,11 +402,7 @@ mod arrays {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (128..129).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -514,26 +452,14 @@ mod arrays {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure(
-                "F -> G -> H -> I -> F",
-                vec![(500..501).into(), (667..668).into(), (773..774).into(), (901..902).into(),]
-            )
-        );
-        assert_eq!(
-            diagnostics[1],
-            Diagnostic::recursive_datastructure(
-                "B -> C -> E -> F -> B",
-                vec![(156..157).into(), (250..251).into(), (378..379).into(), (500..501).into(),]
-            )
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 }
 
 mod functionblocks {
-    use crate::{diagnostics::Diagnostic, test_utils::tests::parse_and_validate};
+    use insta::assert_snapshot;
+
+    use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
 
     #[test]
     fn one_cycle_aba_var() {
@@ -554,11 +480,7 @@ mod functionblocks {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(28..29).into(), (161..162).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -580,11 +502,7 @@ mod functionblocks {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(28..29).into(), (167..168).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -606,11 +524,7 @@ mod functionblocks {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(28..29).into(), (168..169).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -691,26 +605,14 @@ mod functionblocks {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure(
-                "F -> G -> H -> I -> F",
-                vec![(592..593).into(), (769..770).into(), (919..920).into(), (1057..1058).into(),]
-            )
-        );
-        assert_eq!(
-            diagnostics[1],
-            Diagnostic::recursive_datastructure(
-                "B -> C -> E -> F -> B",
-                vec![(166..167).into(), (304..305).into(), (442..443).into(), (592..593).into(),]
-            )
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 }
 
 mod mixed_structs_and_functionblocks {
-    use crate::{diagnostics::Diagnostic, test_utils::tests::parse_and_validate};
+    use insta::assert_snapshot;
+
+    use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
 
     #[test]
     fn one_cycle_aba_output() {
@@ -728,11 +630,7 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (112..113).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -751,11 +649,7 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 1);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure("A -> B -> A", vec![(18..19).into(), (112..113).into()])
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 
     #[test]
@@ -805,20 +699,6 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_eq!(diagnostics.len(), 2);
-        assert_eq!(
-            diagnostics[0],
-            Diagnostic::recursive_datastructure(
-                "F -> G -> H -> I -> F",
-                vec![(484..485).into(), (651..652).into(), (757..758).into(), (885..886).into(),]
-            )
-        );
-        assert_eq!(
-            diagnostics[1],
-            Diagnostic::recursive_datastructure(
-                "B -> C -> E -> F -> B",
-                vec![(156..157).into(), (250..251).into(), (378..379).into(), (484..485).into(),]
-            )
-        );
+        assert_snapshot!(make_readable(&diagnostics));
     }
 }

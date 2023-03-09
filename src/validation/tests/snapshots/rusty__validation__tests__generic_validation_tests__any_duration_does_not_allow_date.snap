@@ -1,0 +1,10 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Duration.", range: [SourceRange { range: 140..141 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Duration.", range: [SourceRange { range: 207..208 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DATE is no Duration.", range: [SourceRange { range: 275..276 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Duration.", range: [SourceRange { range: 342..343 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Duration.", range: [SourceRange { range: 410..411 }], err_no: type__invalid_nature }
+

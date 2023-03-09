@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/pou_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Function Return type missing", range: [SourceRange { range: 9..12 }], err_no: pou__missing_return_type }
+

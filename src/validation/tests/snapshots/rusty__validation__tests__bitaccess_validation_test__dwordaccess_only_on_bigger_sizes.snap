@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/bitaccess_validation_test.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceRange { range: 197..200 }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceRange { range: 223..226 }], err_no: type__incompatible_directaccess }
+SyntaxError { message: "DWord-Wise access requires a Numerical type larger than 32 bits", range: [SourceRange { range: 249..252 }], err_no: type__incompatible_directaccess }
+

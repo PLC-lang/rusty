@@ -199,6 +199,26 @@ impl DataType {
             None
         }
     }
+
+    pub fn is_compatible_with_type(&self, other: &DataType) -> bool {
+        match self.nature {
+            TypeNature::Real
+            | TypeNature::Int
+            | TypeNature::Signed
+            | TypeNature::Unsigned
+            | TypeNature::Duration
+            | TypeNature::Date
+            | TypeNature::Bit => {
+                other.is_numerical()
+                    || matches!(other.nature, TypeNature::Bit | TypeNature::Date | TypeNature::Duration)
+            }
+            TypeNature::Char => matches!(other.nature, TypeNature::Char | TypeNature::String),
+            TypeNature::String => matches!(other.nature, TypeNature::String),
+            TypeNature::Any => true,
+            TypeNature::Derived => matches!(other.nature, TypeNature::Derived),
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -428,6 +448,10 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_date_or_time_type(&self) -> bool {
+        matches!(self.get_name(), DATE_TYPE | DATE_AND_TIME_TYPE | TIME_OF_DAY_TYPE | TIME_TYPE)
+    }
+
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
     pub fn get_semantic_size(&self, index: &Index) -> u32 {
         if let DataTypeInformation::Integer { semantic_size: Some(s), .. } = self {
@@ -541,6 +565,16 @@ impl DataTypeInformation {
         match self {
             DataTypeInformation::Array { inner_type_name, .. } => Some(inner_type_name),
             _ => None,
+        }
+    }
+
+    pub fn is_compatible_char_and_string(&self, other: &DataTypeInformation) -> bool {
+        match self.get_name() {
+            CHAR_TYPE => matches!(other, DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }),
+            WCHAR_TYPE => {
+                matches!(other, DataTypeInformation::String { encoding: StringEncoding::Utf16, .. })
+            }
+            _ => false,
         }
     }
 }
@@ -1050,7 +1084,7 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
                 let ldetails = index.find_elementary_pointer_type(ltype);
                 let rdetails = index.find_elementary_pointer_type(rtype);
 
-                ldetails == rdetails
+                is_same_type_class(ldetails, rdetails, index)
             }
 
             // If nothing applies we can assume the types to be different
@@ -1093,6 +1127,10 @@ pub fn get_bigger_type<'t, T: DataTypeInformationProvider<'t> + std::convert::Fr
             } else {
                 return real_type.into();
             }
+        } else if lt.is_string() & rt.is_character() {
+            return left_type;
+        } else if rt.is_string() & lt.is_character() {
+            return right_type;
         }
     }
 

@@ -41,16 +41,8 @@ fn test_external_function_called() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "external_test.st".to_string(), source: prog.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("times_two__INT").unwrap();
@@ -163,16 +155,8 @@ fn test_generic_function_with_param_by_ref_called() {
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
     let source = SourceCode { path: "external_test.st".to_string(), source: prog.to_string() };
-    let (_, code_gen) = compile_module(
-        &context,
-        vec![source],
-        vec![],
-        None,
-        Diagnostician::default(),
-        OptimizationLevel::None,
-        DebugLevel::None,
-    )
-    .unwrap();
+    let (_, code_gen) =
+        compile_module(&context, vec![source], vec![], None, &CompileOptions::default()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("LEFT_EXT__STRING").unwrap();

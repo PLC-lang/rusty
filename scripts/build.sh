@@ -5,6 +5,7 @@ vendor=0
 offline=0
 check=0
 check_style=0
+metrics=0
 build=0
 doc=0
 test=0
@@ -14,6 +15,7 @@ debug=0
 container=0
 assume_linux=0
 junit=0
+ci=0
 
 CONTAINER_NAME='rust-llvm'
 
@@ -78,13 +80,18 @@ function run_build() {
 
 function run_check() {
 	CARGO_OPTIONS=$(set_cargo_options)
-  log "Running cargo check"
+	log "Running cargo check"
 	cargo check $CARGO_OPTIONS 
+}
+
+function run_metrics() {
+	log "Running cargo xtask metrics"
+	cargo xtask metrics
 }
 
 function run_doc() {
 	CARGO_OPTIONS=$(set_cargo_options)
-  log "Running cargo doc"
+	log "Running cargo doc"
 	cargo doc $CARGO_OPTIONS 
 	log "Building book"
 	cd book && mdbook build && mdbook test
@@ -92,9 +99,9 @@ function run_doc() {
 
 function run_check_style() {
 	CARGO_OPTIONS=$(set_cargo_options)
-  log "Running cargo clippy"
+	log "Running cargo clippy"
 	cargo clippy $CARGO_OPTIONS -- -Dwarnings
-  log "Running cargo fmt check"
+	log "Running cargo fmt check"
 	cargo fmt -- --check
 }
 
@@ -136,6 +143,8 @@ function set_offline() {
 function run_in_container() {
 	container_engine=$(get_container_engine)
 	params=""
+	options=""
+
 	if [[ $offline -ne 0 ]]; then
 		params="$params --offline"
 	fi
@@ -147,6 +156,9 @@ function run_in_container() {
 	fi
 	if [[ $check_style -ne 0 ]]; then
 		params="$params --check-style"
+	fi
+	if [[ $metrics -ne 0 ]]; then
+		params="$params --metrics"
 	fi
 	if [[ $build -ne 0 ]]; then
 		params="$params --build"
@@ -166,6 +178,9 @@ function run_in_container() {
 	if [[ $doc -ne 0 ]]; then
 		params="$params --doc"
 	fi
+	if [[ $ci -ne 0 ]]; then
+		options="$options --env=CI_RUN=true"
+	fi
 
 	volume_target="/build"
   unameOut="$(uname -s)"
@@ -184,7 +199,7 @@ function run_in_container() {
 	build_location=$(sanitize_path "$project_location")
 	log "Sanitized Project location : $project_location"
 
-	command_to_run="$container_engine run -v $build_location:$volume_target $CONTAINER_NAME scripts/build.sh $params"
+	command_to_run="$container_engine run $options -v $build_location:$volume_target $CONTAINER_NAME scripts/build.sh $params"
 	log "Running command : $command_to_run"
 	eval "$command_to_run"
 }
@@ -193,7 +208,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,test,junit,verbose,container,linux,container-name:,coverage
+LONGOPTS=sources,offline,release,check,check-style,metrics,ci,build,doc,test,junit,verbose,container,linux,container-name:,coverage
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -239,6 +254,12 @@ while true; do
 			--check)
 				  check=1
 					;;
+			--metrics)
+				  metrics=1
+					;;
+			--ci)
+				  ci=1
+					;;
 			-b|--build)
 				  build=1
 					;;
@@ -268,6 +289,10 @@ log "Moving to project level directory $project_location"
 cd "$project_location"
 
 
+if [[ $ci -ne 0 ]]; then
+	export CI_RUN=true
+fi
+
 if [[ $container -ne 0 ]]; then
 	log "Container Build"
 	run_in_container
@@ -288,19 +313,23 @@ if [[ $offline -ne 0 ]]; then
 fi
 
 if [[ $check -ne 0 ]]; then
-  run_check
+	run_check
 fi
 
 if [[ $check_style -ne 0 ]]; then
-  run_check_style
+	run_check_style
+fi
+
+if [[ $metrics -ne 0 ]]; then
+	run_metrics
 fi
 
 if [[ $build -ne 0 ]]; then
-  run_build
+	run_build
 fi
 
 if [[ $test -ne 0 ]]; then
-  run_test
+	run_test
 fi
 
 if [[ $doc -ne 0 ]]; then
@@ -308,7 +337,7 @@ if [[ $doc -ne 0 ]]; then
 fi
 
 if [[ $coverage -ne 0 ]]; then
-  run_coverage
+	run_coverage
 fi
 
 if [[ -d $project_location/target/ ]]; then

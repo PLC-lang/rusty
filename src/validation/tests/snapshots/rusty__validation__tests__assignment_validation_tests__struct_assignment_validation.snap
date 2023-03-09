@@ -1,0 +1,16 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT1' to 'REAL'", range: [SourceRange { range: 758..777 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRUCT1'", range: [SourceRange { range: 794..813 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceRange { range: 870..892 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceRange { range: 978..1002 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRUCT2' to 'STRUCT1'", range: [SourceRange { range: 1077..1107 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to '__main_v_ref_to_struct1'", range: [SourceRange { range: 1422..1453 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to '__main_v_ref_to_struct1'", range: [SourceRange { range: 1470..1503 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_CHAR' to '__main_v_ref_to_struct1'", range: [SourceRange { range: 1520..1551 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_REAL' to '__main_v_ref_to_struct1'", range: [SourceRange { range: 1573..1601 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_STRING' to '__main_v_ref_to_struct1'", range: [SourceRange { range: 1619..1649 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__POINTER_TO_CHAR' to '__main_v_ref_to_struct1'", range: [SourceRange { range: 1667..1695 }], err_no: var__invalid_assignment }
+

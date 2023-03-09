@@ -1,5 +1,7 @@
+use insta::assert_snapshot;
+
 use crate::test_utils::tests::parse_and_validate;
-use crate::Diagnostic;
+use crate::validation::tests::make_readable;
 
 #[test]
 fn uninitialized_constants_fall_back_to_the_default() {
@@ -61,13 +63,7 @@ fn unresolvable_variables_are_reported() {
        ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::unresolved_constant("cx", None, (374..376).into()),
-            Diagnostic::unresolved_constant("cai", None, (455..456).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -116,17 +112,7 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::invalid_constant_block((83..92).into()), // VAR_INPUT
-            Diagnostic::invalid_constant_block((145..155).into()), // VAR_OUTPUT
-            Diagnostic::invalid_constant_block((208..218).into()), // VAR_IN_OUT
-            Diagnostic::invalid_constant_block((447..456).into()), // VAR_INPUT
-            Diagnostic::invalid_constant_block((517..527).into()), // VAR_OUTPUT
-            Diagnostic::invalid_constant_block((588..598).into()), // VAR_IN_OUT
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -155,13 +141,7 @@ fn constant_fb_instances_are_illegal() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::invalid_constant("y", (320..321).into()),
-            Diagnostic::invalid_constant("z", (342..343).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -179,11 +159,5 @@ fn sized_varargs_require_type() {
       ",
     );
 
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::missing_datatype(
-            Some(": Sized Variadics require a known datatype."),
-            (103..106).into()
-        ),]
-    )
+    assert_snapshot!(make_readable(&diagnostics));
 }

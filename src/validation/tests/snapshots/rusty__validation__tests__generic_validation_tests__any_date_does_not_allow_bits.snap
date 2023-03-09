@@ -1,0 +1,10 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid type nature for generic argument. BOOL is no Date.", range: [SourceRange { range: 138..139 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Date.", range: [SourceRange { range: 206..207 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. WORD is no Date.", range: [SourceRange { range: 274..275 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. DWORD is no Date.", range: [SourceRange { range: 343..344 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument. LWORD is no Date.", range: [SourceRange { range: 412..413 }], err_no: type__invalid_nature }
+

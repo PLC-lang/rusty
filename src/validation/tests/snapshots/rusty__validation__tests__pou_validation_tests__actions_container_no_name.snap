@@ -1,0 +1,6 @@
+---
+source: src/validation/tests/pou_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+ImprovementSuggestion { message: "Missing Actions Container Name", range: [SourceRange { range: 24..34 }] }
+

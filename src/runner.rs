@@ -3,7 +3,7 @@ use inkwell::{
     execution_engine::{ExecutionEngine, JitFunction},
 };
 
-use crate::{compile_module, diagnostics::Diagnostician, SourceCode, SourceContainer};
+use crate::{compile_module, CompileOptions, SourceCode, SourceContainer};
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
 type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;
@@ -87,16 +87,7 @@ pub fn run_no_param<U>(exec_engine: &ExecutionEngine, name: &str) -> U {
 ///
 pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
     let source = source.containers();
-    let (_, code_gen) = compile_module(
-        context,
-        source,
-        vec![],
-        None,
-        Diagnostician::null_diagnostician(),
-        crate::OptimizationLevel::None,
-        crate::DebugLevel::None,
-    )
-    .unwrap();
+    let (_, code_gen) = compile_module(context, source, vec![], None, &CompileOptions::default()).unwrap();
     #[cfg(feature = "debug")]
     code_gen.module.print_to_stderr();
     code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap()

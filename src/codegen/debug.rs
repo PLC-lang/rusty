@@ -173,6 +173,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
     pub fn new(
         context: &'ink Context,
         module: &Module<'ink>,
+        root: Option<&Path>,
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
     ) -> Self {
@@ -186,7 +187,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     context.metadata_node(&[dwarf_version]),
                 );
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or(""));
-                let directory = path.parent().and_then(|it| it.to_str()).unwrap_or("");
+                let directory = root.or_else(|| path.parent()).and_then(|it| it.to_str()).unwrap_or("");
                 let filename = path.file_name().and_then(|it| it.to_str()).unwrap_or("");
                 let (debug_info, compile_unit) = module.create_debug_info_builder(
                     true,
