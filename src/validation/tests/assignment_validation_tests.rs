@@ -685,10 +685,5 @@ fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
         END_FUNCTION"#,
     );
 
-    let expected = vec![
-        Diagnostic::invalid_assignment("WSTRING", "CHAR", (115..123).into()),
-        Diagnostic::invalid_assignment("STRING", "WCHAR", (137..145).into()),
-    ];
-
-    assert_eq!(expected, diagnostics)
+    assert_snapshot!(make_readable(&diagnostics));
 }
