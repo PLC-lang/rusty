@@ -1,7 +1,7 @@
 use crate::{
     ast::{AstStatement, CompilationUnit},
     index::{Index, PouIndexEntry},
-    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    resolver::{AnnotationMap, AnnotationMapImpl},
     Diagnostic,
 };
 
@@ -39,23 +39,23 @@ impl<'s> ValidationContext<'s> {
 
     fn find_pou(&self, stmt: &AstStatement) -> Option<&PouIndexEntry> {
         match stmt {
-            AstStatement::Reference { name, .. } => Some(name),
+            AstStatement::Reference { name, .. } => Some(name.as_str()),
             AstStatement::QualifiedReference { elements, .. } => {
-                if let Some(stmt) = elements.last() {
-                    if let Some(StatementAnnotation::Variable { resulting_type, .. }) =
-                        self.annotations.get(stmt)
-                    {
-                        Some(resulting_type)
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
+                elements.last().and_then(|it| self.annotations.get_call_name(it))
             }
             _ => None,
         }
-        .and_then(|pou_name| self.index.find_pou(pou_name))
+        .and_then(|pou_name| {
+            self.index
+                // check if this is an instance of a function block and get the type name
+                .find_callable_instance_variable(self.qualifier, &[pou_name])
+                .map(|it| it.get_type_name())
+                // if it is not an instance, check if we are dealing with an action and get the base POU name
+                .or_else(|| self.index.find_implementation_by_name(pou_name).map(|it| it.get_type_name()))
+                // we didn't encounter an instance or action call, keep initial name
+                .or(Some(pou_name))
+                .and_then(|name| self.index.find_pou(name))
+        })
     }
 }
 

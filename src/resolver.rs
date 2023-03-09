@@ -1214,7 +1214,16 @@ impl<'i> TypeAnnotator<'i> {
             let mut generics_candidates: HashMap<String, Vec<String>> = HashMap::new();
             let mut params = vec![];
             let mut parameters = parameters.into_iter();
-            for m in self.index.get_declared_parameters(&operator_qualifier).into_iter() {
+
+            // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
+            // to annotate them with the correct type hint.
+            let operator_qualifier = self
+                .index
+                .find_implementation_by_name(&operator_qualifier)
+                .map(|it| it.get_type_name())
+                .unwrap_or(operator_qualifier.as_str());
+
+            for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
                 if let Some(p) = parameters.next() {
                     let type_name = m.get_type_name();
                     if let Some((key, candidate)) =
@@ -1230,7 +1239,7 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             //We possibly did not consume all parameters, see if the variadic arguments are derivable
-            match self.index.find_pou(&operator_qualifier) {
+            match self.index.find_pou(operator_qualifier) {
                 Some(pou) if pou.is_variadic() => {
                     //get variadic argument type, if it is generic, update the generic candidates
                     if let Some(type_name) =
@@ -1297,7 +1306,7 @@ impl<'i> TypeAnnotator<'i> {
             //Attempt to resolve the generic signature here
             self.update_generic_call_statement(
                 generics_candidates,
-                &operator_qualifier,
+                operator_qualifier,
                 operator,
                 parameters_stmt,
                 ctx,
