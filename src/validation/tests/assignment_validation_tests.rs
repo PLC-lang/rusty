@@ -671,14 +671,60 @@ fn struct_assignment_validation() {
 }
 
 #[test]
+#[ignore = "var_in_out blocks cause false positive validation errors. see https://github.com/PLC-lang/rusty/issues/803"]
 fn invalid_action_call_assignments_are_validated() {
     let diagnostics = parse_and_validate(
         r#"
         FUNCTION_BLOCK fb_t
+        VAR
+            var1 : ARRAY[0..10] OF WSTRING;
+            var2 : ARRAY[0..10] OF WSTRING;
+        END_VAR
         VAR_INPUT
             in1 : DINT;
             in2 : STRING;
         END_VAR
+        VAR_IN_OUT
+            auto : WSTRING; 
+        END_VAR
+        VAR_OUTPUT
+            out : ARRAY[0..10] OF WSTRING;
+        END_VAR
+        END_FUNCTION_BLOCK
+        
+        ACTIONS fb_t
+        ACTION foo
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION main : DINT
+        VAR
+            fb: fb_t;
+            arr: ARRAY[0..10] OF WSTRING;
+            wstr: WSTRING;
+        END_VAR
+            fb.foo(auto := wstr, in1 := 12, in2 := 'hi', out => arr); // valid
+            fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
+        END_FUNCTION
+        "#,
+    );
+    assert_eq!(diagnostics.len(), 4);
+    assert_snapshot!(make_readable(&diagnostics))
+}
+
+#[test]
+fn implicit_invalid_action_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION_BLOCK fb_t
+        VAR
+            var1 : ARRAY[0..10] OF WSTRING;
+            var2 : ARRAY[0..10] OF WSTRING;
+        END_VAR       
+        VAR_INPUT
+            in1 : DINT;
+            in2 : STRING;
+        END_VAR 
         END_FUNCTION_BLOCK
         
         ACTIONS fb_t
