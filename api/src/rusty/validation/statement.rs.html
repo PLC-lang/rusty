@@ -1395,7 +1395,7 @@
     validator: <span class="kw-2">&amp;mut </span>Validator,
 ) -&gt; bool {
     <span class="comment">// TODO: casted literals and reference
-    </span><span class="kw">if </span>left_type.is_character() &amp; right_type.is_string() {
+    </span><span class="kw">if </span>left_type.is_compatible_char_and_string(right_type) {
         <span class="kw">if let </span>AstStatement::LiteralString { value, .. } = right {
             <span class="kw">if </span>value.len() == <span class="number">1 </span>{
                 <span class="kw">return </span><span class="bool-val">true</span>;
