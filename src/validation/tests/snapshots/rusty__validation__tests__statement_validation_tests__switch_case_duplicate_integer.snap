@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceRange { range: 222..228 }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceRange { range: 249..258 }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceRange { range: 279..287 }], err_no: case__duplicate_condition }
+SyntaxError { message: "Duplicate condition value: 4. Occurred more than once!", range: [SourceRange { range: 308..311 }], err_no: case__duplicate_condition }
+

@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/reference_resolve_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Could not resolve reference to b", range: [SourceRange { range: 168..169 }], err_no: reference__unresolved }
+SyntaxError { message: "Could not resolve reference to gb", range: [SourceRange { range: 207..209 }], err_no: reference__unresolved }
+

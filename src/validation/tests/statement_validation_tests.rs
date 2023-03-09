@@ -1,5 +1,7 @@
-use crate::index::VariableType;
+use insta::assert_snapshot;
+
 use crate::test_utils::tests::parse_and_validate;
+use crate::validation::tests::make_readable;
 use crate::Diagnostic;
 
 #[test]
@@ -21,13 +23,7 @@ fn assign_pointer_to_too_small_type_result_in_an_error() {
     );
 
     //THEN assignment with different type sizes are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_type_size("DWORD", 32, "hold a", (204..218).into()),
-            Diagnostic::invalid_assignment("__FOO_ptr", "DWORD", (204..218).into())
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -49,13 +45,7 @@ fn assign_too_small_type_to_pointer_result_in_an_error() {
     );
 
     //THEN assignment with different type sizes are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::incompatible_type_size("DWORD", 32, "to be stored in a", (204..218).into()),
-            Diagnostic::invalid_assignment("DWORD", "__FOO_ptr", (204..218).into())
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -112,13 +102,7 @@ fn assignment_to_constants_result_in_an_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::cannot_assign_to_constant("prg.cl", (327..329).into()),
-            Diagnostic::cannot_assign_to_constant("ci", (371..373).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -146,14 +130,7 @@ fn assignment_to_enum_literals_results_in_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::cannot_assign_to_constant("__prg_state.OPEN", (230..234).into()),
-            Diagnostic::cannot_assign_to_constant("__global_g_enum.B", (253..254).into()),
-            Diagnostic::cannot_assign_to_constant("Color.red", (273..276).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -199,23 +176,7 @@ fn invalid_char_assignments() {
     );
 
     // THEN every assignment should be reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::syntax_error("Value: 'AJK%&/231' exceeds length for type: CHAR", (124..140).into()),
-            Diagnostic::invalid_assignment("STRING", "CHAR", (124..140).into()),
-            Diagnostic::syntax_error("Value: '898JKAN' exceeds length for type: WCHAR", (156..171).into()),
-            Diagnostic::invalid_assignment("WSTRING", "WCHAR", (156..171).into()),
-            Diagnostic::invalid_assignment("WCHAR", "CHAR", (188..195).into()),
-            Diagnostic::invalid_assignment("CHAR", "WCHAR", (211..218).into()),
-            Diagnostic::invalid_assignment("INT", "CHAR", (247..253).into()),
-            Diagnostic::invalid_assignment("DINT", "CHAR", (269..276).into()),
-            Diagnostic::invalid_assignment("STRING", "CHAR", (308..314).into()),
-            Diagnostic::invalid_assignment("STRING", "WCHAR", (330..337).into()),
-            Diagnostic::invalid_assignment("CHAR", "INT", (354..360).into()),
-            Diagnostic::invalid_assignment("CHAR", "STRING", (376..382).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -236,19 +197,7 @@ fn missing_string_compare_function_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (33..43).into()),
-            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (89..99).into()),
-            Diagnostic::missing_compare_function("STRING_LESS", "STRING", (145..155).into()),
-            Diagnostic::missing_compare_function("STRING_GREATER", "STRING", (201..211).into()),
-            Diagnostic::missing_compare_function("STRING_LESS", "STRING", (257..267).into()),
-            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (257..267).into()),
-            Diagnostic::missing_compare_function("STRING_GREATER", "STRING", (313..323).into()),
-            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (313..323).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -291,10 +240,7 @@ fn string_compare_function_with_wrong_signature_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(
-        diagnostics,
-        vec![Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (113..123).into()),]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -315,19 +261,7 @@ fn missing_wstring_compare_function_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (33..43).into()),
-            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (89..99).into()),
-            Diagnostic::missing_compare_function("WSTRING_LESS", "WSTRING", (145..155).into()),
-            Diagnostic::missing_compare_function("WSTRING_GREATER", "WSTRING", (201..211).into()),
-            Diagnostic::missing_compare_function("WSTRING_LESS", "WSTRING", (257..267).into()),
-            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (257..267).into()),
-            Diagnostic::missing_compare_function("WSTRING_GREATER", "WSTRING", (313..323).into()),
-            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (313..323).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -428,15 +362,7 @@ fn switch_case_duplicate_integer_non_const_var_reference() {
     );
 
     // THEN the non constant variables are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::non_constant_case_condition("'x' is no const reference", (160..161).into()),
-            Diagnostic::non_constant_case_condition("'y' is no const reference", (211..212).into()),
-            Diagnostic::non_constant_case_condition("'x' is no const reference", (262..265).into()),
-            Diagnostic::non_constant_case_condition("'x' is no const reference", (341..348).into())
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -473,15 +399,7 @@ fn switch_case_duplicate_integer() {
     );
 
     // THEN the non constant variables are reported
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::duplicate_case_condition(&4, (222..228).into()),
-            Diagnostic::duplicate_case_condition(&4, (249..258).into()),
-            Diagnostic::duplicate_case_condition(&4, (279..287).into()),
-            Diagnostic::duplicate_case_condition(&4, (308..311).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -509,14 +427,7 @@ fn switch_case_invalid_case_conditions() {
     );
 
     // THEN
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::invalid_case_condition((120..126).into()),
-            Diagnostic::non_constant_case_condition("Cannot resolve constant: CallStatement {\n    operator: Reference {\n        name: \"foo\",\n    },\n    parameters: None,\n}", (120..126).into()),
-            Diagnostic::invalid_case_condition((146..154).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -537,13 +448,7 @@ fn case_condition_used_outside_case_statement() {
     );
 
     // THEN
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::case_condition_used_outside_case_statement((50..70).into()),
-            Diagnostic::case_condition_used_outside_case_statement((79..81).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -632,7 +537,7 @@ fn aliased_int_compare_function_causes_no_error() {
 #[test]
 fn program_missing_inout_assignment() {
     // GIVEN
-    let result = parse_and_validate(
+    let diagnostics = parse_and_validate(
         "
 		PROGRAM prog
 		VAR_INPUT
@@ -658,15 +563,7 @@ fn program_missing_inout_assignment() {
 		",
     );
     // THEN
-    assert_eq!(
-        vec![
-            Diagnostic::missing_inout_parameter("inout1", (216..220).into(),),
-            Diagnostic::missing_inout_parameter("inout1", (258..262).into(),),
-            Diagnostic::missing_inout_parameter("inout1", (279..283).into(),),
-            Diagnostic::missing_inout_parameter("inout1", (294..298).into(),)
-        ],
-        result
-    )
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -707,19 +604,7 @@ fn function_call_parameter_validation() {
     );
 
     // THEN
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::invalid_parameter_type((360..364).into()),
-            Diagnostic::invalid_parameter_type((366..370).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (425..439).into()),
-            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (441..455).into()),
-            Diagnostic::invalid_assignment("__main_var3", "DINT", (441..455).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (605..609).into()),
-            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (611..615).into()),
-            Diagnostic::invalid_assignment("__main_var3", "DINT", (611..615).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -760,19 +645,7 @@ fn program_call_parameter_validation() {
     );
 
     // THEN
-    assert_eq!(
-        diagnostics,
-        vec![
-            Diagnostic::invalid_parameter_type((354..358).into()),
-            Diagnostic::invalid_parameter_type((360..364).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (420..434).into()),
-            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (436..450).into()),
-            Diagnostic::invalid_assignment("__main_var3", "DINT", (436..450).into()),
-            Diagnostic::invalid_assignment("STRING", "DINT", (602..606).into()),
-            Diagnostic::incompatible_type_size("DINT", 32, "hold a", (608..612).into()),
-            Diagnostic::invalid_assignment("__main_var3", "DINT", (608..612).into()),
-        ]
-    );
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -840,30 +713,7 @@ fn reference_to_reference_assignments_in_function_arguments() {
     "#,
     );
 
-    let types_and_ranges = vec![
-        // REF(...)
-        ("__POINTER_TO_INT", "__prog_input1", (1286..1308)),
-        ("__POINTER_TO_REAL", "__prog_input2", (1322..1344)),
-        ("__POINTER_TO_STRING", "__prog_input3", (1358..1380)),
-        // &(...)
-        ("__POINTER_TO_INT", "__prog_input1", (1596..1615)),
-        ("__POINTER_TO_REAL", "__prog_input2", (1630..1649)),
-        ("__POINTER_TO_STRING", "__prog_input3", (1664..1683)),
-    ];
-
-    assert_eq!(diagnostics.len(), 6);
-    assert_eq!(diagnostics.len(), types_and_ranges.len());
-
-    for (idx, diagnostic) in diagnostics.iter().enumerate() {
-        assert_eq!(
-            diagnostic,
-            &Diagnostic::invalid_assignment(
-                types_and_ranges[idx].0,
-                types_and_ranges[idx].1,
-                types_and_ranges[idx].2.to_owned().into()
-            )
-        );
-    }
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -900,15 +750,7 @@ fn address_of_operations() {
         ",
     );
 
-    assert_eq!(diagnostics.len(), 3);
-
-    let ranges = vec![(462..465), (479..483), (497..502)];
-    for (idx, diagnostic) in diagnostics.iter().enumerate() {
-        assert_eq!(
-            diagnostic,
-            &Diagnostic::invalid_operation("Invalid address-of operation", ranges[idx].to_owned().into())
-        );
-    }
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -957,31 +799,7 @@ fn validate_call_by_ref() {
         ",
     );
 
-    let ranges = vec![
-        ("byRefInOut", VariableType::InOut, (589..590)),
-        ("byRefOutput", VariableType::Output, (592..593)),
-        ("byRefInOut", VariableType::InOut, (616..617)),
-        ("byRefOutput", VariableType::Output, (646..647)),
-        ("byRefInOut", VariableType::InOut, (706..707)),
-        ("byRefOutput", VariableType::Output, (709..710)),
-        ("byRefInOut", VariableType::InOut, (733..734)),
-        ("byRefOutput", VariableType::Output, (763..764)),
-        ("byRefInOut", VariableType::InOut, (957..958)),
-        ("byRefOutput", VariableType::Output, (976..977)),
-        ("byRefOutput", VariableType::Output, (1046..1047)),
-        ("byRefInOut", VariableType::InOut, (1140..1141)),
-        ("byRefOutput", VariableType::Output, (1158..1159)),
-        ("byRefInOut", VariableType::InOut, (1211..1212)),
-        ("byRefOutput", VariableType::Output, (1299..1300)),
-    ];
-
-    assert_eq!(diagnostics.len(), 15);
-    for (idx, diagnostic) in diagnostics.iter().enumerate() {
-        assert_eq!(
-            diagnostic,
-            &Diagnostic::invalid_argument_type(ranges[idx].0, ranges[idx].1, ranges[idx].2.to_owned().into()),
-        );
-    }
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -1312,12 +1130,7 @@ fn validate_array_elements_passed_to_functions_by_ref() {
         ",
     );
 
-    assert_eq!(diagnostics.len(), 2);
-    assert_eq!(diagnostics[0].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
-    assert_eq!(diagnostics[0].get_affected_ranges(), &[(323..324).into()]);
-
-    assert_eq!(diagnostics[1].get_message(), "Invalid assignment: cannot assign '__main_x' to 'INT'");
-    assert_eq!(diagnostics[1].get_affected_ranges(), &[(326..327).into()]);
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -1367,24 +1180,7 @@ fn validate_arrays_passed_to_functions() {
         ",
     );
 
-    #[rustfmt::skip]
-    let expected = vec![
-        Diagnostic::invalid_assignment("__main_arr_sint",           "__func_arr_dint", (976..984  ).into()),
-        Diagnostic::invalid_assignment("__main_arr_int",            "__func_arr_dint", (1004..1011).into()),
-        Diagnostic::invalid_assignment("__main_arr_lint",           "__func_arr_dint", (1059..1067).into()),
-        Diagnostic::invalid_assignment("__main_arr_real",           "__func_arr_dint", (1087..1095).into()),
-        Diagnostic::invalid_assignment("__main_arr_lreal",          "__func_arr_dint", (1115..1124).into()),
-        Diagnostic::invalid_assignment("__main_arr_dint_1_10",      "__func_arr_dint", (1317..1330).into()),
-        Diagnostic::invalid_assignment("__main_arr_dint_10_100",    "__func_arr_dint", (1350..1365).into()),
-        Diagnostic::invalid_assignment("__main_arr_dint_2d",        "__func_arr_dint", (1442..1453).into())
-    ];
-
-    assert_eq!(diagnostics.len(), 8);
-    assert_eq!(diagnostics.len(), expected.len());
-    for (actual, expected) in diagnostics.iter().zip(expected) {
-        assert_eq!(actual.get_message(), expected.get_message());
-        assert_eq!(actual.get_affected_ranges(), expected.get_affected_ranges());
-    }
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]
@@ -1408,12 +1204,7 @@ fn assigning_to_rvalue() {
         "#,
     );
 
-    assert_eq!(diagnostics.len(), 3);
-
-    let ranges = &[(193..194), (213..214), (238..239)];
-    for (idx, diag) in diagnostics.iter().enumerate() {
-        assert_eq!(diag, &Diagnostic::reference_expected(ranges[idx].to_owned().into()))
-    }
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]

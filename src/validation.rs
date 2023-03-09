@@ -1,6 +1,6 @@
 use crate::{
     ast::{AstStatement, CompilationUnit},
-    index::{Index, PouIndexEntry, VariableIndexEntry},
+    index::{Index, PouIndexEntry},
     resolver::{AnnotationMap, AnnotationMapImpl},
     Diagnostic,
 };
@@ -41,11 +41,7 @@ impl<'s> ValidationContext<'s> {
         match stmt {
             AstStatement::Reference { name, .. } => Some(name.as_str()),
             AstStatement::QualifiedReference { elements, .. } => {
-                if let Some(name) = elements.last().and_then(|it| self.annotations.get_call_name(it)) {
-                    Some(name)
-                } else {
-                    None
-                }
+                elements.last().and_then(|it| self.annotations.get_call_name(it))
             }
             _ => None,
         }
