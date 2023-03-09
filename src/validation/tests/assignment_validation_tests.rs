@@ -393,6 +393,7 @@ fn char_assignment_validation() {
     v_char := v_string1; // INVALID -> should work
     v_char := STRING#'a'; // INVALID -> should work
     v_char := 'a'; // valid
+    v_char := "a"; // INVALID
     v_char := v_string; // INVALID
     v_char := STRING#'string'; // INVALID
     v_char := 'string'; // INVALID
