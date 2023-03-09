@@ -670,3 +670,25 @@ fn struct_assignment_validation() {
 
     assert_snapshot!(make_readable(&diagnostics));
 }
+
+#[test]
+fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            x : CHAR;
+            y : WCHAR;
+        END_VAR
+            x := "A";
+            y := 'B';
+        END_FUNCTION"#,
+    );
+
+    let expected = vec![
+        Diagnostic::invalid_assignment("WSTRING", "CHAR", (115..123).into()),
+        Diagnostic::invalid_assignment("STRING", "WCHAR", (137..145).into()),
+    ];
+
+    assert_eq!(expected, diagnostics)
+}
