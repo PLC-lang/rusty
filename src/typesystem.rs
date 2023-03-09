@@ -567,6 +567,16 @@ impl DataTypeInformation {
             _ => None,
         }
     }
+
+    pub fn is_compatible_char_and_string(&self, other: &DataTypeInformation) -> bool {
+        match self.get_name() {
+            CHAR_TYPE => matches!(other, DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }),
+            WCHAR_TYPE => {
+                matches!(other, DataTypeInformation::String { encoding: StringEncoding::Utf16, .. })
+            }
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
