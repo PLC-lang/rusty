@@ -3440,3 +3440,49 @@ fn mux_generic_with_strings_is_annotated_correctly() {
         panic!("no call to be found")
     }
 }
+
+#[test]
+fn action_call_statement_parameters_are_annotated_with_a_type_hint() {
+    let id_provider = IdProvider::default();
+    // GIVEN
+    let (unit, mut index) = index_with_ids(
+        r#"
+    FUNCTION_BLOCK fb_t
+    VAR
+        var1 : ARRAY[0..10] OF WSTRING;
+        var2 : ARRAY[0..10] OF WSTRING;
+    END_VAR       
+    VAR_INPUT
+        in1 : DINT;
+        in2 : LWORD;
+    END_VAR 
+    END_FUNCTION_BLOCK
+    
+    ACTIONS fb_t
+    ACTION foo
+    END_ACTION
+    END_ACTIONS
+
+    FUNCTION main : DINT
+    VAR
+        fb: fb_t;
+        str: STRING;
+    END_VAR
+        fb.foo(str, str);
+    END_FUNCTION
+    "#,
+        id_provider.clone(),
+    );
+
+    let mut annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    if let AstStatement::CallStatement { parameters, .. } = &unit.implementations[2].statements[0] {
+        let list = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+
+        assert_type_and_hint!(&annotations, &index, list[0], "STRING", Some("DINT"));
+        assert_type_and_hint!(&annotations, &index, list[1], "STRING", Some("LWORD"));
+    } else {
+        panic!("no call to be found")
+    }
+}
