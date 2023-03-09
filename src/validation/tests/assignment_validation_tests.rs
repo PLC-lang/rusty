@@ -554,10 +554,13 @@ fn array_assignment_validation() {
         v_arr_real_3 : ARRAY[0..3] OF REAL;
     
         v_arr_string_3 : ARRAY[0..3] OF STRING;
+        v_arr_sized_string : ARRAY[0..3] OF STRING[256];
+        v_arr_sized_string1 : ARRAY[0..3] OF STRING[256];
     
         v_arr_char_3 : ARRAY[0..3] OF CHAR;
     END_VAR
     // ARRAY
+    v_arr_sized_string := v_arr_sized_string1; // valid
     v_arr_int_3 := v_arr_int_2; // INVALID
     v_arr_int_3 := v_arr_int_3; // valid
     v_arr_int_3 := v_arr_int_4; // INVALID

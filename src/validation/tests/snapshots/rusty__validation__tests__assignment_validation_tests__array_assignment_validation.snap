@@ -2,21 +2,21 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: make_readable(&diagnostics)
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_2' to '__main_v_arr_int_3'", range: [SourceRange { range: 531..557 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_4' to '__main_v_arr_int_3'", range: [SourceRange { range: 615..641 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_real_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 658..685 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_string_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 702..731 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_char_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 748..775 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 792..803 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 810..811 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 813..814 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 816..817 }], err_no: arr__invalid_array_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1096..1122 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1139..1172 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1189..1215 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1232..1256 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1273..1299 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1359..1389 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to '__main_v_arr_int_3'", range: [SourceRange { range: 1407..1428 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_3' to 'DINT'", range: [SourceRange { range: 1445..1466 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_2' to '__main_v_arr_int_3'", range: [SourceRange { range: 702..728 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_4' to '__main_v_arr_int_3'", range: [SourceRange { range: 786..812 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_real_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 829..856 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_string_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 873..902 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_char_3' to '__main_v_arr_int_3'", range: [SourceRange { range: 919..946 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Array initializer must be an initializer list!", range: [SourceRange { range: 963..974 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 981..982 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 984..985 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 987..988 }], err_no: arr__invalid_array_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1267..1293 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1310..1343 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1360..1386 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1403..1427 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'INT'", range: [SourceRange { range: 1444..1470 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1530..1560 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to '__main_v_arr_int_3'", range: [SourceRange { range: 1578..1599 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_v_arr_int_3' to 'DINT'", range: [SourceRange { range: 1616..1637 }], err_no: var__invalid_assignment }
 
