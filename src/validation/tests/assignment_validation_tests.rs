@@ -800,5 +800,41 @@ fn invalid_function_block_instantiation_is_validated() {
         END_PROGRAM"#,
     );
 
-    assert_debug_snapshot!(diagnostics)
+    assert_snapshot!(make_readable(&diagnostics))
+}
+
+#[test]
+fn implicit_action_downcasts_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION_BLOCK fb_t
+        VAR
+            var1 : ARRAY[0..10] OF WSTRING;
+            var2 : ARRAY[0..10] OF WSTRING;
+        END_VAR       
+        VAR_INPUT
+            in1 : DINT;
+            in2 : DWORD;
+            in3 : BYTE;
+        END_VAR 
+        END_FUNCTION_BLOCK
+        
+        ACTIONS fb_t
+        ACTION foo
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION main : DINT
+        VAR
+            fb: fb_t;
+            var1 : LINT;
+            var2 : LWORD;
+            var3 : STRING;
+        END_VAR
+            fb.foo(var1, var2, var3);
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics))
 }

@@ -3,11 +3,17 @@ source: src/validation/tests/generic_validation_tests.rs
 expression: make_readable(&diagnostics)
 ---
 SyntaxError { message: "Invalid type nature for generic argument. USINT is no Bit.", range: [SourceRange { range: 133..134 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'UINT' to variable of type 'BOOL'.", range: [SourceRange { range: 207..208 }] }
 SyntaxError { message: "Invalid type nature for generic argument. UINT is no Bit.", range: [SourceRange { range: 207..208 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'UDINT' to variable of type 'BOOL'.", range: [SourceRange { range: 276..277 }] }
 SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Bit.", range: [SourceRange { range: 276..277 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'ULINT' to variable of type 'BOOL'.", range: [SourceRange { range: 345..346 }] }
 SyntaxError { message: "Invalid type nature for generic argument. ULINT is no Bit.", range: [SourceRange { range: 345..346 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. SINT is no Bit.", range: [SourceRange { range: 414..415 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'INT' to variable of type 'BOOL'.", range: [SourceRange { range: 487..488 }] }
 SyntaxError { message: "Invalid type nature for generic argument. INT is no Bit.", range: [SourceRange { range: 487..488 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DINT' to variable of type 'BOOL'.", range: [SourceRange { range: 555..556 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DINT is no Bit.", range: [SourceRange { range: 555..556 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LINT' to variable of type 'BOOL'.", range: [SourceRange { range: 623..624 }] }
 SyntaxError { message: "Invalid type nature for generic argument. LINT is no Bit.", range: [SourceRange { range: 623..624 }], err_no: type__invalid_nature }
 

@@ -133,7 +133,8 @@ pub fn visit_statement(validator: &mut Validator, statement: &AstStatement, cont
 
 /// validates a literal statement with a dedicated type-prefix (e.g. INT#3)
 /// checks whether the type-prefix is valid
-fn validate_cast_literal( // TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
+fn validate_cast_literal(
+    // TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
     validator: &mut Validator,
     literal: &AstStatement,
     type_name: &str,
@@ -532,7 +533,7 @@ fn validate_assignment(
                 location.clone(),
             ));
         } else if !right.is_literal() {
-            validate_assignment_type_sizes(validator, left_type, right_type, &location, context)            
+            validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
 }
@@ -824,7 +825,9 @@ fn validate_assignment_type_sizes(
     location: &SourceRange,
     context: &ValidationContext,
 ) {
-    if left.get_type_information().get_size(context.index) < right.get_type_information().get_size(context.index) {
+    if left.get_type_information().get_size(context.index)
+        < right.get_type_information().get_size(context.index)
+    {
         validator.push_diagnostic(Diagnostic::implicit_downcast(
             left.get_name(),
             right.get_name(),

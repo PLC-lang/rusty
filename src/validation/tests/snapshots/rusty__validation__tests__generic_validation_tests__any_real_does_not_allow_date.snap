@@ -2,9 +2,14 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: make_readable(&diagnostics)
 ---
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE_AND_TIME' to variable of type 'REAL'.", range: [SourceRange { range: 136..137 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Real.", range: [SourceRange { range: 136..137 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE_AND_TIME' to variable of type 'REAL'.", range: [SourceRange { range: 203..204 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Real.", range: [SourceRange { range: 203..204 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE' to variable of type 'REAL'.", range: [SourceRange { range: 271..272 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE is no Real.", range: [SourceRange { range: 271..272 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME_OF_DAY' to variable of type 'REAL'.", range: [SourceRange { range: 338..339 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Real.", range: [SourceRange { range: 338..339 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME_OF_DAY' to variable of type 'REAL'.", range: [SourceRange { range: 406..407 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Real.", range: [SourceRange { range: 406..407 }], err_no: type__invalid_nature }
 

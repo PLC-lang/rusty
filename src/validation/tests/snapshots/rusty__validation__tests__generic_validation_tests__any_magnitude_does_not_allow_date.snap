@@ -2,9 +2,14 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: make_readable(&diagnostics)
 ---
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE_AND_TIME' to variable of type 'USINT'.", range: [SourceRange { range: 141..142 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Magnitude.", range: [SourceRange { range: 141..142 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE_AND_TIME' to variable of type 'USINT'.", range: [SourceRange { range: 214..215 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Magnitude.", range: [SourceRange { range: 214..215 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE' to variable of type 'USINT'.", range: [SourceRange { range: 282..283 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE is no Magnitude.", range: [SourceRange { range: 282..283 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME_OF_DAY' to variable of type 'USINT'.", range: [SourceRange { range: 355..356 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Magnitude.", range: [SourceRange { range: 355..356 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME_OF_DAY' to variable of type 'USINT'.", range: [SourceRange { range: 423..424 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Magnitude.", range: [SourceRange { range: 423..424 }], err_no: type__invalid_nature }
 
