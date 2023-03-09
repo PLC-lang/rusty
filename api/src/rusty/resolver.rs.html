@@ -1565,6 +1565,15 @@
 <a href="#1565" id="1565">1565</a>
 <a href="#1566" id="1566">1566</a>
 <a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
@@ -2781,7 +2790,16 @@
             </span><span class="kw">let </span><span class="kw-2">mut </span>generics_candidates: HashMap&lt;String, Vec&lt;String&gt;&gt; = HashMap::new();
             <span class="kw">let </span><span class="kw-2">mut </span>params = <span class="macro">vec!</span>[];
             <span class="kw">let </span><span class="kw-2">mut </span>parameters = parameters.into_iter();
-            <span class="kw">for </span>m <span class="kw">in </span><span class="self">self</span>.index.get_declared_parameters(<span class="kw-2">&amp;</span>operator_qualifier).into_iter() {
+
+            <span class="comment">// If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
+            // to annotate them with the correct type hint.
+            </span><span class="kw">let </span>operator_qualifier = <span class="self">self
+                </span>.index
+                .find_implementation_by_name(<span class="kw-2">&amp;</span>operator_qualifier)
+                .map(|it| it.get_type_name())
+                .unwrap_or(operator_qualifier.as_str());
+
+            <span class="kw">for </span>m <span class="kw">in </span><span class="self">self</span>.index.get_declared_parameters(operator_qualifier).into_iter() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = parameters.next() {
                     <span class="kw">let </span>type_name = m.get_type_name();
                     <span class="kw">if let </span><span class="prelude-val">Some</span>((key, candidate)) =
@@ -2797,7 +2815,7 @@
                 }
             }
             <span class="comment">//We possibly did not consume all parameters, see if the variadic arguments are derivable
-            </span><span class="kw">match </span><span class="self">self</span>.index.find_pou(<span class="kw-2">&amp;</span>operator_qualifier) {
+            </span><span class="kw">match </span><span class="self">self</span>.index.find_pou(operator_qualifier) {
                 <span class="prelude-val">Some</span>(pou) <span class="kw">if </span>pou.is_variadic() =&gt; {
                     <span class="comment">//get variadic argument type, if it is generic, update the generic candidates
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) =
@@ -2864,7 +2882,7 @@
             <span class="comment">//Attempt to resolve the generic signature here
             </span><span class="self">self</span>.update_generic_call_statement(
                 generics_candidates,
-                <span class="kw-2">&amp;</span>operator_qualifier,
+                operator_qualifier,
                 operator,
                 parameters_stmt,
                 ctx,

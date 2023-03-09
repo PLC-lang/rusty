@@ -181,7 +181,7 @@
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     ast::{AstStatement, CompilationUnit},
     index::{Index, PouIndexEntry},
-    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    resolver::{AnnotationMap, AnnotationMapImpl},
     Diagnostic,
 };
 
@@ -219,23 +219,23 @@
 
     <span class="kw">fn </span>find_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstStatement) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
         <span class="kw">match </span>stmt {
-            AstStatement::Reference { name, .. } =&gt; <span class="prelude-val">Some</span>(name),
+            AstStatement::Reference { name, .. } =&gt; <span class="prelude-val">Some</span>(name.as_str()),
             AstStatement::QualifiedReference { elements, .. } =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(stmt) = elements.last() {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Variable { resulting_type, .. }) =
-                        <span class="self">self</span>.annotations.get(stmt)
-                    {
-                        <span class="prelude-val">Some</span>(resulting_type)
-                    } <span class="kw">else </span>{
-                        <span class="prelude-val">None
-                    </span>}
-                } <span class="kw">else </span>{
-                    <span class="prelude-val">None
-                </span>}
+                elements.last().and_then(|it| <span class="self">self</span>.annotations.get_call_name(it))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
-        .and_then(|pou_name| <span class="self">self</span>.index.find_pou(pou_name))
+        .and_then(|pou_name| {
+            <span class="self">self</span>.index
+                <span class="comment">// check if this is an instance of a function block and get the type name
+                </span>.find_callable_instance_variable(<span class="self">self</span>.qualifier, <span class="kw-2">&amp;</span>[pou_name])
+                .map(|it| it.get_type_name())
+                <span class="comment">// if it is not an instance, check if we are dealing with an action and get the base POU name
+                </span>.or_else(|| <span class="self">self</span>.index.find_implementation_by_name(pou_name).map(|it| it.get_type_name()))
+                <span class="comment">// we didn&#39;t encounter an instance or action call, keep initial name
+                </span>.or(<span class="prelude-val">Some</span>(pou_name))
+                .and_then(|name| <span class="self">self</span>.index.find_pou(name))
+        })
     }
 }
 
