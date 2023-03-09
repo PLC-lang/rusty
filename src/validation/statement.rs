@@ -579,7 +579,7 @@ fn is_valid_string_to_char_assignment(
     validator: &mut Validator,
 ) -> bool {
     // TODO: casted literals and reference
-    if left_type.is_character() & right_type.is_string() {
+    if left_type.is_compatible_char_and_string(right_type) {
         if let AstStatement::LiteralString { value, .. } = right {
             if value.len() == 1 {
                 return true;
