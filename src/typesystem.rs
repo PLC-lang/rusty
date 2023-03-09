@@ -571,6 +571,16 @@ impl DataTypeInformation {
             _ => None,
         }
     }
+
+    pub fn is_compatible_char_and_string(&self, other: &DataTypeInformation) -> bool {
+        match self.get_name() {
+            CHAR_TYPE => matches!(other, DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }),
+            WCHAR_TYPE => {
+                matches!(other, DataTypeInformation::String { encoding: StringEncoding::Utf16, .. })
+            }
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1084,9 +1094,12 @@ pub fn is_same_type_class(ltype: &DataTypeInformation, rtype: &DataTypeInformati
             // If nothing applies we can assume the types to be different
             _ => false,
         },
-        DataTypeInformation::Array { inner_type_name: l_inner_type, .. } => match rtype {
-            DataTypeInformation::Array { inner_type_name: r_inner_type, .. } => {
-                l_inner_type == r_inner_type && ltype.get_size(index) == rtype.get_size(index)
+        DataTypeInformation::Array { inner_type_name: l_inner_type_name, .. } => match rtype {
+            DataTypeInformation::Array { inner_type_name: r_inner_type_name, .. } => {
+                let l_inner_type = index.get_type_information_or_void(l_inner_type_name);
+                let r_inner_type = index.get_type_information_or_void(r_inner_type_name);
+                is_same_type_class(l_inner_type, r_inner_type, index)
+                    && ltype.get_size(index) == rtype.get_size(index)
             }
             _ => false,
         },
