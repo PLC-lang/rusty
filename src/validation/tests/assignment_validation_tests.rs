@@ -555,10 +555,15 @@ fn array_assignment_validation() {
         v_arr_real_3 : ARRAY[0..3] OF REAL;
     
         v_arr_string_3 : ARRAY[0..3] OF STRING;
+        v_arr_sized_string : ARRAY[0..3] OF STRING[256];
+        v_arr_sized_string1 : ARRAY[0..3] OF STRING[256];
+        v_arr_sized_string2 : ARRAY[0..8] OF STRING[1256];
     
         v_arr_char_3 : ARRAY[0..3] OF CHAR;
     END_VAR
     // ARRAY
+    v_arr_sized_string := v_arr_sized_string1; // valid
+    v_arr_sized_string := v_arr_sized_string2; // INVALID
     v_arr_int_3 := v_arr_int_2; // INVALID
     v_arr_int_3 := v_arr_int_3; // valid
     v_arr_int_3 := v_arr_int_4; // INVALID
@@ -686,4 +691,112 @@ fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
     );
 
     assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+#[ignore = "var_in_out blocks cause false positive validation errors. see https://github.com/PLC-lang/rusty/issues/803"]
+fn invalid_action_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION_BLOCK fb_t
+        VAR
+            var1 : ARRAY[0..10] OF WSTRING;
+            var2 : ARRAY[0..10] OF WSTRING;
+        END_VAR
+        VAR_INPUT
+            in1 : DINT;
+            in2 : STRING;
+        END_VAR
+        VAR_IN_OUT
+            auto : WSTRING; 
+        END_VAR
+        VAR_OUTPUT
+            out : ARRAY[0..10] OF WSTRING;
+        END_VAR
+        END_FUNCTION_BLOCK
+        
+        ACTIONS fb_t
+        ACTION foo
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION main : DINT
+        VAR
+            fb: fb_t;
+            arr: ARRAY[0..10] OF WSTRING;
+            wstr: WSTRING;
+        END_VAR
+            fb.foo(auto := wstr, in1 := 12, in2 := 'hi', out => arr); // valid
+            fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
+        END_FUNCTION
+        "#,
+    );
+    assert_eq!(diagnostics.len(), 4);
+    assert_snapshot!(make_readable(&diagnostics))
+}
+
+#[test]
+fn implicit_invalid_action_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION_BLOCK fb_t
+        VAR
+            var1 : ARRAY[0..10] OF WSTRING;
+            var2 : ARRAY[0..10] OF WSTRING;
+        END_VAR       
+        VAR_INPUT
+            in1 : DINT;
+            in2 : STRING;
+        END_VAR 
+        END_FUNCTION_BLOCK
+        
+        ACTIONS fb_t
+        ACTION foo
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION main : DINT
+        VAR
+            fb: fb_t;
+            arr: ARRAY[0..10] OF WSTRING;
+        END_VAR
+            fb.foo(12, 'hi'); // valid
+            fb.foo(arr, arr); // invalid
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics))
+}
+
+#[test]
+fn invalid_method_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        CLASS cl_t
+        VAR
+            x : INT := 10;
+        END_VAR
+        
+        METHOD foo : DINT
+        VAR_INPUT 
+            a : DINT; 
+            b : STRING;
+        END_VAR
+            foo := a + x;
+        END_METHOD
+        END_CLASS
+
+        FUNCTION main : DINT
+        VAR
+            cl: cl_t;
+            arr: ARRAY[0..10] OF WSTRING;
+        END_VAR
+            cl.foo(12, 'hi'); // valid
+            cl.foo(arr, arr); // invalid
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics))
 }
