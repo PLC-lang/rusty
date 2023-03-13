@@ -40,14 +40,13 @@ fn any_multiple_parameters() {
         var_date        : DATE;
     END_VAR
         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-        //                                                           ^^^^^^^
-        //                                     string is any but is not compatible with the other types
-        //                                     should be handled with assignment validation
+        //                                                           ^^^^^^^  ^^^^^^^^
+        //                                     these types are not compatible with the other types
     END_FUNCTION
     ";
 
     let diagnostics = parse_and_validate(src);
-    assert_eq!(diagnostics, vec![]);
+    assert_snapshot!(make_readable(&diagnostics));
 }
 
 #[test]

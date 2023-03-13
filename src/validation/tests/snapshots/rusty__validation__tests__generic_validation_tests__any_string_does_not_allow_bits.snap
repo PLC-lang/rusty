@@ -2,9 +2,14 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: make_readable(&diagnostics)
 ---
+SyntaxError { message: "Invalid assignment: cannot assign 'BOOL' to 'STRING'", range: [SourceRange { range: 140..141 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. BOOL is no String.", range: [SourceRange { range: 140..141 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'BYTE' to 'STRING'", range: [SourceRange { range: 208..209 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. BYTE is no String.", range: [SourceRange { range: 208..209 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'STRING'", range: [SourceRange { range: 276..277 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. WORD is no String.", range: [SourceRange { range: 276..277 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'DWORD' to 'STRING'", range: [SourceRange { range: 345..346 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. DWORD is no String.", range: [SourceRange { range: 345..346 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'LWORD' to 'STRING'", range: [SourceRange { range: 414..415 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. LWORD is no String.", range: [SourceRange { range: 414..415 }], err_no: type__invalid_nature }
 

@@ -1,0 +1,30 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'CHAR'", range: [SourceRange { range: 571..588 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'CHAR'", range: [SourceRange { range: 605..623 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'CHAR'", range: [SourceRange { range: 640..657 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'CHAR'", range: [SourceRange { range: 674..692 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceRange { range: 709..725 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceRange { range: 742..759 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'CHAR'", range: [SourceRange { range: 776..792 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME' to 'CHAR'", range: [SourceRange { range: 809..833 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'CHAR'", range: [SourceRange { range: 850..866 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WORD' to 'CHAR'", range: [SourceRange { range: 883..905 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 922..941 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 973..993 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'CHAR'", range: [SourceRange { range: 1053..1066 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1083..1101 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1118..1143 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Value: 'string' exceeds length for type: CHAR", range: [SourceRange { range: 1160..1178 }], err_no: syntax__generic_error }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1160..1178 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'CHAR'", range: [SourceRange { range: 1259..1276 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'WCHAR' to 'CHAR'", range: [SourceRange { range: 1293..1312 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'", range: [SourceRange { range: 1329..1344 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'TIME_OF_DAY' to 'CHAR'", range: [SourceRange { range: 1361..1383 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceRange { range: 1400..1419 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1437..1459 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceRange { range: 1477..1500 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'CHAR'", range: [SourceRange { range: 1518..1544 }], err_no: var__invalid_assignment }
+

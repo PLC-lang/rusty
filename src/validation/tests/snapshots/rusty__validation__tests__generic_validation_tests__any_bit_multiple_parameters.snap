@@ -6,7 +6,9 @@ SyntaxError { message: "Invalid type nature for generic argument. REAL is no Bit
 SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Bit.", range: [SourceRange { range: 439..451 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. DINT is no Bit.", range: [SourceRange { range: 453..463 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. TIME is no Bit.", range: [SourceRange { range: 465..473 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'BYTE'", range: [SourceRange { range: 485..492 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. STRING is no Bit.", range: [SourceRange { range: 485..492 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'BYTE'", range: [SourceRange { range: 494..502 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Bit.", range: [SourceRange { range: 494..502 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. DATE is no Bit.", range: [SourceRange { range: 504..512 }], err_no: type__invalid_nature }
 

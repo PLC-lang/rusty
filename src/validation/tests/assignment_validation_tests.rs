@@ -4,69 +4,53 @@ use crate::test_utils::tests::parse_and_validate;
 use crate::validation::tests::make_readable;
 
 #[test]
-fn assignment_validation() {
+fn constant_assignment_validation() {
     let diagnostics = parse_and_validate(
         r#"
     VAR_GLOBAL CONSTANT
         v_global : BOOL;
     END_VAR
     
-    TYPE STRUCT_params :
-        STRUCT
-            param1 : BOOL;
-            param2 : BOOL;
-            param3 : BOOL;
-        END_STRUCT
-    END_TYPE
-    
+    FUNCTION main : DINT
+    // CONSTANT assignment
+    v_global := TRUE; // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn real_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
     FUNCTION main : DINT
     VAR
         v_real : REAL;
         v_lreal : LREAL;
     
         v_udint : UDINT;
-        v_ulint : ULINT;
     
         v_dint : DINT;
-        v_lint : LINT;
     
         v_time : TIME;
-        v_ltime : LTIME;
     
-        v_byte : BYTE;
         v_word : WORD;
-        v_lword : LWORD;
     
         v_string : STRING;
-        v_str : STRING;
-        v_string1 : STRING[1];
-        v_wstring : WSTRING;
     
         v_char : CHAR;
-        v_wchar : WCHAR;
     
-        v_date : DATE;
         v_tod : TOD;
     
         v_ptr_int : REF_TO INT;
         v_ptr_string : REF_TO STRING;
     
-        v_arr_int_2 : ARRAY[0..2] OF INT;
         v_arr_int_3 : ARRAY[0..3] OF INT;
-        v_arr_int_4 : ARRAY[0..4] OF INT;
-    
-        v_arr_real_3 : ARRAY[0..3] OF REAL;
     
         v_arr_string_3 : ARRAY[0..3] OF STRING;
-    
-        v_arr_char_3 : ARRAY[0..3] OF CHAR;
-    
-        v_struct : STRUCT_params;
-        v_ref_to_struct : REF_TO STRUCT_params;
     END_VAR
-    // CONSTANT assignment
-    v_global := TRUE; // INVALID
-    
     // REAL
     v_real := v_lreal; // valid
     v_real := REAL#2.0; // valid
@@ -89,7 +73,45 @@ fn assignment_validation() {
     v_real := v_ptr_string^; // INVALID
     v_real := v_arr_int_3[0]; // valid
     v_real := v_arr_string_3[0]; // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn int_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_lreal : LREAL;
     
+        v_udint : UDINT;
+        v_ulint : ULINT;
+    
+        v_dint : DINT;
+        v_lint : LINT;
+    
+        v_time : TIME;
+        v_ltime : LTIME;
+    
+        v_word : WORD;
+    
+        v_string : STRING;
+    
+        v_char : CHAR;
+    
+        v_tod : TOD;
+    
+        v_ptr_int : REF_TO INT;
+        v_ptr_string : REF_TO STRING;
+    
+        v_arr_int_3 : ARRAY[0..3] OF INT;
+    
+        v_arr_string_3 : ARRAY[0..3] OF STRING;
+    END_VAR
     // UNSIGNED
     v_udint := v_lreal; // valid
     v_udint := REAL#2.0; // valid
@@ -135,7 +157,43 @@ fn assignment_validation() {
     v_dint := v_ptr_string^; // INVALID
     v_dint := v_arr_int_3[0]; // valid
     v_dint := v_arr_string_3[0]; // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn duration_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_lreal : LREAL;
     
+        v_udint : UDINT;
+    
+        v_dint : DINT;
+    
+        v_time : TIME;
+        v_ltime : LTIME;
+    
+        v_word : WORD;
+    
+        v_string : STRING;
+    
+        v_char : CHAR;
+    
+        v_tod : TOD;
+    
+        v_ptr_int : REF_TO INT;
+        v_ptr_string : REF_TO STRING;
+    
+        v_arr_int_3 : ARRAY[0..3] OF INT;
+
+        v_arr_string_3 : ARRAY[0..3] OF STRING;
+    END_VAR
     // TIME
     v_time := v_lreal; // valid
     v_time := REAL#2.0; // valid
@@ -158,7 +216,43 @@ fn assignment_validation() {
     v_time := v_ptr_string^; // INVALID
     v_time := v_arr_int_3[0]; // valid
     v_time := v_arr_string_3[0]; // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn bit_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_lreal : LREAL;
     
+        v_udint : UDINT;
+    
+        v_dint : DINT;
+    
+        v_time : TIME;
+    
+        v_byte : BYTE;
+        v_word : WORD;
+    
+        v_string : STRING;
+    
+        v_char : CHAR;
+
+        v_tod : TOD;
+    
+        v_ptr_int : REF_TO INT;
+        v_ptr_string : REF_TO STRING;
+    
+        v_arr_int_3 : ARRAY[0..3] OF INT;
+
+        v_arr_string_3 : ARRAY[0..3] OF STRING;
+    END_VAR
     // BIT
     v_byte := v_lreal; // valid
     v_byte := REAL#2.0; // valid
@@ -181,7 +275,45 @@ fn assignment_validation() {
     v_byte := v_ptr_string^; // INVALID
     v_byte := v_arr_int_3[0]; // valid
     v_byte := v_arr_string_3[0]; // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn string_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_lreal : LREAL;
     
+        v_udint : UDINT;
+    
+        v_dint : DINT;
+    
+        v_time : TIME;
+    
+        v_word : WORD;
+    
+        v_string : STRING;
+        v_str : STRING;
+        v_string1 : STRING[1];
+        v_wstring : WSTRING;
+    
+        v_char : CHAR;
+    
+        v_tod : TOD;
+    
+        v_ptr_int : REF_TO INT;
+        v_ptr_string : REF_TO STRING;
+    
+        v_arr_int_3 : ARRAY[0..3] OF INT;
+    
+        v_arr_string_3 : ARRAY[0..3] OF STRING;
+    END_VAR
     // STRING
     v_string := v_lreal; // INVALID
     v_string := REAL#2.0; // INVALID
@@ -207,7 +339,46 @@ fn assignment_validation() {
     v_string := v_ptr_string^; // valid
     v_string := v_arr_int_3[0]; // INVALID
     v_string := v_arr_string_3[0]; // valid
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn char_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_lreal : LREAL;
     
+        v_udint : UDINT;
+    
+        v_dint : DINT;
+    
+        v_time : TIME;
+    
+        v_word : WORD;
+    
+        v_string : STRING;
+        v_str : STRING;
+        v_string1 : STRING[1];
+        v_wstring : WSTRING;
+    
+        v_char : CHAR;
+        v_wchar : WCHAR;
+    
+        v_tod : TOD;
+    
+        v_ptr_int : REF_TO INT;
+        v_ptr_string : REF_TO STRING;
+    
+        v_arr_int_3 : ARRAY[0..3] OF INT;
+    
+        v_arr_string_3 : ARRAY[0..3] OF STRING;
+    END_VAR
     // CHAR
     v_char := v_lreal; // INVALID
     v_char := REAL#2.0; // INVALID
@@ -222,6 +393,7 @@ fn assignment_validation() {
     v_char := v_string1; // INVALID -> should work
     v_char := STRING#'a'; // INVALID -> should work
     v_char := 'a'; // valid
+    v_char := "a"; // INVALID
     v_char := v_string; // INVALID
     v_char := STRING#'string'; // INVALID
     v_char := 'string'; // INVALID
@@ -235,7 +407,43 @@ fn assignment_validation() {
     v_char := v_ptr_string^; // INVALID
     v_char := v_arr_int_3[0]; // INVALID
     v_char := v_arr_string_3[0]; // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn date_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_lreal : LREAL;
     
+        v_udint : UDINT;
+    
+        v_dint : DINT;
+    
+        v_time : TIME;
+    
+        v_word : WORD;
+    
+        v_string : STRING;
+    
+        v_char : CHAR;
+    
+        v_date : DATE;
+        v_tod : TOD;
+    
+        v_ptr_int : REF_TO INT;
+        v_ptr_string : REF_TO STRING;
+
+        v_arr_int_3 : ARRAY[0..3] OF INT;
+    
+        v_arr_string_3 : ARRAY[0..3] OF STRING;
+    END_VAR
     // DATE
     v_date := v_lreal; // valid
     v_date := REAL#2.0; // valid
@@ -258,9 +466,46 @@ fn assignment_validation() {
     v_date := v_ptr_string^; // INVALID
     v_date := v_arr_int_3[0]; // valid
     v_date := v_arr_string_3[0]; // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn pointer_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_real : REAL;
     
+        v_udint : UDINT;
+    
+        v_dint : DINT;
+    
+        v_time : TIME;
+    
+        v_word : WORD;
+        v_lword : LWORD;
+    
+        v_string : STRING;
+    
+        v_char : CHAR;
+    
+        v_date : DATE;
+
+        v_ptr_int : REF_TO INT;
+    
+        v_arr_int_3 : ARRAY[0..3] OF INT;
+    
+        v_arr_string_3 : ARRAY[0..3] OF STRING;
+    END_VAR
     // POINTER
     v_dint := v_ptr_int; // INVALID
+    v_word := v_ptr_int; // INVALID
+    v_lword := v_ptr_int; // valid
     v_ptr_int := &v_real; // INVALID -> TODO: should be valid
     v_ptr_int^ := v_real; // valid
     v_ptr_int := &v_udint; // valid
@@ -279,8 +524,46 @@ fn assignment_validation() {
     v_ptr_int^ := v_date; // valid
     v_ptr_int^ := v_arr_int_3[0]; // valid
     v_ptr_int^ := v_arr_string_3[0]; // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn array_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_real : REAL;
     
+        v_dint : DINT;
+    
+        v_string : STRING;
+    
+        v_char : CHAR;
+    
+        v_ptr_int : REF_TO INT;
+        v_ptr_string : REF_TO STRING;
+    
+        v_arr_int_2 : ARRAY[0..2] OF INT;
+        v_arr_int_3 : ARRAY[0..3] OF INT;
+        v_arr_int_4 : ARRAY[0..4] OF INT;
+    
+        v_arr_real_3 : ARRAY[0..3] OF REAL;
+    
+        v_arr_string_3 : ARRAY[0..3] OF STRING;
+        v_arr_sized_string : ARRAY[0..3] OF STRING[256];
+        v_arr_sized_string1 : ARRAY[0..3] OF STRING[256];
+        v_arr_sized_string2 : ARRAY[0..8] OF STRING[1256];
+    
+        v_arr_char_3 : ARRAY[0..3] OF CHAR;
+    END_VAR
     // ARRAY
+    v_arr_sized_string := v_arr_sized_string1; // valid
+    v_arr_sized_string := v_arr_sized_string2; // INVALID
     v_arr_int_3 := v_arr_int_2; // INVALID
     v_arr_int_3 := v_arr_int_3; // valid
     v_arr_int_3 := v_arr_int_4; // INVALID
@@ -303,29 +586,200 @@ fn assignment_validation() {
     v_arr_int_3[0] := v_ptr_string^; // INVALID
     v_arr_int_3 := v_dint; // INVALID
     v_dint := v_arr_int_3; // INVALID
-    
-    // STRUCT
-    v_ref_to_struct := REF(v_struct); // valid
-    v_ref_to_struct := ADR(v_struct); // valid
-    v_ref_to_struct := &(v_struct); // valid
-    
-    v_ref_to_struct := ADR(v_real); // valid
-    v_ref_to_struct := ADR(v_str); // valid
-    v_ref_to_struct := ADR(v_char); // valid
-    
-    v_ref_to_struct := REF(v_real); // INVALID
-    v_ref_to_struct := REF(v_str); // INVALID
-    v_ref_to_struct := REF(v_char); // INVALID
-    
-    v_ref_to_struct := &(v_real); // INVALID
-    v_ref_to_struct := &(v_str); // INVALID
-    v_ref_to_struct := &(v_char); // INVALID
-    
-    v_word := v_ref_to_struct; // INVALID
-    v_lword := v_ref_to_struct; // valid
     END_FUNCTION
     "#,
     );
 
     assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+fn struct_assignment_validation() {
+    let diagnostics = parse_and_validate(
+        r#"
+        TYPE STRUCT1 :
+        STRUCT
+            param1 : BOOL;
+        END_STRUCT
+    END_TYPE
+
+    TYPE STRUCT2 :
+        STRUCT
+            param1 : BOOL;
+            param2 : BOOL;
+        END_STRUCT
+    END_TYPE
+
+    TYPE STRUCT3 :
+        STRUCT
+            var_struct1 : STRUCT1;
+        END_STRUCT
+    END_TYPE
+
+    FUNCTION_BLOCK fb
+	VAR_IN_OUT
+		var_inout_struct1 : STRUCT1;
+	END_VAR
+    END_FUNCTION_BLOCK
+    
+    FUNCTION main : DINT
+    VAR
+        v_real : REAL;
+    
+        v_string : STRING;
+    
+        v_char : CHAR;
+    
+        v_struct1 : STRUCT1;
+        v_struct1_2 : STRUCT1;
+        v_ref_to_struct1 : REF_TO STRUCT1;
+
+        v_struct2 : STRUCT2;
+
+        v_struct3 : STRUCT3;
+
+        myFB : fb;
+    END_VAR
+    // STRUCT
+    v_real := v_struct1; // INVALID
+    v_struct1 := v_real; // INVALID
+
+    v_struct1 := v_struct1_2; // valid
+    v_struct1 := v_struct2; // INVALID
+
+    v_struct3 := (var_struct1 := v_struct1); // valid
+    v_struct3 := (var_struct1 := v_struct2); // INVALID
+
+    myFB(var_inout_struct1 := v_struct1); // valid
+    myFB(var_inout_struct1 := v_struct2); // INVALID
+
+
+    v_ref_to_struct1 := REF(v_struct1); // valid
+    v_ref_to_struct1 := ADR(v_struct1); // valid
+    v_ref_to_struct1 := &(v_struct1); // valid
+    
+    v_ref_to_struct1 := ADR(v_real); // valid
+    v_ref_to_struct1 := ADR(v_string); // valid
+    v_ref_to_struct1 := ADR(v_char); // valid
+    
+    v_ref_to_struct1 := REF(v_real); // INVALID
+    v_ref_to_struct1 := REF(v_string); // INVALID
+    v_ref_to_struct1 := REF(v_char); // INVALID
+    
+    v_ref_to_struct1 := &(v_real); // INVALID
+    v_ref_to_struct1 := &(v_string); // INVALID
+    v_ref_to_struct1 := &(v_char); // INVALID
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics));
+}
+
+#[test]
+#[ignore = "var_in_out blocks cause false positive validation errors. see https://github.com/PLC-lang/rusty/issues/803"]
+fn invalid_action_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION_BLOCK fb_t
+        VAR
+            var1 : ARRAY[0..10] OF WSTRING;
+            var2 : ARRAY[0..10] OF WSTRING;
+        END_VAR
+        VAR_INPUT
+            in1 : DINT;
+            in2 : STRING;
+        END_VAR
+        VAR_IN_OUT
+            auto : WSTRING; 
+        END_VAR
+        VAR_OUTPUT
+            out : ARRAY[0..10] OF WSTRING;
+        END_VAR
+        END_FUNCTION_BLOCK
+        
+        ACTIONS fb_t
+        ACTION foo
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION main : DINT
+        VAR
+            fb: fb_t;
+            arr: ARRAY[0..10] OF WSTRING;
+            wstr: WSTRING;
+        END_VAR
+            fb.foo(auto := wstr, in1 := 12, in2 := 'hi', out => arr); // valid
+            fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
+        END_FUNCTION
+        "#,
+    );
+    assert_eq!(diagnostics.len(), 4);
+    assert_snapshot!(make_readable(&diagnostics))
+}
+
+#[test]
+fn implicit_invalid_action_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION_BLOCK fb_t
+        VAR
+            var1 : ARRAY[0..10] OF WSTRING;
+            var2 : ARRAY[0..10] OF WSTRING;
+        END_VAR       
+        VAR_INPUT
+            in1 : DINT;
+            in2 : STRING;
+        END_VAR 
+        END_FUNCTION_BLOCK
+        
+        ACTIONS fb_t
+        ACTION foo
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION main : DINT
+        VAR
+            fb: fb_t;
+            arr: ARRAY[0..10] OF WSTRING;
+        END_VAR
+            fb.foo(12, 'hi'); // valid
+            fb.foo(arr, arr); // invalid
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics))
+}
+
+#[test]
+fn invalid_method_call_assignments_are_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        CLASS cl_t
+        VAR
+            x : INT := 10;
+        END_VAR
+        
+        METHOD foo : DINT
+        VAR_INPUT 
+            a : DINT; 
+            b : STRING;
+        END_VAR
+            foo := a + x;
+        END_METHOD
+        END_CLASS
+
+        FUNCTION main : DINT
+        VAR
+            cl: cl_t;
+            arr: ARRAY[0..10] OF WSTRING;
+        END_VAR
+            cl.foo(12, 'hi'); // valid
+            cl.foo(arr, arr); // invalid
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(make_readable(&diagnostics))
 }
