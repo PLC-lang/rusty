@@ -4,14 +4,14 @@ use clap::value_parser;
 use insta::{assert_debug_snapshot, assert_snapshot};
 
 use crate::{
-    ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
+    ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration, Variable},
     index::{Index, VariableType},
     lexer::IdProvider,
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE,
-        LWORD_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
+        DataTypeInformation, Dimension, StructSource, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
+        LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -3609,4 +3609,71 @@ fn action_call_statement_parameters_are_annotated_with_a_type_hint() {
     } else {
         panic!("no call to be found")
     }
+}
+
+#[test]
+fn placeholder() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        r"
+    FUNCTION foo : DINT
+        VAR_INPUT
+            arr: ARRAY[*] OF INT;
+        END_VAR
+            arr;
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        // TODO: call statement
+        END_FUNCTION
+    ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+
+    let type_ = annotations.get_type(stmt, &index);
+    let type_hint = annotations.get_type_hint(stmt, &index);
+
+    assert_eq!(type_.unwrap(), index.get_type("__foo_arr").unwrap());
+    assert_eq!(
+        *index.get_type("__foo_arr").unwrap().get_type_information(),
+        DataTypeInformation::Struct {
+            name: "__foo_arr".to_string(),
+            members: vec![],
+            source: StructSource::OriginalDeclaration
+        }
+    );
+
+    assert_eq!(
+        type_hint.unwrap().information,
+        DataTypeInformation::Array {
+            name: "arr".to_string(),
+            inner_type_name: "INT".to_string(),
+            dimensions: Dimension { start_offset: 0, end_offset: 0 }, // TODO: this should be None
+        },
+    );
+
+    // if let AstStatement::CallStatement { parameters, .. } = stmt {
+    //     let Some(param) = parameters.as_ref() else {
+    //         unreachable!()
+    //     };
+
+    //     assert_type_and_hint!(&annotations, &index, param, "__main_a", Some("__foo_arr"));
+    // } else {
+    //     unreachable!()
+    // }
+
+    // let stmt = &unit.implementations[1].statements[1];
+    // if let AstStatement::CallStatement { parameters, .. } = stmt {
+    //     let Some(param) = parameters.as_ref() else {
+    //         unreachable!()
+    //     };
+
+    //     assert_type_and_hint!(&annotations, &index, param, "__main_b", Some("__foo_arr"));
+    // } else {
+    //     unreachable!()
+    // }
 }
