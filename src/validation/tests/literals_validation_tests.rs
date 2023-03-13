@@ -1,6 +1,4 @@
-use insta::assert_snapshot;
-
-use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable, Diagnostic};
+use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate, Diagnostic};
 
 #[test]
 fn int_literal_casts_max_values_are_validated() {
@@ -22,7 +20,7 @@ fn int_literal_casts_max_values_are_validated() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -41,7 +39,7 @@ fn bool_literal_casts_are_validated() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -67,7 +65,7 @@ fn string_literal_casts_are_validated() {
        "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -92,7 +90,7 @@ fn real_literal_casts_are_validated() {
        "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -102,7 +100,7 @@ fn literal_cast_with_non_literal() {
             INT#[x]; 
         END_PROGRAM",
     );
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -145,7 +143,7 @@ fn date_literal_casts_are_validated() {
        "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -164,5 +162,5 @@ fn char_cast_validate() {
        "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
