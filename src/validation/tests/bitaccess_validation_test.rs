@@ -1,6 +1,4 @@
-use insta::assert_snapshot;
-
-use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
+use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
 #[test]
 fn bitaccess_only_on_bit_types() {
@@ -25,7 +23,7 @@ fn bitaccess_only_on_bit_types() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -48,7 +46,7 @@ fn byteaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -71,7 +69,7 @@ fn wordaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -94,7 +92,7 @@ fn dwordaccess_only_on_bigger_sizes() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -113,7 +111,7 @@ fn bitaccess_range_test() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -131,7 +129,7 @@ fn byteaccess_range_test() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -148,7 +146,7 @@ fn wordaccess_range_test() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -164,7 +162,7 @@ fn dwordaccess_range_test() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -182,5 +180,5 @@ fn reference_direct_access_only_with_ints() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }

@@ -1,8 +1,5 @@
-use insta::assert_snapshot;
-
 use crate::test_utils::tests::parse_and_validate;
-use crate::validation::tests::make_readable;
-use crate::Diagnostic;
+use crate::{assert_validation_snapshot, Diagnostic};
 
 #[test]
 fn assign_pointer_to_too_small_type_result_in_an_error() {
@@ -23,7 +20,7 @@ fn assign_pointer_to_too_small_type_result_in_an_error() {
     );
 
     //THEN assignment with different type sizes are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -45,7 +42,7 @@ fn assign_too_small_type_to_pointer_result_in_an_error() {
     );
 
     //THEN assignment with different type sizes are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -102,7 +99,7 @@ fn assignment_to_constants_result_in_an_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -130,7 +127,7 @@ fn assignment_to_enum_literals_results_in_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -176,7 +173,7 @@ fn invalid_char_assignments() {
     );
 
     // THEN every assignment should be reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -197,7 +194,7 @@ fn missing_string_compare_function_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -240,7 +237,7 @@ fn string_compare_function_with_wrong_signature_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -261,7 +258,7 @@ fn missing_wstring_compare_function_causes_error() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -362,7 +359,7 @@ fn switch_case_duplicate_integer_non_const_var_reference() {
     );
 
     // THEN the non constant variables are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -399,7 +396,7 @@ fn switch_case_duplicate_integer() {
     );
 
     // THEN the non constant variables are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -427,7 +424,7 @@ fn switch_case_invalid_case_conditions() {
     );
 
     // THEN
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -448,7 +445,7 @@ fn case_condition_used_outside_case_statement() {
     );
 
     // THEN
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -563,7 +560,7 @@ fn program_missing_inout_assignment() {
 		",
     );
     // THEN
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -604,7 +601,7 @@ fn function_call_parameter_validation() {
     );
 
     // THEN
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -645,7 +642,7 @@ fn program_call_parameter_validation() {
     );
 
     // THEN
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -713,7 +710,7 @@ fn reference_to_reference_assignments_in_function_arguments() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -750,7 +747,7 @@ fn address_of_operations() {
         ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -799,7 +796,7 @@ fn validate_call_by_ref() {
         ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -828,7 +825,7 @@ fn validate_array_elements_passed_to_functions_by_ref() {
         ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -878,7 +875,7 @@ fn validate_arrays_passed_to_functions() {
         ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -902,7 +899,7 @@ fn assigning_to_rvalue() {
         "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]

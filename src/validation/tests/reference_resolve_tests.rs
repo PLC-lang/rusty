@@ -1,7 +1,5 @@
-use insta::assert_snapshot;
-
+use crate::assert_validation_snapshot;
 use crate::test_utils::tests::parse_and_validate;
-use crate::validation::tests::make_readable;
 
 /// tests wheter simple local and global variables can be resolved and
 /// errors are reported properly
@@ -25,7 +23,7 @@ fn resolve_simple_variable_references() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 /// tests wheter functions and function parameters can be resolved and
@@ -49,7 +47,7 @@ fn resolve_function_calls_and_parameters() {
         ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 /// tests wheter structs and struct member variables can be resolved and
@@ -101,7 +99,7 @@ fn resole_struct_member_access() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 /// tests wheter function_block members can be resolved and
@@ -169,7 +167,7 @@ fn resolve_function_block_calls_in_structs_and_field_access() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 /// tests wheter function's members cannot be access using the function's name as a qualifier
@@ -195,7 +193,7 @@ fn resolve_function_members_via_qualifier() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 /// tests whether references to privater variables do resolve, but end up in an validation problem
@@ -215,7 +213,7 @@ fn reference_to_private_variable_is_illegal() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 /// tests whether an intermediate access like: `a.priv.b` (where priv is a var_local)
@@ -251,7 +249,7 @@ fn reference_to_private_variable_in_intermediate_fb() {
 
     // THEN we get a validtion-error for accessing fb1.f, but no follow-up errors for
     // the access of fb2 which is legit
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
