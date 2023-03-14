@@ -804,7 +804,7 @@ fn invalid_function_block_instantiation_is_validated() {
         END_PROGRAM"#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics))
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -840,5 +840,5 @@ fn implicit_action_downcasts_are_validated() {
         "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics))
+    assert_validation_snapshot!(&diagnostics);
 }

@@ -843,7 +843,7 @@ fn implicit_param_downcast_in_function_call() {
         ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -889,7 +889,7 @@ fn function_block_implicit_downcast() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -936,7 +936,7 @@ fn program_implicit_downcast() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -980,7 +980,7 @@ fn action_implicit_downcast() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -1012,7 +1012,7 @@ fn method_implicit_downcast() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
