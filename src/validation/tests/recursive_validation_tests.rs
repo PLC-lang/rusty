@@ -102,9 +102,7 @@ mod edgecases {
 }
 
 mod structs {
-    use insta::assert_snapshot;
-
-    use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
     #[test]
     fn one_cycle_abca() {
@@ -129,7 +127,7 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -142,7 +140,7 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -157,7 +155,7 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -174,7 +172,7 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -195,7 +193,7 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -214,7 +212,7 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -232,7 +230,7 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -258,7 +256,7 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -300,14 +298,13 @@ mod structs {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 }
 
 mod arrays {
-    use insta::assert_snapshot;
 
-    use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
     #[test]
     fn two_cycles_aa_and_aba() {
@@ -324,7 +321,7 @@ mod arrays {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -345,7 +342,7 @@ mod arrays {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -364,7 +361,7 @@ mod arrays {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -383,7 +380,7 @@ mod arrays {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -402,7 +399,7 @@ mod arrays {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -452,14 +449,12 @@ mod arrays {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 }
 
 mod functionblocks {
-    use insta::assert_snapshot;
-
-    use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
     #[test]
     fn one_cycle_aba_var() {
@@ -480,7 +475,7 @@ mod functionblocks {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -502,7 +497,7 @@ mod functionblocks {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -524,7 +519,7 @@ mod functionblocks {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -605,14 +600,13 @@ mod functionblocks {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 }
 
 mod mixed_structs_and_functionblocks {
-    use insta::assert_snapshot;
 
-    use crate::{test_utils::tests::parse_and_validate, validation::tests::make_readable};
+    use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
     #[test]
     fn one_cycle_aba_output() {
@@ -630,7 +624,7 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -649,7 +643,7 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 
     #[test]
@@ -699,6 +693,6 @@ mod mixed_structs_and_functionblocks {
             ",
         );
 
-        assert_snapshot!(make_readable(&diagnostics));
+        assert_validation_snapshot!(&diagnostics);
     }
 }

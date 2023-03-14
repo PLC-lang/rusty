@@ -1,7 +1,5 @@
-use insta::assert_snapshot;
-
+use crate::assert_validation_snapshot;
 use crate::test_utils::tests::parse_and_validate;
-use crate::validation::tests::make_readable;
 
 #[test]
 fn array_access_validation() {
@@ -46,7 +44,7 @@ fn array_access_validation() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -78,5 +76,5 @@ fn array_initialization_validation() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }

@@ -1,6 +1,7 @@
 use insta::assert_snapshot;
 
 use crate::{
+    assert_validation_snapshot,
     ast::{self, CompilationUnit, SourceRangeFactory},
     index::{visitor, Index},
     lexer::{self, IdProvider},
@@ -8,7 +9,7 @@ use crate::{
     resolver::TypeAnnotator,
     test_utils::tests::{compile_to_string, parse_and_validate},
     typesystem,
-    validation::{tests::make_readable, Validator},
+    validation::Validator,
     DebugLevel, SourceCode,
 };
 
@@ -26,7 +27,7 @@ fn duplicate_pous_validation() {
     "#,
     );
     // THEN there should be 3 duplication diagnostics
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -40,7 +41,7 @@ fn duplicate_pous_and_types_validation() {
     "#,
     );
     // THEN there should be 3 duplication diagnostics
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -76,7 +77,7 @@ fn duplicate_global_variables() {
         "#,
     );
     // THEN there should be 0 duplication diagnostics
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -98,7 +99,7 @@ fn duplicate_variables_in_same_pou() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -137,7 +138,7 @@ fn duplicate_fb_inst_and_function() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -150,7 +151,7 @@ fn duplicate_enum_variables() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -173,7 +174,7 @@ fn duplicate_global_and_program() {
         "#,
     );
     // THEN there should be 2 duplication diagnostics
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -206,7 +207,7 @@ fn duplicate_action_should_be_a_problem() {
     );
 
     // THEN there should be 2 duplication diagnostics
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]

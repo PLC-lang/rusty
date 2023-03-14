@@ -1,7 +1,4 @@
-use insta::assert_snapshot;
-
-use crate::test_utils::tests::parse_and_validate;
-use crate::validation::tests::make_readable;
+use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
 
 #[test]
 fn uninitialized_constants_fall_back_to_the_default() {
@@ -63,7 +60,7 @@ fn unresolvable_variables_are_reported() {
        ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -112,7 +109,7 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -141,7 +138,7 @@ fn constant_fb_instances_are_illegal() {
     );
 
     // THEN everything but VAR and VAR_GLOBALS are reported
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -159,5 +156,5 @@ fn sized_varargs_require_type() {
       ",
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
