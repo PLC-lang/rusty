@@ -279,7 +279,8 @@ impl TypeSize {
             TypeSize::ConstExpression(id) => {
                 index.get_const_expressions().get_constant_int_statement_value(id).map(|it| it as i64)
             }
-            TypeSize::Undetermined => todo!("Tried to get int value of undetermined type-size."), // should be unreachable?
+            // TODO: assumption: this is only relevant for vla array dummy-dimension size. we won't generate this dummy array, therefore, size is 0
+            TypeSize::Undetermined => Ok(0),
         }
     }
 
@@ -435,9 +436,15 @@ impl DataTypeInformation {
         )
     }
 
-    // pub fn is_vla(&self) -> bool {
-    //     matches!()
-    // }
+    pub fn is_vla(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray),
+                ..
+            }
+        )
+    }
 
     pub fn is_generic(&self, index: &Index) -> bool {
         match self {

@@ -355,7 +355,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
 
 fn parse_vla_range(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     lexer.advance();
-    Ok(AstStatement::VlaRangeStatement { start: None, end: None, id: lexer.next_id() })
+    Ok(AstStatement::VlaRangeStatement { id: lexer.next_id() })
 }
 
 fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {

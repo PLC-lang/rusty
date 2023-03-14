@@ -507,16 +507,6 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(right_type, initializer);
                 }
             }
-            if matches!(
-                self.index.get_effective_type_or_void_by_name(name).get_type_information(),
-                DataTypeInformation::Struct {
-                    members: _,
-                    source: StructSource::Internal(InternalType::VariableLengthArray),
-                    ..
-                }
-            ) {
-                todo!("annotate type hint for internal vla struct")
-            }
         } else {
             unreachable!("datatype without a name");
         }
@@ -853,9 +843,10 @@ impl<'i> TypeAnnotator<'i> {
                     ),
                     DataTypeInformation::Struct {
                         source: StructSource::Internal(InternalType::VariableLengthArray),
+                        members,
                         ..
                     } => {
-                        todo!("get type name behind array pointer")
+                        todo!("figure out how array access works for VLAs :-) ")
                     }
                     _ => None,
                 };
@@ -1091,7 +1082,35 @@ impl<'i> TypeAnnotator<'i> {
                         })
                 };
                 if let Some(annotation) = annotation {
-                    self.annotation_map.annotate(statement, annotation)
+                    self.annotation_map.annotate(statement, annotation);
+
+                    if let DataTypeInformation::Struct {
+                        members,
+                        source: StructSource::Internal(InternalType::VariableLengthArray),
+                        ..
+                    } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information()
+                    {
+                        let Some(referenced_type) = members.get(2) else {
+                            unreachable!("variable length array structs always have this field")
+                        };
+
+                        let  Ok(resulting_type) = self.index.get_effective_type_by_name(referenced_type.get_type_name()).map(|it| it.get_name().to_string()) else {
+                            todo!("is there any scenario where we can't find an effective type here?")
+                        };
+
+                        let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
+                            todo!("spaghet")
+                        };
+
+                        let hint_annotation = StatementAnnotation::Variable {
+                            resulting_type,
+                            qualified_name: qualified_name.to_string(),
+                            constant: false,
+                            variable_type: VariableType::Input,
+                            is_auto_deref: false,
+                        };
+                        self.annotation_map.annotate_type_hint(statement, hint_annotation)
+                    }
                 }
             }
             AstStatement::QualifiedReference { elements, .. } => {

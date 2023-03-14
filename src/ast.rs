@@ -858,8 +858,6 @@ pub enum AstStatement {
         id: AstId,
     },
     VlaRangeStatement {
-        start: Option<Box<AstStatement>>,
-        end: Option<Box<AstStatement>>,
         id: AstId,
     },
     // Assignment
@@ -1012,9 +1010,7 @@ impl Debug for AstStatement {
             AstStatement::RangeStatement { start, end, .. } => {
                 f.debug_struct("RangeStatement").field("start", start).field("end", end).finish()
             }
-            AstStatement::VlaRangeStatement { start, end, .. } => {
-                f.debug_struct("VlaRangeStatement").field("start", start).field("end", end).finish()
-            }
+            AstStatement::VlaRangeStatement { .. } => f.debug_struct("VlaRangeStatement").finish(),
             AstStatement::Assignment { left, right, .. } => {
                 f.debug_struct("Assignment").field("left", left).field("right", right).finish()
             }
@@ -1132,12 +1128,7 @@ impl AstStatement {
                 let end_loc = end.get_location();
                 start_loc.span(&end_loc)
             }
-            AstStatement::VlaRangeStatement { start, end, .. } => {
-                let Some(start_loc) = start else { unreachable!("VLA range unresolved.") };
-                let Some(end_loc) = end else { unreachable!("VLA range unresolved.") };
-
-                start_loc.get_location().span(&end_loc.get_location())
-            }
+            AstStatement::VlaRangeStatement { .. } => SourceRange::undefined(), // internal type only
             AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();

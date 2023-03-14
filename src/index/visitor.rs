@@ -421,8 +421,8 @@ fn visit_data_type(
             let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
                 .get_as_list()
                 .iter()
-                .map(|it| {
-                    if let AstStatement::RangeStatement { start, end, .. } = it {
+                .map(|it| match it {
+                    AstStatement::RangeStatement { start, end, .. } => {
                         let constants = index.get_mut_const_expressions();
                         Ok(Dimension {
                             start_offset: TypeSize::from_expression(constants.add_constant_expression(
@@ -436,12 +436,17 @@ fn visit_data_type(
                                 scope.clone(),
                             )),
                         })
-                    } else {
-                        Err(Diagnostic::codegen_error(
-                            "Invalid array definition: RangeStatement expected",
-                            it.get_location(),
-                        ))
                     }
+                    AstStatement::VlaRangeStatement { .. } => Ok(Dimension {
+                        // TODO: revisit - TypeSize::Undetermined might break things later on
+                        start_offset: TypeSize::Undetermined,
+                        end_offset: TypeSize::Undetermined,
+                    }),
+                    _ => Err(Diagnostic::codegen_error(
+                        // TODO:why is this a codegen error?!?!
+                        "Invalid array definition: RangeStatement expected",
+                        it.get_location(),
+                    )),
                 })
                 .collect();
             let dimensions = dimensions.unwrap(); //TODO hmm we need to talk about all this unwrapping :-/
@@ -504,24 +509,32 @@ fn visit_data_type(
                 _ => unreachable!("not a bounds statement"),
             };
 
-            let mut dims = vec![];
-            for _ in 0..ndims {
-                dims.push(AstStatement::RangeStatement {
-                    start: Box::new(AstStatement::LiteralInteger {
-                        value: 0,
-                        location: SourceRange::undefined(),
+            // array-ranges containing start- and end-offset of each dimension
+            let dimension_ranges = AstStatement::ExpressionList {
+                expressions: (0..ndims)
+                    .map(|_| AstStatement::RangeStatement {
+                        start: Box::new(AstStatement::LiteralInteger {
+                            value: 0,
+                            location: SourceRange::undefined(),
+                            id: 0,
+                        }),
+                        end: Box::new(AstStatement::LiteralInteger {
+                            value: 1,
+                            location: SourceRange::undefined(),
+                            id: 0,
+                        }),
                         id: 0,
-                    }),
-                    end: Box::new(AstStatement::LiteralInteger {
-                        value: 1,
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    }),
-                    id: 0,
-                })
-            }
+                    })
+                    .collect::<_>(),
+                id: 0,
+            };
 
-            let dim_bounds = AstStatement::ExpressionList { expressions: dims, id: 0 };
+            // dummy array field that is solely used for VLA type-hint annotation
+            // TODO: this seems like a very roundabout way of accomplishing this.. it might be smarter just cloning the dimension_ranges
+            let dummy_dimensions = AstStatement::ExpressionList {
+                expressions: (0..ndims).map(|_| AstStatement::VlaRangeStatement { id: 0 }).collect::<_>(),
+                id: 0,
+            };
 
             let variables = vec![
                 Variable {
@@ -553,26 +566,12 @@ fn visit_data_type(
                     address: None,
                     location: SourceRange::undefined(),
                 },
-                // Variable {
-                //     name: "referenced_type".to_string(),
-                //     data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                //         referenced_type: referenced_type
-                //             .as_ref()
-                //             .get_name()
-                //             .expect("named datatype")
-                //             .to_string(),
-                //         location: SourceRange::undefined(),
-                //     },
-                //     initializer: None,
-                //     address: None,
-                //     location: SourceRange::undefined(),
-                // },
                 Variable {
                     name: "dimensions".to_string(),
                     data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::ArrayType {
                             name: Some("n_dims".to_string()),
-                            bounds: dim_bounds,
+                            bounds: dimension_ranges,
                             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: DINT_TYPE.to_string(),
                                 location: SourceRange::undefined(),
@@ -584,6 +583,41 @@ fn visit_data_type(
                     initializer: None,
                     address: None,
                     location: SourceRange::undefined(),
+                },
+                // TODO: is there a way to omit this field? it is definitely unnecessary for codegen - maybe we can just not generate it
+                Variable {
+                    name: "type_hint_array".to_string(),
+                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                        data_type: DataType::ArrayType {
+                            name: Some("referenced_type".to_string()),
+                            bounds: dummy_dimensions,
+                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                                referenced_type: referenced_type
+                                    .as_ref()
+                                    .get_name()
+                                    .expect("named datatype")
+                                    .to_string(),
+                                location: SourceRange::undefined(),
+                            }),
+                        },
+                        location: SourceRange::undefined(),
+                        scope: None,
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceRange::undefined(),
+                    // name: "referenced_type".to_string(),
+                    // data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                    //     referenced_type: referenced_type
+                    //         .as_ref()
+                    //         .get_name()
+                    //         .expect("named datatype")
+                    //         .to_string(),
+                    //     location: SourceRange::undefined(),
+                    // },
+                    // initializer: None,
+                    // address: None,
+                    // location: SourceRange::undefined(),
                 },
             ];
 

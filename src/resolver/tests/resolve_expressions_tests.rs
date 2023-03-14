@@ -3610,6 +3610,19 @@ fn action_call_statement_parameters_are_annotated_with_a_type_hint() {
     }
 }
 
+macro_rules! deconstruct_call_statement {
+    ($src:expr) => {{
+        if let AstStatement::CallStatement { operator, parameters, .. } = $src {
+            (
+                operator,
+                parameters.as_ref().as_ref().map(crate::ast::flatten_expression_list).unwrap_or_default(),
+            )
+        } else {
+            unreachable!();
+        }
+    }};
+}
+
 #[test]
 fn placeholder() {
     let id_provider = IdProvider::default();
@@ -3622,38 +3635,22 @@ fn placeholder() {
         END_VAR
             arr;
         END_FUNCTION
-
-        // FUNCTION bar : DINT
-        // VAR_INPUT
-        //     arr: ARRAY[0..1] OF INT;
-        //     i : DINT := 2;
-        // END_VAR
-        //     i := arr[0]; // edge case
-        // END_FUNCTION
-
-        // FUNCTION main : DINT
-        // VAR
-        //     my_array: ARRAY[0..1] OF INT := (9, 1);
-        // END_VAR
-        // // TODO: call statement
-        //     // foo(my_array);
-        // END_FUNCTION
-    ",
+        ",
         id_provider.clone(),
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    let _type_ = dbg!(annotations.get_type(stmt, &index));
-    let type_hint = dbg!(annotations.get_type_hint(stmt, &index));
+    let type_ = annotations.get_type(stmt, &index);
+    let type_hint = annotations.get_type_hint(stmt, &index);
 
-    // assert_eq!(type_.unwrap(), index.get_type("__foo_arr").unwrap());
+    assert_eq!(type_.unwrap(), index.get_type("__foo_arr").unwrap());
 
     assert_eq!(
         type_hint.unwrap().information,
         DataTypeInformation::Array {
-            name: "arr".to_string(),
+            name: "referenced_type".to_string(),
             inner_type_name: "INT".to_string(),
             dimensions: vec![Dimension {
                 start_offset: TypeSize::Undetermined,

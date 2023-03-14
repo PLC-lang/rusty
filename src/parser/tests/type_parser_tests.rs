@@ -489,7 +489,7 @@ fn variable_length_array_can_be_parsed() {
         data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::VariableLengthArrayType {
                 name: None,
-                bounds: AstStatement::VlaRangeStatement { start: None, end: None, id: 0 },
+                bounds: AstStatement::VlaRangeStatement { id: 0 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
                     location: SourceRange::undefined(),
@@ -526,8 +526,8 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
                 name: None,
                 bounds: AstStatement::ExpressionList {
                     expressions: vec![
-                        AstStatement::VlaRangeStatement { start: None, end: None, id: 0 },
-                        AstStatement::VlaRangeStatement { start: None, end: None, id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
                     ],
                     id: 0,
                 },
@@ -553,10 +553,10 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
                 name: None,
                 bounds: AstStatement::ExpressionList {
                     expressions: vec![
-                        AstStatement::VlaRangeStatement { start: None, end: None, id: 0 },
-                        AstStatement::VlaRangeStatement { start: None, end: None, id: 0 },
-                        AstStatement::VlaRangeStatement { start: None, end: None, id: 0 },
-                        AstStatement::VlaRangeStatement { start: None, end: None, id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
+                        AstStatement::VlaRangeStatement { id: 0 },
                     ],
                     id: 0,
                 },
