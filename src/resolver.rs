@@ -21,9 +21,9 @@ use crate::{
     index::{symbol::SymbolLocation, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     lexer::IdProvider,
     typesystem::{
-        self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE, DATE_AND_TIME_TYPE,
-        DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE,
-        TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
+        BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
+        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -507,6 +507,16 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(right_type, initializer);
                 }
             }
+            if matches!(
+                self.index.get_effective_type_or_void_by_name(name).get_type_information(),
+                DataTypeInformation::Struct {
+                    members: _,
+                    source: StructSource::Internal(InternalType::VariableLengthArray),
+                    ..
+                }
+            ) {
+                todo!("annotate type hint for internal vla struct")
+            }
         } else {
             unreachable!("datatype without a name");
         }
@@ -731,7 +741,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_data_type(&mut self, ctx: &VisitorContext, data_type: &DataType) {
         match data_type {
-            DataType::VlaArrayType { referenced_type, .. } => {
+            DataType::VariableLengthArrayType { referenced_type, .. } => {
                 self.visit_data_type_declaration(ctx, referenced_type)
             }
             DataType::StructType { name: Some(name), variables, .. } => {
@@ -841,14 +851,11 @@ impl<'i> TypeAnnotator<'i> {
                     DataTypeInformation::Array { inner_type_name, .. } => Some(
                         self.index.get_effective_type_or_void_by_name(inner_type_name).get_name().to_string(),
                     ),
-                    DataTypeInformation::Struct { name, members, .. }
-                        // if matches!(
-                        //     self.index.get_type(array_type.get_name()).unwrap().is_array(),
-                        //     crate::ast::DataType::VlaArrayType { .. }
-                        //) 
-                        =>
-                    {
-                        None                        
+                    DataTypeInformation::Struct {
+                        source: StructSource::Internal(InternalType::VariableLengthArray),
+                        ..
+                    } => {
+                        todo!("get type name behind array pointer")
                     }
                     _ => None,
                 };

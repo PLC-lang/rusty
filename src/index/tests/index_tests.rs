@@ -6,7 +6,7 @@ use crate::index::{ArgumentType, PouIndexEntry, SymbolLocation, VariableIndexEnt
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids, parse_and_preprocess};
-use crate::typesystem::{TypeSize, INT_TYPE, VOID_TYPE};
+use crate::typesystem::{InternalType, StructSource, TypeSize, INT_TYPE, VOID_TYPE};
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
 #[test]
@@ -2013,4 +2013,55 @@ fn _x() {
 
     assert_eq!(&size_explicit_fat_ptr, size_implicit_fat_ptr);
     assert_debug_snapshot!(&type_info);
+}
+
+#[test]
+fn internal_vla_struct_type_is_indexed_correctly() {
+    let id_provider = IdProvider::default();
+
+    let (_, index) = index_with_ids(
+        r"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            arr: ARRAY[*] OF INT;
+        END_VAR
+        END_FUNCTION
+    ",
+        id_provider,
+    );
+    assert_eq!(
+        *index.get_type("__foo_arr").unwrap().get_type_information(),
+        DataTypeInformation::Struct {
+            name: "__foo_arr".to_string(),
+            members: vec![
+                VariableIndexEntry {
+                    name: "ptr".to_string(),
+                    qualified_name: "__foo_arr.ptr".to_string(),
+                    initial_value: None,
+                    variable_type: ArgumentType::ByVal(VariableType::Input),
+                    is_constant: false,
+                    data_type_name: "array_ptr".to_string(),
+                    location_in_parent: 0,
+                    linkage: LinkageType::Internal,
+                    binding: None,
+                    source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
+                    varargs: None
+                },
+                VariableIndexEntry {
+                    name: "dimensions".to_string(),
+                    qualified_name: "__foo_arr.dimensions".to_string(),
+                    initial_value: None,
+                    variable_type: ArgumentType::ByVal(VariableType::Input),
+                    is_constant: false,
+                    data_type_name: "n_dims".to_string(),
+                    location_in_parent: 1,
+                    linkage: LinkageType::Internal,
+                    binding: None,
+                    source_location: SymbolLocation { source_range: (0..0).into(), line_number: 0 },
+                    varargs: None
+                }
+            ],
+            source: StructSource::Internal(InternalType::VariableLengthArray)
+        }
+    );
 }

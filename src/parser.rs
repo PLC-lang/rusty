@@ -810,7 +810,7 @@ fn parse_array_type_definition(
 
             AstStatement::VlaRangeStatement { .. } => (
                 DataTypeDeclaration::DataTypeDefinition {
-                    data_type: DataType::VlaArrayType {
+                    data_type: DataType::VariableLengthArrayType {
                         name,
                         bounds: range,
                         referenced_type: Box::new(reference),
@@ -837,7 +837,7 @@ fn parse_array_type_definition(
 
                 AstStatement::VlaRangeStatement { .. } => (
                     DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::VlaArrayType {
+                        data_type: DataType::VariableLengthArrayType {
                             name,
                             bounds: range,
                             referenced_type: Box::new(reference),

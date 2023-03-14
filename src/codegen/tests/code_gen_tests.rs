@@ -3225,20 +3225,3 @@ fn function_and_struct_with_same_names() {
 
     insta::assert_snapshot!(result);
 }
-
-#[test]
-fn function_and_struct_with_same_names_() {
-    // See description of [`index::get_container_members_filtered`]
-    // for reasoning why this test case exists.
-    let result = codegen(
-        "
-        FUNCTION foo : DINT
-        VAR_INPUT
-            arr: ARRAY[0..1] OF INT;
-        END_VAR
-        END_FUNCTION
-        ",
-    );
-
-    insta::assert_snapshot!(result);
-}

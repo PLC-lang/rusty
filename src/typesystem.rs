@@ -260,6 +260,7 @@ impl StringEncoding {
 pub enum TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
+    Undetermined,
 }
 
 impl TypeSize {
@@ -278,6 +279,7 @@ impl TypeSize {
             TypeSize::ConstExpression(id) => {
                 index.get_const_expressions().get_constant_int_statement_value(id).map(|it| it as i64)
             }
+            TypeSize::Undetermined => todo!("Tried to get int value of undetermined type-size."), // should be unreachable?
         }
     }
 
@@ -287,6 +289,7 @@ impl TypeSize {
         match self {
             TypeSize::LiteralInteger(_) => None,
             TypeSize::ConstExpression(id) => index.get_const_expressions().get_constant_statement(id),
+            TypeSize::Undetermined => todo!("Cannot get undetermined type-size as const-expression"), // should be unreachable?
         }
     }
 }
@@ -296,6 +299,12 @@ impl TypeSize {
 pub enum StructSource {
     OriginalDeclaration,
     Pou(PouType),
+    Internal(InternalType),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InternalType {
+    VariableLengthArray,
 }
 
 type TypeId = String;
@@ -1050,6 +1059,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         DataTypeInformation::String { size, .. } => match size {
             TypeSize::LiteralInteger(size) => (*size).try_into().unwrap(),
             TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
+            TypeSize::Undetermined => unreachable!("String cannot have undetermined size"),
         },
         DataTypeInformation::Enum { referenced_type, .. } => {
             index.find_effective_type_info(referenced_type).map(|it| get_rank(it, index)).unwrap_or(DINT_SIZE)

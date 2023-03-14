@@ -934,6 +934,7 @@ impl Index {
                     self.get_mut_const_expressions().add_constant_expression(expr, target_type, scope)
                 })
                 .map(TypeSize::from_expression),
+            TypeSize::Undetermined => todo!("shouldn't have a size, might be unreachable"),
         };
 
         match ts {
