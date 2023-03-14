@@ -1,7 +1,5 @@
-use insta::assert_snapshot;
-
+use crate::assert_validation_snapshot;
 use crate::test_utils::tests::parse_and_validate;
-use crate::validation::tests::make_readable;
 
 #[test]
 fn constant_assignment_validation() {
@@ -18,7 +16,7 @@ fn constant_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -77,7 +75,7 @@ fn real_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -161,7 +159,7 @@ fn int_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -220,7 +218,7 @@ fn duration_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -279,7 +277,7 @@ fn bit_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -343,7 +341,7 @@ fn string_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -411,7 +409,7 @@ fn char_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -470,7 +468,7 @@ fn date_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -528,7 +526,7 @@ fn pointer_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -590,7 +588,7 @@ fn array_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -673,7 +671,7 @@ fn struct_assignment_validation() {
     "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
@@ -715,7 +713,7 @@ fn invalid_action_call_assignments_are_validated() {
         "#,
     );
     assert_eq!(diagnostics.len(), 4);
-    assert_snapshot!(make_readable(&diagnostics))
+    assert_validation_snapshot!(&diagnostics)
 }
 
 #[test]
@@ -749,7 +747,7 @@ fn implicit_invalid_action_call_assignments_are_validated() {
         "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics))
+    assert_validation_snapshot!(&diagnostics)
 }
 
 #[test]
@@ -781,7 +779,7 @@ fn invalid_method_call_assignments_are_validated() {
         "#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics))
+    assert_validation_snapshot!(&diagnostics)
 }
 
 #[test]
