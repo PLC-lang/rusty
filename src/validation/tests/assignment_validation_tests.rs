@@ -688,7 +688,7 @@ fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
         END_FUNCTION"#,
     );
 
-    assert_snapshot!(make_readable(&diagnostics));
+    assert_validation_snapshot!(&diagnostics);
 }
 
 #[test]
