@@ -47,30 +47,6 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'rustyc'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=rustyc",
-                    "--package=rusty"
-                ],
-                "filter": {
-                    "name": "rustyc",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "-c",
-                "./examples/hw.st",
-                "-o",
-                "/tmp/comp.ll",
-                "--config=test.xml"
-            ],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
             "name": "Debug unit tests in executable 'rustyc'",
             "cargo": {
                 "args": [
@@ -122,7 +98,7 @@
                 }
             },
             "args": [
-                "demo.st"
+                "target/demo.st"
             ],
             "cwd": "${workspaceFolder}"
         },
