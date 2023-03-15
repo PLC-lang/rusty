@@ -843,7 +843,6 @@ impl<'i> TypeAnnotator<'i> {
                     ),
                     DataTypeInformation::Struct {
                         source: StructSource::Internal(InternalType::VariableLengthArray),
-                        members,
                         ..
                     } => {
                         todo!("figure out how array access works for VLAs :-) ")
@@ -1090,26 +1089,29 @@ impl<'i> TypeAnnotator<'i> {
                         ..
                     } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information()
                     {
-                        let Some(referenced_type) = members.get(2) else {
-                            unreachable!("variable length array structs always have this field")
-                        };
+                        if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
+                            .index
+                            .get_effective_type_or_void_by_name(
+                                members
+                                    .get(0)
+                                    .expect("internal VLA struct ALWAYS has this member")
+                                    .get_type_name(),
+                            )
+                            .get_type_information()
+                        {
+                            let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
+                                todo!("error handling - guessing unreachable")
+                            };
 
-                        let  Ok(resulting_type) = self.index.get_effective_type_by_name(referenced_type.get_type_name()).map(|it| it.get_name().to_string()) else {
-                            todo!("is there any scenario where we can't find an effective type here?")
-                        };
-
-                        let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
-                            todo!("spaghet")
-                        };
-
-                        let hint_annotation = StatementAnnotation::Variable {
-                            resulting_type,
-                            qualified_name: qualified_name.to_string(),
-                            constant: false,
-                            variable_type: VariableType::Input,
-                            is_auto_deref: false,
-                        };
-                        self.annotation_map.annotate_type_hint(statement, hint_annotation)
+                            let hint_annotation = StatementAnnotation::Variable {
+                                resulting_type: inner_type_name.to_owned(),
+                                qualified_name: qualified_name.to_string(),
+                                constant: false,
+                                variable_type: VariableType::Input,
+                                is_auto_deref: false,
+                            };
+                            self.annotation_map.annotate_type_hint(statement, hint_annotation)
+                        }
                     }
                 }
             }

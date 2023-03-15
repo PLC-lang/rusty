@@ -3624,7 +3624,7 @@ macro_rules! deconstruct_call_statement {
 }
 
 #[test]
-fn placeholder() {
+fn demo() {
     let id_provider = IdProvider::default();
 
     let (unit, mut index) = index_with_ids(
@@ -3642,19 +3642,19 @@ fn placeholder() {
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
-    let type_ = annotations.get_type(stmt, &index);
-    let type_hint = annotations.get_type_hint(stmt, &index);
+    let type_ = annotations.get_type(stmt, &index).expect("Couldn't find type");
+    let type_hint = annotations.get_type_hint(stmt, &index).expect("Couldn't find type hint");
 
-    assert_eq!(type_.unwrap(), index.get_type("__foo_arr").unwrap());
+    assert_eq!(type_, index.get_type("__foo_arr").unwrap());
 
     assert_eq!(
-        type_hint.unwrap().information,
+        dbg!(type_hint.clone().information),
         DataTypeInformation::Array {
-            name: "referenced_type".to_string(),
+            name: "__foo_arr_outer_array".to_string(),
             inner_type_name: "INT".to_string(),
             dimensions: vec![Dimension {
-                start_offset: TypeSize::Undetermined,
-                end_offset: TypeSize::Undetermined
+                start_offset: TypeSize::LiteralInteger(0),
+                end_offset: TypeSize::LiteralInteger(0),
             }],
         },
     );

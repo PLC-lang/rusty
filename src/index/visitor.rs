@@ -437,11 +437,6 @@ fn visit_data_type(
                             )),
                         })
                     }
-                    AstStatement::VlaRangeStatement { .. } => Ok(Dimension {
-                        // TODO: revisit - TypeSize::Undetermined might break things later on
-                        start_offset: TypeSize::Undetermined,
-                        end_offset: TypeSize::Undetermined,
-                    }),
                     _ => Err(Diagnostic::codegen_error(
                         // TODO:why is this a codegen error?!?!
                         "Invalid array definition: RangeStatement expected",
@@ -509,32 +504,28 @@ fn visit_data_type(
                 _ => unreachable!("not a bounds statement"),
             };
 
-            // array-ranges containing start- and end-offset of each dimension
-            let dimension_ranges = AstStatement::ExpressionList {
-                expressions: (0..ndims)
-                    .map(|_| AstStatement::RangeStatement {
-                        start: Box::new(AstStatement::LiteralInteger {
-                            value: 0,
-                            location: SourceRange::undefined(),
-                            id: 0,
-                        }),
-                        end: Box::new(AstStatement::LiteralInteger {
-                            value: 1,
-                            location: SourceRange::undefined(),
-                            id: 0,
-                        }),
-                        id: 0,
-                    })
-                    .collect::<_>(),
-                id: 0,
-            };
-
-            // dummy array field that is solely used for VLA type-hint annotation
-            // TODO: this seems like a very roundabout way of accomplishing this.. it might be smarter just cloning the dimension_ranges
-            let dummy_dimensions = AstStatement::ExpressionList {
-                expressions: (0..ndims).map(|_| AstStatement::VlaRangeStatement { id: 0 }).collect::<_>(),
-                id: 0,
-            };
+            // register "outer" array type so it can later be annotated as a type hint
+            let referenced_type = referenced_type.as_ref().get_name().expect("named datatype").to_string();
+            // TODO: possibility of naming conflicts in the symbol table caused by this dummy-type? -> would prefer a different solution
+            let inner_arr_name = format!("__{name}_{}_vla_hint", referenced_type.clone()).to_lowercase();
+            index.register_type(typesystem::DataType {
+                name: inner_arr_name.clone(),
+                initial_value: None,
+                information: DataTypeInformation::Array {
+                    name: format!("{name}_outer_array"),
+                    inner_type_name: referenced_type.clone(),
+                    // dummy dimensions that will never actually be used
+                    // TODO: still need to check if just having these in the index might mess with any get_size/get_range/... calls
+                    dimensions: (0..ndims)
+                        .map(|_| Dimension {
+                            start_offset: TypeSize::LiteralInteger(0),
+                            end_offset: TypeSize::LiteralInteger(0),
+                        })
+                        .collect::<Vec<_>>(),
+                },
+                nature: TypeNature::Any,
+                location: SymbolLocation::internal(),
+            });
 
             let variables = vec![
                 Variable {
@@ -543,15 +534,11 @@ fn visit_data_type(
                         data_type: DataType::PointerType {
                             name: Some("array_ptr".to_string()),
                             referenced_type: Box::new(DataTypeDeclaration::DataTypeDefinition {
-                                data_type: DataType::VariableLengthArrayType {
-                                    name: Some(name.clone()),
+                                data_type: DataType::ArrayType {
+                                    name: Some(inner_arr_name),
                                     bounds: bounds.clone(),
                                     referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                                        referenced_type: referenced_type
-                                            .as_ref()
-                                            .get_name()
-                                            .expect("named datatype")
-                                            .to_string(),
+                                        referenced_type: referenced_type,
                                         location: SourceRange::undefined(),
                                     }),
                                 },
@@ -571,7 +558,24 @@ fn visit_data_type(
                     data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::ArrayType {
                             name: Some("n_dims".to_string()),
-                            bounds: dimension_ranges,
+                            bounds: AstStatement::ExpressionList {
+                                expressions: (0..ndims)
+                                    .map(|_| AstStatement::RangeStatement {
+                                        start: Box::new(AstStatement::LiteralInteger {
+                                            value: 0,
+                                            location: SourceRange::undefined(),
+                                            id: 0,
+                                        }),
+                                        end: Box::new(AstStatement::LiteralInteger {
+                                            value: 1,
+                                            location: SourceRange::undefined(),
+                                            id: 0,
+                                        }),
+                                        id: 0,
+                                    })
+                                    .collect::<_>(),
+                                id: 0,
+                            },
                             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                                 referenced_type: DINT_TYPE.to_string(),
                                 location: SourceRange::undefined(),
@@ -584,41 +588,18 @@ fn visit_data_type(
                     address: None,
                     location: SourceRange::undefined(),
                 },
-                // TODO: is there a way to omit this field? it is definitely unnecessary for codegen - maybe we can just not generate it
-                Variable {
-                    name: "type_hint_array".to_string(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::ArrayType {
-                            name: Some("referenced_type".to_string()),
-                            bounds: dummy_dimensions,
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                                referenced_type: referenced_type
-                                    .as_ref()
-                                    .get_name()
-                                    .expect("named datatype")
-                                    .to_string(),
-                                location: SourceRange::undefined(),
-                            }),
-                        },
-                        location: SourceRange::undefined(),
-                        scope: None,
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceRange::undefined(),
-                    // name: "referenced_type".to_string(),
-                    // data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                    //     referenced_type: referenced_type
-                    //         .as_ref()
-                    //         .get_name()
-                    //         .expect("named datatype")
-                    //         .to_string(),
-                    //     location: SourceRange::undefined(),
-                    // },
-                    // initializer: None,
-                    // address: None,
-                    // location: SourceRange::undefined(),
-                },
+                // name: "referenced_type".to_string(),
+                // data_type_declaration: DataTypeDeclaration::DataTypeReference {
+                //     referenced_type: referenced_type
+                //         .as_ref()
+                //         .get_name()
+                //         .expect("named datatype")
+                //         .to_string(),
+                //     location: SourceRange::undefined(),
+                // },
+                // initializer: None,
+                // address: None,
+                // location: SourceRange::undefined(),
             ];
 
             let struct_t =

@@ -256,11 +256,11 @@ impl StringEncoding {
     }
 }
 
+/// Used to determine size/length of ranges. // TODO: revisit struct name. sharpen doc string
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
-    Undetermined,
 }
 
 impl TypeSize {
@@ -279,8 +279,6 @@ impl TypeSize {
             TypeSize::ConstExpression(id) => {
                 index.get_const_expressions().get_constant_int_statement_value(id).map(|it| it as i64)
             }
-            // TODO: assumption: this is only relevant for vla array dummy-dimension size. we won't generate this dummy array, therefore, size is 0
-            TypeSize::Undetermined => Ok(0),
         }
     }
 
@@ -290,7 +288,6 @@ impl TypeSize {
         match self {
             TypeSize::LiteralInteger(_) => None,
             TypeSize::ConstExpression(id) => index.get_const_expressions().get_constant_statement(id),
-            TypeSize::Undetermined => todo!("Cannot get undetermined type-size as const-expression"), // should be unreachable?
         }
     }
 }
@@ -1066,7 +1063,6 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         DataTypeInformation::String { size, .. } => match size {
             TypeSize::LiteralInteger(size) => (*size).try_into().unwrap(),
             TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
-            TypeSize::Undetermined => unreachable!("String cannot have undetermined size"),
         },
         DataTypeInformation::Enum { referenced_type, .. } => {
             index.find_effective_type_info(referenced_type).map(|it| get_rank(it, index)).unwrap_or(DINT_SIZE)
