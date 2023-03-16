@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "type": "lldb",
             "request": "launch",
@@ -39,25 +38,10 @@
                     "kind": "bin"
                 }
             },
-            "args": ["build", "..\\..\\build_commands_tests\\test_proj\\plc.json"],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug executable 'rustyc'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=rustyc",
-                    "--package=rusty"
-                ],
-                "filter": {
-                    "name": "rustyc",
-                    "kind": "bin"
-                }
-            },
-            "args": ["-c", "./examples/hw.st", "-o", "/tmp/comp.ll", "--config=test.xml"],
+            "args": [
+                "build",
+                "..\\..\\build_commands_tests\\test_proj\\plc.json"
+            ],
             "cwd": "${workspaceFolder}"
         },
         {
@@ -97,6 +81,47 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
-        }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug source 'demo.st'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=rustyc",
+                    "--package=rusty"
+                ],
+                "filter": {
+                    "name": "rustyc",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "target/demo.st"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit test 'demo'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=rusty"
+                ],
+                "filter": {
+                    "name": "rusty",
+                    "kind": "lib"
+                }
+            },
+            "args": [
+                "demo"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }
