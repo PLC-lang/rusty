@@ -679,19 +679,16 @@ fn create_file_paths<T: Display + std::ops::Deref<Target = str>>(
 ) -> Result<Vec<FilePath>, Diagnostic> {
     let mut sources = Vec::new();
     for input in inputs {
-        let paths = glob(input)
-            .map_err(|e| Diagnostic::param_error(&format!("Failed to read glob pattern: {input}, ({e})")))?;
+        let paths = glob(input).map_err(|e| Diagnostic::param_input_error(input, e.msg))?;
 
         for p in paths {
-            let path = p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {err}")))?;
+            let path = p.map_err(|e| Diagnostic::illegal_path_error(&e.to_string()))?;
             sources.push(FilePath { path: path.to_string_lossy().to_string() });
         }
     }
     if !inputs.is_empty() && sources.is_empty() {
-        return Err(Diagnostic::param_error(&format!(
-            "No such file(s): {}",
-            inputs.iter().map(|it| it.to_string()).collect::<Vec<_>>().join(",")
-        )));
+        let files = inputs.iter().map(|it| it.to_string()).collect::<Vec<_>>().join(",");
+        return Err(Diagnostic::files_not_found_error(&files));
     }
     Ok(sources)
 }

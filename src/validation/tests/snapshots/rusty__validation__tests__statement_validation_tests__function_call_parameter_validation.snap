@@ -1,13 +1,13 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceRange { range: 360..364 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Cannot mix implicit and explicit call parameters!", range: [SourceRange { range: 366..370 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 425..439 }], err_no: var__invalid_assignment }
-SyntaxError { message: "The type DINT 32 is too small to hold a Pointer", range: [SourceRange { range: 441..455 }], err_no: type__incompatible_size }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_var3' to 'DINT'", range: [SourceRange { range: 441..455 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 605..609 }], err_no: var__invalid_assignment }
-SyntaxError { message: "The type DINT 32 is too small to hold a Pointer", range: [SourceRange { range: 611..615 }], err_no: type__incompatible_size }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_var3' to 'DINT'", range: [SourceRange { range: 611..615 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Should not mix implicit and explicit parameters!", range: [SourceRange { range: 360..364 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Should not mix implicit and explicit parameters!", range: [SourceRange { range: 366..370 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'STRING'", range: [SourceRange { range: 425..439 }], err_no: var__invalid_assignment }
+SyntaxError { message: "The type 'DINT 32' is too small to hold a Pointer", range: [SourceRange { range: 441..455 }], err_no: type__incompatible_size }
+SyntaxError { message: "Invalid assignment: 'DINT' - '__main_var3'", range: [SourceRange { range: 441..455 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'STRING'", range: [SourceRange { range: 605..609 }], err_no: var__invalid_assignment }
+SyntaxError { message: "The type 'DINT 32' is too small to hold a Pointer", range: [SourceRange { range: 611..615 }], err_no: type__incompatible_size }
+SyntaxError { message: "Invalid assignment: 'DINT' - '__main_var3'", range: [SourceRange { range: 611..615 }], err_no: var__invalid_assignment }
 

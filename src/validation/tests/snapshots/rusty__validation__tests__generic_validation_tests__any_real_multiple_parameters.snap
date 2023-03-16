@@ -1,12 +1,12 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. TIME is no Real.", range: [SourceRange { range: 466..474 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Real.", range: [SourceRange { range: 476..484 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'REAL'", range: [SourceRange { range: 486..493 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. STRING is no Real.", range: [SourceRange { range: 486..493 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'REAL'", range: [SourceRange { range: 495..503 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Real.", range: [SourceRange { range: 495..503 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Real.", range: [SourceRange { range: 505..513 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'TIME' is no 'Real'", range: [SourceRange { range: 466..474 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'BYTE' is no 'Real'", range: [SourceRange { range: 476..484 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'REAL' - 'STRING'", range: [SourceRange { range: 486..493 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'STRING' is no 'Real'", range: [SourceRange { range: 486..493 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'REAL' - 'CHAR'", range: [SourceRange { range: 495..503 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'CHAR' is no 'Real'", range: [SourceRange { range: 495..503 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'DATE' is no 'Real'", range: [SourceRange { range: 505..513 }], err_no: type__invalid_nature }
 

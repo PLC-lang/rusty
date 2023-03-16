@@ -1,10 +1,10 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Magnitude.", range: [SourceRange { range: 141..142 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Magnitude.", range: [SourceRange { range: 214..215 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Magnitude.", range: [SourceRange { range: 282..283 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Magnitude.", range: [SourceRange { range: 355..356 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Magnitude.", range: [SourceRange { range: 423..424 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'DATE_AND_TIME' is no 'Magnitude'", range: [SourceRange { range: 141..142 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'DATE_AND_TIME' is no 'Magnitude'", range: [SourceRange { range: 214..215 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'DATE' is no 'Magnitude'", range: [SourceRange { range: 282..283 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'TIME_OF_DAY' is no 'Magnitude'", range: [SourceRange { range: 355..356 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'TIME_OF_DAY' is no 'Magnitude'", range: [SourceRange { range: 423..424 }], err_no: type__invalid_nature }
 

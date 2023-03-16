@@ -1,10 +1,10 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Int.", range: [SourceRange { range: 135..136 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE_AND_TIME is no Int.", range: [SourceRange { range: 202..203 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. DATE is no Int.", range: [SourceRange { range: 270..271 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Int.", range: [SourceRange { range: 337..338 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid type nature for generic argument. TIME_OF_DAY is no Int.", range: [SourceRange { range: 405..406 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'DATE_AND_TIME' is no 'Int'", range: [SourceRange { range: 135..136 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'DATE_AND_TIME' is no 'Int'", range: [SourceRange { range: 202..203 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'DATE' is no 'Int'", range: [SourceRange { range: 270..271 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'TIME_OF_DAY' is no 'Int'", range: [SourceRange { range: 337..338 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid type nature for generic argument: 'TIME_OF_DAY' is no 'Int'", range: [SourceRange { range: 405..406 }], err_no: type__invalid_nature }
 

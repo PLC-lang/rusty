@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceRange { range: 160..161 }], err_no: type__invalid_type }
-SyntaxError { message: "'y' is no const reference. Non constant variables are not supported in case conditions", range: [SourceRange { range: 211..212 }], err_no: type__invalid_type }
-SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceRange { range: 262..265 }], err_no: type__invalid_type }
-SyntaxError { message: "'x' is no const reference. Non constant variables are not supported in case conditions", range: [SourceRange { range: 341..348 }], err_no: type__invalid_type }
+SyntaxError { message: "Invalid case condition: ''x' is no const reference' must be constant", range: [SourceRange { range: 160..161 }], err_no: type__invalid_type }
+SyntaxError { message: "Invalid case condition: ''y' is no const reference' must be constant", range: [SourceRange { range: 211..212 }], err_no: type__invalid_type }
+SyntaxError { message: "Invalid case condition: ''x' is no const reference' must be constant", range: [SourceRange { range: 262..265 }], err_no: type__invalid_type }
+SyntaxError { message: "Invalid case condition: ''x' is no const reference' must be constant", range: [SourceRange { range: 341..348 }], err_no: type__invalid_type }
 

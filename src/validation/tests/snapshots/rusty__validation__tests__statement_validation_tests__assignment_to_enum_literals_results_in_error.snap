@@ -1,8 +1,8 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Cannot assign to CONSTANT '__prg_state.OPEN'", range: [SourceRange { range: 230..234 }], err_no: var__cannot_assign_to_const }
-SyntaxError { message: "Cannot assign to CONSTANT '__global_g_enum.B'", range: [SourceRange { range: 253..254 }], err_no: var__cannot_assign_to_const }
-SyntaxError { message: "Cannot assign to CONSTANT 'Color.red'", range: [SourceRange { range: 273..276 }], err_no: var__cannot_assign_to_const }
+SyntaxError { message: "Invalid assignment to constant: '__prg_state.OPEN'", range: [SourceRange { range: 230..234 }], err_no: var__cannot_assign_to_const }
+SyntaxError { message: "Invalid assignment to constant: '__global_g_enum.B'", range: [SourceRange { range: 253..254 }], err_no: var__cannot_assign_to_const }
+SyntaxError { message: "Invalid assignment to constant: 'Color.red'", range: [SourceRange { range: 273..276 }], err_no: var__cannot_assign_to_const }
 

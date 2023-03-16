@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Illegal access to private member fb1.f", range: [SourceRange { range: 413..414 }], err_no: reference__illegal_access }
+SyntaxError { message: "Illegal access to private member: fb1.f", range: [SourceRange { range: 413..414 }], err_no: reference__illegal_access }
 

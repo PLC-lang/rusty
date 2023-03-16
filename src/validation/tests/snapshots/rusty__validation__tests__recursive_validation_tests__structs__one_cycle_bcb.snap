@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/recursive_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SemanticError { message: "Recursive data structure `B -> C -> B` has infinite size", range: [SourceRange { range: 114..115 }, SourceRange { range: 210..211 }], err_no: pou__recursive_data_structure }
+SemanticError { message: "Invalid recursive data structure: `B -> C -> B`", range: [SourceRange { range: 114..115 }, SourceRange { range: 210..211 }], err_no: pou__recursive_data_structure }
 

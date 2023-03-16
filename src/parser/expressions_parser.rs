@@ -311,7 +311,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
         if let Some((cast, location)) = literal_cast {
             //check if there is something between the literal-type and the literal itself
             if location.get_end() != statement.get_location().get_start() {
-                return Err(Diagnostic::syntax_error("Incomplete statement", location));
+                return Err(Diagnostic::incomplete_statement(location));
             }
 
             Ok(AstStatement::CastStatement {
@@ -560,9 +560,7 @@ pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstState
 }
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
-    text.parse::<F>().map_err(|_| {
-        Diagnostic::syntax_error(format!("Failed parsing number {text}").as_str(), location.clone())
-    })
+    text.parse::<F>().map_err(|_| Diagnostic::parse_number_error(text, location.clone()))
 }
 
 fn parse_date_from_string(text: &str, location: SourceRange, id: AstId) -> Result<AstStatement, Diagnostic> {
@@ -689,19 +687,14 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
             let start = char.expect("char").0;
             //just eat all the digits
             char = chars.find(|(_, ch)| !ch.is_ascii_digit() && !ch.eq(&'.'));
-            char.ok_or_else(|| {
-                Diagnostic::syntax_error("Invalid TIME Literal: Cannot parse segment.", location.clone())
-            })
-            .and_then(|(index, _)| parse_number::<f64>(&slice[start..index], &location))?
+            char.ok_or_else(|| Diagnostic::invalid_time_literal("Cannot parse segment.", location.clone()))
+                .and_then(|(index, _)| parse_number::<f64>(&slice[start..index], &location))?
         };
 
         //expect a unit
         let unit = {
             let start = char.map(|(index, _)| index).ok_or_else(|| {
-                Diagnostic::syntax_error(
-                    "Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)",
-                    location.clone(),
-                )
+                Diagnostic::invalid_time_literal("Missing unit (d|h|m|s|ms|us|ns)", location.clone())
             })?;
 
             //just eat all the characters
@@ -724,23 +717,20 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
         if let Some(position) = position {
             //check if we assign out of order - every assignment before must have been a smaller position
             if prev_pos > position {
-                return Err(Diagnostic::syntax_error(
-                    "Invalid TIME Literal: segments out of order, use d-h-m-s-ms",
+                return Err(Diagnostic::invalid_time_literal(
+                    "Segments out of order, use d-h-m-s-ms",
                     location,
                 ));
             }
             prev_pos = position; //remember that we wrote this position
 
             if values[position].is_some() {
-                return Err(Diagnostic::syntax_error(
-                    "Invalid TIME Literal: segments must be unique",
-                    location,
-                ));
+                return Err(Diagnostic::invalid_time_literal("Segments must be unique", location));
             }
             values[position] = Some(number); //store the number
         } else {
-            return Err(Diagnostic::syntax_error(
-                format!("Invalid TIME Literal: illegal unit '{unit}'").as_str(),
+            return Err(Diagnostic::invalid_time_literal(
+                format!("Illegal unit: '{unit}'").as_str(),
                 location,
             ));
         }

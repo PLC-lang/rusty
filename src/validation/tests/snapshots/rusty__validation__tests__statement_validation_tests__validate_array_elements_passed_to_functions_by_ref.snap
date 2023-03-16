@@ -1,7 +1,7 @@
 ---
 source: src/validation/tests/statement_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign '__main_x' to 'INT'", range: [SourceRange { range: 323..324 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign '__main_x' to 'INT'", range: [SourceRange { range: 326..327 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'INT' - '__main_x'", range: [SourceRange { range: 323..324 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'INT' - '__main_x'", range: [SourceRange { range: 326..327 }], err_no: var__invalid_assignment }
 

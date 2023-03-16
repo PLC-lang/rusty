@@ -43,8 +43,8 @@ lazy_static! {
                             .generate_element_pointer(reference)
                             .map(|it| ExpressionValue::RValue(generator.ptr_as_value(it)))
                     } else {
-                        Err(Diagnostic::codegen_error(
-                            "Expected exactly one parameter for REF",
+                        Err(Diagnostic::invalid_number_of_arguments(
+                            Some("Expected exactly one parameter for ADR"),
                             location,
                         ))
                     }
@@ -61,7 +61,8 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: Some(|annotator, operator, parameters, _| {
-                    let params = parameters.ok_or_else(|| Diagnostic::codegen_error("REF requires parameters", operator.get_location()))?;
+                    let params = parameters.ok_or_else(|| Diagnostic::invalid_number_of_arguments(
+                        Some("Expected exactly one parameter for REF"), operator.get_location()))?;
                         // Get the input and annotate it with a pointer type
                         if let [input] = flatten_expression_list(params)[..] {
                             let input_type = annotator.annotation_map
@@ -94,8 +95,8 @@ lazy_static! {
                             .generate_element_pointer(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
-                        Err(Diagnostic::codegen_error(
-                            "Expected exactly one parameter for REF",
+                        Err(Diagnostic::invalid_number_of_arguments(
+                            Some("Expected exactly one parameter for REF"),
                             location,
                         ))
                     }
@@ -126,7 +127,7 @@ lazy_static! {
                     if let (&[k], params) = params.split_at(1) {
                         //Create a temp var
                         let result_type = params.get(0)
-                            .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location))
+                            .ok_or_else(|| Diagnostic::invalid_number_of_arguments(None, location))
                             .and_then(|it| generator.get_type_hint_info_for(it))
                             .and_then(|it| generator.llvm_index.get_associated_type(it.get_name()))?;
                         let result_var = generator.llvm.create_local_variable("", &result_type);
@@ -152,7 +153,7 @@ lazy_static! {
                         builder.position_at_end(continue_block);
                         Ok(ExpressionValue::LValue(result_var))
                     } else {
-                        Err(Diagnostic::codegen_error("Invalid signature for MUX", location))
+                        Err(Diagnostic::invalid_number_of_arguments(None, location))
                     }
                 }
             },
@@ -196,7 +197,7 @@ lazy_static! {
                             Ok(ExpressionValue::RValue(sel))
                         }
                     } else {
-                        Err(Diagnostic::codegen_error("Invalid signature for SEL", location))
+                        Err(Diagnostic::invalid_number_of_arguments(None, location))
                     }
 
                 }
@@ -216,7 +217,8 @@ lazy_static! {
                     if params.len() == 1 {
                         generator.generate_expression(params[0]).map(ExpressionValue::RValue)
                     } else {
-                        Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location))
+                        Err(Diagnostic::invalid_number_of_arguments(
+                            Some("Expected exactly one parameter for MOVE"), location))
                     }
                 }
             }
@@ -249,8 +251,8 @@ lazy_static! {
                             .as_basic_value_enum();
                             Ok(ExpressionValue::RValue(size))
                     } else {
-                        Err(Diagnostic::codegen_error(
-                            "Expected exactly one parameter for SIZEOF",
+                        Err(Diagnostic::invalid_number_of_arguments(
+                            Some("Expected exactly one parameter for SIZEOF"),
                             location,
                         ))
                     }

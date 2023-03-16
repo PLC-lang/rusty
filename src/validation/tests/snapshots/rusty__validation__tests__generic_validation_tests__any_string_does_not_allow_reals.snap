@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'REAL' to 'STRING'", range: [SourceRange { range: 139..140 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. REAL is no String.", range: [SourceRange { range: 139..140 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'LREAL' to 'STRING'", range: [SourceRange { range: 214..215 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. LREAL is no String.", range: [SourceRange { range: 214..215 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'STRING' - 'REAL'", range: [SourceRange { range: 139..140 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'REAL' is no 'String'", range: [SourceRange { range: 139..140 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'STRING' - 'LREAL'", range: [SourceRange { range: 214..215 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'LREAL' is no 'String'", range: [SourceRange { range: 214..215 }], err_no: type__invalid_nature }
 

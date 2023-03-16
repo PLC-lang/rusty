@@ -25,7 +25,7 @@ fn time_literal_problems_can_be_recovered_from_during_parsing() {
     assert_eq!(actual_statements, 2);
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::syntax_error("Invalid TIME Literal: segments must be unique", (34..44).into())]
+        vec![Diagnostic::invalid_time_literal("Segments must be unique", (34..44).into())]
     );
 }
 
@@ -38,10 +38,7 @@ fn illegal_literal_time_double_segments_test() {
         ";
 
     let (_, diagnostics) = parse(src);
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::syntax_error("Invalid TIME Literal: segments must be unique", (34..44).into())
-    );
+    assert_eq!(diagnostics[0], Diagnostic::invalid_time_literal("Segments must be unique", (34..44).into()));
 }
 
 #[test]
@@ -55,10 +52,7 @@ fn illegal_literal_time_out_of_order_segments_test() {
     let (_, diagnostics) = parse(src);
     assert_eq!(
         diagnostics[0],
-        Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments out of order, use d-h-m-s-ms",
-            (34..42).into(),
-        )
+        Diagnostic::invalid_time_literal("Segments out of order, use d-h-m-s-ms", (34..42).into(),)
     );
 }
 

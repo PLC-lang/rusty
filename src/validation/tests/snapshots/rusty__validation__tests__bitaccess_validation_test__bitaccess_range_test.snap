@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/bitaccess_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Bit-Wise access for type BYTE must be in the range 0..7", range: [SourceRange { range: 138..139 }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Bit-Wise access for type WORD must be in the range 0..15", range: [SourceRange { range: 159..161 }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Bit-Wise access for type DWORD must be in the range 0..31", range: [SourceRange { range: 181..183 }], err_no: type__incompatible_directaccess_range }
-SyntaxError { message: "Bit-Wise access for type LWORD must be in the range 0..63", range: [SourceRange { range: 203..205 }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "'Bit-Wise' access for type 'BYTE' must be in the range (0..7)", range: [SourceRange { range: 138..139 }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "'Bit-Wise' access for type 'WORD' must be in the range (0..15)", range: [SourceRange { range: 159..161 }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "'Bit-Wise' access for type 'DWORD' must be in the range (0..31)", range: [SourceRange { range: 181..183 }], err_no: type__incompatible_directaccess_range }
+SyntaxError { message: "'Bit-Wise' access for type 'LWORD' must be in the range (0..63)", range: [SourceRange { range: 203..205 }], err_no: type__incompatible_directaccess_range }
 

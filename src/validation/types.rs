@@ -52,10 +52,7 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
             validator.push_diagnostic(Diagnostic::empty_variable_block(location.clone()));
         }
         DataType::VarArgs { referenced_type: None, sized: true } => {
-            validator.push_diagnostic(Diagnostic::missing_datatype(
-                Some(": Sized Variadics require a known datatype."),
-                location.clone(),
-            ))
+            validator.push_diagnostic(Diagnostic::missing_datatype(location.clone()))
         }
         _ => {}
     }

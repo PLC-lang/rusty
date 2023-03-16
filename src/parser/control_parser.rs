@@ -186,10 +186,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstStatement {
             } else {
                 //If no current condition is available, log a diagnostic and add an empty condition
                 if current_condition.is_none() {
-                    lexer.accept_diagnostic(Diagnostic::syntax_error(
-                        "Missing Case-Condition",
-                        lexer.location(),
-                    ));
+                    lexer.accept_diagnostic(Diagnostic::missing_case_condition(lexer.location()));
                     current_condition = Some(Box::new(AstStatement::EmptyStatement {
                         location: lexer.location(),
                         id: lexer.next_id(),

@@ -257,10 +257,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         left_type,
                     )
                 } else {
-                    Err(Diagnostic::syntax_error(
-                        &format!("{element:?} not a direct access"),
-                        element.get_location(),
-                    ))
+                    Err(Diagnostic::invalid_direct_access(element, element.get_location()))
                 }?;
                 for element in direct_access {
                     let rhs_next = if let AstStatement::DirectAccess { access, index, .. } = element {
@@ -271,10 +268,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             left_type,
                         )
                     } else {
-                        Err(Diagnostic::syntax_error(
-                            &format!("{element:?} not a direct access"),
-                            element.get_location(),
-                        ))
+                        Err(Diagnostic::invalid_direct_access(element, element.get_location()))
                     }?;
                     rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
                 }

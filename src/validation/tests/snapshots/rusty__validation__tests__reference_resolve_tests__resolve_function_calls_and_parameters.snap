@@ -1,9 +1,9 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Could not resolve reference to boo", range: [SourceRange { range: 101..104 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to c", range: [SourceRange { range: 105..106 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to c", range: [SourceRange { range: 163..164 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to y", range: [SourceRange { range: 187..188 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: boo", range: [SourceRange { range: 101..104 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: c", range: [SourceRange { range: 105..106 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: c", range: [SourceRange { range: 163..164 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: y", range: [SourceRange { range: 187..188 }], err_no: reference__unresolved }
 

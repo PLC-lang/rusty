@@ -151,7 +151,7 @@ fn validate_cast_literal(
     if !literal.is_typable_literal() {
         validator.push_diagnostic(Diagnostic::literal_expected(location.clone()))
     } else if cast_type.is_date_or_time_type() || literal_type.is_date_or_time_type() {
-        validator.push_diagnostic(Diagnostic::incompatible_literal_cast(
+        validator.push_diagnostic(Diagnostic::casting_error(
             cast_type.get_name(),
             literal_type.get_name(),
             location.clone(),
@@ -180,7 +180,7 @@ fn validate_cast_literal(
         // different types
         // REAL#100 is fine, other differences are not
         if !(cast_type.is_float() && literal_type.is_int()) {
-            validator.push_diagnostic(Diagnostic::incompatible_literal_cast(
+            validator.push_diagnostic(Diagnostic::casting_error(
                 cast_type.get_name(),
                 literal.get_literal_value().as_str(),
                 location.clone(),
@@ -450,10 +450,7 @@ fn validate_unary_expression(
             | AstStatement::QualifiedReference { .. }
             | AstStatement::ArrayAccess { .. } => (),
 
-            _ => validator.push_diagnostic(Diagnostic::invalid_operation(
-                "Invalid address-of operation",
-                location.to_owned(),
-            )),
+            _ => validator.push_diagnostic(Diagnostic::invalid_address_of_operation(location.to_owned())),
         }
     }
 }
@@ -584,8 +581,9 @@ fn is_valid_string_to_char_assignment(
             if value.len() == 1 {
                 return true;
             } else {
-                validator.push_diagnostic(Diagnostic::syntax_error(
-                    format!("Value: '{value}' exceeds length for type: {}", left_type.get_name()).as_str(),
+                validator.push_diagnostic(Diagnostic::exceeding_type_length(
+                    value,
+                    left_type.get_name(),
                     location.clone(),
                 ));
                 return false;

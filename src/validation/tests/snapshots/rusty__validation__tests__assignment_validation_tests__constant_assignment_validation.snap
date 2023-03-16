@@ -1,6 +1,6 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Cannot assign to CONSTANT 'v_global'", range: [SourceRange { range: 123..131 }], err_no: var__cannot_assign_to_const }
+SyntaxError { message: "Invalid assignment to constant: 'v_global'", range: [SourceRange { range: 123..131 }], err_no: var__cannot_assign_to_const }
 

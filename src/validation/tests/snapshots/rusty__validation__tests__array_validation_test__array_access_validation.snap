@@ -1,13 +1,13 @@
 ---
 source: src/validation/tests/array_validation_test.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Array access must be in the range 2..3", range: [SourceRange { range: 557..558 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range 2..3", range: [SourceRange { range: 590..591 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range 0..1", range: [SourceRange { range: 617..618 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range -2..2", range: [SourceRange { range: 655..657 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range -3..-1", range: [SourceRange { range: 688..690 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Array access must be in the range 1..2", range: [SourceRange { range: 718..719 }], err_no: type__incompatible_arrayaccess_range }
-SyntaxError { message: "Invalid type STRING for array access. Only variables of Integer types are allowed to access an array", range: [SourceRange { range: 745..755 }], err_no: type__incompatible_arrayaccess_variable }
-SyntaxError { message: "Invalid type INT for array access. Only variables of Array types are allowed", range: [SourceRange { range: 802..803 }], err_no: type__incompatible_arrayaccess_variable }
+SyntaxError { message: "Array access out of range: (2..3)", range: [SourceRange { range: 557..558 }], err_no: type__incompatible_arrayaccess_range }
+SyntaxError { message: "Array access out of range: (2..3)", range: [SourceRange { range: 590..591 }], err_no: type__incompatible_arrayaccess_range }
+SyntaxError { message: "Array access out of range: (0..1)", range: [SourceRange { range: 617..618 }], err_no: type__incompatible_arrayaccess_range }
+SyntaxError { message: "Array access out of range: (-2..2)", range: [SourceRange { range: 655..657 }], err_no: type__incompatible_arrayaccess_range }
+SyntaxError { message: "Array access out of range: (-3..-1)", range: [SourceRange { range: 688..690 }], err_no: type__incompatible_arrayaccess_range }
+SyntaxError { message: "Array access out of range: (1..2)", range: [SourceRange { range: 718..719 }], err_no: type__incompatible_arrayaccess_range }
+SyntaxError { message: "Invalid type for array access: 'STRING'. Integer type required to access an array", range: [SourceRange { range: 745..755 }], err_no: type__incompatible_arrayaccess_variable }
+SyntaxError { message: "Invalid array access: 'INT' is no array", range: [SourceRange { range: 802..803 }], err_no: type__incompatible_arrayaccess_variable }
 

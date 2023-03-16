@@ -1,8 +1,8 @@
 ---
 source: src/validation/tests/literals_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Literal 2 out of range (BOOL)", range: [SourceRange { range: 120..126 }], err_no: type__literal_out_of_range }
-SyntaxError { message: "Literal 2.3 is not campatible to BOOL", range: [SourceRange { range: 140..148 }], err_no: type__incompatible_literal_cast }
-SyntaxError { message: "Literal 'abc' is not campatible to BOOL", range: [SourceRange { range: 162..172 }], err_no: type__incompatible_literal_cast }
+SyntaxError { message: "Literal: '2' out of range: 'BOOL'", range: [SourceRange { range: 120..126 }], err_no: type__literal_out_of_range }
+SyntaxError { message: "Invalid cast: 'BOOL' to '2.3'", range: [SourceRange { range: 140..148 }], err_no: type__cast_error }
+SyntaxError { message: "Invalid cast: 'BOOL' to ''abc''", range: [SourceRange { range: 162..172 }], err_no: type__cast_error }
 

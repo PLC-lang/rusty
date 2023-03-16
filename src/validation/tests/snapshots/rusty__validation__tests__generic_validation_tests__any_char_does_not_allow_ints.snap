@@ -1,21 +1,21 @@
 ---
 source: src/validation/tests/generic_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'USINT' to 'CHAR'", range: [SourceRange { range: 134..135 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. USINT is no Char.", range: [SourceRange { range: 134..135 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'UINT' to 'CHAR'", range: [SourceRange { range: 208..209 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. UINT is no Char.", range: [SourceRange { range: 208..209 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'UDINT' to 'CHAR'", range: [SourceRange { range: 277..278 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. UDINT is no Char.", range: [SourceRange { range: 277..278 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'ULINT' to 'CHAR'", range: [SourceRange { range: 346..347 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. ULINT is no Char.", range: [SourceRange { range: 346..347 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'SINT' to 'CHAR'", range: [SourceRange { range: 415..416 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. SINT is no Char.", range: [SourceRange { range: 415..416 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'INT' to 'CHAR'", range: [SourceRange { range: 488..489 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. INT is no Char.", range: [SourceRange { range: 488..489 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'DINT' to 'CHAR'", range: [SourceRange { range: 556..557 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. DINT is no Char.", range: [SourceRange { range: 556..557 }], err_no: type__invalid_nature }
-SyntaxError { message: "Invalid assignment: cannot assign 'LINT' to 'CHAR'", range: [SourceRange { range: 624..625 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid type nature for generic argument. LINT is no Char.", range: [SourceRange { range: 624..625 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'CHAR' - 'USINT'", range: [SourceRange { range: 134..135 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'USINT' is no 'Char'", range: [SourceRange { range: 134..135 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'CHAR' - 'UINT'", range: [SourceRange { range: 208..209 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'UINT' is no 'Char'", range: [SourceRange { range: 208..209 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'CHAR' - 'UDINT'", range: [SourceRange { range: 277..278 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'UDINT' is no 'Char'", range: [SourceRange { range: 277..278 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'CHAR' - 'ULINT'", range: [SourceRange { range: 346..347 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'ULINT' is no 'Char'", range: [SourceRange { range: 346..347 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'CHAR' - 'SINT'", range: [SourceRange { range: 415..416 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'SINT' is no 'Char'", range: [SourceRange { range: 415..416 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'CHAR' - 'INT'", range: [SourceRange { range: 488..489 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'INT' is no 'Char'", range: [SourceRange { range: 488..489 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'CHAR' - 'DINT'", range: [SourceRange { range: 556..557 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'DINT' is no 'Char'", range: [SourceRange { range: 556..557 }], err_no: type__invalid_nature }
+SyntaxError { message: "Invalid assignment: 'CHAR' - 'LINT'", range: [SourceRange { range: 624..625 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid type nature for generic argument: 'LINT' is no 'Char'", range: [SourceRange { range: 624..625 }], err_no: type__invalid_nature }
 

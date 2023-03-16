@@ -1,11 +1,11 @@
 ---
 source: src/validation/tests/reference_resolve_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Could not resolve reference to fb3", range: [SourceRange { range: 650..653 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to a", range: [SourceRange { range: 654..655 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to fb3", range: [SourceRange { range: 664..667 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to b", range: [SourceRange { range: 668..669 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to fb3", range: [SourceRange { range: 678..681 }], err_no: reference__unresolved }
-SyntaxError { message: "Could not resolve reference to c", range: [SourceRange { range: 682..683 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: fb3", range: [SourceRange { range: 650..653 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: a", range: [SourceRange { range: 654..655 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: fb3", range: [SourceRange { range: 664..667 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: b", range: [SourceRange { range: 668..669 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: fb3", range: [SourceRange { range: 678..681 }], err_no: reference__unresolved }
+SyntaxError { message: "Unresolved reference: c", range: [SourceRange { range: 682..683 }], err_no: reference__unresolved }
 

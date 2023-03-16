@@ -1,19 +1,19 @@
 ---
 source: src/validation/tests/assignment_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 880..899 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 916..942 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 959..978 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'UDINT'", range: [SourceRange { range: 995..1012 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'UDINT'", range: [SourceRange { range: 1029..1048 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 1170..1193 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 1251..1278 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 1646..1664 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 1681..1706 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 1723..1741 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DINT'", range: [SourceRange { range: 1758..1774 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'DINT'", range: [SourceRange { range: 1791..1809 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 1928..1950 }], err_no: var__invalid_assignment }
-SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'DINT'", range: [SourceRange { range: 2007..2033 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'UDINT' - 'STRING'", range: [SourceRange { range: 880..899 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'UDINT' - 'STRING'", range: [SourceRange { range: 916..942 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'UDINT' - 'STRING'", range: [SourceRange { range: 959..978 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'UDINT' - 'CHAR'", range: [SourceRange { range: 995..1012 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'UDINT' - 'CHAR'", range: [SourceRange { range: 1029..1048 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'UDINT' - 'STRING'", range: [SourceRange { range: 1170..1193 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'UDINT' - 'STRING'", range: [SourceRange { range: 1251..1278 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'STRING'", range: [SourceRange { range: 1646..1664 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'STRING'", range: [SourceRange { range: 1681..1706 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'STRING'", range: [SourceRange { range: 1723..1741 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'CHAR'", range: [SourceRange { range: 1758..1774 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'CHAR'", range: [SourceRange { range: 1791..1809 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'STRING'", range: [SourceRange { range: 1928..1950 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: 'DINT' - 'STRING'", range: [SourceRange { range: 2007..2033 }], err_no: var__invalid_assignment }
 

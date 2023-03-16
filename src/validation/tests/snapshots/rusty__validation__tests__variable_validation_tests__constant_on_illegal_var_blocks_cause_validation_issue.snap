@@ -1,11 +1,11 @@
 ---
 source: src/validation/tests/variable_validation_tests.rs
-expression: make_readable(&diagnostics)
+expression: res
 ---
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceRange { range: 83..92 }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceRange { range: 145..155 }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceRange { range: 208..218 }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceRange { range: 447..456 }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceRange { range: 517..527 }], err_no: var__invalid_constant_block }
-SyntaxError { message: "This variable block does not support the CONSTANT modifier", range: [SourceRange { range: 588..598 }], err_no: var__invalid_constant_block }
+SyntaxError { message: "Unsupported 'CONSTANT' modifier", range: [SourceRange { range: 83..92 }], err_no: var__invalid_constant_block }
+SyntaxError { message: "Unsupported 'CONSTANT' modifier", range: [SourceRange { range: 145..155 }], err_no: var__invalid_constant_block }
+SyntaxError { message: "Unsupported 'CONSTANT' modifier", range: [SourceRange { range: 208..218 }], err_no: var__invalid_constant_block }
+SyntaxError { message: "Unsupported 'CONSTANT' modifier", range: [SourceRange { range: 447..456 }], err_no: var__invalid_constant_block }
+SyntaxError { message: "Unsupported 'CONSTANT' modifier", range: [SourceRange { range: 517..527 }], err_no: var__invalid_constant_block }
+SyntaxError { message: "Unsupported 'CONSTANT' modifier", range: [SourceRange { range: 588..598 }], err_no: var__invalid_constant_block }
 
