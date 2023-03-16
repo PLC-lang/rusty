@@ -157,11 +157,6 @@ impl DataType {
         self.get_type_information().is_aggregate()
     }
 
-    // TODO: rustdoc
-    pub fn is_user_defined(&self) -> bool {
-        self.get_type_information().is_user_defined()
-    }
-
     pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {
         if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
             members.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
@@ -450,16 +445,6 @@ impl DataTypeInformation {
             DataTypeInformation::Struct { .. }
                 | DataTypeInformation::Array { .. }
                 | DataTypeInformation::String { .. }
-        )
-    }
-
-    // TODO: rustdoc
-    pub fn is_user_defined(&self) -> bool {
-        matches!(
-            self,
-            DataTypeInformation::Struct { .. }
-                | DataTypeInformation::Array { .. }
-                | DataTypeInformation::Enum { .. }
         )
     }
 

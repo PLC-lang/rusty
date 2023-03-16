@@ -85,16 +85,15 @@ impl GlobalValidator {
         self.validate_unique_pous(index);
     }
 
-    // TODO: rustdoc
+    /// Checks if user-defined datatype names clash with built-in ones. For example `TYPE DINT : ... END_TYPE`
+    /// is invalid because `DINT` is an built-in datatype and as such can't be used as an alias.
     fn validate_user_defined_names(&mut self, index: &Index) {
-        let types = index.get_types().values().filter(|t| t.is_user_defined());
+        let types = index.get_types().values().filter(|t| !t.is_internal());
         let builtin = typesystem::get_builtin_types().into_iter().map(|t| t.name).collect::<HashSet<_>>();
 
-        for t in types {
-            if builtin.get(&t.name).is_some() {
-                self.diagnostics.push(Diagnostic::invalid_type_name(&t.name, t.location.source_range.clone()))
-            }
-        }
+        types.filter(|t| builtin.get(&t.name).is_some()).for_each(|t| {
+            self.diagnostics.push(Diagnostic::invalid_type_name(&t.name, t.location.source_range.clone()))
+        });
     }
 
     /// validates following uniqueness-clusters:
