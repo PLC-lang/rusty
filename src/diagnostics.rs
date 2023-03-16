@@ -88,6 +88,7 @@ pub enum ErrNo {
     type__unresolved_generic,
     type__incompatible_size,
     type__invalid_operation,
+    type__invalid_name,
 
     //codegen related
     codegen__general,
@@ -661,6 +662,14 @@ impl Diagnostic {
             message: format!("Duplicate POU {name}"),
             range: vec![range],
             err_no: ErrNo::duplicate_symbol,
+        }
+    }
+
+    pub fn invalid_type_name(name: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("{name} can not be used as a name because it is a built-in datatype"),
+            range: vec![range],
+            err_no: ErrNo::type__invalid_name,
         }
     }
 

@@ -157,6 +157,11 @@ impl DataType {
         self.get_type_information().is_aggregate()
     }
 
+    // TODO: rustdoc
+    pub fn is_user_defined(&self) -> bool {
+        self.get_type_information().is_user_defined()
+    }
+
     pub fn find_member(&self, member_name: &str) -> Option<&VariableIndexEntry> {
         if let DataTypeInformation::Struct { members, .. } = self.get_type_information() {
             members.iter().find(|member| member.get_name().eq_ignore_ascii_case(member_name))
@@ -448,6 +453,16 @@ impl DataTypeInformation {
         )
     }
 
+    // TODO: rustdoc
+    pub fn is_user_defined(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct { .. }
+                | DataTypeInformation::Array { .. }
+                | DataTypeInformation::Enum { .. }
+        )
+    }
+
     pub fn is_date_or_time_type(&self) -> bool {
         matches!(self.get_name(), DATE_TYPE | DATE_AND_TIME_TYPE | TIME_OF_DAY_TYPE | TIME_TYPE)
     }
@@ -627,6 +642,7 @@ impl<'a> DataTypeInformationProvider<'a> for &'a DataType {
     }
 }
 
+// TODO: lazy_static this?
 pub fn get_builtin_types() -> Vec<DataType> {
     vec![
         DataType {

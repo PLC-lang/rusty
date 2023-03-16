@@ -1,10 +1,12 @@
+use std::collections::HashSet;
+
 use itertools::Itertools;
 
 use crate::{
     ast::{PouType, SourceRange},
     diagnostics::Diagnostic,
     index::{symbol::SymbolMap, Index, PouIndexEntry},
-    typesystem::{DataTypeInformation, StructSource},
+    typesystem::{self, DataTypeInformation, StructSource},
 };
 
 use super::Validators;
@@ -67,6 +69,9 @@ impl GlobalValidator {
     /// checks all symbols of the given index for naming conflicts.
     /// all problems will be reported to self.diagnostics
     pub fn validate_unique_symbols(&mut self, index: &Index) {
+        // TODO: the following function should not be in here
+        self.validate_user_defined_names(index);
+
         // everything callable (funks, global FB-instances, programs)
         self.validate_unique_callables(index);
 
@@ -78,6 +83,18 @@ impl GlobalValidator {
 
         // all POUs
         self.validate_unique_pous(index);
+    }
+
+    // TODO: rustdoc
+    fn validate_user_defined_names(&mut self, index: &Index) {
+        let types = index.get_types().values().filter(|t| t.is_user_defined());
+        let builtin = typesystem::get_builtin_types().into_iter().map(|t| t.name).collect::<HashSet<_>>();
+
+        for t in types {
+            if builtin.get(&t.name).is_some() {
+                self.diagnostics.push(Diagnostic::invalid_type_name(&t.name, t.location.source_range.clone()))
+            }
+        }
     }
 
     /// validates following uniqueness-clusters:
