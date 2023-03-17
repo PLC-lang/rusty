@@ -209,7 +209,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
                 .map(|it| it.as_basic_type_enum()),
             DataTypeInformation::Integer { size, .. } => {
-                get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())
+                Ok(get_llvm_int_type(self.llvm.context, *size, name).into())
             }
             DataTypeInformation::Enum { name, referenced_type, .. } => {
                 let effective_type = self.index.get_effective_type_or_void_by_name(referenced_type);
@@ -224,7 +224,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 }
             }
             DataTypeInformation::Float { size, .. } => {
-                get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())
+                Ok(get_llvm_float_type(self.llvm.context, *size, name).into())
             }
             DataTypeInformation::String { size, encoding } => {
                 let base_type = if *encoding == StringEncoding::Utf8 {
@@ -244,7 +244,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .index
                 .get_effective_type_by_name(referenced_type)
                 .and_then(|data_type| self.create_type(name, data_type)),
-            DataTypeInformation::Void => get_llvm_int_type(self.llvm.context, 32, "Void").map(Into::into),
+            DataTypeInformation::Void => Ok(get_llvm_int_type(self.llvm.context, 32, "Void").into()),
             DataTypeInformation::Pointer { inner_type_name, .. } => {
                 let inner_type = self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?;
                 Ok(inner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())

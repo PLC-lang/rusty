@@ -675,6 +675,23 @@ fn struct_assignment_validation() {
 }
 
 #[test]
+fn assigning_literal_with_incompatible_encoding_to_char_is_validated() {
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            x : CHAR;
+            y : WCHAR;
+        END_VAR
+            x := "A";
+            y := 'B';
+        END_FUNCTION"#,
+    );
+
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
 #[ignore = "var_in_out blocks cause false positive validation errors. see https://github.com/PLC-lang/rusty/issues/803"]
 fn invalid_action_call_assignments_are_validated() {
     let diagnostics = parse_and_validate(
