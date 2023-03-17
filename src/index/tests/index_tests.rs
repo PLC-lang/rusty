@@ -1,4 +1,3 @@
-use insta::assert_debug_snapshot;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
@@ -1987,35 +1986,6 @@ fn global_variables_duplicates_are_indexed() {
 }
 
 #[test]
-fn _x() {
-    let (_, index) = index(
-        "
-        TYPE fat_ptr : STRUCT
-          arr : REF_TO ARRAY[0..1] OF INT;
-          referenced_type: INT;
-          dimensions: ARRAY[0..2, 0..1] OF DINT;  
-        END_STRUCT END_TYPE
-
-        FUNCTION foo : DINT
-        VAR_INPUT
-            in1 : ARRAY[*, *, *] OF INT;
-            in2 : fat_ptr;
-        END_VAR
-        END_FUNCTION
-        ",
-    );
-
-    let members = index.get_container_members("foo");
-    let type_info = index.get_type_information_or_void(members[0].get_type_name());
-    let size_implicit_fat_ptr = &type_info.get_size_in_bits(&index);
-    let size_explicit_fat_ptr =
-        index.get_type_information_or_void(members[1].get_type_name()).get_size_in_bits(&index);
-
-    assert_eq!(&size_explicit_fat_ptr, size_implicit_fat_ptr);
-    assert_debug_snapshot!(&type_info);
-}
-
-#[test]
 fn internal_vla_struct_type_is_indexed_correctly() {
     let id_provider = IdProvider::default();
 
@@ -2035,12 +2005,12 @@ fn internal_vla_struct_type_is_indexed_correctly() {
             name: "__foo_arr".to_string(),
             members: vec![
                 VariableIndexEntry {
-                    name: "ptr".to_string(),
-                    qualified_name: "__foo_arr.ptr".to_string(),
+                    name: "struct_vla_int_1".to_string(),
+                    qualified_name: "__foo_arr.struct_vla_int_1".to_string(),
                     initial_value: None,
                     variable_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
-                    data_type_name: "array_ptr".to_string(),
+                    data_type_name: "ptr_to___arr_vla_1_int".to_string(),
                     location_in_parent: 0,
                     linkage: LinkageType::Internal,
                     binding: None,
@@ -2061,7 +2031,10 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     varargs: None
                 }
             ],
-            source: StructSource::Internal(InternalType::VariableLengthArray)
+            source: StructSource::Internal(InternalType::VariableLengthArray {
+                inner_type_name: "INT".to_string(),
+                ndims: 1
+            })
         }
     );
 }

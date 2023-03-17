@@ -261,6 +261,7 @@ impl StringEncoding {
 pub enum TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
+    Undetermined,
 }
 
 impl TypeSize {
@@ -279,6 +280,7 @@ impl TypeSize {
             TypeSize::ConstExpression(id) => {
                 index.get_const_expressions().get_constant_int_statement_value(id).map(|it| it as i64)
             }
+            TypeSize::Undetermined => Ok(POINTER_SIZE as i64),
         }
     }
 
@@ -288,6 +290,7 @@ impl TypeSize {
         match self {
             TypeSize::LiteralInteger(_) => None,
             TypeSize::ConstExpression(id) => index.get_const_expressions().get_constant_statement(id),
+            TypeSize::Undetermined => unreachable!(),
         }
     }
 }
@@ -302,7 +305,7 @@ pub enum StructSource {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InternalType {
-    VariableLengthArray,
+    VariableLengthArray { inner_type_name: String, ndims: usize },
 }
 
 type TypeId = String;
@@ -421,7 +424,7 @@ impl DataTypeInformation {
     }
 
     pub fn is_array(&self) -> bool {
-        matches!(self, DataTypeInformation::Array { .. })
+        matches!(self, DataTypeInformation::Array { .. }) || self.is_vla() // TODO: are VLAs always arrays?
     }
 
     pub fn is_numerical(&self) -> bool {
@@ -437,7 +440,7 @@ impl DataTypeInformation {
         matches!(
             self,
             DataTypeInformation::Struct {
-                source: StructSource::Internal(InternalType::VariableLengthArray),
+                source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
                 ..
             }
         )
@@ -1063,6 +1066,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         DataTypeInformation::String { size, .. } => match size {
             TypeSize::LiteralInteger(size) => (*size).try_into().unwrap(),
             TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
+            TypeSize::Undetermined => unreachable!("Strings will never have undetermined size"),
         },
         DataTypeInformation::Enum { referenced_type, .. } => {
             index.find_effective_type_info(referenced_type).map(|it| get_rank(it, index)).unwrap_or(DINT_SIZE)

@@ -489,37 +489,35 @@ fn visit_data_type(
             /*
             for VLAs, we internally create a fat pointer (struct), which contains a pointer to the passed array plus metadata. e.g.:
                                     STRUCT
-                                        ptr : REF_TO ARRAY[?] OF INT;
-            ARRAY[*, *, *] OF INT =>    referenced_type: INT;
-                                        dimensions: ARRAY[0..2, 0..1] OF DINT;
+                                        ptr : REF_TO ARRAY[*] OF INT;
+            ARRAY[*, *, *] OF INT =>    dimensions: ARRAY[0..2, 0..1] OF DINT;
                                                                 ^^^^ --> start, end
                                                           ^^^^       --> amount of dimensions
                                     END_STRUCT
             */
 
-            let struct_name = name.to_string();
             let ndims = match bounds {
                 AstStatement::VlaRangeStatement { .. } => 1,
                 AstStatement::ExpressionList { expressions, .. } => expressions.len(),
                 _ => unreachable!("not a bounds statement"),
             };
 
-            // register "outer" array type so it can later be annotated as a type hint
             let referenced_type = referenced_type.as_ref().get_name().expect("named datatype").to_string();
-            // TODO: possibility of naming conflicts in the symbol table caused by this dummy-type? -> would prefer a different solution
-            let inner_arr_name = format!("__{name}_{}_vla_hint", referenced_type.clone()).to_lowercase();
+            let struct_name = name.clone();
+
+            // register dummy array type so it can later be annotated as a type hint
+            let array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
             index.register_type(typesystem::DataType {
-                name: inner_arr_name.clone(),
+                name: array_name.clone(),
                 initial_value: None,
                 information: DataTypeInformation::Array {
-                    name: format!("{name}_outer_array"),
+                    name: array_name.clone(),
                     inner_type_name: referenced_type.clone(),
                     // dummy dimensions that will never actually be used
-                    // TODO: still need to check if just having these in the index might mess with any get_size/get_range/... calls
                     dimensions: (0..ndims)
                         .map(|_| Dimension {
-                            start_offset: TypeSize::LiteralInteger(0),
-                            end_offset: TypeSize::LiteralInteger(0),
+                            start_offset: TypeSize::Undetermined,
+                            end_offset: TypeSize::Undetermined,
                         })
                         .collect::<Vec<_>>(),
                 },
@@ -529,16 +527,16 @@ fn visit_data_type(
 
             let variables = vec![
                 Variable {
-                    name: "ptr".to_string(),
+                    name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
                     data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::PointerType {
-                            name: Some("array_ptr".to_string()),
+                            name: Some(format!("ptr_to_{array_name}")),
                             referenced_type: Box::new(DataTypeDeclaration::DataTypeDefinition {
                                 data_type: DataType::ArrayType {
-                                    name: Some(inner_arr_name),
+                                    name: Some(array_name),
                                     bounds: bounds.clone(),
                                     referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                                        referenced_type: referenced_type,
+                                        referenced_type: referenced_type.clone(),
                                         location: SourceRange::undefined(),
                                     }),
                                 },
@@ -547,7 +545,7 @@ fn visit_data_type(
                             }),
                         },
                         location: SourceRange::undefined(),
-                        scope: None, // TODO: might need a scope here
+                        scope: None,
                     },
                     initializer: None,
                     address: None,
@@ -588,18 +586,6 @@ fn visit_data_type(
                     address: None,
                     location: SourceRange::undefined(),
                 },
-                // name: "referenced_type".to_string(),
-                // data_type_declaration: DataTypeDeclaration::DataTypeReference {
-                //     referenced_type: referenced_type
-                //         .as_ref()
-                //         .get_name()
-                //         .expect("named datatype")
-                //         .to_string(),
-                //     location: SourceRange::undefined(),
-                // },
-                // initializer: None,
-                // address: None,
-                // location: SourceRange::undefined(),
             ];
 
             let struct_t =
@@ -619,7 +605,10 @@ fn visit_data_type(
                 symbol_location_factory,
                 &type_declaration.scope,
                 &type_dec,
-                StructSource::Internal(InternalType::VariableLengthArray),
+                StructSource::Internal(InternalType::VariableLengthArray {
+                    inner_type_name: referenced_type,
+                    ndims,
+                }),
             )
         }
         DataType::PointerType { name: Some(name), referenced_type, .. } => {

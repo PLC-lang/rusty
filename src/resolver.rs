@@ -838,15 +838,14 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotation_map.get_type_or_void(reference, self.index).get_type_information();
 
                 let inner_type_name = match array_type {
-                    DataTypeInformation::Array { inner_type_name, .. } => Some(
+                    DataTypeInformation::Array { inner_type_name, .. }
+                    | DataTypeInformation::Struct {
+                        source:
+                            StructSource::Internal(InternalType::VariableLengthArray { inner_type_name, .. }),
+                        ..
+                    } => Some(
                         self.index.get_effective_type_or_void_by_name(inner_type_name).get_name().to_string(),
                     ),
-                    DataTypeInformation::Struct {
-                        source: StructSource::Internal(InternalType::VariableLengthArray),
-                        ..
-                    } => {
-                        todo!("figure out how array access works for VLAs :-) ")
-                    }
                     _ => None,
                 };
 
@@ -1084,8 +1083,8 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotation_map.annotate(statement, annotation);
 
                     if let DataTypeInformation::Struct {
+                        source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
                         members,
-                        source: StructSource::Internal(InternalType::VariableLengthArray),
                         ..
                     } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information()
                     {
