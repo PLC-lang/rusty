@@ -3,14 +3,12 @@
 /// offers operations to generate global variables
 use crate::{
     ast::SourceRange,
-    codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
+    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
     diagnostics::{Diagnostic, ErrNo},
-    index::{Index, PouIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations},
 };
 use inkwell::{module::Module, values::GlobalValue};
-
-use crate::{codegen::llvm_index::LlvmTypedIndex, index::VariableIndexEntry};
 
 use super::{
     data_type_generator::get_default_for,
@@ -101,12 +99,7 @@ pub fn generate_global_variable<'ctx, 'b>(
             let value = expr_generator.generate_expression(initializer)?;
             let target_type = global_index.get_effective_type_or_void_by_name(type_name);
             let value_type = annotations.get_type_or_void(initializer, global_index);
-            Some(
-                match cast_if_needed(llvm, global_index, index, target_type, value, value_type, initializer) {
-                    Ok(v) => v,
-                    Err(_) => value,
-                },
-            )
+            Some(cast_if_needed(llvm, global_index, index, target_type, value_type, value))
         }
     } else {
         None
