@@ -66,12 +66,14 @@ impl GlobalValidator {
         }
     }
 
+    pub fn validate(&mut self, index: &Index) {
+        self.validate_unique_symbols(index);
+        self.validate_user_defined_names(index);
+    }
+
     /// checks all symbols of the given index for naming conflicts.
     /// all problems will be reported to self.diagnostics
-    pub fn validate_unique_symbols(&mut self, index: &Index) {
-        // TODO: the following function should not be in here
-        self.validate_user_defined_names(index);
-
+    fn validate_unique_symbols(&mut self, index: &Index) {
         // everything callable (funks, global FB-instances, programs)
         self.validate_unique_callables(index);
 

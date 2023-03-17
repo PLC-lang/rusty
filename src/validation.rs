@@ -101,8 +101,8 @@ impl Validator {
     }
 
     pub fn perform_global_validation(&mut self, index: &Index) {
-        self.global_validator.validate_unique_symbols(index);
-        self.recursive_validator.validate_recursion(index);
+        self.global_validator.validate(index);
+        self.recursive_validator.validate(index);
     }
 
     pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
