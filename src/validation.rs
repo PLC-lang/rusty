@@ -6,17 +6,17 @@ use crate::{
 };
 
 use self::{
-    global_validator::GlobalValidator,
+    global::GlobalValidator,
     pou::{validate_action_container, visit_pou},
-    recursive_validator::RecursiveValidator,
+    recursive::RecursiveValidator,
     statement::visit_statement,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
 };
 
-mod global_validator;
+mod global;
 mod pou;
-mod recursive_validator;
+mod recursive;
 mod statement;
 mod types;
 mod variable;
