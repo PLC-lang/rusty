@@ -769,7 +769,7 @@ pub struct ResolvedLocation {
 
 impl ResolvedLocation {
     pub fn is_internal(&self) -> bool {
-        self.range == (0..0).into()
+        self.range == (0..0)
     }
 }
 
