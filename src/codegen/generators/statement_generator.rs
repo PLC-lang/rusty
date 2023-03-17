@@ -6,7 +6,7 @@ use super::{
 };
 use crate::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange},
-    codegen::{debug::Debug, llvm_typesystem},
+    codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
@@ -294,16 +294,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 //Generate an expression for the right size
                 let right = exp_gen.generate_expression(right_statement)?;
                 //Cast the right side to the left side type
-                let lhs = llvm_typesystem::cast_if_needed(
-                    self.llvm,
-                    self.index,
-                    self.llvm_index,
-                    left_type,
-                    right,
-                    right_type,
-                    right_statement,
-                )
-                .map(BasicValueEnum::into_int_value)?;
+                let lhs =
+                    cast_if_needed(self.llvm, self.index, self.llvm_index, left_type, right_type, right)
+                        .into_int_value();
                 //Shift left by the direct access
                 let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
 
