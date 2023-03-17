@@ -767,6 +767,12 @@ pub struct ResolvedLocation {
     pub range: Range<usize>,
 }
 
+impl ResolvedLocation {
+    pub fn is_internal(&self) -> bool {
+        self.range == (0..0).into()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedDiagnostics {
     pub message: String,
@@ -852,7 +858,7 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
 
             let result =
                 codespan_reporting::term::emit(&mut self.writer.lock(), &self.config, &self.files, &diag);
-            if result.is_err() {
+            if result.is_err() && d.main_location.is_internal() {
                 eprintln!("<internal>: {}", d.message);
             }
         }
