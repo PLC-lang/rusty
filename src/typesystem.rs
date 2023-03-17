@@ -627,7 +627,6 @@ impl<'a> DataTypeInformationProvider<'a> for &'a DataType {
     }
 }
 
-// TODO: lazy_static this?
 pub fn get_builtin_types() -> Vec<DataType> {
     vec![
         DataType {
