@@ -1,0 +1,8 @@
+---
+source: src/validation/tests/naming_validation_test.rs
+expression: res
+---
+SyntaxError { message: "STRING: Ambiguous datatype.", range: [SourceRange { range: 0..0 }, SourceRange { range: 5..11 }], err_no: duplicate_symbol }
+SyntaxError { message: "STRING: Ambiguous datatype.", range: [SourceRange { range: 5..11 }, SourceRange { range: 0..0 }], err_no: duplicate_symbol }
+SyntaxError { message: "STRING can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 5..11 }], err_no: type__invalid_name }
+
