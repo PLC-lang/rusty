@@ -128,26 +128,17 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">/// offers operations to generate global variables
 </span><span class="kw">use crate</span>::{
     ast::SourceRange,
-    codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
+    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
     diagnostics::{Diagnostic, ErrNo},
-    index::{Index, PouIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations},
 };
 <span class="kw">use </span>inkwell::{module::Module, values::GlobalValue};
-
-<span class="kw">use crate</span>::{codegen::llvm_index::LlvmTypedIndex, index::VariableIndexEntry};
 
 <span class="kw">use super</span>::{
     data_type_generator::get_default_for,
@@ -238,12 +229,7 @@
             <span class="kw">let </span>value = expr_generator.generate_expression(initializer)<span class="question-mark">?</span>;
             <span class="kw">let </span>target_type = global_index.get_effective_type_or_void_by_name(type_name);
             <span class="kw">let </span>value_type = annotations.get_type_or_void(initializer, global_index);
-            <span class="prelude-val">Some</span>(
-                <span class="kw">match </span>cast_if_needed(llvm, global_index, index, target_type, value, value_type, initializer) {
-                    <span class="prelude-val">Ok</span>(v) =&gt; v,
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; value,
-                },
-            )
+            <span class="prelude-val">Some</span>(cast_if_needed(llvm, global_index, index, target_type, value_type, value))
         }
     } <span class="kw">else </span>{
         <span class="prelude-val">None

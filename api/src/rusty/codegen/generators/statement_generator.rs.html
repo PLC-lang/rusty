@@ -727,13 +727,6 @@
 <a href="#727" id="727">727</a>
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
-<a href="#730" id="730">730</a>
-<a href="#731" id="731">731</a>
-<a href="#732" id="732">732</a>
-<a href="#733" id="733">733</a>
-<a href="#734" id="734">734</a>
-<a href="#735" id="735">735</a>
-<a href="#736" id="736">736</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator},
@@ -742,7 +735,7 @@
 };
 <span class="kw">use crate</span>::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, NewLines, Operator, SourceRange},
-    codegen::{debug::Debug, llvm_typesystem},
+    codegen::{debug::Debug, llvm_typesystem::cast_if_needed},
     codegen::{debug::DebugBuilderEnum, LlvmTypedIndex},
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
@@ -1030,16 +1023,9 @@
                 <span class="comment">//Generate an expression for the right size
                 </span><span class="kw">let </span>right = exp_gen.generate_expression(right_statement)<span class="question-mark">?</span>;
                 <span class="comment">//Cast the right side to the left side type
-                </span><span class="kw">let </span>lhs = llvm_typesystem::cast_if_needed(
-                    <span class="self">self</span>.llvm,
-                    <span class="self">self</span>.index,
-                    <span class="self">self</span>.llvm_index,
-                    left_type,
-                    right,
-                    right_type,
-                    right_statement,
-                )
-                .map(BasicValueEnum::into_int_value)<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>lhs =
+                    cast_if_needed(<span class="self">self</span>.llvm, <span class="self">self</span>.index, <span class="self">self</span>.llvm_index, left_type, right_type, right)
+                        .into_int_value();
                 <span class="comment">//Shift left by the direct access
                 </span><span class="kw">let </span>value = <span class="self">self</span>.llvm.builder.build_left_shift(lhs, rhs, <span class="string">&quot;value&quot;</span>);
 

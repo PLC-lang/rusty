@@ -663,7 +663,7 @@
                 .and_then(|inner_type| <span class="self">self</span>.create_nested_array_type(inner_type, dimensions))
                 .map(|it| it.as_basic_type_enum()),
             DataTypeInformation::Integer { size, .. } =&gt; {
-                get_llvm_int_type(<span class="self">self</span>.llvm.context, <span class="kw-2">*</span>size, name).map(|it| it.into())
+                <span class="prelude-val">Ok</span>(get_llvm_int_type(<span class="self">self</span>.llvm.context, <span class="kw-2">*</span>size, name).into())
             }
             DataTypeInformation::Enum { name, referenced_type, .. } =&gt; {
                 <span class="kw">let </span>effective_type = <span class="self">self</span>.index.get_effective_type_or_void_by_name(referenced_type);
@@ -678,7 +678,7 @@
                 }
             }
             DataTypeInformation::Float { size, .. } =&gt; {
-                get_llvm_float_type(<span class="self">self</span>.llvm.context, <span class="kw-2">*</span>size, name).map(|it| it.into())
+                <span class="prelude-val">Ok</span>(get_llvm_float_type(<span class="self">self</span>.llvm.context, <span class="kw-2">*</span>size, name).into())
             }
             DataTypeInformation::String { size, encoding } =&gt; {
                 <span class="kw">let </span>base_type = <span class="kw">if </span><span class="kw-2">*</span>encoding == StringEncoding::Utf8 {
@@ -698,7 +698,7 @@
                 </span>.index
                 .get_effective_type_by_name(referenced_type)
                 .and_then(|data_type| <span class="self">self</span>.create_type(name, data_type)),
-            DataTypeInformation::Void =&gt; get_llvm_int_type(<span class="self">self</span>.llvm.context, <span class="number">32</span>, <span class="string">&quot;Void&quot;</span>).map(Into::into),
+            DataTypeInformation::Void =&gt; <span class="prelude-val">Ok</span>(get_llvm_int_type(<span class="self">self</span>.llvm.context, <span class="number">32</span>, <span class="string">&quot;Void&quot;</span>).into()),
             DataTypeInformation::Pointer { inner_type_name, .. } =&gt; {
                 <span class="kw">let </span>inner_type = <span class="self">self</span>.create_type(inner_type_name, <span class="self">self</span>.index.get_type(inner_type_name)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(inner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())
