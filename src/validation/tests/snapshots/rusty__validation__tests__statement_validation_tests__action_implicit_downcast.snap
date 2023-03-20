@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LINT' to variable of type 'DINT'.", range: [SourceRange { range: 203..211 }] }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceRange { range: 213..221 }], err_no: var__invalid_assignment }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LINT' to variable of type 'INT'.", range: [SourceRange { range: 266..274 }] }
+SyntaxError { message: "Invalid assignment: cannot assign '__main_var_arr' to 'STRING'", range: [SourceRange { range: 276..283 }], err_no: var__invalid_assignment }
+
