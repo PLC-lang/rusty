@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceRange { range: 323..330 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceRange { range: 332..348 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'WSTRING'", range: [SourceRange { range: 386..387 }], err_no: var__invalid_assignment }
+SyntaxError { message: "Invalid assignment: cannot assign '__prog_arr_64' to '__fb_t_arr_32'", range: [SourceRange { range: 389..395 }], err_no: var__invalid_assignment }
+

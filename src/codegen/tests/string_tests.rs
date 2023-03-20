@@ -417,3 +417,21 @@ fn using_a_constant_var_string_should_be_memcpyable() {
     // THEN
     insta::assert_snapshot!(result);
 }
+
+#[test]
+#[ignore = "missing validation for literal string assignments"]
+fn assigning_utf8_literal_to_wstring() {
+    let result = codegen(
+        r#"
+        PROGRAM main
+        VAR
+            ws: WSTRING;
+        END_VAR
+            ws := 'd';
+        END_PROGRAM
+    "#,
+    );
+
+    // THEN
+    insta::assert_snapshot!(result);
+}

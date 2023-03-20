@@ -800,6 +800,222 @@ fn validate_call_by_ref() {
 }
 
 #[test]
+fn implicit_param_downcast_in_function_call() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        PROGRAM main
+        VAR
+            var1_lint, var2_lint : LINT;
+            var_lreal            : LREAL;
+            var_lword            : LWORD;
+            // trying to implicitly cast arrays gives an invalid assignment error, it shouldn't also give a downcast warning
+            var_in_out_wstr       : WSTRING;
+            var_arr              : ARRAY[1..3] OF LINT;
+        END_VAR
+            foo(
+                var1_lint, // downcast
+                var_lword, // downcast
+                var_lreal, // downcast
+                INT#var1_lint, // downcast
+                var2_lint, // downcast
+                var_in_out_wstr, // invalid
+                var1_lint // downcast
+            );
+        END_PROGRAM
+
+        FUNCTION foo : DINT
+        VAR_INPUT {ref}
+            in_ref_int      : INT;
+            in_ref_dword    : DWORD;
+        END_VAR
+        VAR_INPUT
+            in_real         : REAL;
+            in_sint         : SINT;
+        END_VAR
+        VAR_IN_OUT
+            in_out          : INT;
+            in_out_str      : STRING;
+        END_VAR
+        VAR_OUTPUT
+            out_var         : DINT;
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn function_block_implicit_downcast() {
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM main
+        VAR
+            fb: fb_t;
+            var1_lint, var2_lint : LINT;
+            var_real             : REAL;
+            var_lword            : LWORD;
+            var_wstr             : WSTRING;
+        END_VAR
+            fb(
+                var1_lint, // downcast
+                var_lword, // downcast
+                var_real, // ok
+                INT#var1_lint, // downcast
+                var2_lint, // downcast
+                var_wstr, // invalid
+                var1_lint // downcast
+            );
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb_t        
+        VAR_INPUT {ref}
+            in_ref_int      : INT;
+            in_ref_dword    : DWORD;
+        END_VAR
+        VAR_INPUT
+            in_real         : LREAL;
+            in_sint         : SINT;
+        END_VAR
+        VAR_IN_OUT
+            in_out          : INT;
+            in_out_arr      : STRING;
+        END_VAR
+        VAR_OUTPUT
+            out_var         : DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+    "#,
+    );
+
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn program_implicit_downcast() {
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM main
+        VAR
+            fb: fb_t;
+            var1_lint, var2_lint : LINT;
+            var_real             : REAL;
+            var_lword            : LWORD;
+            var_wstr             : WSTRING;
+        END_VAR
+            prog(
+                var1_lint, // downcast
+                var_lword, // downcast
+                var_real, // ok
+                INT#var1_lint, // downcast
+                var2_lint, // downcast
+                var_wstr, // invalid
+                var1_lint // downcast
+            );
+        END_PROGRAM
+
+        PROGRAM prog        
+        VAR_INPUT {ref}
+            in_ref_int      : INT;
+            in_ref_dword    : DWORD;
+        END_VAR
+        VAR_INPUT
+            in_real         : LREAL;
+            in_sint         : SINT;
+        END_VAR
+        VAR_IN_OUT
+            in_out          : INT;
+            in_out_arr      : STRING;
+        END_VAR
+        VAR_OUTPUT
+            out_var         : DINT;
+        END_VAR
+        END_PROGRAM
+
+    "#,
+    );
+
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn action_implicit_downcast() {
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM main
+        VAR
+            var_lint : LINT;
+            var_wstr : WSTRING;
+            var_arr  : ARRAY[1..3] OF LINT;
+            fb       : fb_t;
+        END_VAR
+            fb.foo(var_lint, var_wstr); // downcast, invalid
+            prog.bar(var_lint, var_arr); // downcast, invalid
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb_t
+        VAR_INPUT
+            in1 : DINT;
+            in2 : STRING;
+        END_VAR
+        END_FUNCTION_BLOCK
+        
+        ACTIONS fb_t
+        ACTION foo
+        END_ACTION
+        END_ACTIONS
+
+        PROGRAM prog
+        VAR_INPUT
+            in1 : INT;
+            in2 : STRING;
+        END_VAR
+        END_PROGRAM
+
+        ACTIONS prog
+        ACTION bar
+        END_ACTION
+        END_ACTIONS
+    "#,
+    );
+
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn method_implicit_downcast() {
+    let diagnostics = parse_and_validate(
+        r#"
+    PROGRAM main
+    VAR
+        cl : MyClass;
+        var_lint : LINT;
+        var_arr : ARRAY[1..3] OF DINT;
+    END_VAR
+        cl.testMethod(var_lint, var_arr, ADR(var_arr)); // downcast, invalid, ok
+    END_PROGRAM
+
+    CLASS MyClass
+    VAR
+        x, y : DINT;
+    END_VAR
+
+    METHOD testMethod
+    VAR_INPUT 
+        val : INT; 
+        arr : ARRAY[1..3] OF SINT;
+        ref : REF_TO ARRAY[1..3] OF DINT;
+    END_VAR
+    END_METHOD
+    END_CLASS    
+    "#,
+    );
+
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
 fn validate_array_elements_passed_to_functions_by_ref() {
     let diagnostics: Vec<Diagnostic> = parse_and_validate(
         "
@@ -961,4 +1177,61 @@ fn allowed_assignable_types() {
     );
 
     assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn assignment_of_incompatible_types_is_reported() {
+    let diagnostics = parse_and_validate(
+        r#"
+    PROGRAM prog
+    VAR
+        dint_ : DINT;
+        string_ : STRING := 'Hello, world!';
+        array_ : ARRAY[0..3] OF LWORD;
+    END_VAR
+        string_ := dint_;           // invalid
+        string_ := array_;          // invalid
+        dint_ := string_;           // invalid
+        array_ := string_;          // invalid
+    END_PROGRAM
+    "#,
+    );
+
+    assert_eq!(diagnostics.len(), 4);
+
+    let ranges = &[(152..168), (199..216), (246..262), (293..310)];
+    let types =
+        &[("DINT", "STRING"), ("__prog_array_", "STRING"), ("STRING", "DINT"), ("STRING", "__prog_array_")];
+    for (idx, diag) in diagnostics.iter().enumerate() {
+        assert_eq!(
+            diag,
+            &Diagnostic::invalid_assignment(types[idx].0, types[idx].1, ranges[idx].to_owned().into())
+        )
+    }
+}
+
+#[test]
+fn passing_compatible_numeric_types_to_functions_is_allowed() {
+    let diagnostics = parse_and_validate(
+        r#"
+    PROGRAM prog
+    VAR
+        dint_ : DINT;
+        lreal_ : LREAL;
+    END_VAR
+        foo(dint_);
+        bar(lreal_);
+    END_PROGRAM
+
+    FUNCTION foo : DINT
+    VAR_INPUT r : REAL END_VAR
+    END_FUNCTION
+
+    FUNCTION bar : DINT
+    VAR_INPUT i : LINT END_VAR
+    END_FUNCTION
+    "#,
+    );
+
+    assert_eq!(diagnostics, vec![]);
 }

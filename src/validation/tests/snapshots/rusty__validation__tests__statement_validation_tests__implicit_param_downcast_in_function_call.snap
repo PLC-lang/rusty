@@ -1,0 +1,12 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: make_readable(&diagnostics)
+---
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LINT' to variable of type 'INT'.", range: [SourceRange { range: 434..443 }] }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LWORD' to variable of type 'DWORD'.", range: [SourceRange { range: 473..482 }] }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LREAL' to variable of type 'REAL'.", range: [SourceRange { range: 512..521 }] }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'INT' to variable of type 'SINT'.", range: [SourceRange { range: 551..564 }] }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LINT' to variable of type 'INT'.", range: [SourceRange { range: 594..603 }] }
+SyntaxError { message: "Invalid assignment: cannot assign 'WSTRING' to 'STRING'", range: [SourceRange { range: 633..648 }], err_no: var__invalid_assignment }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LINT' to variable of type 'DINT'.", range: [SourceRange { range: 677..686 }] }
+

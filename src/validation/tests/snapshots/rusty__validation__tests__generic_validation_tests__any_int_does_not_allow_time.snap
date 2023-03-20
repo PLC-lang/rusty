@@ -2,6 +2,8 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: make_readable(&diagnostics)
 ---
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME' to variable of type 'USINT'.", range: [SourceRange { range: 137..138 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceRange { range: 137..138 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME' to variable of type 'USINT'.", range: [SourceRange { range: 206..207 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME is no Int.", range: [SourceRange { range: 206..207 }], err_no: type__invalid_nature }
 

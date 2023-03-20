@@ -3399,6 +3399,77 @@ fn array_of_struct_with_inital_values_annotated_correctly() {
 }
 
 #[test]
+fn parameter_down_cast_test() {
+    //GIVEN some implicit downcasts in call-parameters
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        FUNCTION foo : INT
+            VAR_INPUT
+                i : SINT;
+                ii : INT;
+                di : DINT;
+                li : LINT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM PRG
+            VAR
+                i : SINT;
+                ii : INT;
+                di : DINT;
+                li : LINT;               
+            END_VAR
+            foo(
+                ii,     // downcast
+                di,     // downcast
+                li,     // downcast
+                li);    // ok
+
+            foo(
+                i  := ii,     // downcast
+                ii := di,     // downcast
+                di := li,     // downcast
+                li := li);    // ok
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let statements = &unit.implementations[1].statements;
+
+    // THEN check if downcasts are detected for implicit parameters
+    if let AstStatement::CallStatement { parameters, .. } = &statements[0] {
+        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, parameters[0], INT_TYPE, Some(SINT_TYPE)); // downcast from type to type-hint!
+        assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, Some(INT_TYPE)); // downcast!
+        assert_type_and_hint!(&annotations, &index, parameters[2], LINT_TYPE, Some(DINT_TYPE)); // downcast!
+        assert_type_and_hint!(&annotations, &index, parameters[3], LINT_TYPE, Some(LINT_TYPE));
+        // ok!
+    }
+
+    // THEN check if downcasts are detected for explicit parameters
+    if let AstStatement::CallStatement { parameters, .. } = &statements[1] {
+        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap())
+            .iter()
+            .map(|it| {
+                if let AstStatement::Assignment { right, .. } = it {
+                    return right.as_ref();
+                }
+                unreachable!()
+            })
+            .collect::<Vec<_>>();
+        assert_type_and_hint!(&annotations, &index, parameters[0], INT_TYPE, Some(SINT_TYPE)); // downcast from type to type-hint!
+        assert_type_and_hint!(&annotations, &index, parameters[1], DINT_TYPE, Some(INT_TYPE)); // downcast!
+        assert_type_and_hint!(&annotations, &index, parameters[2], LINT_TYPE, Some(DINT_TYPE)); // downcast!
+        assert_type_and_hint!(&annotations, &index, parameters[3], LINT_TYPE, Some(LINT_TYPE));
+        // ok!
+    }
+}
+
+#[test]
 fn mux_generic_with_strings_is_annotated_correctly() {
     let id_provider = IdProvider::default();
     // GIVEN
