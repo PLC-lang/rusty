@@ -1519,6 +1519,23 @@
 <a href="#1519" id="1519">1519</a>
 <a href="#1520" id="1520">1520</a>
 <a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use crate</span>::{
     index::Index,
@@ -1630,7 +1647,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>derives(<span class="self">self</span>, other: TypeNature) -&gt; bool {
+    <span class="kw">pub fn </span>derives_from(<span class="self">self</span>, other: TypeNature) -&gt; bool {
         <span class="kw">if </span>other == <span class="self">self </span>{
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
@@ -1683,15 +1700,15 @@
     }
 
     <span class="kw">pub fn </span>is_numerical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.derives(TypeNature::Num)
+        <span class="self">self</span>.derives_from(TypeNature::Num)
     }
 
     <span class="kw">pub fn </span>is_real(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.derives(TypeNature::Real)
+        <span class="self">self</span>.derives_from(TypeNature::Real)
     }
 
     <span class="kw">pub fn </span>is_bit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.derives(TypeNature::Bit)
+        <span class="self">self</span>.derives_from(TypeNature::Bit)
     }
 }
 
@@ -2766,10 +2783,11 @@
         }
     }
 
-    <span class="doccomment">/// returns true if this AST Statement is a literal that can be
+    <span class="doccomment">/// returns true if this AST Statement is a literal or reference that can be
     /// prefixed with a type-cast (e.g. INT#23)
-    </span><span class="kw">pub fn </span>is_typable_literal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(
+    </span><span class="kw">pub fn </span>is_cast_prefix_eligible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="comment">// TODO: figure out a better name for this...
+        </span><span class="macro">matches!</span>(
             <span class="self">self</span>,
             AstStatement::LiteralBool { .. }
                 | AstStatement::LiteralInteger { .. }
@@ -2780,6 +2798,22 @@
                 | AstStatement::LiteralTimeOfDay { .. }
                 | AstStatement::LiteralDateAndTime { .. }
                 | AstStatement::Reference { .. }
+        )
+    }
+    <span class="doccomment">/// Returns true if the current statement is a literal
+    </span><span class="kw">pub fn </span>is_literal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            AstStatement::LiteralNull { .. }
+                | AstStatement::LiteralInteger { .. }
+                | AstStatement::LiteralDate { .. }
+                | AstStatement::LiteralDateAndTime { .. }
+                | AstStatement::LiteralTimeOfDay { .. }
+                | AstStatement::LiteralTime { .. }
+                | AstStatement::LiteralReal { .. }
+                | AstStatement::LiteralBool { .. }
+                | AstStatement::LiteralString { .. }
+                | AstStatement::LiteralArray { .. }
         )
     }
 

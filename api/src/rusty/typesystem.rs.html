@@ -1183,6 +1183,10 @@
 <a href="#1183" id="1183">1183</a>
 <a href="#1184" id="1184">1184</a>
 <a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
@@ -1312,7 +1316,7 @@
 
     <span class="kw">pub fn </span>has_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, nature: TypeNature, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
         <span class="kw">let </span>type_nature = index.get_intrinsic_type_by_name(<span class="self">self</span>.get_name()).nature;
-        type_nature.derives(nature)
+        type_nature.derives_from(nature)
     }
 
     <span class="kw">pub fn </span>is_numerical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1340,6 +1344,10 @@
     <span class="doccomment">/// returns true if this type is an array, struct or string
     </span><span class="kw">pub fn </span>is_aggregate_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.get_type_information().is_aggregate()
+    }
+
+    <span class="kw">pub fn </span>get_nature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TypeNature {
+        <span class="self">self</span>.nature
     }
 
     <span class="kw">pub fn </span>find_member(<span class="kw-2">&amp;</span><span class="self">self</span>, member_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {

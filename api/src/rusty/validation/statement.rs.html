@@ -814,6 +814,27 @@
 <a href="#814" id="814">814</a>
 <a href="#815" id="815">815</a>
 <a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
 </pre><pre class="rust"><code><span class="kw">use </span>std::{collections::HashSet, convert::TryInto, mem::discriminant};
 
 <span class="kw">use super</span>::{validate_for_array_assignment, ValidationContext, Validator, Validators};
@@ -950,7 +971,8 @@
 <span class="doccomment">/// validates a literal statement with a dedicated type-prefix (e.g. INT#3)
 /// checks whether the type-prefix is valid
 </span><span class="kw">fn </span>validate_cast_literal(
-    validator: <span class="kw-2">&amp;mut </span>Validator,
+    <span class="comment">// TODO: i feel like literal is misleading here. can be a reference aswell (INT#x)
+    </span>validator: <span class="kw-2">&amp;mut </span>Validator,
     literal: <span class="kw-2">&amp;</span>AstStatement,
     type_name: <span class="kw-2">&amp;</span>str,
     location: <span class="kw-2">&amp;</span>SourceRange,
@@ -964,7 +986,7 @@
             .unwrap_or_else(|| context.annotations.get_type_or_void(literal, context.index).get_name()),
     );
 
-    <span class="kw">if </span>!literal.is_typable_literal() {
+    <span class="kw">if </span>!literal.is_cast_prefix_eligible() {
         validator.push_diagnostic(Diagnostic::literal_expected(location.clone()))
     } <span class="kw">else if </span>cast_type.is_date_or_time_type() || literal_type.is_date_or_time_type() {
         validator.push_diagnostic(Diagnostic::incompatible_literal_cast(
@@ -1347,6 +1369,8 @@
                 left_type.get_type_information().get_name(),
                 location.clone(),
             ));
+        } <span class="kw">else if </span>!right.is_literal() {
+            validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
     }
 }
@@ -1628,6 +1652,24 @@
                 ));
             }
         }
+    }
+}
+
+<span class="kw">fn </span>validate_assignment_type_sizes(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    left: <span class="kw-2">&amp;</span>DataType,
+    right: <span class="kw-2">&amp;</span>DataType,
+    location: <span class="kw-2">&amp;</span>SourceRange,
+    context: <span class="kw-2">&amp;</span>ValidationContext,
+) {
+    <span class="kw">if </span>left.get_type_information().get_size(context.index)
+        &lt; right.get_type_information().get_size(context.index)
+    {
+        validator.push_diagnostic(Diagnostic::implicit_downcast(
+            left.get_name(),
+            right.get_name(),
+            location.clone(),
+        ))
     }
 }
 </code></pre></div>
