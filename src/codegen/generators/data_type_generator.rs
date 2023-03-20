@@ -180,7 +180,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 StructSource::OriginalDeclaration => {
                     self.types_index.get_associated_type(data_type.get_name())
                 }
-                StructSource::Internal(_) => todo!(),
+                StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
             }
             .map(BasicTypeEnum::into_struct_type)?;
 
@@ -201,7 +201,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 StructSource::OriginalDeclaration => {
                     self.types_index.get_associated_type(data_type.get_name())
                 }
-                StructSource::Internal(_) => todo!(),
+                StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
             },
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => self
                 .index
@@ -289,7 +289,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     StructSource::OriginalDeclaration => {
                         self.types_index.get_associated_type(data_type.get_name())
                     }
-                    StructSource::Internal(_) => todo!(),
+                    StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
                 }?
                 .into_struct_type();
 

@@ -2,7 +2,8 @@
 use inkwell::{
     context::Context,
     types::{FloatType, IntType},
-    values::{BasicValueEnum, FloatValue, IntValue, PointerValue},
+    values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
+    AddressSpace,
 };
 
 use crate::{
@@ -106,6 +107,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
             BasicValueEnum::IntValue(val) => val.cast(cast_data),
             BasicValueEnum::FloatValue(val) => val.cast(cast_data),
             BasicValueEnum::PointerValue(val) => val.cast(cast_data),
+            // BasicValueEnum::ArrayValue(val) => val.cast(cast_data),
             _ => self,
         }
     }
@@ -194,6 +196,58 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 }
             }
             _ => unreachable!("Cannot cast pointer value to {}", cast_data.target_type.get_name()),
+        }
+    }
+}
+
+impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
+    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        if cast_data.target_type.is_vla() {
+            /*
+            1. Create struct
+                - alloca instance of VLA struct
+            2. Map arr_ptr and dim members
+                - gep
+            3. Return generated and geped struct value
+             */
+            // let Ok(associated_type) = cast_data
+            //     .llvm_type_index
+            //     .get_associated_type(cast_data.target_type.get_name()) else {
+            //         unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
+            //     };
+
+            // cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
+
+            // --------------------
+
+            // let str_value = struct_type.get_undef();
+            // cast_data.llvm.get_member_pointer_from_struct(pointer_to_struct_instance, member_index, name, offset)
+            // let arr_ptr = cast_data.llvm.builder.build_struct_gep(struct_t_ptr.into(), 0, "arr_ptr");
+            // let v = self
+            //     .generate_expression_value(cast_data.target_type)?
+            //     .as_r_value(self.llvm, format!("__idk__{}", self.get_load_name(cast_data.value_type)))
+            //     .as_basic_value_enum();
+
+            let Ok(associated_type) = cast_data
+                .llvm_type_index
+                .get_associated_type(cast_data.target_type.get_name()) else {
+                    unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
+                };
+
+            let struct_type = associated_type.into_struct_type();
+            let alloca = cast_data.llvm.builder.build_alloca(struct_type, "local_vla");
+
+            let arr_ptr = cast_data.llvm.builder.build_struct_gep(alloca, 0, "doesntmatter").unwrap();
+            // cast_data.llvm.builder.build_gep(self.into(), ordered_indexes, name)
+            // cast_data.llvm.builder.build_store(arr_ptr, );
+
+            // let struct_t_ptr = struct_type.ptr_type(AddressSpace::default());
+
+            // let gep = cast_data.llvm.get_member_pointer_from_struct(*qualifier, member_location, name, offset)?;
+            self.into()
+            // todo!()
+        } else {
+            unreachable!()
         }
     }
 }
