@@ -2,11 +2,14 @@
 source: src/validation/tests/assignment_validation_tests.rs
 expression: make_readable(&diagnostics)
 ---
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'LREAL' to variable of type 'REAL'.", range: [SourceRange { range: 485..502 }] }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME' to variable of type 'REAL'.", range: [SourceRange { range: 678..694 }] }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'REAL'", range: [SourceRange { range: 816..834 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'REAL'", range: [SourceRange { range: 851..876 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'REAL'", range: [SourceRange { range: 893..911 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'REAL'", range: [SourceRange { range: 928..944 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'REAL'", range: [SourceRange { range: 961..979 }], err_no: var__invalid_assignment }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME_OF_DAY' to variable of type 'REAL'.", range: [SourceRange { range: 996..1011 }] }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'REAL'", range: [SourceRange { range: 1098..1120 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'REAL'", range: [SourceRange { range: 1177..1203 }], err_no: var__invalid_assignment }
 

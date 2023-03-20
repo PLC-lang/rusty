@@ -12,6 +12,10 @@ SyntaxError { message: "Array initializer must be an initializer list!", range: 
 SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 1098..1099 }], err_no: arr__invalid_array_assignment }
 SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 1101..1102 }], err_no: arr__invalid_array_assignment }
 SyntaxError { message: "Expected identifier or '('", range: [SourceRange { range: 1104..1105 }], err_no: arr__invalid_array_assignment }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DINT' to variable of type 'INT'.", range: [SourceRange { range: 1225..1249 }] }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DINT' to variable of type 'INT'.", range: [SourceRange { range: 1264..1289 }] }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'REAL' to variable of type 'INT'.", range: [SourceRange { range: 1304..1328 }] }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'REAL' to variable of type 'INT'.", range: [SourceRange { range: 1343..1369 }] }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1384..1410 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1427..1460 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'INT'", range: [SourceRange { range: 1477..1503 }], err_no: var__invalid_assignment }

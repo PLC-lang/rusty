@@ -643,6 +643,19 @@ impl Diagnostic {
         }
     }
 
+    pub fn implicit_downcast(
+        actual_type_name: &str,
+        assigned_type_name: &str,
+        range: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: format!(
+                "Potential loss of information due to assigning '{assigned_type_name}' to variable of type '{actual_type_name}'."
+            ),
+            range: vec![range],
+        }
+    }
+
     pub fn invalid_argument_type(
         parameter_name: &str,
         parameter_type: VariableType,

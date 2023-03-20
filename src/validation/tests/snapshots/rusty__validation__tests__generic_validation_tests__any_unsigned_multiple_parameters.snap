@@ -4,11 +4,13 @@ expression: make_readable(&diagnostics)
 ---
 SyntaxError { message: "Invalid type nature for generic argument. REAL is no Unsigned.", range: [SourceRange { range: 434..442 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. DINT is no Unsigned.", range: [SourceRange { range: 458..468 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'TIME' to variable of type 'UDINT'.", range: [SourceRange { range: 470..478 }] }
 SyntaxError { message: "Invalid type nature for generic argument. TIME is no Unsigned.", range: [SourceRange { range: 470..478 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid type nature for generic argument. BYTE is no Unsigned.", range: [SourceRange { range: 480..488 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid assignment: cannot assign 'STRING' to 'UDINT'", range: [SourceRange { range: 490..497 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. STRING is no Unsigned.", range: [SourceRange { range: 490..497 }], err_no: type__invalid_nature }
 SyntaxError { message: "Invalid assignment: cannot assign 'CHAR' to 'UDINT'", range: [SourceRange { range: 499..507 }], err_no: var__invalid_assignment }
 SyntaxError { message: "Invalid type nature for generic argument. CHAR is no Unsigned.", range: [SourceRange { range: 499..507 }], err_no: type__invalid_nature }
+ImprovementSuggestion { message: "Potential loss of information due to assigning 'DATE' to variable of type 'UDINT'.", range: [SourceRange { range: 509..517 }] }
 SyntaxError { message: "Invalid type nature for generic argument. DATE is no Unsigned.", range: [SourceRange { range: 509..517 }], err_no: type__invalid_nature }
 
