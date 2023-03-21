@@ -164,7 +164,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(v)
         };
         let actual_type = self.annotations.get_type_or_void(expression, self.index);
-        Ok(cast_if_needed(self.llvm, self.index, self.llvm_index, target_type, actual_type, v))
+        Ok(cast_if_needed(
+            self.llvm,
+            self.index,
+            self.llvm_index,
+            target_type,
+            actual_type,
+            v,
+            self.annotations,
+        ))
     }
 
     fn register_debug_location(&self, statement: &AstStatement) {
@@ -384,6 +392,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 target_type,
                 self.get_type_hint_for(index)?,
                 reference,
+                self.annotations,
             )
             .into_int_value();
             // let reference = reference.into_int_value();
@@ -1426,6 +1435,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.index.get_type(DINT_TYPE)?,
             self.get_type_hint_for(access_expression)?,
             result.as_basic_value_enum(),
+            self.annotations,
         ))
     }
 
@@ -2072,7 +2082,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
-    fn generate_literal_array(&self, initializer: &AstStatement) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+    pub fn generate_literal_array(
+        &self,
+        initializer: &AstStatement,
+    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        dbg!(&initializer);
         let array_value = self.generate_literal_array_value(
             initializer,
             self.get_type_hint_info_for(initializer)?,

@@ -1,17 +1,22 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{
     context::Context,
-    types::{FloatType, IntType},
+    types::{BasicType, FloatType, IntType},
     values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
     AddressSpace,
 };
 
 use crate::{
+    ast::{AstStatement, SourceRange},
     index::Index,
+    resolver::{const_evaluator::evaluate_constants, AstAnnotations},
     typesystem::{DataType, DataTypeInformation},
 };
 
-use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
+use super::{
+    generators::{expression_generator::ExpressionCodeGenerator, llvm::Llvm, ADDRESS_SPACE_GENERIC},
+    llvm_index::LlvmTypedIndex,
+};
 
 /// Generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
 /// the original `value` if no cast is necessary or if the provided value is not eligible to be cast (to the target type or at all).
@@ -34,8 +39,9 @@ pub fn cast_if_needed<'ctx>(
     target_type: &DataType,
     value_type: &DataType,
     value: BasicValueEnum<'ctx>,
+    annotations: &AstAnnotations,
 ) -> BasicValueEnum<'ctx> {
-    value.cast(CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type))
+    value.cast(CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotations))
 }
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
@@ -64,6 +70,7 @@ struct CastInstructionData<'ctx, 'cast> {
     llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
     value_type: &'cast DataTypeInformation,
     target_type: &'cast DataTypeInformation,
+    annotations: &'cast AstAnnotations,
 }
 
 impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
@@ -73,7 +80,8 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
         llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
         value_type: &DataType,
         target_type: &DataType,
-    ) -> CastInstructionData<'ctx, 'cast> {
+        annotations: &'cast AstAnnotations,
+    ) -> Self {
         let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
         let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
 
@@ -85,7 +93,7 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
                 target_type
             };
 
-        CastInstructionData { llvm, index, llvm_type_index, value_type, target_type }
+        CastInstructionData { llvm, index, llvm_type_index, value_type, target_type, annotations }
     }
 }
 
@@ -107,7 +115,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
             BasicValueEnum::IntValue(val) => val.cast(cast_data),
             BasicValueEnum::FloatValue(val) => val.cast(cast_data),
             BasicValueEnum::PointerValue(val) => val.cast(cast_data),
-            // BasicValueEnum::ArrayValue(val) => val.cast(cast_data),
+            BasicValueEnum::ArrayValue(val) => val.cast(cast_data),
             _ => self,
         }
     }
@@ -209,24 +217,13 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             2. Map arr_ptr and dim members
                 - gep
             3. Return generated and geped struct value
+            TODO: loads
+                - const expressions
+
+
              */
-            // let Ok(associated_type) = cast_data
-            //     .llvm_type_index
-            //     .get_associated_type(cast_data.target_type.get_name()) else {
-            //         unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
-            //     };
 
-            // cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
-
-            // --------------------
-
-            // let str_value = struct_type.get_undef();
-            // cast_data.llvm.get_member_pointer_from_struct(pointer_to_struct_instance, member_index, name, offset)
-            // let arr_ptr = cast_data.llvm.builder.build_struct_gep(struct_t_ptr.into(), 0, "arr_ptr");
-            // let v = self
-            //     .generate_expression_value(cast_data.target_type)?
-            //     .as_r_value(self.llvm, format!("__idk__{}", self.get_load_name(cast_data.value_type)))
-            //     .as_basic_value_enum();
+            let builder = &cast_data.llvm.builder;
 
             let Ok(associated_type) = cast_data
                 .llvm_type_index
@@ -234,20 +231,58 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
                     unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
                 };
 
+            // -- Generate struct & arr_ptr --
             let struct_type = associated_type.into_struct_type();
-            let alloca = cast_data.llvm.builder.build_alloca(struct_type, "local_vla");
+            let struct_ptr = builder.build_alloca(struct_type, "local_vla");
 
-            let arr_ptr = cast_data.llvm.builder.build_struct_gep(alloca, 0, "doesntmatter").unwrap();
-            // cast_data.llvm.builder.build_gep(self.into(), ordered_indexes, name)
-            // cast_data.llvm.builder.build_store(arr_ptr, );
+            let vla_arr_ptr = builder.build_struct_gep(struct_ptr, 0, "vla_arr_ptr").unwrap();
 
-            // let struct_t_ptr = struct_type.ptr_type(AddressSpace::default());
+            let bitcast_ret = dbg!(builder.build_bitcast(
+                self,
+                self.get_type().get_element_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                "",
+            ))
+            .into_pointer_value();
 
-            // let gep = cast_data.llvm.get_member_pointer_from_struct(*qualifier, member_location, name, offset)?;
-            self.into()
-            // todo!()
+            let regular_arr_ptr = unsafe {
+                builder.build_in_bounds_gep(bitcast_ret, &[cast_data.llvm.i32_type().const_zero()], "")
+            };
+            builder.build_store(vla_arr_ptr, regular_arr_ptr);
+
+            // -- Generate dimensions --
+            let arr_ty = cast_data.llvm.i32_type().array_type(2);
+            let dimension_ptr = builder.build_alloca(arr_ty, "dimensions");
+            let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
+            let mut dims = Vec::new();
+            for dim in dimensions {
+                dims.push(dim.start_offset.as_int_value(cast_data.index).unwrap());
+                dims.push(dim.end_offset.as_int_value(cast_data.index).unwrap());
+            }
+
+            for (i, val) in dims.iter().enumerate() {
+                let value = cast_data.llvm.i32_type().const_int(*val as u64, true);
+                let idx = cast_data.llvm.i32_type().const_int(i as u64, true);
+                let adr = unsafe { builder.build_in_bounds_gep(dimension_ptr, &[idx], "") };
+                builder.build_store(adr, value);
+            }
+
+            // -- Generate VLA dim ptr --
+
+            let dim_arr_ptr = builder.build_struct_gep(struct_ptr, 1, "dim_arr_ptr").unwrap();
+            builder.build_store(dim_arr_ptr, dimension_ptr);
+
+            builder.build_load(struct_ptr, "")
+
+            // let generator = ExpressionCodeGenerator::new_context_free(
+            //     cast_data.llvm,
+            //     cast_data.index,
+            //     cast_data.annotations,
+            //     cast_data.llvm_type_index,
+            // );
+
+            // self.into()
         } else {
-            unreachable!()
+            self.into()
         }
     }
 }
