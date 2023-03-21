@@ -608,7 +608,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         ErrorFormat::None => Diagnostician::null_diagnostician(),
     };
 
-    let module_location = sources.get(0).map(|it| it.get_location()).unwrap_or("").to_owned();
+    let module_location = sources.get(0).map(|it| dbg!(it.get_location())).unwrap_or("").to_owned();
     let (full_index, mut index) = index_module(sources, includes, encoding, &mut diagnostician)?;
 
     let annotations = AstAnnotations::new(index.all_annotations, index.id_provider.next_id());
