@@ -1,12 +1,10 @@
-use std::collections::HashSet;
-
 use itertools::Itertools;
 
 use crate::{
     ast::{PouType, SourceRange},
     diagnostics::Diagnostic,
     index::{symbol::SymbolMap, Index, PouIndexEntry},
-    typesystem::{self, DataTypeInformation, StructSource},
+    typesystem::{DataTypeInformation, StructSource},
 };
 
 use super::Validators;
@@ -53,6 +51,13 @@ impl GlobalValidator {
                 .map(|(_, it)| (*it).clone())
                 .collect::<Vec<_>>();
 
+            // If the SourceRange of `v` is undefined, we can assume the user choose a name which clashes
+            // with an (internal) built-in datatype, hence the undefined location.
+            if v.is_undefined() {
+                self.diagnostics.push(Diagnostic::invalid_type_name(name, others));
+                continue; // Skip this iteration, otherwise we would also report an internal error
+            }
+
             if let Some(additional_text) = additional_text {
                 self.push_diagnostic(Diagnostic::global_name_conflict_with_text(
                     name,
@@ -66,14 +71,9 @@ impl GlobalValidator {
         }
     }
 
-    pub fn validate(&mut self, index: &Index) {
-        self.validate_unique_symbols(index);
-        self.validate_user_defined_names(index);
-    }
-
     /// checks all symbols of the given index for naming conflicts.
     /// all problems will be reported to self.diagnostics
-    fn validate_unique_symbols(&mut self, index: &Index) {
+    pub fn validate(&mut self, index: &Index) {
         // everything callable (funks, global FB-instances, programs)
         self.validate_unique_callables(index);
 
@@ -85,17 +85,6 @@ impl GlobalValidator {
 
         // all POUs
         self.validate_unique_pous(index);
-    }
-
-    /// Checks if user-defined datatype names clash with built-in ones. For example `TYPE DINT : ... END_TYPE`
-    /// is invalid because `DINT` is an built-in datatype and as such can't be used as an alias.
-    fn validate_user_defined_names(&mut self, index: &Index) {
-        let types = index.get_types().values().filter(|t| !t.is_internal());
-        let builtin = typesystem::get_builtin_types().into_iter().map(|t| t.name).collect::<HashSet<_>>();
-
-        types.filter(|t| builtin.get(&t.name).is_some()).for_each(|t| {
-            self.diagnostics.push(Diagnostic::invalid_type_name(&t.name, t.location.source_range.clone()))
-        });
     }
 
     /// validates following uniqueness-clusters:

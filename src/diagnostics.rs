@@ -678,10 +678,10 @@ impl Diagnostic {
         }
     }
 
-    pub fn invalid_type_name(name: &str, range: SourceRange) -> Diagnostic {
+    pub fn invalid_type_name(name: &str, range: Vec<SourceRange>) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("{name} can not be used as a name because it is a built-in datatype"),
-            range: vec![range],
+            range,
             err_no: ErrNo::type__invalid_name,
         }
     }
