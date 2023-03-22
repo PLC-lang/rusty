@@ -782,7 +782,7 @@ pub struct ResolvedLocation {
 
 impl ResolvedLocation {
     pub fn is_internal(&self) -> bool {
-        self.range == (0..0)
+        self.range == SourceRange::undefined().to_range()
     }
 }
 
