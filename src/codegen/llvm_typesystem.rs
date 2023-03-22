@@ -7,14 +7,12 @@ use inkwell::{
 };
 
 use crate::{
-    ast::{AstStatement, SourceRange},
     index::Index,
-    resolver::{const_evaluator::evaluate_constants, AstAnnotations},
     typesystem::{DataType, DataTypeInformation},
 };
 
 use super::{
-    generators::{expression_generator::ExpressionCodeGenerator, llvm::Llvm, ADDRESS_SPACE_GENERIC},
+    generators::{llvm::Llvm, ADDRESS_SPACE_GENERIC},
     llvm_index::LlvmTypedIndex,
 };
 
@@ -39,9 +37,8 @@ pub fn cast_if_needed<'ctx>(
     target_type: &DataType,
     value_type: &DataType,
     value: BasicValueEnum<'ctx>,
-    annotations: &AstAnnotations,
 ) -> BasicValueEnum<'ctx> {
-    value.cast(CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotations))
+    value.cast(CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type))
 }
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
@@ -70,7 +67,6 @@ struct CastInstructionData<'ctx, 'cast> {
     llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
     value_type: &'cast DataTypeInformation,
     target_type: &'cast DataTypeInformation,
-    annotations: &'cast AstAnnotations,
 }
 
 impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
@@ -80,7 +76,6 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
         llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
         value_type: &DataType,
         target_type: &DataType,
-        annotations: &'cast AstAnnotations,
     ) -> Self {
         let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
         let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
@@ -93,7 +88,7 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
                 target_type
             };
 
-        CastInstructionData { llvm, index, llvm_type_index, value_type, target_type, annotations }
+        CastInstructionData { llvm, index, llvm_type_index, value_type, target_type }
     }
 }
 
