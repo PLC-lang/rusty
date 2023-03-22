@@ -210,19 +210,8 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
     fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+        // TODO: High-Level documentation / explanation of the following code
         if cast_data.target_type.is_vla() {
-            /*
-            1. Create struct
-                - alloca instance of VLA struct
-            2. Map arr_ptr and dim members
-                - gep
-            3. Return generated and geped struct value
-            TODO: loads
-                - const expressions
-
-
-             */
-
             let builder = &cast_data.llvm.builder;
 
             let Ok(associated_type) = cast_data
@@ -232,26 +221,33 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
                 };
 
             // -- Generate struct & arr_ptr --
-            let struct_type = associated_type.into_struct_type();
-            let struct_ptr = builder.build_alloca(struct_type, "local_vla");
+            let ty = associated_type.into_struct_type();
+            let struct_vla = builder.build_alloca(ty, "local_vla");
+            let struct_vla_ptr_to_arr_field = builder.build_struct_gep(struct_vla, 0, "vla_arr_ptr").unwrap();
 
-            let vla_arr_ptr = builder.build_struct_gep(struct_ptr, 0, "vla_arr_ptr").unwrap();
-
-            let bitcast_ret = dbg!(builder.build_bitcast(
-                self,
-                self.get_type().get_element_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                "",
-            ))
-            .into_pointer_value();
-
-            let regular_arr_ptr = unsafe {
-                builder.build_in_bounds_gep(bitcast_ret, &[cast_data.llvm.i32_type().const_zero()], "")
-            };
-            builder.build_store(vla_arr_ptr, regular_arr_ptr);
+            // Translates to
+            // %1 = bitcast [6 x i32] %load_arr to i32*
+            // %2 = getelementptr inbounds i32, i32* %1, i32 0
+            // store i32* %2, [1 x i32]** %vla_arr_ptr, align 8
+            builder.build_store(struct_vla_ptr_to_arr_field, unsafe {
+                builder.build_in_bounds_gep(
+                    builder
+                        .build_bitcast(
+                            self,
+                            self.get_type()
+                                .get_element_type()
+                                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                            "",
+                        )
+                        .into_pointer_value(),
+                    &[cast_data.llvm.i32_type().const_zero()],
+                    "xxxx",
+                )
+            });
 
             // -- Generate dimensions --
-            let arr_ty = cast_data.llvm.i32_type().array_type(2);
-            let dimension_ptr = builder.build_alloca(arr_ty, "dimensions");
+            let ty = cast_data.llvm.i32_type().array_type(2);
+            let dimensions_arr = builder.build_alloca(ty, "dimensions");
             let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
             let mut dims = Vec::new();
             for dim in dimensions {
@@ -259,31 +255,22 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
                 dims.push(dim.end_offset.as_int_value(cast_data.index).unwrap());
             }
 
+            // Populate each array element
             for (i, val) in dims.iter().enumerate() {
                 let value = cast_data.llvm.i32_type().const_int(*val as u64, true);
                 let idx = cast_data.llvm.i32_type().const_int(i as u64, true);
-                let adr = unsafe { builder.build_in_bounds_gep(dimension_ptr, &[idx], "") };
+                let adr = unsafe { builder.build_in_bounds_gep(dimensions_arr, &[idx], "") };
                 builder.build_store(adr, value);
             }
 
             // -- Generate VLA dim ptr --
-
-            let dim_arr_ptr = builder.build_struct_gep(struct_ptr, 1, "dim_arr_ptr").unwrap();
-            builder.build_store(dim_arr_ptr, dimension_ptr);
-
-            builder.build_load(struct_ptr, "")
-
-            // let generator = ExpressionCodeGenerator::new_context_free(
-            //     cast_data.llvm,
-            //     cast_data.index,
-            //     cast_data.annotations,
-            //     cast_data.llvm_type_index,
-            // );
-
-            // self.into()
-        } else {
-            self.into()
+            let struct_vla_ptr_to_dim_field = builder.build_struct_gep(struct_vla, 1, "dim_arr_ptr").unwrap();
+            builder.build_store(struct_vla_ptr_to_dim_field, dimensions_arr);
+            return builder.build_load(struct_vla, "");
         }
+
+        // Not a VLA, return as is
+        self.into()
     }
 }
 
