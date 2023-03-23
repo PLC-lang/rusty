@@ -90,7 +90,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// generates a list of statements
     pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), Diagnostic> {
-        for s in statements {
+        for s in dbg!(statements) {
             self.generate_statement(s)?;
         }
         Ok(())
@@ -189,7 +189,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         }
         let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_element_pointer(left_statement)?;
-        let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
+        let left_type = dbg!(exp_gen.get_type_hint_info_for(left_statement))?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
         let range_checked_right_side = if let DataTypeInformation::SubRange { .. } = left_type {

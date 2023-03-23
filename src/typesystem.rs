@@ -152,6 +152,10 @@ impl DataType {
         self.get_type_information().is_array()
     }
 
+    pub fn is_vla(&self) -> bool {
+        self.get_type_information().is_vla()
+    }
+
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
@@ -448,6 +452,22 @@ impl DataTypeInformation {
                 ..
             }
         )
+    }
+
+    pub fn get_vla_dimensions(&self) -> Option<usize> {
+        let DataTypeInformation::Struct{source: StructSource::Internal(InternalType::VariableLengthArray { ndims , ..}), ..} = self else {
+            return None;
+        };
+
+        Some(*ndims)
+    }
+
+    pub fn get_vla_referenced_type(&self) -> Option<String> {
+        let DataTypeInformation::Struct{source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = self else {
+            return None;
+        };
+
+        Some(inner_type_name.to_owned())
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {

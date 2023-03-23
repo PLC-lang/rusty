@@ -236,7 +236,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
                         )
                         .into_pointer_value(),
                     &[cast_data.llvm.i32_type().const_zero()],
-                    "xxxx",
+                    "",
                 )
             });
 

@@ -25,6 +25,7 @@ mod correctness {
     mod pointers;
     mod strings;
     mod sub_range_types;
+    mod vla;
     mod math_operators {
         mod addition;
         mod division;
