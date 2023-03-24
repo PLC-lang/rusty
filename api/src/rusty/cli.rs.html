@@ -1013,7 +1013,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_default_output_names() {
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;alpha.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>)).unwrap();
-        <span class="macro">assert_eq!</span>(parameters.output_name(), <span class="string">&quot;alpha.ir&quot;</span>.to_string());
+        <span class="macro">assert_eq!</span>(parameters.output_name(), <span class="string">&quot;alpha.ll&quot;</span>.to_string());
 
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;bravo&quot;</span>, <span class="string">&quot;--shared&quot;</span>)).unwrap();
         <span class="macro">assert_eq!</span>(parameters.output_name(), <span class="string">&quot;bravo.so&quot;</span>.to_string());
