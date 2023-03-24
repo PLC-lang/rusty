@@ -344,7 +344,7 @@ mod cli_tests {
     #[test]
     fn test_default_output_names() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
-        assert_eq!(parameters.output_name(), "alpha.ir".to_string());
+        assert_eq!(parameters.output_name(), "alpha.ll".to_string());
 
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
         assert_eq!(parameters.output_name(), "bravo.so".to_string());

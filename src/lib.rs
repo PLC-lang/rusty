@@ -1112,7 +1112,7 @@ pub fn get_output_name(output_name: Option<&str>, out_format: FormatOption, inpu
                 FormatOption::Relocatable => ".o",
                 FormatOption::Object => ".o",
                 FormatOption::Shared | FormatOption::PIC => ".so",
-                FormatOption::IR => ".ir",
+                FormatOption::IR => ".ll",
                 FormatOption::Static | FormatOption::None => "",
             };
             format!("{input}{ending}")
