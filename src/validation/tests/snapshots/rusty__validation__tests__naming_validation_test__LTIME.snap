@@ -1,0 +1,7 @@
+---
+source: src/validation/tests/naming_validation_test.rs
+expression: res
+---
+SyntaxError { message: "LTIME can not be used as a name because it is a built-in datatype", range: [SourceRange { range: 5..10 }], err_no: type__invalid_name }
+SyntaxError { message: "LTIME: Ambiguous datatype.", range: [SourceRange { range: 5..10 }, SourceRange { range: 0..0 }], err_no: duplicate_symbol }
+
