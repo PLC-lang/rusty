@@ -51,6 +51,13 @@ impl GlobalValidator {
                 .map(|(_, it)| (*it).clone())
                 .collect::<Vec<_>>();
 
+            // If the SourceRange of `v` is undefined, we can assume the user choose a name which clashes
+            // with an (internal) built-in datatype, hence the undefined location.
+            if v.is_undefined() {
+                self.diagnostics.push(Diagnostic::invalid_type_name(name, others));
+                continue; // Skip this iteration, otherwise we would also report an internal error
+            }
+
             if let Some(additional_text) = additional_text {
                 self.push_diagnostic(Diagnostic::global_name_conflict_with_text(
                     name,
@@ -66,7 +73,7 @@ impl GlobalValidator {
 
     /// checks all symbols of the given index for naming conflicts.
     /// all problems will be reported to self.diagnostics
-    pub fn validate_unique_symbols(&mut self, index: &Index) {
+    pub fn validate(&mut self, index: &Index) {
         // everything callable (funks, global FB-instances, programs)
         self.validate_unique_callables(index);
 
