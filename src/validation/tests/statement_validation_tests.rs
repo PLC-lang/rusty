@@ -783,15 +783,44 @@ fn validate_call_by_ref() {
             func(x, 2, x);
             func(x, x, 3);
             func(x, x, x); // Valid
+        END_PROGRAM
+        ",
+    );
+
+    assert_validation_snapshot!(&diagnostics);
+}
+
+#[test]
+fn validate_call_by_ref_explicit() {
+    let diagnostics: Vec<Diagnostic> = parse_and_validate(
+        "
+        FUNCTION func : DINT
+            VAR_INPUT
+                byValInput : INT;
+            END_VAR
+
+            VAR_IN_OUT
+                byRefInOut : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                byRefOutput : INT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                x : INT := 1;
+            END_VAR
             
-            // Explicit argument assignments are also valid, IF their right side is a LValue
+            // The second and third arguments are expected to be references, as such
+            // any call to `func` where these two arguments are literals will fail
             func(byValInput := 1, byRefInOut := 2, byRefOutput =>  );
             func(byValInput := 1, byRefInOut := x, byRefOutput =>  ); // Valid (Output assignments are optional)
             func(byValInput := 1, byRefInOut := 2, byRefOutput => 3); 
             func(byValInput := 1, byRefInOut := 2, byRefOutput => x);
             func(byValInput := 1, byRefInOut := x, byRefOutput => 3);
             func(byValInput := 1, byRefInOut := x, byRefOutput => x); // Valid
-
         END_PROGRAM
         ",
     );
