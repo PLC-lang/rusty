@@ -6,17 +6,17 @@ use crate::{
 };
 
 use self::{
-    global_validator::GlobalValidator,
+    global::GlobalValidator,
     pou::{validate_action_container, visit_pou},
-    recursive_validator::RecursiveValidator,
+    recursive::RecursiveValidator,
     statement::visit_statement,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
 };
 
-mod global_validator;
+mod global;
 mod pou;
-mod recursive_validator;
+mod recursive;
 mod statement;
 mod types;
 mod variable;
@@ -101,8 +101,8 @@ impl Validator {
     }
 
     pub fn perform_global_validation(&mut self, index: &Index) {
-        self.global_validator.validate_unique_symbols(index);
-        self.recursive_validator.validate_recursion(index);
+        self.global_validator.validate(index);
+        self.recursive_validator.validate(index);
     }
 
     pub fn visit_unit(&mut self, annotations: &AnnotationMapImpl, index: &Index, unit: &CompilationUnit) {
