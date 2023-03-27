@@ -186,17 +186,17 @@
 };
 
 <span class="kw">use </span><span class="self">self</span>::{
-    global_validator::GlobalValidator,
+    global::GlobalValidator,
     pou::{validate_action_container, visit_pou},
-    recursive_validator::RecursiveValidator,
+    recursive::RecursiveValidator,
     statement::visit_statement,
     types::visit_user_type_declaration,
     variable::visit_variable_block,
 };
 
-<span class="kw">mod </span>global_validator;
+<span class="kw">mod </span>global;
 <span class="kw">mod </span>pou;
-<span class="kw">mod </span>recursive_validator;
+<span class="kw">mod </span>recursive;
 <span class="kw">mod </span>statement;
 <span class="kw">mod </span>types;
 <span class="kw">mod </span>variable;
@@ -281,8 +281,8 @@
     }
 
     <span class="kw">pub fn </span>perform_global_validation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) {
-        <span class="self">self</span>.global_validator.validate_unique_symbols(index);
-        <span class="self">self</span>.recursive_validator.validate_recursion(index);
+        <span class="self">self</span>.global_validator.validate(index);
+        <span class="self">self</span>.recursive_validator.validate(index);
     }
 
     <span class="kw">pub fn </span>visit_unit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotations: <span class="kw-2">&amp;</span>AnnotationMapImpl, index: <span class="kw-2">&amp;</span>Index, unit: <span class="kw-2">&amp;</span>CompilationUnit) {
