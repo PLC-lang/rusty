@@ -468,15 +468,15 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
         match arg {
             AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. } => (),
 
-            AstStatement::Assignment { right, .. } | AstStatement::OutputAssignment { right, .. } => {
-                validate_call_by_ref(validator, param, right);
-            }
-
-            // See also https://github.com/PLC-lang/rusty/issues/752
+            // See https://github.com/PLC-lang/rusty/issues/752
             AstStatement::ArrayAccess { .. } => (),
 
             // Assigning to output variables is optional
             AstStatement::EmptyStatement { .. } if ty == VariableType::Output => (),
+
+            AstStatement::Assignment { right, .. } | AstStatement::OutputAssignment { right, .. } => {
+                validate_call_by_ref(validator, param, right);
+            }
 
             _ => validator.push_diagnostic(Diagnostic::invalid_argument_type(
                 param.get_name(),

@@ -2,9 +2,9 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: res
 ---
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceRange { range: 621..622 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceRange { range: 812..813 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceRange { range: 830..831 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceRange { range: 883..884 }], err_no: call__invalid_parameter_type }
-SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceRange { range: 971..972 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceRange { range: 601..602 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceRange { range: 784..785 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceRange { range: 802..803 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefInOut because their type is InOut", range: [SourceRange { range: 855..856 }], err_no: call__invalid_parameter_type }
+SyntaxError { message: "Expected a reference for parameter byRefOutput because their type is Output", range: [SourceRange { range: 943..944 }], err_no: call__invalid_parameter_type }
 
