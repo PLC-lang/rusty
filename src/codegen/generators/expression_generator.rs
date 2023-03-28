@@ -2563,31 +2563,29 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let adjusted_access = builder.build_alloca(self.llvm.i32_type(), "access"); // TODO: else-block vs alloca/store?
         builder.build_store(adjusted_access, access_value);
 
-        // // if start offset is not 0, adjust the access value accordingly
-        // // insert THEN and CONTINUE blocks
-        // builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        // let then_block = context.append_basic_block(function, "idx_normalization_predicate");
-        // let continue_block = context.append_basic_block(function, "continue");
-        // builder.position_at_end(then_block);
-        // let conditional_block = context.prepend_basic_block(continue_block, "idx_normalization_body");
+        // if start offset is not 0, adjust the access value accordingly
+        // insert THEN and CONTINUE blocks
+        builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
+        let continue_block = context.append_basic_block(function, "continue");
+        let conditional_block = context.prepend_basic_block(continue_block, "idx_normalization_body");
 
-        // // create predicate
-        // let condition = builder.build_int_compare(
-        //     IntPredicate::NE,
-        //     start_offset.into_int_value(),
-        //     self.llvm.i32_type().const_zero(),
-        //     "cmp",
-        // );
-        // builder.build_conditional_branch(to_i1(condition, builder), conditional_block, continue_block);
+        // create predicate
+        let condition = builder.build_int_compare(
+            IntPredicate::NE,
+            start_offset.into_int_value(),
+            self.llvm.i32_type().const_zero(),
+            "cmp",
+        );
+        builder.build_conditional_branch(to_i1(condition, builder), conditional_block, continue_block);
 
-        // // generate if-statement content
-        // builder.position_at_end(conditional_block);
-        // builder.build_store(
-        //     adjusted_access,
-        //     self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset),
-        // );
-        // builder.build_unconditional_branch(continue_block);
-        // builder.position_at_end(continue_block);
+        // generate if-statement content
+        builder.position_at_end(conditional_block);
+        builder.build_store(
+            adjusted_access,
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset),
+        );
+        builder.build_unconditional_branch(continue_block);
+        builder.position_at_end(continue_block);
 
         // load accessed element from array
         Ok(unsafe {
@@ -2597,14 +2595,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 "arr_val",
             )
         })
-        // self.llvm.load_array_element(
-        //     vla_arr_ptr,
-        //     &[
-        //         self.llvm.i32_type().const_zero(),
-        //         builder.build_load(adjusted_access, "adjusted_access").into_int_value(),
-        //     ],
-        //     "arr_val",
-        // )
     }
 }
 
