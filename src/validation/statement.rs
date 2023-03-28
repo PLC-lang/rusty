@@ -463,24 +463,26 @@ fn validate_unary_expression(
 /// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
 /// an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
 fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, arg: &AstStatement) {
-    if matches!(param.variable_type.get_variable_type(), VariableType::Output | VariableType::InOut) {
-        match arg {
-            AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. } => (),
+    let ty = param.variable_type.get_variable_type();
+    if !matches!(ty, VariableType::Output | VariableType::InOut) {
+        return;
+    }
 
-            // See https://github.com/PLC-lang/rusty/issues/752
-            // In general we want ArrayAccess to be handled the same as References
-            AstStatement::ArrayAccess { .. } => (),
+    match (arg.can_be_assigned_to(), arg) {
+        (true, _) => (),
 
-            AstStatement::Assignment { right, .. } | AstStatement::OutputAssignment { right, .. } => {
-                validate_call_by_ref(validator, param, right);
-            }
+        // Output assignments are optional, e.g. `foo(bar => )` is considered valid
+        (false, AstStatement::EmptyStatement { .. }) if matches!(ty, VariableType::Output) => (),
 
-            _ => validator.push_diagnostic(Diagnostic::invalid_argument_type(
-                param.get_name(),
-                param.get_variable_type(),
-                arg.get_location(),
-            )),
+        (false, AstStatement::Assignment { right, .. } | AstStatement::OutputAssignment { right, .. }) => {
+            validate_call_by_ref(validator, param, right);
         }
+
+        _ => validator.push_diagnostic(Diagnostic::invalid_argument_type(
+            param.get_name(),
+            param.get_variable_type(),
+            arg.get_location(),
+        )),
     }
 }
 

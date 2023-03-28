@@ -20,7 +20,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 # && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
 # && chmod 0440 /etc/sudoers.d/$USERNAME 
 
-RUN cargo install cargo-insta cargo-watch 
+RUN apt-get -y update
+RUN apt-get -y install git
+
+RUN cargo install cargo-insta cargo-watch
 
 # Give all users access to cargo and rust home
 RUN chmod -R a+rw $CARGO_HOME \

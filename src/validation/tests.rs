@@ -5,6 +5,7 @@ mod bitaccess_validation_test;
 mod duplicates_validation_test;
 mod generic_validation_tests;
 mod literals_validation_tests;
+mod naming_validation_test;
 mod pou_validation_tests;
 mod recursive_validation_tests;
 mod reference_resolve_tests;
