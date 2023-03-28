@@ -647,6 +647,11 @@ impl Dimension {
         let end = self.end_offset.as_int_value(index)?;
         Ok(start..=end)
     }
+
+    pub fn is_undetermined(&self) -> bool {
+        matches!(self.start_offset, TypeSize::Undetermined)
+            & matches!(self.end_offset, TypeSize::Undetermined)
+    }
 }
 
 pub trait DataTypeInformationProvider<'a>: Into<&'a DataTypeInformation> {

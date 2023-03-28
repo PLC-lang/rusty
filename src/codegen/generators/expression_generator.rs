@@ -164,7 +164,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(v)
         };
         let actual_type = self.annotations.get_type_or_void(expression, self.index);
-        Ok(cast_if_needed(self.llvm, self.index, self.llvm_index, target_type, actual_type, v))
+        Ok(cast_if_needed(
+            self.llvm,
+            self.index,
+            self.llvm_index,
+            target_type,
+            actual_type,
+            v,
+            self.annotations.get(expression),
+        ))
     }
 
     fn register_debug_location(&self, statement: &AstStatement) {
@@ -383,6 +391,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 target_type,
                 self.get_type_hint_for(index)?,
                 reference,
+                None,
             )
             .into_int_value();
             // let reference = reference.into_int_value();
@@ -499,7 +508,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let function = self
             .llvm_index
-            .find_associated_implementation(dbg!(implementation_name)) // using the non error option to control the output error
+            .find_associated_implementation(implementation_name) // using the non error option to control the output error
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
                     &format!("No callable implementation associated to {implementation_name:?}"),
@@ -1435,6 +1444,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.index.get_type(DINT_TYPE)?,
             self.get_type_hint_for(access_expression)?,
             result.as_basic_value_enum(),
+            None,
         ))
     }
 
@@ -1449,7 +1459,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         reference: &AstStatement,
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        dbg!(&reference);
         //Load the reference
         self.do_generate_element_pointer(qualifier.cloned(), reference).and_then(|lvalue| {
             if let DataTypeInformation::Array { dimensions, .. } = self.get_type_hint_info_for(reference)? {
@@ -2086,7 +2095,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         initializer: &AstStatement,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        dbg!(&initializer);
         let array_value = self.generate_literal_array_value(
             initializer,
             self.get_type_hint_info_for(initializer)?,
@@ -2399,7 +2407,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right_statement: &AstStatement,
     ) -> Result<(), Diagnostic> {
         let right_type =
-            dbg!(self.annotations.get_type_or_void(right_statement, self.index).get_type_information());
+            self.annotations.get_type_or_void(right_statement, self.index).get_type_information();
 
         //Special string handling
         if left_type.is_string() && right_type.is_string()
@@ -2507,82 +2515,96 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         reference: &AstStatement,
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
-        dbg!(&reference);
+        let builder = &self.llvm.builder;
+        let context = self.llvm.context;
+        let function = self.function_context.expect("VLA can't be used outside function context").function;
+
         let type_ = self.annotations.get_type(reference, self.index).unwrap();
         if !type_.is_vla() {
             todo!()
         };
         // spaghet
-        let split = dbg!(dbg!(type_).get_name().split('_').collect::<Vec<_>>());
+        let split = type_.get_name().split('_').collect::<Vec<_>>();
         let name = format!("{}.{}", split[2], split[3]);
-        let struct_ptr = dbg!(self.llvm_index.find_loaded_associated_variable_value(name.as_str())).unwrap();
-        let arr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr").unwrap();
-        let dim_arr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
 
-        let type_info = type_.get_type_information();
-        let ndims = type_info.get_vla_dimensions().unwrap();
-        let ref_type = type_info.get_vla_referenced_type().unwrap();
+        // find struct value in llvm index
+        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(name.as_str()).unwrap();
+        // get the pointer to the original array
+        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").unwrap();
+        // load array behind the pointer and store as pointer
+        let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
+
+        // get pointer to array containing dimension information
+        let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
+
+        // let type_info = type_.get_type_information();
+        // let ndims = type_info.get_vla_dimensions().unwrap();
+        // let ref_type = type_info.get_vla_referenced_type().unwrap();
+
         // 2 i32 values per dim
-        let (start_offset, end_offset) = unsafe {
+        // TODO: refactor into LOWER_BOUND/UPPER_BOUND built-in
+        let (start_idx, _end_idx) = unsafe {
             (
-                self.llvm.builder.build_gep(
+                builder.build_in_bounds_gep(
                     dim_arr_gep,
-                    &[self.llvm.i32_type().const_int(0, false), self.llvm.i32_type().const_int(0, false)],
-                    "start_offset_ptr",
+                    &[self.llvm.i32_type().const_zero(), self.llvm.i32_type().const_zero()],
+                    "start_idx_ptr",
                 ),
-                self.llvm.builder.build_gep(
+                builder.build_in_bounds_gep(
                     dim_arr_gep,
-                    &[self.llvm.i32_type().const_int(0, false), self.llvm.i32_type().const_int(1, false)],
-                    "end_offset_ptr",
+                    &[self.llvm.i32_type().const_zero(), self.llvm.i32_type().const_int(1, false)],
+                    "end_idx_ptr",
                 ),
             )
         };
-        let start_offset = self.llvm.builder.build_load(start_offset, "start_offset");
-        // let end_offset = self.llvm.builder.build_load(end_offset, "end_offset");
+        let start_offset = builder.build_load(start_idx, "start_offset");
+        // let end_offset = self.llvm.builder.build_load(end_offset, "end_offset"); // TODO: should we check of out of bounds array access here? if so, what do we do if we detect it at runtime?
         let access_value = self.generate_expression(access)?;
+        let adjusted_access = builder.build_alloca(self.llvm.i32_type(), "access"); // TODO: else-block vs alloca/store?
+        builder.build_store(adjusted_access, access_value);
 
-        // // if start offset is not 0, adjust the current statement with a sub operation
-        // self.llvm.builder.build_int_compare(
-        //     IntPredicate::EQ,
+        // // if start offset is not 0, adjust the access value accordingly
+        // // insert THEN and CONTINUE blocks
+        // builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
+        // let then_block = context.append_basic_block(function, "idx_normalization_predicate");
+        // let continue_block = context.append_basic_block(function, "continue");
+        // builder.position_at_end(then_block);
+        // let conditional_block = context.prepend_basic_block(continue_block, "idx_normalization_body");
+
+        // // create predicate
+        // let condition = builder.build_int_compare(
+        //     IntPredicate::NE,
         //     start_offset.into_int_value(),
-        //     self.llvm.i32_type().const_int(0, false),
+        //     self.llvm.i32_type().const_zero(),
         //     "cmp",
         // );
+        // builder.build_conditional_branch(to_i1(condition, builder), conditional_block, continue_block);
 
-        let access_value = self.llvm.builder.build_int_nsw_sub(
-            access_value.into_int_value(),
-            start_offset.into_int_value(),
-            "access_val",
-        );
+        // // generate if-statement content
+        // builder.position_at_end(conditional_block);
+        // builder.build_store(
+        //     adjusted_access,
+        //     self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset),
+        // );
+        // builder.build_unconditional_branch(continue_block);
+        // builder.position_at_end(continue_block);
 
-        let gepped_value = unsafe {
-            self.llvm.builder.build_gep(
-                // arr_gep,
-                dim_arr_gep,
-                &[
-                    self.llvm_index
-                        // .find_associated_type(ref_type.as_str())
-                        .find_associated_type("LINT")
-                        .unwrap()
-                        .into_int_type()
-                        .const_zero(),
-                    access_value,
-                ],
-                "",
+        // load accessed element from array
+        Ok(unsafe {
+            builder.build_gep(
+                vla_arr_ptr,
+                &[builder.build_load(adjusted_access, "adjusted_access").into_int_value()],
+                "arr_val",
             )
-        };
-        dbg!(Ok(gepped_value))
-        /*
-        param ARRAY[0..1, 0..5]
-        vla   ARRAY[*, *]
-
-        vla[1, 4]
-
-        |00, 01, 02, 03, 04|
-        |10, 11, 12, 13, 14|
-
-        gep vla_struct_array pointer, ???
-        */
+        })
+        // self.llvm.load_array_element(
+        //     vla_arr_ptr,
+        //     &[
+        //         self.llvm.i32_type().const_zero(),
+        //         builder.build_load(adjusted_access, "adjusted_access").into_int_value(),
+        //     ],
+        //     "arr_val",
+        // )
     }
 }
 

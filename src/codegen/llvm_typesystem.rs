@@ -8,6 +8,7 @@ use inkwell::{
 
 use crate::{
     index::Index,
+    resolver::StatementAnnotation,
     typesystem::{DataType, DataTypeInformation},
 };
 
@@ -37,8 +38,9 @@ pub fn cast_if_needed<'ctx>(
     target_type: &DataType,
     value_type: &DataType,
     value: BasicValueEnum<'ctx>,
+    annotation: Option<&StatementAnnotation>,
 ) -> BasicValueEnum<'ctx> {
-    value.cast(CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type))
+    value.cast(CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotation))
 }
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
@@ -67,6 +69,7 @@ struct CastInstructionData<'ctx, 'cast> {
     llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
     value_type: &'cast DataTypeInformation,
     target_type: &'cast DataTypeInformation,
+    annotation: Option<&'cast StatementAnnotation>,
 }
 
 impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
@@ -76,6 +79,7 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
         llvm_type_index: &'cast LlvmTypedIndex<'ctx>,
         value_type: &DataType,
         target_type: &DataType,
+        annotation: Option<&'cast StatementAnnotation>,
     ) -> Self {
         let target_type = index.get_intrinsic_type_by_name(target_type.get_name()).get_type_information();
         let value_type = index.get_intrinsic_type_by_name(value_type.get_name()).get_type_information();
@@ -88,7 +92,7 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
                 target_type
             };
 
-        CastInstructionData { llvm, index, llvm_type_index, value_type, target_type }
+        CastInstructionData { llvm, index, llvm_type_index, value_type, target_type, annotation }
     }
 }
 
@@ -206,66 +210,75 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
     fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         // TODO: High-Level documentation / explanation of the following code
-        if cast_data.target_type.is_vla() {
-            let builder = &cast_data.llvm.builder;
+        if !cast_data.target_type.is_vla() {
+            // Not a VLA, return as is
+            return self.into();
+        }
+        let builder = &cast_data.llvm.builder;
+        let zero = cast_data.llvm.i32_type().const_zero();
 
-            let Ok(associated_type) = cast_data
+        let Ok(associated_type) = cast_data
                 .llvm_type_index
                 .get_associated_type(cast_data.target_type.get_name()) else {
                     unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
                 };
 
-            // -- Generate struct & arr_ptr --
-            let ty = associated_type.into_struct_type();
-            let struct_vla = builder.build_alloca(ty, "local_vla");
-            let struct_vla_ptr_to_arr_field = builder.build_struct_gep(struct_vla, 0, "vla_arr_ptr").unwrap();
+        // get array annotation from parent POU and get pointer to array
+        let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  else {
+            unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
+        };
+        let array_pointer = cast_data
+            .llvm_type_index
+            .find_loaded_associated_variable_value(qualified_name.as_str())
+            .unwrap_or_else(|| unreachable!());
 
-            // Translates to
-            // %1 = bitcast [6 x i32] %load_arr to i32*
-            // %2 = getelementptr inbounds i32, i32* %1, i32 0
-            // store i32* %2, [1 x i32]** %vla_arr_ptr, align 8
-            builder.build_store(struct_vla_ptr_to_arr_field, unsafe {
-                builder.build_in_bounds_gep(
-                    builder
-                        .build_bitcast(
-                            self,
-                            self.get_type()
-                                .get_element_type()
-                                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                            "",
-                        )
-                        .into_pointer_value(),
-                    &[cast_data.llvm.i32_type().const_zero()],
-                    "",
-                )
-            });
+        // // bitcast to element
+        let arr_bitcast = builder
+            .build_bitcast(
+                array_pointer,
+                self.get_type().get_element_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                "",
+            )
+            .into_pointer_value();
 
-            // -- Generate dimensions --
-            let ty = cast_data.llvm.i32_type().array_type(2);
-            let dimensions_arr = builder.build_alloca(ty, "dimensions");
-            let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
-            let mut dims = Vec::new();
-            for dim in dimensions {
-                dims.push(dim.start_offset.as_int_value(cast_data.index).unwrap());
-                dims.push(dim.end_offset.as_int_value(cast_data.index).unwrap());
-            }
+        // TODO: find a way to redefine the indexed vla struct/ register the type with a bitcasted array in the llvm index
+        // let vla_struct_t = cast_data
+        //     .llvm
+        //     .context
+        //     .opaque_struct_type(associated_type.into_struct_type().get_name().unwrap().to_str().unwrap());
+        // vla_struct_t.set_body(
+        //     &[
+        //         arr_bitcast.get_type().into(),
+        //         associated_type.into_struct_type().get_field_type_at_index(1).expect("must have this field"),
+        //     ],
+        //     false,
+        // );
+        // let ty = vla_struct_t;
 
-            // Populate each array element
-            for (i, val) in dims.iter().enumerate() {
-                let value = cast_data.llvm.i32_type().const_int(*val as u64, true);
-                let idx = cast_data.llvm.i32_type().const_int(i as u64, true);
-                let adr = unsafe { builder.build_in_bounds_gep(dimensions_arr, &[idx], "") };
-                builder.build_store(adr, value);
-            }
+        // -- Generate struct & arr_ptr --
+        let ty = associated_type.into_struct_type();
+        let vla_struct = builder.build_alloca(ty, "vla_struct");
+        let vla_arr_ptr = builder.build_struct_gep(vla_struct, 0, "vla_array_gep").unwrap();
+        let vla_dimensions_ptr = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep").unwrap();
 
-            // -- Generate VLA dim ptr --
-            let struct_vla_ptr_to_dim_field = builder.build_struct_gep(struct_vla, 1, "dim_arr_ptr").unwrap();
-            builder.build_store(struct_vla_ptr_to_dim_field, dimensions_arr);
-            return builder.build_load(struct_vla, "");
+        // -- Generate dimensions --
+        let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
+        let mut dims = Vec::new();
+        for dim in dimensions {
+            dims.push(dim.start_offset.as_int_value(cast_data.index).unwrap());
+            dims.push(dim.end_offset.as_int_value(cast_data.index).unwrap());
         }
 
-        // Not a VLA, return as is
-        self.into()
+        // Populate each array element
+        for (i, val) in dims.iter().enumerate() {
+            let value = cast_data.llvm.i32_type().const_int(*val as u64, true);
+            let idx = cast_data.llvm.i32_type().const_int(i as u64, true);
+            let adr = unsafe { builder.build_in_bounds_gep(vla_dimensions_ptr, &[zero, idx], "") };
+            builder.build_store(adr, value);
+        }
+
+        builder.build_store(vla_arr_ptr, arr_bitcast);
+        builder.build_load(vla_struct, "")
     }
 }
 
