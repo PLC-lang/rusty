@@ -1279,7 +1279,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::ArrayAccess { reference, access, .. } => {
                 if self.annotations.get_type(&reference, self.index).unwrap().get_type_information().is_vla()
                 {
-                    self.generate_array_access_for_vla(qualifier.as_ref(), reference, access)
+                    self.generate_array_access_for_vla(reference, access)
                 } else {
                     self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
                 }
@@ -2511,7 +2511,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn generate_array_access_for_vla(
         &self,
-        as_ref: Option<&PointerValue>,
         reference: &AstStatement,
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
@@ -2519,16 +2518,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let context = self.llvm.context;
         let function = self.function_context.expect("VLA can't be used outside function context").function;
 
-        let type_ = self.annotations.get_type(reference, self.index).unwrap();
-        if !type_.is_vla() {
-            todo!()
-        };
-        // spaghet
-        let split = type_.get_name().split('_').collect::<Vec<_>>();
-        let name = format!("{}.{}", split[2], split[3]);
+        let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(reference) else { unreachable!() };
 
         // find struct value in llvm index
-        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(name.as_str()).unwrap();
+        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(&qualified_name).unwrap();
         // get the pointer to the original array
         let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").unwrap();
         // load array behind the pointer and store as pointer
@@ -2536,10 +2529,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // get pointer to array containing dimension information
         let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
-
-        // let type_info = type_.get_type_information();
-        // let ndims = type_info.get_vla_dimensions().unwrap();
-        // let ref_type = type_info.get_vla_referenced_type().unwrap();
 
         // 2 i32 values per dim
         // TODO: refactor into LOWER_BOUND/UPPER_BOUND built-in

@@ -25,7 +25,7 @@ use crate::{
     typesystem::DataType,
 };
 use inkwell::{
-    types::{ArrayType, BasicType, BasicTypeEnum},
+    types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
@@ -203,18 +203,16 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
             },
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
-                if dimensions.iter().filter(|dimension| !dimension.is_undetermined()).count() > 0 {
+                if dimensions.iter().any(|dimension| dimension.is_undetermined()) {
+                    // when encountering a vla array, only return the inner type. since we have no
+                    // information about the size, this allows us to work with bitcasts from here on out
+                    self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)
+                } else {
                     self.index
                         .get_effective_type_by_name(inner_type_name)
                         .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
                         .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
                         .map(|it| it.as_basic_type_enum())
-                } else {
-                    // when encountering a vla array, only return the inner type. since we have no information about the size, this allows us
-                    // to work with bitcasts from here on out
-                    let inner_type =
-                        dbg!(self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?);
-                    Ok(inner_type)
                 }
             }
             DataTypeInformation::Integer { size, .. } => {
@@ -420,7 +418,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         inner_type: BasicTypeEnum<'ink>,
         dimensions: &[Dimension],
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        let result = if dimensions.iter().filter(|dimension| dimension.is_undetermined()).count() > 0 {
+        let result = if dimensions.iter().any(|dimension| dimension.is_undetermined()) {
             match inner_type {
                 BasicTypeEnum::IntType(ty) => ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                 BasicTypeEnum::FloatType(ty) => ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
