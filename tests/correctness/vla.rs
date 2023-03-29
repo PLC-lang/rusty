@@ -49,6 +49,50 @@ fn variable_length_array_single_dimension_access() {
 }
 
 #[test]
+fn variable_length_array_multi_dimension_access() {
+    #[derive(Default)]
+    struct MainType {
+        a: i32,
+        b: i32,
+        c: i32,
+        d: i32,
+    }
+
+    let mut main_type = MainType::default();
+    let src = r#"
+    PROGRAM main
+        VAR
+            a, b, c, d, e : DINT;
+            arr : ARRAY[0..1, 0..1] OF DINT;
+        END_VAR
+
+        foo(arr);
+        a := arr[0, 0];
+        b := arr[0, 1];
+        c := arr[1, 0];
+        c := arr[1, 1];        
+    END_PROGRAM
+
+    FUNCTION foo : DINT
+        VAR_INPUT
+            vla : ARRAY[ *, * ] OF DINT;
+        END_VAR
+
+        vla[0, 0] := 0;
+        vla[0, 1] := 2;
+        vla[1, 0] := 4;
+        vla[1, 1] := 8;  
+    END_FUNCTION
+    "#;
+
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(0, main_type.a);
+    assert_eq!(2, main_type.b);
+    assert_eq!(4, main_type.c);
+    assert_eq!(8, main_type.d);
+}
+
+#[test]
 fn variable_length_array_single_dimension_access_with_offset() {
     #[derive(Default)]
     struct MainType {

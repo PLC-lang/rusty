@@ -1309,6 +1309,7 @@ impl AstStatement {
         } else {
             matches!(self, AstStatement::ArrayAccess { .. })
         }
+        // TODO: add vla access?
     }
 
     pub fn is_pointer_access(&self) -> bool {

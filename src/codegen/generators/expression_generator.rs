@@ -1896,7 +1896,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
-                let type_hint = dbg!(self.get_type_hint_info_for(dbg!(literal_statement)))?;
+                let type_hint = self.get_type_hint_info_for(dbg!(literal_statement))?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
                         self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
@@ -2554,70 +2554,124 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // 2 i32 values per dim
         // TODO: refactor into LOWER_BOUND/UPPER_BOUND built-in
         // TODO: ======= map access statements to respective dimension, calculate offset based on n-elems per dim =======
-        let (start_idx, _end_idx) = unsafe {
-            (
-                builder.build_in_bounds_gep(
-                    dim_arr_gep,
-                    &[self.llvm.i32_type().const_zero(), self.llvm.i32_type().const_zero()],
-                    "start_idx_ptr",
-                ),
-                builder.build_in_bounds_gep(
-                    dim_arr_gep,
-                    &[self.llvm.i32_type().const_zero(), self.llvm.i32_type().const_int(1, false)],
-                    "end_idx_ptr",
-                ),
-            )
+
+        // get lengths of dimensions
+        let Some(type_) = self.annotations.get_type(&reference, &self.index) else {
+            unreachable!()
         };
-        let start_offset = builder.build_load(start_idx, "start_offset");
-        // let end_offset = self.llvm.builder.build_load(end_offset, "end_offset"); // TODO: should we check of out of bounds array access here? if so, what do we do if we detect it at runtime?
+        let Some(ndims) = type_.get_type_information().get_vla_dimensions() else {
+            unreachable!()
+        };
 
-        let access_statements = access.get_as_list();
-        let access_value = self.generate_expression(access_statements[0])?;
-        let adjusted_access = builder.build_alloca(self.llvm.i32_type(), "access"); // TODO: else-block vs alloca/store?
-        builder.build_store(adjusted_access, access_value);
-        // =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======
+        // FIXME: this can't be the easiest solution for this problem. the following ~100 lines of code are deeply unsettling.
+        // multi-dimensional array access at runtime is nasty. you have been warned
+        let accessor = {
+            let access_statements = access.get_as_list();
+            let accessors = access_statements
+                .iter()
+                .map(|it| self.generate_expression(it).expect("Uncaught invalid accessor statement"))
+                .collect::<Vec<_>>();
 
-        // if start offset is not 0, adjust the access value accordingly
-        // TODO: branching is likely unnecessary, can just be a sub instruction
-        // insert THEN and CONTINUE blocks
-        builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        let continue_block = context.append_basic_block(function, "continue");
-        let conditional_block = context.prepend_basic_block(continue_block, "idx_normalization_body");
+            let offsets = (0..ndims)
+                .map(|i| unsafe {
+                    let (start_ptr, end_ptr) = (
+                        builder.build_in_bounds_gep(
+                            dim_arr_gep,
+                            &[
+                                self.llvm.i32_type().const_zero(),
+                                self.llvm.i32_type().const_int(0 + i as u64 * 2, false),
+                            ],
+                            format!("start_idx_ptr_{i}").as_str(),
+                        ),
+                        builder.build_in_bounds_gep(
+                            dim_arr_gep,
+                            &[
+                                self.llvm.i32_type().const_zero(),
+                                self.llvm.i32_type().const_int(1 + i as u64 * 2, false),
+                            ],
+                            format!("end_idx_ptr_{i}").as_str(),
+                        ),
+                    );
+                    (
+                        builder.build_load(start_ptr, format!("start_idx_value_{i}").as_str()),
+                        builder.build_load(end_ptr, format!("end_idx_value_{i}").as_str()),
+                    )
+                })
+                .collect::<Vec<_>>();
 
-        // create predicate
-        let condition = builder.build_int_compare(
-            IntPredicate::NE,
-            start_offset.into_int_value(),
-            self.llvm.i32_type().const_zero(),
-            "cmp",
-        );
-        builder.build_conditional_branch(to_i1(condition, builder), conditional_block, continue_block);
+            if access_statements.len() != offsets.len() {
+                unreachable!("i feel like we'll segfault before we ever reach this statement")
+            }
 
-        // generate if-statement content
-        builder.position_at_end(conditional_block);
-        builder.build_store(
-            adjusted_access,
-            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset),
-        );
-        builder.build_unconditional_branch(continue_block);
-        builder.position_at_end(continue_block);
+            // adjust accessors for 0-indexing
+            let adjusted_accessors = accessors
+                .iter()
+                .zip(offsets.iter().map(|it| it.0))
+                .map(|(accessor, start_offset)| {
+                    self.create_llvm_int_binary_expression(&Operator::Minus, *accessor, start_offset)
+                })
+                .collect::<Vec<_>>();
+
+            // length of a dimension is 'end - start + 1'
+            let lengths = offsets
+                .iter()
+                .map(|(start, end)| {
+                    self.create_llvm_int_binary_expression(
+                        &Operator::Plus,
+                        self.create_llvm_int_binary_expression(&Operator::Minus, *end, *start),
+                        self.llvm.i32_type().const_int(1, false).into(),
+                    )
+                })
+                .collect::<Vec<_>>();
+
+            // for an array with dimensions of [ 4, 3, 2 ],
+            // accessing [ 1, 2, 2 ] means to access [ 1*6 + 2*2 + 2*1 ] = 12
+            // see `get_element_pointer_for_array` for more details on this
+
+            // calculate the accessor multiplicators for each dimension.
+            let accessor_multiplicator = (0..lengths.len())
+                .map(|index| {
+                    if index == lengths.len() - 1 {
+                        self.llvm.i32_type().const_int(1, false)
+                    } else {
+                        lengths[index + 1..lengths.len()].iter().fold(
+                            self.llvm.i32_type().const_zero(),
+                            |product, value| {
+                                self.create_llvm_int_binary_expression(
+                                    &Operator::Multiplication,
+                                    product.into(),
+                                    *value,
+                                )
+                                .into_int_value()
+                            },
+                        )
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            if accessor_multiplicator.len() != accessors.len() {
+                unreachable!("i feel like we'll segfault before we ever reach this statement")
+            }
+
+            // i'm scared
+            adjusted_accessors
+                .iter()
+                .zip(accessor_multiplicator)
+                .fold(self.llvm.i32_type().const_zero().as_basic_value_enum(), |acc, (accessor, factor)| {
+                    let tmp = self.create_llvm_int_binary_expression(
+                        &Operator::Multiplication,
+                        *accessor,
+                        factor.into(),
+                    );
+
+                    self.create_llvm_int_binary_expression(&Operator::Plus, tmp, acc)
+                })
+                .into_int_value()
+        };
 
         // load accessed element from array
-        Ok(unsafe {
-            builder.build_gep(
-                vla_arr_ptr,
-                &[builder.build_load(adjusted_access, "adjusted_access").into_int_value()],
-                "arr_val",
-            )
-        })
-
-        // Ok(unsafe {
-        //     builder.build_in_bounds_gep(
-        //         vla_arr_ptr,
-        //         &[builder.build_load(adjusted_access, "adjusted_access").into_int_value()],
-        //         "arr_val",
-        //     )
-        // })
+        // builder.build_load(accessor, "").into_int_value()
+        Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
     }
 }
 
