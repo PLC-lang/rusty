@@ -3905,3 +3905,159 @@ fn by_ref_vla_access_is_annotated_correctly() {
         panic!("expected an array access, got none")
     }
 }
+
+#[test]
+fn vla_call_statement() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        r"
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF DINT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+
+        FUNCTION foo : DINT
+        VAR_INPUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+
+    let AstStatement::CallStatement { parameters, .. } = stmt else {
+        unreachable!();
+    };
+
+    let param = parameters.as_ref().clone().unwrap();
+    let statement = ast::flatten_expression_list(&param)[0];
+
+    assert_type_and_hint!(&annotations, &index, &statement, "__main_arr", Some("__foo_vla"));
+}
+
+#[test]
+fn vla_call_statement_with_nested_arrays() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        r"
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF ARRAY[0..1] OF DINT;
+        END_VAR
+            foo(arr[1]);
+        END_FUNCTION
+        
+        FUNCTION foo : DINT
+        VAR_INPUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+
+    let AstStatement::CallStatement { parameters, .. } = stmt else {
+        unreachable!();
+    };
+
+    let param = parameters.as_ref().clone().unwrap();
+    let statement = ast::flatten_expression_list(&param)[0];
+
+    assert_type_and_hint!(&annotations, &index, &statement, "__main_arr_", Some("__foo_vla"));
+}
+
+#[test]
+fn multi_dimensional_vla_access_is_annotated_correctly() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        r"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            arr: ARRAY[*, *] OF INT;
+        END_VAR
+            arr[0, 1];
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+
+    if let AstStatement::ArrayAccess { reference, .. } = stmt {
+        // entire statement resolves to INT
+        assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
+
+        // reference is annotated with type and hint
+        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_2_int"));
+    } else {
+        panic!("expected an array access, got none")
+    }
+}
+
+#[test]
+fn vla_access_assignment_receives_the_correct_type_hint() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        r"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            arr: ARRAY[*] OF INT;
+        END_VAR
+            foo := arr[0];
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+
+    let AstStatement::Assignment { right, .. } = stmt else {
+        panic!("expected an assignment, got none")
+    };
+    // RHS resolves to INT and receives type-hint to DINT
+    assert_type_and_hint!(&annotations, &index, right.as_ref(), "INT", Some("DINT"));
+
+    let AstStatement::ArrayAccess { access, .. } = right.as_ref() else {
+            panic!("expected an array access, got none")
+    };
+}
+
+#[test]
+fn multi_dim_vla_access_assignment_receives_the_correct_type_hint() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        r"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            arr: ARRAY[*, *] OF INT;
+        END_VAR
+            foo := arr[0, 1];
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+
+    let AstStatement::Assignment { right, .. } = stmt else {
+        panic!("expected an assignment, got none")
+    };
+    // RHS resolves to INT and receives type-hint to DINT
+    assert_type_and_hint!(&annotations, &index, right.as_ref(), "INT", Some("DINT"));
+}

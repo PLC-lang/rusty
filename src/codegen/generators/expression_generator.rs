@@ -1896,7 +1896,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
-                let type_hint = self.get_type_hint_info_for(literal_statement)?;
+                let type_hint = dbg!(self.get_type_hint_info_for(dbg!(literal_statement)))?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
                         self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
@@ -2528,7 +2528,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         let builder = &self.llvm.builder;
         let context = self.llvm.context;
-        let function = self.function_context.expect("VLA can't be used outside function context").function;
+        let function = self.get_function_context(reference)?.function;
 
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(reference) else { unreachable!() };
 
@@ -2553,6 +2553,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // 2 i32 values per dim
         // TODO: refactor into LOWER_BOUND/UPPER_BOUND built-in
+        // TODO: ======= map access statements to respective dimension, calculate offset based on n-elems per dim =======
         let (start_idx, _end_idx) = unsafe {
             (
                 builder.build_in_bounds_gep(
@@ -2569,11 +2570,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         };
         let start_offset = builder.build_load(start_idx, "start_offset");
         // let end_offset = self.llvm.builder.build_load(end_offset, "end_offset"); // TODO: should we check of out of bounds array access here? if so, what do we do if we detect it at runtime?
-        let access_value = self.generate_expression(access)?;
+
+        let access_statements = access.get_as_list();
+        let access_value = self.generate_expression(access_statements[0])?;
         let adjusted_access = builder.build_alloca(self.llvm.i32_type(), "access"); // TODO: else-block vs alloca/store?
         builder.build_store(adjusted_access, access_value);
+        // =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======
 
         // if start offset is not 0, adjust the access value accordingly
+        // TODO: branching is likely unnecessary, can just be a sub instruction
         // insert THEN and CONTINUE blocks
         builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let continue_block = context.append_basic_block(function, "continue");
