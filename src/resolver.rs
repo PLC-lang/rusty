@@ -1082,36 +1082,8 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(annotation) = annotation {
                     self.annotation_map.annotate(statement, annotation);
 
-                    if let DataTypeInformation::Struct {
-                        source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
-                        members,
-                        ..
-                    } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information()
-                    {
-                        if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
-                            .index
-                            .get_effective_type_or_void_by_name(
-                                members
-                                    .get(0)
-                                    .expect("internal VLA struct ALWAYS has this member")
-                                    .get_type_name(),
-                            )
-                            .get_type_information()
-                        {
-                            let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
-                                todo!("error handling - guessing unreachable")
-                            };
-
-                            let hint_annotation = StatementAnnotation::Variable {
-                                resulting_type: inner_type_name.to_owned(),
-                                qualified_name: qualified_name.to_string(),
-                                constant: false,
-                                variable_type: VariableType::Input,
-                                is_auto_deref: false,
-                            };
-                            self.annotation_map.annotate_type_hint(statement, hint_annotation)
-                        }
-                    }
+                    // TODO: statement.is_vla()
+                    self.maybe_annotate_vla(statement);
                 }
             }
             AstStatement::QualifiedReference { elements, .. } => {
@@ -1225,6 +1197,36 @@ impl<'i> TypeAnnotator<'i> {
             }
             _ => {
                 self.visit_statement_literals(ctx, statement);
+            }
+        }
+    }
+
+    fn maybe_annotate_vla(&mut self, statement: &AstStatement) {
+        if let DataTypeInformation::Struct {
+            source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
+            members,
+            ..
+        } = self.annotation_map.get_type_or_void(statement, self.index).get_type_information()
+        {
+            if let DataTypeInformation::Pointer { inner_type_name, .. } = &self
+                .index
+                .get_effective_type_or_void_by_name(
+                    members.get(0).expect("internal VLA struct ALWAYS has this member").get_type_name(),
+                )
+                .get_type_information()
+            {
+                let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
+                    todo!("error handling - guessing unreachable")
+                };
+
+                let hint_annotation = StatementAnnotation::Variable {
+                    resulting_type: inner_type_name.to_owned(),
+                    qualified_name: qualified_name.to_string(),
+                    constant: false,
+                    variable_type: VariableType::Input,
+                    is_auto_deref: false,
+                };
+                self.annotation_map.annotate_type_hint(statement, hint_annotation)
             }
         }
     }

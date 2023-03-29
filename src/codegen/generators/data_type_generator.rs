@@ -205,7 +205,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
                 if dimensions.iter().any(|dimension| dimension.is_undetermined()) {
                     // when encountering a vla array, only return the inner type. since we have no
-                    // information about the size, this allows us to work with bitcasts from here on out
+                    // information about the size, we need to work with bitcasts/inner-type pointers
                     self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)
                 } else {
                     self.index
@@ -418,51 +418,27 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         inner_type: BasicTypeEnum<'ink>,
         dimensions: &[Dimension],
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        let result = if dimensions.iter().any(|dimension| dimension.is_undetermined()) {
-            match inner_type {
-                BasicTypeEnum::IntType(ty) => ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                BasicTypeEnum::FloatType(ty) => ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                BasicTypeEnum::StructType(ty) => ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                BasicTypeEnum::ArrayType(ty) => ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                BasicTypeEnum::PointerType(ty) => ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                BasicTypeEnum::VectorType(ty) => ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-            }
-            .as_basic_type_enum();
+        let len = dimensions
+            .iter()
+            .map(|dimension| {
+                dimension
+                    .get_length(self.index)
+                    .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))
+            })
+            .collect::<Result<Vec<u32>, Diagnostic>>()?
+            .into_iter()
+            .reduce(|a, b| a * b)
+            .ok_or_else(|| Diagnostic::codegen_error("Invalid array dimensions", SourceRange::undefined()))?;
 
-            match inner_type {
-                BasicTypeEnum::IntType(ty) => ty.array_type(1),
-                BasicTypeEnum::FloatType(ty) => ty.array_type(1),
-                BasicTypeEnum::StructType(ty) => ty.array_type(1),
-                BasicTypeEnum::ArrayType(ty) => ty.array_type(1),
-                BasicTypeEnum::PointerType(ty) => ty.array_type(1),
-                BasicTypeEnum::VectorType(ty) => ty.array_type(1),
-            }
-            .as_basic_type_enum()
-        } else {
-            let len = dimensions
-                .iter()
-                .map(|dimension| {
-                    dimension
-                        .get_length(self.index)
-                        .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))
-                })
-                .collect::<Result<Vec<u32>, Diagnostic>>()?
-                .into_iter()
-                .reduce(|a, b| a * b)
-                .ok_or_else(|| {
-                    Diagnostic::codegen_error("Invalid array dimensions", SourceRange::undefined())
-                })?;
-
-            match inner_type {
-                BasicTypeEnum::IntType(ty) => ty.array_type(len),
-                BasicTypeEnum::FloatType(ty) => ty.array_type(len),
-                BasicTypeEnum::StructType(ty) => ty.array_type(len),
-                BasicTypeEnum::ArrayType(ty) => ty.array_type(len),
-                BasicTypeEnum::PointerType(ty) => ty.array_type(len),
-                BasicTypeEnum::VectorType(ty) => ty.array_type(len),
-            }
-            .as_basic_type_enum()
-        };
+        let result = match inner_type {
+            BasicTypeEnum::IntType(ty) => ty.array_type(len),
+            BasicTypeEnum::FloatType(ty) => ty.array_type(len),
+            BasicTypeEnum::StructType(ty) => ty.array_type(len),
+            BasicTypeEnum::ArrayType(ty) => ty.array_type(len),
+            BasicTypeEnum::PointerType(ty) => ty.array_type(len),
+            BasicTypeEnum::VectorType(ty) => ty.array_type(len),
+        }
+        .as_basic_type_enum();
 
         let array_result: Result<BasicTypeEnum, _> = result.try_into();
         array_result.map_err(|_| {

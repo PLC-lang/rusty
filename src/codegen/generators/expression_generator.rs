@@ -891,6 +891,35 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Ok(argument)
         })?;
 
+        // ...check if we can bitcast a reference to their hinted type
+        if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
+            let actual_type = self.annotations.get_type_or_void(argument, self.index);
+            let actual_type_info = self.index.find_elementary_pointer_type(&actual_type.information);
+            let target_type_info = self.index.find_elementary_pointer_type(&hint.information);
+
+            if target_type_info.is_vla() {
+                return Ok(cast_if_needed(
+                    self.llvm,
+                    self.index,
+                    self.llvm_index,
+                    hint,
+                    actual_type,
+                    value.into(),
+                    self.annotations.get(argument),
+                ));
+            };
+
+            // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction: The ‘bitcast’ instruction takes
+            // a value to cast, which must be a **non-aggregate** first class value [...]
+            if !actual_type_info.is_aggregate() && actual_type_info != target_type_info {
+                return Ok(self.llvm.builder.build_bitcast(
+                    value,
+                    self.llvm_index.get_associated_type(hint.get_name())?,
+                    "",
+                ));
+            }
+        }
+
         // ...check if we can bitcast an array to a pointer, i.e. `[81 x i8]*` should be passed as a `i8*`
         if value.get_type().get_element_type().is_array_type() {
             let res = self.llvm.builder.build_bitcast(
@@ -905,23 +934,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             );
 
             return Ok(res.into_pointer_value().into());
-        }
-
-        // ...check if we can bitcast a reference to their hinted type
-        if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
-            let actual_type = self.annotations.get_type_or_void(argument, self.index);
-            let actual_type_info = self.index.find_elementary_pointer_type(&actual_type.information);
-            let target_type_info = self.index.find_elementary_pointer_type(&hint.information);
-
-            // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction: The ‘bitcast’ instruction takes
-            // a value to cast, which must be a **non-aggregate** first class value [...]
-            if !actual_type_info.is_aggregate() && actual_type_info != target_type_info {
-                return Ok(self.llvm.builder.build_bitcast(
-                    value,
-                    self.llvm_index.get_associated_type(hint.get_name())?,
-                    "",
-                ));
-            }
         }
 
         // ...otherwise no bitcasting was needed, thus return the generated element pointer as is
@@ -2522,6 +2534,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // find struct value in llvm index
         let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(&qualified_name).unwrap();
+
+        // if the vla parameter is by-ref, we need to dereference the pointer
+        let struct_ptr =
+            if self.index.find_fully_qualified_variable(&qualified_name).unwrap().is_in_parameter_by_ref() {
+                builder.build_load(struct_ptr, "auto_deref").into_pointer_value()
+            } else {
+                struct_ptr
+            };
+
         // get the pointer to the original array
         let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").unwrap();
         // load array behind the pointer and store as pointer
@@ -2584,6 +2605,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 "arr_val",
             )
         })
+
+        // Ok(unsafe {
+        //     builder.build_in_bounds_gep(
+        //         vla_arr_ptr,
+        //         &[builder.build_load(adjusted_access, "adjusted_access").into_int_value()],
+        //         "arr_val",
+        //     )
+        // })
     }
 }
 

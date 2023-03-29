@@ -9,7 +9,7 @@ use inkwell::{
 use crate::{
     index::Index,
     resolver::StatementAnnotation,
-    typesystem::{DataType, DataTypeInformation},
+    typesystem::{DataType, DataTypeInformation, InternalType, StructSource},
 };
 
 use super::{
@@ -40,7 +40,7 @@ pub fn cast_if_needed<'ctx>(
     value: BasicValueEnum<'ctx>,
     annotation: Option<&StatementAnnotation>,
 ) -> BasicValueEnum<'ctx> {
-    value.cast(CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotation))
+    value.cast(&CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotation))
 }
 
 pub fn get_llvm_int_type<'a>(context: &'a Context, size: u32, name: &str) -> IntType<'a> {
@@ -97,31 +97,31 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
 }
 
 trait Castable<'ctx, 'cast> {
-    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 trait Promotable<'ctx, 'cast> {
-    fn promote(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 trait Truncatable<'ctx, 'cast> {
-    fn truncate(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
-    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         match self {
-            BasicValueEnum::IntValue(val) => val.cast(cast_data),
-            BasicValueEnum::FloatValue(val) => val.cast(cast_data),
-            BasicValueEnum::PointerValue(val) => val.cast(cast_data),
-            BasicValueEnum::ArrayValue(val) => val.cast(cast_data),
+            BasicValueEnum::IntValue(val) => val.cast(&cast_data),
+            BasicValueEnum::FloatValue(val) => val.cast(&cast_data),
+            BasicValueEnum::PointerValue(val) => val.cast(&cast_data),
+            BasicValueEnum::ArrayValue(val) => val.cast(&cast_data),
             _ => self,
         }
     }
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
-    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let lsize = cast_data.target_type.get_size_in_bits(cast_data.index);
         match cast_data.target_type {
             DataTypeInformation::Integer { .. } => {
@@ -158,7 +158,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let rsize = &cast_data.value_type.get_size_in_bits(cast_data.index);
         match cast_data.target_type {
             DataTypeInformation::Float { size: lsize, .. } => {
@@ -182,15 +182,14 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
-    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         match &cast_data.target_type {
             DataTypeInformation::Integer { size: lsize, .. } => cast_data
                 .llvm
                 .builder
                 .build_ptr_to_int(self, get_llvm_int_type(cast_data.llvm.context, *lsize, ""), "")
                 .into(),
-            DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
-                // TODO: is void really needed here? no failing tests if omitted/do we ever cast to void?
+            DataTypeInformation::Pointer { .. } => {
                 let Ok(target_ptr_type) = cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name()) else {
                         unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
                     };
@@ -202,13 +201,25 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                     self.into()
                 }
             }
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
+                ..
+            } => {
+                // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
+                let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref").cast(&cast_data);
+
+                // create a pointer to the generated StructValue
+                let struct_ptr = cast_data.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr");
+                cast_data.llvm.builder.build_store(struct_ptr, struct_val);
+                struct_ptr.into()
+            }
             _ => unreachable!("Cannot cast pointer value to {}", cast_data.target_type.get_name()),
         }
     }
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
-    fn cast(self, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         // TODO: High-Level documentation / explanation of the following code
         if !cast_data.target_type.is_vla() {
             // Not a VLA, return as is
@@ -241,20 +252,6 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             )
             .into_pointer_value();
 
-        // TODO: find a way to redefine the indexed vla struct/ register the type with a bitcasted array in the llvm index
-        // let vla_struct_t = cast_data
-        //     .llvm
-        //     .context
-        //     .opaque_struct_type(associated_type.into_struct_type().get_name().unwrap().to_str().unwrap());
-        // vla_struct_t.set_body(
-        //     &[
-        //         arr_bitcast.get_type().into(),
-        //         associated_type.into_struct_type().get_field_type_at_index(1).expect("must have this field"),
-        //     ],
-        //     false,
-        // );
-        // let ty = vla_struct_t;
-
         // -- Generate struct & arr_ptr --
         let ty = associated_type.into_struct_type();
         let vla_struct = builder.build_alloca(ty, "vla_struct");
@@ -278,12 +275,13 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         }
 
         builder.build_store(vla_arr_ptr, arr_bitcast);
+
         builder.build_load(vla_struct, "")
     }
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
-    fn promote(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         let llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, "Integer");
         if cast_data.value_type.is_signed_int() {
             cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")
@@ -295,7 +293,7 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn promote(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         cast_data
             .llvm
             .builder
@@ -305,7 +303,7 @@ impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for IntValue<'ctx> {
-    fn truncate(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         cast_data
             .llvm
             .builder
@@ -319,7 +317,7 @@ impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for IntValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn truncate(self, lsize: u32, cast_data: CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         cast_data
             .llvm
             .builder

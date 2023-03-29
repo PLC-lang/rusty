@@ -3808,7 +3808,7 @@ fn writing_value_read_from_vla_to_vla() {
 }
 
 #[test]
-fn _vla_write_access_is_annotated_correctly() {
+fn address_of_works_on_vla() {
     let id_provider = IdProvider::default();
 
     let (unit, mut index) = index_with_ids(
@@ -3851,5 +3851,57 @@ fn _vla_write_access_is_annotated_correctly() {
         } else {
             panic!("expected an array access, got none")
         }
+    }
+}
+
+#[test]
+fn by_ref_vla_access_is_annotated_correctly() {
+    let id_provider = IdProvider::default();
+
+    let (unit, mut index) = index_with_ids(
+        r"
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            arr: ARRAY[*] OF INT;
+        END_VAR
+        VAR_INPUT {ref}
+            arr2: ARRAY[*] OF INT;
+        END_VAR
+            arr[0];
+            arr2[0];
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+
+    if let AstStatement::ArrayAccess { reference, .. } = stmt {
+        // entire statement resolves to INT
+        assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
+
+        // reference is annotated with type and hint
+        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
+    } else {
+        panic!("expected an array access, got none")
+    }
+
+    let stmt = &unit.implementations[0].statements[1];
+
+    if let AstStatement::ArrayAccess { reference, .. } = stmt {
+        // entire statement resolves to INT
+        assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
+
+        // reference is annotated with type and hint
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference.as_ref(),
+            "__foo_arr2",
+            Some("__arr_vla_1_int")
+        );
+    } else {
+        panic!("expected an array access, got none")
     }
 }
