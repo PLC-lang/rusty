@@ -62,7 +62,7 @@ fn variable_length_array_multi_dimension_access() {
     let src = r#"
     PROGRAM main
         VAR
-            a, b, c, d, e : DINT;
+            a, b, c, d: DINT;
             arr : ARRAY[0..1, 0..1] OF DINT;
         END_VAR
 

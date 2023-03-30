@@ -21,8 +21,8 @@ use inkwell::{
     builder::Builder,
     types::{BasicType, BasicTypeEnum},
     values::{
-        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue,
-        StructValue, VectorValue,
+        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntMathValue, IntValue,
+        PointerValue, StructValue, VectorValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
@@ -2565,6 +2565,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // FIXME: this can't be the easiest solution for this problem. the following ~100 lines of code are deeply unsettling.
         // multi-dimensional array access at runtime is nasty. you have been warned
+        // TODO: extract into function. only do this if we are encountering multi-dimensional arrays, simplify for single dimensions
         let accessor = {
             let access_statements = access.get_as_list();
             let accessors = access_statements
@@ -2581,7 +2582,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 self.llvm.i32_type().const_zero(),
                                 self.llvm.i32_type().const_int(0 + i as u64 * 2, false),
                             ],
-                            format!("start_idx_ptr_{i}").as_str(),
+                            format!("start_idx_ptr{i}").as_str(),
                         ),
                         builder.build_in_bounds_gep(
                             dim_arr_gep,
@@ -2589,37 +2590,46 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 self.llvm.i32_type().const_zero(),
                                 self.llvm.i32_type().const_int(1 + i as u64 * 2, false),
                             ],
-                            format!("end_idx_ptr_{i}").as_str(),
+                            format!("end_idx_ptr{i}").as_str(),
                         ),
                     );
                     (
-                        builder.build_load(start_ptr, format!("start_idx_value_{i}").as_str()),
-                        builder.build_load(end_ptr, format!("end_idx_value_{i}").as_str()),
+                        builder.build_load(start_ptr, format!("start_idx_value{i}").as_str()),
+                        builder.build_load(end_ptr, format!("end_idx_value{i}").as_str()),
                     )
                 })
                 .collect::<Vec<_>>();
 
+            dbg!(&offsets);
+
             if access_statements.len() != offsets.len() {
-                unreachable!("i feel like we'll segfault before we ever reach this statement")
+                unreachable!("Amount of access statements and dimensions does not match.")
             }
 
             // adjust accessors for 0-indexing
             let adjusted_accessors = accessors
                 .iter()
-                .zip(offsets.iter().map(|it| it.0))
-                .map(|(accessor, start_offset)| {
-                    self.create_llvm_int_binary_expression(&Operator::Minus, *accessor, start_offset)
+                .enumerate()
+                .zip(offsets.iter().map(|(start, _)| start))
+                .map(|((idx, accessor), start_offset)| {
+                    builder.build_int_sub(
+                        accessor.into_int_value(),
+                        start_offset.into_int_value(),
+                        format!("adj_access{idx}").as_str(),
+                    )
                 })
                 .collect::<Vec<_>>();
 
             // length of a dimension is 'end - start + 1'
             let lengths = offsets
                 .iter()
-                .map(|(start, end)| {
-                    self.create_llvm_int_binary_expression(
-                        &Operator::Plus,
-                        self.create_llvm_int_binary_expression(&Operator::Minus, *end, *start),
-                        self.llvm.i32_type().const_int(1, false).into(),
+                .enumerate()
+                .map(|(idx, (start, end))| {
+                    // TODO:
+                    builder.build_int_add(
+                        self.llvm.i32_type().const_int(1, false),
+                        builder.build_int_sub(end.into_int_value(), start.into_int_value(), ""),
+                        format!("len_dim{idx}").as_str(),
                     )
                 })
                 .collect::<Vec<_>>();
@@ -2629,49 +2639,73 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // see `get_element_pointer_for_array` for more details on this
 
             // calculate the accessor multiplicators for each dimension.
-            let accessor_multiplicator = (0..lengths.len())
-                .map(|index| {
-                    if index == lengths.len() - 1 {
-                        self.llvm.i32_type().const_int(1, false)
-                    } else {
-                        lengths[index + 1..lengths.len()].iter().fold(
-                            self.llvm.i32_type().const_zero(),
-                            |product, value| {
-                                self.create_llvm_int_binary_expression(
-                                    &Operator::Multiplication,
-                                    product.into(),
-                                    *value,
-                                )
-                                .into_int_value()
-                            },
-                        )
-                    }
-                })
-                .collect::<Vec<_>>();
+            // create an accumulator variable
+            let accessor_factors = self.get_vla_accessor_factors(&lengths);
 
-            if accessor_multiplicator.len() != accessors.len() {
-                unreachable!("i feel like we'll segfault before we ever reach this statement")
-            }
-
-            // i'm scared
-            adjusted_accessors
-                .iter()
-                .zip(accessor_multiplicator)
-                .fold(self.llvm.i32_type().const_zero().as_basic_value_enum(), |acc, (accessor, factor)| {
-                    let tmp = self.create_llvm_int_binary_expression(
-                        &Operator::Multiplication,
-                        *accessor,
-                        factor.into(),
-                    );
-
-                    self.create_llvm_int_binary_expression(&Operator::Plus, tmp, acc)
-                })
-                .into_int_value()
+            // TODO: impl sum of mul iter method
+            adjusted_accessors.iter().zip(accessor_factors).fold(
+                self.llvm.i32_type().const_zero(),
+                |acc, (accessor, factor)| {
+                    let tmp = builder.build_int_mul(*accessor, factor, "tmp_mul");
+                    builder.build_int_add(tmp, acc, "accumulate")
+                },
+            )
         };
 
         // load accessed element from array
         // builder.build_load(accessor, "").into_int_value()
         Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
+    }
+
+    fn get_vla_accessor_factors(&self, lengths: &'b Vec<IntValue<'ink>>) -> Vec<IntValue<'ink>> {
+        (0..lengths.len())
+            .map(|idx| {
+                if idx == lengths.len() - 1 {
+                    self.llvm.i32_type().const_int(1, false)
+                } else {
+                    lengths[idx + 1..lengths.len()].iter().product_llvm::<IntValue>(self.llvm)
+                }
+            })
+            .collect::<Vec<_>>()
+    }
+}
+
+trait FoldIntValueExt<'fold, 'll>: Iterator {
+    fn product_llvm<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        Self: Iterator<Item = &'fold IntValue<'fold>> + Sized,
+        I: FoldIntValue<'fold, 'll>,
+    {
+        IntValue::product_llvm(self, llvm)
+    }
+}
+
+impl<'fold, 'll, I: Iterator> FoldIntValueExt<'fold, 'll> for I {}
+
+trait FoldIntValue<'fold, 'll, A = Self> {
+    fn product_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        I: Iterator<Item = &'fold IntValue<'fold>>;
+}
+
+impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
+    fn product_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        I: Iterator<Item = &'fold IntValue<'fold>>,
+    {
+        // initialize the accumulator
+        let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
+        llvm.builder.build_store(accum, llvm.i32_type().const_zero());
+        // while let Some(val) = iter.next() {
+        for val in iter {
+            // load prev val from accumy
+            let prev = llvm.builder.build_load(accum, "load_accum");
+            // mul with cur
+            let product = llvm.builder.build_int_mul(prev.into_int_value(), *val, "product");
+            // store
+            llvm.builder.build_store(accum, product);
+        }
+        llvm.builder.build_load(accum, "accessor_factor").into_int_value()
     }
 }
 
