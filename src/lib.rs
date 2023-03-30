@@ -529,19 +529,16 @@ fn index_module<T: SourceContainer>(
     let id_provider = IdProvider::default();
 
     let mut full_index = Index::default();
-    let mut all_units = Vec::new();
 
     // ### PHASE 1 ###
     // parse & index sources
-    let (index, mut units) =
+    let (index, sources_units) =
         parse_and_index(sources, encoding, &id_provider, diagnostician, LinkageType::Internal)?;
     full_index.import(index);
-    all_units.append(&mut units);
     // parse & index includes
-    let (includes_index, mut includes_units) =
+    let (includes_index, includes_units) =
         parse_and_index(includes, encoding, &id_provider, diagnostician, LinkageType::External)?;
     full_index.import(includes_index);
-    all_units.append(&mut includes_units);
 
     // ### PHASE 1.1 ###
     // import built-in types like INT, BOOL, etc.
@@ -565,7 +562,7 @@ fn index_module<T: SourceContainer>(
     let mut annotated_units: Vec<CompilationUnit> = Vec::new();
     let mut all_annotations = AnnotationMapImpl::default();
     let mut all_literals = StringLiterals::default();
-    for (syntax_errors, unit) in all_units.into_iter() {
+    for (syntax_errors, unit) in sources_units.into_iter() {
         // annotate unit
         let (annotations, string_literals) =
             TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
@@ -575,6 +572,16 @@ fn index_module<T: SourceContainer>(
         // log errors
         diagnostician.handle(syntax_errors);
         diagnostician.handle(validator.diagnostics());
+
+        annotated_units.push(unit);
+        all_annotations.import(annotations);
+        all_literals.import(string_literals);
+    }
+    // don't validate includes
+    for (_, unit) in includes_units.into_iter() {
+        // annotate unit
+        let (annotations, string_literals) =
+            TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
 
         annotated_units.push(unit);
         all_annotations.import(annotations);
