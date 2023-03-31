@@ -2,8 +2,8 @@
 source: src/tests/multi_files.rs
 expression: res
 ---
-; ModuleID = 'file1.st'
-source_filename = "file1.st"
+; ModuleID = 'app/file1.st'
+source_filename = "app/file1.st"
 
 %mainProg = type {}
 
@@ -35,15 +35,15 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "mainProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "file2.st", directory: "")
+!2 = !DIFile(filename: "file2.st", directory: "lib")
 !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "mainProg")
 !4 = !{}
 !5 = !{i32 2, !"Dwarf Version", i32 5}
 !6 = distinct !DICompileUnit(language: DW_LANG_C, file: !7, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
-!7 = !DIFile(filename: "file1.st", directory: "root")
+!7 = !DIFile(filename: "app/file1.st", directory: "root")
 !8 = !{!0}
 !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !10, file: !10, line: 2, type: !11, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !6, retainedNodes: !4)
-!10 = !DIFile(filename: "file1.st", directory: "")
+!10 = !DIFile(filename: "file1.st", directory: "app")
 !11 = !DISubroutineType(flags: DIFlagPublic, types: !12)
 !12 = !{null}
 !13 = !DILocation(line: 10, column: 4, scope: !9)
