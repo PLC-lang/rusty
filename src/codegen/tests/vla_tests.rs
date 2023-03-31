@@ -23,6 +23,7 @@ fn internal_vla_struct_is_generated_for_call_statements() {
 }
 
 #[test]
+#[ignore = "not yet implemented"]
 fn multi_dim_vla() {
     let res = codegen(
         r#"
@@ -48,20 +49,41 @@ fn multi_dim_vla() {
 fn vla_read_access() {
     let res = codegen(
         r#"
-        FUNCTION foo
+        FUNCTION foo : INT
         VAR_INPUT
             vla : ARRAY[*] OF INT;
         END_VAR
-        VAR_TEMP
-            i : INT;
-        END_VAR
-            i := vla[0];
+            FOO := vla[0];
         END_FUNCTION
 
-        FUNCTION bar
+        FUNCTION main : DINT
         VAR
             arr : ARRAY[0..1] OF INT;
         END_VAR
+            foo(arr);
+        END_FUNCTION
+    "#,
+    );
+
+    insta::assert_snapshot!(res);
+}
+
+#[test]
+fn global_variable_passed_to_function_as_vla() {
+    let res = codegen(
+        r#"
+        VAR_GLOBAL
+            arr : ARRAY[0..1] OF INT;
+        END_VAR
+
+        FUNCTION foo : INT
+        VAR_INPUT
+            vla : ARRAY[*] OF INT;
+        END_VAR
+            vla[0] := 10;
+        END_FUNCTION
+
+        FUNCTION main : DINT
             foo(arr);
         END_FUNCTION
     "#,

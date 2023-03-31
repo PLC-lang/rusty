@@ -1,5 +1,4 @@
 use std::collections::{HashMap, VecDeque};
-use std::convert::TryInto;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 /// the data_type_generator generates user defined data-types
@@ -202,10 +201,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 }
                 StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
             },
+
+            // We distinguish between two types of arrays, normal and variable length ones.
+            // Variable Length Arrays are defined by having unknown sizes at compile time, thus we handle
+            // these two cases based on whether the {start,end}-offset equals `TypeSize::Undetermined`.
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
                 if dimensions.iter().any(|dimension| dimension.is_undetermined()) {
-                    // when encountering a vla array, only return the inner type. since we have no
-                    // information about the size, we need to work with bitcasts/inner-type pointers
                     self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)
                 } else {
                     self.index
@@ -440,13 +441,17 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         }
         .as_basic_type_enum();
 
-        let array_result: Result<BasicTypeEnum, _> = result.try_into();
-        array_result.map_err(|_| {
-            Diagnostic::codegen_error(
-                &format!("Expected ArrayType but found {result:#?}"),
-                SourceRange::undefined(),
-            )
-        })
+        Ok(result)
+
+        // XXX: is the code commented out below really necessary? What are the
+        // scenarios where this would return an Err?
+        // let array_result: Result<BasicTypeEnum, _> = result.try_into();
+        // array_result.map_err(|_| {
+        //     Diagnostic::codegen_error(
+        //         &format!("Expected ArrayType but found {result:#?}"),
+        //         SourceRange::undefined(),
+        //     )
+        // })
     }
 }
 

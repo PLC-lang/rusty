@@ -21,8 +21,8 @@ use inkwell::{
     builder::Builder,
     types::{BasicType, BasicTypeEnum},
     values::{
-        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntMathValue, IntValue,
-        PointerValue, StructValue, VectorValue,
+        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue,
+        StructValue, VectorValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
@@ -1289,8 +1289,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement,
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
-                if self.annotations.get_type(&reference, self.index).unwrap().get_type_information().is_vla()
-                {
+                if self.annotations.get_type(reference, self.index).unwrap().get_type_information().is_vla() {
                     self.generate_array_access_for_vla(reference, access)
                 } else {
                     self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
@@ -2527,185 +2526,83 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         let builder = &self.llvm.builder;
-        let context = self.llvm.context;
-        let function = self.get_function_context(reference)?.function;
 
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(reference) else { unreachable!() };
 
         // find struct value in llvm index
-        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(&qualified_name).unwrap();
-
+        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
         // if the vla parameter is by-ref, we need to dereference the pointer
         let struct_ptr =
-            if self.index.find_fully_qualified_variable(&qualified_name).unwrap().is_in_parameter_by_ref() {
+            if self.index.find_fully_qualified_variable(qualified_name).unwrap().is_in_parameter_by_ref() {
                 builder.build_load(struct_ptr, "auto_deref").into_pointer_value()
             } else {
                 struct_ptr
             };
-
         // get the pointer to the original array
         let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").unwrap();
         // load array behind the pointer and store as pointer
         let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
-
         // get pointer to array containing dimension information
         let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
 
-        // 2 i32 values per dim
-        // TODO: refactor into LOWER_BOUND/UPPER_BOUND built-in
-        // TODO: ======= map access statements to respective dimension, calculate offset based on n-elems per dim =======
-
         // get lengths of dimensions
-        let Some(type_) = self.annotations.get_type(&reference, &self.index) else {
+        let Some(type_) = self.annotations.get_type(reference, self.index) else {
             unreachable!()
         };
         let Some(ndims) = type_.get_type_information().get_vla_dimensions() else {
             unreachable!()
         };
 
-        // FIXME: this can't be the easiest solution for this problem. the following ~100 lines of code are deeply unsettling.
-        // multi-dimensional array access at runtime is nasty. you have been warned
-        // TODO: extract into function. only do this if we are encountering multi-dimensional arrays, simplify for single dimensions
-        let accessor = {
-            let access_statements = access.get_as_list();
+        // TODO: refactor into LOWER_BOUND/UPPER_BOUND built-in
+        // get the start/end offsets for each dimension ( ARRAY[4..10, -4..4] ...)
+        //                                                      ^   ^   ^  ^
+        let index_offsets = get_indices(self.llvm, ndims, dim_arr_gep);
+
+        // calculate the required offset from the array pointer for the given accessor statements. this is
+        // relatively straightforward for single-dimensional arrays, but is quite costly (O(n²)) for multi-dimensional arrays
+        let access_statements = access.get_as_list();
+        let accessor = if access_statements.len() == 1 {
+            let Some(stmt) = access_statements.get(0) else {
+                unreachable!("must have exactly 1 access statement")
+            };
+            let access_value = self.generate_expression(stmt)?;
+
+            // if start offset is not 0, adjust the access value accordingly
+            let Some(start_offset) = index_offsets.get(0).map(|(start, _)| *start) else {
+                unreachable!("VLA must have information about dimension offsets")
+            };
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset)
+                .into_int_value()
+        } else {
             let accessors = access_statements
                 .iter()
                 .map(|it| self.generate_expression(it).expect("Uncaught invalid accessor statement"))
                 .collect::<Vec<_>>();
 
-            let offsets = (0..ndims)
-                .map(|i| unsafe {
-                    let (start_ptr, end_ptr) = (
-                        builder.build_in_bounds_gep(
-                            dim_arr_gep,
-                            &[
-                                self.llvm.i32_type().const_zero(),
-                                self.llvm.i32_type().const_int(0 + i as u64 * 2, false),
-                            ],
-                            format!("start_idx_ptr{i}").as_str(),
-                        ),
-                        builder.build_in_bounds_gep(
-                            dim_arr_gep,
-                            &[
-                                self.llvm.i32_type().const_zero(),
-                                self.llvm.i32_type().const_int(1 + i as u64 * 2, false),
-                            ],
-                            format!("end_idx_ptr{i}").as_str(),
-                        ),
-                    );
-                    (
-                        builder.build_load(start_ptr, format!("start_idx_value{i}").as_str()),
-                        builder.build_load(end_ptr, format!("end_idx_value{i}").as_str()),
-                    )
-                })
-                .collect::<Vec<_>>();
-
-            dbg!(&offsets);
-
-            if access_statements.len() != offsets.len() {
+            if access_statements.len() != index_offsets.len() {
                 unreachable!("Amount of access statements and dimensions does not match.")
             }
 
-            // adjust accessors for 0-indexing
-            let adjusted_accessors = accessors
-                .iter()
-                .enumerate()
-                .zip(offsets.iter().map(|(start, _)| start))
-                .map(|((idx, accessor), start_offset)| {
-                    builder.build_int_sub(
-                        accessor.into_int_value(),
-                        start_offset.into_int_value(),
-                        format!("adj_access{idx}").as_str(),
-                    )
-                })
-                .collect::<Vec<_>>();
-
             // length of a dimension is 'end - start + 1'
-            let lengths = offsets
-                .iter()
-                .enumerate()
-                .map(|(idx, (start, end))| {
-                    // TODO:
-                    builder.build_int_add(
-                        self.llvm.i32_type().const_int(1, false),
-                        builder.build_int_sub(end.into_int_value(), start.into_int_value(), ""),
-                        format!("len_dim{idx}").as_str(),
-                    )
-                })
-                .collect::<Vec<_>>();
+            let lengths = get_dimension_lengths(self.llvm, &index_offsets);
 
             // for an array with dimensions of [ 4, 3, 2 ],
             // accessing [ 1, 2, 2 ] means to access [ 1*6 + 2*2 + 2*1 ] = 12
             // see `get_element_pointer_for_array` for more details on this
 
             // calculate the accessor multiplicators for each dimension.
-            // create an accumulator variable
-            let accessor_factors = self.get_vla_accessor_factors(&lengths);
+            let dimension_offsets = get_vla_accessor_factors(self.llvm, &lengths);
 
-            // TODO: impl sum of mul iter method
-            adjusted_accessors.iter().zip(accessor_factors).fold(
-                self.llvm.i32_type().const_zero(),
-                |acc, (accessor, factor)| {
-                    let tmp = builder.build_int_mul(*accessor, factor, "tmp_mul");
-                    builder.build_int_add(tmp, acc, "accumulate")
-                },
-            )
+            // adjust accessors for 0-indexing
+            let adjusted_accessors = normalize_offsets(self.llvm, &accessors, &index_offsets);
+
+            // calculate the resulting accessor for the given accessor statements and dimension offsets
+            adjusted_accessors.iter().zip(&dimension_offsets).calculate_offset_llvm::<IntValue>(self.llvm)
         };
 
         // load accessed element from array
         // builder.build_load(accessor, "").into_int_value()
         Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
-    }
-
-    fn get_vla_accessor_factors(&self, lengths: &'b Vec<IntValue<'ink>>) -> Vec<IntValue<'ink>> {
-        (0..lengths.len())
-            .map(|idx| {
-                if idx == lengths.len() - 1 {
-                    self.llvm.i32_type().const_int(1, false)
-                } else {
-                    lengths[idx + 1..lengths.len()].iter().product_llvm::<IntValue>(self.llvm)
-                }
-            })
-            .collect::<Vec<_>>()
-    }
-}
-
-trait FoldIntValueExt<'fold, 'll>: Iterator {
-    fn product_llvm<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        Self: Iterator<Item = &'fold IntValue<'fold>> + Sized,
-        I: FoldIntValue<'fold, 'll>,
-    {
-        IntValue::product_llvm(self, llvm)
-    }
-}
-
-impl<'fold, 'll, I: Iterator> FoldIntValueExt<'fold, 'll> for I {}
-
-trait FoldIntValue<'fold, 'll, A = Self> {
-    fn product_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        I: Iterator<Item = &'fold IntValue<'fold>>;
-}
-
-impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
-    fn product_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
-    where
-        I: Iterator<Item = &'fold IntValue<'fold>>,
-    {
-        // initialize the accumulator
-        let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
-        llvm.builder.build_store(accum, llvm.i32_type().const_zero());
-        // while let Some(val) = iter.next() {
-        for val in iter {
-            // load prev val from accumy
-            let prev = llvm.builder.build_load(accum, "load_accum");
-            // mul with cur
-            let product = llvm.builder.build_int_mul(prev.into_int_value(), *val, "product");
-            // store
-            llvm.builder.build_store(accum, product);
-        }
-        llvm.builder.build_load(accum, "accessor_factor").into_int_value()
     }
 }
 
@@ -2747,4 +2644,155 @@ pub fn to_i1<'a>(value: IntValue<'a>, builder: &Builder<'a>) -> IntValue<'a> {
     } else {
         value
     }
+}
+
+trait FoldIntValueExt<'fold, 'll>: Iterator {
+    fn product_llvm<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        Self: Iterator<Item = &'fold IntValue<'fold>> + Sized,
+        I: FoldIntValue<'fold, 'll>,
+    {
+        I::product_llvm(self, llvm)
+    }
+
+    fn calculate_offset_llvm<I>(self, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        Self: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)> + Sized,
+        I: FoldIntValue<'fold, 'll>,
+    {
+        I::calculate_offset_llvm(self, llvm)
+    }
+}
+
+impl<'fold, 'll, I: Iterator> FoldIntValueExt<'fold, 'll> for I {}
+
+trait FoldIntValue<'fold, 'll, A = Self> {
+    fn product_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        I: Iterator<Item = &'fold IntValue<'fold>>;
+
+    fn calculate_offset_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        I: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)>;
+}
+
+impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
+    fn product_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        I: Iterator<Item = &'fold IntValue<'fold>>,
+    {
+        // initialize the accumulator
+        let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
+        llvm.builder.build_store(accum, llvm.i32_type().const_zero());
+        for val in iter {
+            // load prev val from accum
+            let prev = llvm.builder.build_load(accum, "load_accum");
+            // mul with cur
+            let product = llvm.builder.build_int_mul(prev.into_int_value(), *val, "product");
+            // store
+            llvm.builder.build_store(accum, product);
+        }
+        llvm.builder.build_load(accum, "accessor_factor").into_int_value()
+    }
+
+    fn calculate_offset_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
+    where
+        I: Iterator<Item = (&'fold IntValue<'fold>, &'fold IntValue<'fold>)>,
+    {
+        // initialize the accumulator
+        let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
+        llvm.builder.build_store(accum, llvm.i32_type().const_zero());
+        for (accessor, factor) in iter {
+            // load prev val from accum
+            let prev = llvm.builder.build_load(accum, "load_accum");
+            // multiply accessor with dimension factor
+            let product = llvm.builder.build_int_mul(*accessor, *factor, "product");
+            // add to acc
+            let curr = llvm.builder.build_int_add(prev.into_int_value(), product, "current");
+            // store
+            llvm.builder.build_store(accum, curr);
+        }
+        llvm.builder.build_load(accum, "accessor").into_int_value()
+    }
+}
+
+fn get_indices<'ink>(
+    llvm: &Llvm<'ink>,
+    ndims: usize,
+    dim_arr_gep: PointerValue<'ink>,
+) -> Vec<(BasicValueEnum<'ink>, BasicValueEnum<'ink>)> {
+    (0..ndims)
+        .map(|i| unsafe {
+            let (start_ptr, end_ptr) = (
+                llvm.builder.build_in_bounds_gep(
+                    dim_arr_gep,
+                    &[/*llvm.i32_type().const_zero(),*/ llvm.i32_type().const_int(i as u64 * 2, false)],
+                    format!("start_idx_ptr{i}").as_str(),
+                ),
+                llvm.builder.build_in_bounds_gep(
+                    dim_arr_gep,
+                    &[
+                        /*llvm.i32_type().const_zero(),*/
+                        llvm.i32_type().const_int(1 + i as u64 * 2, false),
+                    ],
+                    format!("end_idx_ptr{i}").as_str(),
+                ),
+            );
+            (
+                llvm.builder.build_load(start_ptr, format!("start_idx_value{i}").as_str()),
+                llvm.builder.build_load(end_ptr, format!("end_idx_value{i}").as_str()),
+            )
+        })
+        .collect::<Vec<_>>()
+}
+
+fn normalize_offsets<'b, 'ink>(
+    llvm: &'b Llvm<'ink>,
+    accessors: &'b [BasicValueEnum<'ink>],
+    offsets: &'b [(BasicValueEnum<'ink>, BasicValueEnum<'ink>)],
+) -> Vec<IntValue<'ink>> {
+    accessors
+        .iter()
+        .enumerate()
+        .zip(offsets.iter().map(|(start, _)| start))
+        .map(|((idx, accessor), start_offset)| {
+            llvm.builder.build_int_sub(
+                accessor.into_int_value(),
+                start_offset.into_int_value(),
+                format!("adj_access{idx}").as_str(),
+            )
+        })
+        .collect::<Vec<_>>()
+}
+
+fn get_dimension_lengths<'b, 'ink>(
+    llvm: &'b Llvm<'ink>,
+    offsets: &'b [(BasicValueEnum<'ink>, BasicValueEnum<'ink>)],
+) -> Vec<IntValue<'ink>> {
+    offsets
+        .iter()
+        .enumerate()
+        .map(|(idx, (start, end))| {
+            llvm.builder.build_int_add(
+                llvm.i32_type().const_int(1, false),
+                llvm.builder.build_int_sub(end.into_int_value(), start.into_int_value(), ""),
+                format!("len_dim{idx}").as_str(),
+            )
+        })
+        .collect::<Vec<_>>()
+}
+
+fn get_vla_accessor_factors<'b, 'ink>(
+    llvm: &'b Llvm<'ink>,
+    lengths: &'b Vec<IntValue<'ink>>,
+) -> Vec<IntValue<'ink>> {
+    (0..lengths.len())
+        .map(|idx| {
+            if idx == lengths.len() - 1 {
+                llvm.i32_type().const_int(1, false)
+            } else {
+                lengths[idx + 1..lengths.len()].iter().product_llvm::<IntValue>(llvm)
+            }
+        })
+        .collect::<Vec<_>>()
 }

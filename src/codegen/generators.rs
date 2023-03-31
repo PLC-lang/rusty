@@ -6,7 +6,7 @@ pub mod pou_generator;
 pub mod statement_generator;
 pub mod variable_generator;
 
-// see:
+// See
 // - https://llvm.org/docs/LangRef.html#data-layout
 // - https://llvm.org/doxygen/NVPTXBaseInfo_8h_source.html
 pub const ADDRESS_SPACE_GENERIC: u16 = 0;
