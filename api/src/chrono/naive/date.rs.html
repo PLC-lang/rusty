@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.23/src/naive/date.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../chrono/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.24/src/naive/date.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>date.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../chrono/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2872,6 +2872,129 @@
 <a href="#2872" id="2872">2872</a>
 <a href="#2873" id="2873">2873</a>
 <a href="#2874" id="2874">2874</a>
+<a href="#2875" id="2875">2875</a>
+<a href="#2876" id="2876">2876</a>
+<a href="#2877" id="2877">2877</a>
+<a href="#2878" id="2878">2878</a>
+<a href="#2879" id="2879">2879</a>
+<a href="#2880" id="2880">2880</a>
+<a href="#2881" id="2881">2881</a>
+<a href="#2882" id="2882">2882</a>
+<a href="#2883" id="2883">2883</a>
+<a href="#2884" id="2884">2884</a>
+<a href="#2885" id="2885">2885</a>
+<a href="#2886" id="2886">2886</a>
+<a href="#2887" id="2887">2887</a>
+<a href="#2888" id="2888">2888</a>
+<a href="#2889" id="2889">2889</a>
+<a href="#2890" id="2890">2890</a>
+<a href="#2891" id="2891">2891</a>
+<a href="#2892" id="2892">2892</a>
+<a href="#2893" id="2893">2893</a>
+<a href="#2894" id="2894">2894</a>
+<a href="#2895" id="2895">2895</a>
+<a href="#2896" id="2896">2896</a>
+<a href="#2897" id="2897">2897</a>
+<a href="#2898" id="2898">2898</a>
+<a href="#2899" id="2899">2899</a>
+<a href="#2900" id="2900">2900</a>
+<a href="#2901" id="2901">2901</a>
+<a href="#2902" id="2902">2902</a>
+<a href="#2903" id="2903">2903</a>
+<a href="#2904" id="2904">2904</a>
+<a href="#2905" id="2905">2905</a>
+<a href="#2906" id="2906">2906</a>
+<a href="#2907" id="2907">2907</a>
+<a href="#2908" id="2908">2908</a>
+<a href="#2909" id="2909">2909</a>
+<a href="#2910" id="2910">2910</a>
+<a href="#2911" id="2911">2911</a>
+<a href="#2912" id="2912">2912</a>
+<a href="#2913" id="2913">2913</a>
+<a href="#2914" id="2914">2914</a>
+<a href="#2915" id="2915">2915</a>
+<a href="#2916" id="2916">2916</a>
+<a href="#2917" id="2917">2917</a>
+<a href="#2918" id="2918">2918</a>
+<a href="#2919" id="2919">2919</a>
+<a href="#2920" id="2920">2920</a>
+<a href="#2921" id="2921">2921</a>
+<a href="#2922" id="2922">2922</a>
+<a href="#2923" id="2923">2923</a>
+<a href="#2924" id="2924">2924</a>
+<a href="#2925" id="2925">2925</a>
+<a href="#2926" id="2926">2926</a>
+<a href="#2927" id="2927">2927</a>
+<a href="#2928" id="2928">2928</a>
+<a href="#2929" id="2929">2929</a>
+<a href="#2930" id="2930">2930</a>
+<a href="#2931" id="2931">2931</a>
+<a href="#2932" id="2932">2932</a>
+<a href="#2933" id="2933">2933</a>
+<a href="#2934" id="2934">2934</a>
+<a href="#2935" id="2935">2935</a>
+<a href="#2936" id="2936">2936</a>
+<a href="#2937" id="2937">2937</a>
+<a href="#2938" id="2938">2938</a>
+<a href="#2939" id="2939">2939</a>
+<a href="#2940" id="2940">2940</a>
+<a href="#2941" id="2941">2941</a>
+<a href="#2942" id="2942">2942</a>
+<a href="#2943" id="2943">2943</a>
+<a href="#2944" id="2944">2944</a>
+<a href="#2945" id="2945">2945</a>
+<a href="#2946" id="2946">2946</a>
+<a href="#2947" id="2947">2947</a>
+<a href="#2948" id="2948">2948</a>
+<a href="#2949" id="2949">2949</a>
+<a href="#2950" id="2950">2950</a>
+<a href="#2951" id="2951">2951</a>
+<a href="#2952" id="2952">2952</a>
+<a href="#2953" id="2953">2953</a>
+<a href="#2954" id="2954">2954</a>
+<a href="#2955" id="2955">2955</a>
+<a href="#2956" id="2956">2956</a>
+<a href="#2957" id="2957">2957</a>
+<a href="#2958" id="2958">2958</a>
+<a href="#2959" id="2959">2959</a>
+<a href="#2960" id="2960">2960</a>
+<a href="#2961" id="2961">2961</a>
+<a href="#2962" id="2962">2962</a>
+<a href="#2963" id="2963">2963</a>
+<a href="#2964" id="2964">2964</a>
+<a href="#2965" id="2965">2965</a>
+<a href="#2966" id="2966">2966</a>
+<a href="#2967" id="2967">2967</a>
+<a href="#2968" id="2968">2968</a>
+<a href="#2969" id="2969">2969</a>
+<a href="#2970" id="2970">2970</a>
+<a href="#2971" id="2971">2971</a>
+<a href="#2972" id="2972">2972</a>
+<a href="#2973" id="2973">2973</a>
+<a href="#2974" id="2974">2974</a>
+<a href="#2975" id="2975">2975</a>
+<a href="#2976" id="2976">2976</a>
+<a href="#2977" id="2977">2977</a>
+<a href="#2978" id="2978">2978</a>
+<a href="#2979" id="2979">2979</a>
+<a href="#2980" id="2980">2980</a>
+<a href="#2981" id="2981">2981</a>
+<a href="#2982" id="2982">2982</a>
+<a href="#2983" id="2983">2983</a>
+<a href="#2984" id="2984">2984</a>
+<a href="#2985" id="2985">2985</a>
+<a href="#2986" id="2986">2986</a>
+<a href="#2987" id="2987">2987</a>
+<a href="#2988" id="2988">2988</a>
+<a href="#2989" id="2989">2989</a>
+<a href="#2990" id="2990">2990</a>
+<a href="#2991" id="2991">2991</a>
+<a href="#2992" id="2992">2992</a>
+<a href="#2993" id="2993">2993</a>
+<a href="#2994" id="2994">2994</a>
+<a href="#2995" id="2995">2995</a>
+<a href="#2996" id="2996">2996</a>
+<a href="#2997" id="2997">2997</a>
 </pre><pre class="rust"><code><span class="comment">// This is a part of Chrono.
 // See README.md and LICENSE.txt for details.
 
@@ -2887,6 +3010,10 @@
 <span class="kw">use </span>num_traits::ToPrimitive;
 <span class="attr">#[cfg(feature = <span class="string">&quot;rkyv&quot;</span>)]
 </span><span class="kw">use </span>rkyv::{Archive, Deserialize, Serialize};
+
+<span class="doccomment">/// L10n locales.
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
+</span><span class="kw">use </span>pure_rust_locales::Locale;
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
 </span><span class="kw">use </span><span class="kw">crate</span>::format::DelayedFormat;
@@ -2992,7 +3119,7 @@
 
 <span class="doccomment">/// A duration in calendar days.
 ///
-/// This is useful becuase when using `Duration` it is possible
+/// This is useful because when using `Duration` it is possible
 /// that adding `Duration::days(1)` doesn&#39;t increment the day value as expected due to it being a
 /// fixed number of seconds. This difference applies only when dealing with `DateTime&lt;TimeZone&gt;` data types
 /// and in other cases `Duration::days(n)` and `Days::new(n)` are equivalent.
@@ -3000,8 +3127,8 @@
 </span><span class="kw">pub struct </span>Days(<span class="kw">pub</span>(<span class="kw">crate</span>) u64);
 
 <span class="kw">impl </span>Days {
-    <span class="doccomment">/// Construct a new `Days` from a number of months
-    </span><span class="kw">pub fn </span>new(num: u64) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Construct a new `Days` from a number of days
+    </span><span class="kw">pub const fn </span>new(num: u64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(num)
     }
 }
@@ -3106,6 +3233,9 @@
 }
 
 <span class="kw">impl </span>NaiveDate {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>weeks_from(<span class="kw-2">&amp;</span><span class="self">self</span>, day: Weekday) -&gt; i32 {
+        (<span class="self">self</span>.ordinal() <span class="kw">as </span>i32 - <span class="self">self</span>.weekday().num_days_from(day) <span class="kw">as </span>i32 + <span class="number">6</span>) / <span class="number">7
+    </span>}
     <span class="doccomment">/// Makes a new `NaiveDate` from year and packed ordinal-flags, with a verification.
     </span><span class="kw">fn </span>from_of(year: i32, of: Of) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveDate&gt; {
         <span class="kw">if </span>(MIN_YEAR..=MAX_YEAR).contains(<span class="kw-2">&amp;</span>year) &amp;&amp; of.valid() {
@@ -3516,6 +3646,10 @@
     ///     NaiveDate::from_ymd_opt(2022, 7, 31).unwrap().checked_add_days(Days::new(2)),
     ///     Some(NaiveDate::from_ymd_opt(2022, 8, 2).unwrap())
     /// );
+    /// assert_eq!(
+    ///     NaiveDate::from_ymd_opt(2022, 7, 31).unwrap().checked_add_days(Days::new(1000000000000)),
+    ///     None
+    /// );
     /// ```
     </span><span class="kw">pub fn </span>checked_add_days(<span class="self">self</span>, days: Days) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>days.<span class="number">0 </span>== <span class="number">0 </span>{
@@ -3535,6 +3669,10 @@
     ///     NaiveDate::from_ymd_opt(2022, 2, 20).unwrap().checked_sub_days(Days::new(6)),
     ///     Some(NaiveDate::from_ymd_opt(2022, 2, 14).unwrap())
     /// );
+    /// assert_eq!(
+    ///     NaiveDate::from_ymd_opt(2022, 2, 20).unwrap().checked_sub_days(Days::new(1000000000000)),
+    ///     None
+    /// );
     /// ```
     </span><span class="kw">pub fn </span>checked_sub_days(<span class="self">self</span>, days: Days) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>days.<span class="number">0 </span>== <span class="number">0 </span>{
@@ -3545,7 +3683,11 @@
     }
 
     <span class="kw">fn </span>diff_days(<span class="self">self</span>, days: i64) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="self">self</span>.checked_add_signed(Duration::days(days))
+        <span class="kw">let </span>secs = days.checked_mul(<span class="number">86400</span>)<span class="question-mark">?</span>; <span class="comment">// 86400 seconds in one day
+        </span><span class="kw">if </span>secs &gt;= core::i64::MAX / <span class="number">1000 </span>|| secs &lt;= core::i64::MIN / <span class="number">1000 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>; <span class="comment">// See the `time` 0.1 crate. Outside these bounds, `Duration::seconds` will panic
+        </span>}
+        <span class="self">self</span>.checked_add_signed(Duration::seconds(secs))
     }
 
     <span class="doccomment">/// Makes a new `NaiveDateTime` from the current date and given `NaiveTime`.
@@ -3563,7 +3705,7 @@
     /// assert_eq!(dt.time(), t);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>and_time(<span class="kw-2">&amp;</span><span class="self">self</span>, time: NaiveTime) -&gt; NaiveDateTime {
+    </span><span class="kw">pub const fn </span>and_time(<span class="kw-2">&amp;</span><span class="self">self</span>, time: NaiveTime) -&gt; NaiveDateTime {
         NaiveDateTime::new(<span class="kw-2">*</span><span class="self">self</span>, time)
     }
 
@@ -3753,7 +3895,7 @@
 
     <span class="doccomment">/// Returns the packed ordinal-flags.
     </span><span class="attr">#[inline]
-    </span><span class="kw">fn </span>of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Of {
+    </span><span class="kw">const fn </span>of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Of {
         Of((<span class="self">self</span>.ymdf &amp; <span class="number">0b1_1111_1111_1111</span>) <span class="kw">as </span>u32)
     }
 
@@ -4018,6 +4160,37 @@
         <span class="self">self</span>.format_with_items(StrftimeItems::new(fmt))
     }
 
+    <span class="doccomment">/// Formats the date with the specified formatting items and locale.
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)))]
+    #[inline]
+    </span><span class="kw">pub fn </span>format_localized_with_items&lt;<span class="lifetime">&#39;a</span>, I, B&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        items: I,
+        locale: Locale,
+    ) -&gt; DelayedFormat&lt;I&gt;
+    <span class="kw">where
+        </span>I: Iterator&lt;Item = B&gt; + Clone,
+        B: Borrow&lt;Item&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    {
+        DelayedFormat::new_with_locale(<span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span>), <span class="prelude-val">None</span>, items, locale)
+    }
+
+    <span class="doccomment">/// Formats the date with the specified format string and locale.
+    ///
+    /// See the [`crate::format::strftime`] module on the supported escape
+    /// sequences.
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;unstable-locales&quot;</span>)))]
+    #[inline]
+    </span><span class="kw">pub fn </span>format_localized&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        fmt: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+        locale: Locale,
+    ) -&gt; DelayedFormat&lt;StrftimeItems&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="self">self</span>.format_localized_with_items(StrftimeItems::new_with_locale(fmt, locale), locale)
+    }
+
     <span class="doccomment">/// Returns an iterator that steps by days across all representable dates.
     ///
     /// # Example
@@ -4045,7 +4218,7 @@
     /// }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter_days(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveDateDaysIterator {
+    </span><span class="kw">pub const fn </span>iter_days(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveDateDaysIterator {
         NaiveDateDaysIterator { value: <span class="kw-2">*</span><span class="self">self </span>}
     }
 
@@ -4076,14 +4249,14 @@
     /// }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>iter_weeks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveDateWeeksIterator {
+    </span><span class="kw">pub const fn </span>iter_weeks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveDateWeeksIterator {
         NaiveDateWeeksIterator { value: <span class="kw-2">*</span><span class="self">self </span>}
     }
 
     <span class="doccomment">/// Returns the [`NaiveWeek`] that the date belongs to, starting with the [`Weekday`]
     /// specified.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>week(<span class="kw-2">&amp;</span><span class="self">self</span>, start: Weekday) -&gt; NaiveWeek {
+    </span><span class="kw">pub const fn </span>week(<span class="kw-2">&amp;</span><span class="self">self</span>, start: Weekday) -&gt; NaiveWeek {
         NaiveWeek { date: <span class="kw-2">*</span><span class="self">self</span>, start }
     }
 
@@ -5028,7 +5201,7 @@
             <span class="prelude-val">None
         </span>);
 
-        <span class="comment">// sub with months exceeindg `i32::MIN`
+        <span class="comment">// sub with months exceeding `i32::MIN`
         </span><span class="macro">assert_eq!</span>(
             NaiveDate::from_ymd_opt(<span class="number">2022</span>, <span class="number">8</span>, <span class="number">3</span>)
                 .unwrap()
@@ -5658,7 +5831,17 @@
         <span class="macro">assert!</span>(NaiveDate::parse_from_str(<span class="string">&quot;Sat, 09 Aug 2013&quot;</span>, <span class="string">&quot;%a, %d %b %Y&quot;</span>).is_err());
         <span class="macro">assert!</span>(NaiveDate::parse_from_str(<span class="string">&quot;2014-57&quot;</span>, <span class="string">&quot;%Y-%m-%d&quot;</span>).is_err());
         <span class="macro">assert!</span>(NaiveDate::parse_from_str(<span class="string">&quot;2014&quot;</span>, <span class="string">&quot;%Y&quot;</span>).is_err()); <span class="comment">// insufficient
-    </span>}
+
+        </span><span class="macro">assert_eq!</span>(
+            NaiveDate::parse_from_str(<span class="string">&quot;2020-01-0&quot;</span>, <span class="string">&quot;%Y-%W-%w&quot;</span>).ok(),
+            NaiveDate::from_ymd_opt(<span class="number">2020</span>, <span class="number">1</span>, <span class="number">12</span>),
+        );
+
+        <span class="macro">assert_eq!</span>(
+            NaiveDate::parse_from_str(<span class="string">&quot;2019-01-0&quot;</span>, <span class="string">&quot;%Y-%W-%w&quot;</span>).ok(),
+            NaiveDate::from_ymd_opt(<span class="number">2019</span>, <span class="number">1</span>, <span class="number">13</span>),
+        );
+    }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_date_format() {
@@ -5696,7 +5879,7 @@
         <span class="comment">// corner cases
         </span><span class="macro">assert_eq!</span>(
             NaiveDate::from_ymd_opt(<span class="number">2007</span>, <span class="number">12</span>, <span class="number">31</span>).unwrap().format(<span class="string">&quot;%G,%g,%U,%W,%V&quot;</span>).to_string(),
-            <span class="string">&quot;2008,08,53,53,01&quot;
+            <span class="string">&quot;2008,08,52,53,01&quot;
         </span>);
         <span class="macro">assert_eq!</span>(
             NaiveDate::from_ymd_opt(<span class="number">2010</span>, <span class="number">1</span>, <span class="number">3</span>).unwrap().format(<span class="string">&quot;%G,%g,%U,%W,%V&quot;</span>).to_string(),
@@ -5743,6 +5926,69 @@
             <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(week.first_day()), NaiveDate::parse_from_str(first_day, <span class="string">&quot;%Y-%m-%d&quot;</span>));
             <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(week.last_day()), NaiveDate::parse_from_str(last_day, <span class="string">&quot;%Y-%m-%d&quot;</span>));
             <span class="macro">assert!</span>(days.contains(<span class="kw-2">&amp;</span>date));
+        }
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_weeks_from() {
+        <span class="comment">// tests per: https://github.com/chronotope/chrono/issues/961
+        // these internally use `weeks_from` via the parsing infrastructure
+        </span><span class="macro">assert_eq!</span>(
+            NaiveDate::parse_from_str(<span class="string">&quot;2020-01-0&quot;</span>, <span class="string">&quot;%Y-%W-%w&quot;</span>).ok(),
+            NaiveDate::from_ymd_opt(<span class="number">2020</span>, <span class="number">1</span>, <span class="number">12</span>),
+        );
+        <span class="macro">assert_eq!</span>(
+            NaiveDate::parse_from_str(<span class="string">&quot;2019-01-0&quot;</span>, <span class="string">&quot;%Y-%W-%w&quot;</span>).ok(),
+            NaiveDate::from_ymd_opt(<span class="number">2019</span>, <span class="number">1</span>, <span class="number">13</span>),
+        );
+
+        <span class="comment">// direct tests
+        </span><span class="kw">for </span>(y, starts_on) <span class="kw">in </span><span class="kw-2">&amp;</span>[
+            (<span class="number">2019</span>, Weekday::Tue),
+            (<span class="number">2020</span>, Weekday::Wed),
+            (<span class="number">2021</span>, Weekday::Fri),
+            (<span class="number">2022</span>, Weekday::Sat),
+            (<span class="number">2023</span>, Weekday::Sun),
+            (<span class="number">2024</span>, Weekday::Mon),
+            (<span class="number">2025</span>, Weekday::Wed),
+            (<span class="number">2026</span>, Weekday::Thu),
+        ] {
+            <span class="kw">for </span>day <span class="kw">in </span><span class="kw-2">&amp;</span>[
+                Weekday::Mon,
+                Weekday::Tue,
+                Weekday::Wed,
+                Weekday::Thu,
+                Weekday::Fri,
+                Weekday::Sat,
+                Weekday::Sun,
+            ] {
+                <span class="macro">assert_eq!</span>(
+                    NaiveDate::from_ymd_opt(<span class="kw-2">*</span>y, <span class="number">1</span>, <span class="number">1</span>).map(|d| d.weeks_from(<span class="kw-2">*</span>day)),
+                    <span class="prelude-val">Some</span>(<span class="kw">if </span>day == starts_on { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>})
+                );
+
+                <span class="comment">// last day must always be in week 52 or 53
+                </span><span class="macro">assert!</span>([<span class="number">52</span>, <span class="number">53</span>]
+                    .contains(<span class="kw-2">&amp;</span>NaiveDate::from_ymd_opt(<span class="kw-2">*</span>y, <span class="number">12</span>, <span class="number">31</span>).unwrap().weeks_from(<span class="kw-2">*</span>day)),);
+            }
+        }
+
+        <span class="kw">let </span>base = NaiveDate::from_ymd_opt(<span class="number">2019</span>, <span class="number">1</span>, <span class="number">1</span>).unwrap();
+
+        <span class="comment">// 400 years covers all year types
+        </span><span class="kw">for </span>day <span class="kw">in </span><span class="kw-2">&amp;</span>[
+            Weekday::Mon,
+            Weekday::Tue,
+            Weekday::Wed,
+            Weekday::Thu,
+            Weekday::Fri,
+            Weekday::Sat,
+            Weekday::Sun,
+        ] {
+            <span class="comment">// must always be below 54
+            </span><span class="kw">for </span>dplus <span class="kw">in </span><span class="number">1</span>..(<span class="number">400 </span>* <span class="number">366</span>) {
+                <span class="macro">assert!</span>((base + Days::new(dplus)).weeks_from(<span class="kw-2">*</span>day) &lt; <span class="number">54</span>)
+            }
         }
     }
 }

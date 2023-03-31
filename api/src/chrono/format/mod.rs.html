@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.23/src/format/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../chrono/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.24/src/format/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../chrono/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1077,23 +1077,6 @@
 <a href="#1077" id="1077">1077</a>
 <a href="#1078" id="1078">1078</a>
 <a href="#1079" id="1079">1079</a>
-<a href="#1080" id="1080">1080</a>
-<a href="#1081" id="1081">1081</a>
-<a href="#1082" id="1082">1082</a>
-<a href="#1083" id="1083">1083</a>
-<a href="#1084" id="1084">1084</a>
-<a href="#1085" id="1085">1085</a>
-<a href="#1086" id="1086">1086</a>
-<a href="#1087" id="1087">1087</a>
-<a href="#1088" id="1088">1088</a>
-<a href="#1089" id="1089">1089</a>
-<a href="#1090" id="1090">1090</a>
-<a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
-<a href="#1096" id="1096">1096</a>
 </pre><pre class="rust"><code><span class="comment">// This is a part of Chrono.
 // See README.md and LICENSE.txt for details.
 
@@ -1165,11 +1148,11 @@
 </span><span class="kw">struct </span>Locale;
 
 <span class="doccomment">/// An uninhabited type used for `InternalNumeric` and `InternalFixed` below.
-</span><span class="attr">#[derive(Clone, PartialEq, Eq)]
+</span><span class="attr">#[derive(Clone, PartialEq, Eq, Hash)]
 </span><span class="kw">enum </span>Void {}
 
 <span class="doccomment">/// Padding characters for numeric items.
-</span><span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+</span><span class="attr">#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 </span><span class="kw">pub enum </span>Pad {
     <span class="doccomment">/// No padding.
     </span><span class="prelude-val">None</span>,
@@ -1192,10 +1175,10 @@
 /// It also trims the preceding whitespace if any.
 /// It cannot parse the negative number, so some date and time cannot be formatted then
 /// parsed with the same formatting items.
-</span><span class="attr">#[derive(Clone, PartialEq, Eq, Debug)]
+</span><span class="attr">#[derive(Clone, PartialEq, Eq, Debug, Hash)]
 </span><span class="kw">pub enum </span>Numeric {
     <span class="doccomment">/// Full Gregorian year (FW=4, PW=∞).
-    /// May accept years before 1 BCE or after 9999 CE, given an initial sign.
+    /// May accept years before 1 BCE or after 9999 CE, given an initial sign (+/-).
     </span>Year,
     <span class="doccomment">/// Gregorian year divided by 100 (century number; FW=PW=2). Implies the non-negative year.
     </span>YearDiv100,
@@ -1248,23 +1231,10 @@
 }
 
 <span class="doccomment">/// An opaque type representing numeric item types for internal uses only.
+</span><span class="attr">#[derive(Clone, Eq, Hash, PartialEq)]
 </span><span class="kw">pub struct </span>InternalNumeric {
     _dummy: Void,
 }
-
-<span class="kw">impl </span>Clone <span class="kw">for </span>InternalNumeric {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self">self</span>._dummy {}
-    }
-}
-
-<span class="kw">impl </span>PartialEq <span class="kw">for </span>InternalNumeric {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, _other: <span class="kw-2">&amp;</span>InternalNumeric) -&gt; bool {
-        <span class="kw">match </span><span class="self">self</span>._dummy {}
-    }
-}
-
-<span class="kw">impl </span>Eq <span class="kw">for </span>InternalNumeric {}
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>InternalNumeric {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
@@ -1276,7 +1246,7 @@
 ///
 /// They have their own rules of formatting and parsing.
 /// Otherwise noted, they print in the specified cases but parse case-insensitively.
-</span><span class="attr">#[derive(Clone, PartialEq, Eq, Debug)]
+</span><span class="attr">#[derive(Clone, PartialEq, Eq, Debug, Hash)]
 </span><span class="kw">pub enum </span>Fixed {
     <span class="doccomment">/// Abbreviated month names.
     ///
@@ -1360,12 +1330,12 @@
 }
 
 <span class="doccomment">/// An opaque type representing fixed-format item types for internal uses only.
-</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>InternalFixed {
     val: InternalInternal,
 }
 
-<span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 </span><span class="kw">enum </span>InternalInternal {
     <span class="doccomment">/// Same as [`TimezoneOffsetColonZ`](#variant.TimezoneOffsetColonZ), but
     /// allows missing minutes (per [ISO 8601][iso8601]).
@@ -1385,7 +1355,7 @@
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 </span><span class="kw">enum </span>Colons {
     <span class="prelude-val">None</span>,
     Single,
@@ -1394,7 +1364,7 @@
 }
 
 <span class="doccomment">/// A single formatting item. This is used for both formatting and parsing.
-</span><span class="attr">#[derive(Clone, PartialEq, Eq, Debug)]
+</span><span class="attr">#[derive(Clone, PartialEq, Eq, Debug, Hash)]
 </span><span class="kw">pub enum </span>Item&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// A literally printed and parsed text.
     </span>Literal(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
@@ -1454,18 +1424,18 @@
 }
 
 <span class="doccomment">/// An error from the `parse` function.
-</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
 </span><span class="kw">pub struct </span>ParseError(ParseErrorKind);
 
 <span class="kw">impl </span>ParseError {
     <span class="doccomment">/// The category of parse error
-    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ParseErrorKind {
+    </span><span class="kw">pub const fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ParseErrorKind {
         <span class="self">self</span>.<span class="number">0
     </span>}
 }
 
 <span class="doccomment">/// The category of parse error
-</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
 </span><span class="kw">pub enum </span>ParseErrorKind {
     <span class="doccomment">/// Given field is out of permitted range.
     </span>OutOfRange,
@@ -1596,12 +1566,12 @@
 <span class="doccomment">/// Formats single formatting item
 </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>))))]
-</span><span class="kw">pub fn </span>format_item&lt;<span class="lifetime">&#39;a</span>&gt;(
+</span><span class="kw">pub fn </span>format_item(
     w: <span class="kw-2">&amp;mut </span>fmt::Formatter,
     date: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveDate&gt;,
     time: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveTime&gt;,
     off: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(String, FixedOffset)&gt;,
-    item: <span class="kw-2">&amp;</span>Item&lt;<span class="lifetime">&#39;a</span>&gt;,
+    item: <span class="kw-2">&amp;</span>Item&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; fmt::Result {
     <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
     format_inner(<span class="kw-2">&amp;mut </span>result, date, time, off, item, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
@@ -1609,12 +1579,12 @@
 }
 
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;alloc&quot;</span>, feature = <span class="string">&quot;std&quot;</span>, test))]
-</span><span class="kw">fn </span>format_inner&lt;<span class="lifetime">&#39;a</span>&gt;(
+</span><span class="kw">fn </span>format_inner(
     result: <span class="kw-2">&amp;mut </span>String,
     date: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveDate&gt;,
     time: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>NaiveTime&gt;,
     off: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(String, FixedOffset)&gt;,
-    item: <span class="kw-2">&amp;</span>Item&lt;<span class="lifetime">&#39;a</span>&gt;,
+    item: <span class="kw-2">&amp;</span>Item&lt;<span class="lifetime">&#39;_</span>&gt;,
     locale: <span class="prelude-ty">Option</span>&lt;Locale&gt;,
 ) -&gt; fmt::Result {
     <span class="kw">let </span>locale = Locales::new(locale);
@@ -1629,12 +1599,8 @@
         Item::Numeric(<span class="kw-2">ref </span>spec, <span class="kw-2">ref </span>pad) =&gt; {
             <span class="kw">use </span><span class="self">self</span>::Numeric::<span class="kw-2">*</span>;
 
-            <span class="kw">let </span>week_from_sun = |d: <span class="kw-2">&amp;</span>NaiveDate| {
-                (d.ordinal() <span class="kw">as </span>i32 - d.weekday().num_days_from_sunday() <span class="kw">as </span>i32 + <span class="number">7</span>) / <span class="number">7
-            </span>};
-            <span class="kw">let </span>week_from_mon = |d: <span class="kw-2">&amp;</span>NaiveDate| {
-                (d.ordinal() <span class="kw">as </span>i32 - d.weekday().num_days_from_monday() <span class="kw">as </span>i32 + <span class="number">7</span>) / <span class="number">7
-            </span>};
+            <span class="kw">let </span>week_from_sun = |d: <span class="kw-2">&amp;</span>NaiveDate| d.weeks_from(Weekday::Sun);
+            <span class="kw">let </span>week_from_mon = |d: <span class="kw-2">&amp;</span>NaiveDate| d.weeks_from(Weekday::Mon);
 
             <span class="kw">let </span>(width, v) = <span class="kw">match </span><span class="kw-2">*</span>spec {
                 Year =&gt; (<span class="number">4</span>, date.map(|d| i64::from(d.year()))),
@@ -1770,7 +1736,7 @@
                             <span class="kw">let </span>nano = t.nanosecond() % <span class="number">1_000_000_000</span>;
                             <span class="macro">write!</span>(result, <span class="string">&quot;{:09}&quot;</span>, nano)
                         }),
-                    TimezoneName =&gt; off.map(|<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>name, <span class="kw">_</span>)| {
+                    TimezoneName =&gt; off.map(|(name, <span class="kw">_</span>)| {
                         result.push_str(name);
                         <span class="prelude-val">Ok</span>(())
                     }),

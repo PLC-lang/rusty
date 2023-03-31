@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.23/src/naive/datetime/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../chrono/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.24/src/naive/datetime/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../chrono/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1861,6 +1861,89 @@
 <a href="#1861" id="1861">1861</a>
 <a href="#1862" id="1862">1862</a>
 <a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
 </pre><pre class="rust"><code><span class="comment">// This is a part of Chrono.
 // See README.md and LICENSE.txt for details.
 
@@ -1885,6 +1968,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::naive::{Days, IsoWeek, NaiveDate, NaiveTime};
 <span class="kw">use </span><span class="kw">crate</span>::oldtime::Duration <span class="kw">as </span>OldDuration;
 <span class="kw">use crate</span>::{DateTime, Datelike, LocalResult, Months, TimeZone, Timelike, Weekday};
+<span class="kw">use </span>core::cmp::Ordering;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rustc-serialize&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>rustc_serialize;
@@ -1949,6 +2033,32 @@
     time: NaiveTime,
 }
 
+<span class="doccomment">/// The unit of a timestamp expressed in fractions of a second.
+/// Currently either milliseconds or microseconds.
+///
+/// This is a private type, used in the implementation of
+/// [NaiveDateTime::from_timestamp_millis] and [NaiveDateTime::from_timestamp_micros].
+</span><span class="attr">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">enum </span>TimestampUnit {
+    Millis,
+    Micros,
+}
+
+<span class="kw">impl </span>TimestampUnit {
+    <span class="kw">fn </span>per_second(<span class="self">self</span>) -&gt; u32 {
+        <span class="kw">match </span><span class="self">self </span>{
+            TimestampUnit::Millis =&gt; <span class="number">1_000</span>,
+            TimestampUnit::Micros =&gt; <span class="number">1_000_000</span>,
+        }
+    }
+    <span class="kw">fn </span>nanos_per(<span class="self">self</span>) -&gt; u32 {
+        <span class="kw">match </span><span class="self">self </span>{
+            TimestampUnit::Millis =&gt; <span class="number">1_000_000</span>,
+            TimestampUnit::Micros =&gt; <span class="number">1_000</span>,
+        }
+    }
+}
+
 <span class="kw">impl </span>NaiveDateTime {
     <span class="doccomment">/// Makes a new `NaiveDateTime` from date and time components.
     /// Equivalent to [`date.and_time(time)`](./struct.NaiveDate.html#method.and_time)
@@ -1967,7 +2077,7 @@
     /// assert_eq!(dt.time(), t);
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(date: NaiveDate, time: NaiveTime) -&gt; NaiveDateTime {
+    </span><span class="kw">pub const fn </span>new(date: NaiveDate, time: NaiveTime) -&gt; NaiveDateTime {
         NaiveDateTime { date, time }
     }
 
@@ -2001,31 +2111,46 @@
     ///
     /// ```
     /// use chrono::NaiveDateTime;
-    /// let timestamp_millis: i64 = 1662921288; //Sunday, September 11, 2022 6:34:48 PM
+    /// let timestamp_millis: i64 = 1662921288000; //Sunday, September 11, 2022 6:34:48 PM
     /// let naive_datetime = NaiveDateTime::from_timestamp_millis(timestamp_millis);
     /// assert!(naive_datetime.is_some());
     /// assert_eq!(timestamp_millis, naive_datetime.unwrap().timestamp_millis());
     ///
     /// // Negative timestamps (before the UNIX epoch) are supported as well.
-    /// let timestamp_millis: i64 = -2208936075; //Mon Jan 01 1900 14:38:45 GMT+0000
+    /// let timestamp_millis: i64 = -2208936075000; //Mon Jan 01 1900 14:38:45 GMT+0000
     /// let naive_datetime = NaiveDateTime::from_timestamp_millis(timestamp_millis);
     /// assert!(naive_datetime.is_some());
     /// assert_eq!(timestamp_millis, naive_datetime.unwrap().timestamp_millis());
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_timestamp_millis(millis: i64) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>secs = millis / <span class="number">1000</span>;
-        <span class="kw">if </span>millis &lt; <span class="number">0 </span>{
-            secs = secs.checked_sub(<span class="number">1</span>)<span class="question-mark">?</span>;
-        }
+        <span class="self">Self</span>::from_timestamp_unit(millis, TimestampUnit::Millis)
+    }
 
-        <span class="kw">let </span>nsecs = (millis % <span class="number">1000</span>).abs();
-        <span class="kw">let </span><span class="kw-2">mut </span>nsecs = u32::try_from(nsecs).ok()<span class="question-mark">? </span>* NANOS_IN_MILLISECOND;
-        <span class="kw">if </span>secs &lt; <span class="number">0 </span>{
-            nsecs = NANOS_IN_SECOND.checked_sub(nsecs)<span class="question-mark">?</span>;
-        }
-
-        NaiveDateTime::from_timestamp_opt(secs, nsecs)
+    <span class="doccomment">/// Creates a new [NaiveDateTime] from microseconds since the UNIX epoch.
+    ///
+    /// The UNIX epoch starts on midnight, January 1, 1970, UTC.
+    ///
+    /// Returns `None` on an out-of-range number of microseconds.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// let timestamp_micros: i64 = 1662921288000000; //Sunday, September 11, 2022 6:34:48 PM
+    /// let naive_datetime = NaiveDateTime::from_timestamp_micros(timestamp_micros);
+    /// assert!(naive_datetime.is_some());
+    /// assert_eq!(timestamp_micros, naive_datetime.unwrap().timestamp_micros());
+    ///
+    /// // Negative timestamps (before the UNIX epoch) are supported as well.
+    /// let timestamp_micros: i64 = -2208936075000000; //Mon Jan 01 1900 14:38:45 GMT+0000
+    /// let naive_datetime = NaiveDateTime::from_timestamp_micros(timestamp_micros);
+    /// assert!(naive_datetime.is_some());
+    /// assert_eq!(timestamp_micros, naive_datetime.unwrap().timestamp_micros());
+    /// ```
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>from_timestamp_micros(micros: i64) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt; {
+        <span class="self">Self</span>::from_timestamp_unit(micros, TimestampUnit::Micros)
     }
 
     <span class="doccomment">/// Makes a new `NaiveDateTime` corresponding to a UTC date and time,
@@ -2037,7 +2162,8 @@
     /// in order to represent the [leap second](./struct.NaiveTime.html#leap-second-handling).
     /// (The true &quot;UNIX timestamp&quot; cannot represent a leap second unambiguously.)
     ///
-    /// Returns `None` on the out-of-range number of seconds and/or invalid nanosecond.
+    /// Returns `None` on the out-of-range number of seconds (more than 262 000 years away
+    /// from common era) and/or invalid nanosecond (2 seconds or more).
     ///
     /// # Example
     ///
@@ -2128,6 +2254,16 @@
     /// assert!(parse_from_str(&quot;2001-09-09 01:46:39 = UNIX timestamp 999999999&quot;, fmt).is_ok());
     /// assert!(parse_from_str(&quot;1970-01-01 00:00:00 = UNIX timestamp 1&quot;, fmt).is_err());
     /// ```
+    ///
+    /// Years before 1 BCE or after 9999 CE, require an initial sign
+    ///
+    ///```
+    /// # use chrono::{NaiveDate, NaiveDateTime};
+    /// # let parse_from_str = NaiveDateTime::parse_from_str;
+    /// let fmt = &quot;%Y-%m-%d %H:%M:%S&quot;;
+    /// assert!(parse_from_str(&quot;10000-09-09 01:46:39&quot;, fmt).is_err());
+    /// assert!(parse_from_str(&quot;+10000-09-09 01:46:39&quot;, fmt).is_ok());
+    ///```     
     </span><span class="kw">pub fn </span>parse_from_str(s: <span class="kw-2">&amp;</span>str, fmt: <span class="kw-2">&amp;</span>str) -&gt; ParseResult&lt;NaiveDateTime&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>parsed = Parsed::new();
         parse(<span class="kw-2">&amp;mut </span>parsed, s, StrftimeItems::new(fmt))<span class="question-mark">?</span>;
@@ -2145,7 +2281,7 @@
     /// assert_eq!(dt.date(), NaiveDate::from_ymd_opt(2016, 7, 8).unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveDate {
+    </span><span class="kw">pub const fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveDate {
         <span class="self">self</span>.date
     }
 
@@ -2160,7 +2296,7 @@
     /// assert_eq!(dt.time(), NaiveTime::from_hms_opt(9, 10, 11).unwrap());
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveTime {
+    </span><span class="kw">pub const fn </span>time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveTime {
         <span class="self">self</span>.time
     }
 
@@ -2717,6 +2853,36 @@
     </span><span class="kw">pub const </span>MIN: <span class="self">Self </span>= <span class="self">Self </span>{ date: NaiveDate::MIN, time: NaiveTime::MIN };
     <span class="doccomment">/// The maximum possible `NaiveDateTime`.
     </span><span class="kw">pub const </span>MAX: <span class="self">Self </span>= <span class="self">Self </span>{ date: NaiveDate::MAX, time: NaiveTime::MAX };
+
+    <span class="doccomment">/// Creates a new [NaiveDateTime] from milliseconds or microseconds since the UNIX epoch.
+    ///
+    /// This is a private function used by [from_timestamp_millis] and [from_timestamp_micros].
+    </span><span class="attr">#[inline]
+    </span><span class="kw">fn </span>from_timestamp_unit(value: i64, unit: TimestampUnit) -&gt; <span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt; {
+        <span class="kw">let </span>(secs, subsecs) =
+            (value / i64::from(unit.per_second()), value % i64::from(unit.per_second()));
+
+        <span class="kw">match </span>subsecs.cmp(<span class="kw-2">&amp;</span><span class="number">0</span>) {
+            Ordering::Less =&gt; {
+                <span class="comment">// in the case where our subsec part is negative, then we are actually in the earlier second
+                // hence we subtract one from the seconds part, and we then add a whole second worth of nanos
+                // to our nanos part. Due to the use of u32 datatype, it is more convenient to subtract
+                // the absolute value of the subsec nanos from a whole second worth of nanos
+                </span><span class="kw">let </span>nsecs = u32::try_from(subsecs.abs()).ok()<span class="question-mark">? </span>* unit.nanos_per();
+                NaiveDateTime::from_timestamp_opt(
+                    secs.checked_sub(<span class="number">1</span>)<span class="question-mark">?</span>,
+                    NANOS_IN_SECOND.checked_sub(nsecs)<span class="question-mark">?</span>,
+                )
+            }
+            Ordering::Equal =&gt; NaiveDateTime::from_timestamp_opt(secs, <span class="number">0</span>),
+            Ordering::Greater =&gt; {
+                <span class="comment">// convert the subsec millis into nanosecond scale so they can be supplied
+                // as the nanoseconds parameter
+                </span><span class="kw">let </span>nsecs = u32::try_from(subsecs).ok()<span class="question-mark">? </span>* unit.nanos_per();
+                NaiveDateTime::from_timestamp_opt(secs, nsecs)
+            }
+        }
+    }
 }
 
 <span class="kw">impl </span>Datelike <span class="kw">for </span>NaiveDateTime {

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.51/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.52/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1310,6 +1310,18 @@
 <a href="#1310" id="1310">1310</a>
 <a href="#1311" id="1311">1311</a>
 <a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
 </pre><pre class="rust"><code><span class="doccomment">//! [![github]](https://github.com/dtolnay/proc-macro2)&amp;ensp;[![crates-io]](https://crates.io/crates/proc-macro2)&amp;ensp;[![docs-rs]](crate)
 //!
 //! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github
@@ -1398,7 +1410,7 @@
 //! a different thread.
 
 </span><span class="comment">// Proc-macro2 types in rustdoc of other crates get linked to here.
-</span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/proc-macro2/1.0.51&quot;</span>)]
+</span><span class="attr">#![doc(html_root_url = <span class="string">&quot;https://docs.rs/proc-macro2/1.0.52&quot;</span>)]
 #![cfg_attr(
     any(proc_macro_span, super_unstable),
     feature(proc_macro_span, proc_macro_span_shrink)
@@ -1410,6 +1422,7 @@
     clippy::cast_possible_truncation,
     clippy::doc_markdown,
     clippy::items_after_statements,
+    clippy::let_underscore_untyped,
     clippy::manual_assert,
     clippy::must_use_candidate,
     clippy::needless_doctest_main,
@@ -1445,6 +1458,8 @@
 </span><span class="attr">#[doc(hidden)]
 </span><span class="kw">pub mod </span>fallback;
 
+<span class="kw">pub mod </span>extra;
+
 <span class="attr">#[cfg(not(wrap_proc_macro))]
 </span><span class="kw">use </span><span class="kw">crate</span>::fallback <span class="kw">as </span>imp;
 <span class="attr">#[path = <span class="string">&quot;wrapper.rs&quot;</span>]
@@ -1454,6 +1469,7 @@
 <span class="attr">#[cfg(span_locations)]
 </span><span class="kw">mod </span>location;
 
+<span class="kw">use </span><span class="kw">crate</span>::extra::DelimSpan;
 <span class="kw">use </span><span class="kw">crate</span>::marker::Marker;
 <span class="kw">use </span>core::cmp::Ordering;
 <span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug, Display};
@@ -1495,7 +1511,7 @@
         }
     }
 
-    <span class="kw">fn </span>_new_stable(inner: fallback::TokenStream) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>_new_fallback(inner: fallback::TokenStream) -&gt; <span class="self">Self </span>{
         TokenStream {
             inner: inner.into(),
             _marker: Marker,
@@ -1689,7 +1705,7 @@
         }
     }
 
-    <span class="kw">fn </span>_new_stable(inner: fallback::Span) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>_new_fallback(inner: fallback::Span) -&gt; <span class="self">Self </span>{
         Span {
             inner: inner.into(),
             _marker: Marker,
@@ -1976,7 +1992,7 @@
         Group { inner }
     }
 
-    <span class="kw">fn </span>_new_stable(inner: fallback::Group) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>_new_fallback(inner: fallback::Group) -&gt; <span class="self">Self </span>{
         Group {
             inner: inner.into(),
         }
@@ -1993,7 +2009,8 @@
         }
     }
 
-    <span class="doccomment">/// Returns the delimiter of this `Group`
+    <span class="doccomment">/// Returns the punctuation used as the delimiter for this group: a set of
+    /// parentheses, square brackets, or curly braces.
     </span><span class="kw">pub fn </span>delimiter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Delimiter {
         <span class="self">self</span>.inner.delimiter()
     }
@@ -2035,6 +2052,13 @@
     /// ```
     </span><span class="kw">pub fn </span>span_close(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
         Span::_new(<span class="self">self</span>.inner.span_close())
+    }
+
+    <span class="doccomment">/// Returns an object that holds this group&#39;s `span_open()` and
+    /// `span_close()` together (in a more compact representation than holding
+    /// those 2 spans individually).
+    </span><span class="kw">pub fn </span>delim_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DelimSpan {
+        DelimSpan::new(<span class="kw-2">&amp;</span><span class="self">self</span>.inner)
     }
 
     <span class="doccomment">/// Configures the span for this `Group`&#39;s delimiters, but not its internal
@@ -2393,7 +2417,7 @@
         }
     }
 
-    <span class="kw">fn </span>_new_stable(inner: fallback::Literal) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>_new_fallback(inner: fallback::Literal) -&gt; <span class="self">Self </span>{
         Literal {
             inner: inner.into(),
             _marker: Marker,

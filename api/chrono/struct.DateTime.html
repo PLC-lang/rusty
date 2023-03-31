@@ -7,8 +7,8 @@ The local datetime should be constructed via the <code>TimeZone</code> trait.</p
 <h5 id="example"><a href="#example">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>chrono::{DateTime, TimeZone, NaiveDateTime, Utc};
 
-<span class="kw">let </span>dt = DateTime::&lt;Utc&gt;::from_utc(NaiveDateTime::from_timestamp(<span class="number">61</span>, <span class="number">0</span>), Utc);
-<span class="macro">assert_eq!</span>(Utc.timestamp(<span class="number">61</span>, <span class="number">0</span>), dt);</code></pre></div>
+<span class="kw">let </span>dt = DateTime::&lt;Utc&gt;::from_utc(NaiveDateTime::from_timestamp_opt(<span class="number">61</span>, <span class="number">0</span>).unwrap(), Utc);
+<span class="macro">assert_eq!</span>(Utc.timestamp_opt(<span class="number">61</span>, <span class="number">0</span>).unwrap(), dt);</code></pre></div>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.from_local" class="method has-srclink"><a class="srclink rightside" href="../src/chrono/datetime/mod.rs.html#145-149">source</a><h4 class="code-header">pub fn <a href="#method.from_local" class="fn">from_local</a>(datetime: <a class="struct" href="naive/struct.NaiveDateTime.html" title="struct chrono::naive::NaiveDateTime">NaiveDateTime</a>, offset: Tz::<a class="associatedtype" href="offset/trait.TimeZone.html#associatedtype.Offset" title="type chrono::offset::TimeZone::Offset">Offset</a>) -&gt; <a class="struct" href="struct.DateTime.html" title="struct chrono::DateTime">DateTime</a>&lt;Tz&gt;</h4></section></summary><div class="docblock"><p>Makes a new <code>DateTime</code> with given <strong>local</strong> datetime and offset that
 presents local timezone.</p>
 <h5 id="example-1"><a href="#example-1">Example</a></h5>
