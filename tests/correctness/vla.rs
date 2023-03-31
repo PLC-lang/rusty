@@ -70,7 +70,7 @@ fn variable_length_array_multi_dimension_access() {
         a := arr[0, 0];
         b := arr[0, 1];
         c := arr[1, 0];
-        c := arr[1, 1];        
+        d := arr[1, 1];   
     END_PROGRAM
 
     FUNCTION foo : DINT
@@ -88,6 +88,90 @@ fn variable_length_array_multi_dimension_access() {
     let _: i32 = compile_and_run(src.to_string(), &mut main_type);
     assert_eq!(0, main_type.a);
     assert_eq!(2, main_type.b);
+    assert_eq!(4, main_type.c);
+    assert_eq!(8, main_type.d);
+}
+
+#[test]
+fn variable_length_array_multi_dimension_read_write() {
+    #[derive(Default)]
+    struct MainType {
+        a: i64,
+        b: i64,
+        c: i64,
+    }
+
+    let mut main_type = MainType::default();
+    let src = r#"
+    PROGRAM main
+        VAR
+            a, b, c:  LINT;
+            arr : ARRAY[0..3, 0..2, 0..1, 0..10] OF LINT;
+        END_VAR
+
+        foo(arr);
+        a := arr[1, 2, 1, 8];
+        b := arr[2, 1, 1, 6];
+        c := arr[3, 1, 1, 4];
+    END_PROGRAM
+
+    FUNCTION foo : DINT
+        VAR_INPUT
+            vla : ARRAY[ *, *, *, *] OF LINT;
+        END_VAR
+
+        vla[1, 2, 1, 8] := -7; 
+        vla[2, 1, 1, 6] := 72; 
+        vla[3, 1, 1, 4] := 11; 
+    END_FUNCTION
+    "#;
+
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(-7, main_type.a);
+    assert_eq!(72, main_type.b);
+    assert_eq!(11, main_type.c);
+}
+
+#[test]
+fn variable_length_array_multi_dimension_read_write_with_offsets() {
+    #[derive(Default)]
+    struct MainType {
+        a: i64,
+        b: i64,
+        c: i64,
+        d: i64,
+    }
+
+    let mut main_type = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        a, b, c, d: LINT;
+        arr : ARRAY[-5..5, -10..15, -1..1, 0..3] OF LINT;
+    END_VAR
+
+    foo(arr);
+    a := arr[-5,   5, -1, 3];
+    b := arr[ 5,  11, -1, 3];
+    c := arr[-1,  10, -1, 3];
+    d := arr[ 0,   0, -1, 3];
+END_PROGRAM
+
+FUNCTION foo : DINT
+    VAR_INPUT
+        vla : ARRAY[ *, *, *, * ] OF LINT;
+    END_VAR
+
+    vla[-5,   5, -1, 3] := 10;
+    vla[ 5,  11, -1, 3] := -7;
+    vla[-1,  10, -1, 3] := 4;
+    vla[ 0,   0, -1, 3] := 8;
+END_FUNCTION
+    "#;
+
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(10, main_type.a);
+    assert_eq!(-7, main_type.b);
     assert_eq!(4, main_type.c);
     assert_eq!(8, main_type.d);
 }

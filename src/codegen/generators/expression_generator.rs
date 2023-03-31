@@ -1290,7 +1290,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
                 if self.annotations.get_type(reference, self.index).unwrap().get_type_information().is_vla() {
-                    self.generate_array_access_for_vla(reference, access)
+                    self.generate_element_pointer_for_vla(reference, access)
                 } else {
                     self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
                 }
@@ -2520,7 +2520,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    fn generate_array_access_for_vla(
+    fn generate_element_pointer_for_vla(
         &self,
         reference: &AstStatement,
         access: &AstStatement,
@@ -2600,8 +2600,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             adjusted_accessors.iter().zip(&dimension_offsets).calculate_offset_llvm::<IntValue>(self.llvm)
         };
 
-        // load accessed element from array
-        // builder.build_load(accessor, "").into_int_value()
         Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val") })
     }
 }
@@ -2681,18 +2679,19 @@ impl<'fold, 'll> FoldIntValue<'fold, 'll> for IntValue<'ll> {
     where
         I: Iterator<Item = &'fold IntValue<'fold>>,
     {
-        // initialize the accumulator
-        let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum");
-        llvm.builder.build_store(accum, llvm.i32_type().const_zero());
+        // initialize the accumulator with 1
+        let accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), "accum");
+        llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(1, false));
         for val in iter {
-            // load prev val from accum
-            let prev = llvm.builder.build_load(accum, "load_accum");
+            // load previous value from accumulator
+            let previous = llvm.builder.build_load(accum_ptr, "load_accum").into_int_value();
             // mul with cur
-            let product = llvm.builder.build_int_mul(prev.into_int_value(), *val, "product");
+            let product = llvm.builder.build_int_mul(previous, *val, "product");
             // store
-            llvm.builder.build_store(accum, product);
+            llvm.builder.build_store(accum_ptr, product);
         }
-        llvm.builder.build_load(accum, "accessor_factor").into_int_value()
+
+        llvm.builder.build_load(accum_ptr, "accessor_factor").into_int_value()
     }
 
     fn calculate_offset_llvm<I>(iter: I, llvm: &'fold Llvm<'ll>) -> IntValue<'ll>
@@ -2726,15 +2725,12 @@ fn get_indices<'ink>(
             let (start_ptr, end_ptr) = (
                 llvm.builder.build_in_bounds_gep(
                     dim_arr_gep,
-                    &[/*llvm.i32_type().const_zero(),*/ llvm.i32_type().const_int(i as u64 * 2, false)],
+                    &[llvm.i32_type().const_zero(), llvm.i32_type().const_int(i as u64 * 2, false)],
                     format!("start_idx_ptr{i}").as_str(),
                 ),
                 llvm.builder.build_in_bounds_gep(
                     dim_arr_gep,
-                    &[
-                        /*llvm.i32_type().const_zero(),*/
-                        llvm.i32_type().const_int(1 + i as u64 * 2, false),
-                    ],
+                    &[llvm.i32_type().const_zero(), llvm.i32_type().const_int(1 + i as u64 * 2, false)],
                     format!("end_idx_ptr{i}").as_str(),
                 ),
             );
@@ -2784,13 +2780,15 @@ fn get_dimension_lengths<'b, 'ink>(
 
 fn get_vla_accessor_factors<'b, 'ink>(
     llvm: &'b Llvm<'ink>,
-    lengths: &'b Vec<IntValue<'ink>>,
+    lengths: &'b [IntValue<'ink>],
 ) -> Vec<IntValue<'ink>> {
     (0..lengths.len())
         .map(|idx| {
             if idx == lengths.len() - 1 {
+                // the last dimension has a factor of 1
                 llvm.i32_type().const_int(1, false)
             } else {
+                // for other dimensions, calculate size to the right
                 lengths[idx + 1..lengths.len()].iter().product_llvm::<IntValue>(llvm)
             }
         })

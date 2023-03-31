@@ -91,3 +91,26 @@ fn global_variable_passed_to_function_as_vla() {
 
     insta::assert_snapshot!(res);
 }
+
+#[test]
+fn multi_dimensional_vla() {
+    let res = codegen(
+        r#"
+        FUNCTION foo : INT
+        VAR_INPUT
+            vla : ARRAY[*, *] OF INT;
+        END_VAR
+            vla[2, -1] := 1;
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            arr: ARRAY[0..4, -2..1] OF INT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+    "#,
+    );
+
+    insta::assert_snapshot!(res);
+}
