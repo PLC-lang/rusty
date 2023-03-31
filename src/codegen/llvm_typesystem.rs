@@ -111,10 +111,10 @@ trait Truncatable<'ctx, 'cast> {
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
     fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         match self {
-            BasicValueEnum::IntValue(val) => val.cast(&cast_data),
-            BasicValueEnum::FloatValue(val) => val.cast(&cast_data),
-            BasicValueEnum::PointerValue(val) => val.cast(&cast_data),
-            BasicValueEnum::ArrayValue(val) => val.cast(&cast_data),
+            BasicValueEnum::IntValue(val) => val.cast(cast_data),
+            BasicValueEnum::FloatValue(val) => val.cast(cast_data),
+            BasicValueEnum::PointerValue(val) => val.cast(cast_data),
+            BasicValueEnum::ArrayValue(val) => val.cast(cast_data),
             _ => self,
         }
     }
@@ -206,7 +206,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 ..
             } => {
                 // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
-                let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref").cast(&cast_data);
+                let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref").cast(cast_data);
 
                 // create a pointer to the generated StructValue
                 let struct_ptr = cast_data.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr");
@@ -241,7 +241,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         let array_pointer = cast_data
             .llvm_type_index
             .find_loaded_associated_variable_value(qualified_name.as_str())
-            .unwrap_or_else(|| unreachable!());
+            .unwrap_or_else(|| unreachable!("passed array must be in the llvm index"));
 
         // // bitcast to element
         let arr_bitcast = builder

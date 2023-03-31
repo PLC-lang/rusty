@@ -91,14 +91,14 @@ impl<'a> ParseSession<'a> {
         }
     }
 
-    /// consumes an optional token and returns true if it was consumed.
+    /// Tries to consume the given token, returning false if it failed.
     pub fn try_consume(&mut self, token: &Token) -> bool {
         if self.token == *token {
             self.advance();
-            true
-        } else {
-            false
+            return true;
         }
+
+        false
     }
 
     pub fn consume_or_report(&mut self, token: Token) {

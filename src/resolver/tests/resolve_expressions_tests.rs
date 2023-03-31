@@ -4030,10 +4030,6 @@ fn vla_access_assignment_receives_the_correct_type_hint() {
     };
     // RHS resolves to INT and receives type-hint to DINT
     assert_type_and_hint!(&annotations, &index, right.as_ref(), "INT", Some("DINT"));
-
-    let AstStatement::ArrayAccess { access, .. } = right.as_ref() else {
-            panic!("expected an array access, got none")
-    };
 }
 
 #[test]

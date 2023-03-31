@@ -1289,8 +1289,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement,
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
-                if self.annotations.get_type(&reference, self.index).unwrap().get_type_information().is_vla()
-                {
+                if self.annotations.get_type(reference, self.index).unwrap().get_type_information().is_vla() {
                     self.generate_array_access_for_vla(reference, access)
                 } else {
                     self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
@@ -1896,7 +1895,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
-                let type_hint = dbg!(self.get_type_hint_info_for(dbg!(literal_statement)))?;
+                let type_hint = self.get_type_hint_info_for(dbg!(literal_statement))?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
                         self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
@@ -2527,33 +2526,25 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, Diagnostic> {
         let builder = &self.llvm.builder;
-        let context = self.llvm.context;
-        let function = self.get_function_context(reference)?.function;
 
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(reference) else { unreachable!() };
 
         // find struct value in llvm index
-        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(&qualified_name).unwrap();
-
+        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
         // if the vla parameter is by-ref, we need to dereference the pointer
         let struct_ptr =
-            if self.index.find_fully_qualified_variable(&qualified_name).unwrap().is_in_parameter_by_ref() {
+            if self.index.find_fully_qualified_variable(qualified_name).unwrap().is_in_parameter_by_ref() {
                 builder.build_load(struct_ptr, "auto_deref").into_pointer_value()
             } else {
                 struct_ptr
             };
-
         // get the pointer to the original array
         let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").unwrap();
         // load array behind the pointer and store as pointer
         let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
-
         // get pointer to array containing dimension information
         let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
-
         // 2 i32 values per dim
-        // TODO: refactor into LOWER_BOUND/UPPER_BOUND built-in
-        // TODO: ======= map access statements to respective dimension, calculate offset based on n-elems per dim =======
         let (start_idx, _end_idx) = unsafe {
             (
                 builder.build_in_bounds_gep(
@@ -2569,55 +2560,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             )
         };
         let start_offset = builder.build_load(start_idx, "start_offset");
-        // let end_offset = self.llvm.builder.build_load(end_offset, "end_offset"); // TODO: should we check of out of bounds array access here? if so, what do we do if we detect it at runtime?
 
         let access_statements = access.get_as_list();
-        let access_value = self.generate_expression(access_statements[0])?;
-        let adjusted_access = builder.build_alloca(self.llvm.i32_type(), "access"); // TODO: else-block vs alloca/store?
-        builder.build_store(adjusted_access, access_value);
-        // =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======  =======
+        let access_value = if access_statements.len() > 1 {
+            // multi-dim
+            todo!()
+        } else {
+            let Some(stmt) = access_statements.get(0) else {
+                unreachable!("must have exactly 1 access statement")
+            };
+            let access_value = self.generate_expression(stmt)?;
 
-        // if start offset is not 0, adjust the access value accordingly
-        // TODO: branching is likely unnecessary, can just be a sub instruction
-        // insert THEN and CONTINUE blocks
-        builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        let continue_block = context.append_basic_block(function, "continue");
-        let conditional_block = context.prepend_basic_block(continue_block, "idx_normalization_body");
-
-        // create predicate
-        let condition = builder.build_int_compare(
-            IntPredicate::NE,
-            start_offset.into_int_value(),
-            self.llvm.i32_type().const_zero(),
-            "cmp",
-        );
-        builder.build_conditional_branch(to_i1(condition, builder), conditional_block, continue_block);
-
-        // generate if-statement content
-        builder.position_at_end(conditional_block);
-        builder.build_store(
-            adjusted_access,
-            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset),
-        );
-        builder.build_unconditional_branch(continue_block);
-        builder.position_at_end(continue_block);
+            // if start offset is not 0, adjust the access value accordingly
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset)
+                .into_int_value()
+        };
 
         // load accessed element from array
-        Ok(unsafe {
-            builder.build_gep(
-                vla_arr_ptr,
-                &[builder.build_load(adjusted_access, "adjusted_access").into_int_value()],
-                "arr_val",
-            )
-        })
-
-        // Ok(unsafe {
-        //     builder.build_in_bounds_gep(
-        //         vla_arr_ptr,
-        //         &[builder.build_load(adjusted_access, "adjusted_access").into_int_value()],
-        //         "arr_val",
-        //     )
-        // })
+        Ok(unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[access_value], "arr_val") })
     }
 }
 

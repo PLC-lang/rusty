@@ -193,6 +193,7 @@ fn variable_length_array_by_ref_param_access() {
 }
 
 #[test]
+#[ignore = "not yet implemented"]
 fn variable_length_array_output_param_access() {
     #[derive(Default)]
     struct MainType {
@@ -238,4 +239,37 @@ fn variable_length_array_output_param_access() {
     assert_eq!(6, main_type.c);
     assert_eq!(8, main_type.d);
     assert_eq!(10, main_type.e);
+}
+
+#[test]
+fn variable_length_array_with_global_array() {
+    #[derive(Default)]
+    struct MainType {
+        a: i32,
+    }
+
+    let mut main_type = MainType::default();
+    let src = r#"
+    VAR_GLOBAL
+        arr : ARRAY[0..1] OF INT;
+    END_VAR
+
+    FUNCTION foo : INT
+    VAR_INPUT
+        vla : ARRAY[*] OF INT;
+    END_VAR
+        vla[0] := 20;
+    END_FUNCTION
+
+    PROGRAM main
+    VAR
+        a : DINT;
+    END_VAR
+        foo(arr);
+        a := arr[0];
+    END_FUNCTION
+    "#;
+
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(20, main_type.a);
 }

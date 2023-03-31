@@ -852,10 +852,13 @@ pub enum AstStatement {
         expressions: Vec<AstStatement>,
         id: AstId,
     },
+    // TODO: Maybe introduce RangeKind, such that the RangeStatement can be defined as
+    // `RangeStatement { id, kind }`
+    // where kind is a enume defined as `RangeKind { Array(start, end) }`
     RangeStatement {
+        id: AstId,
         start: Box<AstStatement>,
         end: Box<AstStatement>,
-        id: AstId,
     },
     VlaRangeStatement {
         id: AstId,
