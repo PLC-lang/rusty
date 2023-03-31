@@ -47,7 +47,7 @@ impl RecursiveValidator {
     }
 
     /// Entry point of finding and reporting all recursive data structures.
-    pub fn validate_recursion(&mut self, index: &Index) {
+    pub fn validate(&mut self, index: &Index) {
         let mut nodes_all: IndexSet<&DataType> = IndexSet::new();
         let mut nodes_visited = IndexSet::new();
 

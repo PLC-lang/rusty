@@ -88,6 +88,7 @@ pub enum ErrNo {
     type__unresolved_generic,
     type__incompatible_size,
     type__invalid_operation,
+    type__invalid_name,
 
     //codegen related
     codegen__general,
@@ -677,6 +678,14 @@ impl Diagnostic {
         }
     }
 
+    pub fn invalid_type_name(name: &str, range: Vec<SourceRange>) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("{name} can not be used as a name because it is a built-in datatype"),
+            range,
+            err_no: ErrNo::type__invalid_name,
+        }
+    }
+
     pub(crate) fn global_name_conflict(
         name: &str,
         location: SourceRange,
@@ -771,6 +780,12 @@ pub struct ResolvedLocation {
     pub range: Range<usize>,
 }
 
+impl ResolvedLocation {
+    pub fn is_internal(&self) -> bool {
+        self.range == SourceRange::undefined().to_range()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ResolvedDiagnostics {
     pub message: String,
@@ -856,7 +871,7 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
 
             let result =
                 codespan_reporting::term::emit(&mut self.writer.lock(), &self.config, &self.files, &diag);
-            if result.is_err() {
+            if result.is_err() && d.main_location.is_internal() {
                 eprintln!("<internal>: {}", d.message);
             }
         }
