@@ -374,16 +374,16 @@ fn test_nested_if_with_missing_end_if() {
             "{:#?}",
             vec![AstStatement::IfStatement {
                 blocks: vec![ConditionalBlock {
-                    condition: Box::new(AstStatement::LiteralBool {
-                        value: false,
+                    condition: Box::new(AstStatement::Literal {
+                        kind: LiteralKind::LiteralBool { value: false },
                         location: SourceRange::undefined(),
                         id: 0
                     }),
                     body: vec![
                         AstStatement::IfStatement {
                             blocks: vec![ConditionalBlock {
-                                condition: Box::new(AstStatement::LiteralBool {
-                                    value: true,
+                                condition: Box::new(AstStatement::Literal {
+                                    kind: LiteralKind::LiteralBool { value: true },
                                     location: SourceRange::undefined(),
                                     id: 0
                                 }),
@@ -459,13 +459,13 @@ fn test_nested_for_with_missing_end_for() {
             "{:#?}",
             vec![AstStatement::ForLoopStatement {
                 counter: Box::new(ref_to("x")),
-                start: Box::new(AstStatement::LiteralInteger {
-                    value: 1,
+                start: Box::new(AstStatement::Literal {
+                    kind: LiteralKind::LiteralInteger { value: 1 },
                     location: SourceRange::undefined(),
                     id: 0
                 }),
-                end: Box::new(AstStatement::LiteralInteger {
-                    value: 2,
+                end: Box::new(AstStatement::Literal {
+                    kind: LiteralKind::LiteralInteger { value: 2 },
                     location: SourceRange::undefined(),
                     id: 0
                 }),
@@ -473,13 +473,13 @@ fn test_nested_for_with_missing_end_for() {
                 body: vec![
                     AstStatement::ForLoopStatement {
                         counter: Box::new(ref_to("x")),
-                        start: Box::new(AstStatement::LiteralInteger {
-                            value: 1,
+                        start: Box::new(AstStatement::Literal {
+                            kind: LiteralKind::LiteralInteger { value: 1 },
                             location: SourceRange::undefined(),
                             id: 0
                         }),
-                        end: Box::new(AstStatement::LiteralInteger {
-                            value: 2,
+                        end: Box::new(AstStatement::Literal {
+                            kind: LiteralKind::LiteralInteger { value: 2 },
                             location: SourceRange::undefined(),
                             id: 0
                         }),
@@ -534,8 +534,8 @@ fn test_repeat_with_missing_semicolon_in_body() {
                 AstStatement::RepeatLoopStatement {
                     body: vec![AstStatement::Assignment {
                         left: Box::new(ref_to("x")),
-                        right: Box::new(AstStatement::LiteralInteger {
-                            value: 3,
+                        right: Box::new(AstStatement::Literal {
+                            kind: LiteralKind::LiteralInteger { value: 3 },
                             location: SourceRange::undefined(),
                             id: 0
                         }),
@@ -748,8 +748,8 @@ fn test_while_with_missing_semicolon_in_body() {
                 AstStatement::WhileLoopStatement {
                     body: vec![AstStatement::Assignment {
                         left: Box::new(ref_to("x")),
-                        right: Box::new(AstStatement::LiteralInteger {
-                            value: 3,
+                        right: Box::new(AstStatement::Literal {
+                            kind: LiteralKind::LiteralInteger { value: 3 },
                             location: SourceRange::undefined(),
                             id: 0
                         }),

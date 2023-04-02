@@ -15,7 +15,7 @@ use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AstAnnotations;
 use crate::typesystem::{Dimension, StringEncoding, StructSource};
 use crate::Diagnostic;
-use crate::{ast::AstStatement, typesystem::DataTypeInformation};
+use crate::{ast::AstStatement, ast::literals::LiteralKind, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
         debug::DebugBuilderEnum,
@@ -295,12 +295,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::LiteralArray { .. }),
+                |stmt| matches!(stmt, AstStatement::Literal{ kind: LiteralKind::LiteralArray { .. }, ..}),
                 "LiteralArray",
             ),
             DataTypeInformation::String { .. } => self.generate_array_initializer(
                 data_type,
-                |stmt| matches!(stmt, AstStatement::LiteralString { .. }),
+                |stmt| matches!(stmt, AstStatement::Literal{ kind: LiteralKind::LiteralString { .. }, .. }),
                 "LiteralString",
             ),
             DataTypeInformation::SubRange { referenced_type, .. } => {

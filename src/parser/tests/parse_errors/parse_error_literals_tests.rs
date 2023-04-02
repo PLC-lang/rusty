@@ -1,4 +1,4 @@
-use crate::{ast::AstStatement::LiteralInteger, ast::*, test_utils::tests::parse, Diagnostic};
+use crate::{ast::*, test_utils::tests::parse, Diagnostic};
 
 #[test]
 fn illegal_literal_time_missing_segments_test() {
@@ -142,7 +142,7 @@ fn string_with_round_parens_can_be_parsed() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString1".to_string()),
-                    size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
+                    size: Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger{ value: 253 }, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
                 initializer: None,
@@ -152,13 +152,15 @@ fn string_with_round_parens_can_be_parsed() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString2".to_string()),
-                    size: Some(LiteralInteger { value: 254, location: (10..11).into(), id: 0 }),
+                    size: Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger{ value: 254 }, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
-                initializer: Some(AstStatement::LiteralString {
-                    is_wide: false,
+                initializer: Some(AstStatement::Literal {
+                    kind: crate::ast::literals::LiteralKind::LiteralString{
+                        is_wide: false,
+                        value: "abc".into(),
+                    },
                     location: (69..102).into(),
-                    value: "abc".into(),
                     id: 0,
                 }),
                 location: SourceRange::undefined(),
@@ -167,7 +169,7 @@ fn string_with_round_parens_can_be_parsed() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString3".to_string()),
-                    size: Some(LiteralInteger { value: 255, location: (10..11).into(), id: 0 }),
+                    size: Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger{ value: 255 }, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
                 initializer: None,

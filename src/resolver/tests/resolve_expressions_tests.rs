@@ -3,7 +3,7 @@ use core::panic;
 use insta::assert_snapshot;
 
 use crate::{
-    ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration},
+    ast::{self, flatten_expression_list, AstStatement, DataType, Pou, UserTypeDeclaration, LiteralKind},
     index::{Index, VariableType},
     lexer::IdProvider,
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
@@ -2013,7 +2013,7 @@ fn data_type_initializers_type_hint_test() {
         assert_eq!(Some(index.get_type("MyArray").unwrap()), annotations.get_type_hint(initializer, &index));
 
         let initializer = index.get_type("MyArray").unwrap().initial_value.unwrap();
-        if let AstStatement::LiteralArray { elements: Some(exp_list), .. } =
+        if let AstStatement::Literal { kind: LiteralKind::LiteralArray{elements: Some(exp_list)}, .. } =
             index.get_const_expressions().get_constant_statement(&initializer).unwrap()
         {
             if let AstStatement::ExpressionList { expressions: elements, .. } = exp_list.as_ref() {
@@ -2055,7 +2055,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
         assert_eq!(Some(my_array_type), annotations.get_type_hint(my_array_initializer, &index));
 
         let my_array_type_const_initializer = my_array_type.initial_value.unwrap();
-        if let AstStatement::LiteralArray { elements: Some(multiplied_statement), .. } =
+        if let AstStatement::Literal { kind: LiteralKind::LiteralArray{elements: Some(multiplied_statement)}, .. } =
             index.get_const_expressions().get_constant_statement(&my_array_type_const_initializer).unwrap()
         {
             if let AstStatement::MultipliedStatement { element: literal_seven, .. } =
@@ -2082,7 +2082,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
         );
 
         let global_var_const_initializer = global.initial_value.unwrap();
-        if let AstStatement::LiteralArray { elements: Some(multiplied_statement), .. } =
+        if let AstStatement::Literal { kind: LiteralKind::LiteralArray{elements: Some(multiplied_statement)}, .. } =
             index.get_const_expressions().get_constant_statement(&global_var_const_initializer).unwrap()
         {
             if let AstStatement::MultipliedStatement { element: literal_seven, .. } =

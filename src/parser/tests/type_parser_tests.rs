@@ -1,4 +1,4 @@
-use crate::{ast::*, parser::AstStatement::LiteralInteger, test_utils::tests::parse, Diagnostic};
+use crate::{ast::*, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
 #[test]
@@ -182,13 +182,13 @@ fn array_type_can_be_parsed_test() {
             data_type: DataType::ArrayType {
                 name: Some("MyArray".to_string()),
                 bounds: AstStatement::RangeStatement {
-                    start: Box::new(AstStatement::LiteralInteger {
-                        value: 0,
+                    start: Box::new(AstStatement::Literal {
+                        kind: LiteralKind::LiteralInteger { value: 0 },
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
-                    end: Box::new(AstStatement::LiteralInteger {
-                        value: 8,
+                    end: Box::new(AstStatement::Literal {
+                        kind: LiteralKind::LiteralInteger { value: 8 },
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
@@ -225,7 +225,7 @@ fn string_type_can_be_parsed_test() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
-                    size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
+                    size: Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger{ value: 253}, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
                 initializer: None,
@@ -235,13 +235,15 @@ fn string_type_can_be_parsed_test() {
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
-                    size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
+                    size: Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger{value: 253}, location: (10..11).into(), id: 0 }),
                     is_wide: false,
                 },
-                initializer: Some(AstStatement::LiteralString {
-                    is_wide: false,
+                initializer: Some(AstStatement::Literal {
+                    kind: LiteralKind::LiteralString{
+                        is_wide: false,
+                        value: "abc".into(),
+                    },
                     location: SourceRange::undefined(),
-                    value: "abc".into(),
                     id: 0,
                 }),
                 location: SourceRange::undefined(),
@@ -268,7 +270,7 @@ fn wide_string_type_can_be_parsed_test() {
         &UserTypeDeclaration {
             data_type: DataType::StringType {
                 name: Some("MyString".to_string()),
-                size: Some(LiteralInteger { value: 253, location: (10..11).into(), id: 0 }),
+                size: Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger{value: 253}, location: (10..11).into(), id: 0 }),
                 is_wide: true,
             },
             initializer: None,
@@ -296,8 +298,8 @@ fn subrangetype_can_be_parsed() {
             data_type: DataType::SubRangeType {
                 name: None,
                 bounds: Some(AstStatement::RangeStatement {
-                    start: Box::new(LiteralInteger { value: 0, location: SourceRange::undefined(), id: 0 }),
-                    end: Box::new(LiteralInteger { value: 1000, location: SourceRange::undefined(), id: 0 }),
+                start: Box::new( AstStatement::Literal { kind: LiteralKind::LiteralInteger{value: 0}, location: SourceRange::undefined(), id: 0 }),
+                end: Box::new(AstStatement::Literal { kind: LiteralKind::LiteralInteger{value: 1000}, location: SourceRange::undefined(), id: 0 }),
                     id: 0,
                 }),
                 referenced_type: "UINT".to_string(),

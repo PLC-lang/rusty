@@ -3,7 +3,8 @@ use super::symbol::{SymbolLocation, SymbolLocationFactory};
 use super::{HardwareBinding, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::ast::{
     self, ArgumentProperty, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
+    LiteralKind, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
+    VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{ArgumentType, Index, MemberInfo};
@@ -582,7 +583,7 @@ fn visit_data_type(
             let encoding = if *is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
 
             let size = match size {
-                Some(AstStatement::LiteralInteger { value, .. }) => {
+                Some(AstStatement::Literal { kind: LiteralKind::LiteralInteger { value, .. }, .. }) => {
                     TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
@@ -591,10 +592,10 @@ fn visit_data_type(
                         id: statement.get_id(),
                         left: Box::new(statement.clone()),
                         operator: ast::Operator::Plus,
-                        right: Box::new(AstStatement::LiteralInteger {
-                            id: statement.get_id(),
+                        right: Box::new(AstStatement::Literal {
+                            kind: LiteralKind::LiteralInteger { value: 1 },
                             location: statement.get_location(),
-                            value: 1,
+                            id: statement.get_id(),
                         }),
                     };
 

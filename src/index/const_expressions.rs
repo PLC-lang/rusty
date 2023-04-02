@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::AstStatement;
+use crate::ast::{AstStatement, LiteralKind};
 use generational_arena::{Arena, Iter};
 
 pub type ConstId = generational_arena::Index;
@@ -204,7 +204,7 @@ impl ConstExpressions {
     pub fn get_constant_int_statement_value(&self, id: &ConstId) -> Result<i128, String> {
         self.get_constant_statement(id).ok_or_else(|| "Cannot find constant expression".into()).and_then(
             |it| match it {
-                AstStatement::LiteralInteger { value, .. } => Ok(*value),
+                AstStatement::Literal { kind: LiteralKind::LiteralInteger { value, .. }, .. } => Ok(*value),
                 _ => Err(format!("Cannot extract int constant from {it:#?}")),
             },
         )
