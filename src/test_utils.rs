@@ -202,4 +202,21 @@ pub mod tests {
         )?;
         Ok(cg.module.print_to_string().to_string())
     }
+
+    pub fn compile_with_root<T: SourceContainer>(
+        sources: Vec<T>,
+        includes: Vec<T>,
+        root: &str,
+        debug_level: DebugLevel,
+    ) -> Result<String, Diagnostic> {
+        let context = Context::create();
+        let (_, cg) = crate::compile_module(
+            &context,
+            sources,
+            includes,
+            None,
+            &CompileOptions { debug_level, root: Some(root.into()), ..Default::default() },
+        )?;
+        Ok(cg.module.print_to_string().to_string())
+    }
 }
