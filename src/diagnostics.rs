@@ -64,7 +64,10 @@ pub enum ErrNo {
 
     //array related
     arr__invalid_array_assignment,
+
+    // VLA related
     vla__invalid_container,
+    vla__invalid_array_access,
 
     //reference related
     reference__unresolved,
@@ -752,6 +755,14 @@ impl Diagnostic {
 
     pub fn invalid_vla_container(message: String, range: SourceRange) -> Diagnostic {
         Diagnostic::SemanticError { message, range: vec![range], err_no: ErrNo::vla__invalid_container }
+    }
+
+    pub fn invalid_vla_array_access(expected: usize, actual: usize, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError {
+            message: format!("Expected array access with {expected} dimensions, found {actual}"),
+            range: vec![range],
+            err_no: ErrNo::vla__invalid_array_access,
+        }
     }
 }
 

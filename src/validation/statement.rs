@@ -7,7 +7,8 @@ use crate::{
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
     typesystem::{
-        self, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, BOOL_TYPE, POINTER_SIZE,
+        self, get_equals_function_name_for, DataType, DataTypeInformation, Dimension, StructSource,
+        BOOL_TYPE, POINTER_SIZE,
     },
     Diagnostic,
 };
@@ -290,19 +291,42 @@ fn visit_array_access(
 ) {
     let target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
-    if let DataTypeInformation::Array { dimensions, .. } = target_type {
-        if let AstStatement::ExpressionList { expressions, .. } = access {
-            for (i, exp) in expressions.iter().enumerate() {
-                validate_array_access(validator, exp, dimensions, i, context);
+    match target_type {
+        DataTypeInformation::Array { dimensions, .. } => {
+            if let AstStatement::ExpressionList { expressions, .. } = access {
+                for (i, exp) in expressions.iter().enumerate() {
+                    validate_array_access(validator, exp, dimensions, i, context);
+                }
+            } else {
+                validate_array_access(validator, access, dimensions, 0, context);
             }
-        } else {
-            validate_array_access(validator, access, dimensions, 0, context);
         }
-    } else {
-        validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
+
+        DataTypeInformation::Struct {
+            source: StructSource::Internal(typesystem::InternalType::VariableLengthArray { ndims, .. }),
+            ..
+        } => {
+            if let AstStatement::ExpressionList { expressions, .. } = access {
+                if *ndims != expressions.len() {
+                    validator.push_diagnostic(Diagnostic::invalid_vla_array_access(
+                        *ndims,
+                        expressions.len(),
+                        access.get_location(),
+                    ))
+                }
+            } else if *ndims != 1 {
+                validator.push_diagnostic(Diagnostic::invalid_vla_array_access(
+                    *ndims,
+                    1,
+                    access.get_location(),
+                ))
+            }
+        }
+
+        _ => validator.push_diagnostic(Diagnostic::incompatible_array_access_variable(
             target_type.get_name(),
             access.get_location(),
-        ));
+        )),
     }
 }
 
