@@ -224,6 +224,7 @@ impl DataType {
             TypeNature::String => matches!(other.nature, TypeNature::String),
             TypeNature::Any => true,
             TypeNature::Derived => matches!(other.nature, TypeNature::Derived),
+
             _ => false,
         }
     }
@@ -454,12 +455,16 @@ impl DataTypeInformation {
         )
     }
 
-    pub fn get_vla_dimensions(&self) -> Option<usize> {
-        let DataTypeInformation::Struct{source: StructSource::Internal(InternalType::VariableLengthArray { ndims , ..}), ..} = self else {
-            return None;
-        };
+    pub fn get_dimensions(&self) -> Option<usize> {
+        match self {
+            DataTypeInformation::Array { dimensions, .. } => Some(dimensions.len()),
+            DataTypeInformation::Struct {
+                source: StructSource::Internal(InternalType::VariableLengthArray { ndims, .. }),
+                ..
+            } => Some(*ndims),
 
-        Some(*ndims)
+            _ => None,
+        }
     }
 
     pub fn get_vla_referenced_type(&self) -> Option<String> {

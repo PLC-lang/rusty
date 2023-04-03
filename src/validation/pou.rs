@@ -8,7 +8,7 @@ pub fn visit_pou(validator: &mut Validator, pou: &Pou, context: &ValidationConte
     validate_pou(validator, pou, context);
 
     for block in &pou.variable_blocks {
-        visit_variable_block(validator, block, context);
+        visit_variable_block(validator, Some(pou), block, context);
     }
 }
 

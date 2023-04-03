@@ -3671,7 +3671,7 @@ fn vla_struct_reference_is_annotated_as_array() {
     assert_eq!(type_, index.get_type("__foo_arr").unwrap());
 
     assert_eq!(
-        dbg!(type_hint.clone().information),
+        type_hint.clone().information,
         DataTypeInformation::Array {
             name: "__arr_vla_1_int".to_string(),
             inner_type_name: "INT".to_string(),

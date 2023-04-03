@@ -526,6 +526,13 @@ fn validate_assignment(
             left_type
         };
 
+        if left_type.is_vla() && right_type.is_array() {
+            // TODO: This could benefit from a better error message, currently it's:
+            // "Invalid assignment: cannot assign '__main_arr' to '__foobar_vla"
+            validate_variable_length_array(validator, context, location, left_type, right_type);
+            return;
+        }
+
         if !left_type.is_compatible_with_type(right_type)
             || !is_valid_assignment(left_type, right_type, right, context.index, location, validator)
         {
@@ -537,6 +544,32 @@ fn validate_assignment(
         } else if !right.is_literal() {
             validate_assignment_type_sizes(validator, left_type, right_type, location, context)
         }
+    }
+}
+
+// TODO: Merge with original if-statement within validate_assignment
+fn validate_variable_length_array(
+    validator: &mut Validator,
+    context: &ValidationContext,
+    location: &SourceRange,
+    left_type: &DataType,
+    right_type: &DataType,
+) {
+    let left_inner_type = left_type.get_type_information().get_vla_referenced_type().unwrap();
+    let right_inner_type = right_type.get_type_information().get_inner_array_type_name().unwrap();
+
+    let left_dt = context.index.get_effective_type_or_void_by_name(&left_inner_type);
+    let right_dt = context.index.get_effective_type_or_void_by_name(&right_inner_type);
+
+    let left_dims = left_type.get_type_information().get_dimensions().unwrap();
+    let right_dims = right_type.get_type_information().get_dimensions().unwrap();
+
+    if left_dt != right_dt || left_dims != right_dims {
+        validator.push_diagnostic(Diagnostic::invalid_assignment(
+            right_type.get_type_information().get_name(),
+            left_type.get_type_information().get_name(),
+            location.clone(),
+        ));
     }
 }
 

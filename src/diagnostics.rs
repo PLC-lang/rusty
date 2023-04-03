@@ -64,6 +64,7 @@ pub enum ErrNo {
 
     //array related
     arr__invalid_array_assignment,
+    vla__invalid_container,
 
     //reference related
     reference__unresolved,
@@ -739,6 +740,18 @@ impl Diagnostic {
             range,
             err_no: ErrNo::pou__recursive_data_structure,
         }
+    }
+
+    pub fn vla_input_by_val(range: SourceRange) -> Diagnostic {
+        Diagnostic::ImprovementSuggestion {
+            message: "Variable Length Arrays are always by-ref, even when declared in a by-value block"
+                .to_string(),
+            range: vec![range],
+        }
+    }
+
+    pub fn invalid_vla_container(message: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::SemanticError { message, range: vec![range], err_no: ErrNo::vla__invalid_container }
     }
 }
 

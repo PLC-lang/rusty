@@ -1,5 +1,7 @@
 use crate::{
-    ast::{AstStatement, Variable, VariableBlock, VariableBlockType},
+    ast::{
+        ArgumentProperty, AstStatement, DataType, Pou, PouType, Variable, VariableBlock, VariableBlockType,
+    },
     index::const_expressions::ConstExpression,
     Diagnostic,
 };
@@ -9,11 +11,23 @@ use super::{
     validate_for_array_assignment, ValidationContext, Validator, Validators,
 };
 
-pub fn visit_variable_block(validator: &mut Validator, block: &VariableBlock, context: &ValidationContext) {
+pub fn visit_variable_block(
+    validator: &mut Validator,
+    pou: Option<&Pou>,
+    block: &VariableBlock,
+    context: &ValidationContext,
+) {
     validate_variable_block(validator, block);
 
     for variable in &block.variables {
         visit_variable(validator, variable, context);
+
+        // TODO: ugly af
+        if let Some(referenced_type) = variable.data_type_declaration.get_referenced_type() {
+            if context.index.get_type_information_or_void(&referenced_type).is_vla() && pou.is_some() {
+                validate_vla(validator, pou.as_ref().unwrap(), block, variable);
+            }
+        }
     }
 }
 
@@ -29,6 +43,32 @@ pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &
     validate_variable(validator, variable, context);
 
     visit_data_type_declaration(validator, &variable.data_type_declaration, context);
+}
+
+fn validate_vla(validator: &mut Validator, pou: &Pou, block: &VariableBlock, variable: &Variable) {
+    match (&pou.pou_type, block.variable_block_type) {
+        (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => {
+            validator.push_diagnostic(Diagnostic::vla_input_by_val(variable.location.clone()))
+        }
+
+        (PouType::Program, _) => validator.push_diagnostic(Diagnostic::invalid_vla_container(
+            format!("Variable Length Arrays are not allowed to be defined inside a Program",),
+            variable.location.clone(),
+        )),
+
+        (
+            PouType::Function | PouType::Method { .. },
+            VariableBlockType::Input(_) | VariableBlockType::Output | VariableBlockType::InOut,
+        )
+        | (PouType::FunctionBlock, VariableBlockType::InOut) => (),
+        _ => validator.push_diagnostic(Diagnostic::invalid_vla_container(
+            format!(
+                "Variable Length Arrays are not allowed to be defined as {} variables inside a {}",
+                block.variable_block_type, pou.pou_type
+            ),
+            variable.location.clone(),
+        )),
+    }
 }
 
 fn validate_variable(validator: &mut Validator, variable: &Variable, context: &ValidationContext) {

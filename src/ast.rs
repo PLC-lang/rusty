@@ -266,6 +266,19 @@ pub enum PouType {
     Method { owner_class: String },
 }
 
+impl Display for PouType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            PouType::Program => write!(f, "Program"),
+            PouType::Function => write!(f, "Function"),
+            PouType::FunctionBlock => write!(f, "FunctionBlock"),
+            PouType::Action => write!(f, "Action"),
+            PouType::Class => write!(f, "Class"),
+            PouType::Method { .. } => write!(f, "Method"),
+        }
+    }
+}
+
 impl PouType {
     /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
     pub fn get_optional_owner_class(&self) -> Option<String> {
@@ -366,6 +379,19 @@ pub enum VariableBlockType {
     Output,
     Global,
     InOut,
+}
+
+impl Display for VariableBlockType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            VariableBlockType::Local => write!(f, "Local"),
+            VariableBlockType::Temp => write!(f, "Temp"),
+            VariableBlockType::Input(_) => write!(f, "Input"),
+            VariableBlockType::Output => write!(f, "Output"),
+            VariableBlockType::Global => write!(f, "Global"),
+            VariableBlockType::InOut => write!(f, "InOut"),
+        }
+    }
 }
 
 #[derive(Debug, Copy, PartialEq, Eq, Clone)]
@@ -570,6 +596,12 @@ impl DataTypeDeclaration {
             DataTypeDeclaration::DataTypeReference { location, .. } => location.clone(),
             DataTypeDeclaration::DataTypeDefinition { location, .. } => location.clone(),
         }
+    }
+
+    pub fn get_referenced_type(&self) -> Option<String> {
+        // TODO: Difference between Definition and Reference; are Definition aliases / typedefs?
+        let DataTypeDeclaration::DataTypeReference {referenced_type, ..} = self else { return None };
+        Some(referenced_type.to_owned())
     }
 }
 
