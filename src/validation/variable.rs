@@ -1,7 +1,5 @@
 use crate::{
-    ast::{
-        ArgumentProperty, AstStatement, DataType, Pou, PouType, Variable, VariableBlock, VariableBlockType,
-    },
+    ast::{ArgumentProperty, AstStatement, Pou, PouType, Variable, VariableBlock, VariableBlockType},
     index::const_expressions::ConstExpression,
     Diagnostic,
 };

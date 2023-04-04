@@ -599,7 +599,6 @@ impl DataTypeDeclaration {
     }
 
     pub fn get_referenced_type(&self) -> Option<String> {
-        // TODO: Difference between Definition and Reference; are Definition aliases / typedefs?
         let DataTypeDeclaration::DataTypeReference {referenced_type, ..} = self else { return None };
         Some(referenced_type.to_owned())
     }
