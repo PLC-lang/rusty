@@ -265,7 +265,6 @@ impl StringEncoding {
     }
 }
 
-/// Used to determine size/length of ranges. // TODO: revisit struct name. sharpen doc string
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeSize {
     LiteralInteger(i64),
@@ -433,16 +432,7 @@ impl DataTypeInformation {
     }
 
     pub fn is_array(&self) -> bool {
-        matches!(self, DataTypeInformation::Array { .. }) || self.is_vla() // TODO: are VLAs always arrays?
-    }
-
-    pub fn is_numerical(&self) -> bool {
-        matches!(
-            self,
-            DataTypeInformation::Integer { .. }
-                | DataTypeInformation::Float { .. }
-                | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
-        )
+        matches!(self, DataTypeInformation::Array { .. })
     }
 
     pub fn is_vla(&self) -> bool {
@@ -452,6 +442,15 @@ impl DataTypeInformation {
                 source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
                 ..
             }
+        )
+    }
+
+    pub fn is_numerical(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Integer { .. }
+                | DataTypeInformation::Float { .. }
+                | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
         )
     }
 

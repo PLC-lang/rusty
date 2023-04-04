@@ -1289,8 +1289,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement,
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
-                if self.annotations.get_type(reference, self.index).unwrap().get_type_information().is_vla() {
-                    self.generate_array_access_for_vla(reference, access)
+                let Some(dt) = self.annotations.get_type(&reference, self.index) else {
+                    unreachable!("At this point a reference must have a type annotation")
+                };
+
+                if dt.get_type_information().is_vla() {
+                    self.generate_array_access_for_vla(reference, access).map_err(|_| {
+                        Diagnostic::codegen_error("Failed to generate VLA", reference.get_location())
+                    })
                 } else {
                     self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
                 }
@@ -2524,26 +2530,26 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         reference: &AstStatement,
         access: &AstStatement,
-    ) -> Result<PointerValue<'ink>, Diagnostic> {
+    ) -> Result<PointerValue<'ink>, ()> {
         let builder = &self.llvm.builder;
 
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(reference) else { unreachable!() };
 
         // find struct value in llvm index
-        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).unwrap();
+        let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?;
         // if the vla parameter is by-ref, we need to dereference the pointer
         let struct_ptr =
-            if self.index.find_fully_qualified_variable(qualified_name).unwrap().is_in_parameter_by_ref() {
+            if self.index.find_fully_qualified_variable(qualified_name).ok_or(())?.is_in_parameter_by_ref() {
                 builder.build_load(struct_ptr, "auto_deref").into_pointer_value()
             } else {
                 struct_ptr
             };
         // get the pointer to the original array
-        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").unwrap();
+        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep")?;
         // load array behind the pointer and store as pointer
         let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
         // get pointer to array containing dimension information
-        let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
+        let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr")?;
         // 2 i32 values per dim
         let (start_idx, _end_idx) = unsafe {
             (
@@ -2569,7 +2575,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let Some(stmt) = access_statements.get(0) else {
                 unreachable!("must have exactly 1 access statement")
             };
-            let access_value = self.generate_expression(stmt)?;
+            let access_value = self.generate_expression(stmt).map_err(|_| ())?;
 
             // if start offset is not 0, adjust the access value accordingly
             self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset)

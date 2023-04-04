@@ -1081,8 +1081,6 @@ impl<'i> TypeAnnotator<'i> {
                 };
                 if let Some(annotation) = annotation {
                     self.annotation_map.annotate(statement, annotation);
-
-                    // TODO: statement.is_vla()
                     self.maybe_annotate_vla(statement);
                 }
             }
@@ -1216,7 +1214,7 @@ impl<'i> TypeAnnotator<'i> {
                 .get_type_information()
             {
                 let Some(qualified_name) = self.annotation_map.get_qualified_name(statement) else {
-                    todo!("error handling - guessing unreachable")
+                    unreachable!("VLAs are defined within POUs, such that the qualified name *must* exist")
                 };
 
                 let hint_annotation = StatementAnnotation::Variable {
