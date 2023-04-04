@@ -1,3 +1,5 @@
+use crate::{assert_validation_snapshot, test_utils::tests::parse_and_validate};
+
 static SOURCE: &str = "
     <POU_TYPE> fn : DINT
         VAR_<VAR_TYPE>
@@ -13,6 +15,17 @@ static SOURCE: &str = "
         fn(local);
     END_FUNCTION
 ";
+
+#[test]
+fn variable_length_array_defined_as_a_global_variable() {
+    let src = "
+        VAR_GLOBAL
+            arr : ARRAY[*] OF DINT;
+        END_VAR
+    ";
+
+    assert_validation_snapshot!(parse_and_validate(src));
+}
 
 mod functions {
     use crate::{

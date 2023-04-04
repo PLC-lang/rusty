@@ -22,8 +22,8 @@ pub fn visit_variable_block(
 
         // TODO: ugly af
         if let Some(referenced_type) = variable.data_type_declaration.get_referenced_type() {
-            if context.index.get_type_information_or_void(&referenced_type).is_vla() && pou.is_some() {
-                validate_vla(validator, pou.as_ref().unwrap(), block, variable);
+            if context.index.get_type_information_or_void(&referenced_type).is_vla() {
+                validate_vla(validator, pou, block, variable);
             }
         }
     }
@@ -43,7 +43,18 @@ pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &
     visit_data_type_declaration(validator, &variable.data_type_declaration, context);
 }
 
-fn validate_vla(validator: &mut Validator, pou: &Pou, block: &VariableBlock, variable: &Variable) {
+fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBlock, variable: &Variable) {
+    let Some(pou) = pou else {
+        if matches!(block.variable_block_type, VariableBlockType::Global) {
+            validator.push_diagnostic(Diagnostic::invalid_vla_container(
+                format!("VLAs can not be defined as global variables"),
+                variable.location.clone())
+            )
+        }
+
+        return;
+    };
+
     match (&pou.pou_type, block.variable_block_type) {
         (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => {
             validator.push_diagnostic(Diagnostic::vla_input_by_val(variable.location.clone()))
