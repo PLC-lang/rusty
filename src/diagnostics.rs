@@ -745,7 +745,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn vla_input_by_val(range: SourceRange) -> Diagnostic {
+    pub fn vla_by_val_warning(range: SourceRange) -> Diagnostic {
         Diagnostic::ImprovementSuggestion {
             message: "Variable Length Arrays are always by-ref, even when declared in a by-value block"
                 .to_string(),

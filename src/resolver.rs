@@ -731,9 +731,6 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_data_type(&mut self, ctx: &VisitorContext, data_type: &DataType) {
         match data_type {
-            DataType::VariableLengthArrayType { referenced_type, .. } => {
-                self.visit_data_type_declaration(ctx, referenced_type)
-            }
             DataType::StructType { name: Some(name), variables, .. } => {
                 let ctx = ctx.with_qualifier(name.clone());
                 variables.iter().for_each(|v| self.visit_variable(&ctx, v))

@@ -1290,13 +1290,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
                 let Some(dt) = self.annotations.get_type(&reference, self.index) else {
-                    unreachable!("At this point a reference must have a type annotation")
+                    // XXX: will be reachable until we abort codegen on critical errors (e.g. unresolved references)
+                    unreachable!("unresolved reference")
                 };
 
                 if dt.get_type_information().is_vla() {
-                    self.generate_array_access_for_vla(reference, access).map_err(|_| {
-                        Diagnostic::codegen_error("Failed to generate VLA", reference.get_location())
-                    })
+                    self.generate_array_access_for_vla(reference, access)
+                        .map_err(|_| unreachable!("invalid access statement"))
                 } else {
                     self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access)
                 }

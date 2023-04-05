@@ -57,7 +57,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
 
     match (&pou.pou_type, block.variable_block_type) {
         (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => {
-            validator.push_diagnostic(Diagnostic::vla_input_by_val(variable.location.clone()))
+            validator.push_diagnostic(Diagnostic::vla_by_val_warning(variable.location.clone()))
         }
 
         (PouType::Program, _) => validator.push_diagnostic(Diagnostic::invalid_vla_container(

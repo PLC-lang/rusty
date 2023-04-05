@@ -257,11 +257,11 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         let vla_struct = builder.build_alloca(ty, "vla_struct");
 
         let Ok(vla_arr_ptr) = builder.build_struct_gep(vla_struct, 0, "vla_array_gep") else {
-            unreachable!("Failed to GEP onto internal array pointer field; this should not happen")
+            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
         };
 
         let Ok(vla_dimensions_ptr) = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep") else {
-            unreachable!("Failed to GEP onto internal array dimension field; this should not happen")
+            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
         };
 
         // -- Generate dimensions --

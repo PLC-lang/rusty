@@ -416,199 +416,28 @@ fn visit_data_type(
                 location: symbol_location_factory.create_symbol_location(&type_declaration.location),
             });
         }
-        DataType::ArrayType { name: Some(name), referenced_type, bounds } => {
-            let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
-                .get_as_list()
-                .iter()
-                .map(|it| match it {
-                    AstStatement::RangeStatement { start, end, .. } => {
-                        let constants = index.get_mut_const_expressions();
-                        Ok(Dimension {
-                            start_offset: TypeSize::from_expression(constants.add_constant_expression(
-                                *start.clone(),
-                                typesystem::INT_TYPE.to_string(),
-                                scope.clone(),
-                            )),
-                            end_offset: TypeSize::from_expression(constants.add_constant_expression(
-                                *end.clone(),
-                                typesystem::INT_TYPE.to_string(),
-                                scope.clone(),
-                            )),
-                        })
-                    }
-                    _ => Err(Diagnostic::codegen_error(
-                        // TODO:why is this a codegen error?!?!
-                        "Invalid array definition: RangeStatement expected",
-                        it.get_location(),
-                    )),
-                })
-                .collect();
-            let dimensions = dimensions.unwrap(); //TODO hmm we need to talk about all this unwrapping :-/
-            let referenced_type_name = referenced_type.get_name().expect("named datatype");
-            let information = DataTypeInformation::Array {
-                name: name.clone(),
-                inner_type_name: referenced_type_name.to_string(),
-                dimensions,
-            };
-
-            let init1 = index.get_mut_const_expressions().maybe_add_constant_expression(
-                type_declaration.initializer.clone(),
+        DataType::ArrayType { name: Some(name), referenced_type, bounds, is_variable_length }
+            if *is_variable_length =>
+        {
+            visit_variable_length_array(
+                bounds,
+                referenced_type,
                 name,
-                scope.clone(),
-            );
-            // TODO unfortunately we cannot share const-expressions between multiple
-            // index-entries
-            let init2 = index.get_mut_const_expressions().maybe_add_constant_expression(
-                type_declaration.initializer.clone(),
-                name,
-                scope.clone(),
-            );
-
-            index.register_type(typesystem::DataType {
-                name: name.to_string(),
-                initial_value: init1,
-                information,
-                nature: TypeNature::Any,
-                location: symbol_location_factory.create_symbol_location(&type_declaration.location),
-            });
-            let global_init_name = crate::index::get_initializer_name(name);
-            if init2.is_some() {
-                let variable = VariableIndexEntry::create_global(
-                    global_init_name.as_str(),
-                    global_init_name.as_str(),
-                    name,
-                    symbol_location_factory.create_symbol_location(&type_declaration.location),
-                )
-                .set_constant(true)
-                .set_initial_value(init2);
-                index.register_global_initializer(&global_init_name, variable);
-            }
-        }
-        DataType::VariableLengthArrayType { name: Some(name), bounds, referenced_type } => {
-            /*
-            for VLAs, we internally create a fat pointer (struct), which contains a pointer to the passed array plus metadata. e.g.:
-                                    STRUCT
-                                        ptr : REF_TO ARRAY[*] OF INT;
-            ARRAY[*, *, *] OF INT =>    dimensions: ARRAY[0..2, 0..1] OF DINT;
-                                                                ^^^^ --> start, end
-                                                          ^^^^       --> amount of dimensions
-                                    END_STRUCT
-            */
-
-            let ndims = match bounds {
-                AstStatement::VlaRangeStatement { .. } => 1,
-                AstStatement::ExpressionList { expressions, .. } => expressions.len(),
-                _ => unreachable!("not a bounds statement"),
-            };
-
-            let referenced_type = referenced_type.as_ref().get_name().expect("named datatype").to_string();
-            let struct_name = name.clone();
-
-            // register dummy array type so it can later be annotated as a type hint
-            let array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
-            index.register_type(typesystem::DataType {
-                name: array_name.clone(),
-                initial_value: None,
-                information: DataTypeInformation::Array {
-                    name: array_name.clone(),
-                    inner_type_name: referenced_type.clone(),
-                    // dummy dimensions that will never actually be used
-                    dimensions: (0..ndims)
-                        .map(|_| Dimension {
-                            start_offset: TypeSize::Undetermined,
-                            end_offset: TypeSize::Undetermined,
-                        })
-                        .collect::<Vec<_>>(),
-                },
-                nature: TypeNature::Any,
-                location: SymbolLocation::internal(),
-            });
-
-            let variables = vec![
-                Variable {
-                    name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::PointerType {
-                            name: Some(format!("ptr_to_{array_name}")),
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeDefinition {
-                                data_type: DataType::ArrayType {
-                                    name: Some(array_name),
-                                    bounds: bounds.clone(),
-                                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                                        referenced_type: referenced_type.clone(),
-                                        location: SourceRange::undefined(),
-                                    }),
-                                },
-                                location: SourceRange::undefined(),
-                                scope: None,
-                            }),
-                        },
-                        location: SourceRange::undefined(),
-                        scope: None,
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceRange::undefined(),
-                },
-                Variable {
-                    name: "dimensions".to_string(),
-                    data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::ArrayType {
-                            name: Some("n_dims".to_string()),
-                            bounds: AstStatement::ExpressionList {
-                                expressions: (0..ndims)
-                                    .map(|_| AstStatement::RangeStatement {
-                                        start: Box::new(AstStatement::LiteralInteger {
-                                            value: 0,
-                                            location: SourceRange::undefined(),
-                                            id: 0,
-                                        }),
-                                        end: Box::new(AstStatement::LiteralInteger {
-                                            value: 1,
-                                            location: SourceRange::undefined(),
-                                            id: 0,
-                                        }),
-                                        id: 0,
-                                    })
-                                    .collect::<_>(),
-                                id: 0,
-                            },
-                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                                referenced_type: DINT_TYPE.to_string(),
-                                location: SourceRange::undefined(),
-                            }),
-                        },
-                        location: SourceRange::undefined(),
-                        scope: None,
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceRange::undefined(),
-                },
-            ];
-
-            let struct_t =
-                DataType::StructType { name: Some(struct_name.clone()), variables: variables.clone() };
-            let type_dec = UserTypeDeclaration {
-                data_type: struct_t,
-                initializer: None,
-                location: type_declaration.location.clone(),
-                scope: type_declaration.scope.clone(),
-            };
-
-            // visit the internally created struct type
-            visit_struct(
-                &struct_name,
-                &variables,
                 index,
+                type_declaration,
                 symbol_location_factory,
-                &type_declaration.scope,
-                &type_dec,
-                StructSource::Internal(InternalType::VariableLengthArray {
-                    inner_type_name: referenced_type,
-                    ndims,
-                }),
-            )
+            );
+        }
+        DataType::ArrayType { name: Some(name), bounds, referenced_type, .. } => {
+            visit_array(
+                bounds,
+                index,
+                scope,
+                referenced_type,
+                name,
+                type_declaration,
+                symbol_location_factory,
+            );
         }
         DataType::PointerType { name: Some(name), referenced_type, .. } => {
             let inner_type_name = referenced_type.get_name().expect("named datatype");
@@ -706,6 +535,213 @@ fn visit_data_type(
 
         _ => { /* unnamed datatypes are ignored */ }
     };
+}
+
+fn visit_variable_length_array(
+    bounds: &AstStatement,
+    referenced_type: &Box<DataTypeDeclaration>,
+    name: &String,
+    index: &mut Index,
+    type_declaration: &UserTypeDeclaration,
+    symbol_location_factory: &SymbolLocationFactory,
+) {
+    /*
+    for VLAs, we internally create a fat pointer (struct), which contains a pointer to the passed array plus metadata. e.g.:
+                            STRUCT
+                                ptr : REF_TO ARRAY[*] OF INT;
+    ARRAY[*, *, *] OF INT =>    dimensions: ARRAY[0..2, 0..1] OF DINT;
+                                                        ^^^^ --> start, end
+                                                  ^^^^       --> amount of dimensions
+                            END_STRUCT
+    */
+
+    let ndims = match bounds {
+        AstStatement::VlaRangeStatement { .. } => 1,
+        AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+        _ => unreachable!("not a bounds statement"),
+    };
+
+    let referenced_type = referenced_type.as_ref().get_name().expect("named datatype").to_string();
+    let struct_name = name.clone();
+
+    // register dummy array type so it can later be annotated as a type hint
+    let array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
+    index.register_type(typesystem::DataType {
+        name: array_name.clone(),
+        initial_value: None,
+        information: DataTypeInformation::Array {
+            name: array_name.clone(),
+            inner_type_name: referenced_type.clone(),
+            // dummy dimensions that will never actually be used
+            dimensions: (0..ndims)
+                .map(|_| Dimension {
+                    start_offset: TypeSize::Undetermined,
+                    end_offset: TypeSize::Undetermined,
+                })
+                .collect::<Vec<_>>(),
+        },
+        nature: TypeNature::Any,
+        location: SymbolLocation::internal(),
+    });
+
+    let variables = vec![
+        Variable {
+            name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
+            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                data_type: DataType::PointerType {
+                    name: Some(format!("ptr_to_{array_name}")),
+                    referenced_type: Box::new(DataTypeDeclaration::DataTypeDefinition {
+                        data_type: DataType::ArrayType {
+                            name: Some(array_name),
+                            bounds: bounds.clone(),
+                            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                                referenced_type: referenced_type.clone(),
+                                location: SourceRange::undefined(),
+                            }),
+                            is_variable_length: false,
+                        },
+                        location: SourceRange::undefined(),
+                        scope: None,
+                    }),
+                },
+                location: SourceRange::undefined(),
+                scope: None,
+            },
+            initializer: None,
+            address: None,
+            location: SourceRange::undefined(),
+        },
+        Variable {
+            name: "dimensions".to_string(),
+            data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
+                data_type: DataType::ArrayType {
+                    name: Some("n_dims".to_string()),
+                    bounds: AstStatement::ExpressionList {
+                        expressions: (0..ndims)
+                            .map(|_| AstStatement::RangeStatement {
+                                start: Box::new(AstStatement::LiteralInteger {
+                                    value: 0,
+                                    location: SourceRange::undefined(),
+                                    id: 0,
+                                }),
+                                end: Box::new(AstStatement::LiteralInteger {
+                                    value: 1,
+                                    location: SourceRange::undefined(),
+                                    id: 0,
+                                }),
+                                id: 0,
+                            })
+                            .collect::<_>(),
+                        id: 0,
+                    },
+                    referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                        referenced_type: DINT_TYPE.to_string(),
+                        location: SourceRange::undefined(),
+                    }),
+                    is_variable_length: false,
+                },
+                location: SourceRange::undefined(),
+                scope: None,
+            },
+            initializer: None,
+            address: None,
+            location: SourceRange::undefined(),
+        },
+    ];
+
+    let struct_t = DataType::StructType { name: Some(struct_name.clone()), variables: variables.clone() };
+    let type_dec = UserTypeDeclaration {
+        data_type: struct_t,
+        initializer: None,
+        location: type_declaration.location.clone(),
+        scope: type_declaration.scope.clone(),
+    };
+
+    // visit the internally created struct type
+    visit_struct(
+        &struct_name,
+        &variables,
+        index,
+        symbol_location_factory,
+        &type_declaration.scope,
+        &type_dec,
+        StructSource::Internal(InternalType::VariableLengthArray { inner_type_name: referenced_type, ndims }),
+    )
+}
+
+fn visit_array(
+    bounds: &AstStatement,
+    index: &mut Index,
+    scope: &Option<String>,
+    referenced_type: &Box<DataTypeDeclaration>,
+    name: &String,
+    type_declaration: &UserTypeDeclaration,
+    symbol_location_factory: &SymbolLocationFactory,
+) {
+    let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
+        .get_as_list()
+        .iter()
+        .map(|it| match it {
+            AstStatement::RangeStatement { start, end, .. } => {
+                let constants = index.get_mut_const_expressions();
+                Ok(Dimension {
+                    start_offset: TypeSize::from_expression(constants.add_constant_expression(
+                        *start.clone(),
+                        typesystem::INT_TYPE.to_string(),
+                        scope.clone(),
+                    )),
+                    end_offset: TypeSize::from_expression(constants.add_constant_expression(
+                        *end.clone(),
+                        typesystem::INT_TYPE.to_string(),
+                        scope.clone(),
+                    )),
+                })
+            }
+            // XXX: is this actually unreachable or just missing test coverage?
+            _ => unreachable!("Invalid array definition: RangeStatement expected"),
+        })
+        .collect();
+    let dimensions = dimensions.unwrap();
+    //TODO hmm we need to talk about all this unwrapping :-/
+    let referenced_type_name = referenced_type.get_name().expect("named datatype");
+    let information = DataTypeInformation::Array {
+        name: name.clone(),
+        inner_type_name: referenced_type_name.to_string(),
+        dimensions,
+    };
+
+    let init1 = index.get_mut_const_expressions().maybe_add_constant_expression(
+        type_declaration.initializer.clone(),
+        name,
+        scope.clone(),
+    );
+    // TODO unfortunately we cannot share const-expressions between multiple
+    // index-entries
+    let init2 = index.get_mut_const_expressions().maybe_add_constant_expression(
+        type_declaration.initializer.clone(),
+        name,
+        scope.clone(),
+    );
+
+    index.register_type(typesystem::DataType {
+        name: name.to_string(),
+        initial_value: init1,
+        information,
+        nature: TypeNature::Any,
+        location: symbol_location_factory.create_symbol_location(&type_declaration.location),
+    });
+    let global_init_name = crate::index::get_initializer_name(name);
+    if init2.is_some() {
+        let variable = VariableIndexEntry::create_global(
+            global_init_name.as_str(),
+            global_init_name.as_str(),
+            name,
+            symbol_location_factory.create_symbol_location(&type_declaration.location),
+        )
+        .set_constant(true)
+        .set_initial_value(init2);
+        index.register_global_initializer(&global_init_name, variable);
+    }
 }
 
 fn visit_struct(

@@ -44,7 +44,7 @@ pub struct DataTypeGenerator<'ink, 'b> {
 /// this function may create and register a ...
 /// - Struct type for a STRUCT
 /// - global variables for enum-elements
-/// - an alias index entry for sub-range types
+/// - an alias index entry for sub-range types         
 /// - Array type for arrays
 /// - array type for sized Strings
 pub fn generate_data_types<'ink>(
@@ -442,16 +442,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         .as_basic_type_enum();
 
         Ok(result)
-
-        // XXX: is the code commented out below really necessary? What are the
-        // scenarios where this would return an Err?
-        // let array_result: Result<BasicTypeEnum, _> = result.try_into();
-        // array_result.map_err(|_| {
-        //     Diagnostic::codegen_error(
-        //         &format!("Expected ArrayType but found {result:#?}"),
-        //         SourceRange::undefined(),
-        //     )
-        // })
     }
 }
 
