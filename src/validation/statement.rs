@@ -578,8 +578,8 @@ fn validate_variable_length_array(
     let left_inner_type = left_type.get_type_information().get_vla_referenced_type().unwrap();
     let right_inner_type = right_type.get_type_information().get_inner_array_type_name().unwrap();
 
-    let left_dt = context.index.get_effective_type_or_void_by_name(&left_inner_type);
-    let right_dt = context.index.get_effective_type_or_void_by_name(&right_inner_type);
+    let left_dt = context.index.get_effective_type_or_void_by_name(left_inner_type);
+    let right_dt = context.index.get_effective_type_or_void_by_name(right_inner_type);
 
     let left_dims = left_type.get_type_information().get_dimensions().unwrap();
     let right_dims = right_type.get_type_information().get_dimensions().unwrap();

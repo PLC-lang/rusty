@@ -1289,7 +1289,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 reference_statement,
             ),
             AstStatement::ArrayAccess { reference, access, .. } => {
-                let Some(dt) = self.annotations.get_type(&reference, self.index) else {
+                let Some(dt) = self.annotations.get_type(reference, self.index) else {
                     // XXX: will be reachable until we abort codegen on critical errors (e.g. unresolved references)
                     unreachable!("unresolved reference")
                 };

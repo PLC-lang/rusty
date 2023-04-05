@@ -549,8 +549,8 @@ fn visit_data_type(
 /// ```
 fn visit_variable_length_array(
     bounds: &AstStatement,
-    referenced_type: &Box<DataTypeDeclaration>,
-    name: &String,
+    referenced_type: &DataTypeDeclaration,
+    name: &str,
     index: &mut Index,
     type_declaration: &UserTypeDeclaration,
     symbol_location_factory: &SymbolLocationFactory,
@@ -561,8 +561,8 @@ fn visit_variable_length_array(
         _ => unreachable!("not a bounds statement"),
     };
 
-    let referenced_type = referenced_type.as_ref().get_name().expect("named datatype").to_string();
-    let struct_name = name.clone();
+    let referenced_type = referenced_type.get_name().expect("named datatype").to_string();
+    let struct_name = name.to_owned();
 
     // register dummy array type so it can later be annotated as a type hint
     let array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
@@ -676,7 +676,7 @@ fn visit_array(
     bounds: &AstStatement,
     index: &mut Index,
     scope: &Option<String>,
-    referenced_type: &Box<DataTypeDeclaration>,
+    referenced_type: &DataTypeDeclaration,
     name: &String,
     type_declaration: &UserTypeDeclaration,
     symbol_location_factory: &SymbolLocationFactory,

@@ -50,7 +50,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
     let Some(pou) = pou else {
         if matches!(block.variable_block_type, VariableBlockType::Global) {
             validator.push_diagnostic(Diagnostic::invalid_vla_container(
-                format!("VLAs can not be defined as global variables"),
+                "VLAs can not be defined as global variables".to_string(),
                 variable.location.clone())
             )
         }
@@ -64,7 +64,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         }
 
         (PouType::Program, _) => validator.push_diagnostic(Diagnostic::invalid_vla_container(
-            format!("Variable Length Arrays are not allowed to be defined inside a Program",),
+            "Variable Length Arrays are not allowed to be defined inside a Program".to_string(),
             variable.location.clone(),
         )),
 
