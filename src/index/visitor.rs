@@ -539,7 +539,7 @@ fn visit_data_type(
 
 /// Internally we create a fat pointer struct for VLAs, which consists of a pointer to the passed array plus
 /// its dimensions, such that `ARRAY[*, *, *] OF INT` becomes
-/// ```no_run
+/// ```ignore
 /// STRUCT
 ///     ptr       : REF_TO ARRAY[*] OF INT;
 ///     dimensions: ARRAY[0..2, 0..1] OF DINT;
