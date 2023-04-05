@@ -467,7 +467,7 @@ impl DataTypeInformation {
     }
 
     pub fn get_vla_referenced_type(&self) -> Option<String> {
-        let DataTypeInformation::Struct{source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = self else {
+        let DataTypeInformation::Struct { source: StructSource::Internal(InternalType::VariableLengthArray { inner_type_name , ..}), ..} = self else {
             return None;
         };
 
@@ -653,8 +653,7 @@ impl Dimension {
     }
 
     pub fn is_undetermined(&self) -> bool {
-        matches!(self.start_offset, TypeSize::Undetermined)
-            & matches!(self.end_offset, TypeSize::Undetermined)
+        matches!((self.start_offset, self.end_offset), (TypeSize::Undetermined, TypeSize::Undetermined))
     }
 }
 

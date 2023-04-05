@@ -10,6 +10,7 @@ use crate::{
 use self::{
     control_parser::parse_control_statement,
     expressions_parser::{parse_expression, parse_expression_list},
+    helper::{create_array, create_vla},
 };
 
 mod control_parser;
@@ -794,64 +795,23 @@ fn parse_array_type_definition(
     let inner_type_defintion = parse_data_type_definition(lexer, None);
     inner_type_defintion.map(|(reference, initializer)| {
         let location = lexer.source_range_factory.create_range(start..reference.get_location().get_end());
-        match &range {
-            AstStatement::RangeStatement { .. } => (
-                DataTypeDeclaration::DataTypeDefinition {
-                    data_type: DataType::ArrayType {
-                        name,
-                        bounds: range,
-                        referenced_type: Box::new(reference),
-                    },
-                    location,
-                    scope: lexer.scope.clone(),
-                },
-                initializer,
-            ),
 
-            AstStatement::VlaRangeStatement { .. } => (
-                DataTypeDeclaration::DataTypeDefinition {
-                    data_type: DataType::VariableLengthArrayType {
-                        name,
-                        bounds: range,
-                        referenced_type: Box::new(reference),
-                    },
-                    location,
-                    scope: lexer.scope.clone(),
-                },
-                initializer,
-            ),
+        let array = match &range {
+            // Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
+            AstStatement::RangeStatement { .. } => create_array(reference, name, range, location, lexer),
+            AstStatement::VlaRangeStatement { .. } => create_vla(reference, name, range, location, lexer),
 
+            // Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
             AstStatement::ExpressionList { expressions, .. } => match expressions[0] {
-                AstStatement::RangeStatement { .. } => (
-                    DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::ArrayType {
-                            name,
-                            bounds: range,
-                            referenced_type: Box::new(reference),
-                        },
-                        location,
-                        scope: lexer.scope.clone(),
-                    },
-                    initializer,
-                ),
-
-                AstStatement::VlaRangeStatement { .. } => (
-                    DataTypeDeclaration::DataTypeDefinition {
-                        data_type: DataType::VariableLengthArrayType {
-                            name,
-                            bounds: range,
-                            referenced_type: Box::new(reference),
-                        },
-                        location,
-                        scope: lexer.scope.clone(),
-                    },
-                    initializer,
-                ),
-
-                _ => unreachable!("lets find out"),
+                AstStatement::RangeStatement { .. } => create_array(reference, name, range, location, lexer),
+                AstStatement::VlaRangeStatement { .. } => create_vla(reference, name, range, location, lexer),
+                _ => unreachable!(),
             },
-            _ => unreachable!(""),
-        }
+
+            _ => unreachable!(),
+        };
+
+        (array, initializer)
     })
 }
 
@@ -1073,5 +1033,44 @@ fn parse_hardware_access(
         })
     } else {
         Err(Diagnostic::missing_token("LiteralInteger", lexer.location()))
+    }
+}
+
+mod helper {
+    use crate::{
+        ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange},
+        lexer::ParseSession,
+    };
+
+    pub(super) fn create_array(
+        reference: DataTypeDeclaration,
+        name: Option<String>,
+        range: AstStatement,
+        location: SourceRange,
+        lexer: &mut ParseSession,
+    ) -> DataTypeDeclaration {
+        DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType { name, bounds: range, referenced_type: Box::new(reference) },
+            location,
+            scope: lexer.scope.clone(),
+        }
+    }
+
+    pub(super) fn create_vla(
+        reference: DataTypeDeclaration,
+        name: Option<String>,
+        range: AstStatement,
+        location: SourceRange,
+        lexer: &mut ParseSession,
+    ) -> DataTypeDeclaration {
+        DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::VariableLengthArrayType {
+                name,
+                bounds: range,
+                referenced_type: Box::new(reference),
+            },
+            location,
+            scope: lexer.scope.clone(),
+        }
     }
 }

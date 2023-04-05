@@ -65,7 +65,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou, symbol_location_factory: &SymbolL
 
             if let Some(var_type_name) = var.data_type_declaration.get_name() {
                 let type_name = if block_type.is_by_ref() {
-                    // TODO: register a pointer type/auto deref for our array pointer
                     //register a pointer type for argument
                     register_byref_pointer_type_for(index, var_type_name)
                 } else {

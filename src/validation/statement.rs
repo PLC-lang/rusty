@@ -292,32 +292,29 @@ fn visit_array_access(
     let target_type = context.annotations.get_type_or_void(reference, context.index).get_type_information();
 
     match target_type {
-        DataTypeInformation::Array { dimensions, .. } => {
-            if let AstStatement::ExpressionList { expressions, .. } = access {
+        DataTypeInformation::Array { dimensions, .. } => match access {
+            AstStatement::ExpressionList { expressions, .. } => {
                 for (i, exp) in expressions.iter().enumerate() {
                     validate_array_access(validator, exp, dimensions, i, context);
                 }
-            } else {
-                validate_array_access(validator, access, dimensions, 0, context);
             }
-        }
+
+            _ => validate_array_access(validator, access, dimensions, 0, context),
+        },
 
         DataTypeInformation::Struct {
             source: StructSource::Internal(typesystem::InternalType::VariableLengthArray { ndims, .. }),
             ..
         } => {
-            if let AstStatement::ExpressionList { expressions, .. } = access {
-                if *ndims != expressions.len() {
-                    validator.push_diagnostic(Diagnostic::invalid_vla_array_access(
-                        *ndims,
-                        expressions.len(),
-                        access.get_location(),
-                    ))
-                }
-            } else if *ndims != 1 {
+            let dims = match access {
+                AstStatement::ExpressionList { expressions, .. } => expressions.len(),
+                _ => 1,
+            };
+
+            if *ndims != dims {
                 validator.push_diagnostic(Diagnostic::invalid_vla_array_access(
                     *ndims,
-                    1,
+                    dims,
                     access.get_location(),
                 ))
             }
