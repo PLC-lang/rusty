@@ -537,6 +537,16 @@ fn visit_data_type(
     };
 }
 
+/// Internally we create a fat pointer struct for VLAs, which consists of a pointer to the passed array plus
+/// its dimensions, such that `ARRAY[*, *, *] OF INT` becomes
+/// ```no_run
+/// STRUCT
+///     ptr       : REF_TO ARRAY[*] OF INT;
+///     dimensions: ARRAY[0..2, 0..1] OF DINT;
+///                       ^^^^       --> dimension index
+///                             ^^^^ --> start- & end-offset
+/// END_STRUCT
+/// ```
 fn visit_variable_length_array(
     bounds: &AstStatement,
     referenced_type: &Box<DataTypeDeclaration>,
@@ -545,16 +555,6 @@ fn visit_variable_length_array(
     type_declaration: &UserTypeDeclaration,
     symbol_location_factory: &SymbolLocationFactory,
 ) {
-    /*
-    for VLAs, we internally create a fat pointer (struct), which contains a pointer to the passed array plus metadata. e.g.:
-                            STRUCT
-                                ptr : REF_TO ARRAY[*] OF INT;
-    ARRAY[*, *, *] OF INT =>    dimensions: ARRAY[0..2, 0..1] OF DINT;
-                                                        ^^^^ --> start, end
-                                                  ^^^^       --> amount of dimensions
-                            END_STRUCT
-    */
-
     let ndims = match bounds {
         AstStatement::VlaRangeStatement { .. } => 1,
         AstStatement::ExpressionList { expressions, .. } => expressions.len(),
@@ -584,7 +584,9 @@ fn visit_variable_length_array(
         location: SymbolLocation::internal(),
     });
 
+    // Create variable index entries for VLA struct members
     let variables = vec![
+        // Pointer
         Variable {
             name: format!("struct_vla_{referenced_type}_{ndims}").to_lowercase(),
             data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
@@ -611,6 +613,7 @@ fn visit_variable_length_array(
             address: None,
             location: SourceRange::undefined(),
         },
+        // Dimensions Array
         Variable {
             name: "dimensions".to_string(),
             data_type_declaration: DataTypeDeclaration::DataTypeDefinition {
@@ -649,15 +652,15 @@ fn visit_variable_length_array(
         },
     ];
 
-    let struct_t = DataType::StructType { name: Some(struct_name.clone()), variables: variables.clone() };
+    let struct_ty = DataType::StructType { name: Some(struct_name.clone()), variables: variables.clone() };
     let type_dec = UserTypeDeclaration {
-        data_type: struct_t,
+        data_type: struct_ty,
         initializer: None,
         location: type_declaration.location.clone(),
         scope: type_declaration.scope.clone(),
     };
 
-    // visit the internally created struct type
+    // visit the internally created struct type to also index its members
     visit_struct(
         &struct_name,
         &variables,

@@ -219,10 +219,10 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
+    /// Generates a fat pointer struct for an array if the target type is a VLA, otherwise returns the value
+    /// as is.
     fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        // TODO: High-Level documentation / explanation of the following code
         if !cast_data.target_type.is_vla() {
-            // Not a VLA, return as is
             return self.into();
         }
         let builder = &cast_data.llvm.builder;
@@ -234,7 +234,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
                     unreachable!("Target type of cast instruction does not exist: {}", cast_data.target_type.get_name())
                 };
 
-        // get array annotation from parent POU and get pointer to array
+        // Get array annotation from parent POU and get pointer to array
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation  else {
             unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
         };
@@ -243,7 +243,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             .find_loaded_associated_variable_value(qualified_name.as_str())
             .unwrap_or_else(|| unreachable!("passed array must be in the llvm index"));
 
-        // // bitcast to element
+        // Bitcast to element
         let arr_bitcast = builder
             .build_bitcast(
                 array_pointer,
@@ -281,7 +281,6 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         }
 
         builder.build_store(vla_arr_ptr, arr_bitcast);
-
         builder.build_load(vla_struct, "")
     }
 }

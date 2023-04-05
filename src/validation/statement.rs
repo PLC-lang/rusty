@@ -548,14 +548,14 @@ fn validate_assignment(
         };
 
         if left_type.is_vla() && right_type.is_array() {
-            // TODO: This could benefit from a better error message, currently it's:
-            // "Invalid assignment: cannot assign '__main_arr' to '__foobar_vla"
+            // TODO: This could benefit from a better error message, tracked in
+            // https://github.com/PLC-lang/rusty/issues/118
             validate_variable_length_array(validator, context, location, left_type, right_type);
             return;
         }
 
-        if !left_type.is_compatible_with_type(right_type)
-            || !is_valid_assignment(left_type, right_type, right, context.index, location, validator)
+        if !(left_type.is_compatible_with_type(right_type)
+            && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
                 right_type.get_type_information().get_name(),
@@ -568,7 +568,6 @@ fn validate_assignment(
     }
 }
 
-// TODO: Merge with original if-statement within validate_assignment
 fn validate_variable_length_array(
     validator: &mut Validator,
     context: &ValidationContext,

@@ -20,7 +20,6 @@ pub fn visit_variable_block(
     for variable in &block.variables {
         visit_variable(validator, variable, context);
 
-        // TODO: ugly af
         if let Some(referenced_type) = variable.data_type_declaration.get_referenced_type() {
             if context.index.get_type_information_or_void(&referenced_type).is_vla() {
                 validate_vla(validator, pou, block, variable);
@@ -43,6 +42,10 @@ pub fn visit_variable(validator: &mut Validator, variable: &Variable, context: &
     visit_data_type_declaration(validator, &variable.data_type_declaration, context);
 }
 
+/// Validates Variable Length Arrays as specified in the IEC61131-3, i.e. VLAs are only allowed to be defined
+/// inside the following Variable Block and POU combinations
+/// - Input, Output and InOut within a Function or Method or
+/// - InOut within Function-Block
 fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBlock, variable: &Variable) {
     let Some(pou) = pou else {
         if matches!(block.variable_block_type, VariableBlockType::Global) {

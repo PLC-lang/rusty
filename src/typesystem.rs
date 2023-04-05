@@ -265,6 +265,7 @@ impl StringEncoding {
     }
 }
 
+/// Enum for ranges and aggregate type sizes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TypeSize {
     LiteralInteger(i64),

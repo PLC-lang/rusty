@@ -817,8 +817,8 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstStatement) {
         match statement {
             AstStatement::ArrayAccess { reference, access, .. } => {
-                visit_all_statements!(self, ctx, reference); // this could just be visit_statement?
-                                                             // self.visit_statement(ctx, reference);
+                visit_all_statements!(self, ctx, reference);
+
                 self.visit_statement(
                     &VisitorContext {
                         lhs: None,
@@ -1196,6 +1196,8 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
+    /// Checks if the given reference statement is a VLA struct and if so annotates it with a type hint
+    /// referencing the contained array. This is needed to simplify codegen and validation.
     fn maybe_annotate_vla(&mut self, statement: &AstStatement) {
         if let DataTypeInformation::Struct {
             source: StructSource::Internal(InternalType::VariableLengthArray { .. }),

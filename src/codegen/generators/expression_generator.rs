@@ -1419,12 +1419,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    /*
-       get dimension lengths from dimension array in struct
-       deref the array pointer in struct
-       ...
-    */
-
     /// generates the access-expression for an array-reference
     /// myArray[array_expression] where array_expression is the access-expression
     ///
@@ -2526,17 +2520,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
+    /// Generate a GEP instruction, accessing the array pointed to within the VLA struct at runtime.
+    /// TODO: Will be explained in the multi dimension branch
     fn generate_array_access_for_vla(
         &self,
         reference: &AstStatement,
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, ()> {
         let builder = &self.llvm.builder;
-
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(reference) else { unreachable!() };
 
-        // find struct value in llvm index
         let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?;
+
         // if the vla parameter is by-ref, we need to dereference the pointer
         let struct_ptr =
             if self.index.find_fully_qualified_variable(qualified_name).ok_or(())?.is_in_parameter_by_ref() {
@@ -2544,14 +2539,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             } else {
                 struct_ptr
             };
-        // get the pointer to the original array
+
+        // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
+        // dereferences the former
         let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep")?;
-        // load array behind the pointer and store as pointer
         let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
-        // get pointer to array containing dimension information
         let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr")?;
-        // 2 i32 values per dim
-        let (start_idx, _end_idx) = unsafe {
+
+        // XXX: The second tuple element will be needed in the multi dim feature
+        let (start_idx, _) = unsafe {
             (
                 builder.build_in_bounds_gep(
                     dim_arr_gep,
@@ -2565,15 +2561,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ),
             )
         };
-        let start_offset = builder.build_load(start_idx, "start_offset");
 
+        let start_offset = builder.build_load(start_idx, "start_offset");
         let access_statements = access.get_as_list();
         let access_value = if access_statements.len() > 1 {
-            // multi-dim
-            todo!()
+            todo!("multi dimension")
         } else {
             let Some(stmt) = access_statements.get(0) else {
-                unreachable!("must have exactly 1 access statement")
+                unreachable!("Must have exactly 1 access statement")
             };
             let access_value = self.generate_expression(stmt).map_err(|_| ())?;
 
