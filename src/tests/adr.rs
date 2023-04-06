@@ -6,3 +6,4 @@ mod pou_adr;
 mod strings_adr;
 mod structs_adr;
 mod util_macros;
+mod vla_adr;
