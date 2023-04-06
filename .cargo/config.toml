@@ -1,2 +1,5 @@
 [alias]
 xtask = "run --manifest-path ./xtask/Cargo.toml --"
+
+[target.aarch64-unknown-linux-gnu]
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
