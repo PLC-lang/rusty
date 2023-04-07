@@ -1,3 +1,5 @@
+use std::ffi::CStr;
+
 use rusty::runner::compile_and_run;
 
 #[test]
@@ -416,4 +418,119 @@ fn variable_length_array_with_global_array() {
 
     let _: i32 = compile_and_run(src.to_string(), &mut main_type);
     assert_eq!(20, main_type.a);
+}
+
+#[test]
+fn variable_length_array_multi_dimension_with_strings() {
+    #[repr(C)]
+    struct MainType {
+        a: [u8; 81],
+        b: [u8; 81],
+        c: [u8; 81],
+        d: [u8; 81],
+    }
+
+    let mut maintype = MainType { a: [0_u8; 81], b: [0_u8; 81], c: [0_u8; 81], d: [0_u8; 81] };
+    let src = r#"
+    PROGRAM main
+        VAR
+            a, b, c, d: STRING;
+        END_VAR
+        VAR_TEMP
+            arr : ARRAY[0..1, 0..1] OF STRING;
+        END_VAR
+
+        foo(arr);
+        a := arr[0, 0];
+        b := arr[0, 1];
+        c := arr[1, 0];
+        d := arr[1, 1];   
+    END_PROGRAM
+
+    FUNCTION foo : DINT
+        VAR_INPUT
+            vla : ARRAY[ *, * ] OF STRING;
+        END_VAR
+
+        vla[0, 0] := 'brave ';
+        vla[0, 1] := 'new ';
+        vla[1, 0] := 'world ';
+        vla[1, 1] := '📖';  
+    END_FUNCTION
+    "#;
+
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    let expected = "brave new world 📖";
+    let result = format!(
+        "{}{}{}{}",
+        unsafe { CStr::from_bytes_with_nul_unchecked(&maintype.a) }.to_str().unwrap().trim_end_matches('\0'),
+        unsafe { CStr::from_bytes_with_nul_unchecked(&maintype.b) }.to_str().unwrap().trim_end_matches('\0'),
+        unsafe { CStr::from_bytes_with_nul_unchecked(&maintype.c) }.to_str().unwrap().trim_end_matches('\0'),
+        unsafe { CStr::from_bytes_with_nul_unchecked(&maintype.d) }.to_str().unwrap().trim_end_matches('\0'),
+    );
+    assert_eq!(expected, result);
+}
+
+#[test]
+#[ignore = "not yet implemented"]
+fn variable_length_array_of_array() {
+    #[derive(Default)]
+    struct MainType {
+        a: i32,
+        b: i32,
+        c: i32,
+        d: i32,
+        e: i32,
+        f: i32,
+        g: i32,
+        h: i32,
+    }
+
+    let mut main_type = MainType::default();
+    let src = r#"
+    PROGRAM main
+        VAR
+            a, b, c, d, e, f, g, h: DINT;
+        END_VAR
+        VAR_TEMP
+            arr : ARRAY[0..1, 0..1] OF ARRAY[0..1] OF DINT;
+        END_VAR
+
+        foo(arr);
+        a := arr[0, 0][0];
+        b := arr[0, 0][1];
+        c := arr[0, 1][0];
+        d := arr[0, 1][1];   
+        e := arr[1, 0][0];   
+        f := arr[1, 0][1];   
+        g := arr[1, 1][0];   
+        h := arr[1, 1][1];   
+        
+    END_PROGRAM
+
+    FUNCTION foo : DINT
+        VAR_INPUT
+            vla : ARRAY[ *, * ] OF ARRAY[ * ] OF DINT;
+        END_VAR
+
+        vla[0, 0][0] := 0;
+        vla[0, 0][1] := 1;
+        vla[0, 1][0] := 2;
+        vla[0, 1][1] := 3;
+        vla[1, 0][0] := 4; 
+        vla[1, 0][1] := 5; 
+        vla[1, 1][0] := 6; 
+        vla[1, 1][1] := 7; 
+    END_FUNCTION
+    "#;
+
+    let _: i32 = compile_and_run(src.to_string(), &mut main_type);
+    assert_eq!(0, main_type.a);
+    assert_eq!(1, main_type.b);
+    assert_eq!(2, main_type.c);
+    assert_eq!(3, main_type.d);
+    assert_eq!(4, main_type.e);
+    assert_eq!(5, main_type.f);
+    assert_eq!(6, main_type.g);
+    assert_eq!(7, main_type.h);
 }

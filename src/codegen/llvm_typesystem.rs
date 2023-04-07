@@ -1,9 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{
     context::Context,
-    types::{BasicType, FloatType, IntType},
+    types::{FloatType, IntType},
     values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
-    AddressSpace,
 };
 
 use crate::{
@@ -12,10 +11,7 @@ use crate::{
     typesystem::{DataType, DataTypeInformation, InternalType, StructSource},
 };
 
-use super::{
-    generators::{llvm::Llvm, ADDRESS_SPACE_GENERIC},
-    llvm_index::LlvmTypedIndex,
-};
+use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
 
 /// Generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
 /// the original `value` if no cast is necessary or if the provided value is not eligible to be cast (to the target type or at all).
@@ -219,8 +215,8 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
-    /// Generates a fat pointer struct for an array if the target type is a VLA, otherwise returns the value
-    /// as is.
+    /// Generates a fat pointer struct for an array if the target type is a VLA,
+    /// otherwise returns the value as is.
     fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
         if !cast_data.target_type.is_vla() {
             return self.into();
@@ -245,19 +241,6 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
 
         // gep into the original array. the resulting address will be stored in the VLA struct
         let arr_gep = unsafe { builder.build_in_bounds_gep(array_pointer, &[zero, zero], "outer_arr_gep") };
-
-        // let arr_bitcast = builder
-        //     .build_bitcast(
-        //         array_pointer,
-        //         array_pointer
-        //             .get_type()
-        //             .get_element_type()
-        //             .into_array_type()
-        //             .get_element_type()
-        //             .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-        //         "",
-        //     )
-        //     .into_pointer_value();
 
         // -- Generate struct & arr_ptr --
         let ty = associated_type.into_struct_type();

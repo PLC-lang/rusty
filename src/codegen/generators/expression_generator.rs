@@ -2528,7 +2528,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         access: &AstStatement,
     ) -> Result<PointerValue<'ink>, ()> {
         let builder = &self.llvm.builder;
-        let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(reference) else { unreachable!() };
+
+        // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
+        let annotation = match reference {
+            AstStatement::Reference { .. } => self.annotations.get(reference),
+            AstStatement::ArrayAccess { reference, .. } => self.annotations.get(reference.as_ref()),
+            _ => unreachable!(),
+        };
+
+        let Some(StatementAnnotation::Variable { qualified_name, .. }) = annotation else {
+            unreachable!()
+        };
 
         let struct_ptr = self.llvm_index.find_loaded_associated_variable_value(qualified_name).ok_or(())?;
 
